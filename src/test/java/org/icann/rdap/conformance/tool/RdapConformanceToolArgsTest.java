@@ -13,16 +13,26 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testNoConfigArg_IsRequired() {
-    String[] args = {};
+    String[] args = "http://example.org".split(" ");
 
     assertThatExceptionOfType(MissingParameterException.class).isThrownBy(
         () -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
-        .withMessage("Missing required option: '--config=<configFile>'");
+        .withMessage("Missing required option: '--config=<configurationFile>'");
+  }
+
+  @Test
+  public void testNoURL_IsRequired() {
+    String[] args = "--config=/tmp/test".split(" ");
+
+    assertThatExceptionOfType(MissingParameterException.class).isThrownBy(
+        () -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
+        .withMessage("Missing required parameter: 'RDAP_URI'");
   }
 
   @Test
   public void testUseRdapProfileArg_RequiresGtldRegistryOrGtldRegistrar() {
-    String[] args = "--config=/tmp/test --use-rdap-profile-february-2019".split(" ");
+    String[] args = "--config=/tmp/test --use-rdap-profile-february-2019 http://example.org"
+        .split(" ");
 
     assertThatExceptionOfType(MissingParameterException.class).isThrownBy(
         () -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
@@ -31,7 +41,7 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testUseRdapProfileArg_WithGtldRegistry_isOK() {
-    String[] args = "--config=/tmp/test --use-rdap-profile-february-2019 --gtld-registry"
+    String[] args = "--config=/tmp/test --use-rdap-profile-february-2019 --gtld-registry http://example.org"
         .split(" ");
 
     assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
@@ -41,7 +51,7 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testUseRdapProfileArg_WithGtldRegistrar_isOK() {
-    String[] args = "--config=/tmp/test --use-rdap-profile-february-2019 --gtld-registrar"
+    String[] args = "--config=/tmp/test --use-rdap-profile-february-2019 --gtld-registrar http://example.org"
         .split(" ");
 
     assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
@@ -51,7 +61,8 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testGtldRegistryAndGtldRegistrarArgs_AreExclusive() {
-    String[] args = "--config=/tmp/test --gtld-registry --gtld-registrar".split(" ");
+    String[] args = "--config=/tmp/test --gtld-registry --gtld-registrar http://example.org"
+        .split(" ");
 
     assertThatExceptionOfType(MutuallyExclusiveArgsException.class).isThrownBy(
         () -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
@@ -61,7 +72,7 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testThinArg_RequiresGtldRegistry() {
-    String[] args = "--config=/tmp/test --thin".split(" ");
+    String[] args = "--config=/tmp/test --thin http://example.org".split(" ");
 
     assertThatExceptionOfType(MissingParameterException.class).isThrownBy(
         () -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
@@ -70,7 +81,7 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testThinArg_WithGtldRegistry_IsOk() {
-    String[] args = "--config=/tmp/test --thin --gtld-registry".split(" ");
+    String[] args = "--config=/tmp/test --thin --gtld-registry http://example.org".split(" ");
 
     assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
         .doesNotThrowAnyException();
@@ -78,7 +89,7 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testGtldRegistryArg_IsOk() {
-    String[] args = "--config=/tmp/test --gtld-registry".split(" ");
+    String[] args = "--config=/tmp/test --gtld-registry http://example.org".split(" ");
 
     assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
         .doesNotThrowAnyException();
@@ -86,7 +97,7 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testGtldRegistrarArg_IsOk() {
-    String[] args = "--config=/tmp/test --gtld-registrar".split(" ");
+    String[] args = "--config=/tmp/test --gtld-registrar http://example.org".split(" ");
 
     assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
         .doesNotThrowAnyException();
