@@ -1,0 +1,19 @@
+{
+  "objectClassName": "test",
+  "handle": "test",
+  "ldhName": "test",
+  "unicodeName": "test",
+  "variants": [],
+  "nameservers": [],
+  "secureDNS": "test",
+  "entities": [],
+  "status": ["test"],
+  "publicIds": [],
+  "remarks": [],
+  "links": [{"unknown":  "ignored"}],
+  "port43": "test",
+  "events": [],
+  "notices": [],
+  "rdapConformance": [],
+  "unknown": [{"test":  "value"}]
+}
