@@ -188,7 +188,10 @@ public class RDAPValidator {
 
     public String getValue(String query) {
       Matcher matcher = this.pattern.matcher(query);
-      return matcher.group(0);
+      if (matcher.find()) {
+        return matcher.group(1);
+      }
+      return "";
     }
   }
 
