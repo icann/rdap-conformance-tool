@@ -40,7 +40,7 @@ public class StdRdapDomainLookupValidationTest {
 
     assertThat(validator.validate(rdapContent)).hasSize(1)
         .first()
-        .hasFieldOrPropertyWithValue("code", "-12199-12199 - 1 -12200")
+        .hasFieldOrPropertyWithValue("code", -12200)
         .hasFieldOrPropertyWithValue("value", rdapContent)
         .hasFieldOrPropertyWithValue("message", "The domain structure is not syntactically valid.");
     verify(mockedDomain, never()).validate();
@@ -52,7 +52,7 @@ public class StdRdapDomainLookupValidationTest {
 
     assertThat(validator.validate(rdapContent)).hasSize(1)
         .first()
-        .hasFieldOrPropertyWithValue("code", "-12199 - 2 -12201")
+        .hasFieldOrPropertyWithValue("code", -12201)
         .hasFieldOrPropertyWithValue("value", "unknown/[{test=value}]")
         .hasFieldOrPropertyWithValue("message",
             "The name in the name/value pair is not of: objectClassName, handle, ldhName, "
@@ -67,7 +67,7 @@ public class StdRdapDomainLookupValidationTest {
 
     assertThat(validator.validate(rdapContent)).hasSize(1)
         .first()
-        .hasFieldOrPropertyWithValue("code", "-12199 - 3 -12202")
+        .hasFieldOrPropertyWithValue("code", -12202)
         .hasFieldOrPropertyWithValue("value", "handle/duplicated")
         .hasFieldOrPropertyWithValue("message",
             "The name in the name/value pair of a domain structure was found more than once.");

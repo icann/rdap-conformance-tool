@@ -8,7 +8,7 @@ import org.icann.rdap.conformance.validator.validators.StdRdapLdhNameValidation;
 import org.icann.rdap.conformance.validator.validators.Validator;
 
 /**
- * Contains all validators
+ * Service locator for RDAP validation.
  */
 public class RDAPValidatorContext {
 

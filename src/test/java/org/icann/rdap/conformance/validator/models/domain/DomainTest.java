@@ -33,7 +33,7 @@ public class DomainTest {
 
     assertThat(domain.validate()).hasSize(1)
         .first()
-        .hasFieldOrPropertyWithValue("code", "-12199 - 4 -12203")
+        .hasFieldOrPropertyWithValue("code", -12203)
         .hasFieldOrPropertyWithValue("value", "objectClassName/wrong")
         .hasFieldOrPropertyWithValue("message", "The JSON value is not \"domain\".");
   }
@@ -45,7 +45,7 @@ public class DomainTest {
 
     assertThat(domain.validate()).hasSize(1)
         .first()
-        .hasFieldOrPropertyWithValue("code", "-12199 - 5 -12204")
+        .hasFieldOrPropertyWithValue("code", -12204)
         .hasFieldOrPropertyWithValue("value", "handle/{key=value}")
         .hasFieldOrPropertyWithValue("message", "The JSON value is not a string.");
   }
@@ -54,12 +54,12 @@ public class DomainTest {
   public void testValidate_InvalidLdhName() throws IOException {
     String rdapContent = context.getResource("/validators/domain/ldhName.json");
     Domain domain = context.getDeserializer().deserialize(rdapContent, Domain.class);
-    doReturn(List.of(new RDAPValidationResult("code", "value", "message")))
+    doReturn(List.of(new RDAPValidationResult(-1234, "value", "message")))
         .when(ldhNameValidationMock).validate("test");
 
     assertThat(domain.validate()).hasSize(2)
         .last()
-        .hasFieldOrPropertyWithValue("code", "-12199 - 6 -12205")
+        .hasFieldOrPropertyWithValue("code", -12205)
         .hasFieldOrPropertyWithValue("value", "ldhName/test")
         .hasFieldOrPropertyWithValue("message",
             "The value for the JSON name value does not pass LDH name [stdRdapLdhNameValidation].");

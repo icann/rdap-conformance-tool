@@ -46,6 +46,7 @@ public class RDAPValidatorTestContext extends RDAPValidatorContext {
     return this.mockedDeserializer;
   }
 
+  @Override
   public RDAPDeserializer getDeserializer() {
     if (null != this.mockedDeserializer) {
       return this.mockedDeserializer;
@@ -53,6 +54,7 @@ public class RDAPValidatorTestContext extends RDAPValidatorContext {
     return super.getDeserializer();
   }
 
+  @Override
   public Validator getValidator(String name) {
     return this.mockedValidators.getOrDefault(name, super.getValidator(name));
   }

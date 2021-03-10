@@ -51,7 +51,7 @@ public class Domain extends RDAPObject {
     if (!this.objectClassName.equals("domain")) {
       logger.error("Invalid objectClassName {}", this.objectClassName);
       results.add(RDAPValidationResult.builder()
-          .code("-12199 - 4 -12203")
+          .code(-12203)
           .value("objectClassName/" + this.objectClassName)
           .message("The JSON value is not \"domain\".")
           .build());
@@ -65,7 +65,7 @@ public class Domain extends RDAPObject {
       } catch (ClassCastException e) {
         logger.error("Invalid handle {}", this.handle.toString());
         results.add(RDAPValidationResult.builder()
-            .code("-12199 - 5 -12204")
+            .code(-12204)
             .value("handle/" + this.handle.toString())
             .message("The JSON value is not a string.")
             .build());
@@ -83,7 +83,7 @@ public class Domain extends RDAPObject {
         results.addAll(ldhNameValidationResults);
         logger.error("ldhName validation failed");
         results.add(RDAPValidationResult.builder()
-            .code("-12199 - 6 -12205")
+            .code(-12205)
             .value("ldhName/" + this.ldhName)
             .message(
                 "The value for the JSON name value does not pass LDH name [stdRdapLdhNameValidation].")

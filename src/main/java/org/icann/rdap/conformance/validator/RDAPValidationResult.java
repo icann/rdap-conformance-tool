@@ -2,21 +2,21 @@ package org.icann.rdap.conformance.validator;
 
 public class RDAPValidationResult {
 
-  private String code;
+  private int code;
   private String value;
   private String message;
 
-  public RDAPValidationResult(String code, String value, String message) {
+  public RDAPValidationResult(int code, String value, String message) {
     this.code = code;
     this.value = value;
     this.message = message;
   }
 
-  public String getCode() {
+  public int getCode() {
     return code;
   }
 
-  public void setCode(String code) {
+  public void setCode(int code) {
     this.code = code;
   }
 
@@ -42,11 +42,11 @@ public class RDAPValidationResult {
 
   public static class Builder {
 
-    private String code;
+    private int code;
     private String value;
     private String message;
 
-    public Builder code(String code) {
+    public Builder code(int code) {
       this.code = code;
       return this;
     }

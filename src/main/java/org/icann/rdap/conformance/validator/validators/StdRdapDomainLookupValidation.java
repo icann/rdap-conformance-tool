@@ -16,10 +16,10 @@ import org.slf4j.LoggerFactory;
 
 public class StdRdapDomainLookupValidation extends Validator {
 
-  private final static Set<String> AUTHORIZED_KEYS = Set.of("objectClassName", "handle", "ldhName",
+  private static final Logger logger = LoggerFactory.getLogger(StdRdapDomainLookupValidation.class);
+  private static final Set<String> AUTHORIZED_KEYS = Set.of("objectClassName", "handle", "ldhName",
       "unicodeName", "variants", "nameservers", "secureDNS", "entities", "status", "publicIds",
       "remarks", "links", "port43", "events", "notices", "rdapConformance");
-  private static final Logger logger = LoggerFactory.getLogger(StdRdapDomainLookupValidation.class);
 
   public StdRdapDomainLookupValidation(RDAPValidatorContext context) {
     super(context);
@@ -54,7 +54,7 @@ public class StdRdapDomainLookupValidation extends Validator {
         logger.error("Duplicated key '{}' in RDAP response", key);
 
         results.add(RDAPValidationResult.builder()
-            .code("-12199 - 3 -12202")
+            .code(-12202)
             .value(keyVal)
             .message(
                 "The name in the name/value pair of a domain structure was found more than once.")
@@ -64,7 +64,7 @@ public class StdRdapDomainLookupValidation extends Validator {
       // 1. The domain data structure must be a syntactically valid JSON object.
       logger.error("Failed to deserialize RDAP response", e);
       results.add(RDAPValidationResult.builder()
-          .code("-12199-12199 - 1 -12200")
+          .code(-12200)
           .value(rdapContent)
           .message("The domain structure is not syntactically valid.")
           .build());
@@ -78,7 +78,7 @@ public class StdRdapDomainLookupValidation extends Validator {
         // status, publicIds, remarks, links, port43, events, notices or rdapConformance.
         logger.error("Unrecognized key {} in RDAP response", key);
         results.add(RDAPValidationResult.builder()
-            .code("-12199 - 2 -12201")
+            .code(-12201)
             .value(key + "/" + rawRdap.get(key).toString())
             .message("The name in the name/value pair is not of: objectClassName, handle, ldhName, "
                 + "unicodeName, variants, nameservers, secureDNS, entities, status, publicIds, "
