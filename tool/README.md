@@ -1,6 +1,5 @@
-# rdapct
+# RDAP Conformance Tool
 
-RDAP Conformance Tool
 
 # Installation
 
