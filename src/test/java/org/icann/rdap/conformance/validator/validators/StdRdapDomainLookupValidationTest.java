@@ -60,4 +60,17 @@ public class StdRdapDomainLookupValidationTest {
                 + "remarks, links, port43, events, notices or rdapConformance.");
     verify(mockedDomain).validate();
   }
+
+  @Test
+  public void testValidate_DuplicatedKey() throws IOException {
+    String rdapContent = context.getResource("/validators/domain/duplicated_key.json");
+
+    assertThat(validator.validate(rdapContent)).hasSize(1)
+        .first()
+        .hasFieldOrPropertyWithValue("code", "-12199 - 3 -12202")
+        .hasFieldOrPropertyWithValue("value", "handle/duplicated")
+        .hasFieldOrPropertyWithValue("message",
+            "The name in the name/value pair of a domain structure was found more than once.");
+    verify(mockedDomain, never()).validate();
+  }
 }

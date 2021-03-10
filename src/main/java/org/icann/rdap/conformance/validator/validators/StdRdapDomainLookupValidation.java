@@ -1,6 +1,8 @@
 package org.icann.rdap.conformance.validator.validators;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,30 @@ public class StdRdapDomainLookupValidation extends Validator {
       rawRdap = deserializer.deserialize(rdapContent, Map.class);
       rdapDomain = deserializer.deserialize(rdapContent, Domain.class);
     } catch (JsonProcessingException e) {
+      // 3. The JSON name/values of objectClassName, handle, ldhName, unicodeName, variants,
+      // nameservers, secureDNS, entities, status, publicIds, remarks, links, port43, events,
+      // notices or rdapConformance shall appear only once.
+      if (e.getMessage().startsWith("Duplicate field")) {
+        String keyVal = "";
+        String key = "ERROR: Failed to retrieve key";
+        try {
+          JsonParseException exc = ((JsonParseException) e);
+          key = exc.getProcessor().getCurrentName();
+          String value = exc.getProcessor().getText();
+          keyVal = key + "/" + value;
+        } catch (IOException ex) {
+          logger.error("Cannot retrieve key, value from duplicate field error", ex);
+        }
+        logger.error("Duplicated key '{}' in RDAP response", key);
+
+        results.add(RDAPValidationResult.builder()
+            .code("-12199 - 3 -12202")
+            .value(keyVal)
+            .message(
+                "The name in the name/value pair of a domain structure was found more than once.")
+            .build());
+        return results;
+      }
       // 1. The domain data structure must be a syntactically valid JSON object.
       logger.error("Failed to deserialize RDAP response", e);
       results.add(RDAPValidationResult.builder()

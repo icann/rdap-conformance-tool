@@ -21,6 +21,7 @@ public class RDAPDeserializer {
     this.mapper = new ObjectMapper()
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
 //        .addHandler(new RDAPDeserializationProblemHandler())
         .setInjectableValues(injectableValues)
         .registerModule(new JavaTimeModule());
