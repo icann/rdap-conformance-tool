@@ -6,7 +6,7 @@ import java.util.List;
 public class ConfigurationFile {
 
   /**
-   * Aa required JSON string that identifies the configuration definition file.
+   * A required JSON string that identifies the configuration definition file.
    *
    * <p>The string is copied verbatim to the definitionIdentifier element of the results file.</p>
    */

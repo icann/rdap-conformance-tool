@@ -2,7 +2,6 @@ package org.icann.rdap.conformance.validator.models.domain;
 
 import java.util.List;
 import org.icann.rdap.conformance.validator.RDAPValidationResult;
-import org.icann.rdap.conformance.validator.configuration.ConfigurationFile;
 import org.icann.rdap.conformance.validator.models.common.RDAPObject;
 
 public class Domain extends RDAPObject {
@@ -19,8 +18,8 @@ public class Domain extends RDAPObject {
 
 
   @Override
-  public List<RDAPValidationResult> validate(ConfigurationFile config) {
-    List<RDAPValidationResult> results = super.validate(config);
+  public List<RDAPValidationResult> validate() {
+    List<RDAPValidationResult> results = super.validate();
     return results;
   }
 }

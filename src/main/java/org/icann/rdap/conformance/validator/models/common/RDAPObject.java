@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import org.icann.rdap.conformance.validator.RDAPValidationResult;
-import org.icann.rdap.conformance.validator.configuration.ConfigurationFile;
 import org.icann.rdap.conformance.validator.models.RDAPValidate;
 import org.icann.rdap.conformance.validator.models.entity.Entity;
 
-public abstract class RDAPObject extends Lang implements RDAPValidate {
+public abstract class RDAPObject extends RDAPValidate {
+  // TODO should be add lang: see Lang?
 
   // handle -- a string representing a registry unique identifier of the object
   @JsonProperty
@@ -42,7 +42,7 @@ public abstract class RDAPObject extends Lang implements RDAPValidate {
   private List<Event> events;
 
   @Override
-  public List<RDAPValidationResult> validate(ConfigurationFile config) {
+  public List<RDAPValidationResult> validate() {
     List<RDAPValidationResult> results = new ArrayList<>();
     return results;
   }

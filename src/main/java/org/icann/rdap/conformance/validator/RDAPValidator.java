@@ -13,16 +13,16 @@ import java.util.regex.Pattern;
 import org.icann.rdap.conformance.validator.configuration.ConfigurationFile;
 import org.icann.rdap.conformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdap.conformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdap.conformance.validator.validators.StdRdapDomainLookupValidation;
 import org.icann.rdap.conformance.validator.validators.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RDAPValidator {
 
-  private final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
+  private static final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
 
   private final RDAPValidatorConfiguration config;
+
 
   public RDAPValidator(RDAPValidatorConfiguration config) {
     this.config = config;
@@ -44,6 +44,8 @@ public class RDAPValidator {
       logger.error("Configuration is invalid", e);
       return RDAPValidationStatus.CONFIG_INVALID.getValue();
     }
+
+    RDAPValidatorContext context= new RDAPValidatorContext(configurationFile);
 
     /* If the parameter (--use-local-datasets) is set, use the datasets found in the filesystem,
      * download the datasets not found in the filesystem, and persist them in the filesystem.
@@ -149,10 +151,11 @@ public class RDAPValidator {
     List<RDAPValidationResult> results;
     Validator validator = null;
     if (RDAPQueryType.DOMAIN.equals(queryType)) {
-      validator = new StdRdapDomainLookupValidation(rdapResponse, configurationFile);
+      validator = context.getValidator("stdRdapDomainLookupValidation");
     }
     // TODO elif...
-    results = validator.validate();
+    assert null != validator;
+    results = validator.validate(rdapResponse);
 
     /*
      * Additionally, apply the relevant collection tests when the option

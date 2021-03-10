@@ -7,41 +7,39 @@ import java.util.Map;
 import java.util.Set;
 import org.icann.rdap.conformance.validator.RDAPDeserializer;
 import org.icann.rdap.conformance.validator.RDAPValidationResult;
-import org.icann.rdap.conformance.validator.configuration.ConfigurationFile;
+import org.icann.rdap.conformance.validator.RDAPValidatorContext;
 import org.icann.rdap.conformance.validator.models.domain.Domain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class StdRdapDomainLookupValidation implements Validator {
+public class StdRdapDomainLookupValidation extends Validator {
 
   private final static Set<String> AUTHORIZED_KEYS = Set.of("objectClassName", "handle", "ldhName",
       "unicodeName", "variants", "nameservers", "secureDNS", "entities", "status", "publicIds",
       "remarks", "links", "port43", "events", "notices", "rdapConformance");
-  private final Logger logger = LoggerFactory.getLogger(StdRdapDomainLookupValidation.class);
-  private final RDAPDeserializer deserializer;
-  private final String rdapResponse;
-  private final ConfigurationFile configurationFile;
+  private static final Logger logger = LoggerFactory.getLogger(StdRdapDomainLookupValidation.class);
 
-  public StdRdapDomainLookupValidation(String rdapResponse, ConfigurationFile configurationFile) {
-    // TODO specialize RDAPDeserializer if needed
-    this.deserializer = new RDAPDeserializer();
-    this.rdapResponse = rdapResponse;
-    this.configurationFile = configurationFile;
+  public StdRdapDomainLookupValidation(RDAPValidatorContext context) {
+    super(context);
   }
 
-  public List<RDAPValidationResult> validate() {
+
+  public List<RDAPValidationResult> validate(String rdapContent) {
+    logger.info("Starting stdRdapDomainLookupValidation");
     List<RDAPValidationResult> results = new ArrayList<>();
     Map<String, Object> rawRdap;
     Domain rdapDomain;
+    RDAPDeserializer deserializer = this.context.getDeserializer();
     try {
-      rawRdap = this.deserializer.deserialize(rdapResponse, Map.class);
-      rdapDomain = this.deserializer.deserialize(rdapResponse, Domain.class);
+      logger.debug("Deserializing domain object");
+      rawRdap = deserializer.deserialize(rdapContent, Map.class);
+      rdapDomain = deserializer.deserialize(rdapContent, Domain.class);
     } catch (JsonProcessingException e) {
       // 1. The domain data structure must be a syntactically valid JSON object.
       logger.error("Failed to deserialize RDAP response", e);
       results.add(RDAPValidationResult.builder()
           .code("-12199-12199 - 1 -12200")
-          .value(this.rdapResponse)
+          .value(rdapContent)
           .message("The domain structure is not syntactically valid.")
           .build());
       return results;
@@ -63,7 +61,9 @@ public class StdRdapDomainLookupValidation implements Validator {
       }
     }
 
-    results.addAll(rdapDomain.validate(this.configurationFile));
+    logger.debug("Domain JSON is valid");
+
+    results.addAll(rdapDomain.validate());
     return results;
   }
 }
