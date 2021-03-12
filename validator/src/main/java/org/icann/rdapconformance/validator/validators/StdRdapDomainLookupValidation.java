@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory;
 public class StdRdapDomainLookupValidation extends Validator<Domain> {
 
   private static final Logger logger = LoggerFactory.getLogger(StdRdapDomainLookupValidation.class);
-  private static final List<String> AUTHORIZED_KEYS = List.of("objectClassName", "handle", "ldhName",
-      "unicodeName", "variants", "nameservers", "secureDNS", "entities", "status", "publicIds",
-      "remarks", "links", "port43", "events", "notices", "rdapConformance");
+  private static final List<String> AUTHORIZED_KEYS = List.of("objectClassName", "handle",
+      "ldhName", "unicodeName", "variants", "nameservers", "secureDNS", "entities", "status",
+      "publicIds", "remarks", "links", "port43", "events", "notices", "rdapConformance");
 
   public StdRdapDomainLookupValidation(RDAPValidatorContext context) {
     super(context, Domain.class);

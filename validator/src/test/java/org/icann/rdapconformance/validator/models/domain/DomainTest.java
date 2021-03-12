@@ -6,7 +6,6 @@ import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.RDAPValidatorTestContext;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
@@ -31,7 +30,8 @@ public class DomainTest {
     String rdapContent = context.getResource("/validators/domain/wrong_objectClassName.json");
     Domain domain = context.getDeserializer().deserialize(rdapContent, Domain.class);
 
-    assertThat(domain.validate()).hasSize(1)
+    assertThat(domain.validate()).isFalse();
+    assertThat(context.getResults()).hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("code", -12203)
         .hasFieldOrPropertyWithValue("value", "objectClassName/wrong")
@@ -43,7 +43,8 @@ public class DomainTest {
     String rdapContent = context.getResource("/validators/domain/invalid_handle.json");
     Domain domain = context.getDeserializer().deserialize(rdapContent, Domain.class);
 
-    assertThat(domain.validate()).hasSize(1)
+    assertThat(domain.validate()).isFalse();
+    assertThat(context.getResults()).hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("code", -12204)
         .hasFieldOrPropertyWithValue("value", "handle/{key=value}")
@@ -54,11 +55,11 @@ public class DomainTest {
   public void testValidate_InvalidLdhName() throws IOException {
     String rdapContent = context.getResource("/validators/domain/ldhName.json");
     Domain domain = context.getDeserializer().deserialize(rdapContent, Domain.class);
-    doReturn(List.of(new RDAPValidationResult(-1234, "value", "message")))
-        .when(ldhNameValidationMock).validate("test");
+    doReturn(false).when(ldhNameValidationMock).validate("test");
 
-    assertThat(domain.validate()).hasSize(2)
-        .last()
+    assertThat(domain.validate()).isFalse();
+    assertThat(context.getResults()).hasSize(1)
+        .first()
         .hasFieldOrPropertyWithValue("code", -12205)
         .hasFieldOrPropertyWithValue("value", "ldhName/test")
         .hasFieldOrPropertyWithValue("message",

@@ -148,14 +148,15 @@ public class RDAPValidator {
      */
     /* TODO */
     String rdapResponse = httpResponse.body();
-    List<RDAPValidationResult> results;
     Validator validator = null;
     if (RDAPQueryType.DOMAIN.equals(queryType)) {
       validator = context.getValidator("stdRdapDomainLookupValidation");
     }
     // TODO elif...
     assert null != validator;
-    results = validator.validate(rdapResponse);
+    validator.validate(rdapResponse);
+
+    // TODO create result file in context
 
     /*
      * Additionally, apply the relevant collection tests when the option

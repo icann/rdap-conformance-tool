@@ -2,9 +2,7 @@ package org.icann.rdapconformance.validator.models.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import org.icann.rdapconformance.validator.RDAPValidationResult;
 
 public class Event extends Lang {
 
@@ -26,8 +24,7 @@ public class Event extends Lang {
   private List<Link> links;
 
   @Override
-  public List<RDAPValidationResult> validate() {
-    List<RDAPValidationResult> results = new ArrayList<>();
-    return results;
+  public boolean validate() {
+    return true;
   }
 }

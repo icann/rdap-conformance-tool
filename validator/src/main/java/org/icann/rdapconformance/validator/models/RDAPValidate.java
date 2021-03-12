@@ -15,28 +15,21 @@ public abstract class RDAPValidate {
   @JacksonInject(value = "context")
   protected RDAPValidatorContext context;
 
-  public abstract List<RDAPValidationResult> validate();
+  public abstract boolean validate();
 
-  protected void validateField(String fieldName, String fieldValue,
-      String validationName,
-      int errorCode,
-      List<RDAPValidationResult> results) {
-    Validator validator = this.context.getValidator(
-        validationName);
-    List<RDAPValidationResult> rdapConformanceResults = validator.validate(fieldValue);
+  protected boolean validateField(String fieldName, String fieldValue, String validationName, int errorCode) {
+    Validator<?> validator = this.context.getValidator(validationName);
 
-    if (rdapConformanceResults.size() > 0) {
-      results.addAll(rdapConformanceResults);
-      logger.error("rdapConformance validation failed");
-      results.add(RDAPValidationResult.builder()
+    if (!validator.validate(fieldValue)) {
+      this.context.addResult(RDAPValidationResult.builder()
           .code(errorCode)
           .value(fieldName + "/" + fieldValue)
           .message(
-              "The value for the JSON name value does not pass " + fieldName + " validation "
-                  + validationName +
-                  ".")
+              String.format("The value for the JSON name value does not pass %s validation %s.",
+                  fieldName, validationName))
           .build());
+      return false;
     }
-    logger.debug("{}: OK", fieldName);
+    return true;
   }
 }

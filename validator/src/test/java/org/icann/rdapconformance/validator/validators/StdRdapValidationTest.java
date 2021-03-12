@@ -13,7 +13,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.RDAPDeserializer;
@@ -21,7 +20,6 @@ import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.RDAPValidatorTestContext;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.models.RDAPValidate;
-import org.icann.rdapconformance.validator.models.common.RDAPObject;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -31,9 +29,9 @@ public abstract class StdRdapValidationTest<T extends RDAPValidate> {
   protected final RDAPValidatorTestContext context = new RDAPValidatorTestContext(
       configurationFile);
   private final Validator<T> validator;
-  private T mockedType;
   private final Class<T> clazz;
   private final String validatorName;
+  private T mockedType;
 
   public StdRdapValidationTest(Class<T> clazz, String validatorName) {
     this.clazz = clazz;
@@ -61,15 +59,17 @@ public abstract class StdRdapValidationTest<T extends RDAPValidate> {
         .stream()
         .collect(Collectors.toMap(k -> k, v -> v));
     String json = new ObjectMapper().writeValueAsString(keyValues);
-    assertThat(validator.validate(json)).isEmpty();
+
+    assertThat(validator.validate(json)).isTrue();
     verify(mockedType).validate();
   }
 
   @Test
-  public void testValidate_InvalidJson() throws IOException {
+  public void testValidate_InvalidJson() {
     String invalidRdapContent = "{\"invalid-json\": \"with trailing comma\",}";
 
-    assertThat(validator.validate(invalidRdapContent)).hasSize(1)
+    assertThat(validator.validate(invalidRdapContent)).isFalse();
+    assertThat(context.getResults()).hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("code", validator.getInvalidJsonErrorCode())
         .hasFieldOrPropertyWithValue("value", invalidRdapContent)
@@ -79,10 +79,11 @@ public abstract class StdRdapValidationTest<T extends RDAPValidate> {
   }
 
   @Test
-  public void testValidate_InvalidKeyValuePair() throws IOException {
+  public void testValidate_InvalidKeyValuePair() {
     String invalidRdapContent = "{\"unknown\": [{\"test\":  \"value\"}]}";
 
-    assertThat(validator.validate(invalidRdapContent)).hasSize(1)
+    assertThat(validator.validate(invalidRdapContent)).isFalse();
+    assertThat(context.getResults()).hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("code", validator.getInvalidKeysErrorCode())
         .hasFieldOrPropertyWithValue("value", "unknown/[{test=value}]")
@@ -93,15 +94,17 @@ public abstract class StdRdapValidationTest<T extends RDAPValidate> {
   }
 
   @Test
-  public void testValidate_DuplicatedKey() throws IOException {
+  public void testValidate_DuplicatedKey() {
     String invalidRdapContent = "{\"notices\": \"duplicated\", \"notices\": \"duplicated\"}";
 
-    assertThat(validator.validate(invalidRdapContent)).hasSize(1)
+    assertThat(validator.validate(invalidRdapContent)).isFalse();
+    assertThat(context.getResults()).hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("code", validator.getDuplicateKeyErrorCode())
         .hasFieldOrPropertyWithValue("value", "notices/duplicated")
         .hasFieldOrPropertyWithValue("message",
-            "The name in the name/value pair of a "+clazz.getSimpleName()+" structure was found more than once.");
+            "The name in the name/value pair of a " + clazz.getSimpleName()
+                + " structure was found more than once.");
     verify(mockedType, never()).validate();
   }
 }

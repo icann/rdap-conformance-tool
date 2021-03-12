@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator.validators;
 
 import java.util.List;
-import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.RDAPValidatorContext;
 import org.icann.rdapconformance.validator.models.common.RDAPObject;
 
@@ -36,8 +35,8 @@ public class StdRdapLdhNameValidation extends Validator<RDAPObject> {
   }
 
   @Override
-  public List<RDAPValidationResult> validate(String rdapContent) {
-    return null;
+  public boolean validate(String rdapContent) {
+    return true;
   }
 
   @Override

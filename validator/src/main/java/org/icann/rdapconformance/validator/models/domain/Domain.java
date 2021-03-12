@@ -1,10 +1,8 @@
 package org.icann.rdapconformance.validator.models.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.models.common.RDAPObject;
-import org.icann.rdapconformance.validator.validators.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,41 +41,40 @@ public class Domain extends RDAPObject {
 
 
   @Override
-  public List<RDAPValidationResult> validate() {
-    List<RDAPValidationResult> results = super.validate();
+  public boolean validate() {
+    boolean result = true;
     // 4. For the JSON name objectClassName, the value shall be "domain".
-    logger.debug("Validating objectClassName");
     if (!this.objectClassName.equals("domain")) {
       logger.error("Invalid objectClassName {}", this.objectClassName);
-      results.add(RDAPValidationResult.builder()
+      this.context.addResult(RDAPValidationResult.builder()
           .code(-12203)
           .value("objectClassName/" + this.objectClassName)
           .message("The JSON value is not \"domain\".")
           .build());
+      result = false;
     }
-    logger.debug("objectClassName: OK");
     // 5. If the JSON name handle exists, the value shall be a JSON string data type.
     if (null != this.handle) {
-      logger.debug("Validating handle");
       try {
         String handleStr = (String) this.handle;
       } catch (ClassCastException e) {
         logger.error("Invalid handle {}", this.handle.toString());
-        results.add(RDAPValidationResult.builder()
+        this.context.addResult(RDAPValidationResult.builder()
             .code(-12204)
             .value("handle/" + this.handle.toString())
             .message("The JSON value is not a string.")
             .build());
+        result = false;
       }
-      logger.debug("handle: OK");
     }
     // 6. If the JSON name ldhName exists, the value shall pass the test LDH name
     // [stdRdapLdhNameValidation].
     if (null != this.ldhName) {
-      this.validateField("ldhName", ldhName, "stdRdapLdhNameValidation", -12205, results);
+      if (!this.validateField("ldhName", ldhName, "stdRdapLdhNameValidation", -12205)) {
+        result = false;
+      }
     }
 
-    return results;
-
+    return result;
   }
 }

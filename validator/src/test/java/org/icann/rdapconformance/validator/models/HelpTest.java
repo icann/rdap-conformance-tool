@@ -5,8 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.RDAPValidatorTestContext;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.validators.StdRdapConformanceValidation;
@@ -39,10 +37,11 @@ public class HelpTest {
   @Test
   public void testValidate_InvalidNotices() {
     help.notices = "test";
-    when(noticesRemarksValidationMock.validate("test"))
-        .thenReturn(List.of(new RDAPValidationResult(-1234, "value", "message")));
-    assertThat(help.validate()).hasSize(2)
-        .last()
+    when(noticesRemarksValidationMock.validate("test")).thenReturn(false);
+
+    assertThat(help.validate()).isFalse();
+    assertThat(context.getResults()).hasSize(1)
+        .first()
         .hasFieldOrPropertyWithValue("code", -12503)
         .hasFieldOrPropertyWithValue("value", "notices/test")
         .hasFieldOrPropertyWithValue("message",
@@ -52,10 +51,11 @@ public class HelpTest {
   @Test
   public void testValidate_InvalidRdapConformance() {
     help.rdapConformance = "test";
-    when(rdapConformanceValidationMock.validate("test"))
-        .thenReturn(List.of(new RDAPValidationResult(-1234, "value", "message")));
-    assertThat(help.validate()).hasSize(2)
-        .last()
+    when(rdapConformanceValidationMock.validate("test")).thenReturn(false);
+
+    assertThat(help.validate()).isFalse();
+    assertThat(context.getResults()).hasSize(1)
+        .first()
         .hasFieldOrPropertyWithValue("code", -12505)
         .hasFieldOrPropertyWithValue("value", "rdapConformance/test")
         .hasFieldOrPropertyWithValue("message",

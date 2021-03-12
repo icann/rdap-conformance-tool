@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 
 import java.io.BufferedReader;
 import java.io.IOException;

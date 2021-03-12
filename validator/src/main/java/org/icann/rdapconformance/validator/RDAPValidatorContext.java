@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.validators.StdRdapDomainLookupValidation;
@@ -17,6 +19,7 @@ public class RDAPValidatorContext {
   private final Map<String, Validator> validators;
   private final ConfigurationFile configurationFile;
   private final RDAPDeserializer deserializer;
+  private final List<RDAPValidationResult> results = new ArrayList<>();
 
   public RDAPValidatorContext(ConfigurationFile configurationFile) {
     this.configurationFile = configurationFile;
@@ -40,4 +43,11 @@ public class RDAPValidatorContext {
     return !configurationFile.getDefinitionIgnore().contains(testCode);
   }
 
+  public void addResult(RDAPValidationResult result) {
+    this.results.add(result);
+  }
+
+  public List<RDAPValidationResult> getResults() {
+    return results;
+  }
 }

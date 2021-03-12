@@ -1,9 +1,6 @@
 package org.icann.rdapconformance.validator.models.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import org.icann.rdapconformance.validator.RDAPValidationResult;
 
 public class Link extends Lang {
 
@@ -29,8 +26,7 @@ public class Link extends Lang {
   private String type;
 
   @Override
-  public List<RDAPValidationResult> validate() {
-    List<RDAPValidationResult> results = new ArrayList<>();
-    return results;
+  public boolean validate() {
+    return true;
   }
 }
