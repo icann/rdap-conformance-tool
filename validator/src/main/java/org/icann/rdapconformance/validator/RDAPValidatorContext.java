@@ -32,9 +32,8 @@ public class RDAPValidatorContext {
     return this.validators.get(name);
   }
 
-  public boolean isTestEnabled(String testCode) {
-    // TODO
-    return true;
+  public boolean isTestEnabled(int testCode) {
+    return !configurationFile.getDefinitionIgnore().contains(testCode);
   }
 
 }

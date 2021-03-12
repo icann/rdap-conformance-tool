@@ -48,7 +48,7 @@ public class ConfigurationFile {
    * contents of this element are copied verbatim to the ignore section in the results file.
    */
   @JsonProperty
-  List<String> definitionIgnore;
+  List<Integer> definitionIgnore;
 
   /**
    * An optional JSON array of strings that are copied verbatim to the notes section in the results
@@ -57,5 +57,7 @@ public class ConfigurationFile {
   @JsonProperty
   List<String> definitionNotes;
 
-
+  public List<Integer> getDefinitionIgnore() {
+    return definitionIgnore;
+  }
 }
