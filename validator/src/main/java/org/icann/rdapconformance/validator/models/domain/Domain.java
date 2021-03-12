@@ -74,21 +74,7 @@ public class Domain extends RDAPObject {
     // 6. If the JSON name ldhName exists, the value shall pass the test LDH name
     // [stdRdapLdhNameValidation].
     if (null != this.ldhName) {
-      logger.debug("Validating ldhName");
-      Validator ldhNameValidation = this.context.getValidator("stdRdapLdhNameValidation");
-      List<RDAPValidationResult> ldhNameValidationResults = ldhNameValidation
-          .validate(this.ldhName);
-      if (ldhNameValidationResults.size() > 0) {
-        results.addAll(ldhNameValidationResults);
-        logger.error("ldhName validation failed");
-        results.add(RDAPValidationResult.builder()
-            .code(-12205)
-            .value("ldhName/" + this.ldhName)
-            .message(
-                "The value for the JSON name value does not pass LDH name [stdRdapLdhNameValidation].")
-            .build());
-      }
-      logger.debug("ldhName: OK");
+      this.validateField("ldhName", ldhName, "stdRdapLdhNameValidation", -12205, results);
     }
 
     return results;

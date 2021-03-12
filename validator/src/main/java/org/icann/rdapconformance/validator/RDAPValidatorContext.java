@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.validators.StdRdapDomainLookupValidation;
+import org.icann.rdapconformance.validator.validators.StdRdapHelpValidation;
 import org.icann.rdapconformance.validator.validators.StdRdapLdhNameValidation;
+import org.icann.rdapconformance.validator.validators.StdRdapNoticesRemarksValidation;
 import org.icann.rdapconformance.validator.validators.Validator;
 
 /**
@@ -21,6 +23,8 @@ public class RDAPValidatorContext {
     this.validators = new HashMap<>();
     this.validators.put("stdRdapDomainLookupValidation", new StdRdapDomainLookupValidation(this));
     this.validators.put("stdRdapLdhNameValidation", new StdRdapLdhNameValidation(this));
+    this.validators.put("stdRdapHelpValidation", new StdRdapHelpValidation(this));
+    this.validators.put("stdRdapNoticesRemarksValidation", new StdRdapNoticesRemarksValidation(this));
     this.deserializer = new RDAPDeserializer(this);
   }
 

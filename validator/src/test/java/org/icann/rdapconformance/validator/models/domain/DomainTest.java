@@ -62,6 +62,6 @@ public class DomainTest {
         .hasFieldOrPropertyWithValue("code", -12205)
         .hasFieldOrPropertyWithValue("value", "ldhName/test")
         .hasFieldOrPropertyWithValue("message",
-            "The value for the JSON name value does not pass LDH name [stdRdapLdhNameValidation].");
+            "The value for the JSON name value does not pass ldhName validation stdRdapLdhNameValidation.");
   }
 }

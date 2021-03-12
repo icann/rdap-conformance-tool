@@ -13,6 +13,7 @@ public abstract class RDAPObject extends RDAPValidate {
   // rdapConformance -- an array of strings, each providing a hint as to the specifications used in
   //                    the construction of the response.  This data structure appears only in the
   //                    topmost JSON object of a response.
+  @JsonProperty
   protected List<String> rdapConformance;
 
   // objectClassName -- the object class name of a particular object as a string.
@@ -38,6 +39,7 @@ public abstract class RDAPObject extends RDAPValidate {
 
   // notices -- Information about the service providing RDAP information and/or information
   //            about the entire response.
+  @JsonProperty
   protected List<NoticeAndRemark> notices;
 
   // links -- signify links to other resources on the Internet.
