@@ -13,6 +13,8 @@ import picocli.CommandLine.Parameters;
 @Command(name = "rdap-conformance-tool", version = "0.1-alpha", mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
 
+  @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
+  URI uri;
   @Option(names = {"-c", "--config"}, description = "Definition file", required = true)
   private File configurationFile;
   @Option(names = {"--timeout"},
@@ -25,9 +27,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       description = "Use locally-persisted datasets", defaultValue = "false")
   private boolean useLocalDatasets = false;
   @ArgGroup(exclusive = false)
-  private DependantRdapProfileGtld dependantRdapProfileGtld;
-  @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
-  URI uri;
+  private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
 
   @Override
   public Integer call() throws Exception {
@@ -86,7 +86,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
         description = "Use RDAP Profile February 2019", defaultValue = "false")
     boolean useRdapProfileFeb2019 = false;
     @ArgGroup(multiplicity = "1")
-    ExclusiveGtldType exclusiveGtldType;
+    ExclusiveGtldType exclusiveGtldType = new ExclusiveGtldType();
   }
 
   private static class ExclusiveGtldType {
@@ -94,9 +94,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     @Option(names = {"--gtld-registrar"},
         description = "Validate the response as coming from a gTLD registrar",
         defaultValue = "false")
-    boolean gtldRegistrar = false;
+    private boolean gtldRegistrar = false;
     @ArgGroup(exclusive = false)
-    DependantRegistryThin dependantRegistryThin;
+    private DependantRegistryThin dependantRegistryThin = new DependantRegistryThin();
   }
 
   private static class DependantRegistryThin {
@@ -104,9 +104,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     @Option(names = {"--gtld-registry"},
         description = "Validate the response as coming from a gTLD registry",
         required = true)
-    boolean gtldRegistry;
+    private boolean gtldRegistry;
     @Option(names = {"--thin"},
         description = "The TLD uses the thin model", defaultValue = "false")
-    boolean thin = false;
+    private boolean thin = false;
   }
 }
