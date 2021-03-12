@@ -2,7 +2,6 @@ package org.icann.rdapconformance.validator.validators;
 
 import java.util.List;
 import org.icann.rdapconformance.validator.RDAPValidatorContext;
-import org.icann.rdapconformance.validator.models.common.NoticeAndRemark;
 import org.icann.rdapconformance.validator.models.common.RDAPObject;
 
 /**
@@ -15,11 +14,6 @@ public class StdRdapConformanceValidation extends Validator<RDAPObject> {
   public StdRdapConformanceValidation(
       RDAPValidatorContext context) {
     super(context, RDAPObject.class);
-  }
-
-  @Override
-  public String getDefinitionId() {
-    return "stdRdapConformanceValidation";
   }
 
   @Override

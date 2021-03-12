@@ -18,11 +18,6 @@ public class StdRdapDomainLookupValidation extends Validator<Domain> {
   }
 
   @Override
-  public String getDefinitionId() {
-    return "stdRdapDomainLookupValidation";
-  }
-
-  @Override
   public List<String> getAuthorizedKeys() {
     return AUTHORIZED_KEYS;
   }

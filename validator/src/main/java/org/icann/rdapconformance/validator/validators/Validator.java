@@ -24,8 +24,6 @@ public abstract class Validator<T extends RDAPValidate> {
     this.clazz = clazz;
   }
 
-  public abstract String getDefinitionId();
-
   public abstract List<String> getAuthorizedKeys();
 
   public abstract int getInvalidJsonErrorCode();
@@ -38,7 +36,6 @@ public abstract class Validator<T extends RDAPValidate> {
    * Perform validation of the RDAP content.
    */
   public boolean validate(String rdapContent) {
-    logger.info("Starting {}", getDefinitionId());
     Map<String, Object> rawRdap;
     T rdapObject;
     RDAPDeserializer deserializer = this.context.getDeserializer();

@@ -15,11 +15,6 @@ public class StdRdapLdhNameValidation extends Validator<RDAPObject> {
   }
 
   @Override
-  public String getDefinitionId() {
-    return null;
-  }
-
-  @Override
   public List<String> getAuthorizedKeys() {
     return null;
   }

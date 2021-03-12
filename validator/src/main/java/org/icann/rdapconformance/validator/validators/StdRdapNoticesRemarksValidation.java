@@ -15,11 +15,6 @@ public class StdRdapNoticesRemarksValidation extends Validator<NoticeAndRemark> 
   }
 
   @Override
-  public String getDefinitionId() {
-    return "stdRdapNoticesRemarksValidation";
-  }
-
-  @Override
   public List<String> getAuthorizedKeys() {
     return AUTHORIZED_KEYS;
   }

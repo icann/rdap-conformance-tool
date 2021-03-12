@@ -13,11 +13,6 @@ public class StdRdapHelpValidation extends Validator<Help> {
   }
 
   @Override
-  public String getDefinitionId() {
-    return "stdRdapHelpValidation";
-  }
-
-  @Override
   public List<String> getAuthorizedKeys() {
     return AUTHORIZED_KEYS;
   }
