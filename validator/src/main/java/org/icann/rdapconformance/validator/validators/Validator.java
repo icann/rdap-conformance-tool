@@ -8,11 +8,13 @@ import java.util.Map;
 import org.icann.rdapconformance.validator.RDAPDeserializer;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.aspect.ObjectWithContext;
+import org.icann.rdapconformance.validator.aspect.annotation.CheckEnabled;
 import org.icann.rdapconformance.validator.models.RDAPValidate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class Validator<T extends RDAPValidate> {
+public abstract class Validator<T extends RDAPValidate> implements ObjectWithContext {
 
   private static final Logger logger = LoggerFactory.getLogger(Validator.class);
 
@@ -24,13 +26,13 @@ public abstract class Validator<T extends RDAPValidate> {
     this.clazz = clazz;
   }
 
-  public abstract List<String> getAuthorizedKeys();
+  protected abstract List<String> getAuthorizedKeys();
 
   public abstract int getInvalidJsonErrorCode();
 
   public abstract int getInvalidKeysErrorCode();
 
-  protected abstract int getDuplicateKeyErrorCode();
+  public abstract int getDuplicateKeyErrorCode();
 
   /**
    * Perform validation of the RDAP content.
@@ -59,13 +61,14 @@ public abstract class Validator<T extends RDAPValidate> {
   /**
    * The name of every name/value pairs shall be any of {@link #getAuthorizedKeys()}.
    */
+  @CheckEnabled(codeGetter = "getInvalidKeysErrorCode")
   private boolean checkInvalidKeys(Map<String, Object> rawRdap) {
     boolean result = true;
     for (var entry : rawRdap.entrySet()) {
-      if (!getAuthorizedKeys().contains(entry.getKey())) {
+      if (!this.getAuthorizedKeys().contains(entry.getKey())) {
         logger.error("Unrecognized key {} in RDAP response", entry.getKey());
         this.context.addResult(RDAPValidationResult.builder()
-            .code(getInvalidKeysErrorCode())
+            .code(this.getInvalidKeysErrorCode())
             .value(entry.getKey() + "/" + entry.getValue())
             .message("The name in the name/value pair is not of: " + String.join(", ",
                 getAuthorizedKeys()) + ".")
@@ -80,6 +83,10 @@ public abstract class Validator<T extends RDAPValidate> {
    * The {@link #clazz} data structure must be a syntactically valid JSON object.
    */
   private boolean checkJsonValidity(String rdapContent, JsonProcessingException e) {
+    if (!this.context.isTestEnabled(this.getInvalidJsonErrorCode())) {
+      logger.warn("Cannot disable test Validator.checkJsonValidity with code {}",
+          this.getInvalidJsonErrorCode());
+    }
     logger.error("Failed to deserialize RDAP response", e);
     this.context.addResult(RDAPValidationResult.builder()
         .code(getInvalidJsonErrorCode())
@@ -92,7 +99,12 @@ public abstract class Validator<T extends RDAPValidate> {
   /**
    * The JSON name/values of {@link #getAuthorizedKeys()} shall appear only once.
    */
+  @CheckEnabled(codeGetter = "getDuplicateKeyErrorCode")
   private boolean checkDuplicateFields(JsonProcessingException e) {
+    if (!this.context.isTestEnabled(this.getDuplicateKeyErrorCode())) {
+      logger.warn("Cannot disable test Validator.checkDuplicateFields with code {}",
+          this.getDuplicateKeyErrorCode());
+    }
     if (e.getMessage().startsWith("Duplicate field")) {
       String keyVal = "";
       String key = "ERROR: Failed to retrieve key";
@@ -107,7 +119,7 @@ public abstract class Validator<T extends RDAPValidate> {
       logger.error("Duplicated key '{}' in RDAP response", key);
 
       this.context.addResult(RDAPValidationResult.builder()
-          .code(getDuplicateKeyErrorCode())
+          .code(this.getDuplicateKeyErrorCode())
           .value(keyVal)
           .message(
               "The name in the name/value pair of a " + clazz.getSimpleName()
@@ -117,5 +129,9 @@ public abstract class Validator<T extends RDAPValidate> {
       return false;
     }
     return true;
+  }
+
+  public RDAPValidatorContext getContext() {
+    return context;
   }
 }

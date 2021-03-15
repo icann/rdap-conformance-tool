@@ -5,8 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.RDAPValidatorTestContext;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.validators.StdRdapLdhNameValidation;
@@ -22,7 +20,7 @@ public class DomainTest {
 
   @BeforeMethod
   public void setUp() {
-    doReturn(new ArrayList<RDAPValidationResult>()).when(ldhNameValidationMock).validate(any());
+    doReturn(true).when(ldhNameValidationMock).validate(any());
   }
 
   @Test

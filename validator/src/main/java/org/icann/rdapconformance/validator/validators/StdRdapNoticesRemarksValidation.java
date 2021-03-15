@@ -30,7 +30,7 @@ public class StdRdapNoticesRemarksValidation extends Validator<NoticeAndRemark> 
   }
 
   @Override
-  protected int getDuplicateKeyErrorCode() {
+  public int getDuplicateKeyErrorCode() {
     return -10702;
   }
 }

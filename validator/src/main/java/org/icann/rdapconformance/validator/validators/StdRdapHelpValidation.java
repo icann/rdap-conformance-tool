@@ -28,7 +28,7 @@ public class StdRdapHelpValidation extends Validator<Help> {
   }
 
   @Override
-  protected int getDuplicateKeyErrorCode() {
+  public int getDuplicateKeyErrorCode() {
     return -12502;
   }
 }

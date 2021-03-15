@@ -1,10 +1,13 @@
 package org.icann.rdapconformance.validator.aspect;
 
+import static org.icann.rdapconformance.validator.aspect.CheckEnabledAspect.getCode;
+
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
+import org.icann.rdapconformance.validator.aspect.annotation.CheckEnabled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,4 +66,24 @@ public class ValidationLoggingAspect {
       logger.debug("{} validation OK", fieldName);
     }
   }
+
+
+  @Before("execution(@CheckEnabled * *(..)) && @annotation(checkEnabled)")
+  public void LogBeforeFieldValidate(final JoinPoint jp, final CheckEnabled checkEnabled) {
+    int code = getCode(jp, checkEnabled);
+    logger.debug("Starting validation for code {}", code);
+  }
+
+  @AfterReturning(pointcut = "execution(@CheckEnabled * *(..)) && @annotation(checkEnabled)",
+      returning = "result")
+  public void LogAfterMethod(final JoinPoint jp, final CheckEnabled checkEnabled,
+      final boolean result) {
+    int code = getCode(jp, checkEnabled);
+    if (!result) {
+      logger.info("Validation for code {} failed", code);
+    } else {
+      logger.debug("Validation for code {} OK", code);
+    }
+  }
+
 }

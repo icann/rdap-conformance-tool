@@ -35,7 +35,7 @@ public class StdRdapLdhNameValidation extends Validator<RDAPObject> {
   }
 
   @Override
-  protected int getDuplicateKeyErrorCode() {
+  public int getDuplicateKeyErrorCode() {
     return 0;
   }
 }

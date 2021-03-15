@@ -32,7 +32,7 @@ public class StdRdapConformanceValidation extends Validator<RDAPObject> {
   }
 
   @Override
-  protected int getDuplicateKeyErrorCode() {
+  public int getDuplicateKeyErrorCode() {
     return -10702;
   }
 }

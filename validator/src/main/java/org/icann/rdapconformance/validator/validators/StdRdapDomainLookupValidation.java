@@ -33,7 +33,7 @@ public class StdRdapDomainLookupValidation extends Validator<Domain> {
   }
 
   @Override
-  protected int getDuplicateKeyErrorCode() {
+  public int getDuplicateKeyErrorCode() {
     return -12202;
   }
 }
