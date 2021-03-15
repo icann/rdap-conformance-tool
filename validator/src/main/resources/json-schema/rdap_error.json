@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_error.json",        
+  "oneOf": [
+  	   {
+	  "allOf": [
+	    {
+	      "$ref": "rdap_response_common.json#"
+	    },
+	    {
+	      "$ref": "rdap_error_object.json#"
+	    }
+	  ]
+	  },
+	  {
+	  "allOf": [
+	    { "not" : {
+		      "$ref": "rdap_response_common.json#"
+		   }
+	    },
+	    {
+	      "$ref": "rdap_error_object.json#"
+	    }
+	    ]
+	  }
+	]	  
+}

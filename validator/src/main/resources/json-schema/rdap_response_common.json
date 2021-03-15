@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_response_common.json",                
+    "type": "object",
+    "properties": {
+        "rdapConformance": {
+          "$ref": "rdap_common.json#/definitions/uniqueStringArray"
+        },
+        "lang" : {
+	      "$ref": "rdap_common.json#/definitions/lang"
+        },
+        "notices" : {
+           "$ref": "rdap_common.json#/definitions/notices"
+        }
+      }
+}

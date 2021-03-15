@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_notice.json",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "type": {
+      "anyOf":[
+        {
+          "$ref": "rdap_common.json#/definitions/noticeType"
+        }
+      ]
+    },
+    "description": {
+      "$ref": "rdap_common.json#/definitions/stringArray"
+    },
+    "links": {
+      "$ref": "rdap_common.json#/definitions/links"
+    }
+  },
+  "required": ["description"]
+}

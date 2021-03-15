@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_nameserver_object.json",              
+  "definitions" : {
+     "nameserverClass" : {"const": "nameserver" }
+    },
+	  "allOf": [
+	    {
+	      "$ref": "rdap_common.json#"
+	    },    
+	    {
+	      "properties": {
+	        "objectClassName": {
+	          "$ref": "#/definitions/nameserverClass"
+	         },
+	        "ldhName": {
+	          "$ref": "rdap_common.json#/definitions/ldhName"
+	        },
+	        "unicodeName": {
+	          "$ref": "rdap_common.json#/definitions/unicodeName"
+	        },
+	        "ipAddresses": {
+	          "type": "object",
+	          "properties": {
+	            "v6": {
+	              "type": "array",
+	              "items": {
+	                "$ref": "rdap_common.json#/definitions/ipv6"
+	              }
+	            },
+	            "v4": {
+	              "type": "array",
+	              "items": {
+	                "$ref": "rdap_common.json#/definitions/ipv4"
+	              }
+	            }
+	          }
+	        },
+	        "entities": {
+	          "type": "array",
+	          "items": {
+	            "$ref": "rdap_entity_object.json#"
+	          }
+	        }
+	      },
+		  "required": [
+		    "objectClassName","ldhName"
+		  ],
+          "not": { "required": [ "domainSearchResults", "nameserverSearchResults", "entitySearchResults"] }
+	    }
+	 ]
+}

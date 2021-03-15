@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_error_object.json",      
+      "properties": {
+        "errorCode": {
+          "$ref": "rdap_common.json#/definitions/positiveInteger"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "$ref": "rdap_common.json#/definitions/stringArray"
+        }
+      },
+	  "required": [
+	    "errorCode"
+	  ],
+      "not": { "required": [ "domainSearchResults", "nameserverSearchResults", "entitySearchResults"] }
+}

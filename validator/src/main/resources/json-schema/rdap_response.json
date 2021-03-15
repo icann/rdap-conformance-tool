@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_response.json",                
+       "oneOf" : [         
+          { "$ref": "rdap_help.json#" },             
+          { "$ref": "rdap_error.json#" },          
+          { "$ref": "rdap_nameserver.json#" },
+          { "$ref": "rdap_nameservers.json#" },
+          { "$ref": "rdap_entity.json#" },
+          { "$ref": "rdap_entities.json#" },
+          { "$ref": "rdap_domain.json#" },
+          { "$ref": "rdap_domains.json#" },
+          { "$ref": "rdap_ipnetwork.json#" },
+          { "$ref": "rdap_autnum.json#" }               
+        ]
+}

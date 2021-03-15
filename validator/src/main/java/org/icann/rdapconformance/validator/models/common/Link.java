@@ -11,7 +11,7 @@ public class Link extends Lang {
   private String rel;
 
   @JsonProperty
-  private String href;
+  String href;
 
   @JsonProperty
   private String hreflang;
@@ -23,7 +23,7 @@ public class Link extends Lang {
   private String media;
 
   @JsonProperty
-  private String type;
+  String type;
 
   @Override
   public boolean validate() {

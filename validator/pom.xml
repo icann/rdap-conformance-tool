@@ -49,6 +49,12 @@
       <version>${org.aspectj-version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.github.everit-org.json-schema</groupId>
+      <artifactId>org.everit.json.schema</artifactId>
+      <version>1.12.2</version>
+    </dependency>
+
     <!-- test dependencies -->
     <dependency>
       <groupId>org.testng</groupId>
@@ -127,5 +133,12 @@
 
     </plugins>
   </build>
+
+  <repositories>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
+  </repositories>
 
 </project>

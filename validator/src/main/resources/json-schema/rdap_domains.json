@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_domains.json",      
+  "allOf": [
+    {
+      "$ref": "rdap_response_common.json#"
+    },
+    {
+      "properties": {
+        "domainSearchResults": {
+          "type": "array",
+          "items": {
+            "$ref": "rdap_domain_object.json#"
+		   },
+           "minItems" : 1		          
+        }
+      },
+	    "required": [
+	    "domainSearchResults"
+	  ]
+    }    
+  ],  
+  "links": [
+    {
+      "description": "Get domains by name",
+      "href": "/domains{?name}",
+      "hrefSchema": {
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "method": "GET",
+      "rel": "self",
+      "title": "domains by name",
+      "targetSchema" : {"$ref":"#"}
+    },
+    {
+      "description": "Get domains by nsLdhName",
+      "href": "/domains{?nsLdhName}",
+      "hrefSchema": {
+        "properties": {
+          "nsLdhName": {
+            "type": "string"
+          }
+        }
+      },
+      "method": "GET",
+      "rel": "self",
+      "title": "domains by nsLdhName",
+      "targetSchema" : {"$ref":"#"}
+    },
+    {
+      "description": "Get domains by nsIp",
+      "href": "/domains{?nsIp}",
+      "hrefSchema": {
+        "properties": {
+          "nsIp": {
+            "type": "string"
+          }
+        }
+      },
+      "method": "GET",
+      "rel": "self",
+      "title": "domains by nsIp",
+      "targetSchema" : {"$ref":"#"}
+    }
+  ]
+}

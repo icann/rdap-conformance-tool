@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_ipnetwork.json",            
+  "allOf": [
+	    {
+		  "$ref": "rdap_response_common.json#"
+	    },
+		 {  
+  		 "$ref": "rdap_ipnetwork_object.json#"	
+         }
+  ],
+  "links": [
+    {
+      "description": "Get network by ip",
+      "href": "/ip/{ip}",
+      "hrefSchema": {
+        "properties": {
+          "ip": {
+            "$ref": "rdap_common.json#/definitions/ip"
+          }
+        }
+      },
+      "method": "GET",
+      "rel": "self",
+      "title": "network by ip"
+    },
+    {
+      "description": "Get network by cidr",
+      "href": "/ip/{cidrPrefix}/{cidrLength}",
+      "hrefSchema": {
+          "oneOf": [
+          {
+	          "properties": {          
+		          "cidrPrefix": {
+		            "$ref": "rdap_common.json#/definitions/ipV4"
+		          },
+		          "cidrLength": {
+		            "type": "integer",
+		            "minimum": 1,
+		            "maximum": 32
+		          }
+		       }
+	       },
+           {
+	          "properties": {          
+		          "cidrPrefix": {
+		            "$ref": "rdap_common.json#/definitions/ipV6"
+		          },
+		          "cidrLength": {
+		            "type": "integer",
+		            "minimum": 1,
+		            "maximum": 128
+		          }
+		       }
+	       }          
+	     ]
+      },
+      "method": "GET",
+      "rel": "self",
+      "title": "network by cidr",
+      "targetSchema" : {"$ref":"#"}      
+    }
+  ]
+}

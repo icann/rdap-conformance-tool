@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_entity_object.json",      
+  "definitions": {
+   "entityClass" : {"const": "entity" },  
+    "entityRole": {
+      "type": "string",
+      "description" : "the name is entityRole instead of simply role to distinguish it from the role defintiion in jcard",
+      "enum": [
+        "registrant",
+        "technical",
+        "administrative",
+        "abuse",
+        "billing",
+        "registrar",
+        "reseller",
+        "sponsor",
+        "proxy",
+        "notifications",
+        "noc"
+      ]
+    }
+  },
+		  "allOf": [
+		    {
+		      "$ref": "rdap_common.json#"
+		    },
+		    {
+		      "properties": {
+		        "objectClassName": {
+	          		"$ref": "#/definitions/entityClass"
+		        },		        
+		        "handle": {
+		          "type": "string",
+		          "description" : "this property overrides the same property in rdap_common.json"
+		        },
+		    
+		        "vcardArray": {
+		          "$ref": "jcard.json#/definitions/vcardArray"
+		        },
+		        "roles": {
+		          "type": "array",
+		          "items": {
+		            "$ref": "#/definitions/entityRole"
+		          }
+		        },
+		        "entities": {
+		          "type": "array",
+		          "items": {
+		            "$ref": "rdap_entity_object.json#"
+		          }
+		        },
+		        "asEventActor": {
+		          "type": "array",
+		          "items": {
+		            "$ref": "rdap_common.json#/definitions/eventWithoutActor"
+		          }
+		        },
+		        "publicIds": {
+		          "$ref": "rdap_common.json#/definitions/publicIds"
+		        },
+		        "networks": {
+		          "type": "array",
+		          "items": {
+		            "$ref": "rdap_ipnetwork_object.json#"
+		          }
+		        },
+		        "autnums": {
+		          "type": "array",
+		          "items": {
+		            "$ref": "rdap_autnum_object.json#"
+		          }
+		        }
+		      },
+		  "required": [
+		    "objectClassName", "handle"
+		  ],
+          "not": { "required": [ "domainSearchResults", "nameserverSearchResults", "entitySearchResults"] }
+	    }
+	  ]
+}

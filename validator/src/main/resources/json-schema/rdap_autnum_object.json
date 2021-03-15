@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_autnum_object.json",  
+  "definitions" : {
+  	  "autnumClass" : {"const": "autnum" },
+      "autnum": {
+	      "type": "integer",
+	      "minimum": 0,
+	      "maximum": 4294967295
+	    }
+	  },
+	  "allOf": [
+	    {
+	      "$ref": "rdap_common.json#"
+	    },			  
+	    {
+	      "properties": {
+	        "objectClassName": {
+	          "$ref": "#/definitions/autnumClass"
+	        },
+	        "startAutnum": {
+	          "$ref": "#/definitions/autnum"
+	        },
+	        "endAutnum": {
+	          "$ref": "#/definitions/autnum"
+	        },
+	        "name": {
+	          "type": "string"
+	        },
+	        "type": {
+	          "$ref": "rdap_common.json#/definitions/rirType"
+	        },
+	        "country": {
+	          "$ref": "rdap_common.json#/definitions/country"
+	        },
+	        "entities": {
+	          "type": "array",
+	          "items": {
+	            "$ref": "rdap_entity_object.json#"
+	          }
+	        }
+	      },
+		  "required": [
+		    "objectClassName"
+		  ],
+          "not": { "required": [ "domainSearchResults", "nameserverSearchResults", "entitySearchResults"] }
+	    }
+	]
+}

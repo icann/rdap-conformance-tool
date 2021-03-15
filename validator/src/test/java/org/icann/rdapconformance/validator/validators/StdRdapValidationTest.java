@@ -23,11 +23,12 @@ import org.testng.annotations.Test;
 
 public abstract class StdRdapValidationTest<T extends RDAPValidate> {
 
+  private final ConfigurationFile configurationFile = new ConfigurationFile();
+  protected RDAPValidatorTestContext context;
+  protected Validator<T> validator;
+  private T mockedType;
   private final Class<T> clazz;
   private final String validatorName;
-  protected RDAPValidatorTestContext context;
-  private Validator<T> validator;
-  private T mockedType;
 
   public StdRdapValidationTest(Class<T> clazz, String validatorName) {
     this.clazz = clazz;

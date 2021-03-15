@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_entities.json",      
+  "allOf": [
+    {
+      "$ref": "rdap_response_common.json#"
+    },
+    {
+      "properties": {
+        "entitySearchResults": {
+          "type": "array",
+          "items": {
+            "$ref": "rdap_entity_object.json#"
+          },
+          "minItems" : 1          
+        }
+      },
+	    "required": [
+	    "entitySearchResults"
+	  ]
+    }
+  ],
+  "links": [
+    {
+      "description": "Get entities by handle",
+      "href": "/entities{?handle}",
+      "hrefSchema": {
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "method": "GET",
+      "rel": "self",
+      "title": "entities by handle",
+      "targetSchema" : {"$ref":"#"}
+    },
+    {
+      "description": "Get entities by fn",
+      "href": "/entities{?fn}",
+      "hrefSchema": {
+        "properties": {
+          "fn": {
+            "type": "string"
+          }
+        }
+      },
+      "method": "GET",
+      "rel": "self",
+      "title": "entities by fn",
+      "targetSchema" : {"$ref":"#"}
+    }
+  ]
+}

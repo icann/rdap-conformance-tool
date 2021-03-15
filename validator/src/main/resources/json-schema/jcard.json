@@ -1,0 +1,2426 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "jcard.json",  
+  "definitions": {
+    "string-or-string-array": {
+    	"type": [
+	              "string",
+	              "array"
+	            ],
+	        "items": {
+	          "type": "string"
+    		}   
+    },
+    "language": {
+      "type": "string",
+      "pattern": "[a-z]{2}(-[A-Z][a-zA-Z]*(\\-[A-Z]{2})?)?"
+    },    
+    "tel-uri": {
+         "type": "string",
+          "pattern" : "^tel:((?:\\+[\\d().-]*\\d[\\d().-]*|[0-9A-F*#().-]*[0-9A-F*#][0-9A-F*#().-]*(?:;[a-z\\d-]+(?:=(?:[a-z\\d\\[\\]\\/:&+$_!~*'().-]|%[\\dA-F]{2})+)?)*;phone-context=(?:\\+[\\d().-]*\\d[\\d().-]*|(?:[a-z0-9]\\.|[a-z0-9][a-z0-9-]*[a-z0-9]\\.)*(?:[a-z]|[a-z][a-z0-9-]*[a-z0-9])))(?:;[a-z\\d-]+(?:=(?:[a-z\\d\\[\\]\\/:&+$_!~*'().-]|%[\\dA-F]{2})+)?)*(?:,(?:\\+[\\d().-]*\\d[\\d().-]*|[0-9A-F*#().-]*[0-9A-F*#][0-9A-F*#().-]*(?:;[a-z\\d-]+(?:=(?:[a-z\\d\\[\\]\\/:&+$_!~*'().-]|%[\\dA-F]{2})+)?)*;phone-context=\\+[\\d().-]*\\d[\\d().-]*)(?:;[a-z\\d-]+(?:=(?:[a-z\\d\\[\\]\\/:&+$_!~*'().-]|%[\\dA-F]{2})+)?)*)*)$"        
+    },
+    "geo-uri": {
+	      "type": "string",
+	      "pattern" : "geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?$"
+    },
+    "utc-offset" : {
+	      "type" : "string",
+		   "pattern" : "^(([-+]\\d{1,2}):?(\\d{2})?)?$"
+	},
+	"timestamp" : {
+    			 "type" : "string",
+    			 "format": "time"	
+	}, 				
+    "date-or-time" : {
+    			"anyOf" : [
+					{
+						"type" : "string",
+						"format" : "date"
+					},     			
+					{
+						"type" : "string",
+						"format" : "date-time"										
+					}
+			 	]
+    },
+    "date-and-or-time" : {
+    	"anyOf" : [
+    		{
+    			 "$ref" : "#/definitions/date-or-time"	
+    		},
+    		{
+    			 "$ref" : "#/definitions/timestamp"	
+    		}
+    	]
+    },
+    "email" : {
+    			"anyOf" : [
+					{
+						"type" : "string",
+						"format" : "email"
+					},     			
+					{
+						"type" : "string",
+						"format" : "idn-email"										
+					}
+			 	]
+    },    
+    "mediatype-type" : {
+    	"type" : "string",
+    	"pattern" : "^\\w+/[-.\\w]+(?:\\+[-.\\w]+)?$"
+    },
+    "group-type" : {
+    	"type" : "string",
+    	"pattern" : "^[a-zA-Z0-9\\-]+$"    
+    },
+    "tag-type" : {
+         "type": "string",
+          "enum": [
+            "home",
+            "work"
+          ]
+    },
+    "tel-type" : {
+         "type": "string",
+          "enum": [
+            "text",
+            "voice",
+            "fax",
+            "cell",
+            "video",
+            "pager",
+            "textphone",
+            "main-number"
+          ]
+    },
+    "related-type" : {
+         "type": "string",
+          "enum": [
+            "contact",
+            "acquaintance",
+            "friend",
+            "met",
+            "co-worker",
+            "colleague",
+            "co-resident",
+            "neighbor",
+            "child",
+            "parent",
+            "sibling",
+            "spouse",
+            "kin",
+            "muse",
+            "crush",
+            "date",
+            "sweetheart",
+            "me",
+            "agent",
+            "emergency"
+          ]
+    },  
+	"index-type": {
+		"type": "string", 
+		"pattern": "^[1-9]?[0-9]*$"
+     },
+	"expertise-level-type": {
+		"type": "string", 
+		"enum": ["beginner", "average", "expert"]
+     },
+	"hobby-level-type": {
+		"type": "string", 
+		"enum": ["high", "medium", "low"]
+     },
+	"pref-type": {
+		"type": "string", 
+		"pattern": "^[1-9]?[0-9]{1}$|^100$"
+     },
+    "calscale-type": {
+	      "const": "gregorian"
+    },
+    "tel-type-array": {
+        "type": [
+          "string",
+          "array"
+        ],
+        "items": {
+            "anyOf" : [
+	            {
+	               "$ref" : "#/definitions/tel-type"
+	            },
+	            {
+	               "$ref" : "#/definitions/tag-type"
+	            }
+	          ]
+        }	                            
+    },
+    "tag-type-array": {
+        "type": [
+          "string",
+          "array"
+        ],
+        "items": {
+	       "$ref" : "#/definitions/tag-type"
+        }	                            
+    },
+    "related-type-array": {
+        "type": [
+          "string",
+          "array"
+        ],
+        "items": {
+	        "$ref" : "#/definitions/related-type"
+        }	                            
+    },
+    "pid-type-array" : {
+        "type": [
+          "string",
+          "array"
+        ],
+        "items": {
+	        "type": "string",
+	         "pattern" : "^[0-9]+(\\.[0-9]+)?$"        
+        }                
+    },
+    "fn-type": {
+      "type": [
+              "string",
+              "array"
+            ],
+        "items": {
+          "type": "string"
+        },
+       "minItems": 1      
+    },
+    "n-type": {
+      "type": "array",
+      "items": [
+        {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description" : "family-name"       
+        },
+        {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description" : "given-name"         
+        },
+        {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description" : "additional-name"        
+        },
+        {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description" : "honorific-prefix"        
+        },
+        {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description" : "honorific-suffix"        
+        }
+      ]
+    },
+    "gender-type": {
+		"type": "string",
+		"enum" : ["", "M" , "F" , "O" , "N" , "U"]
+    },
+    "adr-type": {
+      "type": "array",
+      "items": [
+          {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description": "The post office box."
+          },
+          {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description": "The extended address (e.g. apartment or suite number)."
+          },
+          {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description": "The street address."
+          },
+          {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description": "The locality (e.g., city)."
+          },
+          {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description": "The region (e.g., state or province)."
+          },
+          {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description": "The postal code."
+          },
+          {
+	       "$ref": "#/definitions/string-or-string-array",        
+            "description": "The country name."
+          }
+       ]
+    },
+    "kind-type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "group",
+        "org",
+        "location",
+        "application",
+        "device"		            
+      ],
+      "description": "To specify the kind of object the jCard represents.",
+      "default": "individual"
+    },
+    "clientpidmap-type": {
+        "type": "string",
+        "pattern" : "^[0-9]+;(\\w+:(\\/?\\/?)[^\\s]+)$"
+    },  
+    "any-param-type" : {
+        "type": "object",
+		"patternProperties": {
+		   "^x-": {
+				   "$ref": "#/definitions/string-or-string-array"        
+		  }
+		},
+		"additionalProperties": false    
+    },  
+    "any-type": {
+    	"oneOf" : [
+	        {
+		      "type": "string"
+	        },
+	        {
+	          "type": "boolean"
+	        },
+	        {
+	          "type": "number"
+	        },
+	        {
+	          "type": "array"
+	        },
+	        {
+	          "type": "object"
+	        }   
+    	]
+    },
+    "vcard": {
+      "allOf" : [
+         {
+           "type": "array",      
+           "contains" :          
+	        {
+	          "type": "array",
+	          "description": "To specify the formatted text corresponding to the name of the object the jCard represents.",
+	          "items": [
+	            {
+	              "const": "fn"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"                
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "text"
+	            },
+	            {
+	              "$ref": "#/definitions/fn-type"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "$ref": "#/definitions/fn-type"
+	          }	          
+	        }                  
+         },
+      
+         {      
+      
+      "type": "array",      
+      "items": [
+        {
+          "type": "array",
+          "items": [
+            {
+              "const": "version"
+            },
+            {},
+            {
+              "const": "text"
+            },
+            {
+              "const": "4.0"
+            }
+          ],
+	       "additionalProperties" : {
+			   "$ref" : "#/definitions/any-param-type"			       
+	       }
+        }
+	  ],
+	  "additionalItems" : 
+	    {
+	      "oneOf": [
+	        {
+	          "type": "array",
+	          "description": "To specify the formatted text corresponding to the name of the object the jCard represents.",
+	          "items": [
+	            {
+	              "const": "fn"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			        	"$ref" : "#/definitions/group-type"
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"                
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "text"
+	            },
+	            {
+	              "$ref": "#/definitions/fn-type"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "$ref": "#/definitions/fn-type"
+	            }
+	        },
+	        {
+	          "type": "array",
+	          "items": [
+	            {
+	              "const": "n"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			            "type": "string"        
+			        },
+			        "group" : {
+			        	"$ref" : "#/definitions/group-type"        
+			        },
+			        "lang": {
+			        	"$ref": "#/definitions/language"
+			        },
+			        "sort-as": {
+				    	"$ref": "#/definitions/string-or-string-array"        
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "$ref": "#/definitions/n-type"
+	            }
+	          ]
+	        },
+	        {
+	          "type": "array",
+	          "description": "To specify the text corresponding to the nickname of the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "nickname"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			            "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"                
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	               "$ref": "#/definitions/string-or-string-array"
+	            }
+	          ],
+	          "additionalItems" : {
+	               "$ref": "#/definitions/string-or-string-array"
+	            }
+	        },
+	        {
+	          "type": "array",
+	          "description": "To specify an image or photograph information that annotates some aspect of the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "photo"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			            "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"                
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+	              "type": "string", "format" : "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string", "format" : "uri"
+	            }
+	        },
+	        {
+	          "type": "array",
+         	  "description": "To specify the birth date of the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "bday"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			            "$ref" : "#/definitions/group-type"        
+			        },
+			        "calscale": {
+					    "$ref" : "#/definitions/calscale-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "date-and-or-time"
+	            },
+	            {
+	              "$ref" : "#/definitions/date-and-or-time"
+	            }
+	          ]
+	        },
+	        {
+	          "type": "array",
+         	  "description": "To specify the birth date of the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "bday"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type": "string"
+	            }
+	          ]
+	        },
+	        {
+	          "type": "array",
+	          "description": "To specify the date of marriage, or equivalent, of the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "anniversary"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+ 			            "$ref" : "#/definitions/group-type"        
+			        },
+			        "calscale": {
+					    "$ref" : "#/definitions/calscale-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "date-and-or-time"
+	            },
+	            {
+	              "$ref" : "#/definitions/date-and-or-time"
+	            }
+	          ]
+	        },
+	        {
+	          "type": "array",
+	          "description": "To specify the date of marriage, or equivalent, of the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "anniversary"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type": "string"
+	            }
+	          ]
+	        },
+	        {
+	          "type": "array",
+	         "description": "To specify the gender of the object the jCard represents.",
+	          "items": [
+	            {
+	              "const" : "gender"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "group" : {
+			           "$ref" : "#/definitions/group-type"        
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "$ref": "#/definitions/gender-type"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string"
+	            }
+	        },
+	        {
+	          "type": "array",
+	          "items": [
+	            {
+	              "const" : "adr"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			           "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "lang": {
+			           "$ref": "#/definitions/language"
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "geo": {
+			          "$ref": "#/definitions/geo-uri"        
+			        },
+			        "tz": {
+			        	"$ref": "#/definitions/utc-offset"
+			        },
+			        "label" : {
+			        	"type" : "string"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "$ref": "#/definitions/adr-type"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "$ref": "#/definitions/adr-type"
+	            }
+	        },       
+	        {
+	          "type": "array",
+	          "items": [
+	            {
+	              "const" : "tel"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+					     "$ref" : "#/definitions/tel-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+	              "$ref": "#/definitions/tel-uri"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "$ref": "#/definitions/tel-uri"
+	            }
+	        },
+	        {
+	          "type": "array",
+	          "items": [
+	            {
+	              "const" : "tel"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+  		               "$ref" : "#/definitions/tel-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type": "string"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string"
+	            }
+	        },
+	        {
+	          "type": "array",
+              "description": "To specify the electronic mail address for communication with the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "email"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+					    "$ref" : "#/definitions/tag-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "$ref" : "#/definitions/email"	
+	            }
+	          ],
+	          "additionalItems" : {
+	              "$ref" : "#/definitions/email"
+	            }
+	        },
+	        {
+	          "type": "array",
+     		  "description": "To specify the URI for instant messaging and presence protocol communications with the object the vCard represents.",
+	          "items": [
+	            {
+	              "const" : "impp"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+      			  "type": "string", "format": "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+      			  "type": "string", "format": "uri"
+	            }
+	        },
+	        {
+	          "type": "array",
+	          "items": [
+	            {
+	              "const" : "lang"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "language-tag"
+	            },
+	            {
+				   "$ref": "#/definitions/language"
+	            }
+	          ],
+	          "additionalItems" : {
+				   "$ref": "#/definitions/language"
+	            }
+	        },
+	        {
+	          "type": "array",
+	          "items": [
+	            {
+	              "const" : "kind"
+	            },
+			    {
+			      "type" : "object",
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }			      
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+				   "$ref": "#/definitions/kind-type"
+	            }
+	          ]
+	        },	        
+	        {
+	          "type": "array",
+              "description": "To specify information related to the time zone of the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "tz"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+					"$ref": "#/definitions/utc-offset"
+	            }
+	          ],
+	          "additionalItems" :  {
+					"$ref": "#/definitions/utc-offset"
+	            }
+	        },
+	        {
+	          "type": "array",
+              "description": "To specify information related to the time zone of the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "tz"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type": "string"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string"
+	            }
+	        },
+	        {
+	          "type": "array",
+	          "items": [
+	            {
+	              "const" : "tz"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "utc-offset"
+	            },
+	            {
+	              "$ref": "#/definitions/utc-offset"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "$ref": "#/definitions/utc-offset"
+	            }
+	        },
+	        {
+	          "type": "array",
+              "description": "To specify information related to the global positioning of the object the vCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "geo"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+	          		"$ref": "#/definitions/geo-uri"        
+	            }
+	          ],
+	          "additionalItems" : {
+	          		"$ref": "#/definitions/geo-uri"        
+	            }
+	        },
+	        {
+	          "type": "array",
+              "description": "To identify the source of directory information contained in the content type.",
+	          "items": [
+	            {
+	              "const" : "source"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+	              "type": "string", "format": "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string", "format": "uri"
+	            }
+	        },	        
+	        {
+	          "type": "array",
+              "description": "To specify a public key or authentication certificate associated with the object that the jCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "key"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+	              "type": "string", "format": "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string", "format": "uri"
+	            }
+	        },
+	        {
+	          "type": "array",
+              "description": "To specify a public key or authentication certificate associated with the object that the jCard represents.",	          
+	          "items": [
+	            {
+	              "const": "key"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type": "string"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string"
+	            }
+	        },
+	        {
+	          "type": "array",
+	          "description": "To specify the job title, functional position or function of the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const": "title"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type" : "string"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type" : "string"
+	            }
+	        },
+	        {
+	          "type": "array",
+	          "description": "To specify information concerning the role, occupation, or business category of the object the jCard represents.",	          
+	          "items": [
+	            {
+	              "const": "role"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type" : "string"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type" : "string"
+	            }
+	        },
+	        {
+	          "type": "array",
+        	  "description": "To specify a graphic image of a logo associated with the object the jCard represents.",      
+	          "items": [
+	            {
+	              "const": "logo"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        },			        
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+                  "type": "string", "format": "image"
+	            }
+	          ],
+	          "additionalItems" : {
+                  "type": "string", "format": "image"
+	            }
+	        },
+	        {
+	          "type": "array",
+	          "description": "To specify the organizational name and units associated with the jCard.",	          
+	          "items": [
+	            {
+	              "const": "org"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },
+			        "type": {
+					   "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "sort-as": {
+				       "$ref": "#/definitions/string-or-string-array"        
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type": "string"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string"
+	            }
+	        },     
+	        {
+	          "type": "array",
+              "description": "To specify a uniform resource locator associated with the object that the jCard refers to.",	          
+	          "items": [
+	            {
+	              "const": "url"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },	            {
+	              "const": "uri"
+	            },
+	            {
+                  "type": "string", "format": "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+                  "type": "string", "format": "uri"
+	            }
+	        },     
+	        {
+	          "type": "array",
+              "description": "To specify a value that represents a globally unique identifier corresponding to the individual or resource associated with the jCard.",	          
+	          "items": [
+	            {
+	              "const" : "uid"
+	            },
+	            {
+	               "type" : "object",
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+	            },
+	            {
+	              "const": "uri"
+	            },
+	            {
+	                "type": "string", "format": "uri"
+	            }
+	          ]
+	        },     
+	        {
+	          "type": "array",
+              "description": "To specify a value that represents a globally unique identifier corresponding to the individual or resource associated with the jCard.",	          
+	          "items": [
+	            {
+	              "const": "uid"
+	            },
+	            {
+	               "type" : "object",
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+	            },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type": "string"
+	            }
+	          ]
+	        },     
+	        {
+	          "type": "array",
+	          "description": "To specify supplemental information or a comment that is associated with the jCard.",	          
+	          "items": [
+	            {
+	              "const": "note"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type": "string"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string"
+	            }
+	        },     
+	        {
+	          "type": "array",
+	          "description": "To specify the identifier for the product that created the vCard object.",
+	          "items": [
+	            {
+	              "const": "prodid"
+	            },
+	            {
+	               "type" : "object",
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+	            },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type": "string"
+	            }
+	          ]
+	        },     
+	        {
+	          "type": "array",
+              "description": "To include a member in the group this vCard represents.",	          
+	          "items": [
+	            {
+	              "const": "member"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+			    {
+	              "const": "uri"
+	            },
+	            {
+                  "type": "string", "format": "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+                  "type": "string", "format": "uri"
+	            }
+	        },     
+	        {
+	          "type": "array",
+              "description": "To specify a relationship between another entity and the entity represented by this vCard.",	          
+	          "items": [
+	            {
+	              "const" : "related"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/related-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+	                "type": "string", "format" : "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+	                "type": "string", "format" : "uri"
+	            }
+	        },     
+	        {
+	          "type": "array",
+              "description": "To specify a relationship between another entity and the entity represented by this vCard.",	          
+	          "items": [
+	            {
+	              "const": "related"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/related-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const" : "text"
+	            },
+	            {
+	              "type": "string"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string"
+	            }
+	        },     
+	        {
+	          "type": "array",
+              "description": "To specify revision information about the current jCard.",	          
+	          "items": [
+	            {
+	              "const": "rev"
+	            },
+			    {
+			       "type" : "object",
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "timestamp"
+	            },
+	            {
+	                "$ref" : "#/definitions/timestamp"
+	            }
+	          ]
+	        },     
+	        {
+	          "type": "array",
+              "description": "To specify a digital sound content information that annotates some aspect of the jCard.  By default this property is used to specify the proper pronunciation of the name property value of the jCard.",	          
+	          "items": [
+	            {
+	              "const": "sound"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },	            
+			    {
+	              "const": "uri"
+	            },
+	            {
+                   "type": "string", "format": "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+                   "type": "string", "format": "uri"
+	            }
+	        },     
+	        {
+	          "type": "array",
+              "description": "To specify the URI for a user's busy time in a jCard object.",	          
+	          "items": [
+	            {
+	              "const": "fburl"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },	            
+			    {
+	              "const": "uri"
+	            },
+	            {
+                  "type": "string", "format": "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+                  "type": "string", "format": "uri"
+	            }
+	        },     
+	        {
+	          "type": "array",
+              "description": "To specify application category information about the jCard.",
+	          "items": [
+	            {
+	              "const": "categories"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },	            {
+	              "const" : "text"
+	            },
+	            {
+	               "$ref": "#/definitions/string-or-string-array"        
+	            }
+	          ],
+	          "additionalItems" : {
+	               "$ref": "#/definitions/string-or-string-array"        
+	            }
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify the location to which an event request should be sent for the user.",
+	          "items": [
+	            {
+	              "const": "caladruri"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },	            
+	            {
+	              "const": "uri"
+	            },
+	            {
+	              "type": "string", "format": "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "type": "string", "format": "uri"
+	            }
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify the URI for a user's calendar in a jCard object.",	          
+	          "items": [
+	            {
+	              "const" : "caluri"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "mediatype": {
+			        	"$ref" : "#/definitions/mediatype-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+                  "type": "string", "format": "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+                  "type": "string", "format": "uri"
+	            }
+	        },     
+	        {
+	          "type": "array",
+	          "description": "To give a global meaning to a local PID source identifier.",
+	          "items": [
+	            {
+	              "const" : "clientpidmap"
+	            },
+	            {
+	               "type" : "object",
+			      "properties": {
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			          }
+			        },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }	              
+	            },
+	            { 
+	               "const" : "uri"
+	            },
+	            {
+	              "$ref": "#/definitions/clientpidmap-type"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "$ref": "#/definitions/clientpidmap-type"
+	            }
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify a field of expertise for the object to which the vCard refers.",	          
+	          "items": [
+	            {
+	              "const" : "expertise"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },			        
+			        "index": {
+			          "$ref": "#/definitions/index-type"
+			        },			        
+			        "level": {
+			          "$ref": "#/definitions/expertise-level-type"
+			        }			        
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "text"
+	            },
+	            {
+                  "type": "string"
+	            }
+	          ],
+	          "additionalItems" : {
+                  "type": "string"
+	            }
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify the hobbies of the object to which the vCard refers.",	          
+	          "items": [
+	            {
+	              "const" : "hobby"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },			        
+			        "index": {
+			          "$ref": "#/definitions/index-type"
+			        },			        
+			        "level": {
+			          "$ref": "#/definitions/hobby-level-type"
+			        }			        
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "text"
+	            },
+	            {
+                  "type": "string"
+	            }
+	          ],
+	          "additionalItems" : {
+                  "type": "string"
+	            }
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify the interest(s) of the object to which the vCard refers.",	          
+	          "items": [
+	            {
+	              "const" : "interest"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },			        
+			        "index": {
+			          "$ref": "#/definitions/index-type"
+			        },			        
+			        "level": {
+			          "$ref": "#/definitions/hobby-level-type"
+			        }			        
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "text"
+	            },
+	            {
+                  "type": "string"
+	            }
+	          ],
+	          "additionalItems" : {
+                  "type": "string"
+	            }
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify a directory of an organization to which the vCard’s entity belongs.",	          
+	          "items": [
+	            {
+	              "const" : "org-directory"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "pref": {
+			          "$ref": "#/definitions/pref-type"
+			        },
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "pid" : {
+			            "$ref" : "#/definitions/pid-type-array"        
+			        },			        
+			        "type": {
+		               "$ref" : "#/definitions/tag-type-array"
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        },			        
+			        "index": {
+			          "$ref": "#/definitions/index-type"
+			        }			        
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+                  "type": "string", "format" : "uri"
+	            }
+	          ],
+	          "additionalItems" : {
+                  "type": "string", "format" : "uri"
+	            }
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify the place of birth of the object the vCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "birthplace"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        }			        
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "text"
+	            },
+	            {
+                  "type": "string"
+	            }
+	          ]
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify the place of birth of the object the vCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "birthplace"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        }			        
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+                  "type": "string" , "format" : "uri"
+	            }
+	          ]
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify the place of death of the object the vCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "deathplace"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        }			        
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "text"
+	            },
+	            {
+                  "type": "string"
+	            }
+	          ]
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify the place of death of the object the vCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "deathplace"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        }			        
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "uri"
+	            },
+	            {
+                  "type": "string" , "format" : "uri"
+	            }
+	          ]
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify the date of death of the object the vCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "deathdate"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "lang": {
+			          "$ref": "#/definitions/language"
+			        }			        
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "text"
+	            },
+	            {
+                  "type": "string"
+	            }
+	          ]
+	        },     
+	        {
+	          "type": "array",	          
+              "description": "To specify the date of death of the object the vCard represents.",	          
+	          "items": [
+	            {
+	              "const" : "deathdate"
+	            },
+			    {
+			      "type": "object",
+			      "properties": {
+			        "altid" : {
+			          "type": "string"        
+			        },
+			        "group" : {
+			          "$ref" : "#/definitions/group-type"        
+			        },
+			        "calscale": {
+					    "$ref" : "#/definitions/calscale-type"
+			        }
+			      },
+			       "additionalProperties" : {
+					   "$ref" : "#/definitions/any-param-type"			       
+			       }
+			    },
+	            {
+	              "const": "date-and-or-time"
+	            },
+	            {
+	              "$ref" : "#/definitions/date-and-or-time"
+	            }
+	          ]
+	        },     
+	        {
+	          "type": "array",
+	          "description": "Extension",
+	          "items": [
+	            {
+	              "type" : "string", "pattern" : "x-[a-z0-9-]*"
+	            },
+	            {
+	              "type": "object"
+	            },
+	            { 
+	              "type" : "string", "enum" : [ "text", "uri", "date", "time", "date-time", "date-and-or-time", "timestamp", "boolean", "integer", "float", "utc-offset", "language-tag", "unknown"]
+	            },
+	            {
+	              "$ref" : "#/definitions/any-type"
+	            }
+	          ],
+	          "additionalItems" : {
+	              "$ref" : "#/definitions/any-type"
+	            }
+	        }     
+	      ]
+	    }      
+       }      
+      ]
+    },
+    "vcardArray": {
+      "type": "array",
+      "items": [
+        {
+          "const" : "vcard"
+        },
+        {
+          "$ref": "#/definitions/vcard"
+        }
+      ],
+      "additionalItems" : {
+          "$ref": "#/definitions/vcard"
+      }      
+    }
+  }
+}

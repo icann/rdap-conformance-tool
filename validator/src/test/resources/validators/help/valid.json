@@ -1,0 +1,33 @@
+{
+  "rdapConformance": [
+    "rdap_level_0",
+    "icann_rdap_technical_implementation_guide_0",
+    "icann_rdap_response_profile_0"
+  ],
+  "notices": [
+    {
+      "title": "Terms of Use",
+      "description": [
+        "Service subject to Terms of Use."
+      ],
+      "links": [
+        {
+          "href": "https://www.example.com/terms",
+          "type": "text/html"
+        }
+      ]
+    },
+    {
+      "title": "Help",
+      "description": [
+        "Please use the links for more information on RDAP."
+      ],
+      "links": [
+        {
+          "href": "https://www.example.com/help",
+          "type": "text/html"
+        }
+      ]
+    }
+  ]
+}

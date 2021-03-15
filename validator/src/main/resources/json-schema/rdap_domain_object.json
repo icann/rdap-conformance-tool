@@ -1,0 +1,194 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_domain_object.json",    
+  "definitions": {
+    "domainClass" : {"const": "domain" },
+    "variantRelation": {
+      "type": "string",
+      "enum": [
+        "registered",
+        "unregistered",
+        "registration restricted",
+        "open registration",
+        "conjoined"
+      ]
+    },
+    "dnssecAlgorithm": {
+      "type": "integer",
+      "enum": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        10,
+        12,
+        13,
+        14,
+        15,
+        16
+      ]
+    },
+    "hexString": {
+      "type": "string",
+      "pattern": "[0-9a-fA-F]+"
+    },
+    "dsData": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "keyTag": {
+            "$ref": "rdap_common.json#/definitions/positiveInteger"
+          },
+          "algorithm": {
+            "$ref": "#/definitions/dnssecAlgorithm"
+          },
+          "digest": {
+            "$ref": "#/definitions/hexString"
+          },
+          "digestType": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "events": {
+            "$ref": "rdap_common.json#/definitions/events"
+          },
+          "links": {
+            "$ref": "rdap_common.json#/definitions/links"
+          }
+        }
+      }
+    },
+    "keyData": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "flags": {
+            "type": "integer",
+            "enum": [
+              0,
+              256,
+              257
+            ]
+          },
+          "protocol": {
+            "const": 3
+          },
+          "publicKey": {
+            "type": "string"
+          },
+          "algorithm": {
+            "$ref": "#/definitions/dnssecAlgorithm"
+          },
+          "events": {
+            "$ref": "rdap_common.json#/definitions/events"
+          },
+          "links": {
+            "$ref": "rdap_common.json#/definitions/links"
+          }
+        }
+      }
+    },
+    "secureDNS": {
+      "type": "object",
+      "properties": {
+        "zoneSigned": {
+          "type": "boolean"
+        },
+        "delegationSigned": {
+          "type": "boolean"
+        },
+        "maxSigLife": {
+          "$ref": "rdap_common.json#/definitions/positiveInteger"
+        },
+        "dsData": {
+          "$ref": "#/definitions/dsData"
+        },
+        "keyData": {
+          "$ref": "#/definitions/keyData"
+        }
+      }
+    },
+    "variant": {
+      "type": "object",
+      "properties": {
+        "relation": {
+          "type": "array",
+          "items": {
+                "$ref": "#/definitions/variantRelation"          
+          }
+        },
+        "idnTable": {
+          "type": "string"
+        },
+        "variantNames": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ldhName": {
+                "$ref": "rdap_common.json#/definitions/ldhName"
+              },
+              "unicodeName": {
+                "$ref": "rdap_common.json#/definitions/unicodeName"
+              }
+            }
+          }
+        }
+      }
+    }
+   },
+  "allOf": [
+	    {
+      	"$ref": "rdap_common.json#"
+	    },
+        {
+	      "properties": {
+	        "objectClassName": {
+	          "$ref": "#/definitions/domainClass"
+	        },
+	        "ldhName": {
+	          "$ref": "rdap_common.json#/definitions/ldhName"
+	        },
+	        "unicodeName": {
+	          "$ref": "rdap_common.json#/definitions/unicodeName"
+	        },
+	        "nameservers": {
+	          "type": "array",
+	          "items": {
+	            "$ref": "rdap_nameserver_object.json#"
+	          }
+	        },
+	        "secureDNS": {
+	          "$ref": "#/definitions/secureDNS"
+	        },
+	        "variants": {
+	          "type": "array",
+	          "items": {
+	            "$ref": "#/definitions/variant"
+	          }
+	        },
+	        "entities": {
+	          "type": "array",
+	          "items": {
+	            "$ref": "rdap_entity_object.json#"
+	          }
+	        },
+	        "network": {
+	          "$ref": "rdap_ipnetwork_object.json#"
+	        }
+	      },
+         "required": ["objectClassName","ldhName"],
+          "not": { "required": [ "domainSearchResults", "nameserverSearchResults", "entitySearchResults"] }
+	  }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_ipnetwork_object.json",          
+  "definitions" : {
+     "ipnetworkClass" : {"const": "ip network" }
+    },  
+	  "allOf": [
+	    {
+	      "$ref": "rdap_common.json#"
+	    },
+	    {
+	      "properties": {
+	        "objectClassName": {
+	          "$ref": "#/definitions/ipnetworkClass"
+	        },
+	        "stratAddress": {
+	          "$ref": "rdap_common.json#/definitions/ip"
+	        },
+	        "endAddress": {
+	          "$ref": "rdap_common.json#/definitions/ip"
+	        },
+	        "ipVersion": {
+	          "type": "string",
+	          "enum": [
+	            "v4",
+	            "v6"
+	          ]
+	        },
+	        "name": {
+	          "type": "string"
+	        },
+	        "type": {
+	          "$ref": "rdap_common.json#/definitions/rirType"
+	        },
+	        "country": {
+	          "$ref": "rdap_common.json#/definitions/country"
+	        },
+	        "parentHandle": {
+	          "type": "string"
+	        },
+	        "entities": {
+	          "type": "array",
+	          "items": {
+	            "$ref": "rdap_entity_object.json#"
+	          }
+	        }
+	      },
+	  "required": [
+	    "objectClassName"
+	  ],
+      "not": { "required": [ "domainSearchResults", "nameserverSearchResults", "entitySearchResults"] }
+	}  
+  ] 
+}

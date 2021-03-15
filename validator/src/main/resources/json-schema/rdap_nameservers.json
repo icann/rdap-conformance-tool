@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id" : "rdap_nameservers.json",                
+  "allOf": [
+    {
+      "$ref": "rdap_response_common.json#"
+    },
+    {
+      "properties": {
+        "nameserverSearchResults": {
+          "type": "array",
+          "items": {
+            "$ref": "rdap_nameserver_object.json#"
+          },
+          "minItems" : 1          
+        }
+      },
+	  "required": [
+	    "nameserverSearchResults"
+	  ]
+    }
+  ],   
+  "links": [
+    {
+      "description": "Get nameservers by name",
+      "href": "/nameservers{?name}",
+      "hrefSchema": {
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "method": "GET",
+      "rel": "self",
+      "title": "nameservers by name",
+      "targetSchema" : {"$ref":"#"}      
+    },
+    {
+      "description": "Get nameservers by ip",
+      "href": "/nameservers{?ip}",
+      "hrefSchema": {
+        "properties": {
+          "ip": {
+            "type": "string"
+          }
+        }
+      },
+      "method": "GET",
+      "rel": "self",
+      "title": "nameservers by ip",
+      "targetSchema" : {"$ref":"#"}
+    }
+  ]
+}
