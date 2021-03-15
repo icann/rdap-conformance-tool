@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.RDAPDeserializer;
@@ -22,26 +23,28 @@ import org.testng.annotations.Test;
 
 public abstract class StdRdapValidationTest<T extends RDAPValidate> {
 
-  private final ConfigurationFile configurationFile = new ConfigurationFile();
-  protected final RDAPValidatorTestContext context = new RDAPValidatorTestContext(
-      configurationFile);
-  private final Validator<T> validator;
   private final Class<T> clazz;
   private final String validatorName;
+  protected RDAPValidatorTestContext context;
+  private Validator<T> validator;
   private T mockedType;
 
   public StdRdapValidationTest(Class<T> clazz, String validatorName) {
     this.clazz = clazz;
     this.validatorName = validatorName;
-    this.validator = this.context.getValidator(validatorName);
   }
 
   @BeforeMethod
   public void setUp() throws JsonProcessingException {
     this.mockedType = mock(clazz);
+    ConfigurationFile configurationFile = mock(ConfigurationFile.class);
+    context = new RDAPValidatorTestContext(
+        configurationFile);
+    validator = context.getValidator(validatorName);
     RDAPDeserializer deserializer = context.spyDeserializer();
     doReturn(true).when(mockedType).validate();
     doReturn(mockedType).when(deserializer).deserialize(any(), eq(clazz));
+    doReturn(List.of()).when(configurationFile).getDefinitionIgnore();
   }
 
   @Test
