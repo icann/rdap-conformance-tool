@@ -1,0 +1,16 @@
+{
+  "objectClassName": "entity",
+  "handle": "999",
+  "roles": [
+    "registrar"
+  ],
+  "publicIds": [
+    {
+      "type": "IANA Registrar ID",
+      "identifier": "999"
+    }
+  ],
+  "vcardArray": [
+    "vcard", {}
+  ]
+}

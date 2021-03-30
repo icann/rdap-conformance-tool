@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator;
 
+import java.util.Objects;
+
 public class RDAPValidationResult {
 
   private int code;
@@ -34,6 +36,25 @@ public class RDAPValidationResult {
 
   public void setMessage(String message) {
     this.message = message;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    RDAPValidationResult result = (RDAPValidationResult) o;
+    return code == result.code &&
+        value.equals(result.value) &&
+        message.equals(result.message);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(code, value, message);
   }
 
   static public Builder builder() {

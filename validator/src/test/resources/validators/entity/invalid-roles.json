@@ -1,0 +1,30 @@
+{
+  "objectClassName": "entity",
+  "handle": "376",
+  "roles": [
+    "invalid-roles"
+  ],
+  "publicIds": [
+    {
+      "type": "IANA Registrar ID",
+      "identifier": "376"
+    }
+  ],
+  "vcardArray": [
+    "vcard",
+    [
+      [
+        "version",
+        {},
+        "text",
+        "4.0"
+      ],
+      [
+        "fn",
+        {},
+        "text",
+        "RESERVED-Internet Assigned Numbers Authority"
+      ]
+    ]
+  ]
+}

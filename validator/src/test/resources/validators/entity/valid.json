@@ -1,0 +1,69 @@
+{
+  "objectClassName": "entity",
+  "handle": "292",
+  "roles": [
+    "registrar"
+  ],
+  "publicIds": [
+    {
+      "type": "IANA Registrar ID",
+      "identifier": "292"
+    }
+  ],
+  "vcardArray": [
+    "vcard",
+    [
+      [
+        "version",
+        {},
+        "text",
+        "4.0"
+      ],
+      [
+        "fn",
+        {},
+        "text",
+        "MarkMonitor Inc."
+      ]
+    ]
+  ],
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "roles": [
+        "abuse"
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            ""
+          ],
+          [
+            "tel",
+            {
+              "type": "voice"
+            },
+            "uri",
+            "tel:+1.2083895740"
+          ],
+          [
+            "email",
+            {},
+            "text",
+            "abusecomplaints@markmonitor.com"
+          ]
+        ]
+      ]
+    }
+  ]
+}

@@ -13,12 +13,20 @@
       },
       "uniqueItems": true
     },
+    "rdapConformance": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "validationName": "stdRdapConformanceValidation"
+    },
     "stringArray": {
       "type": "array",
       "items": {
         "type": "string"
       }
-    },    
+    },
     "datetime": {
       "type": "string",
       "format": "date-time"
@@ -104,14 +112,22 @@
       ]
     },
     "noticeType": {
-      "type": "string",
-      "enum": [
-        "result set truncated due to authorization",
-        "result set truncated due to excessive load",
-        "result set truncated due to unexplainable reasons",
-        "object truncated due to authorization",
-        "object truncated due to excessive load",
-        "object truncated due to unexplainable reasons"
+      "allOf": [
+        {
+          "type": "string",
+          "errorCode": -10705
+        },
+        {
+          "enum": [
+            "result set truncated due to authorization",
+            "result set truncated due to excessive load",
+            "result set truncated due to unexplainable reasons",
+            "object truncated due to authorization",
+            "object truncated due to excessive load",
+            "object truncated due to unexplainable reasons"
+          ],
+          "errorCode": -10706
+        }
       ]
     },
     "statusValue": {
@@ -303,7 +319,8 @@
       "type": "array",
       "items": {
         "$ref": "#/definitions/link"
-      }
+      },
+      "validationName": "stdRdapLinksValidation"
     },
     "eventWithoutActor": {
       "type": "object",
@@ -351,32 +368,39 @@
       "type": "object",
       "properties": {
         "title": {
-          "type": "string"
+          "type": "string",
+          "errorCode": -10703
         },
         "type": {
-	        "anyOf":[
-	          {
-	          "$ref": "#/definitions/noticeType"
-	 	      },
-		      {
-		      	"type" : "string",
-		      	"description": "non standard notice type"
-		      }
-		     ]
+          "$ref": "#/definitions/noticeType"
         },
         "description": {
-          "$ref": "#/definitions/stringArray"
+          "type": "array",
+          "items": {
+            "type": "string",
+            "errorCode": -10709
+          },
+          "errorCode": -10708
         },
         "links": {
           "$ref": "#/definitions/links"
         }
-      }
+      },
+      "additionalProperties": false,
+      "required": [
+        "description"
+      ],
+      "descriptionMissing": -10707,
+      "duplicateKeys": -10702
     },
     "notices": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/notice"
-      }
+      },
+      "validationName": "stdRdapNoticesRemarksValidation",
+      "stdRdapLinksValidation": -10704,
+      "unknownKeys": -10701
     },
     "remarks": {
       "type": "array",

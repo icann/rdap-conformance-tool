@@ -6,14 +6,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.validators.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,9 +146,11 @@ public class RDAPValidator {
      */
     /* TODO */
     String rdapResponse = httpResponse.body();
-    Validator validator = null;
+    SchemaValidator validator = null;
     if (RDAPQueryType.DOMAIN.equals(queryType)) {
-      validator = context.getValidator("stdRdapDomainLookupValidation");
+      validator = new SchemaValidator("rdap_domain.json", context);
+    } else if (RDAPQueryType.HELP.equals(queryType)) {
+      validator = new SchemaValidator("rdap_help.json", context);
     }
     // TODO elif...
     assert null != validator;

@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "simple.json",
+  "title": "simple",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "ref": {
+      "$ref": "ref.json#"
+    }
+  },
+  "someCustomErrorKey": -999,
+  "aboveRefErrorKey": -555
+}
