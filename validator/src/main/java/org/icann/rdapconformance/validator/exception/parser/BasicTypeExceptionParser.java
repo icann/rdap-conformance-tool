@@ -39,7 +39,7 @@ public class BasicTypeExceptionParser extends ExceptionParser {
     }
 
     context.addResult(RDAPValidationResult.builder()
-        .code(getErrorCodeFromViolatedSchema(e))
+        .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
         .value(value)
         .message(icannErrorMsg)
         .build());

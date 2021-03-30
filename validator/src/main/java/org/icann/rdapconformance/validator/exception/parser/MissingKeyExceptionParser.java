@@ -30,7 +30,7 @@ public class MissingKeyExceptionParser extends ExceptionParser {
   public void doParse() {
     String key = matcher.group(1);
     context.addResult(RDAPValidationResult.builder()
-        .code((int) getPropertyFromViolatedSchema(e, key + "Missing"))
+        .code(parseErrorCode(() -> (int) getPropertyFromViolatedSchema(e, key + "Missing")))
         .value(jsonObject.toString())
         .message("The " + key + " element does not exist.")
         .build());

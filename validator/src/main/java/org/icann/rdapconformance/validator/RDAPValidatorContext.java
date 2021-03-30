@@ -26,6 +26,7 @@ public class RDAPValidatorContext {
   }
 
   public void addResult(RDAPValidationResult result) {
+    logger.error("adding error result {}", result);
     this.results.add(result);
   }
 

@@ -28,7 +28,7 @@ public class EnumExceptionParser extends ExceptionParser {
   @Override
   public void doParse() {
     context.addResult(RDAPValidationResult.builder()
-        .code(getErrorCodeFromViolatedSchema(e))
+        .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()).toString())
         .message(
             "The JSON string is not included as a Value with Type=\"" + e.getSchemaLocation().replace("classpath://json-schema/", "")

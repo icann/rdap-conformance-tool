@@ -31,7 +31,7 @@ public class UnknowKeyExceptionParser extends ExceptionParser {
   public void doParse() {
     String key = matcher.group(1);
     context.addResult(RDAPValidationResult.builder()
-        .code(getErrorCode("unknownKeys"))
+        .code(parseErrorCode(() -> getErrorCode("unknownKeys")))
         .value(e.getPointerToViolation() + "/" + key + ":" + (((JSONObject) jsonObject
             .query(e.getPointerToViolation())).get(key)))
         .message("The name in the name/value pair is not of: " + getAuthorizedProperties() + ".")

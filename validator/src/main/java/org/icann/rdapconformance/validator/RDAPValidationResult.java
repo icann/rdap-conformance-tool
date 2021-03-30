@@ -61,6 +61,15 @@ public class RDAPValidationResult {
     return new Builder();
   }
 
+  @Override
+  public String toString() {
+    return "RDAPValidationResult{" +
+        "code=" + code +
+        ", message='" + message + '\'' +
+        ", value='" + value + '\'' +
+        '}';
+  }
+
   public static class Builder {
 
     private int code;

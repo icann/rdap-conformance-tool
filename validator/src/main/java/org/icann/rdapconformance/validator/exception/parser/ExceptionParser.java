@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.exception.parser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.everit.json.schema.ObjectSchema;
 import org.everit.json.schema.ReferenceSchema;
@@ -10,9 +11,12 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidatorContext;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class ExceptionParser {
 
+  private static final Logger logger = LoggerFactory.getLogger(ExceptionParser.class);
   protected final ValidationException e;
   protected final Schema schema;
   protected final JSONObject schemaObject;
@@ -45,6 +49,15 @@ public abstract class ExceptionParser {
     exceptionParsers.add(new ComplexTypeExceptionParser(e, schema, object, context));
 
     return exceptionParsers;
+  }
+
+  protected int parseErrorCode(Supplier<Integer> getErrorCodeFn) {
+    try {
+      return getErrorCodeFn.get();
+    } catch (Exception parseException) {
+      logger.info("Can't find the corresponding error in schema, replacing by -999");
+      return -999;
+    }
   }
 
   protected int getErrorCode(String validationName) {
@@ -96,8 +109,7 @@ public abstract class ExceptionParser {
   }
 
   protected static Object getPropertyFromViolatedSchema(ValidationException e, String key) {
-    return e.getViolatedSchema().getUnprocessedProperties().get(
-        key);
+    return e.getViolatedSchema().getUnprocessedProperties().get(key);
   }
 
   protected static int getErrorCodeFromViolatedSchema(ValidationException e) {

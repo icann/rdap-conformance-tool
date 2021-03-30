@@ -1,8 +1,6 @@
 package org.icann.rdapconformance.validator.exception.parser;
 
 import java.text.MessageFormat;
-import org.everit.json.schema.ArraySchema;
-import org.everit.json.schema.ObjectSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
@@ -31,7 +29,7 @@ public class ComplexTypeExceptionParser extends BasicTypeExceptionParser {
 
     String validationName = getValidationName(e);
     context.addResult(RDAPValidationResult.builder()
-        .code(getErrorCode(validationName))
+        .code(parseErrorCode(() -> getErrorCode(validationName)))
         .value(key + ":" + element)
         .message(MessageFormat.format("The value for the JSON name value does not pass {0} "
             + "validation [{1}].", key, validationName))

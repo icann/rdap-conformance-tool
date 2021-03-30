@@ -151,6 +151,12 @@ public class RDAPValidator {
       validator = new SchemaValidator("rdap_domain.json", context);
     } else if (RDAPQueryType.HELP.equals(queryType)) {
       validator = new SchemaValidator("rdap_help.json", context);
+    } else if (RDAPQueryType.NAMESERVER.equals(queryType)) {
+      validator = new SchemaValidator("rdap_nameserver.json", context);
+    } else if (RDAPQueryType.NAMESERVERS.equals(queryType)) {
+      validator = new SchemaValidator("rdap_nameservers.json", context);
+    } else if (RDAPQueryType.ENTITY.equals(queryType)) {
+      validator = new SchemaValidator("rdap_entities.json", context);
     }
     // TODO elif...
     assert null != validator;
