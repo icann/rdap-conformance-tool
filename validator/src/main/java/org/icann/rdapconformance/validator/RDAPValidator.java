@@ -2,13 +2,27 @@ package org.icann.rdapconformance.validator;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -43,7 +57,7 @@ public class RDAPValidator {
       return RDAPValidationStatus.CONFIG_INVALID.getValue();
     }
 
-    RDAPValidatorContext context= new RDAPValidatorContext(configurationFile);
+    RDAPValidatorContext context = new RDAPValidatorContext(configurationFile);
 
     /* If the parameter (--use-local-datasets) is set, use the datasets found in the filesystem,
      * download the datasets not found in the filesystem, and persist them in the filesystem.
@@ -74,48 +88,67 @@ public class RDAPValidator {
     }
     if (Set.of(RDAPQueryType.DOMAIN, RDAPQueryType.NAMESERVER).contains(queryType)) {
       String domainName = queryType.getValue(this.config.getUri().toString());
-      // TODO domainNameValidation
+      String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
+      SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", context);
+      if (!validator.validate(domainNameJson)) {
+        // TODO check if A-labels and U-labels are mixed: is this OK?
+        if (context.getResults().stream().map(RDAPValidationResult::getCode)
+            .anyMatch(c -> c == -10303)) {
+          return RDAPValidationStatus.MIXED_LABEL_FORMAT.getValue();
+        }
+      }
     }
+
 
     /* Connect to the RDAP server, and if there is a connection error, exit with the corresponding
      * return code.
      */
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(this.config.getUri())
-        .timeout(Duration.of(this.config.getTimeout(), SECONDS))
-        .GET()
-        .build();
     HttpResponse<String> httpResponse;
     try {
-      httpResponse = HttpClient.newBuilder()
-          .connectTimeout(Duration.of(this.config.getTimeout(), SECONDS))
-          // TODO
-          //        .followRedirects()
-          .build()
-          .send(request, HttpResponse.BodyHandlers.ofString());
-      // TODO
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    } catch (InterruptedException e) {
-//      e.printStackTrace();
-    } catch (Exception e) {
-      return RDAPValidationStatus.CONNECTION_FAILED.getValue();
+      httpResponse = getHttpResponse();
+    } catch (RDAPHttpException e) {
+      return e.getStatus();
     }
+
+    HttpHeaders headers = httpResponse.headers();
+    String rdapResponse = httpResponse.body();
+    int httpStatusCode = httpResponse.statusCode();
 
     /* If a response is available to the tool, and the header Content-Type is not
      * application/rdap+JSON, exit with a return code of 5.
      */
-    /* TODO */
+    if (Arrays.stream(String.join(";", headers.allValues("Content-Type")).split(";"))
+        .noneMatch(s -> s.equalsIgnoreCase("application/rdap+JSON"))) {
+      logger.error("Content-Type is {}, should be application/rdap+JSON",
+          headers.firstValue("Content-Type").orElse("missing"));
+      return RDAPValidationStatus.WRONG_CONTENT_TYPE.getValue();
+    }
 
     /*  If a response is available to the tool, but it's not syntactically valid JSON object, exit
      * with a return code of 6.
      */
-    /* TODO */
+    Map<String, Object> rawRdapMap = null;
+    List<Object> rawRdapList = null;
+    RDAPDeserializer deserializer = new RDAPDeserializer(context);
+    try {
+      rawRdapMap = deserializer.deserialize(rdapResponse, Map.class);
+    } catch (Exception e1) {
+      // JSON content may be a list
+      try {
+        rawRdapList = deserializer.deserialize(rdapResponse, List.class);
+      } catch (Exception e2) {
+        logger.error("Invalid JSON in RDAP response");
+        return RDAPValidationStatus.RESPONSE_INVALID.getValue();
+      }
+    }
 
     /* If a response is available to the tool, but the HTTP status code is not 200 nor 404, exit
      * with a return code of 7.
      */
-    /* TODO */
+    if (!List.of(200, 404).contains(httpStatusCode)) {
+      logger.error("Invalid HTTP status {}", httpStatusCode);
+      return RDAPValidationStatus.INVALID_HTTP_STATUS.getValue();
+    }
 
     /* If a response is available to the tool, but the expected objectClassName in the topmost
      * object was not found for a lookup query (i.e. domain/<domain name>,
@@ -123,12 +156,19 @@ public class RDAPValidator {
      * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
      * not validation on the contents) for a search query, exit with an return code of 8.
      */
-    /* TODO */
+    // TODO whould we check that status is not 404 before that?
+    if (queryType.isLookupQuery()
+        && (null == rawRdapMap || !rawRdapMap.containsKey("objectClassName"))) {
+      logger.error("objectClassName was not found in the topmost object");
+      return RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND.getValue();
+    } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && null == rawRdapList) {
+      logger.error("No JSON array in answer");
+      return RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND.getValue();
+    }
 
     /*  If the HTTP status code is 404, perform Error Response Body
      * [stdRdapErrorResponseBodyValidation].
      */
-    /* TODO */
 
     /* If
      * the RDAP query is domain/<domain name>, perform Domain Lookup Validation
@@ -144,10 +184,11 @@ public class RDAPValidator {
      *
      *
      */
-    /* TODO */
-    String rdapResponse = httpResponse.body();
+    context.reset();  // reset context as we may have performed some preliminary validation
     SchemaValidator validator = null;
-    if (RDAPQueryType.DOMAIN.equals(queryType)) {
+    if (404 == httpStatusCode) {
+      validator = new SchemaValidator("rdap_error.json", context);
+    } else if (RDAPQueryType.DOMAIN.equals(queryType)) {
       validator = new SchemaValidator("rdap_domain.json", context);
     } else if (RDAPQueryType.HELP.equals(queryType)) {
       validator = new SchemaValidator("rdap_help.json", context);
@@ -158,7 +199,6 @@ public class RDAPValidator {
     } else if (RDAPQueryType.ENTITY.equals(queryType)) {
       validator = new SchemaValidator("rdap_entities.json", context);
     }
-    // TODO elif...
     assert null != validator;
     validator.validate(rdapResponse);
 
@@ -171,6 +211,89 @@ public class RDAPValidator {
     /* TODO */
 
     return RDAPValidationStatus.SUCCESS.getValue();
+  }
+
+  HttpResponse<String> getHttpResponse() throws RDAPHttpException {
+    /* If the scheme of the URI is "https", the tool will initiate a TLS connection to the server:
+     *  • The tool shall not try to match CA certs (if available) to a well-known CA.
+     *  • If the CRL or OCSP is unavailable, this won't constitute an error, but if CRL or OCSP are
+     *    accessible and indicate that the server certificate is revoked, the revocation
+     *    constitutes an error.
+     */
+    final URI uri = this.config.getUri();
+    if (uri.getScheme().equals("https")) {
+//      System.setProperty("jdk.security.allowNonCaAnchor", String.valueOf(true));
+      System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
+    }
+
+    TrustManager[] trustAllCerts = new TrustManager[]{
+        new X509TrustManager() {
+          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return null;
+          }
+
+          public void checkClientTrusted(
+              java.security.cert.X509Certificate[] certs, String authType) {
+          }
+
+          public void checkServerTrusted(
+              java.security.cert.X509Certificate[] certs, String authType) {
+          }
+        }
+    };
+    SSLContext sslContext;
+    try {
+      sslContext = SSLContext.getInstance("SSL");
+      sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+    } catch (NoSuchAlgorithmException | KeyManagementException e) {
+      throw new RDAPHttpException(RDAPValidationStatus.CERTIFICATE_ERROR, e);
+    }
+
+    System.setProperty("jdk.httpclient.redirects.retrylimit",
+        String.valueOf(this.config.getMaxRedirects()));
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(uri)
+        .timeout(Duration.of(this.config.getTimeout(), SECONDS))
+        .GET()
+        .build();
+    HttpResponse<String> httpResponse;
+    RDAPValidationStatus status;
+    Throwable ex;
+    try {
+      httpResponse = HttpClient.newBuilder()
+          .connectTimeout(Duration.of(this.config.getTimeout(), SECONDS))
+          .followRedirects(Redirect.NORMAL)
+          .sslContext(sslContext)
+          .build()
+          .send(request, HttpResponse.BodyHandlers.ofString());
+      return httpResponse;
+    } catch (ConnectException | HttpTimeoutException e) {
+      ex = e;
+      status = RDAPValidationStatus.CONNECTION_FAILED;
+      if (hasCause(e, "UnresolvedAddressException")) {
+        status = RDAPValidationStatus.NETWORK_SEND_FAIL;
+      }
+    } catch (IOException e) {
+      ex = e;
+      status = RDAPValidationStatus.NETWORK_RECEIVE_FAIL;
+      if (hasCause(e, "SSLHandshakeException") || hasCause(e, "CertificateException")) {
+        status = RDAPValidationStatus.CERTIFICATE_ERROR;
+      }
+    } catch (Exception e) {
+      ex = e;
+      status = RDAPValidationStatus.CONNECTION_FAILED;
+    }
+    throw new RDAPHttpException(status, ex);
+  }
+
+  private boolean hasCause(Throwable e, String causeClassName) {
+    while (e.getCause() != null) {
+      if (e.getCause().getClass().getSimpleName().equals(causeClassName)) {
+        return true;
+      }
+      e = e.getCause();
+    }
+    return false;
   }
 
   private enum RDAPQueryType {
@@ -196,6 +319,11 @@ public class RDAPValidator {
       return null;
     }
 
+    public boolean isLookupQuery() {
+      return Set.of(RDAPQueryType.DOMAIN, RDAPQueryType.NAMESERVER, RDAPQueryType.ENTITY)
+          .contains(this);
+    }
+
     public String getValue(String query) {
       Matcher matcher = this.pattern.matcher(query);
       if (matcher.find()) {
@@ -205,4 +333,17 @@ public class RDAPValidator {
     }
   }
 
+  static class RDAPHttpException extends Throwable {
+
+    private final RDAPValidationStatus status;
+
+    public RDAPHttpException(RDAPValidationStatus status, Throwable e) {
+      super(status.getDescription(), e);
+      this.status = status;
+    }
+
+    public int getStatus() {
+      return status.getValue();
+    }
+  }
 }

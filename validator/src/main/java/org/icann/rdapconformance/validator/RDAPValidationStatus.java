@@ -16,7 +16,7 @@ enum RDAPValidationStatus {
       + "valid JSON object."),
   INVALID_HTTP_STATUS(7, "A response was available to the tool, the Content-Type is "
       + "application/rdap+JSON in the response, but the HTTP Status is not 200 nor 404."),
-  EXPECTED_OBJECT_NOT_FOND(8, "A response was available to the tool, the Content-Type is "
+  EXPECTED_OBJECT_NOT_FOUND(8, "A response was available to the tool, the Content-Type is "
       + "application/rdap+JSON in the response, the HTTP Status is 200 or 404, but the expected "
       + "objectClassName in the topmost object was not found for a lookup query or the JSON "
       + "array for a search query was not found a search query."),
@@ -44,5 +44,9 @@ enum RDAPValidationStatus {
 
   public int getValue() {
     return value;
+  }
+
+  public String getDescription() {
+    return description;
   }
 }

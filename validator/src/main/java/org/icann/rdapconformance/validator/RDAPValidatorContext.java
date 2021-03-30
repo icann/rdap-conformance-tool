@@ -14,7 +14,7 @@ public class RDAPValidatorContext {
   private static final Logger logger = LoggerFactory.getLogger(RDAPValidatorContext.class);
   private final ConfigurationFile configurationFile;
   private final RDAPDeserializer deserializer;
-  private final Set<RDAPValidationResult> results = new HashSet<>();
+  private Set<RDAPValidationResult> results = new HashSet<>();
 
   public RDAPValidatorContext(ConfigurationFile configurationFile) {
     this.configurationFile = configurationFile;
@@ -32,5 +32,9 @@ public class RDAPValidatorContext {
 
   public Set<RDAPValidationResult> getResults() {
     return results;
+  }
+
+  public void reset() {
+    this.results = new HashSet<>();
   }
 }
