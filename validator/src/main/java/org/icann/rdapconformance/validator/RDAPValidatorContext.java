@@ -13,12 +13,10 @@ public class RDAPValidatorContext {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPValidatorContext.class);
   private final ConfigurationFile configurationFile;
-  private final RDAPDeserializer deserializer;
   private Set<RDAPValidationResult> results = new HashSet<>();
 
   public RDAPValidatorContext(ConfigurationFile configurationFile) {
     this.configurationFile = configurationFile;
-    this.deserializer = new RDAPDeserializer(this);
   }
 
   public boolean isTestEnabled(int testCode) {

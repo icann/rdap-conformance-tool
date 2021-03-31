@@ -16,7 +16,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,6 +25,9 @@ import javax.net.ssl.X509TrustManager;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,15 +129,14 @@ public class RDAPValidator {
     /*  If a response is available to the tool, but it's not syntactically valid JSON object, exit
      * with a return code of 6.
      */
-    Map<String, Object> rawRdapMap = null;
-    List<Object> rawRdapList = null;
-    RDAPDeserializer deserializer = new RDAPDeserializer(context);
+    JSONObject rawRdapJson = null;
+    JSONArray rawRdapJsonArray = null;
     try {
-      rawRdapMap = deserializer.deserialize(rdapResponse, Map.class);
-    } catch (Exception e1) {
+      rawRdapJson = new JSONObject(rdapResponse);
+    } catch (JSONException e1) {
       // JSON content may be a list
       try {
-        rawRdapList = deserializer.deserialize(rdapResponse, List.class);
+        rawRdapJsonArray = new JSONArray(rdapResponse);
       } catch (Exception e2) {
         logger.error("Invalid JSON in RDAP response");
         return RDAPValidationStatus.RESPONSE_INVALID.getValue();
@@ -156,12 +157,12 @@ public class RDAPValidator {
      * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
      * not validation on the contents) for a search query, exit with an return code of 8.
      */
-    // TODO whould we check that status is not 404 before that?
+    // TODO should we check that status is not 404 before that?
     if (queryType.isLookupQuery()
-        && (null == rawRdapMap || !rawRdapMap.containsKey("objectClassName"))) {
+        && (null == rawRdapJson || null == rawRdapJson.opt("objectClassName"))) {
       logger.error("objectClassName was not found in the topmost object");
       return RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND.getValue();
-    } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && null == rawRdapList) {
+    } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && null == rawRdapJsonArray) {
       logger.error("No JSON array in answer");
       return RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND.getValue();
     }
