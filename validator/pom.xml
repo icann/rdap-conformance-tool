@@ -101,39 +101,6 @@
           </compilerArgs>
         </configuration>
       </plugin>
-      <plugin>
-        <!-- https://stackoverflow.com/a/62978208 -->
-        <groupId>com.nickwongdev</groupId>
-        <artifactId>aspectj-maven-plugin</artifactId>
-        <version>1.12.6</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>test-compile</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>${org.aspectj-version}</version>
-          </dependency>
-          <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjtools</artifactId>
-            <version>${org.aspectj-version}</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <source>11</source>
-          <target>11</target>
-          <complianceLevel>11</complianceLevel>
-          <forceAjcCompile>true</forceAjcCompile>
-        </configuration>
-      </plugin>
-
     </plugins>
   </build>
 
