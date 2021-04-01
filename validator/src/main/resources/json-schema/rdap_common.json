@@ -78,11 +78,13 @@
      },        
     "ldhName": {
       "type": "string",
-      "format": "hostname"
+      "format": "hostname",
+      "validationName": "stdRdapLdhNameValidation"
     },
     "unicodeName": {
       "type": "string",
-      "format" : "idn-hostname"
+      "format" : "idn-hostname",
+      "validationName": "stdRdapUnicodeNameValidation"
     },
     "domainName": {
       "oneOf": [
@@ -193,7 +195,8 @@
           "type": "string",
           "format": "hostname"
         }
-      ]
+      ],
+      "validationName": "stdRdapPort43WhoisServerValidation"
     },
     "lang": {
       "type": "string",
@@ -362,7 +365,8 @@
       "type": "array",
       "items": {
         "$ref": "#/definitions/event"
-      }
+      },
+      "validationName": "stdRdapEventsValidation"
     },
     "notice": {
       "type": "object",
@@ -406,7 +410,8 @@
       "type": "array",
       "items": {
         "$ref": "#/definitions/notice"
-      }
+      },
+      "validationName": "stdRdapNoticesRemarksValidation"
     },
     "publicId": {
       "type": "object",
@@ -427,7 +432,8 @@
       "type": "array",
       "items": {
         "$ref": "#/definitions/publicId"
-      }
+      },
+      "validationName": "stdRdapPublicIdsValidation"
     }
   },
   "type": "object",

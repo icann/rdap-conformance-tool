@@ -72,6 +72,8 @@ public class SchemaValidator {
         value = valueMatcher.group(1).trim();
       }
 
+      // TODO: reinsert jackson for duplicate handling: without the json pointer where the element
+      // is duplicated, we can fall on the wrong duplicateKeys error code.
       return RDAPValidationResult.builder()
           .code(schemaRootNode.searchBottomMostErrorCode(key, "duplicateKeys"))
           .value(key + ":" + value)

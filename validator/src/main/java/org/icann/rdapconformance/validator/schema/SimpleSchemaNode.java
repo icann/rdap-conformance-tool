@@ -17,7 +17,7 @@ public class SimpleSchemaNode extends SchemaNode {
   }
 
   @Override
-  public Optional<SchemaNode> findBottomNode(String searchKey) {
+  public Optional<ObjectSchemaNode> findParentOfNodeWith(String key) {
     return Optional.empty();
   }
 }

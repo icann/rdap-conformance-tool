@@ -1,11 +1,13 @@
 package org.icann.rdapconformance.validator.exception.parser;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.json.JSONObject;
 
 public class BasicTypeExceptionParser extends ExceptionParser {
@@ -21,8 +23,7 @@ public class BasicTypeExceptionParser extends ExceptionParser {
   }
 
   protected boolean matches(ValidationException e) {
-    matcher = basicTypePattern.matcher(e.getMessage());
-    return getValidationName(e) == null &&  matcher.find();
+    return basicTypePattern.matcher(e.getMessage()).find();
   }
 
   @Override
@@ -45,7 +46,7 @@ public class BasicTypeExceptionParser extends ExceptionParser {
         .build());
   }
 
-  protected static String getValidationName(ValidationException e) {
+  protected String getValidationName(ValidationException e) {
     return (String) getPropertyFromViolatedSchema(e, "validationName");
   }
 }

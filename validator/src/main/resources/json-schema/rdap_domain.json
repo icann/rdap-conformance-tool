@@ -7,7 +7,8 @@
       "$ref": "rdap_domain_object.json#/definitions/domainClass"
     },
     "handle": {
-      "type": "string"
+      "type": "string",
+      "errorCode": -12204
     },
     "ldhName": {
       "$ref": "rdap_common.json#/definitions/ldhName"
@@ -19,25 +20,30 @@
       "type": "array",
       "items": {
         "$ref": "rdap_domain_object.json#/definitions/variant"
-      }
+      },
+      "validationName": "stdRdapVariantsValidation"
     },
     "nameservers": {
       "type": "array",
       "items": {
         "$ref": "rdap_nameserver_object.json#"
-      }
+      },
+      "validationName": "stdRdapNameserverLookupValidation"
     },
     "secureDNS": {
-      "$ref": "rdap_domain_object.json#/definitions/secureDNS"
+      "$ref": "rdap_domain_object.json#/definitions/secureDNS",
+      "validationName": "stdRdapSecureDnsValidation"
     },
     "entities": {
       "type": "array",
       "items": {
         "$ref": "rdap_entity_object.json#"
-      }
+      },
+      "validationName": "stdRdapEntitiesValidation"
     },
     "status": {
-      "$ref": "rdap_common.json#/definitions/uniqueStringArray"
+      "$ref": "rdap_common.json#/definitions/uniqueStringArray",
+      "validationName": "stdRdapStatusValidation"
     },
     "port43": {
       "$ref": "rdap_common.json#/definitions/port43"
@@ -88,7 +94,18 @@
       }
     }
   ],
+  "stdRdapLdhNameValidation": -12205,
+  "stdRdapUnicodeNameValidation": -12206,
+  "stdRdapVariantsValidation": -12207,
+  "stdRdapNameserverLookupValidation": -12208,
+  "stdRdapSecureDnsValidation": -12209,
+  "stdRdapEntitiesValidation": -12210,
+  "stdRdapStatusValidation": -12211,
+  "stdRdapPublicIdsValidation": -12212,
   "stdRdapNoticesRemarksValidation": -12213,
+  "stdRdapLinksValidation": -12214,
+  "stdRdapPort43WhoisServerValidation": -12215,
+  "stdRdapEventsValidation": -12216,
   "structureInvalid": -12200,
   "stdRdapConformanceValidation": -12219,
   "unknownKeys": -12201,

@@ -36,14 +36,15 @@ public abstract class SchemaNode {
     } else if (SIMPLE_SCHEMAS.contains(schema.getClass())) {
       return new SimpleSchemaNode(parentNode, schema);
     } else if (schema instanceof ReferenceSchema) {
-      return create(parentNode, ((ReferenceSchema) schema).getReferredSchema());
+      return new ReferenceSchemaNode(parentNode, schema);
     } else if (schema instanceof ArraySchema) {
-      return create(parentNode, ((ArraySchema) schema).getAllItemSchema());
+      return new ArraySchemaNode(parentNode, schema);
     } else if (schema instanceof CombinedSchema) {
       return new CombinedSchemaNode(parentNode, schema);
     }
 
-    return null;
+    throw new UnsupportedOperationException("Schema type " + schema.getClass().getSimpleName() +
+        "unknown");
   }
 
   public abstract List<SchemaNode> getChildren();
@@ -56,10 +57,14 @@ public abstract class SchemaNode {
     return (int) schema.getUnprocessedProperties().get(errorKey);
   }
 
-  public Optional<SchemaNode> findBottomNode(String searchKey) {
+  public Object getErrorKey(String errorKey) {
+    return schema.getUnprocessedProperties().get(errorKey);
+  }
+
+  public Optional<ObjectSchemaNode> findParentOfNodeWith(String key) {
     List<SchemaNode> schemaNodes = getChildren();
     for (SchemaNode schemaNode : schemaNodes) {
-      Optional<SchemaNode> foundNode = schemaNode.findBottomNode(searchKey);
+      Optional<ObjectSchemaNode> foundNode = schemaNode.findParentOfNodeWith(key);
       if (foundNode.isPresent()) {
         return foundNode;
       }
@@ -77,7 +82,7 @@ public abstract class SchemaNode {
   public int searchBottomMostErrorCode(String searchKey, String errorKey) {
     String unfoundError =
         "No such error key (" + errorKey + ") in the hierarchy around " + searchKey;
-    Optional<SchemaNode> optNode = findBottomNode(searchKey);
+    Optional<ObjectSchemaNode> optNode = findParentOfNodeWith(searchKey);
     if (optNode.isEmpty()) {
       throw new IllegalArgumentException(unfoundError);
     }
@@ -92,5 +97,64 @@ public abstract class SchemaNode {
     }
 
     throw new IllegalArgumentException(unfoundError);
+  }
+
+  public Schema getSchema() {
+    return schema;
+  }
+
+  Optional<SchemaNode> findAssociatedSchema(String jsonPointer) {
+    String[] elements = jsonPointer.split("/");
+    if (elements.length < 2) {
+      return Optional.empty();
+    }
+
+    SchemaNode schemaNode = this;
+    int i = 1;
+    do {
+      try {
+        Integer.parseInt(elements[i]);
+      } catch (NumberFormatException e) {
+        // we have a string
+        String schemaName = elements[i];
+        Optional<ObjectSchemaNode> node = schemaNode.findParentOfNodeWith(schemaName);
+        if (node.isPresent()) {
+          schemaNode = node.get().getChild(schemaName);
+        } else {
+          return Optional.empty();
+        }
+      }
+      i++;
+    } while (i < elements.length);
+
+    return Optional.of(schemaNode);
+  }
+
+  public ValidationNode findValidationNode(String jsonPointer, String validationName) {
+    Optional<SchemaNode> schemaNode = findAssociatedSchema(jsonPointer);
+    if (schemaNode.isPresent()) {
+      SchemaNode parent = schemaNode.get();
+      if (parent instanceof ReferenceSchemaNode) { // special case, when reference
+        parent = ((ReferenceSchemaNode) parent).getChild();
+      }
+      while (parent != null) {
+        if (parent.containsErrorKey(validationName)) {
+          return new ValidationNode(parent, validationName);
+        }
+        parent = parent.parentNode;
+      }
+    }
+    return new NullValidationNode();
+  }
+
+  public Optional<SchemaNode> findAssociatedParentValidationNode(String validationKey) {
+    SchemaNode parent = this;
+    while (parent != null && !parent.containsErrorKey(validationKey)) {
+      parent = parent.parentNode;
+    }
+    if (parent != null) {
+      return Optional.of(parent);
+    }
+    return Optional.empty();
   }
 }

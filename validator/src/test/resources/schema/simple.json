@@ -9,8 +9,16 @@
     },
     "ref": {
       "$ref": "ref.json#"
+    },
+    "anArray": {
+      "type": "array",
+      "items": {
+        "$ref": "ref.json#/definitions/aField"
+      },
+      "validationName": "aCustomValidation"
     }
   },
+  "aCustomValidation": -444,
   "someCustomErrorKey": -999,
   "aboveRefErrorKey": -555
 }

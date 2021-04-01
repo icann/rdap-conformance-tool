@@ -3,6 +3,17 @@
   "id": "ref.json",
   "title": "ref",
   "type": "object",
+  "definitions": {
+    "aField": {
+      "type": "object",
+      "properties": {
+        "aSubField": {
+          "id": "aSubFieldSchemaId",
+          "type": "string"
+        }
+      }
+    }
+  },
   "properties": {
     "test": {
       "type": "string"

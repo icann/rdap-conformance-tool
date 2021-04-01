@@ -1,15 +1,20 @@
 package org.icann.rdapconformance.validator.exception.parser;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.everit.json.schema.ObjectSchema;
 import org.everit.json.schema.ReferenceSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
+import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.schema.SchemaNode;
+import org.icann.rdapconformance.validator.schema.ValidationNode;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +49,8 @@ public abstract class ExceptionParser {
       exceptionParsers.add(new BasicTypeExceptionParser(basicException, schema, object, context));
       exceptionParsers.add(new EnumExceptionParser(basicException, schema, object, context));
       exceptionParsers.add(new MissingKeyExceptionParser(basicException, schema, object, context));
+      exceptionParsers.add(new ConstExceptionParser(basicException, schema, object, context));
     }
-
-    exceptionParsers.add(new ComplexTypeExceptionParser(e, schema, object, context));
 
     return exceptionParsers;
   }
@@ -83,7 +87,6 @@ public abstract class ExceptionParser {
         return foundSchema;
       }
     }
-
     return null;
   }
 
@@ -121,6 +124,20 @@ public abstract class ExceptionParser {
   public void parse() {
     if (matches(e)) {
       doParse();
+      if (e.getPointerToViolation() != null) {
+        SchemaNode tree = SchemaNode.create(null, schema);
+        ValidationNode validationNode = tree.findValidationNode(e.getPointerToViolation(),
+            "validationName");
+        if (validationNode.hasParentValidationCode()) {
+          context.addResult(RDAPValidationResult.builder()
+              .code(
+                  parseErrorCode(validationNode::getParentValidationCode))
+              .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
+              .message(MessageFormat.format("The value for the JSON name value does not pass {0} "
+                  + "validation [{1}].", e.getPointerToViolation(), validationNode.getValidationKey()))
+              .build());
+        }
+      }
     }
   }
 

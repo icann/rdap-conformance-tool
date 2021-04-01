@@ -14,7 +14,7 @@ public class SchemaNodeTest {
   @Test
   public void testSchemaNodeGetChildren() {
     assertThat(schemaNode.getChildren())
-        .hasSize(2);
+        .hasSize(3);
   }
 
   @Test
@@ -36,10 +36,26 @@ public class SchemaNodeTest {
 
   @Test
   public void testFindBottomNode() {
-    Optional<SchemaNode> node = schemaNode.findBottomNode("test");
+    Optional<ObjectSchemaNode> node = schemaNode.findParentOfNodeWith("test");
     assertThat(node)
         .isPresent()
-        .map(n -> n.schema.getTitle().equals("ref"));
+        .map(n -> assertThat(n.schema.getTitle()).isEqualTo("ref"));
+  }
+
+  @Test
+  public void testFindAssociatedSchema() {
+    String jsonPointer = "#/anArray/0/aSubField";
+    Optional<SchemaNode> childSchemaNode = schemaNode.findAssociatedSchema(jsonPointer);
+    assertThat(childSchemaNode.get().schema.toString()).isEqualTo("{\"type\":\"string\",\"id\":\"aSubFieldSchemaId\"}");
+  }
+
+  @Test
+  public void testFindValidationName() {
+    String jsonPointer = "#/anArray/0/aSubField";
+    String validationKey = schemaNode.findValidationNode(jsonPointer,
+        "validationName").getValidationKey();
+    assertThat(validationKey).isEqualTo(
+        "aCustomValidation");
   }
 
   @Test

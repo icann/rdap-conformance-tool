@@ -12,8 +12,11 @@ public class SchemaValidatorHelpTest extends SchemaValidatorTest {
         -12500,
         -12501,
         -12502,
-        -12503,
-        -12505, List.of("notices", "rdapConformance", "lang")
-        );
+        List.of("notices", "rdapConformance", "lang"),
+        List.of(
+            new SubValidationInfo("stdRdapNoticesRemarksValidation", "notices", -12503),
+            new SubValidationInfo("stdRdapConformanceValidation", "rdapConformance", -12505)
+        )
+    );
   }
 }

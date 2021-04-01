@@ -26,12 +26,16 @@ public class ObjectSchemaNode extends SchemaNode {
     return schemaNodes;
   }
 
+  public SchemaNode getChild(String schemaName) {
+    return create(this, objectSchema.getPropertySchemas().get(schemaName));
+  }
+
   @Override
-  public Optional<SchemaNode> findBottomNode(String searchKey) {
-    if (objectSchema.getPropertySchemas().containsKey(searchKey)) {
+  public Optional<ObjectSchemaNode> findParentOfNodeWith(String key) {
+    if (objectSchema.getPropertySchemas().containsKey(key)) {
       return Optional.of(this);
     }
 
-    return super.findBottomNode(searchKey);
+    return super.findParentOfNodeWith(key);
   }
 }

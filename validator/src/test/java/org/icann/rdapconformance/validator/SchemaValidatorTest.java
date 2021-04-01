@@ -17,9 +17,8 @@ public abstract class SchemaValidatorTest {
 
   private final int unknownKeyCode;
   private final int invalidJsonCode;
-  private final int stdRdapNoticesValidationCode;
-  private final int rdapConformanceValidationCode;
   private List<String> authorizedKeys;
+  private List<SubValidationInfo> subValidationInfos;
   private final int duplicateKeyCode;
   private final String rdapStructureName;
   RDAPValidatorTestContext context;
@@ -34,18 +33,16 @@ public abstract class SchemaValidatorTest {
       int invalidJsonCode,
       int unknownKeyCode,
       int duplicateKeyCode,
-      int stdRdapNoticesValidationCode,
-      int rdapConformanceValidationCode,
-      List<String> authorizedKeys) {
+      List<String> authorizedKeys,
+      List<SubValidationInfo> subValidationInfos) {
     this.rdapStructureName = rdapStructureName;
     this.schemaName = schemaName;
     this.validJson = validJson;
     this.invalidJsonCode = invalidJsonCode;
     this.unknownKeyCode = unknownKeyCode;
     this.duplicateKeyCode = duplicateKeyCode;
-    this.stdRdapNoticesValidationCode = stdRdapNoticesValidationCode;
-    this.rdapConformanceValidationCode = rdapConformanceValidationCode;
     this.authorizedKeys = new ArrayList<>(authorizedKeys);
+    this.subValidationInfos = new ArrayList<>(subValidationInfos);
     Collections.sort(this.authorizedKeys);
   }
 
@@ -63,6 +60,14 @@ public abstract class SchemaValidatorTest {
   @Test
   public void testValidate_ok() {
     assertThat(schemaValidator.validate(rdapContent)).isTrue();
+  }
+
+  @Test
+  public void testSubValidations() {
+    for (SubValidationInfo i : subValidationInfos) {
+      jsonObject.put(i.validatedField, 0);
+      validateSubValidation(i.errorCode, i.validationName, "#/" + i.validatedField + ":0");
+    }
   }
 
   @Test
@@ -106,27 +111,21 @@ public abstract class SchemaValidatorTest {
             "The name in the name/value pair of a link structure was found more than once.");
   }
 
-  @Test
-  public void testValidate_InvalidNotices() {
-    jsonObject.put("notices", "test");
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults()).filteredOn("code", stdRdapNoticesValidationCode)
-        .first()
-        .hasFieldOrPropertyWithValue("value", "#/notices:test")
-        .hasFieldOrPropertyWithValue("message",
-            "The value for the JSON name value does not pass #/notices validation [stdRdapNoticesRemarksValidation].");
+  protected void validateSubValidation(int errorCode, String validationName,
+      String value) {
+    this.validateSubValidation(jsonObject.toString(), errorCode, validationName, value);
   }
 
-  @Test
-  public void testValidate_InvalidRdapConformance() {
-    jsonObject.put("rdapConformance", "test");
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults()).filteredOn("code", rdapConformanceValidationCode)
+  protected void validateSubValidation(String invalidJson, int errorCode, String validationName,
+      String value) {
+    String key = value.split(":")[0];
+    assertThat(schemaValidator.validate(invalidJson)).isFalse();
+    assertThat(context.getResults()).filteredOn("code", errorCode)
         .first()
-        .hasFieldOrPropertyWithValue("value", "#/rdapConformance:test")
+        .hasFieldOrPropertyWithValue("value", value)
         .hasFieldOrPropertyWithValue("message",
-            "The value for the JSON name value does not pass #/rdapConformance validation "
-                + "[stdRdapConformanceValidation].");
+            "The value for the JSON name value does not pass "
+                + key + " validation [" + validationName + "].");
   }
 
   @Test
@@ -134,9 +133,8 @@ public abstract class SchemaValidatorTest {
     replaceNoticesProperty("unknown");
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
     assertThat(context.getResults())
-        .hasSize(1)
+        .filteredOn("code", -10701)
         .first()
-        .hasFieldOrPropertyWithValue("code", -10701)
         .hasFieldOrPropertyWithValue("value", "#/notices/0/unknown:0")
         .hasFieldOrPropertyWithValue("message", "The name in the name/value pair is not of: "
             + "description, links, title, type.");
@@ -160,36 +158,31 @@ public abstract class SchemaValidatorTest {
   @Test
   public void testValidate_NoticeTitleIsNotJsonString() {
     replaceNoticesProperty("title");
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
+    validateIsNotAJsonString(jsonObject.toString(), -10703, "#/notices/0/title:0");
+  }
+
+  protected void validateIsNotAJsonString(String invalidJson, int errorCode, String value) {
+    assertThat(schemaValidator.validate(invalidJson)).isFalse();
     assertThat(context.getResults())
-        .hasSize(1)
+        .filteredOn("code", errorCode)
         .first()
-        .hasFieldOrPropertyWithValue("code", -10703)
-        .hasFieldOrPropertyWithValue("value", "#/notices/0/title:0")
+        .hasFieldOrPropertyWithValue("code", errorCode)
+        .hasFieldOrPropertyWithValue("value", value)
         .hasFieldOrPropertyWithValue("message", "The JSON value is not a string.");
   }
 
   @Test
   public void testValidate_InvalidLinks() {
     replaceNoticesProperty("links");
+    validateSubValidation(-10704,
+        "stdRdapLinksValidation", "#/notices/0/links:0");
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults()).filteredOn("code", -10704)
-        .first()
-        .hasFieldOrPropertyWithValue("value", "#/notices/0/links:0")
-        .hasFieldOrPropertyWithValue("message",
-            "The value for the JSON name value does not pass #/notices/0/links validation "
-                + "[stdRdapLinksValidation].");
   }
 
   @Test
   public void testValidate_TypeIsNotJsonString() {
     replaceNoticesProperty("type");
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults())
-        .filteredOn("code", -10705)
-        .first()
-        .hasFieldOrPropertyWithValue("value", "#/notices/0/type:0")
-        .hasFieldOrPropertyWithValue("message", "The JSON value is not a string.");
+    validateIsNotAJsonString(jsonObject.toString(), -10705, "#/notices/0/type:0");
   }
 
   @Test
@@ -231,13 +224,7 @@ public abstract class SchemaValidatorTest {
   @Test
   public void testValidate_DescriptionNotArrayOfString() {
     replaceNoticesProperty("description", List.of(0));
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults()).filteredOn(r -> r.getCode() == -10709)
-        .hasSize(1)
-        .first()
-        .hasFieldOrPropertyWithValue("value", "#/notices/0/description/0:0")
-        .hasFieldOrPropertyWithValue("message",
-            "The JSON value is not a string.");
+    validateIsNotAJsonString(jsonObject.toString(), -10709, "#/notices/0/description/0:0");
   }
 
   private void replaceNoticesProperty(String property) {
