@@ -24,7 +24,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 public class RDAPValidatorTest {
@@ -42,8 +41,13 @@ public class RDAPValidatorTest {
 
   @BeforeMethod
   public void setUp() {
-    wireMockServer = new WireMockServer(
-        wireMockConfig().dynamicHttpsPort().bindAddress(wiremockHost));
+    String keyStorePath = this.getClass().getResource("/mykeystore/ca-cert.jks").toString();
+    wireMockServer = new WireMockServer(wireMockConfig()
+        .dynamicHttpsPort()
+        .bindAddress(wiremockHost)
+        .keystorePath(keyStorePath)
+        .keystorePassword("rdapct")
+        .keyManagerPassword("rdapct"));
     wireMockServer.start();
   }
 
@@ -52,14 +56,8 @@ public class RDAPValidatorTest {
     wireMockServer.stop();
   }
 
-  @AfterTest
-  public void afterTest() {
-//    WireMock.reset();
-  }
-
   @Test
-  @Ignore("handle certificate")
-  public void testGetHttpResponse_WithHttps() throws RDAPHttpException {
+  public void testGetHttpResponse_WithSelfSignedHttps() throws RDAPHttpException {
     RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
     String path = "/domain/test.example";
     String response = "{\"test\": \"value\"}";
