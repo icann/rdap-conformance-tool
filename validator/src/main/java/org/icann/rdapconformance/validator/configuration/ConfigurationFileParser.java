@@ -22,16 +22,13 @@ public class ConfigurationFileParser {
   }
 
   public ConfigurationFile parse(File configuration) throws IOException {
-    StringBuilder jsonConfigStr = new StringBuilder();
+    String jsonConfigStr = "";
     try (InputStream fis = new FileInputStream(configuration);
         Reader isr = new InputStreamReader(fis);
         BufferedReader br = new BufferedReader(isr)) {
-      String line;
-      while ((line = br.readLine()) != null) {
-        jsonConfigStr.append(line).append("\n");
-      }
+      jsonConfigStr = br.lines().collect(Collectors.joining(System.lineSeparator()));
     }
-    JSONObject jsonConfig = new JSONObject(jsonConfigStr.toString());
+    JSONObject jsonConfig = new JSONObject(jsonConfigStr);
     return new ConfigurationFile.Builder()
         .definitionIdentifier(jsonConfig.getString("definitionIdentifier"))
         .definitionError(optJsonArrayToDefinitionAlerts(jsonConfig.optJSONArray("definitionError")))
