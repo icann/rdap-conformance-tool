@@ -267,6 +267,9 @@ public class RDAPValidator {
           .sslContext(sslContext)
           .build()
           .send(request, HttpResponse.BodyHandlers.ofString());
+      if (String.valueOf(httpResponse.statusCode()).startsWith("30")) {
+          throw new RDAPHttpException(RDAPValidationStatus.TOO_MANY_REDIRECTS, null);
+      }
       return httpResponse;
     } catch (ConnectException | HttpTimeoutException e) {
       ex = e;

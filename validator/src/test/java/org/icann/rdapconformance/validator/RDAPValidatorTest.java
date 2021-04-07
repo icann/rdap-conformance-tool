@@ -2,9 +2,13 @@ package org.icann.rdapconformance.validator;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.temporaryRedirect;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -21,7 +25,6 @@ import java.net.http.HttpTimeoutException;
 import org.icann.rdapconformance.validator.RDAPValidator.RDAPHttpException;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -185,4 +188,92 @@ public class RDAPValidatorTest {
         .withCauseInstanceOf(HttpTimeoutException.class)
         .withMessage(RDAPValidationStatus.CONNECTION_FAILED.getDescription());
   }
+
+  @Test
+  public void testGetHttpResponse_ServerRedirectLessThanRetries_Returns200()
+      throws RDAPHttpException {
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    String path1 = "/domain/test1.example";
+    String path2 = "/domain/test2.example";
+    String path3 = "/domain/test3.example";
+    String response = "{\"test\": \"value\"}";
+
+    doReturn(true).when(config).check();
+    doReturn(10).when(config).getTimeout();
+    doReturn(3).when(config).getMaxRedirects();
+    doReturn(URI.create(
+        String.format("http://%s:%s%s", wiremockHost, wireMockServer.port(), path1)))
+        .when(config).getUri();
+
+    RDAPValidator validator = new RDAPValidator(config);
+
+    configureFor(wiremockHost, wireMockServer.port());
+
+    stubFor(get(urlEqualTo(path1))
+        .withScheme("http")
+        .willReturn(temporaryRedirect(path2)));
+    stubFor(get(urlEqualTo(path2))
+        .withScheme("http")
+        .willReturn(temporaryRedirect(path3)));
+    stubFor(get(urlEqualTo(path3))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withBody(response)));
+
+    HttpResponse<String> httpResponse = validator.getHttpResponse();
+
+    assertThat(httpResponse.body()).isEqualTo(response);
+    assertThat(httpResponse.statusCode()).isEqualTo(200);
+
+    verify(exactly(1), getRequestedFor(urlEqualTo(path1)));
+    verify(exactly(1), getRequestedFor(urlEqualTo(path2)));
+    verify(exactly(1), getRequestedFor(urlEqualTo(path3)));
+
+  }
+
+  @Test
+  public void testGetHttpResponse_ServerRedirectMoreThanRetries_ThrowExceptionWithStatus16()
+      throws RDAPHttpException {
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    String path1 = "/domain/test1.example";
+    String path2 = "/domain/test2.example";
+    String path3 = "/domain/test3.example";
+    String path4 = "/domain/test4.example";
+    String response = "{\"test\": \"value\"}";
+
+    doReturn(true).when(config).check();
+    doReturn(10).when(config).getTimeout();
+    doReturn(3).when(config).getMaxRedirects();
+    doReturn(URI.create(
+        String.format("http://%s:%s%s", wiremockHost, wireMockServer.port(), path1)))
+        .when(config).getUri();
+
+    RDAPValidator validator = new RDAPValidator(config);
+
+    configureFor(wiremockHost, wireMockServer.port());
+
+    stubFor(get(urlEqualTo(path1))
+        .withScheme("http")
+        .willReturn(temporaryRedirect(path2)));
+    stubFor(get(urlEqualTo(path2))
+        .withScheme("http")
+        .willReturn(temporaryRedirect(path3)));
+    stubFor(get(urlEqualTo(path3))
+        .withScheme("http")
+        .willReturn(temporaryRedirect(path4)));
+    stubFor(get(urlEqualTo(path4))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withBody(response)));
+
+    assertThatExceptionOfType(RDAPHttpException.class)
+        .isThrownBy(validator::getHttpResponse)
+        .withMessage(RDAPValidationStatus.TOO_MANY_REDIRECTS.getDescription());
+
+    verify(exactly(1), getRequestedFor(urlEqualTo(path1)));
+    verify(exactly(1), getRequestedFor(urlEqualTo(path2)));
+    verify(exactly(1), getRequestedFor(urlEqualTo(path3)));
+    verify(exactly(0), getRequestedFor(urlEqualTo(path4)));
+  }
+
 }
