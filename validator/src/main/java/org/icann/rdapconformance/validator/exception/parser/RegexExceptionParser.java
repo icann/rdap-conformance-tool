@@ -1,12 +1,11 @@
 package org.icann.rdapconformance.validator.exception.parser;
 
 import java.util.regex.Pattern;
-import org.everit.json.schema.ConstSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.StringSchema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
-import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.RDAPValidatorResults;
 import org.json.JSONObject;
 
 public class RegexExceptionParser extends ExceptionParser {
@@ -15,8 +14,8 @@ public class RegexExceptionParser extends ExceptionParser {
 
   protected RegexExceptionParser(ValidationException e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorContext context) {
-    super(e, schema, jsonObject, context);
+      RDAPValidatorResults results) {
+    super(e, schema, jsonObject, results);
   }
 
   @Override
@@ -30,10 +29,11 @@ public class RegexExceptionParser extends ExceptionParser {
 
   @Override
   protected void doParse() {
-    context.addResult(RDAPValidationResult.builder()
+    results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message("The value of the JSON string data in the "+e.getPointerToViolation()+" does not conform to "
+        .message("The value of the JSON string data in the " + e.getPointerToViolation()
+            + " does not conform to "
             + e.getSchemaLocation().replace("classpath://json-schema/", "") + " syntax.")
         .build());
   }

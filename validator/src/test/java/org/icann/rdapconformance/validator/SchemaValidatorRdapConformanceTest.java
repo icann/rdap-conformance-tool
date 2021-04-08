@@ -30,7 +30,7 @@ public class SchemaValidatorRdapConformanceTest extends SchemaValidatorTest {
     List<String> listWithNoRdapLevel0 = List.of("icann_rdap_technical_implementation_guide_0");
     jsonObject.put("rdapConformance", listWithNoRdapLevel0);
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults())
+    assertThat(results.getAll())
         .filteredOn("code", -10503)
         .first()
         .hasFieldOrPropertyWithValue("value", "#/rdapConformance:[\"icann_rdap_technical_implementation_guide_0\"]")

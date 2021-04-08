@@ -22,22 +22,22 @@ public class SchemaValidator {
   static Pattern duplicateKeys = Pattern.compile("Duplicate key \"(.+)\" at");
   private JSONObject schemaObject;
   private Schema schema;
-  private RDAPValidatorContext context;
+  private RDAPValidatorResults results;
   private SchemaNode schemaRootNode;
 
-  public SchemaValidator(String schemaName, RDAPValidatorContext context) {
-    this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader()), context);
+  public SchemaValidator(String schemaName, RDAPValidatorResults results) {
+    this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader()), results);
   }
 
-  public SchemaValidator(Schema schema, RDAPValidatorContext context) {
-    this.init(schema, context);
+  public SchemaValidator(Schema schema, RDAPValidatorResults results) {
+    this.init(schema, results);
   }
 
-  private void init(Schema schema, RDAPValidatorContext context) {
+  private void init(Schema schema, RDAPValidatorResults results) {
     this.schema = schema;
     this.schemaRootNode = SchemaNode.create(null, this.schema);
     this.schemaObject = new JSONObject(schema.toString());
-    this.context = context;
+    this.results = results;
   }
 
   public static Schema getSchema(String name, String scope, ClassLoader classLoader) {
@@ -60,7 +60,7 @@ public class SchemaValidator {
       jsonObject = new JSONObject(content);
     } catch (JSONException e) {
       RDAPValidationResult result = parseJsonException(e, content);
-      context.addResult(result);
+      results.add(result);
       return false;
     }
 
@@ -101,7 +101,7 @@ public class SchemaValidator {
 
   private void parseException(ValidationException e, JSONObject jsonObject) {
     List<ExceptionParser> exceptionParsers = ExceptionParser.createParsers(e, schema, jsonObject,
-        context);
+        results);
     for (ExceptionParser exceptionParser : exceptionParsers) {
       exceptionParser.parse();
     }

@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
-import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.RDAPValidatorResults;
 import org.json.JSONObject;
 
 public class MissingKeyExceptionParser extends ExceptionParser {
@@ -15,8 +15,8 @@ public class MissingKeyExceptionParser extends ExceptionParser {
 
   protected MissingKeyExceptionParser(ValidationException e,
       Schema schema, JSONObject jsonObject,
-      RDAPValidatorContext context) {
-    super(e, schema, jsonObject, context);
+      RDAPValidatorResults results) {
+    super(e, schema, jsonObject, results);
     matcher = pattern.matcher(e.getMessage());
     matcher.find();
   }
@@ -29,7 +29,7 @@ public class MissingKeyExceptionParser extends ExceptionParser {
   @Override
   public void doParse() {
     String key = matcher.group(1);
-    context.addResult(RDAPValidationResult.builder()
+    results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> (int) getPropertyFromViolatedSchema(e, key + "Missing")))
         .value(jsonObject.toString())
         .message("The " + key + " element does not exist.")

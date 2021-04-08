@@ -5,15 +5,15 @@ import org.everit.json.schema.ConstSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
-import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.RDAPValidatorResults;
 import org.json.JSONObject;
 
 public class ContainsConstExceptionParser extends ExceptionParser {
 
   protected ContainsConstExceptionParser(ValidationException e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorContext context) {
-    super(e, schema, jsonObject, context);
+      RDAPValidatorResults results) {
+    super(e, schema, jsonObject, results);
   }
 
   @Override
@@ -24,7 +24,7 @@ public class ContainsConstExceptionParser extends ExceptionParser {
   @Override
   protected void doParse() {
     ConstSchema constSchema = (ConstSchema) ((ArraySchema)e.getViolatedSchema()).getContainedItemSchema();
-    context.addResult(RDAPValidationResult.builder()
+    results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> (int)constSchema.getUnprocessedProperties().get("errorCode")))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message("The "+e.getPointerToViolation()+" data structure does not include " + constSchema.getPermittedValue() +

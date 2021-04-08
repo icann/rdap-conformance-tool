@@ -9,7 +9,7 @@ import org.everit.json.schema.ObjectSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
-import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.json.JSONObject;
 
@@ -19,8 +19,8 @@ public class UnknowKeyExceptionParser extends ExceptionParser {
   private Matcher matcher;
 
   public UnknowKeyExceptionParser(ValidationException e, Schema schema,
-      JSONObject jsonObject, RDAPValidatorContext context) {
-    super(e, schema, jsonObject, context);
+      JSONObject jsonObject, RDAPValidatorResults results) {
+    super(e, schema, jsonObject, results);
   }
 
   public boolean matches(ValidationException e) {
@@ -32,7 +32,7 @@ public class UnknowKeyExceptionParser extends ExceptionParser {
   public void doParse() {
     String key = matcher.group(1);
     SchemaNode schemaNode = SchemaNode.create(null, e.getViolatedSchema());
-    context.addResult(RDAPValidationResult.builder()
+    results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> schemaNode.getErrorCode("unknownKeys")))
         .value(e.getPointerToViolation() + "/" + key + ":" + (((JSONObject) jsonObject
             .query(e.getPointerToViolation())).get(key)))

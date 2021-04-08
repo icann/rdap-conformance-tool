@@ -6,7 +6,7 @@ import org.everit.json.schema.EnumSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
-import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.RDAPValidatorResults;
 import org.json.JSONObject;
 
 public class EnumExceptionParser extends ExceptionParser {
@@ -16,8 +16,8 @@ public class EnumExceptionParser extends ExceptionParser {
 
   protected EnumExceptionParser(ValidationException e,
       Schema schema, JSONObject jsonObject,
-      RDAPValidatorContext context) {
-    super(e, schema, jsonObject, context);
+      RDAPValidatorResults results) {
+    super(e, schema, jsonObject, results);
     matcher = enumPattern.matcher(e.getMessage());
     matcher.find();
   }
@@ -29,7 +29,7 @@ public class EnumExceptionParser extends ExceptionParser {
   @Override
   public void doParse() {
     EnumSchema enumSchema = (EnumSchema)e.getViolatedSchema();
-    context.addResult(RDAPValidationResult.builder()
+    results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()).toString())
         .message(

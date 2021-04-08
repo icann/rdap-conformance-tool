@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
-import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.RDAPValidatorResults;
 import org.json.JSONObject;
 
 public class BasicTypeExceptionParser extends ExceptionParser {
@@ -14,8 +14,8 @@ public class BasicTypeExceptionParser extends ExceptionParser {
   protected Matcher matcher;
 
   protected BasicTypeExceptionParser(ValidationException e, Schema schema,
-      JSONObject jsonObject, RDAPValidatorContext context) {
-    super(e, schema, jsonObject, context);
+      JSONObject jsonObject, RDAPValidatorResults results) {
+    super(e, schema, jsonObject, results);
     matcher = basicTypePattern.matcher(e.getMessage());
     matcher.find();
   }
@@ -38,7 +38,7 @@ public class BasicTypeExceptionParser extends ExceptionParser {
           e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()).toString();
     }
 
-    context.addResult(RDAPValidationResult.builder()
+    results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
         .value(value)
         .message(icannErrorMsg)

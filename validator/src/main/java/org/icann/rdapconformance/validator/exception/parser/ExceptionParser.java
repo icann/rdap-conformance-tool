@@ -11,7 +11,7 @@ import org.everit.json.schema.ReferenceSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
-import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.schema.ValidationNode;
 import org.json.JSONObject;
@@ -25,33 +25,33 @@ public abstract class ExceptionParser {
   protected final Schema schema;
   protected final JSONObject schemaObject;
   protected final JSONObject jsonObject;
-  protected final RDAPValidatorContext context;
+  protected final RDAPValidatorResults results;
 
   protected ExceptionParser(ValidationException e, Schema schema,
-      JSONObject jsonObject, RDAPValidatorContext context) {
+      JSONObject jsonObject, RDAPValidatorResults results) {
     this.e = e;
     this.schema = schema;
     this.schemaObject = new JSONObject(schema.toString());
     this.jsonObject = jsonObject;
-    this.context = context;
+    this.results = results;
   }
 
   public static List<ExceptionParser> createParsers(
       ValidationException e,
       Schema schema,
-      JSONObject object, RDAPValidatorContext context) {
+      JSONObject object, RDAPValidatorResults results) {
     List<ExceptionParser> parsers = new ArrayList<>();
 
     List<ValidationException> basicExceptions = getAllExceptions(List.of(e));
     for (ValidationException basicException : basicExceptions) {
-      parsers.add(new UnknowKeyExceptionParser(basicException, schema, object, context));
-      parsers.add(new BasicTypeExceptionParser(basicException, schema, object, context));
-      parsers.add(new EnumExceptionParser(basicException, schema, object, context));
-      parsers.add(new MissingKeyExceptionParser(basicException, schema, object, context));
-      parsers.add(new ConstExceptionParser(basicException, schema, object, context));
-      parsers.add(new ContainsConstExceptionParser(basicException, schema, object, context));
-      parsers.add(new RegexExceptionParser(basicException, schema, object, context));
-      parsers.add(new DatetimeExceptionParser(basicException, schema, object, context));
+      parsers.add(new UnknowKeyExceptionParser(basicException, schema, object, results));
+      parsers.add(new BasicTypeExceptionParser(basicException, schema, object, results));
+      parsers.add(new EnumExceptionParser(basicException, schema, object, results));
+      parsers.add(new MissingKeyExceptionParser(basicException, schema, object, results));
+      parsers.add(new ConstExceptionParser(basicException, schema, object, results));
+      parsers.add(new ContainsConstExceptionParser(basicException, schema, object, results));
+      parsers.add(new RegexExceptionParser(basicException, schema, object, results));
+      parsers.add(new DatetimeExceptionParser(basicException, schema, object, results));
     }
 
     return parsers;
@@ -131,7 +131,7 @@ public abstract class ExceptionParser {
         ValidationNode validationNode = tree.findValidationNode(e.getPointerToViolation(),
             "validationName");
         if (validationNode.hasParentValidationCode()) {
-          context.addResult(RDAPValidationResult.builder()
+          results.add(RDAPValidationResult.builder()
               .code(
                   parseErrorCode(validationNode::getParentValidationCode))
               .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))

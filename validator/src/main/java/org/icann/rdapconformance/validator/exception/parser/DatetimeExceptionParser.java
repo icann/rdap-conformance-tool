@@ -5,15 +5,15 @@ import org.everit.json.schema.StringSchema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.internal.DateTimeFormatValidator;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
-import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.RDAPValidatorResults;
 import org.json.JSONObject;
 
 public class DatetimeExceptionParser extends ExceptionParser {
 
   protected DatetimeExceptionParser(ValidationException e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorContext context) {
-    super(e, schema, jsonObject, context);
+      RDAPValidatorResults results) {
+    super(e, schema, jsonObject, results);
   }
 
   @Override
@@ -25,7 +25,7 @@ public class DatetimeExceptionParser extends ExceptionParser {
 
   @Override
   protected void doParse() {
-    context.addResult(RDAPValidationResult.builder()
+    results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message(

@@ -2,20 +2,26 @@ package org.icann.rdapconformance.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.List;
-import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
+import java.util.stream.Collectors;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public abstract class SchemaValidatorTest {
 
-  protected RDAPValidatorTestContext context;
+  private final String schemaName;
+  private final String validJson;
   protected SchemaValidator schemaValidator;
-  String rdapContent;
   protected JSONObject jsonObject;
+  protected RDAPValidatorResults results;
   private String name;
+  private String rdapContent;
 
   public SchemaValidatorTest(
       String schemaName,
@@ -24,14 +30,23 @@ public abstract class SchemaValidatorTest {
     this.validJson = validJson;
   }
 
-  String schemaName;
-  String validJson;
+  public String getResource(String path) throws IOException {
+    URL jsonUri = this.getClass().getResource(path);
+    assert null != jsonUri;
+    try (InputStream is = this.getClass().getResourceAsStream(path)) {
+      assert null != is;
+      try (InputStreamReader isr = new InputStreamReader(is);
+          BufferedReader reader = new BufferedReader(isr)) {
+        return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+      }
+    }
+  }
 
   @BeforeMethod
   public void setUp() throws IOException {
-    context = new RDAPValidatorTestContext(new ConfigurationFile.Builder().build());
-    schemaValidator = new SchemaValidator(schemaName, context);
-    rdapContent = context.getResource(validJson);
+    results = new RDAPValidatorResults();
+    schemaValidator = new SchemaValidator(schemaName, results);
+    rdapContent = getResource(validJson);
     jsonObject = new JSONObject(rdapContent);
     name = schemaValidator.getSchema().getTitle();
   }
@@ -60,7 +75,7 @@ public abstract class SchemaValidatorTest {
   protected void validateAuthorizedKeys(int errorCode, List<String> authorizedKeys) {
     insertForbiddenKey();
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults())
+    assertThat(results.getAll())
         .filteredOn("code", errorCode)
         .first()
         .matches(r -> r.getValue().endsWith("/unknown:[{\"test\":\"value\"}]"))
@@ -72,7 +87,7 @@ public abstract class SchemaValidatorTest {
   protected void validateRegex(int errorCode, String regexType, String value) {
     String key = getKey(value);
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults())
+    assertThat(results.getAll())
         .filteredOn("code", errorCode)
         .last()
         .hasFieldOrPropertyWithValue("value", value)
@@ -83,26 +98,27 @@ public abstract class SchemaValidatorTest {
 
   protected void arrayItemKeyIsNotDateTime(String key, int errorCode) {
     replaceArrayProperty(key, "not a date-time");
-    validateIsNotADateTime(errorCode, "#/"+name+"/0/"+key+":not a date-time");
+    validateIsNotADateTime(errorCode, "#/" + name + "/0/" + key + ":not a date-time");
   }
 
   protected void validateIsNotADateTime(int errorCode, String value) {
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults())
+    assertThat(results.getAll())
         .filteredOn("code", errorCode)
         .last()
         .hasFieldOrPropertyWithValue("value", value)
-        .hasFieldOrPropertyWithValue("message", "The JSON value shall be a syntactically valid time and date according to RFC3339.");
+        .hasFieldOrPropertyWithValue("message",
+            "The JSON value shall be a syntactically valid time and date according to RFC3339.");
   }
 
   protected void arrayItemKeyIsNotString(String key, int errorCode) {
     replaceArrayProperty(key, 0);
-    validateIsNotAJsonString(errorCode, "#/"+name+"/0/"+key+":0");
+    validateIsNotAJsonString(errorCode, "#/" + name + "/0/" + key + ":0");
   }
 
   protected void validateIsNotAJsonString(int errorCode, String value) {
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults())
+    assertThat(results.getAll())
         .filteredOn("code", errorCode)
         .last()
         .hasFieldOrPropertyWithValue("value", value)
@@ -111,13 +127,13 @@ public abstract class SchemaValidatorTest {
 
   protected void arrayItemKeySubValidation(String key, String validationName, int errorCode) {
     replaceArrayProperty(key, 0);
-    validateSubValidation(errorCode, validationName, "#/"+name+"/0/"+key+":0");
+    validateSubValidation(errorCode, validationName, "#/" + name + "/0/" + key + ":0");
   }
 
   protected void validateInvalidJson(int error, String value) {
     String key = getKey(value);
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults()).filteredOn(r -> r.getCode() == error)
+    assertThat(results.getAll()).filteredOn(r -> r.getCode() == error)
         .hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("value", value)
@@ -142,7 +158,7 @@ public abstract class SchemaValidatorTest {
       String value) {
     String key = getKey(value);
     assertThat(schemaValidator.validate(invalidJson)).isFalse();
-    assertThat(context.getResults()).filteredOn("code", errorCode)
+    assertThat(results.getAll()).filteredOn("code", errorCode)
         .first()
         .hasFieldOrPropertyWithValue("value", value)
         .hasFieldOrPropertyWithValue("message",
@@ -153,7 +169,7 @@ public abstract class SchemaValidatorTest {
   protected void testWrongConstant(int errorCode, String field, String goodValue) {
     jsonObject.put(field, "wrong-constant");
     schemaValidator.validate(jsonObject.toString());
-    assertThat(context.getResults())
+    assertThat(results.getAll())
         .filteredOn("code", errorCode)
         .first()
         .hasFieldOrPropertyWithValue("value", "#/" + field + ":wrong-constant")
@@ -163,7 +179,7 @@ public abstract class SchemaValidatorTest {
 
   protected void validateNotEnum(int errorCode, String enumType, String value) {
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults())
+    assertThat(results.getAll())
         .filteredOn("code", errorCode)
         .first()
         .hasFieldOrPropertyWithValue("value", value)
@@ -173,7 +189,7 @@ public abstract class SchemaValidatorTest {
 
   protected void validateKeyMissing(int errorCode, String key) {
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults()).filteredOn(r -> r.getCode() == errorCode)
+    assertThat(results.getAll()).filteredOn(r -> r.getCode() == errorCode)
         .hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("message",

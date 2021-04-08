@@ -51,7 +51,7 @@ public class SchemaValidatorNoticeTest extends SchemaValidatorObjectTest {
   public void testValidate_DescriptionNotJsonArray() {
     jsonObject.put("description", 0);
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults()).filteredOn(r -> r.getCode() == -10708)
+    assertThat(results.getAll()).filteredOn(r -> r.getCode() == -10708)
         .hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("value", "#/description:0")

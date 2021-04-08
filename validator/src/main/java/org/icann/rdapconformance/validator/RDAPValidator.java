@@ -26,7 +26,8 @@ public class RDAPValidator {
   }
 
   public int validate() {
-    /* Parse the configuration definition file, and if the file is not parsable,
+    /*
+     * Parse the configuration definition file, and if the file is not parsable,
      * exit with a return code of 1.
      */
     ConfigurationFile configurationFile;
@@ -38,7 +39,7 @@ public class RDAPValidator {
       return RDAPValidationStatus.CONFIG_INVALID.getValue();
     }
 
-    RDAPValidatorContext context = new RDAPValidatorContext(configurationFile);
+    RDAPValidatorResults results = new RDAPValidatorResults();
 
     /* If the parameter (--use-local-datasets) is set, use the datasets found in the filesystem,
      * download the datasets not found in the filesystem, and persist them in the filesystem.
@@ -70,10 +71,12 @@ public class RDAPValidator {
     if (Set.of(RDAPQueryType.DOMAIN, RDAPQueryType.NAMESERVER).contains(queryType)) {
       String domainName = queryType.getValue(this.config.getUri().toString());
       String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
-      SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", context);
+      RDAPValidatorResults testDomainResults = new RDAPValidatorResults();
+      SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults);
       if (!validator.validate(domainNameJson)) {
         // TODO check if A-labels and U-labels are mixed: is this OK?
-        if (context.getResults().stream().map(RDAPValidationResult::getCode)
+        if (testDomainResults.getAll().stream()
+            .map(RDAPValidationResult::getCode)
             .anyMatch(c -> c == -10303)) {
           return RDAPValidationStatus.MIXED_LABEL_FORMAT.getValue();
         }
@@ -125,20 +128,19 @@ public class RDAPValidator {
      *
      *
      */
-    context.reset();  // reset context as we may have performed some preliminary validation
     SchemaValidator validator = null;
     if (404 == rdapHttpResponse.getHttpStatusCode()) {
-      validator = new SchemaValidator("rdap_error.json", context);
+      validator = new SchemaValidator("rdap_error.json", results);
     } else if (RDAPQueryType.DOMAIN.equals(queryType)) {
-      validator = new SchemaValidator("rdap_domain.json", context);
+      validator = new SchemaValidator("rdap_domain.json", results);
     } else if (RDAPQueryType.HELP.equals(queryType)) {
-      validator = new SchemaValidator("rdap_help.json", context);
+      validator = new SchemaValidator("rdap_help.json", results);
     } else if (RDAPQueryType.NAMESERVER.equals(queryType)) {
-      validator = new SchemaValidator("rdap_nameserver.json", context);
+      validator = new SchemaValidator("rdap_nameserver.json", results);
     } else if (RDAPQueryType.NAMESERVERS.equals(queryType)) {
-      validator = new SchemaValidator("rdap_nameservers.json", context);
+      validator = new SchemaValidator("rdap_nameservers.json", results);
     } else if (RDAPQueryType.ENTITY.equals(queryType)) {
-      validator = new SchemaValidator("rdap_entities.json", context);
+      validator = new SchemaValidator("rdap_entities.json", results);
     }
     assert null != validator;
     validator.validate(rdapHttpResponse.getHttpResponseBody());

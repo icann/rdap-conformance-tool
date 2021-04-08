@@ -38,7 +38,7 @@ public abstract class SchemaValidatorObjectTest extends SchemaValidatorTest {
     String invalidRdapContent = "{\"invalid-json\": \"with trailing comma\" ]";
 
     assertThat(schemaValidator.validate(invalidRdapContent)).isFalse();
-    assertThat(context.getResults()).hasSize(1)
+    assertThat(results.getAll()).hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("code", invalidJsonCode)
         .hasFieldOrPropertyWithValue("value", invalidRdapContent)
@@ -58,7 +58,7 @@ public abstract class SchemaValidatorObjectTest extends SchemaValidatorTest {
         "{\"" + key + "\": \"duplicated\", \"" + key + "\": \"duplicated\"}";
 
     assertThat(schemaValidator.validate(invalidRdapContent)).isFalse();
-    assertThat(context.getResults()).hasSize(1)
+    assertThat(results.getAll()).hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("code", duplicateKeyCode)
         .hasFieldOrPropertyWithValue("value", key + ":duplicated")
