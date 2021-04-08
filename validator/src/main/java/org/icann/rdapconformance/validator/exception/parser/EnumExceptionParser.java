@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.exception.parser;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.everit.json.schema.EnumSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
@@ -21,19 +22,19 @@ public class EnumExceptionParser extends ExceptionParser {
     matcher.find();
   }
 
-  protected boolean matches(ValidationException basicException) {
-    return enumPattern.matcher(basicException.getMessage()).find();
+  public boolean matches(ValidationException basicException) {
+    return basicException.getViolatedSchema() instanceof EnumSchema;
   }
 
   @Override
   public void doParse() {
+    EnumSchema enumSchema = (EnumSchema)e.getViolatedSchema();
     context.addResult(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()).toString())
         .message(
             "The JSON string is not included as a Value with Type=\"" + e.getSchemaLocation().replace("classpath://json-schema/", "")
-                + "\" in the "
-                + "RDAPJSONValues dataset.")
+                + "\" dataset ("+enumSchema.getPossibleValuesAsList()+").")
         .build());
   }
 }

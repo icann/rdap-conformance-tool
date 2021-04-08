@@ -1,0 +1,16 @@
+{
+  "links": [
+    {
+      "value": "https://rdap.verisign.com/com/v1/domain/GOOGLE.COM",
+      "rel": "self",
+      "href": "https://rdap.verisign.com/com/v1/domain/GOOGLE.COM",
+      "type": "application/rdap+json"
+    },
+    {
+      "value": "https://rdap.markmonitor.com/rdap/domain/GOOGLE.COM",
+      "rel": "related",
+      "href": "https://rdap.markmonitor.com/rdap/domain/GOOGLE.COM",
+      "type": "application/rdap+json"
+    }
+  ]
+}

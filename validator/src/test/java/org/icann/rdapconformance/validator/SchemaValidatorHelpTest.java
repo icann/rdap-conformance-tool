@@ -1,8 +1,9 @@
 package org.icann.rdapconformance.validator;
 
 import java.util.List;
+import org.testng.annotations.Test;
 
-public class SchemaValidatorHelpTest extends SchemaValidatorTest {
+public class SchemaValidatorHelpTest extends SchemaValidatorObjectTest {
 
   public SchemaValidatorHelpTest() {
     super(
@@ -12,11 +13,17 @@ public class SchemaValidatorHelpTest extends SchemaValidatorTest {
         -12500,
         -12501,
         -12502,
-        List.of("notices", "rdapConformance", "lang"),
-        List.of(
-            new SubValidationInfo("stdRdapNoticesRemarksValidation", "notices", -12503),
-            new SubValidationInfo("stdRdapConformanceValidation", "rdapConformance", -12505)
-        )
+        List.of("notices", "rdapConformance", "lang")
     );
+  }
+
+  @Test
+  public void stdRdapNoticesRemarksValidation() {
+    validateSubValidation(ComplexValidation.ofNotices(-12503));
+  }
+
+  @Test
+  public void stdRdapConformanceValidation() {
+    validateSubValidation(ComplexValidation.ofRdapConformance(-12505));
   }
 }

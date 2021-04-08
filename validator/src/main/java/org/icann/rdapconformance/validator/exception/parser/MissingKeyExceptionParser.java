@@ -21,7 +21,7 @@ public class MissingKeyExceptionParser extends ExceptionParser {
     matcher.find();
   }
 
-  protected boolean matches(ValidationException e) {
+  public boolean matches(ValidationException e) {
     matcher = pattern.matcher(e.getMessage());
     return matcher.find();
   }

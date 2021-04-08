@@ -2,6 +2,36 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "id" : "rdap_common.json",  
   "definitions": {
+    "rdapExtensions": {
+      "allOf": [
+        {
+          "type": "string",
+          "errorCode": -10501
+        },
+        {
+          "enum": [
+            "rdap_level_0",
+            "arin_originas0",
+            "artRecord",
+            "cidr0",
+            "fred",
+            "icann_rdap_response_profile_0",
+            "icann_rdap_technical_implementation_guide_0",
+            "nro_rdap_profile_0",
+            "nro_rdap_profile_asn_flat_0",
+            "nro_rdap_profile_asn_hierarchical_0",
+            "paging",
+            "platformNS",
+            "rdap_objectTag",
+            "redirect_with_content",
+            "regType",
+            "sorting",
+            "subsetting"
+          ],
+          "errorCode": -10502
+        }
+      ]
+    },
     "positiveInteger": {
       "type": "integer",
       "minimum": 0
@@ -20,6 +50,13 @@
       },
       "uniqueItems": true,
       "validationName": "stdRdapConformanceValidation"
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "$ref": "rdap_entity_object.json#"
+      },
+      "validationName": "stdRdapEntitiesValidation"
     },
     "stringArray": {
       "type": "array",
@@ -174,17 +211,10 @@
     "status": {
       "type": "array",
       "items": {
-        "anyOf":[
-          {
 	        "$ref": "#/definitions/statusValue"
-	      },
-	      {
-	      	"type" : "string",
-	      	"description": "non standard status"
-	      }
-	     ]
       },
-      "uniqueItems": true
+      "uniqueItems": true,
+      "validationName": "stdRdapStatusValidation"
     },
     "port43": {
       "oneOf": [
@@ -213,7 +243,6 @@
           "$ref": "#/definitions/uri"
         },
         "rel": {
-          "type": "string",
           "enum": [
             "about",
             "alternate",
@@ -294,36 +323,72 @@
             "webmention",
             "working-copy",
             "working-copy-of"
-          ]
+          ],
+          "errorCode": -10604
         },
         "href": {
           "$ref": "#/definitions/uri"
         },
         "hreflang": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/definitions/lang"
-          }
+          "oneOf": [
+            {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "[a-z]{2}(-[A-Z][a-zA-Z]*(\\-[A-Z]{2})?)?",
+                "errorCode": -10608
+              },
+              "errorCode": -10607
+            },
+            {
+              "type": "string",
+              "pattern": "[a-z]{2}(-[A-Z][a-zA-Z]*(\\-[A-Z]{2})?)?",
+              "errorCode": -10608
+            }
+          ]
         },
         "title": {
-          "type": "string"
+          "type": "string",
+          "errorCode": -10606
         },
         "media": {
-          "type": "string"
+          "allOf": [
+            {
+              "type": "string",
+              "errorCode": -10603
+            },
+            {
+              "enum": [
+                "screen",
+                "tty",
+                "tv",
+                "projection",
+                "handheld",
+                "print",
+                "braille",
+                "embossed",
+                "speech",
+                "all"
+              ],
+              "errorCode": -10603
+            }
+          ]
         },
         "type": {
           "type": "string",
           "pattern": "[a-zA-Z][a-zA-Z0-9]*/[a-zA-Z][a-zA-Z0-9]*"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "links": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/link"
       },
-      "validationName": "stdRdapLinksValidation"
+      "validationName": "stdRdapLinksValidation",
+      "unknownKeys": -10601
     },
     "eventWithoutActor": {
       "type": "object",
@@ -400,7 +465,7 @@
     "notices": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/notice"
+        "$ref": "rdap_notice.json#"
       },
       "validationName": "stdRdapNoticesRemarksValidation",
       "stdRdapLinksValidation": -10704,
@@ -411,7 +476,7 @@
       "items": {
         "$ref": "#/definitions/notice"
       },
-      "validationName": "stdRdapNoticesRemarksValidation"
+      "validationName": "stdRdapRemarksValidation"
     },
     "publicId": {
       "type": "object",

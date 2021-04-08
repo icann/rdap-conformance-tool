@@ -4,7 +4,7 @@
     "type": "object",
     "properties": {
         "rdapConformance": {
-          "$ref": "rdap_common.json#/definitions/uniqueStringArray"
+          "$ref": "rdap_conformance.json#"
         },
         "lang" : {
 	      "$ref": "rdap_common.json#/definitions/lang"

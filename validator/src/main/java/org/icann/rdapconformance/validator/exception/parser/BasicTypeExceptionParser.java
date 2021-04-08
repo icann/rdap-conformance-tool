@@ -1,13 +1,11 @@
 package org.icann.rdapconformance.validator.exception.parser;
 
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.RDAPValidatorContext;
-import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.json.JSONObject;
 
 public class BasicTypeExceptionParser extends ExceptionParser {
@@ -22,7 +20,7 @@ public class BasicTypeExceptionParser extends ExceptionParser {
     matcher.find();
   }
 
-  protected boolean matches(ValidationException e) {
+  public boolean matches(ValidationException e) {
     return basicTypePattern.matcher(e.getMessage()).find();
   }
 
@@ -36,7 +34,8 @@ public class BasicTypeExceptionParser extends ExceptionParser {
     if (matcher.group(1).equals("JSONArray")) {
       icannErrorMsg =
           "The " + e.getPointerToViolation() + " structure is not syntactically valid.";
-      value = jsonObject.query(e.getPointerToViolation()).toString();
+      value =
+          e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()).toString();
     }
 
     context.addResult(RDAPValidationResult.builder()

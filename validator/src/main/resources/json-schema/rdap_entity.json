@@ -1,14 +1,88 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "id" : "rdap_entity.json",      
-  "allOf": [
-	    {
-		      "$ref": "rdap_response_common.json#"
-	    },
-		 {  
-  		 	  "$ref": "rdap_entity_object.json#"	
-         }
-     ],   
+  "id" : "rdap_entity.json",
+  "title": "entity",
+  "definitions": {
+    "entityClass" : {
+      "const": "entity",
+      "errorCode": -12303
+    },
+    "entityRole": {
+      "type": "string",
+      "description" : "the name is entityRole instead of simply role to distinguish it from the role defintiion in jcard",
+      "enum": [
+        "registrant",
+        "technical",
+        "administrative",
+        "abuse",
+        "billing",
+        "registrar",
+        "reseller",
+        "sponsor",
+        "proxy",
+        "notifications",
+        "noc"
+      ]
+    }
+  },
+  "properties": {
+    "rdapConformance": {
+      "$ref": "rdap_common.json#/definitions/uniqueStringArray",
+      "validationName": "stdRdapConformanceValidation"
+    },
+    "lang" : {
+      "$ref": "rdap_common.json#/definitions/lang"
+    },
+    "notices" : {
+      "$ref": "rdap_common.json#/definitions/notices"
+    },
+    "objectClassName": {
+      "$ref": "#/definitions/entityClass"
+    },
+    "handle": {
+      "type": "string",
+      "errorCode": -12304
+    },
+
+    "vcardArray": {
+      "$ref": "jcard.json#/definitions/vcardArray"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/entityRole"
+      },
+      "validationName": "stdRdapRolesValidation"
+    },
+    "entities": {
+      "$ref": "rdap_common.json#/definitions/entities"
+    },
+    "asEventActor": {
+      "type": "array",
+      "items": {
+        "$ref": "rdap_common.json#/definitions/eventWithoutActor"
+      },
+      "validationName": "stdRdapAsEventActorValidation"
+    },
+    "publicIds": {
+      "$ref": "rdap_common.json#/definitions/publicIds"
+    },
+    "events": {
+      "$ref": "rdap_common.json#/definitions/events"
+    },
+    "remarks": {
+      "$ref": "rdap_common.json#/definitions/remarks"
+    },
+    "links" : {
+      "$ref": "rdap_common.json#/definitions/links"
+    },
+    "status": {
+      "$ref": "rdap_common.json#/definitions/status"
+    },
+    "port43": {
+      "$ref": "rdap_common.json#/definitions/port43"
+    }
+  },
   "links": [
     {
       "description": "Get entity",
@@ -25,5 +99,20 @@
       "title": "entity",
       "targetSchema" : {"$ref":"#"}      
     }    
-  ]
+  ],
+  "additionalProperties": false,
+  "structureInvalid": -12300,
+  "unknownKeys": -12301,
+  "duplicateKeys": -12302,
+  "stdRdapRolesValidation": -12306,
+  "stdRdapPublicIdsValidation": -12307,
+  "stdRdapEntitiesValidation": -12308,
+  "stdRdapRemarksValidation": -12309,
+  "stdRdapLinksValidation": -12310,
+  "stdRdapEventsValidation": -12311,
+  "stdRdapAsEventActorValidation": -12312,
+  "stdRdapStatusValidation": -12313,
+  "stdRdapPort43WhoisServerValidation": -12314,
+  "stdRdapNoticesRemarksValidation": -12315,
+  "stdRdapConformanceValidation": -12317
 }

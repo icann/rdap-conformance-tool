@@ -22,7 +22,7 @@ public class UnknowKeyExceptionParser extends ExceptionParser {
     super(e, schema, jsonObject, context);
   }
 
-  protected boolean matches(ValidationException e) {
+  public boolean matches(ValidationException e) {
     matcher = unknownKeyPattern.matcher(e.getMessage());
     return matcher.find();
   }

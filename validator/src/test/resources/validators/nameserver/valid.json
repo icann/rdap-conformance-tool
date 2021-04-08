@@ -1,0 +1,45 @@
+{
+  "objectClassName": "nameserver",
+  "ldhName": "NS1.GOOGLE.COM",
+  "ipAddresses": {
+    "v4": [
+      "216.239.32.10"
+    ],
+    "v6": [
+      "2001:4860:4802:32:0:0:0:A"
+    ]
+  },
+  "links": [
+    {
+      "value": "https://rdap.verisign.com/com/v1/nameserver/NS1.GOOGLE.COM",
+      "rel": "self",
+      "href": "https://rdap.verisign.com/com/v1/nameserver/NS1.GOOGLE.COM",
+      "type": "application/rdap+json"
+    }
+  ],
+  "events": [
+    {
+      "eventAction": "last update of RDAP database",
+      "eventDate": "2021-04-05T09:41:41Z"
+    }
+  ],
+  "rdapConformance": [
+    "rdap_level_0",
+    "icann_rdap_technical_implementation_guide_0",
+    "icann_rdap_response_profile_0"
+  ],
+  "notices": [
+    {
+      "title": "Terms of Use",
+      "description": [
+        "Service subject to Terms of Use."
+      ],
+      "links": [
+        {
+          "href": "https://www.verisign.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml",
+          "type": "text/html"
+        }
+      ]
+    }
+  ]
+}

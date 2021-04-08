@@ -13,17 +13,28 @@ import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SchemaValidator {
 
+  private static final Logger logger = LoggerFactory.getLogger(SchemaValidator.class);
   static Pattern duplicateKeys = Pattern.compile("Duplicate key \"(.+)\" at");
-  private final JSONObject schemaObject;
-  private final Schema schema;
-  private final RDAPValidatorContext context;
-  private final SchemaNode schemaRootNode;
+  private JSONObject schemaObject;
+  private Schema schema;
+  private RDAPValidatorContext context;
+  private SchemaNode schemaRootNode;
 
   public SchemaValidator(String schemaName, RDAPValidatorContext context) {
-    this.schema = getSchema(schemaName, "json-schema/", getClass().getClassLoader());
+    this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader()), context);
+  }
+
+  public SchemaValidator(Schema schema, RDAPValidatorContext context) {
+    this.init(schema, context);
+  }
+
+  private void init(Schema schema, RDAPValidatorContext context) {
+    this.schema = schema;
     this.schemaRootNode = SchemaNode.create(null, this.schema);
     this.schemaObject = new JSONObject(schema.toString());
     this.context = context;
@@ -93,6 +104,13 @@ public class SchemaValidator {
         context);
     for (ExceptionParser exceptionParser : exceptionParsers) {
       exceptionParser.parse();
+    }
+
+    List<ValidationException> validationExceptions = ExceptionParser.getAllExceptions(List.of(e));
+    for (ValidationException validationException : validationExceptions) {
+      if (exceptionParsers.stream().noneMatch(exceptionParser -> exceptionParser.matches(validationException))) {
+        logger.error("We found this error with no exception parser " + validationException.getMessage());
+      }
     }
   }
 

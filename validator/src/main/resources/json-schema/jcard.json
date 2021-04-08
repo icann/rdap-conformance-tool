@@ -2420,7 +2420,8 @@
       ],
       "additionalItems" : {
           "$ref": "#/definitions/vcard"
-      }      
+      },
+			"errorCode": -12305
     }
   }
 }

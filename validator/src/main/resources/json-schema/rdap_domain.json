@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "domain",
-  "id": "rdap_domain_2.json",
+  "id": "rdap_domain.json",
   "properties": {
     "objectClassName": {
       "$ref": "rdap_domain_object.json#/definitions/domainClass"
@@ -35,15 +35,10 @@
       "validationName": "stdRdapSecureDnsValidation"
     },
     "entities": {
-      "type": "array",
-      "items": {
-        "$ref": "rdap_entity_object.json#"
-      },
-      "validationName": "stdRdapEntitiesValidation"
+      "$ref": "rdap_common.json#/definitions/entities"
     },
     "status": {
-      "$ref": "rdap_common.json#/definitions/uniqueStringArray",
-      "validationName": "stdRdapStatusValidation"
+      "$ref": "rdap_common.json#/definitions/status"
     },
     "port43": {
       "$ref": "rdap_common.json#/definitions/port43"
@@ -102,12 +97,13 @@
   "stdRdapEntitiesValidation": -12210,
   "stdRdapStatusValidation": -12211,
   "stdRdapPublicIdsValidation": -12212,
-  "stdRdapNoticesRemarksValidation": -12213,
+  "stdRdapRemarksValidation": -12213,
   "stdRdapLinksValidation": -12214,
   "stdRdapPort43WhoisServerValidation": -12215,
   "stdRdapEventsValidation": -12216,
-  "structureInvalid": -12200,
+  "stdRdapNoticesRemarksValidation": -12217,
   "stdRdapConformanceValidation": -12219,
+  "structureInvalid": -12200,
   "unknownKeys": -12201,
   "duplicateKeys": -12202
 }

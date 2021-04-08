@@ -4,7 +4,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.everit.json.schema.ObjectSchema;
@@ -50,6 +49,9 @@ public abstract class ExceptionParser {
       exceptionParsers.add(new EnumExceptionParser(basicException, schema, object, context));
       exceptionParsers.add(new MissingKeyExceptionParser(basicException, schema, object, context));
       exceptionParsers.add(new ConstExceptionParser(basicException, schema, object, context));
+      exceptionParsers.add(new ContainsConstExceptionParser(basicException, schema, object,
+          context));
+      exceptionParsers.add(new RegexExceptionParser(basicException, schema, object, context));
     }
 
     return exceptionParsers;
@@ -119,7 +121,7 @@ public abstract class ExceptionParser {
     return (int) getPropertyFromViolatedSchema(e, "errorCode");
   }
 
-  protected abstract boolean matches(ValidationException e);
+  public abstract boolean matches(ValidationException e);
 
   public void parse() {
     if (matches(e)) {

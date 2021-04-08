@@ -33,18 +33,15 @@ public abstract class SchemaNode {
   public static SchemaNode create(SchemaNode parentNode, Schema schema) {
     if (schema instanceof ObjectSchema) {
       return new ObjectSchemaNode(parentNode, schema);
-    } else if (SIMPLE_SCHEMAS.contains(schema.getClass())) {
-      return new SimpleSchemaNode(parentNode, schema);
     } else if (schema instanceof ReferenceSchema) {
       return new ReferenceSchemaNode(parentNode, schema);
     } else if (schema instanceof ArraySchema) {
       return new ArraySchemaNode(parentNode, schema);
     } else if (schema instanceof CombinedSchema) {
       return new CombinedSchemaNode(parentNode, schema);
+    } else {
+      return new SimpleSchemaNode(parentNode, schema);
     }
-
-    throw new UnsupportedOperationException("Schema type " + schema.getClass().getSimpleName() +
-        "unknown");
   }
 
   public abstract List<SchemaNode> getChildren();
@@ -73,6 +70,17 @@ public abstract class SchemaNode {
     return Optional.empty();
   }
 
+  public Optional<SchemaNode> findChild(String key) {
+    return findParentOfNodeWith(key)
+        .map(p -> p.getChild(key))
+        .map(c -> {
+          if (c instanceof ReferenceSchemaNode) {
+            return ((ReferenceSchemaNode)c).getChild();
+          }
+          return c;
+        });
+  }
+
   /**
    * Find the corresponding the closest error key from the searchKey in the JSON hierarchy. e.g.: {
    * "firstLevel": { "secondLevel": { "searchKey": "test" } } "errorKey": -1 } In this example,
@@ -82,7 +90,7 @@ public abstract class SchemaNode {
   public int searchBottomMostErrorCode(String searchKey, String errorKey) {
     String unfoundError =
         "No such error key (" + errorKey + ") in the hierarchy around " + searchKey;
-    Optional<ObjectSchemaNode> optNode = findParentOfNodeWith(searchKey);
+    Optional<SchemaNode> optNode = findChild(searchKey);
     if (optNode.isEmpty()) {
       throw new IllegalArgumentException(unfoundError);
     }
