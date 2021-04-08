@@ -16,8 +16,10 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.http.Fault;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpResponse;
@@ -27,6 +29,7 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 public class RDAPValidatorTest {
@@ -43,24 +46,37 @@ public class RDAPValidatorTest {
   }
 
   @BeforeMethod
-  public void setUp() {
-    String keyStorePath = this.getClass().getResource("/mykeystore/ca-cert.jks").toString();
-    wireMockServer = new WireMockServer(wireMockConfig()
+  public void setUp(Method method) {
+    WireMockConfiguration wmConfig = wireMockConfig()
         .dynamicHttpsPort()
-        .bindAddress(wiremockHost)
-        .keystorePath(keyStorePath)
-        .keystorePassword("rdapct")
-        .keyManagerPassword("rdapct"));
+        .bindAddress(wiremockHost);
+    if (method.getName().equals("testGetHttpResponse_WithHttps")) {
+      String keyStorePath = this.getClass().getResource("/mykeystore/out/ca-cert.jks").toString();
+      String trustStorePath = this.getClass().getResource("/mykeystore/out/server.jks").toString();
+      System.setProperty("javax.net.ssl.trustStore", trustStorePath.replace("file:", ""));
+      System.setProperty("javax.net.ssl.trustStorePassword", "rdapct");
+      System.setProperty("javax.net.ssl.trustStoreType", "JKS");
+      wmConfig.trustStorePath(trustStorePath)
+          .trustStorePassword("rdapct")
+          .keystorePath(keyStorePath)
+          .keystorePassword("rdapct")
+          .keyManagerPassword("rdapct");
+    }
+    wireMockServer = new WireMockServer(wmConfig);
     wireMockServer.start();
   }
 
   @AfterMethod
   public void tearDown() {
     wireMockServer.stop();
+    System.clearProperty("javax.net.ssl.trustStore");
+    System.clearProperty("javax.net.ssl.trustStorePassword");
+    System.clearProperty("javax.net.ssl.trustStoreType");
   }
 
   @Test
-  public void testGetHttpResponse_WithSelfSignedHttps() throws RDAPHttpException {
+  @Ignore("System properties are not taken into account when launched among other tests, works as a standalone test though")
+  public void testGetHttpResponse_WithHttps() throws RDAPHttpException {
     RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
     String path = "/domain/test.example";
     String response = "{\"test\": \"value\"}";
@@ -276,4 +292,74 @@ public class RDAPValidatorTest {
     verify(exactly(0), getRequestedFor(urlEqualTo(path4)));
   }
 
+  // TODO the following tests rely on web resources that may change without notice, should
+  // create our own certificates, CRL, etc.
+
+  @Test
+  public void testGetHttpResponse_WithHttpsCertificateExpired_ThrowExceptionWithStatus14() {
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+
+    doReturn(true).when(config).check();
+    doReturn(100).when(config).getTimeout();
+    doReturn(3).when(config).getMaxRedirects();
+    doReturn(URI.create("https://expired.badssl.com")).when(config).getUri();
+
+    RDAPValidator validator = new RDAPValidator(config);
+
+    assertThatExceptionOfType(RDAPHttpException.class)
+        .isThrownBy(validator::getHttpResponse)
+        .withCauseInstanceOf(IOException.class)
+        .withMessage(RDAPValidationStatus.EXPIRED_CERTIFICATE.getDescription());
+  }
+
+  @Test
+  public void testGetHttpResponse_WithHttpsCertificateRevoked_ThrowExceptionWithStatus13() {
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+
+    doReturn(true).when(config).check();
+    doReturn(100).when(config).getTimeout();
+    doReturn(3).when(config).getMaxRedirects();
+    doReturn(URI.create("https://revoked.badssl.com")).when(config).getUri();
+
+    RDAPValidator validator = new RDAPValidator(config);
+
+    assertThatExceptionOfType(RDAPHttpException.class)
+        .isThrownBy(validator::getHttpResponse)
+        .withCauseInstanceOf(IOException.class)
+        .withMessage(RDAPValidationStatus.REVOKED_CERTIFICATE.getDescription());
+  }
+
+  @Test
+  public void testGetHttpResponse_WithHttpsCertificateInvalid_ThrowExceptionWithStatus12() {
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+
+    doReturn(true).when(config).check();
+    doReturn(100).when(config).getTimeout();
+    doReturn(3).when(config).getMaxRedirects();
+    doReturn(URI.create("https://wrong.host.badssl.com")).when(config).getUri();
+
+    RDAPValidator validator = new RDAPValidator(config);
+
+    assertThatExceptionOfType(RDAPHttpException.class)
+        .isThrownBy(validator::getHttpResponse)
+        .withCauseInstanceOf(IOException.class)
+        .withMessage(RDAPValidationStatus.INVALID_CERTIFICATE.getDescription());
+  }
+
+  @Test
+  public void testGetHttpResponse_WithHttpsCertificateError_ThrowExceptionWithStatus15() {
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+
+    doReturn(true).when(config).check();
+    doReturn(100).when(config).getTimeout();
+    doReturn(3).when(config).getMaxRedirects();
+    doReturn(URI.create("https://untrusted-root.badssl.com")).when(config).getUri();
+
+    RDAPValidator validator = new RDAPValidator(config);
+
+    assertThatExceptionOfType(RDAPHttpException.class)
+        .isThrownBy(validator::getHttpResponse)
+        .withCauseInstanceOf(IOException.class)
+        .withMessage(RDAPValidationStatus.CERTIFICATE_ERROR.getDescription());
+  }
 }

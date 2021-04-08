@@ -11,17 +11,13 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.security.Security;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -223,31 +219,10 @@ public class RDAPValidator {
      */
     final URI uri = this.config.getUri();
     if (uri.getScheme().equals("https")) {
-//      System.setProperty("jdk.security.allowNonCaAnchor", String.valueOf(true));
+      Security.setProperty("ocsp.enable", String.valueOf(true));
       System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
-    }
-
-    TrustManager[] trustAllCerts = new TrustManager[]{
-        new X509TrustManager() {
-          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-            return null;
-          }
-
-          public void checkClientTrusted(
-              java.security.cert.X509Certificate[] certs, String authType) {
-          }
-
-          public void checkServerTrusted(
-              java.security.cert.X509Certificate[] certs, String authType) {
-          }
-        }
-    };
-    SSLContext sslContext;
-    try {
-      sslContext = SSLContext.getInstance("SSL");
-      sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-    } catch (NoSuchAlgorithmException | KeyManagementException e) {
-      throw new RDAPHttpException(RDAPValidationStatus.CERTIFICATE_ERROR, e);
+      System.setProperty("com.sun.security.enableCRLDP", String.valueOf(true));
+      System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
     }
 
     System.setProperty("jdk.httpclient.redirects.retrylimit",
@@ -264,7 +239,6 @@ public class RDAPValidator {
       httpResponse = HttpClient.newBuilder()
           .connectTimeout(Duration.of(this.config.getTimeout(), SECONDS))
           .followRedirects(Redirect.NORMAL)
-          .sslContext(sslContext)
           .build()
           .send(request, HttpResponse.BodyHandlers.ofString());
       if (String.valueOf(httpResponse.statusCode()).startsWith("30")) {
@@ -280,8 +254,17 @@ public class RDAPValidator {
     } catch (IOException e) {
       ex = e;
       status = RDAPValidationStatus.NETWORK_RECEIVE_FAIL;
-      if (hasCause(e, "SSLHandshakeException") || hasCause(e, "CertificateException")) {
-        status = RDAPValidationStatus.CERTIFICATE_ERROR;
+      if (hasCause(e, "CertificateExpiredException")) {
+        status = RDAPValidationStatus.EXPIRED_CERTIFICATE;
+      } else if (hasCause(e, "CertificateRevokedException")) {
+        status = RDAPValidationStatus.REVOKED_CERTIFICATE;
+      } else if (hasCause(e, "SSLHandshakeException") || hasCause(e, "CertificateException")) {
+        if (e.getMessage().startsWith("No name matching") || e.getMessage()
+            .startsWith("No subject alternative DNS name matching")) {
+          status = RDAPValidationStatus.INVALID_CERTIFICATE;
+        } else {
+          status = RDAPValidationStatus.CERTIFICATE_ERROR;
+        }
       }
     } catch (Exception e) {
       ex = e;
