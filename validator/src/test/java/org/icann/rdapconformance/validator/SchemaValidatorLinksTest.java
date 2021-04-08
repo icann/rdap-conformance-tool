@@ -34,6 +34,9 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
         value)));
   }
 
+  /**
+   * 7.2.2.2.3.
+   */
   @Test
   public void mediaNotInEnum() {
     replaceProperty("media", "wrong enum value");
@@ -41,6 +44,9 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
         "#/links/0/media:wrong enum value");
   }
 
+  /**
+   * 7.2.2.2.4.
+   */
   @Test
   public void relNotInEnum() {
     replaceProperty("rel", "wrong enum value");
@@ -49,6 +55,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
   }
 
   /**
+   * 7.2.2.2.5.
    * TODO when dataset handling will be done.
    */
   @Ignore
@@ -59,24 +66,36 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
         "#/links/0/type:wrong enum value");
   }
 
+  /**
+   * 7.2.2.2.6.
+   */
   @Test
   public void titleNotJsonString() {
     replaceProperty("title", 0);
     validateIsNotAJsonString(-10606, "#/links/0/title:0");
   }
 
+  /**
+   * 7.2.2.2.7 string part.
+   */
   @Test
   public void hreflangNotJsonString() {
     replaceProperty("hreflang", 0);
     validateIsNotAJsonString(-10607, "#/links/0/hreflang:0");
   }
 
+  /**
+   * 7.2.2.2.7 array part.
+   */
   @Test
   public void hreflangNotArrayOfString() {
     replaceProperty("hreflang", List.of(0));
     validateIsNotAJsonString(-10607, "#/links/0/hreflang:[0]");
   }
 
+  /**
+   * 7.2.2.2.8.
+   */
   @Test
   public void hreflangViolatesLanguageTagSyntax() {
     replaceProperty("hreflang", "000");
@@ -86,6 +105,33 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
         .last()
         .hasFieldOrPropertyWithValue("value", "#/links/0/hreflang:000")
         .hasFieldOrPropertyWithValue("message",
-            "The value of the JSON string data in the #/links/0/hreflang does not conform to rdap_common.json#/definitions/link/properties/hreflang/oneOf/1 syntax.");
+            "The value of the JSON string data in the #/links/0/hreflang does not conform to rdap_common.json#/definitions/link/properties/hreflang/oneOf/1/allOf/1 syntax.");
+  }
+
+  /**
+   * 7.2.2.2.9.
+   */
+  @Test
+  public void valueViolatesWebUriValidation() {
+    replaceProperty("value", 0);
+    validateSubValidation(-10609, "webUriValidation", "#/links/0/value:0");
+  }
+
+  /**
+   * 7.2.2.2.10.
+   */
+  @Test
+  public void hrefDoesNotExist() {
+    jsonObject.getJSONArray("links").getJSONObject(0).remove("href");
+    validateKeyMissing("href", -10610);
+  }
+
+  /**
+   * 7.2.2.2.11.
+   */
+  @Test
+  public void hrefViolatesWebUriValidation() {
+    replaceProperty("href", 0);
+    validateSubValidation(-10611, "webUriValidation", "#/links/0/href:0");
   }
 }

@@ -100,6 +100,37 @@ even if both refer to the same json schema:
           "validationName": "stdRdapEntitiesValidation"
         }
 
+## Special case for errors when key missing
+
+A known corner case that cannot use the above 2 categories (errorCode or validationName)
+is the one where an error occurs when a required key is missing. For instance, lets take the
+ links schema:
+ 
+    "link": {
+          "type": "object",
+          "properties": {
+            "value": { ... },
+            "rel": { ... },
+            "href": { ... },
+            "hreflang": { ... },
+            "title": { ... },
+            "media": { ... },
+            "type": { ... },
+          },
+          "additionalProperties": false,
+          "hrefMissing": -10610,
+          "required": ["href"]
+        }
+
+The `required` array from the draft07 tells that the `href` key is mandatory. The annotation 
+used here is:
+
+    {{key}}Missing: {{errorCode}}
+ 
+like the one above for `href`:
+
+    "hrefMissing": -10610
+ 
 ## Known Limitations
 
 Even if we can write a combined schema like this:

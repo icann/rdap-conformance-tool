@@ -44,12 +44,7 @@ public class SchemaValidatorNoticeTest extends SchemaValidatorObjectTest {
   @Test
   public void testValidate_DescriptionMissing() {
     jsonObject.remove("description");
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults()).filteredOn(r -> r.getCode() == -10707)
-        .hasSize(1)
-        .first()
-        .hasFieldOrPropertyWithValue("message",
-            "The description element does not exist.");
+    validateKeyMissing("description", -10707);
   }
 
   @Test

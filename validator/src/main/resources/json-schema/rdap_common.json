@@ -70,7 +70,8 @@
     },
     "uri": {
       "type": "string",
-      "format": "uri"
+      "format": "uri",
+      "validationName": "webUriValidation"
     },
     "ipv4": {
       "type": "string",
@@ -240,7 +241,8 @@
       "type": "object",
       "properties": {
         "value": {
-          "$ref": "#/definitions/uri"
+          "$ref": "#/definitions/uri",
+          "webUriValidation": -10609
         },
         "rel": {
           "enum": [
@@ -327,7 +329,8 @@
           "errorCode": -10604
         },
         "href": {
-          "$ref": "#/definitions/uri"
+          "$ref": "#/definitions/uri",
+          "webUriValidation": -10611
         },
         "hreflang": {
           "oneOf": [
@@ -335,16 +338,31 @@
               "type": "array",
               "uniqueItems": true,
               "items": {
-                "type": "string",
-                "pattern": "[a-z]{2}(-[A-Z][a-zA-Z]*(\\-[A-Z]{2})?)?",
-                "errorCode": -10608
-              },
-              "errorCode": -10607
+                "allOf": [
+                  {
+                    "type": "string",
+                    "errorCode": -10607
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "[a-z]{2}(-[A-Z][a-zA-Z]*(\\-[A-Z]{2})?)?",
+                    "errorCode": -10608
+                  }
+                ]
+              }
             },
             {
-              "type": "string",
-              "pattern": "[a-z]{2}(-[A-Z][a-zA-Z]*(\\-[A-Z]{2})?)?",
-              "errorCode": -10608
+              "allOf": [
+                {
+                  "type": "string",
+                  "errorCode": -10607
+                },
+                {
+                  "type": "string",
+                  "pattern": "[a-z]{2}(-[A-Z][a-zA-Z]*(\\-[A-Z]{2})?)?",
+                  "errorCode": -10608
+                }
+              ]
             }
           ]
         },
@@ -380,7 +398,9 @@
           "pattern": "[a-zA-Z][a-zA-Z0-9]*/[a-zA-Z][a-zA-Z0-9]*"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "hrefMissing": -10610,
+      "required": ["href"]
     },
     "links": {
       "type": "array",

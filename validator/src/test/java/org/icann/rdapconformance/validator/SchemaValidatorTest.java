@@ -104,4 +104,13 @@ public abstract class SchemaValidatorTest {
         .matches(r -> r.getMessage().startsWith("The JSON string is not included as a Value with "
             + "Type=\"" + enumType + "\" dataset"));
   }
+
+  protected void validateKeyMissing(String key, int errorCode) {
+    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
+    assertThat(context.getResults()).filteredOn(r -> r.getCode() == errorCode)
+        .hasSize(1)
+        .first()
+        .hasFieldOrPropertyWithValue("message",
+            "The " + key + " element does not exist.");
+  }
 }
