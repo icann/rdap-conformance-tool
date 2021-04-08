@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator;
 
-enum RDAPValidationStatus {
+public enum RDAPValidationStatus {
   SUCCESS(0, "A response was available to the tool, the Content-Type is application/rdap+JSON "
       + "in the response, a HTTP Status of 200 or 404 was received, the RDAP response was "
       + "successfully parsed and the results file was generated."),
