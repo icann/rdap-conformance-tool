@@ -1,12 +1,15 @@
 package org.icann.rdapconformance.validator;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.RDAPHttpResponse;
+import org.icann.rdapconformance.validator.workflow.RDAPValidationResultFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,10 +91,20 @@ public class RDAPValidator {
      * return code.
      */
     RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
+    Optional<String> httpResponseBody = rdapHttpResponse.getHttpResponseBody();
+    Optional<Integer> httpStatusCodeOpt = rdapHttpResponse.getHttpStatusCode();
+
+    RDAPValidationResultFile rdapValidationResultFile = new RDAPValidationResultFile(results,
+        config, configurationFile, new LocalFileSystem());
+
     if (rdapHttpResponse.hasError()) {
+      httpStatusCodeOpt.ifPresent(rdapValidationResultFile::build);
       return rdapHttpResponse.getErrorStatus().getValue();
     }
 
+    assert httpStatusCodeOpt.isPresent();
+    assert httpResponseBody.isPresent();
+    int httpStatusCode = httpStatusCodeOpt.get();
     /*
      * If a response is available to the tool, but the expected objectClassName in the topmost
      * object was not found for a lookup query (i.e. domain/<domain name>,
@@ -99,13 +112,15 @@ public class RDAPValidator {
      * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
      * not validation on the contents) for a search query, exit with an return code of 8.
      */
-    if (rdapHttpResponse.getHttpStatusCode() == 200) {
+    if (httpStatusCode == 200) {
       if (queryType.isLookupQuery() && !rdapHttpResponse.jsonResponseHasKey("objectClassName")) {
         logger.error("objectClassName was not found in the topmost object");
+        rdapValidationResultFile.build(httpStatusCode);
         return RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND.getValue();
       } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !rdapHttpResponse
           .jsonResponseIsArray()) {
         logger.error("No JSON array in answer");
+        rdapValidationResultFile.build(httpStatusCode);
         return RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND.getValue();
       }
     }
@@ -129,7 +144,7 @@ public class RDAPValidator {
      *
      */
     SchemaValidator validator = null;
-    if (404 == rdapHttpResponse.getHttpStatusCode()) {
+    if (httpStatusCode == 404) {
       validator = new SchemaValidator("rdap_error.json", results);
     } else if (RDAPQueryType.DOMAIN.equals(queryType)) {
       validator = new SchemaValidator("rdap_domain.json", results);
@@ -143,15 +158,15 @@ public class RDAPValidator {
       validator = new SchemaValidator("rdap_entities.json", results);
     }
     assert null != validator;
-    validator.validate(rdapHttpResponse.getHttpResponseBody());
-
-    // TODO create result file in context
+    validator.validate(httpResponseBody.get());
 
     /*
      * Additionally, apply the relevant collection tests when the option
      * --use-rdap-profile-february-2019 is set.
      */
     /* TODO */
+
+    rdapValidationResultFile.build(httpStatusCode);
 
     return RDAPValidationStatus.SUCCESS.getValue();
   }

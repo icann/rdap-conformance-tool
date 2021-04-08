@@ -121,8 +121,8 @@ public class RDAPHttpResponseTest {
 
     RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
     assertThat(rdapHttpResponse.hasError()).isFalse();
-    assertThat(rdapHttpResponse.getHttpResponseBody()).isEqualTo(response);
-    assertThat(rdapHttpResponse.getHttpStatusCode()).isEqualTo(200);
+    assertThat(rdapHttpResponse.getHttpResponseBody()).isPresent().get().isEqualTo(response);
+    assertThat(rdapHttpResponse.getHttpStatusCode()).isPresent().get().isEqualTo(200);
     assertThat(rdapHttpResponse.jsonResponseHasKey("objectClassName")).isTrue();
     assertThat(rdapHttpResponse.jsonResponseIsArray()).isFalse();
   }
@@ -149,8 +149,8 @@ public class RDAPHttpResponseTest {
 
     RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
     assertThat(rdapHttpResponse.hasError()).isFalse();
-    assertThat(rdapHttpResponse.getHttpResponseBody()).isEqualTo(response);
-    assertThat(rdapHttpResponse.getHttpStatusCode()).isEqualTo(200);
+    assertThat(rdapHttpResponse.getHttpResponseBody()).isPresent().get().isEqualTo(response);
+    assertThat(rdapHttpResponse.getHttpStatusCode()).isPresent().get().isEqualTo(200);
     assertThat(rdapHttpResponse.jsonResponseIsArray()).isTrue();
   }
 
@@ -250,8 +250,8 @@ public class RDAPHttpResponseTest {
 
     RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
     assertThat(rdapHttpResponse.hasError()).isFalse();
-    assertThat(rdapHttpResponse.getHttpResponseBody()).isEqualTo(response);
-    assertThat(rdapHttpResponse.getHttpStatusCode()).isEqualTo(200);
+    assertThat(rdapHttpResponse.getHttpResponseBody()).isPresent().get().isEqualTo(response);
+    assertThat(rdapHttpResponse.getHttpStatusCode()).isPresent().get().isEqualTo(200);
 
     verify(exactly(1), getRequestedFor(urlEqualTo(path1)));
     verify(exactly(1), getRequestedFor(urlEqualTo(path2)));

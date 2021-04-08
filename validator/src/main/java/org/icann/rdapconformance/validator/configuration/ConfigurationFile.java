@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.configuration;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ConfigurationFile {
 
@@ -47,6 +49,9 @@ public class ConfigurationFile {
    */
   private final List<String> definitionNotes;
 
+  private Set<Integer> errorCodes;
+  private Set<Integer> warningCodes;
+
   public ConfigurationFile(String definitionIdentifier,
       List<DefinitionAlerts> definitionError,
       List<DefinitionAlerts> definitionWarning, List<Integer> definitionIgnore,
@@ -56,18 +61,41 @@ public class ConfigurationFile {
     this.definitionWarning = definitionWarning;
     this.definitionIgnore = definitionIgnore;
     this.definitionNotes = definitionNotes;
+    this.errorCodes = definitionError.stream()
+        .map(DefinitionAlerts::getCode)
+        .collect(Collectors.toSet());
+    this.warningCodes = definitionWarning.stream()
+        .map(DefinitionAlerts::getCode)
+        .collect(Collectors.toSet());
   }
 
   public String getDefinitionIdentifier() {
     return definitionIdentifier;
   }
 
-  public List<DefinitionAlerts> getDefinitionError() {
-    return definitionError;
+  public boolean isError(int code) {
+    return this.errorCodes.contains(code);
   }
 
-  public List<DefinitionAlerts> getDefinitionWarning() {
-    return definitionWarning;
+  public boolean isWarning(int code) {
+    return this.warningCodes.contains(code);
+  }
+
+  public String getAlertNotes(int code) {
+    if (isError(code)) {
+      return this.definitionError.stream()
+          .filter(a -> a.getCode() == code)
+          .findFirst()
+          .map(DefinitionAlerts::getNotes)
+          .orElse("");
+    } else if (isWarning(code)) {
+      return this.definitionWarning.stream()
+          .filter(a -> a.getCode() == code)
+          .findFirst()
+          .map(DefinitionAlerts::getNotes)
+          .orElse("");
+    }
+    return "";
   }
 
   public List<Integer> getDefinitionIgnore() {

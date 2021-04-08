@@ -14,6 +14,7 @@ import java.security.Security;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.icann.rdapconformance.validator.RDAPValidationStatus;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.json.JSONArray;
@@ -55,15 +56,15 @@ public class RDAPHttpResponse {
   /**
    * Get the HTTP response status code
    */
-  public int getHttpStatusCode() {
-    return httpResponse.statusCode();
+  public Optional<Integer> getHttpStatusCode() {
+    return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
   }
 
   /**
    * Get the HTTP response body
    */
-  public String getHttpResponseBody() {
-    return httpResponse.body();
+  public Optional<String> getHttpResponseBody() {
+    return Optional.ofNullable(httpResponse != null ? httpResponse.body() : null);
   }
 
   private void makeRequest() {

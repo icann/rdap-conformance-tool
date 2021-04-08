@@ -4,9 +4,9 @@ import java.util.Objects;
 
 public class RDAPValidationResult {
 
-  private int code;
-  private String value;
-  private String message;
+  private final int code;
+  private final String value;
+  private final String message;
 
   public RDAPValidationResult(int code, String value, String message) {
     this.code = code;
@@ -14,28 +14,20 @@ public class RDAPValidationResult {
     this.message = message;
   }
 
-  public int getCode() {
-    return code;
+  static public Builder builder() {
+    return new Builder();
   }
 
-  public void setCode(int code) {
-    this.code = code;
+  public int getCode() {
+    return code;
   }
 
   public String getValue() {
     return value;
   }
 
-  public void setValue(String value) {
-    this.value = value;
-  }
-
   public String getMessage() {
     return message;
-  }
-
-  public void setMessage(String message) {
-    this.message = message;
   }
 
   @Override
@@ -55,10 +47,6 @@ public class RDAPValidationResult {
   @Override
   public int hashCode() {
     return Objects.hash(code, value, message);
-  }
-
-  static public Builder builder() {
-    return new Builder();
   }
 
   @Override
