@@ -33,7 +33,7 @@ public class SchemaValidatorNameserverTest extends SchemaValidatorObjectTest {
 
   @Test
   public void validateObjectClassName() {
-    testWrongConstant("objectClassName", "nameserver", -12403);
+    testWrongConstant(-12403, "objectClassName", "nameserver");
   }
 
   @Test

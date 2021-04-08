@@ -231,7 +231,8 @@
     },
     "lang": {
       "type": "string",
-      "pattern": "[a-z]{2}(-[A-Z][a-zA-Z]*(\\-[A-Z]{2})?)?"
+      "pattern": "[a-z]{2}(-[A-Z][a-zA-Z]*(\\-[A-Z]{2})?)?",
+      "errorCode": -10800
     },
     "country": {
       "type": "string",
@@ -451,7 +452,8 @@
       "items": {
         "$ref": "#/definitions/event"
       },
-      "validationName": "stdRdapEventsValidation"
+      "validationName": "stdRdapEventsValidation",
+      "unknownKeys": -10901
     },
     "notice": {
       "type": "object",

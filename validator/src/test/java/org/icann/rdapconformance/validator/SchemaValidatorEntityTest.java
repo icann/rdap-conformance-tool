@@ -34,7 +34,7 @@ public class SchemaValidatorEntityTest extends SchemaValidatorObjectTest {
 
   @Test
   public void validateObjectClassName() {
-    testWrongConstant("objectClassName", "entity", -12303);
+    testWrongConstant(-12303, "objectClassName", "entity");
   }
 
   @Test

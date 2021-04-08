@@ -1,7 +1,5 @@
 package org.icann.rdapconformance.validator;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 import org.json.JSONObject;
 import org.testng.annotations.Ignore;
@@ -99,13 +97,9 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
   @Test
   public void hreflangViolatesLanguageTagSyntax() {
     replaceProperty("hreflang", "000");
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults())
-        .filteredOn("code", -10608)
-        .last()
-        .hasFieldOrPropertyWithValue("value", "#/links/0/hreflang:000")
-        .hasFieldOrPropertyWithValue("message",
-            "The value of the JSON string data in the #/links/0/hreflang does not conform to rdap_common.json#/definitions/link/properties/hreflang/oneOf/1/allOf/1 syntax.");
+    validateRegex(-10608,
+        "rdap_common.json#/definitions/link/properties/hreflang/oneOf/1/allOf/1",
+        "#/links/0/hreflang:000");
   }
 
   /**
@@ -123,7 +117,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
   @Test
   public void hrefDoesNotExist() {
     jsonObject.getJSONArray("links").getJSONObject(0).remove("href");
-    validateKeyMissing("href", -10610);
+    validateKeyMissing(-10610, "href");
   }
 
   /**

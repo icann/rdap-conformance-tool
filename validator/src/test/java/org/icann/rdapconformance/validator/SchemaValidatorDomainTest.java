@@ -24,7 +24,7 @@ public class SchemaValidatorDomainTest extends SchemaValidatorObjectTest {
 
   @Test
   public void validateObjectClassName() {
-    testWrongConstant("objectClassName", "domain", -12203);
+    testWrongConstant(-12203, "objectClassName", "domain");
   }
 
   @Test

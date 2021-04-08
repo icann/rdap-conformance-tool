@@ -38,6 +38,18 @@ public abstract class SchemaValidatorTest {
     assertThat(schemaValidator.validate(rdapContent)).isTrue();
   }
 
+  protected void validateRegex(int errorCode, String regexType, String value) {
+    String key = getKey(value);
+    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
+    assertThat(context.getResults())
+        .filteredOn("code", errorCode)
+        .last()
+        .hasFieldOrPropertyWithValue("value", value)
+        .hasFieldOrPropertyWithValue("message",
+            "The value of the JSON string data in the " + key + " does not conform to "
+                + regexType + " syntax.");
+  }
+
   protected void validateIsNotAJsonString(int errorCode, String value) {
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
     assertThat(context.getResults())
@@ -49,7 +61,7 @@ public abstract class SchemaValidatorTest {
 
 
   protected void validateInvalidJson(int error, String value) {
-    String key = value.split(":")[0];
+    String key = getKey(value);
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
     assertThat(context.getResults()).filteredOn(r -> r.getCode() == error)
         .hasSize(1)
@@ -74,7 +86,7 @@ public abstract class SchemaValidatorTest {
 
   protected void validateSubValidation(String invalidJson, int errorCode, String validationName,
       String value) {
-    String key = value.split(":")[0];
+    String key = getKey(value);
     assertThat(schemaValidator.validate(invalidJson)).isFalse();
     assertThat(context.getResults()).filteredOn("code", errorCode)
         .first()
@@ -84,7 +96,7 @@ public abstract class SchemaValidatorTest {
                 + key + " validation [" + validationName + "].");
   }
 
-  protected void testWrongConstant(String field, String goodValue, int errorCode) {
+  protected void testWrongConstant(int errorCode, String field, String goodValue) {
     jsonObject.put(field, "wrong-constant");
     schemaValidator.validate(jsonObject.toString());
     assertThat(context.getResults()).hasSize(1)
@@ -105,12 +117,16 @@ public abstract class SchemaValidatorTest {
             + "Type=\"" + enumType + "\" dataset"));
   }
 
-  protected void validateKeyMissing(String key, int errorCode) {
+  protected void validateKeyMissing(int errorCode, String key) {
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
     assertThat(context.getResults()).filteredOn(r -> r.getCode() == errorCode)
         .hasSize(1)
         .first()
         .hasFieldOrPropertyWithValue("message",
             "The " + key + " element does not exist.");
+  }
+
+  private String getKey(String value) {
+    return value.split(":")[0];
   }
 }

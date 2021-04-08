@@ -44,7 +44,7 @@ public class SchemaValidatorNoticeTest extends SchemaValidatorObjectTest {
   @Test
   public void testValidate_DescriptionMissing() {
     jsonObject.remove("description");
-    validateKeyMissing("description", -10707);
+    validateKeyMissing(-10707, "description");
   }
 
   @Test
