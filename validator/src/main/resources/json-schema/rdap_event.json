@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "domain",
+  "id": "rdap_event.json",
+  "definitions": {
+    "eventAction": {
+      "allOf": [
+        {
+          "type": "string",
+          "errorCode": -10904
+        },
+        {
+          "enum": [
+            "registration",
+            "reregistration",
+            "last changed",
+            "expiration",
+            "deletion",
+            "reinstantiation",
+            "transfer",
+            "locked",
+            "unlocked",
+            "last update of RDAP database",
+            "registrar expiration",
+            "enum validation expiration"
+          ],
+          "errorCode": -10905
+        }
+      ]
+    }
+  },
+  "properties": {
+    "eventActor": {
+      "type": "string",
+      "errorCode": -10909
+    },
+    "eventAction": {
+      "$ref": "#/definitions/eventAction"
+    },
+    "eventDate": {
+      "$ref": "rdap_common.json#/definitions/datetime"
+    },
+    "links": {
+      "$ref": "rdap_common.json#/definitions/links"
+    }
+  },
+  "additionalProperties": false,
+  "unknownKeys": -10901,
+  "eventActionMissing": -10903,
+  "eventDateMissing": -10906,
+  "stdRdapLinksValidation": -10911,
+  "required": [
+    "eventAction",
+    "eventDate"
+  ]
+}

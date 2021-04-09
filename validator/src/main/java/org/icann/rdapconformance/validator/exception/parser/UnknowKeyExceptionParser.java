@@ -10,6 +10,7 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.RDAPValidationResult;
 import org.icann.rdapconformance.validator.RDAPValidatorContext;
+import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.json.JSONObject;
 
 public class UnknowKeyExceptionParser extends ExceptionParser {
@@ -30,8 +31,9 @@ public class UnknowKeyExceptionParser extends ExceptionParser {
   @Override
   public void doParse() {
     String key = matcher.group(1);
+    SchemaNode schemaNode = SchemaNode.create(null, e.getViolatedSchema());
     context.addResult(RDAPValidationResult.builder()
-        .code(parseErrorCode(() -> getErrorCode("unknownKeys")))
+        .code(parseErrorCode(() -> schemaNode.getErrorCode("unknownKeys")))
         .value(e.getPointerToViolation() + "/" + key + ":" + (((JSONObject) jsonObject
             .query(e.getPointerToViolation())).get(key)))
         .message("The name in the name/value pair is not of: " + getAuthorizedProperties() + ".")

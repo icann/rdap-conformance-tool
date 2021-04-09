@@ -27,17 +27,12 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
     jsonObject.put("links", List.of(forbiddenElement));
   }
 
-  protected void replaceProperty(String key, Object value) {
-    jsonObject.put("links", List.of(jsonObject.getJSONArray("links").getJSONObject(0).put(key,
-        value)));
-  }
-
   /**
    * 7.2.2.2.3.
    */
   @Test
   public void mediaNotInEnum() {
-    replaceProperty("media", "wrong enum value");
+    replaceArrayProperty("media", "wrong enum value");
     validateNotEnum(-10603, "rdap_common.json#/definitions/link/properties/media/allOf/1",
         "#/links/0/media:wrong enum value");
   }
@@ -47,7 +42,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
    */
   @Test
   public void relNotInEnum() {
-    replaceProperty("rel", "wrong enum value");
+    replaceArrayProperty("rel", "wrong enum value");
     validateNotEnum(-10604, "rdap_common.json#/definitions/link/properties/rel",
         "#/links/0/rel:wrong enum value");
   }
@@ -59,7 +54,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
   @Ignore
   @Test
   public void typeNotInEnum() {
-    replaceProperty("type", "wrong enum value");
+    replaceArrayProperty("type", "wrong enum value");
     validateNotEnum(-10605, "rdap_common.json#/definitions/link/properties/type",
         "#/links/0/type:wrong enum value");
   }
@@ -69,8 +64,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
    */
   @Test
   public void titleNotJsonString() {
-    replaceProperty("title", 0);
-    validateIsNotAJsonString(-10606, "#/links/0/title:0");
+    arrayItemKeyIsNotString("title", -10606);
   }
 
   /**
@@ -78,8 +72,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
    */
   @Test
   public void hreflangNotJsonString() {
-    replaceProperty("hreflang", 0);
-    validateIsNotAJsonString(-10607, "#/links/0/hreflang:0");
+    arrayItemKeyIsNotString("hreflang", -10607);
   }
 
   /**
@@ -87,7 +80,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
    */
   @Test
   public void hreflangNotArrayOfString() {
-    replaceProperty("hreflang", List.of(0));
+    replaceArrayProperty("hreflang", List.of(0));
     validateIsNotAJsonString(-10607, "#/links/0/hreflang:[0]");
   }
 
@@ -96,7 +89,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
    */
   @Test
   public void hreflangViolatesLanguageTagSyntax() {
-    replaceProperty("hreflang", "000");
+    replaceArrayProperty("hreflang", "000");
     validateRegex(-10608,
         "rdap_common.json#/definitions/link/properties/hreflang/oneOf/1/allOf/1",
         "#/links/0/hreflang:000");
@@ -107,8 +100,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
    */
   @Test
   public void valueViolatesWebUriValidation() {
-    replaceProperty("value", 0);
-    validateSubValidation(-10609, "webUriValidation", "#/links/0/value:0");
+    arrayItemKeySubValidation("value", "webUriValidation", -10609);
   }
 
   /**
@@ -116,8 +108,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
    */
   @Test
   public void hrefDoesNotExist() {
-    jsonObject.getJSONArray("links").getJSONObject(0).remove("href");
-    validateKeyMissing(-10610, "href");
+    keyDoesNotExistInArray("href", -10610);
   }
 
   /**
@@ -125,7 +116,6 @@ public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
    */
   @Test
   public void hrefViolatesWebUriValidation() {
-    replaceProperty("href", 0);
-    validateSubValidation(-10611, "webUriValidation", "#/links/0/href:0");
+    arrayItemKeySubValidation("href", "webUriValidation", -10611);
   }
 }

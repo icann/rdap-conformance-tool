@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.json.JSONObject;
 import org.testng.annotations.Test;
 
 public abstract class SchemaValidatorObjectTest extends SchemaValidatorTest {
@@ -49,22 +48,7 @@ public abstract class SchemaValidatorObjectTest extends SchemaValidatorTest {
 
   @Test
   public void testValidate_InvalidKeyValuePair() {
-    insertForbiddenKey();
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(context.getResults()).hasSize(1)
-        .first()
-        .matches(r -> r.getValue().endsWith("/unknown:[{\"test\":\"value\"}]"))
-        .hasFieldOrPropertyWithValue("code", unknownKeyCode)
-        .hasFieldOrPropertyWithValue("message",
-            "The name in the name/value pair is not of: " + String.join(", ", authorizedKeys) +
-                ".");
-  }
-
-
-  protected void insertForbiddenKey() {
-    JSONObject value = new JSONObject();
-    value.put("test", "value");
-    jsonObject.put("unknown", List.of(value));
+    validateAuthorizedKeys(unknownKeyCode, authorizedKeys);
   }
 
   @Test

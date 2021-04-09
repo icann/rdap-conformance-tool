@@ -40,21 +40,21 @@ public abstract class ExceptionParser {
       ValidationException e,
       Schema schema,
       JSONObject object, RDAPValidatorContext context) {
-    List<ExceptionParser> exceptionParsers = new ArrayList<>();
+    List<ExceptionParser> parsers = new ArrayList<>();
 
     List<ValidationException> basicExceptions = getAllExceptions(List.of(e));
     for (ValidationException basicException : basicExceptions) {
-      exceptionParsers.add(new UnknowKeyExceptionParser(basicException, schema, object, context));
-      exceptionParsers.add(new BasicTypeExceptionParser(basicException, schema, object, context));
-      exceptionParsers.add(new EnumExceptionParser(basicException, schema, object, context));
-      exceptionParsers.add(new MissingKeyExceptionParser(basicException, schema, object, context));
-      exceptionParsers.add(new ConstExceptionParser(basicException, schema, object, context));
-      exceptionParsers.add(new ContainsConstExceptionParser(basicException, schema, object,
-          context));
-      exceptionParsers.add(new RegexExceptionParser(basicException, schema, object, context));
+      parsers.add(new UnknowKeyExceptionParser(basicException, schema, object, context));
+      parsers.add(new BasicTypeExceptionParser(basicException, schema, object, context));
+      parsers.add(new EnumExceptionParser(basicException, schema, object, context));
+      parsers.add(new MissingKeyExceptionParser(basicException, schema, object, context));
+      parsers.add(new ConstExceptionParser(basicException, schema, object, context));
+      parsers.add(new ContainsConstExceptionParser(basicException, schema, object, context));
+      parsers.add(new RegexExceptionParser(basicException, schema, object, context));
+      parsers.add(new DatetimeExceptionParser(basicException, schema, object, context));
     }
 
-    return exceptionParsers;
+    return parsers;
   }
 
   protected int parseErrorCode(Supplier<Integer> getErrorCodeFn) {

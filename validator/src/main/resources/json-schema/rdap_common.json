@@ -65,8 +65,17 @@
       }
     },
     "datetime": {
-      "type": "string",
-      "format": "date-time"
+      "allOf": [
+        {
+          "type": "string",
+          "errorCode": -10907
+        },
+        {
+          "type": "string",
+          "format": "date-time",
+          "errorCode": -10908
+        }
+      ]
     },
     "uri": {
       "type": "string",
@@ -132,23 +141,6 @@
         {
           "$ref": "#/definitions/unicodeName"
         }
-      ]
-    },
-    "eventAction": {
-      "type": "string",
-      "enum": [
-        "registration",
-        "reregistration",
-        "last changed",
-        "expiration",
-        "deletion",
-        "reinstantiation",
-        "transfer",
-        "locked",
-        "unlocked",
-        "last update of RDAP database",
-        "registrar expiration",
-        "enum validation expiration"
       ]
     },
     "noticeType": {
@@ -401,29 +393,31 @@
       },
       "additionalProperties": false,
       "hrefMissing": -10610,
-      "required": ["href"]
+      "required": [
+        "href"
+      ],
+      "unknownKeys": -10601
     },
     "links": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/link"
       },
-      "validationName": "stdRdapLinksValidation",
-      "unknownKeys": -10601
+      "validationName": "stdRdapLinksValidation"
     },
     "eventWithoutActor": {
       "type": "object",
       "properties": {
         "eventAction": {
-        "anyOf":[
+          "anyOf":[
+            {
+            "$ref": "rdap_event.json#/definitions/eventAction"
+          },
           {
-          "$ref": "#/definitions/eventAction"
-	      },
-	      {
-	      	"type" : "string",
-	      	"description": "non standard event action"
-	      }
-	     ]
+            "type" : "string",
+            "description": "non standard event action"
+          }
+         ]
         },
         "eventDate": {
           "$ref": "#/definitions/datetime"
@@ -433,27 +427,12 @@
         }
       }
     },
-    "event": {
-      "allOf": [
-        {
-          "$ref": "#/definitions/eventWithoutActor"
-        },
-        {
-          "properties": {
-            "eventActor": {
-              "type": "string"
-            }
-          }
-        }
-      ]
-    },
     "events": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/event"
+        "$ref": "rdap_event.json#"
       },
-      "validationName": "stdRdapEventsValidation",
-      "unknownKeys": -10901
+      "validationName": "stdRdapEventsValidation"
     },
     "notice": {
       "type": "object",

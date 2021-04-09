@@ -117,4 +117,8 @@ public class SchemaValidator {
   private int getErrorCode(String validationName) {
     return (int) schemaObject.get(validationName);
   }
+
+  public Schema getSchema() {
+    return schema;
+  }
 }

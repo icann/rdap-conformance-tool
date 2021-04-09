@@ -4,7 +4,7 @@
   "title": "rdapConformance",
   "type": "array",
   "items": {
-    "$ref": "rdap_common.json#/definitions/rdapExtensions",
+    "$ref": "rdap_common.json#/definitions/rdapExtensions"
   },
   "contains": {
     "const": "rdap_level_0",
