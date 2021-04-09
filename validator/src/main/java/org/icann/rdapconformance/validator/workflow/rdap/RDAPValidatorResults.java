@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator;
+package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +12,7 @@ public class RDAPValidatorResults {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPValidatorResults.class);
 
-  private Set<RDAPValidationResult> results = new HashSet<>();
+  private final Set<RDAPValidationResult> results = new HashSet<>();
 
   public RDAPValidatorResults() {
   }

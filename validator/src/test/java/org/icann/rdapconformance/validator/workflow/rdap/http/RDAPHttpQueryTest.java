@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator.workflow;
+package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
@@ -19,15 +19,15 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.http.Fault;
 import java.lang.reflect.Method;
 import java.net.URI;
-import org.icann.rdapconformance.validator.RDAPValidationStatus;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
-public class RDAPHttpResponseTest {
+public class RDAPHttpQueryTest {
 
   private final String wiremockHost = "localhost";
   private WireMockServer wireMockServer;
@@ -91,13 +91,12 @@ public class RDAPHttpResponseTest {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isFalse();
-    assertThat(rdapHttpResponse.getHttpResponseBody()).isEqualTo(response);
-    assertThat(rdapHttpResponse.getHttpStatusCode()).isEqualTo(200);
-    assertThat(rdapHttpResponse.jsonResponseHasKey("objectClassName")).isTrue();
-    assertThat(rdapHttpResponse.jsonResponseIsArray()).isFalse();
-}
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.getData()).isEqualTo(response);
+    assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
+    assertThat(rdapHttpQuery.jsonResponseIsArray()).isFalse();
+  }
 
   @Test
   public void test_WithHttp() {
@@ -119,12 +118,11 @@ public class RDAPHttpResponseTest {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isFalse();
-    assertThat(rdapHttpResponse.getHttpResponseBody()).isPresent().get().isEqualTo(response);
-    assertThat(rdapHttpResponse.getHttpStatusCode()).isPresent().get().isEqualTo(200);
-    assertThat(rdapHttpResponse.jsonResponseHasKey("objectClassName")).isTrue();
-    assertThat(rdapHttpResponse.jsonResponseIsArray()).isFalse();
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.getData()).isEqualTo(response);
+    assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
+    assertThat(rdapHttpQuery.jsonResponseIsArray()).isFalse();
   }
 
   @Test
@@ -147,11 +145,11 @@ public class RDAPHttpResponseTest {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isFalse();
-    assertThat(rdapHttpResponse.getHttpResponseBody()).isPresent().get().isEqualTo(response);
-    assertThat(rdapHttpResponse.getHttpStatusCode()).isPresent().get().isEqualTo(200);
-    assertThat(rdapHttpResponse.jsonResponseIsArray()).isTrue();
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.getData()).isEqualTo(response);
+    assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
+    assertThat(rdapHttpQuery.jsonResponseIsArray()).isTrue();
   }
 
 
@@ -174,9 +172,9 @@ public class RDAPHttpResponseTest {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withFault(fault)));
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isTrue();
-    assertThat(rdapHttpResponse.getErrorStatus())
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus())
         .isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
   }
 
@@ -189,9 +187,9 @@ public class RDAPHttpResponseTest {
     doReturn(3).when(config).getMaxRedirects();
     doReturn(URI.create("http://unknown")).when(config).getUri();
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isTrue();
-    assertThat(rdapHttpResponse.getErrorStatus()).isEqualTo(RDAPValidationStatus.NETWORK_SEND_FAIL);
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.NETWORK_SEND_FAIL);
   }
 
   @Test
@@ -215,9 +213,9 @@ public class RDAPHttpResponseTest {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isTrue();
-    assertThat(rdapHttpResponse.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
   }
 
   @Test
@@ -248,10 +246,10 @@ public class RDAPHttpResponseTest {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isFalse();
-    assertThat(rdapHttpResponse.getHttpResponseBody()).isPresent().get().isEqualTo(response);
-    assertThat(rdapHttpResponse.getHttpStatusCode()).isPresent().get().isEqualTo(200);
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.getData()).isEqualTo(response);
+    assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
 
     verify(exactly(1), getRequestedFor(urlEqualTo(path1)));
     verify(exactly(1), getRequestedFor(urlEqualTo(path2)));
@@ -291,9 +289,9 @@ public class RDAPHttpResponseTest {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isTrue();
-    assertThat(rdapHttpResponse.getErrorStatus())
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus())
         .isEqualTo(RDAPValidationStatus.TOO_MANY_REDIRECTS);
 
     verify(exactly(1), getRequestedFor(urlEqualTo(path1)));
@@ -301,7 +299,7 @@ public class RDAPHttpResponseTest {
     verify(exactly(1), getRequestedFor(urlEqualTo(path3)));
     verify(exactly(0), getRequestedFor(urlEqualTo(path4)));
   }
-  
+
   @Test
   public void test_NoContentType_ReturnsErrorStatus5() {
     RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
@@ -322,11 +320,11 @@ public class RDAPHttpResponseTest {
             .withHeader("Content-Type", "application/json;encoding=UTF-8")
             .withBody(response)));
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isTrue();
-    assertThat(rdapHttpResponse.getErrorStatus()).isEqualTo(RDAPValidationStatus.WRONG_CONTENT_TYPE);
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.WRONG_CONTENT_TYPE);
   }
-  
+
   @Test
   public void test_InvalidJson_ReturnsErrorStatus6() {
     RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
@@ -347,9 +345,9 @@ public class RDAPHttpResponseTest {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isTrue();
-    assertThat(rdapHttpResponse.getErrorStatus()).isEqualTo(RDAPValidationStatus.RESPONSE_INVALID);
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.RESPONSE_INVALID);
   }
 
   // TODO the following tests rely on web resources that may change without notice, should
@@ -364,9 +362,9 @@ public class RDAPHttpResponseTest {
     doReturn(3).when(config).getMaxRedirects();
     doReturn(URI.create("https://expired.badssl.com")).when(config).getUri();
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isTrue();
-    assertThat(rdapHttpResponse.getErrorStatus())
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus())
         .isEqualTo(RDAPValidationStatus.EXPIRED_CERTIFICATE);
   }
 
@@ -379,9 +377,9 @@ public class RDAPHttpResponseTest {
     doReturn(3).when(config).getMaxRedirects();
     doReturn(URI.create("https://revoked.badssl.com")).when(config).getUri();
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isTrue();
-    assertThat(rdapHttpResponse.getErrorStatus())
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus())
         .isEqualTo(RDAPValidationStatus.REVOKED_CERTIFICATE);
   }
 
@@ -394,9 +392,9 @@ public class RDAPHttpResponseTest {
     doReturn(3).when(config).getMaxRedirects();
     doReturn(URI.create("https://wrong.host.badssl.com")).when(config).getUri();
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isTrue();
-    assertThat(rdapHttpResponse.getErrorStatus())
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus())
         .isEqualTo(RDAPValidationStatus.INVALID_CERTIFICATE);
   }
 
@@ -409,8 +407,8 @@ public class RDAPHttpResponseTest {
     doReturn(3).when(config).getMaxRedirects();
     doReturn(URI.create("https://untrusted-root.badssl.com")).when(config).getUri();
 
-    RDAPHttpResponse rdapHttpResponse = new RDAPHttpResponse(config);
-    assertThat(rdapHttpResponse.hasError()).isTrue();
-    assertThat(rdapHttpResponse.getErrorStatus()).isEqualTo(RDAPValidationStatus.CERTIFICATE_ERROR);
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.CERTIFICATE_ERROR);
   }
 }

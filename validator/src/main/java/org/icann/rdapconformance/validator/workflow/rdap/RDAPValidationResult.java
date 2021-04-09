@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator;
+package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.util.Objects;
 

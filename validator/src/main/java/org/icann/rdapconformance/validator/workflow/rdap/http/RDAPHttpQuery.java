@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator.workflow;
+package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -15,17 +15,19 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import org.icann.rdapconformance.validator.RDAPValidationStatus;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RDAPHttpResponse {
+public class RDAPHttpQuery implements RDAPQuery {
 
-  private static final Logger logger = LoggerFactory.getLogger(RDAPHttpResponse.class);
+  private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
   private final RDAPValidatorConfiguration config;
   private HttpResponse<String> httpResponse = null;
@@ -33,18 +35,68 @@ public class RDAPHttpResponse {
   private JsonData jsonResponse = null;
 
 
-  public RDAPHttpResponse(RDAPValidatorConfiguration config) {
+  public RDAPHttpQuery(RDAPValidatorConfiguration config) {
     this.config = config;
+  }
+
+  /**
+   * Launch the HTTP request and validate it.
+   */
+  @Override
+  public boolean run() {
     this.makeRequest();
     this.validate();
+    return this.isQuerySuccessful();
+  }
+
+  /**
+   * Get the HTTP response status code
+   */
+  @Override
+  public Optional<Integer> getStatusCode() {
+    return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
+  }
+
+  @Override
+  public boolean checkWithQueryType(RDAPQueryType queryType) {
+    /*
+     * If a response is available to the tool, but the expected objectClassName in the topmost
+     * object was not found for a lookup query (i.e. domain/<domain name>,
+     * nameserver/<nameserver name> and entity/<handle>) nor the expected JSON array
+     * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
+     * not validation on the contents) for a search query, exit with an return code of 8.
+     */
+    if (httpResponse.statusCode() == 200) {
+      if (queryType.isLookupQuery() && !jsonResponseHasKey("objectClassName")) {
+        logger.error("objectClassName was not found in the topmost object");
+        status = RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND;
+        return false;
+      } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonResponseIsArray()) {
+        logger.error("No JSON array in answer");
+        status = RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND;
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isErrorContent() {
+    return httpResponse.statusCode() == 404;
+  }
+
+  @Override
+  public String getData() {
+    return httpResponse.body();
   }
 
   /**
    * Check if we got errors with the RDAP HTTP request.
    */
-  public boolean hasError() {
-    return status != null;
+  private boolean isQuerySuccessful() {
+    return status == null;
   }
+
 
   /**
    * Get the RDAP status in case of error
@@ -53,19 +105,6 @@ public class RDAPHttpResponse {
     return status;
   }
 
-  /**
-   * Get the HTTP response status code
-   */
-  public Optional<Integer> getHttpStatusCode() {
-    return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
-  }
-
-  /**
-   * Get the HTTP response body
-   */
-  public Optional<String> getHttpResponseBody() {
-    return Optional.ofNullable(httpResponse != null ? httpResponse.body() : null);
-  }
 
   private void makeRequest() {
     final URI uri = this.config.getUri();
@@ -121,7 +160,7 @@ public class RDAPHttpResponse {
   }
 
   private void validate() {
-    if (hasError()) {
+    if (!isQuerySuccessful()) {
       return;
     }
 
@@ -168,14 +207,14 @@ public class RDAPHttpResponse {
   /**
    * Check if the RDAP json response contains a specific key.
    */
-  public boolean jsonResponseHasKey(String key) {
+  private boolean jsonResponseHasKey(String key) {
     return null != jsonResponse && jsonResponse.hasKey(key);
   }
 
-    /**
+  /**
    * Check if the RDAP json response is a JSON array
    */
-  public boolean jsonResponseIsArray() {
+  boolean jsonResponseIsArray() {
     return null != jsonResponse && jsonResponse.isArray();
   }
 
@@ -195,7 +234,7 @@ public class RDAPHttpResponse {
     private JSONArray rawJsonArray = null;
 
 
-    public JsonData(String data) {
+    private JsonData(String data) {
       try {
         // FIXME JSONObject may be too permissive:
         //  - accepts , after last element

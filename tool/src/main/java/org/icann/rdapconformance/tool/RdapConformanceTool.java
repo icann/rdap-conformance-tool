@@ -3,7 +3,7 @@ package org.icann.rdapconformance.tool;
 import java.io.File;
 import java.net.URI;
 import java.util.concurrent.Callable;
-import org.icann.rdapconformance.validator.RDAPValidator;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -31,7 +31,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Override
   public Integer call() throws Exception {
-    RDAPValidator validator = new RDAPValidator(this);
+    RDAPHttpValidator validator = new RDAPHttpValidator(this);
     return validator.validate();
   }
 

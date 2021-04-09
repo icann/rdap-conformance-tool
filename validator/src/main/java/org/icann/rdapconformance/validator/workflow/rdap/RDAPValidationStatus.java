@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator;
+package org.icann.rdapconformance.validator.workflow.rdap;
 
 public enum RDAPValidationStatus {
   SUCCESS(0, "A response was available to the tool, the Content-Type is application/rdap+JSON "
