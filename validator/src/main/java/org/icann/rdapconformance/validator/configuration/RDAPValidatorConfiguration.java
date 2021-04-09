@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.configuration;
 
 import java.io.File;
 import java.net.URI;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,19 @@ public interface RDAPValidatorConfiguration {
 
   boolean isThin();
 
+  RDAPQueryType getQueryType();
+
   default boolean check() {
+    if (getUri().getScheme() != null && getUri().getScheme().startsWith("http")) {
+      if (getQueryType() != null) {
+        logger.error("Cannot specify query type with HTTP or HTTPs URI");
+        return false;
+      }
+    } else if (getQueryType() == null) {
+      logger.error("Please specify query type");
+      return false;
+    }
+
     if (isGltdRegistrar() && isGtldRegistry()) {
       logger.error("gTLD cannot be a registrar and a registry at the same time");
       return false;

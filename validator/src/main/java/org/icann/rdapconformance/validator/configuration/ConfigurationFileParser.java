@@ -22,7 +22,7 @@ public class ConfigurationFileParser {
   }
 
   public ConfigurationFile parse(File configuration) throws IOException {
-    String jsonConfigStr = "";
+    String jsonConfigStr;
     try (InputStream fis = new FileInputStream(configuration);
         Reader isr = new InputStreamReader(fis);
         BufferedReader br = new BufferedReader(isr)) {

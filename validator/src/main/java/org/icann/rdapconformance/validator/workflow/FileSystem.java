@@ -7,4 +7,6 @@ public interface FileSystem {
   void write(String filepath, String data) throws IOException;
 
   void mkdir(String path) throws IOException;
+
+  String readFile(String path) throws IOException;
 }

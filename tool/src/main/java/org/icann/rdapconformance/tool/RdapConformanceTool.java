@@ -3,8 +3,11 @@ package org.icann.rdapconformance.tool;
 import java.io.File;
 import java.net.URI;
 import java.util.concurrent.Callable;
-import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
+import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -28,10 +31,17 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private boolean useLocalDatasets = false;
   @ArgGroup(exclusive = false)
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
+  @Option(names = {"--query-type"}, hidden = true)
+  private RDAPQueryType queryType;
 
   @Override
   public Integer call() throws Exception {
-    RDAPHttpValidator validator = new RDAPHttpValidator(this);
+    RDAPValidator validator;
+    if (uri.getScheme() != null && uri.getScheme().startsWith("http")) {
+      validator = new RDAPHttpValidator(this);
+    } else {
+      validator = new RDAPFileValidator(this);
+    }
     return validator.validate();
   }
 
@@ -73,6 +83,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Override
   public boolean isThin() {
     return this.dependantRdapProfileGtld.exclusiveGtldType.dependantRegistryThin.thin;
+  }
+
+  @Override
+  public RDAPQueryType getQueryType() {
+    return queryType;
   }
 
   @Override

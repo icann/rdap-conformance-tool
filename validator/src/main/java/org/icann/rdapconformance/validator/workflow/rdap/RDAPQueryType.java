@@ -7,7 +7,8 @@ public enum RDAPQueryType {
   HELP,
   NAMESERVER,
   ENTITY,
-  NAMESERVERS;
+  NAMESERVERS,
+  ERROR;
 
   public boolean isLookupQuery() {
     return Set.of(RDAPQueryType.DOMAIN, RDAPQueryType.NAMESERVER, RDAPQueryType.ENTITY)
