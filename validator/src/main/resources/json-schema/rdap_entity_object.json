@@ -73,7 +73,7 @@
 		        }
 		      },
 		  "required": [
-		    "objectClassName", "handle"
+		    "objectClassName"
 		  ],
           "not": { "required": [ "domainSearchResults", "nameserverSearchResults", "entitySearchResults"] }
 	    }
