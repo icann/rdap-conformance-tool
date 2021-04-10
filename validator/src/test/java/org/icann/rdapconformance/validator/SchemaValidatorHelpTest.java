@@ -19,11 +19,11 @@ public class SchemaValidatorHelpTest extends SchemaValidatorObjectTest {
 
   @Test
   public void stdRdapNoticesRemarksValidation() {
-    validateSubValidation(ComplexValidation.ofNotices(-12503));
+    stdRdapNoticesRemarksValidation(-12503);
   }
 
   @Test
   public void stdRdapConformanceValidation() {
-    validateSubValidation(ComplexValidation.ofRdapConformance(-12505));
+    stdRdapConformanceValidation(-12505);
   }
 }

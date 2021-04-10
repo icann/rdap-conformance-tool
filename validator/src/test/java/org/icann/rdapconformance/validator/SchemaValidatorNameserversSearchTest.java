@@ -25,27 +25,26 @@ public class SchemaValidatorNameserversSearchTest extends SchemaValidatorObjectT
 
   @Test
   public void stdRdapNameserverLookupValidation() {
-    validateSubValidation(new ComplexValidation("stdRdapNameserverLookupValidation", "nameserverSearchResults",
-        -12604));
+    validateSubValidation("stdRdapNameserverLookupValidation", "nameserverSearchResults", -12604);
   }
 
   @Test
   public void stdRdapRemarksValidation() {
-    validateSubValidation(ComplexValidation.ofRemarks(-12605));
+    stdRdapRemarksValidation(-12605);
   }
 
   @Test
   public void stdRdapEventsValidation() {
-    validateSubValidation(ComplexValidation.ofEvents(-12606));
+    stdRdapEventsValidation(-12606);
   }
 
   @Test
   public void stdRdapNoticesRemarksValidation() {
-    validateSubValidation(ComplexValidation.ofNotices(-12607));
+    stdRdapNoticesRemarksValidation(-12607);
   }
 
   @Test
   public void stdRdapConformanceValidation() {
-    validateSubValidation(ComplexValidation.ofRdapConformance(-12609));
+    stdRdapConformanceValidation(-12609);
   }
 }

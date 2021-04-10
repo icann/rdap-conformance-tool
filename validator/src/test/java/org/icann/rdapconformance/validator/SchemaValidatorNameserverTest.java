@@ -44,57 +44,56 @@ public class SchemaValidatorNameserverTest extends SchemaValidatorObjectTest {
 
   @Test
   public void stdRdapLdhNameValidation() {
-    validateSubValidation(ComplexValidation.ofLdhName(-12405));
+    stdRdapLdhNameValidation(-12405);
   }
 
   @Test
   public void stdRdapUnicodeNameValidation() {
-    validateSubValidation(ComplexValidation.ofUnicodeName(-12406));
+    stdRdapUnicodeNameValidation(-12406);
   }
 
   @Test
   public void stdRdapIpAddressesValidation() {
-    validateSubValidation(
-        new ComplexValidation("stdRdapIpAddressesValidation", "ipAddresses", -12407));
+    validateSubValidation("stdRdapIpAddressesValidation", "ipAddresses", -12407);
   }
 
   @Test
   public void stdRdapEntitiesValidation() {
-    validateSubValidation(ComplexValidation.ofEntities(-12408));
+    stdRdapEntitiesValidation(-12408);
   }
 
   @Test
   public void stdRdapStatusValidation() {
-    validateSubValidation(ComplexValidation.ofStatus(-12409));
+    stdRdapStatusValidation(-12409);
   }
 
   @Test
   public void stdRdapRemarksValidation() {
-    validateSubValidation(ComplexValidation.ofRemarks(-12410));
+    stdRdapRemarksValidation(-12410);
   }
 
   @Test
   public void stdRdapLinksValidation() {
-    validateSubValidation(ComplexValidation.ofLinks(-12411));
+    stdRdapLinksValidation(-12411);
   }
 
   @Test
   public void stdRdapPort43WhoisServerValidation() {
-    validateSubValidation(ComplexValidation.ofPort43(-12412));
+    stdRdapPort43WhoisServerValidation(-12412);
   }
 
   @Test
   public void stdRdapEventsValidation() {
-    validateSubValidation(ComplexValidation.ofEvents(-12413));
+    stdRdapEventsValidation(-12413);
   }
 
   @Test
   public void stdRdapNoticesRemarksValidation() {
-    validateSubValidation(ComplexValidation.ofNotices(-12414));
+    stdRdapNoticesRemarksValidation(-12414);
   }
 
   @Test
   public void stdRdapConformanceValidation() {
-    validateSubValidation(ComplexValidation.ofRdapConformance(-12416));
+    stdRdapConformanceValidation(-12416);
   }
 }

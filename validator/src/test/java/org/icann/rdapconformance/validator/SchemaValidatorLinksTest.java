@@ -5,7 +5,7 @@ import org.json.JSONObject;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
-public class SchemaValidatorLinksTest extends SchemaValidatorTest {
+public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
 
   public SchemaValidatorLinksTest() {
     super("test_rdap_links.json",

@@ -2,13 +2,8 @@ package org.icann.rdapconformance.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.github.jknack.handlebars.internal.text.WordUtils;
-import java.io.File;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -20,13 +15,14 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public abstract class SchemaValidatorTest {
-  private final String schemaName;
-  private final String validJson;
+
+  protected final String schemaName;
+  protected final String validJson;
   protected SchemaValidator schemaValidator;
   protected JSONObject jsonObject;
   protected RDAPValidatorResults results;
-  private String name;
-  private String rdapContent;
+  protected String name;
+  protected String rdapContent;
 
   public SchemaValidatorTest(
       String schemaName,
@@ -61,27 +57,10 @@ public abstract class SchemaValidatorTest {
     assertThat(schemaValidator.validate(rdapContent)).isTrue();
   }
 
-  public void keyDoesNotExistInArray(String key, int errorCode) {
-    jsonObject.getJSONArray(name).getJSONObject(0).remove(key);
-    validateKeyMissing(errorCode, key);
-  }
-
-  protected void replaceArrayProperty(String key, Object value) {
-    jsonObject.put(name, List.of(jsonObject.getJSONArray(name).getJSONObject(0).put(key,
-        value)));
-  }
-
   protected void insertForbiddenKey() {
     JSONObject value = new JSONObject();
     value.put("test", "value");
     jsonObject.put("unknown", List.of(value));
-  }
-
-  protected void validateArrayAuthorizedKeys(int error, List<String> authorizedKeys) {
-    JSONObject value = new JSONObject();
-    value.put("test", "value");
-    jsonObject.getJSONArray(name).getJSONObject(0).put("unknown", List.of(value));
-    validateAuthorizedKeys(error, authorizedKeys);
   }
 
   protected void validateAuthorizedKeys(int errorCode, List<String> authorizedKeys) {
@@ -108,11 +87,6 @@ public abstract class SchemaValidatorTest {
                 + regexType + " syntax.");
   }
 
-  protected void arrayItemKeyIsNotDateTime(String key, int errorCode) {
-    replaceArrayProperty(key, "not a date-time");
-    validateIsNotADateTime(errorCode, "#/" + name + "/0/" + key + ":not a date-time");
-  }
-
   protected void validateIsNotADateTime(int errorCode, String value) {
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
     assertThat(results.getAll())
@@ -123,11 +97,6 @@ public abstract class SchemaValidatorTest {
             "The JSON value shall be a syntactically valid time and date according to RFC3339.");
   }
 
-  protected void arrayItemKeyIsNotString(String key, int errorCode) {
-    replaceArrayProperty(key, 0);
-    validateIsNotAJsonString(errorCode, "#/" + name + "/0/" + key + ":0");
-  }
-
   protected void validateIsNotAJsonString(int errorCode, String value) {
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
     assertThat(results.getAll())
@@ -135,26 +104,6 @@ public abstract class SchemaValidatorTest {
         .last()
         .hasFieldOrPropertyWithValue("value", value)
         .hasFieldOrPropertyWithValue("message", "The JSON value is not a string.");
-  }
-
-  protected void linksViolatesLinksValidation(int errorCode) {
-    arrayItemKeySubValidation("links", "stdRdapLinksValidation", errorCode);
-  }
-
-  protected void arrayItemKeySubValidation(String key, String validationName, int errorCode) {
-    replaceArrayProperty(key, 0);
-    validateSubValidation(errorCode, validationName, "#/" + name + "/0/" + key + ":0");
-  }
-
-  protected void arrayInvalid(int error) {
-    jsonObject.put(name, 0);
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(results.getAll()).filteredOn(r -> r.getCode() == error)
-        .hasSize(1)
-        .first()
-        .hasFieldOrPropertyWithValue("value", "#/"+name+":0")
-        .hasFieldOrPropertyWithValue("message",
-            "The #/" + name + " structure is not syntactically valid.");
   }
 
   protected void validateInvalidJson(int error, String value) {
@@ -168,17 +117,12 @@ public abstract class SchemaValidatorTest {
             "The " + key + " structure is not syntactically valid.");
   }
 
-  protected void validateSubValidation(ComplexValidation complexValidation) {
-    jsonObject.put(complexValidation.validatedField, 0);
-    validateSubValidation(
-        complexValidation.errorCode,
-        complexValidation.validationName,
-        "#/" + complexValidation.validatedField + ":0");
-  }
-
-  protected void validateSubValidation(int errorCode, String validationName,
-      String value) {
-    this.validateSubValidation(jsonObject.toString(), errorCode, validationName, value);
+  protected void validateSubValidation(String validationName, String keyValue, int errorCode) {
+    if (!keyValue.contains(":")) {
+      jsonObject.put(keyValue, 0);
+      keyValue = "#/" + keyValue + ":0";
+    }
+    this.validateSubValidation(jsonObject.toString(), errorCode, validationName, keyValue);
   }
 
   protected void validateSubValidation(String invalidJson, int errorCode, String validationName,
@@ -221,6 +165,58 @@ public abstract class SchemaValidatorTest {
         .first()
         .hasFieldOrPropertyWithValue("message",
             "The " + key + " element does not exist.");
+  }
+
+  protected void stdRdapRolesValidation(int errorCode) {
+    validateSubValidation("stdRdapRolesValidation", "roles", errorCode);
+  }
+
+  protected void stdRdapPublicIdsValidation(int errorCode) {
+    validateSubValidation("stdRdapPublicIdsValidation", "publicIds", errorCode);
+  }
+
+  protected void stdRdapEntitiesValidation(int errorCode) {
+    validateSubValidation("stdRdapEntitiesValidation", "entities", errorCode);
+  }
+
+  protected void stdRdapRemarksValidation(int errorCode) {
+    validateSubValidation("stdRdapRemarksValidation", "remarks", errorCode);
+  }
+
+  protected void stdRdapLinksValidation(int errorCode) {
+    validateSubValidation("stdRdapLinksValidation", "links", errorCode);
+  }
+
+  protected void stdRdapEventsValidation(int errorCode) {
+    validateSubValidation("stdRdapEventsValidation", "events", errorCode);
+  }
+
+  protected void stdRdapAsEventActorValidation(int errorCode) {
+    validateSubValidation("stdRdapAsEventActorValidation", "asEventActor", errorCode);
+  }
+
+  protected void stdRdapStatusValidation(int errorCode) {
+    validateSubValidation("stdRdapStatusValidation", "status", errorCode);
+  }
+
+  protected void stdRdapPort43WhoisServerValidation(int errorCode) {
+    validateSubValidation("stdRdapPort43WhoisServerValidation", "port43", errorCode);
+  }
+
+  protected void stdRdapNoticesRemarksValidation(int errorCode) {
+    validateSubValidation("stdRdapNoticesRemarksValidation", "notices", errorCode);
+  }
+
+  protected void stdRdapConformanceValidation(int errorCode) {
+    validateSubValidation("stdRdapConformanceValidation", "rdapConformance", errorCode);
+  }
+
+  protected void stdRdapUnicodeNameValidation(int errorCode) {
+    validateSubValidation("stdRdapUnicodeNameValidation", "unicodeName", errorCode);
+  }
+
+  protected void stdRdapLdhNameValidation(int errorCode) {
+    validateSubValidation("stdRdapLdhNameValidation", "ldhName", errorCode);
   }
 
   private String getKey(String value) {

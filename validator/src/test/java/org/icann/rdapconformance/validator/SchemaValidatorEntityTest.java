@@ -51,59 +51,57 @@ public class SchemaValidatorEntityTest extends SchemaValidatorObjectTest {
 
   @Test
   public void stdRdapRolesValidation() {
-    validateSubValidation(
-        ComplexValidation.ofRoles(-12306));
+    stdRdapRolesValidation(-12306);
   }
 
   @Test
   public void stdRdapAsEventActorValidation() {
-    validateSubValidation(
-        ComplexValidation.ofAsEventActor(-12312));
+    stdRdapAsEventActorValidation(-12312);
   }
 
   @Test
   public void stdRdapEntitiesValidation() {
-    validateSubValidation(ComplexValidation.ofEntities(-12308));
+    stdRdapEntitiesValidation(-12308);
   }
 
   @Test
   public void stdRdapStatusValidation() {
-    validateSubValidation(ComplexValidation.ofStatus(-12313));
+    stdRdapStatusValidation(-12313);
   }
 
   @Test
   public void stdRdapPublicIdsValidation() {
-    validateSubValidation(ComplexValidation.ofPublicIds(-12307));
+    stdRdapPublicIdsValidation(-12307);
   }
 
   @Test
   public void stdRdapRemarksValidation() {
-    validateSubValidation(ComplexValidation.ofRemarks(-12309));
+    stdRdapRemarksValidation(-12309);
   }
 
   @Test
   public void stdRdapLinksValidation() {
-    validateSubValidation(ComplexValidation.ofLinks(-12310));
+    stdRdapLinksValidation(-12310);
   }
 
   @Test
   public void stdRdapPort43WhoisServerValidation() {
-    validateSubValidation(ComplexValidation.ofPort43(-12314));
+    stdRdapPort43WhoisServerValidation(-12314);
   }
 
   @Test
   public void stdRdapEventsValidation() {
-    validateSubValidation(ComplexValidation.ofEvents(-12311));
+    stdRdapEventsValidation(-12311);
   }
 
   @Test
   public void stdRdapNoticesRemarksValidation() {
-    validateSubValidation(ComplexValidation.ofNotices(-12315));
+    stdRdapNoticesRemarksValidation(-12315);
   }
 
   @Test
   public void stdRdapConformanceValidation() {
-    validateSubValidation(ComplexValidation.ofRdapConformance(-12317));
+    stdRdapConformanceValidation(-12317);
   }
 
 }

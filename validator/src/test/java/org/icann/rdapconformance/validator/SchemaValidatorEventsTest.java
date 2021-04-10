@@ -3,10 +3,9 @@ package org.icann.rdapconformance.validator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
-import org.json.JSONObject;
 import org.testng.annotations.Test;
 
-public class SchemaValidatorEventsTest extends SchemaValidatorTest {
+public class SchemaValidatorEventsTest extends SchemaValidatorForArrayTest {
 
   public SchemaValidatorEventsTest() {
     super(

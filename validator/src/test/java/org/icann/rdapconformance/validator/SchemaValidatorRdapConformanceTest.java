@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import org.testng.annotations.Test;
 
-public class SchemaValidatorRdapConformanceTest extends SchemaValidatorTest {
+public class SchemaValidatorRdapConformanceTest extends SchemaValidatorForArrayOfStringTest {
 
   public SchemaValidatorRdapConformanceTest() {
     super("test_rdap_conformance.json",
@@ -27,8 +27,7 @@ public class SchemaValidatorRdapConformanceTest extends SchemaValidatorTest {
    */
   @Test
   public void notListOfString() {
-    jsonObject.put("rdapConformance", List.of(0));
-    validateIsNotAJsonString(-10501, "#/rdapConformance/0:0");
+    notListOfString(-10501);
   }
 
   /**
@@ -36,9 +35,7 @@ public class SchemaValidatorRdapConformanceTest extends SchemaValidatorTest {
    */
   @Test
   public void notListOfEnum() {
-    jsonObject.put("rdapConformance", List.of("wrong enum value"));
-    validateNotEnum(-10502, "rdap_common.json#/definitions/rdapExtensions/allOf/1",
-        "#/rdapConformance/0:wrong enum value");
+    notListOfEnum(-10502, "rdap_common.json#/definitions/rdapExtensions/allOf/1");
   }
 
   /**
