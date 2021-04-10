@@ -161,6 +161,7 @@ public abstract class SchemaNode {
   public List<ValidationNode> findValidationNodes(String jsonPointer, String validationName) {
     List<SchemaNode> schemaNodes = findAssociatedSchema(jsonPointer)
         .map(s -> s instanceof ReferenceSchemaNode ? ((ReferenceSchemaNode) s).getChild() : s)
+        // TODO: implement a getAllCombinedChildren instead, we don't want to go down too much
         .map(s -> s instanceof CombinedSchemaNode ? s.getAllChildren() : List.of(s))
         .orElse(Collections.emptyList());
 

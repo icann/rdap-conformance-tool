@@ -21,7 +21,7 @@ public class SchemaValidatorPort43Test extends SchemaValidatorTest {
     jsonObject.put(name, "0.0.0-wrong");
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
     assertThat(results.getAll())
-        .containsAnyOf(
+        .contains(
             RDAPValidationResult.builder()
                 .code(-11100)
                 .value("#/port43:0.0.0-wrong")

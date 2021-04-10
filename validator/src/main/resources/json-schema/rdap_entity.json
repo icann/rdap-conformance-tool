@@ -65,7 +65,7 @@
       "validationName": "stdRdapAsEventActorValidation"
     },
     "publicIds": {
-      "$ref": "rdap_common.json#/definitions/publicIds"
+      "$ref": "rdap_publicIds.json#"
     },
     "events": {
       "$ref": "rdap_events.json#"

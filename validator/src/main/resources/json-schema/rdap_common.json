@@ -407,28 +407,6 @@
         "$ref": "#/definitions/notice"
       },
       "validationName": "stdRdapRemarksValidation"
-    },
-    "publicId": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string"
-        },
-        "identifier": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "identifier"
-      ]
-    },
-    "publicIds": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/publicId"
-      },
-      "validationName": "stdRdapPublicIdsValidation"
     }
   },
   "type": "object",
@@ -443,7 +421,7 @@
       "$ref": "rdap_port43.json#"
     },
     "publicIds": {
-      "$ref": "#/definitions/publicIds"
+      "$ref": "rdap_publicIds.json#"
     },
     "events": {
       "$ref": "rdap_events.json#"
