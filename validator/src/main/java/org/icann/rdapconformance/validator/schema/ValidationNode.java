@@ -8,9 +8,6 @@ public class ValidationNode {
   private String validationName;
   private Optional<SchemaNode> parentValidationNode = Optional.empty();
 
-  public ValidationNode() {
-  }
-
   public ValidationNode(SchemaNode schemaNode, String validationName) {
     this.schemaNode = schemaNode;
     this.validationName = validationName;

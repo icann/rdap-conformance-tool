@@ -41,7 +41,7 @@
       "$ref": "rdap_status.json#"
     },
     "port43": {
-      "$ref": "rdap_common.json#/definitions/port43"
+      "$ref": "rdap_port43.json#"
     },
     "publicIds": {
       "$ref": "rdap_common.json#/definitions/publicIds"

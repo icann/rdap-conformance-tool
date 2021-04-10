@@ -46,8 +46,4 @@ public class BasicTypeExceptionParser extends ExceptionParser {
         .message(icannErrorMsg)
         .build());
   }
-
-  protected String getValidationName(ValidationException e) {
-    return (String) getPropertyFromViolatedSchema(e, "validationName");
-  }
 }

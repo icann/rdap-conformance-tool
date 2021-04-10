@@ -52,8 +52,8 @@ public class SchemaNodeTest {
   @Test
   public void testFindValidationName() {
     String jsonPointer = "#/anArray/0/aSubField";
-    String validationKey = schemaNode.findValidationNode(jsonPointer,
-        "validationName").getValidationKey();
+    String validationKey = schemaNode.findValidationNodes(jsonPointer,
+        "validationName").stream().findFirst().get().getValidationKey();
     assertThat(validationKey).isEqualTo(
         "aCustomValidation");
   }

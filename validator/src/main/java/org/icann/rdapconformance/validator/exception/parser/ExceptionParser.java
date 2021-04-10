@@ -3,11 +3,8 @@ package org.icann.rdapconformance.validator.exception.parser;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.everit.json.schema.ObjectSchema;
-import org.everit.json.schema.ReferenceSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -53,6 +50,9 @@ public abstract class ExceptionParser {
       parsers.add(new RegexExceptionParser(basicException, schema, object, results));
       parsers.add(new DatetimeExceptionParser(basicException, schema, object, results));
       parsers.add(new DependenciesExceptionParser(basicException, schema, object, results));
+      parsers.add(new HostNameExceptionParser(basicException, schema, object, results));
+      parsers.add(new Ipv4ExceptionParser(basicException, schema, object, results));
+      parsers.add(new Ipv6ExceptionParser(basicException, schema, object, results));
     }
 
     return parsers;
@@ -65,26 +65,6 @@ public abstract class ExceptionParser {
       logger.info("Can't find the corresponding error in schema, replacing by -999");
       return -999;
     }
-  }
-
-  private Schema getParentSchema(String parentSchemaName, Schema childSchema) {
-    if (parentSchemaName.equals("#")) {
-      return childSchema;
-    }
-
-    Map<String, Schema> childSchemas = ((ObjectSchema) childSchema).getPropertySchemas();
-
-    if (childSchemas.containsKey(parentSchemaName)) {
-      return ((ReferenceSchema) childSchemas.get(parentSchemaName)).getReferredSchema();
-    }
-
-    for (var schema : childSchemas.values()) {
-      Schema foundSchema = getParentSchema(parentSchemaName, schema);
-      if (foundSchema != null) {
-        return foundSchema;
-      }
-    }
-    return null;
   }
 
   public static List<ValidationException> getAllExceptions(
@@ -123,16 +103,18 @@ public abstract class ExceptionParser {
       doParse();
       if (e.getPointerToViolation() != null) {
         SchemaNode tree = SchemaNode.create(null, schema);
-        ValidationNode validationNode = tree.findValidationNode(e.getPointerToViolation(),
+        List<ValidationNode> validationNodes = tree.findValidationNodes(e.getPointerToViolation(),
             "validationName");
-        if (validationNode.hasParentValidationCode()) {
-          results.add(RDAPValidationResult.builder()
-              .code(
-                  parseErrorCode(validationNode::getParentValidationCode))
-              .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-              .message(MessageFormat.format("The value for the JSON name value does not pass {0} "
-                  + "validation [{1}].", e.getPointerToViolation(), validationNode.getValidationKey()))
-              .build());
+        for (ValidationNode validationNode : validationNodes) {
+          if (validationNode.hasParentValidationCode()) {
+            results.add(RDAPValidationResult.builder()
+                .code(
+                    parseErrorCode(validationNode::getParentValidationCode))
+                .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
+                .message(MessageFormat.format("The value for the JSON name value does not pass {0} "
+                    + "validation [{1}].", e.getPointerToViolation(), validationNode.getValidationKey()))
+                .build());
+          }
         }
       }
     }

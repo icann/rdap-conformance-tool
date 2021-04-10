@@ -8,19 +8,12 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
-public class DatetimeExceptionParser extends ExceptionParser {
+public class DatetimeExceptionParser extends StringFormatExceptionParser<DateTimeFormatValidator> {
 
   protected DatetimeExceptionParser(ValidationException e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
-  }
-
-  @Override
-  public boolean matches(ValidationException e) {
-    return e.getViolatedSchema() instanceof StringSchema &&
-        ((StringSchema) e.getViolatedSchema())
-            .getFormatValidator() instanceof DateTimeFormatValidator;
+    super(e, schema, jsonObject, results, DateTimeFormatValidator.class);
   }
 
   @Override

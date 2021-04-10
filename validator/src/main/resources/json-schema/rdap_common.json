@@ -85,11 +85,13 @@
     },
     "ipv4": {
       "type": "string",
-      "format": "ipv4"
+      "format": "ipv4",
+      "validationName": "IPv4Validation"
     },
     "ipv6": {
       "type": "string",
-      "format": "ipv6"
+      "format": "ipv6",
+      "validationName": "IPv6Validation"
     },
     "ip": {
       "oneOf": [
@@ -162,18 +164,6 @@
           "errorCode": -10706
         }
       ]
-    },
-    "port43": {
-      "oneOf": [
-        {
-          "$ref": "#/definitions/ip"
-        },
-        {
-          "type": "string",
-          "format": "hostname"
-        }
-      ],
-      "validationName": "stdRdapPort43WhoisServerValidation"
     },
     "lang": {
       "type": "string",
@@ -450,7 +440,7 @@
       "$ref": "rdap_status.json#"
     },
     "port43": {
-      "$ref": "#/definitions/port43"
+      "$ref": "rdap_port43.json#"
     },
     "publicIds": {
       "$ref": "#/definitions/publicIds"

@@ -1,8 +1,12 @@
 package org.icann.rdapconformance.validator.schema;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.everit.json.schema.ArraySchema;
 import org.everit.json.schema.BooleanSchema;
 import org.everit.json.schema.CombinedSchema;
@@ -45,6 +49,22 @@ public abstract class SchemaNode {
   }
 
   public abstract List<SchemaNode> getChildren();
+
+  public List<SchemaNode> getAllChildren() {
+    List<SchemaNode> children = new ArrayList<>();
+    return getAllChildrenRecursively(children);
+  }
+
+  List<SchemaNode> getAllChildrenRecursively(List<SchemaNode> children) {
+    if (getChildren().isEmpty()) {
+      children.add(this);
+    } else {
+      for (SchemaNode child : getChildren()) {
+        child.getAllChildrenRecursively(children);
+      }
+    }
+    return children;
+  }
 
   public boolean containsErrorKey(String errorKey) {
     return schema.getUnprocessedProperties().containsKey(errorKey);
@@ -138,21 +158,23 @@ public abstract class SchemaNode {
     return Optional.of(schemaNode);
   }
 
-  public ValidationNode findValidationNode(String jsonPointer, String validationName) {
-    Optional<SchemaNode> schemaNode = findAssociatedSchema(jsonPointer);
-    if (schemaNode.isPresent()) {
-      SchemaNode parent = schemaNode.get();
-      if (parent instanceof ReferenceSchemaNode) { // special case, when reference
-        parent = ((ReferenceSchemaNode) parent).getChild();
-      }
+  public List<ValidationNode> findValidationNodes(String jsonPointer, String validationName) {
+    List<SchemaNode> schemaNodes = findAssociatedSchema(jsonPointer)
+        .map(s -> s instanceof ReferenceSchemaNode ? ((ReferenceSchemaNode) s).getChild() : s)
+        .map(s -> s instanceof CombinedSchemaNode ? s.getAllChildren() : List.of(s))
+        .orElse(Collections.emptyList());
+
+    List<ValidationNode> validationNodes = new ArrayList<>();
+    for (SchemaNode parent : schemaNodes) {
       while (parent != null) {
         if (parent.containsErrorKey(validationName)) {
-          return new ValidationNode(parent, validationName);
+          validationNodes.add(new ValidationNode(parent, validationName));
         }
         parent = parent.parentNode;
       }
     }
-    return new NullValidationNode();
+
+    return validationNodes;
   }
 
   public Optional<SchemaNode> findAssociatedParentValidationNode(String validationKey) {
