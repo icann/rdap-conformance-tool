@@ -48,9 +48,13 @@
   "unknownKeys": -10901,
   "eventActionMissing": -10903,
   "eventDateMissing": -10906,
+  "eventActorMissing": -10910,
   "stdRdapLinksValidation": -10911,
   "required": [
     "eventAction",
     "eventDate"
-  ]
+  ],
+  "dependencies": {
+    "links": ["eventActor"]
+  }
 }

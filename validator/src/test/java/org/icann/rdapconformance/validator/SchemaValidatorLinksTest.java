@@ -5,26 +5,34 @@ import org.json.JSONObject;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
-public class SchemaValidatorLinksTest extends SchemaValidatorObjectTest {
+public class SchemaValidatorLinksTest extends SchemaValidatorTest {
 
   public SchemaValidatorLinksTest() {
-    super(
-        "links",
-        "test_rdap_links.json",
-        "/validators/links/valid.json",
-        -10600,
-        -10601,
-        -10602,
-        List.of("value", "rel", "href", "hreflang", "title", "media", "type"));
+    super("test_rdap_links.json",
+        "/validators/links/valid.json");
   }
 
-  @Override
-  protected void insertForbiddenKey() {
-    JSONObject value = new JSONObject();
-    value.put("test", "value");
-    JSONObject forbiddenElement = jsonObject.getJSONArray("links").getJSONObject(0).put("unknown",
-        List.of(value));
-    jsonObject.put("links", List.of(forbiddenElement));
+  /**
+   * 7.2.2.1.
+   */
+  @Test
+  public void invalid() {
+    arrayInvalid(-10600);
+  }
+
+  /**
+   * 7.2.2.2.
+   */
+  @Test
+  public void unauthorizedKey() {
+    validateArrayAuthorizedKeys(-10601,
+        List.of("href"
+            , "hreflang"
+            , "media"
+            , "rel"
+            , "title"
+            , "type"
+            , "value"));
   }
 
   /**

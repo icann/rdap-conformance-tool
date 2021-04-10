@@ -29,12 +29,16 @@ public class EnumExceptionParser extends ExceptionParser {
   @Override
   public void doParse() {
     EnumSchema enumSchema = (EnumSchema)e.getViolatedSchema();
+    String schemaLocation = "";
+    if (e.getSchemaLocation() != null) {
+      schemaLocation = "Type=\"" + e.getSchemaLocation().replace("classpath://json-schema/", "") + "\"";
+    }
     results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()).toString())
         .message(
-            "The JSON string is not included as a Value with Type=\"" + e.getSchemaLocation().replace("classpath://json-schema/", "")
-                + "\" dataset ("+enumSchema.getPossibleValuesAsList()+").")
+            "The JSON string is not included as a Value with " + schemaLocation
+                + " dataset ("+enumSchema.getPossibleValuesAsList()+").")
         .build());
   }
 }

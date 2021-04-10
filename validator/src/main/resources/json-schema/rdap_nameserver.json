@@ -41,20 +41,20 @@
       "$ref": "rdap_common.json#/definitions/lang"
     },
     "notices" : {
-      "$ref": "rdap_common.json#/definitions/notices"
+      "$ref": "rdap_notices.json#"
     },
     "handle": {
       "type": "string",
       "errorCode": -12404
     },
     "status": {
-      "$ref": "rdap_common.json#/definitions/status"
+      "$ref": "rdap_status.json#"
     },
     "port43": {
       "$ref": "rdap_common.json#/definitions/port43"
     },
     "events": {
-      "$ref": "rdap_common.json#/definitions/events"
+      "$ref": "rdap_events.json#"
     },
     "remarks": {
       "$ref": "rdap_common.json#/definitions/remarks"

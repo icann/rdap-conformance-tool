@@ -49,7 +49,8 @@
         "type": "string"
       },
       "uniqueItems": true,
-      "validationName": "stdRdapConformanceValidation"
+      "validationName": "stdRdapConformanceValidation",
+      "structureInvalid": -10500
     },
     "entities": {
       "type": "array",
@@ -161,53 +162,6 @@
           "errorCode": -10706
         }
       ]
-    },
-    "statusValue": {
-      "type": "string",
-      "enum": [
-        "validated",
-        "renew prohibited",
-        "update prohibited",
-        "transfer prohibited",
-        "delete prohibited",        
-        "client renew prohibited",
-        "server renew prohibited",
-        "client update prohibited",
-        "server update prohibited",
-        "client transfer prohibited",
-        "server transfer prohibited",
-        "client delete prohibited",
-        "server delete prohibited",
-        "client hold",
-        "server hold",
-        "proxy",
-        "private",
-        "removed",
-        "obscured",
-        "associated",
-        "active",
-        "inactive",
-        "locked",
-        "pending create",
-        "pending renew",
-        "pending transfer",
-        "pending update",
-        "pending delete",
-        "pending restore",
-        "auto renew period",
-        "redemption period",
-        "renew period",
-        "transfer period",
-        "add period"
-      ]
-    },
-    "status": {
-      "type": "array",
-      "items": {
-	        "$ref": "#/definitions/statusValue"
-      },
-      "uniqueItems": true,
-      "validationName": "stdRdapStatusValidation"
     },
     "port43": {
       "oneOf": [
@@ -403,6 +357,7 @@
       "items": {
         "$ref": "#/definitions/link"
       },
+      "structureInvalid": -10600,
       "validationName": "stdRdapLinksValidation"
     },
     "eventWithoutActor": {
@@ -426,13 +381,6 @@
           "$ref": "#/definitions/links"
         }
       }
-    },
-    "events": {
-      "type": "array",
-      "items": {
-        "$ref": "rdap_event.json#"
-      },
-      "validationName": "stdRdapEventsValidation"
     },
     "notice": {
       "type": "object",
@@ -462,15 +410,6 @@
       ],
       "descriptionMissing": -10707,
       "duplicateKeys": -10702
-    },
-    "notices": {
-      "type": "array",
-      "items": {
-        "$ref": "rdap_notice.json#"
-      },
-      "validationName": "stdRdapNoticesRemarksValidation",
-      "stdRdapLinksValidation": -10704,
-      "unknownKeys": -10701
     },
     "remarks": {
       "type": "array",
@@ -508,7 +447,7 @@
       "type": "string"
     },
     "status": {
-      "$ref": "#/definitions/uniqueStringArray"
+      "$ref": "rdap_status.json#"
     },
     "port43": {
       "$ref": "#/definitions/port43"
@@ -517,7 +456,7 @@
       "$ref": "#/definitions/publicIds"
     },
     "events": {
-      "$ref": "#/definitions/events"
+      "$ref": "rdap_events.json#"
     },
     "remarks": {
       "$ref": "#/definitions/remarks"

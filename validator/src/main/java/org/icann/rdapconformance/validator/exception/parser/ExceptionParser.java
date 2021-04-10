@@ -52,6 +52,7 @@ public abstract class ExceptionParser {
       parsers.add(new ContainsConstExceptionParser(basicException, schema, object, results));
       parsers.add(new RegexExceptionParser(basicException, schema, object, results));
       parsers.add(new DatetimeExceptionParser(basicException, schema, object, results));
+      parsers.add(new DependenciesExceptionParser(basicException, schema, object, results));
     }
 
     return parsers;
@@ -64,12 +65,6 @@ public abstract class ExceptionParser {
       logger.info("Can't find the corresponding error in schema, replacing by -999");
       return -999;
     }
-  }
-
-  protected int getErrorCode(String validationName) {
-    String parentSchemaName = getParentSchemaName(e.getPointerToViolation());
-    Schema parentSchema = getParentSchema(parentSchemaName, schema);
-    return (int) parentSchema.getUnprocessedProperties().get(validationName);
   }
 
   private Schema getParentSchema(String parentSchemaName, Schema childSchema) {

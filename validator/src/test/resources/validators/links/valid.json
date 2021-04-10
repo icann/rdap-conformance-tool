@@ -1,15 +1,15 @@
 {
   "links": [
     {
-      "value": "https://rdap.verisign.com/com/v1/domain/GOOGLE.COM",
+      "value": "https://rdap.example.com/com/v1/domain/EXAMPLE.COM",
       "rel": "self",
-      "href": "https://rdap.verisign.com/com/v1/domain/GOOGLE.COM",
+      "href": "https://rdap.example.com/com/v1/domain/EXAMPLE.COM",
       "type": "application/rdap+json"
     },
     {
-      "value": "https://rdap.markmonitor.com/rdap/domain/GOOGLE.COM",
+      "value": "https://rdap.markmonitor.com/rdap/domain/EXAMPLE.COM",
       "rel": "related",
-      "href": "https://rdap.markmonitor.com/rdap/domain/GOOGLE.COM",
+      "href": "https://rdap.markmonitor.com/rdap/domain/EXAMPLE.COM",
       "type": "application/rdap+json"
     }
   ]

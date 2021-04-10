@@ -62,7 +62,7 @@
             ]
           },
           "events": {
-            "$ref": "rdap_common.json#/definitions/events"
+            "$ref": "rdap_events.json#"
           },
           "links": {
             "$ref": "rdap_common.json#/definitions/links"
@@ -93,7 +93,7 @@
             "$ref": "#/definitions/dnssecAlgorithm"
           },
           "events": {
-            "$ref": "rdap_common.json#/definitions/events"
+            "$ref": "rdap_events.json#"
           },
           "links": {
             "$ref": "rdap_common.json#/definitions/links"

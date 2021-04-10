@@ -29,12 +29,16 @@ public class RegexExceptionParser extends ExceptionParser {
 
   @Override
   protected void doParse() {
+    String schemaLocation = "the associated";
+    if (e.getSchemaLocation() != null) {
+      schemaLocation = e.getSchemaLocation().replace("classpath://json-schema/", "");
+    }
     results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message("The value of the JSON string data in the " + e.getPointerToViolation()
             + " does not conform to "
-            + e.getSchemaLocation().replace("classpath://json-schema/", "") + " syntax.")
+            + schemaLocation + " syntax.")
         .build());
   }
 }

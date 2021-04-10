@@ -2421,7 +2421,7 @@
       "additionalItems" : {
           "$ref": "#/definitions/vcard"
       },
-			"errorCode": -12305
+			"structureInvalid": -12305
     }
   }
 }

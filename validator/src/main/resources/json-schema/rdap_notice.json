@@ -17,7 +17,7 @@
         "type": "string",
         "errorCode": -10709
       },
-      "errorCode": -10708
+      "structureInvalid": -10708
     },
     "links": {
       "$ref": "rdap_common.json#/definitions/links"

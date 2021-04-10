@@ -1,8 +1,9 @@
 package org.icann.rdapconformance.validator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
 import org.json.JSONObject;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 public class SchemaValidatorEventsTest extends SchemaValidatorTest {
@@ -14,21 +15,11 @@ public class SchemaValidatorEventsTest extends SchemaValidatorTest {
   }
 
   /**
-   * 7.2.5.2.1 relate to next test.
-   */
-  @Override
-  protected void insertForbiddenKey() {
-    JSONObject value = new JSONObject();
-    value.put("test", "value");
-    jsonObject.getJSONArray("events").getJSONObject(0).put("unknown", List.of(value));
-  }
-
-  /**
    * 7.2.5.2.1
    */
   @Test
   public void unauthorizedKey() {
-    validateAuthorizedKeys(-10901, List.of(
+    validateArrayAuthorizedKeys(-10901, List.of(
         "eventAction",
         "eventActor",
         "eventDate",
@@ -95,13 +86,18 @@ public class SchemaValidatorEventsTest extends SchemaValidatorTest {
   }
 
   /**
-   * 7.2.5.2.10. TODO: Maybe will need to do something custom for this one.
+   * 7.2.5.2.10.
    */
-  @Ignore
   @Test
   public void linksWithNoEventActor() {
     replaceArrayProperty("links", 0);
-    validateKeyMissing(-10910, "eventActor");
+    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
+    assertThat(results.getAll()).filteredOn(r -> r.getCode() == -10910)
+        .hasSize(1)
+        .first()
+        .hasFieldOrPropertyWithValue("value", "{\"links\":0,\"eventAction\":\"registration\",\"eventDate\":\"1997-09-15T04:00:00Z\"}")
+        .hasFieldOrPropertyWithValue("message",
+            "A links structure was found but an eventActor was not.");
   }
 
   /**
@@ -109,6 +105,6 @@ public class SchemaValidatorEventsTest extends SchemaValidatorTest {
    */
   @Test
   public void linksViolatesLinksValidation() {
-    arrayItemKeySubValidation("links", "stdRdapLinksValidation", -10911);
+    linksViolatesLinksValidation(-10911);
   }
 }

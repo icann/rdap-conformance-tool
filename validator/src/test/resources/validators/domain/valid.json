@@ -1,18 +1,18 @@
 {
   "objectClassName": "domain",
   "handle": "2138514_DOMAIN_COM-VRSN",
-  "ldhName": "GOOGLE.COM",
+  "ldhName": "EXAMPLE.COM",
   "links": [
     {
-      "value": "https://rdap.verisign.com/com/v1/domain/GOOGLE.COM",
+      "value": "https://rdap.example.com/com/v1/domain/EXAMPLE.COM",
       "rel": "self",
-      "href": "https://rdap.verisign.com/com/v1/domain/GOOGLE.COM",
+      "href": "https://rdap.example.com/com/v1/domain/EXAMPLE.COM",
       "type": "application/rdap+json"
     },
     {
-      "value": "https://rdap.markmonitor.com/rdap/domain/GOOGLE.COM",
+      "value": "https://rdap.markmonitor.com/rdap/domain/EXAMPLE.COM",
       "rel": "related",
-      "href": "https://rdap.markmonitor.com/rdap/domain/GOOGLE.COM",
+      "href": "https://rdap.markmonitor.com/rdap/domain/EXAMPLE.COM",
       "type": "application/rdap+json"
     }
   ],
@@ -116,19 +116,19 @@
   "nameservers": [
     {
       "objectClassName": "nameserver",
-      "ldhName": "NS1.GOOGLE.COM"
+      "ldhName": "NS1.EXAMPLE.COM"
     },
     {
       "objectClassName": "nameserver",
-      "ldhName": "NS2.GOOGLE.COM"
+      "ldhName": "NS2.EXAMPLE.COM"
     },
     {
       "objectClassName": "nameserver",
-      "ldhName": "NS3.GOOGLE.COM"
+      "ldhName": "NS3.EXAMPLE.COM"
     },
     {
       "objectClassName": "nameserver",
-      "ldhName": "NS4.GOOGLE.COM"
+      "ldhName": "NS4.EXAMPLE.COM"
     }
   ],
   "rdapConformance": [
@@ -144,7 +144,7 @@
       ],
       "links": [
         {
-          "href": "https://www.verisign.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml",
+          "href": "https://www.example.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml",
           "type": "text/html"
         }
       ]

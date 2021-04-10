@@ -2,8 +2,13 @@ package org.icann.rdapconformance.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.jknack.handlebars.internal.text.WordUtils;
+import java.io.File;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -15,7 +20,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public abstract class SchemaValidatorTest {
-
   private final String schemaName;
   private final String validJson;
   protected SchemaValidator schemaValidator;
@@ -31,10 +35,10 @@ public abstract class SchemaValidatorTest {
     this.validJson = validJson;
   }
 
-  public String getResource(String path) throws IOException {
-    URL jsonUri = this.getClass().getResource(path);
+  public static String getResource(String path) throws IOException {
+    URL jsonUri = SchemaValidatorTest.class.getResource(path);
     assert null != jsonUri;
-    try (InputStream is = this.getClass().getResourceAsStream(path)) {
+    try (InputStream is = SchemaValidatorTest.class.getResourceAsStream(path)) {
       assert null != is;
       try (InputStreamReader isr = new InputStreamReader(is);
           BufferedReader reader = new BufferedReader(isr)) {
@@ -71,6 +75,13 @@ public abstract class SchemaValidatorTest {
     JSONObject value = new JSONObject();
     value.put("test", "value");
     jsonObject.put("unknown", List.of(value));
+  }
+
+  protected void validateArrayAuthorizedKeys(int error, List<String> authorizedKeys) {
+    JSONObject value = new JSONObject();
+    value.put("test", "value");
+    jsonObject.getJSONArray(name).getJSONObject(0).put("unknown", List.of(value));
+    validateAuthorizedKeys(error, authorizedKeys);
   }
 
   protected void validateAuthorizedKeys(int errorCode, List<String> authorizedKeys) {
@@ -126,9 +137,24 @@ public abstract class SchemaValidatorTest {
         .hasFieldOrPropertyWithValue("message", "The JSON value is not a string.");
   }
 
+  protected void linksViolatesLinksValidation(int errorCode) {
+    arrayItemKeySubValidation("links", "stdRdapLinksValidation", errorCode);
+  }
+
   protected void arrayItemKeySubValidation(String key, String validationName, int errorCode) {
     replaceArrayProperty(key, 0);
     validateSubValidation(errorCode, validationName, "#/" + name + "/0/" + key + ":0");
+  }
+
+  protected void arrayInvalid(int error) {
+    jsonObject.put(name, 0);
+    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
+    assertThat(results.getAll()).filteredOn(r -> r.getCode() == error)
+        .hasSize(1)
+        .first()
+        .hasFieldOrPropertyWithValue("value", "#/"+name+":0")
+        .hasFieldOrPropertyWithValue("message",
+            "The #/" + name + " structure is not syntactically valid.");
   }
 
   protected void validateInvalidJson(int error, String value) {

@@ -28,18 +28,20 @@ public class BasicTypeExceptionParser extends ExceptionParser {
   public void doParse() {
     Object element = jsonObject.query(e.getPointerToViolation());
     String icannErrorMsg =
-        "The JSON value is not a " + matcher.group(1).toLowerCase()
-            + ".";
+        "The JSON value is not a " + matcher.group(1).toLowerCase() + ".";
     String value = e.getPointerToViolation() + ":" + element.toString();
+    int errorCode = parseErrorCode(() -> getErrorCodeFromViolatedSchema(e));
     if (matcher.group(1).equals("JSONArray")) {
       icannErrorMsg =
           "The " + e.getPointerToViolation() + " structure is not syntactically valid.";
       value =
           e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()).toString();
+      errorCode = parseErrorCode(() ->
+          (int) e.getViolatedSchema().getUnprocessedProperties().get("structureInvalid"));
     }
 
     results.add(RDAPValidationResult.builder()
-        .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
+        .code(errorCode)
         .value(value)
         .message(icannErrorMsg)
         .build());

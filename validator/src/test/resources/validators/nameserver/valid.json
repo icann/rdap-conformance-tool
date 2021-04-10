@@ -1,6 +1,6 @@
 {
   "objectClassName": "nameserver",
-  "ldhName": "NS1.GOOGLE.COM",
+  "ldhName": "NS1.EXAMPLE.COM",
   "ipAddresses": {
     "v4": [
       "216.239.32.10"
@@ -11,9 +11,9 @@
   },
   "links": [
     {
-      "value": "https://rdap.verisign.com/com/v1/nameserver/NS1.GOOGLE.COM",
+      "value": "https://rdap.example.com/com/v1/nameserver/NS1.EXAMPLE.COM",
       "rel": "self",
-      "href": "https://rdap.verisign.com/com/v1/nameserver/NS1.GOOGLE.COM",
+      "href": "https://rdap.example.com/com/v1/nameserver/NS1.EXAMPLE.COM",
       "type": "application/rdap+json"
     }
   ],
@@ -36,7 +36,7 @@
       ],
       "links": [
         {
-          "href": "https://www.verisign.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml",
+          "href": "https://www.example.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml",
           "type": "text/html"
         }
       ]

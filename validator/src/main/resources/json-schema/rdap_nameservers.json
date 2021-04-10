@@ -18,10 +18,10 @@
       "$ref": "rdap_common.json#/definitions/lang"
     },
     "notices" : {
-      "$ref": "rdap_common.json#/definitions/notices"
+      "$ref": "rdap_notices.json#"
     },
     "events": {
-      "$ref": "rdap_common.json#/definitions/events"
+      "$ref": "rdap_events.json#"
     },
     "remarks": {
       "$ref": "rdap_common.json#/definitions/remarks"
