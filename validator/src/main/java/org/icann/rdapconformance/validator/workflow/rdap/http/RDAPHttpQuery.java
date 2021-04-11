@@ -67,7 +67,7 @@ public class RDAPHttpQuery implements RDAPQuery {
      * not validation on the contents) for a search query, exit with an return code of 8.
      */
     if (httpResponse.statusCode() == 200) {
-      if (queryType.isLookupQuery() && !jsonResponseHasKey("objectClassName")) {
+      if (queryType.isLookupQuery() && !jsonResponseValid()) {
         logger.error("objectClassName was not found in the topmost object");
         status = RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND;
         return false;
@@ -207,8 +207,8 @@ public class RDAPHttpQuery implements RDAPQuery {
   /**
    * Check if the RDAP json response contains a specific key.
    */
-  private boolean jsonResponseHasKey(String key) {
-    return null != jsonResponse && jsonResponse.hasKey(key);
+  private boolean jsonResponseValid() {
+    return null != jsonResponse && jsonResponse.hasKey("objectClassName");
   }
 
   /**
