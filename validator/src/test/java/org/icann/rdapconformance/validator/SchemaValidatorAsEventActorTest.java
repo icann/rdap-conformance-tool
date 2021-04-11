@@ -27,7 +27,7 @@ public class SchemaValidatorAsEventActorTest extends SchemaValidatorForArrayTest
    */
   @Test
   public void invalid() {
-    arrayInvalid(-11300);
+    invalid(-11300);
   }
 
   /**
@@ -63,8 +63,8 @@ public class SchemaValidatorAsEventActorTest extends SchemaValidatorForArrayTest
   @Test
   public void eventActionNotInEnum() {
     replaceArrayProperty("eventAction", "wrong enum value");
-    validateNotEnum(-11306, "rdap_event.json#/definitions/eventAction/allOf/1",
-        "#/events/0/eventAction:wrong enum value");
+    validateNotEnum(-11306, "rdap_asEventActor_object.json#/definitions/eventAction/allOf/1",
+        "#/asEventActor/0/eventAction:wrong enum value");
   }
 
   /**

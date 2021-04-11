@@ -27,6 +27,19 @@
           "errorCode": -10905
         }
       ]
+    },
+    "eventDate": {
+      "allOf": [
+        {
+          "type": "string",
+          "errorCode": -10907
+        },
+        {
+          "type": "string",
+          "format": "date-time",
+          "errorCode": -10908
+        }
+      ]
     }
   },
   "properties": {
@@ -38,7 +51,7 @@
       "$ref": "#/definitions/eventAction"
     },
     "eventDate": {
-      "$ref": "rdap_common.json#/definitions/datetime"
+      "$ref": "#/definitions/eventDate"
     },
     "links": {
       "$ref": "rdap_common.json#/definitions/links"

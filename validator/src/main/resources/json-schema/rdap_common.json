@@ -55,7 +55,7 @@
     "entities": {
       "type": "array",
       "items": {
-        "$ref": "rdap_entity_object.json#"
+        "$ref": "rdap_entity.json#"
       },
       "validationName": "stdRdapEntitiesValidation"
     },
@@ -64,19 +64,6 @@
       "items": {
         "type": "string"
       }
-    },
-    "datetime": {
-      "allOf": [
-        {
-          "type": "string",
-          "errorCode": -10907
-        },
-        {
-          "type": "string",
-          "format": "date-time",
-          "errorCode": -10908
-        }
-      ]
     },
     "uri": {
       "type": "string",
@@ -96,10 +83,41 @@
     "ip": {
       "oneOf": [
         {
-          "$ref": "#/definitions/ipv4"
+          "$ref": "rdap_common.json#/definitions/ipv4"
         },
         {
-          "$ref": "#/definitions/ipv6"
+          "$ref": "rdap_common.json#/definitions/ipv6"
+        }
+      ]
+    },
+    "ipAddress": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "v4": {
+              "$ref": "rdap_common.json#/definitions/ipv4"
+            }
+          },
+          "unknownKeys": -11401,
+          "structureInvalid": -11400,
+          "additionalProperties": false,
+          "required": [
+            "v4"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v6": {
+              "$ref": "rdap_common.json#/definitions/ipv6"
+            }
+          },
+          "unknownKeys": -11401,
+          "additionalProperties": false,
+          "required": [
+            "v6"
+          ]
         }
       ]
     },
@@ -349,28 +367,6 @@
       },
       "structureInvalid": -10600,
       "validationName": "stdRdapLinksValidation"
-    },
-    "eventWithoutActor": {
-      "type": "object",
-      "properties": {
-        "eventAction": {
-          "anyOf":[
-            {
-            "$ref": "rdap_event.json#/definitions/eventAction"
-          },
-          {
-            "type" : "string",
-            "description": "non standard event action"
-          }
-         ]
-        },
-        "eventDate": {
-          "$ref": "#/definitions/datetime"
-        },
-        "links": {
-          "$ref": "#/definitions/links"
-        }
-      }
     },
     "notice": {
       "type": "object",

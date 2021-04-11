@@ -53,7 +53,7 @@
 		        "asEventActor": {
 		          "type": "array",
 		          "items": {
-		            "$ref": "rdap_common.json#/definitions/eventWithoutActor"
+		            "$ref": "rdap_asEventActor.json#"
 		          }
 		        },
 		        "publicIds": {

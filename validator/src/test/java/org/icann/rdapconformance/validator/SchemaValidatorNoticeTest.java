@@ -17,7 +17,7 @@ public class SchemaValidatorNoticeTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void invalid() {
-    arrayInvalid(-10700);
+    invalid(-10700);
   }
 
   /**

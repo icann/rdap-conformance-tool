@@ -18,7 +18,7 @@ public class SchemaValidatorRdapConformanceTest extends SchemaValidatorForArrayO
    */
   @Test
   public void invalid() {
-    arrayInvalid(-10500);
+    invalid(-10500);
   }
 
 

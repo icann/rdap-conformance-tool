@@ -39,7 +39,7 @@
 	        "entities": {
 	          "type": "array",
 	          "items": {
-	            "$ref": "rdap_entity_object.json#"
+	            "$ref": "rdap_entity.json#"
 	          }
 	        }
 	      },

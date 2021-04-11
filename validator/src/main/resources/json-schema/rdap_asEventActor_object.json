@@ -3,15 +3,58 @@
   "title": "asEventActor",
   "id": "rdap_asEventActor_object.json",
   "type": "object",
-  "properties": {
+  "definitions": {
     "eventAction": {
-      "$ref": "rdap_event.json#/definitions/eventAction"
+      "allOf": [
+        {
+          "type": "string",
+          "errorCode": -11305
+        },
+        {
+          "enum": [
+            "registration",
+            "reregistration",
+            "last changed",
+            "expiration",
+            "deletion",
+            "reinstantiation",
+            "transfer",
+            "locked",
+            "unlocked",
+            "last update of RDAP database",
+            "registrar expiration",
+            "enum validation expiration"
+          ],
+          "errorCode": -11306
+        }
+      ]
     },
     "eventDate": {
-      "$ref": "rdap_common.json#/definitions/datetime"
+      "allOf": [
+        {
+          "type": "string",
+          "errorCode": -11308
+        },
+        {
+          "type": "string",
+          "format": "date-time",
+          "errorCode": -11309
+        }
+      ]
     }
   },
-  "required": ["eventAction", "eventDate"],
+  "properties": {
+    "eventAction": {
+      "$ref": "#/definitions/eventAction"
+    },
+    "eventDate": {
+      "$ref": "#/definitions/eventDate"
+    }
+  },
+  "required": [
+    "eventAction",
+    "eventDate"
+  ],
   "additionalProperties": false,
   "unknownKeys": -11302,
   "eventActionMissing": -11304,

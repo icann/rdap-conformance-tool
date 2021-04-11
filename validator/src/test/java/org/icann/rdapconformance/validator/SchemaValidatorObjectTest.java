@@ -47,11 +47,6 @@ public abstract class SchemaValidatorObjectTest extends SchemaValidatorTest {
   }
 
   @Test
-  public void testValidate_InvalidKeyValuePair() {
-    validateAuthorizedKeys(unknownKeyCode, authorizedKeys);
-  }
-
-  @Test
   public void testValidate_DuplicatedKey() {
     String key = authorizedKeys.stream().findFirst().get();
     String invalidRdapContent =

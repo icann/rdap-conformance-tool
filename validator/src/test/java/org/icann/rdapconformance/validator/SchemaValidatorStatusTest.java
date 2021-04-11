@@ -2,8 +2,6 @@ package org.icann.rdapconformance.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-import org.json.JSONObject;
 import org.testng.annotations.Test;
 
 public class SchemaValidatorStatusTest extends SchemaValidatorForArrayOfStringTest {
@@ -19,7 +17,7 @@ public class SchemaValidatorStatusTest extends SchemaValidatorForArrayOfStringTe
    */
   @Test
   public void invalid() {
-    arrayInvalid(-11000);
+    invalid(-11000);
   }
 
   /**

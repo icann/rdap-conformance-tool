@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator;
 
 import java.util.List;
-import org.json.JSONObject;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
@@ -17,7 +16,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void invalid() {
-    arrayInvalid(-10600);
+    invalid(-10600);
   }
 
   /**

@@ -22,6 +22,13 @@ public abstract class SchemaValidatorForArrayTest extends SchemaValidatorTest {
     super(schemaName, validJson);
   }
 
+  @Override
+  protected void insertForbiddenKey() {
+    JSONObject value = new JSONObject();
+    value.put("test", "value");
+    jsonObject.getJSONArray(name).getJSONObject(0).put("unknown", List.of(value));
+  }
+
   public void keyDoesNotExistInArray(String key, int errorCode) {
     jsonObject.getJSONArray(name).getJSONObject(0).remove(key);
     validateKeyMissing(errorCode, key);
@@ -33,9 +40,6 @@ public abstract class SchemaValidatorForArrayTest extends SchemaValidatorTest {
   }
 
   protected void validateArrayAuthorizedKeys(int error, List<String> authorizedKeys) {
-    JSONObject value = new JSONObject();
-    value.put("test", "value");
-    jsonObject.getJSONArray(name).getJSONObject(0).put("unknown", List.of(value));
     validateAuthorizedKeys(error, authorizedKeys);
   }
 
@@ -56,16 +60,5 @@ public abstract class SchemaValidatorForArrayTest extends SchemaValidatorTest {
   protected void arrayItemKeySubValidation(String key, String validationName, int errorCode) {
     replaceArrayProperty(key, 0);
     validateSubValidation(validationName, "#/" + name + "/0/" + key + ":0", errorCode);
-  }
-
-  protected void arrayInvalid(int error) {
-    jsonObject.put(name, 0);
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(results.getAll()).filteredOn(r -> r.getCode() == error)
-        .hasSize(1)
-        .first()
-        .hasFieldOrPropertyWithValue("value", "#/"+name+":0")
-        .hasFieldOrPropertyWithValue("message",
-            "The #/" + name + " structure is not syntactically valid.");
   }
 }

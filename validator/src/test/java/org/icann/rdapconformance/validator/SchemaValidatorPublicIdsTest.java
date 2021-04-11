@@ -16,7 +16,7 @@ public class SchemaValidatorPublicIdsTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void invalid() {
-    arrayInvalid(-11200);
+    invalid(-11200);
   }
 
   /**

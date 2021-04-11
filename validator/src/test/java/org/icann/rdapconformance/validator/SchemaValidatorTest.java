@@ -57,10 +57,21 @@ public abstract class SchemaValidatorTest {
     assertThat(schemaValidator.validate(rdapContent)).isTrue();
   }
 
+  protected void invalid(int error) {
+    jsonObject.put(name, 0);
+    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
+    assertThat(results.getAll()).filteredOn(r -> r.getCode() == error)
+        .hasSize(1)
+        .first()
+        .hasFieldOrPropertyWithValue("value", "#/"+name+":0")
+        .hasFieldOrPropertyWithValue("message",
+            "The #/" + name + " structure is not syntactically valid.");
+  }
+
   protected void insertForbiddenKey() {
     JSONObject value = new JSONObject();
     value.put("test", "value");
-    jsonObject.put("unknown", List.of(value));
+    jsonObject.getJSONObject(name).put("unknown", List.of(value));
   }
 
   protected void validateAuthorizedKeys(int errorCode, List<String> authorizedKeys) {

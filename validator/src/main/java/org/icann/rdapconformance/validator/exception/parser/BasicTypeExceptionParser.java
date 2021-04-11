@@ -31,7 +31,7 @@ public class BasicTypeExceptionParser extends ExceptionParser {
         "The JSON value is not a " + matcher.group(1).toLowerCase() + ".";
     String value = e.getPointerToViolation() + ":" + element.toString();
     int errorCode = parseErrorCode(() -> getErrorCodeFromViolatedSchema(e));
-    if (matcher.group(1).equals("JSONArray")) {
+    if (matcher.group(1).equals("JSONArray") || matcher.group(1).equals("JSONObject")) {
       icannErrorMsg =
           "The " + e.getPointerToViolation() + " structure is not syntactically valid.";
       value =
