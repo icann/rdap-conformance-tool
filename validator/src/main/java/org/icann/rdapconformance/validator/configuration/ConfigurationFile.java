@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.configuration;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,8 +50,8 @@ public class ConfigurationFile {
    */
   private final List<String> definitionNotes;
 
-  private Set<Integer> errorCodes;
-  private Set<Integer> warningCodes;
+  private final Set<Integer> errorCodes;
+  private final Set<Integer> warningCodes;
 
   public ConfigurationFile(String definitionIdentifier,
       List<DefinitionAlerts> definitionError,
@@ -109,10 +110,10 @@ public class ConfigurationFile {
   public static class Builder {
 
     private String definitionIdentifier;
-    private List<DefinitionAlerts> definitionError;
-    private List<DefinitionAlerts> definitionWarning;
-    private List<Integer> definitionIgnore;
-    private List<String> definitionNotes;
+    private List<DefinitionAlerts> definitionError = Collections.emptyList();
+    private List<DefinitionAlerts> definitionWarning = Collections.emptyList();
+    private List<Integer> definitionIgnore = Collections.emptyList();
+    private List<String> definitionNotes = Collections.emptyList();
 
     public Builder definitionIdentifier(String definitionIdentifier) {
       this.definitionIdentifier = definitionIdentifier;
