@@ -81,7 +81,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     NAMESERVER(RDAPQueryType.NAMESERVER, Pattern.compile("/nameserver/([^/]+)$")),
     ENTITY(RDAPQueryType.ENTITY, Pattern.compile("/entity/([^/]+)$")),
     HELP(RDAPQueryType.HELP, Pattern.compile("/help$")),
-    NAMESERVERS(RDAPQueryType.NAMESERVERS, Pattern.compile("/nameservers?ip=([^/]+)$"));
+    NAMESERVERS(RDAPQueryType.NAMESERVERS, Pattern.compile("/nameservers\\?ip=([^/]+)$"));
 
     private final RDAPQueryType queryType;
     private final Pattern pattern;
