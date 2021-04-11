@@ -4,7 +4,7 @@ import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
+import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,13 +16,16 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
   protected final RDAPValidatorConfiguration config;
   protected final RDAPQueryTypeProcessor queryTypeProcessor;
   protected final RDAPQuery query;
+  protected final FileSystem fileSystem;
 
   protected final RDAPValidatorResults results = new RDAPValidatorResults();
 
   public RDAPValidator(RDAPValidatorConfiguration config,
+      FileSystem fileSystem,
       RDAPQueryTypeProcessor queryTypeProcessor,
       RDAPQuery query) {
     this.config = config;
+    this.fileSystem = fileSystem;
     this.query = query;
     if (!this.config.check()) {
       logger.error("Please fix the configuration");
@@ -39,7 +42,7 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
      */
     ConfigurationFile configurationFile;
     try {
-      ConfigurationFileParser configParser = new ConfigurationFileParser();
+      ConfigurationFileParser configParser = new ConfigurationFileParser(fileSystem);
       configurationFile = configParser.parse(this.config.getConfigurationFile());
     } catch (Exception e) {
       logger.error("Configuration is invalid", e);
@@ -47,7 +50,7 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
     }
 
     RDAPValidationResultFile rdapValidationResultFile = new RDAPValidationResultFile(results,
-        config, configurationFile, new LocalFileSystem());
+        config, configurationFile, fileSystem);
 
     /* If the parameter (--use-local-datasets) is set, use the datasets found in the filesystem,
      * download the datasets not found in the filesystem, and persist them in the filesystem.

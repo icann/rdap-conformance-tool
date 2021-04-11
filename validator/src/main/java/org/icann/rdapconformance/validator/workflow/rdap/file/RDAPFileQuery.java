@@ -1,17 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.rdap.file;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URI;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
-import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
@@ -24,11 +17,13 @@ public class RDAPFileQuery implements RDAPQuery {
   private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
   private final RDAPValidatorConfiguration config;
-  private final FileSystem fs = new LocalFileSystem();
+  private final FileSystem fileSystem;
   private String data;
 
-  public RDAPFileQuery(RDAPValidatorConfiguration config) {
+  public RDAPFileQuery(RDAPValidatorConfiguration config,
+      FileSystem fileSystem) {
     this.config = config;
+    this.fileSystem = fileSystem;
   }
 
   @Override
@@ -41,7 +36,7 @@ public class RDAPFileQuery implements RDAPQuery {
     final URI uri = this.config.getUri();
 
     try {
-      data = fs.readFile(uri.getPath());
+      data = fileSystem.readFile(uri.getPath());
     } catch (IOException e) {
       logger.error("Cannot read from uri {}", uri, e);
       return false;

@@ -1,33 +1,26 @@
 package org.icann.rdapconformance.validator.configuration;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ConfigurationFileParser {
 
+  private final FileSystem fileSystem;
 
-  public ConfigurationFileParser() {
+  public ConfigurationFileParser(FileSystem fileSystem) {
+    this.fileSystem = fileSystem;
   }
 
   public ConfigurationFile parse(File configuration) throws IOException {
-    String jsonConfigStr;
-    try (InputStream fis = new FileInputStream(configuration);
-        Reader isr = new InputStreamReader(fis);
-        BufferedReader br = new BufferedReader(isr)) {
-      jsonConfigStr = br.lines().collect(Collectors.joining(System.lineSeparator()));
-    }
+    String jsonConfigStr = fileSystem.readFile(configuration.getAbsolutePath());
     JSONObject jsonConfig = new JSONObject(jsonConfigStr);
     return new ConfigurationFile.Builder()
         .definitionIdentifier(jsonConfig.getString("definitionIdentifier"))
