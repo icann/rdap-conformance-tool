@@ -6,5 +6,6 @@
   "items": {
     "$ref": "rdap_event.json#"
   },
-  "validationName": "stdRdapEventsValidation"
+  "validationName": "stdRdapEventsValidation",
+  "structureInvalid": -10900
 }

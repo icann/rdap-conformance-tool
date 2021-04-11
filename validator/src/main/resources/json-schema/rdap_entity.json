@@ -58,11 +58,7 @@
       "$ref": "rdap_common.json#/definitions/entities"
     },
     "asEventActor": {
-      "type": "array",
-      "items": {
-        "$ref": "rdap_common.json#/definitions/eventWithoutActor"
-      },
-      "validationName": "stdRdapAsEventActorValidation"
+      "$ref": "rdap_asEventActor.json#"
     },
     "publicIds": {
       "$ref": "rdap_publicIds.json#"

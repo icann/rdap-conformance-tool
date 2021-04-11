@@ -14,6 +14,14 @@ public class SchemaValidatorEventsTest extends SchemaValidatorForArrayTest {
   }
 
   /**
+   * 7.2.5.1.
+   */
+  @Test
+  public void invalid() {
+    arrayInvalid(-10900);
+  }
+
+  /**1
    * 7.2.5.2.1
    */
   @Test

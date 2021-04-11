@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "asEventActor",
+  "id": "rdap_asEventActor_object.json",
+  "type": "object",
+  "properties": {
+    "eventAction": {
+      "$ref": "rdap_event.json#/definitions/eventAction"
+    },
+    "eventDate": {
+      "$ref": "rdap_common.json#/definitions/datetime"
+    }
+  },
+  "required": ["eventAction", "eventDate"],
+  "additionalProperties": false,
+  "unknownKeys": -11302,
+  "eventActionMissing": -11304,
+  "eventDateMissing": -11307
+}
