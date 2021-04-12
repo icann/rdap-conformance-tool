@@ -6,16 +6,6 @@
       "const": "domain",
       "errorCode": -12203
     },
-    "variantRelation": {
-      "type": "string",
-      "enum": [
-        "registered",
-        "unregistered",
-        "registration restricted",
-        "open registration",
-        "conjoined"
-      ]
-    },
     "dnssecAlgorithm": {
       "type": "integer",
       "enum": [
@@ -120,34 +110,6 @@
           "$ref": "#/definitions/keyData"
         }
       }
-    },
-    "variant": {
-      "type": "object",
-      "properties": {
-        "relation": {
-          "type": "array",
-          "items": {
-                "$ref": "#/definitions/variantRelation"          
-          }
-        },
-        "idnTable": {
-          "type": "string"
-        },
-        "variantNames": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "ldhName": {
-                "$ref": "rdap_common.json#/definitions/ldhName"
-              },
-              "unicodeName": {
-                "$ref": "rdap_common.json#/definitions/unicodeName"
-              }
-            }
-          }
-        }
-      }
     }
    },
   "allOf": [
@@ -175,10 +137,7 @@
 	          "$ref": "#/definitions/secureDNS"
 	        },
 	        "variants": {
-	          "type": "array",
-	          "items": {
-	            "$ref": "#/definitions/variant"
-	          }
+            "$ref": "rdap_variants.json#",
 	        },
 	        "entities": {
 	          "type": "array",

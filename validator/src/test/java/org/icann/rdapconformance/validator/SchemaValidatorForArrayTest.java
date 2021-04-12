@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -27,6 +28,15 @@ public abstract class SchemaValidatorForArrayTest extends SchemaValidatorTest {
     JSONObject value = new JSONObject();
     value.put("test", "value");
     jsonObject.getJSONArray(name).getJSONObject(0).put("unknown", List.of(value));
+  }
+
+  @Override
+  protected void validateSubValidation(String validationName, String keyValue, int errorCode) {
+    if (!keyValue.contains(":")) {
+      ((JSONArray) jsonObject.get(name)).getJSONObject(0).put(keyValue, 0);
+      keyValue = "#/" + name + "/0/" + keyValue + ":0";
+    }
+    this.validateSubValidation(jsonObject.toString(), errorCode, validationName, keyValue);
   }
 
   public void keyDoesNotExistInArray(String key, int errorCode) {

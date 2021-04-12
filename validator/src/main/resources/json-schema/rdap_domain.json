@@ -17,11 +17,7 @@
       "$ref": "rdap_common.json#/definitions/unicodeName"
     },
     "variants": {
-      "type": "array",
-      "items": {
-        "$ref": "rdap_domain_object.json#/definitions/variant"
-      },
-      "validationName": "stdRdapVariantsValidation"
+      "$ref": "rdap_variants.json#"
     },
     "nameservers": {
       "type": "array",
