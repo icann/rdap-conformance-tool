@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
@@ -72,6 +73,16 @@ public abstract class SchemaValidatorTest {
     JSONObject value = new JSONObject();
     value.put("test", "value");
     jsonObject.getJSONObject(name).put("unknown", List.of(value));
+  }
+
+  protected void validate(int errorCode, String value, String msg) {
+    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
+    assertThat(results.getAll())
+        .contains(RDAPValidationResult.builder()
+            .code(errorCode)
+            .value(value)
+            .message(msg)
+            .build());
   }
 
   protected void validateAuthorizedKeys(int errorCode, List<String> authorizedKeys) {

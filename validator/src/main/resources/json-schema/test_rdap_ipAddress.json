@@ -5,7 +5,8 @@
   "type": "object",
   "properties": {
     "ipAddress": {
-      "$ref": "rdap_common.json#/definitions/ipAddress"
+      "$ref": "rdap_ipAddress.json#",
+      "structureInvalid": -11400
     }
   }
 }

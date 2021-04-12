@@ -25,13 +25,13 @@
 	            "v6": {
 	              "type": "array",
 	              "items": {
-	                "$ref": "rdap_common.json#/definitions/ipv6"
+	                "$ref": "rdap_ipAddress.json#/definitions/ipv6"
 	              }
 	            },
 	            "v4": {
 	              "type": "array",
 	              "items": {
-	                "$ref": "rdap_common.json#/definitions/ipv4"
+	                "$ref": "rdap_ipAddress.json#/definitions/ipv4"
 	              }
 	            }
 	          }

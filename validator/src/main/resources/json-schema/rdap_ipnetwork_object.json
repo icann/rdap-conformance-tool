@@ -14,10 +14,10 @@
 	          "$ref": "#/definitions/ipnetworkClass"
 	        },
 	        "stratAddress": {
-	          "$ref": "rdap_common.json#/definitions/ip"
+	          "$ref": "rdap_ipAddress.json#/definitions/ip"
 	        },
 	        "endAddress": {
-	          "$ref": "rdap_common.json#/definitions/ip"
+	          "$ref": "rdap_ipAddress.json#/definitions/ip"
 	        },
 	        "ipVersion": {
 	          "type": "string",

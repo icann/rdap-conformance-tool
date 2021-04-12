@@ -70,58 +70,7 @@
       "format": "uri",
       "validationName": "webUriValidation"
     },
-    "ipv4": {
-      "type": "string",
-      "format": "ipv4",
-      "validationName": "IPv4Validation"
-    },
-    "ipv6": {
-      "type": "string",
-      "format": "ipv6",
-      "validationName": "IPv6Validation"
-    },
-    "ip": {
-      "oneOf": [
-        {
-          "$ref": "rdap_common.json#/definitions/ipv4"
-        },
-        {
-          "$ref": "rdap_common.json#/definitions/ipv6"
-        }
-      ]
-    },
-    "ipAddress": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "v4": {
-              "$ref": "rdap_common.json#/definitions/ipv4"
-            }
-          },
-          "unknownKeys": -11401,
-          "structureInvalid": -11400,
-          "additionalProperties": false,
-          "required": [
-            "v4"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "v6": {
-              "$ref": "rdap_common.json#/definitions/ipv6"
-            }
-          },
-          "unknownKeys": -11401,
-          "additionalProperties": false,
-          "required": [
-            "v6"
-          ]
-        }
-      ]
-    },
-      "rirBasicType": {
+    "rirBasicType": {
 	      "type": "string",
 	      "enum": [
 	        "DIRECT ALLOCATION",

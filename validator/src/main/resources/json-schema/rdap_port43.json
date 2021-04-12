@@ -4,7 +4,7 @@
   "id": "rdap_port43.json",
   "oneOf": [
     {
-      "$ref": "rdap_common.json#/definitions/ip"
+      "$ref": "rdap_ipAddress.json#/definitions/ip"
     },
     {
       "type": "string",

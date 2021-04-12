@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ipAddress",
+  "id": "rdap_ipAddress.json",
+  "definitions": {
+    "ipv4": {
+      "allOf": [
+        {
+          "type": "string",
+          "validationName": "IPv4Validation",
+          "errorCode": -11405
+        },
+        {
+          "format": "ipv4",
+          "validationName": "IPv4Validation",
+          "errorCode": -11404
+        }
+      ]
+    },
+    "ipv6": {
+      "allOf": [
+        {
+          "type": "string",
+          "validationName": "IPv6Validation",
+          "errorCode": -11408
+        },
+        {
+          "format": "ipv6",
+          "validationName": "IPv6Validation",
+          "errorCode": -11407
+        }
+      ]
+    },
+    "ip": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/ipv4"
+        },
+        {
+          "$ref": "#/definitions/ipv6"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "type": "object",
+      "properties": {
+        "v4": {},
+        "v6": {}
+      },
+      "unknownKeys": -11401,
+      "structureInvalid": -11400,
+      "additionalProperties": false
+    },
+    {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "v4": {}
+            },
+            "required": ["v4"]
+          },
+          "then": {
+            "properties": {
+              "v4": {
+                "$ref": "#/definitions/ipv4"
+              }
+            },
+            "unknownKeys": -11401,
+            "structureInvalid": -11400,
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "v6": {}
+            },
+            "required": ["v6"]
+          },
+          "then": {
+            "properties": {
+              "v6": {
+                "$ref": "#/definitions/ipv6"
+              }
+            },
+            "unknownKeys": -11401,
+            "structureInvalid": -11400,
+            "additionalProperties": false
+          }
+        }
+      ]
+    }
+  ]
+}

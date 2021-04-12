@@ -16,7 +16,7 @@
       "hrefSchema": {
         "properties": {
           "ip": {
-            "$ref": "rdap_common.json#/definitions/ip"
+            "$ref": "rdap_ipAddress.json#/definitions/ip"
           }
         }
       },
@@ -32,7 +32,7 @@
           {
 	          "properties": {          
 		          "cidrPrefix": {
-		            "$ref": "rdap_common.json#/definitions/ipV4"
+		            "$ref": "rdap_ipAddress.json#/definitions/ipv4"
 		          },
 		          "cidrLength": {
 		            "type": "integer",
@@ -44,7 +44,7 @@
            {
 	          "properties": {          
 		          "cidrPrefix": {
-		            "$ref": "rdap_common.json#/definitions/ipV6"
+		            "$ref": "rdap_ipAddress.json#/definitions/ipv6"
 		          },
 		          "cidrLength": {
 		            "type": "integer",
