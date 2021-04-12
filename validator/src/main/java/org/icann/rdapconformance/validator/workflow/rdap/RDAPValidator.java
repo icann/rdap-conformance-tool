@@ -13,12 +13,10 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
 
-  protected final RDAPValidatorConfiguration config;
-  protected final RDAPQueryTypeProcessor queryTypeProcessor;
-  protected final RDAPQuery query;
-  protected final FileSystem fileSystem;
-
-  protected final RDAPValidatorResults results = new RDAPValidatorResults();
+  private final RDAPValidatorConfiguration config;
+  private final RDAPQueryTypeProcessor queryTypeProcessor;
+  private final RDAPQuery query;
+  private final FileSystem fileSystem;
 
   public RDAPValidator(RDAPValidatorConfiguration config,
       FileSystem fileSystem,
@@ -49,7 +47,8 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
       return RDAPValidationStatus.CONFIG_INVALID.getValue();
     }
 
-    RDAPValidationResultFile rdapValidationResultFile = new RDAPValidationResultFile(results,
+    final RDAPValidatorResults results = new RDAPValidatorResults();
+    final RDAPValidationResultFile rdapValidationResultFile = new RDAPValidationResultFile(results,
         config, configurationFile, fileSystem);
 
     /* If the parameter (--use-local-datasets) is set, use the datasets found in the filesystem,

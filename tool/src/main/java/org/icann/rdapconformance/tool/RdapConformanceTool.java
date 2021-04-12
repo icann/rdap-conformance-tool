@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
+import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
@@ -40,7 +41,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Override
   public Integer call() throws Exception {
-    RDAPValidator validator;
+    ValidatorWorkflow validator;
     if (uri.getScheme() != null && uri.getScheme().startsWith("http")) {
       validator = new RDAPHttpValidator(this, fileSystem);
     } else {
