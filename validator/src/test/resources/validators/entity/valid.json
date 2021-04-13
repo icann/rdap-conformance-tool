@@ -23,7 +23,7 @@
         "fn",
         {},
         "text",
-        "MarkMonitor Inc."
+        "Example Inc."
       ]
     ]
   ],
@@ -55,13 +55,13 @@
               "type": "voice"
             },
             "uri",
-            "tel:+1.2083895740"
+            "tel:+1.9999999999"
           ],
           [
             "email",
             {},
             "text",
-            "abusecomplaints@markmonitor.com"
+            "abusecomplaints@example.com"
           ]
         ]
       ]

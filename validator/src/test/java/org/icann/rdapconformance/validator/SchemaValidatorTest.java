@@ -241,7 +241,7 @@ public abstract class SchemaValidatorTest {
     validateSubValidation("stdRdapLdhNameValidation", "ldhName", errorCode);
   }
 
-  private String getKey(String value) {
+  protected String getKey(String value) {
     return value.split(":")[0];
   }
 }

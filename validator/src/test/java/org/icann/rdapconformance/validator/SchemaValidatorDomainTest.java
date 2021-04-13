@@ -29,8 +29,7 @@ public class SchemaValidatorDomainTest extends SchemaValidatorObjectTest {
 
   @Test
   public void validateHandle() {
-    jsonObject.put("handle", 0);
-    validateIsNotAJsonString(-12204, "#/handle:0");
+    validateIsNotAJsonString(-12204, "handle");
   }
 
   @Test

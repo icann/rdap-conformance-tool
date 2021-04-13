@@ -57,7 +57,9 @@
       "items": {
         "$ref": "rdap_entity.json#"
       },
-      "validationName": "stdRdapEntitiesValidation"
+      "validationName": "stdRdapEntitiesValidation",
+      "structureInvalid": -11900,
+      "stdRdapEntityLookupValidation": -11901
     },
     "stringArray": {
       "type": "array",
@@ -95,13 +97,21 @@
      },        
     "ldhName": {
       "type": "string",
-      "format": "hostname",
-      "validationName": "stdRdapLdhNameValidation"
+      "format" : "idn-hostname",
+      "validationName": "stdRdapLdhNameValidation",
+      "errorCode": -11703,
+      "labelTooLong": -11700,
+      "domainTooLong": -11701,
+      "lessThanTwoLabels": -11702
     },
     "unicodeName": {
       "type": "string",
       "format" : "idn-hostname",
-      "validationName": "stdRdapUnicodeNameValidation"
+      "validationName": "stdRdapUnicodeNameValidation",
+      "errorCode": -11603,
+      "labelTooLong": -11600,
+      "domainTooLong": -11601,
+      "lessThanTwoLabels": -11602
     },
     "domainName": {
       "oneOf": [

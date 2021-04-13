@@ -60,4 +60,14 @@ public abstract class SchemaValidatorObjectTest extends SchemaValidatorTest {
         .hasFieldOrPropertyWithValue("message",
             "The name in the name/value pair of a link structure was found more than once.");
   }
+
+  protected void validateIsNotAJsonString(int errorCode, String key) {
+    jsonObject.put(key, 0);
+    super.validateIsNotAJsonString(errorCode, "#/" + key + ":0");
+  }
+
+  protected void validateIsNotANumber(int errorCode, String key) {
+    jsonObject.put(key, "not-a-number");
+    validate(errorCode, "#/" + key + ":not-a-number", "The JSON value is not a integer.");
+  }
 }

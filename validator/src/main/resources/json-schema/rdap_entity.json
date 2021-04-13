@@ -8,20 +8,27 @@
       "errorCode": -12303
     },
     "entityRole": {
-      "type": "string",
-      "description" : "the name is entityRole instead of simply role to distinguish it from the role defintiion in jcard",
-      "enum": [
-        "registrant",
-        "technical",
-        "administrative",
-        "abuse",
-        "billing",
-        "registrar",
-        "reseller",
-        "sponsor",
-        "proxy",
-        "notifications",
-        "noc"
+      "allOf": [
+        {
+          "type": "string",
+          "errorCode": -11801
+        },
+        {
+          "enum": [
+            "registrant",
+            "technical",
+            "administrative",
+            "abuse",
+            "billing",
+            "registrar",
+            "reseller",
+            "sponsor",
+            "proxy",
+            "notifications",
+            "noc"
+          ],
+          "errorCode": -11802
+        }
       ]
     }
   },
@@ -52,7 +59,10 @@
       "items": {
         "$ref": "#/definitions/entityRole"
       },
-      "validationName": "stdRdapRolesValidation"
+      "uniqueItems": true,
+      "duplicateItemsErrorCode": -11803,
+      "validationName": "stdRdapRolesValidation",
+      "structureInvalid": -11800
     },
     "entities": {
       "$ref": "rdap_common.json#/definitions/entities"
@@ -110,5 +120,6 @@
   "stdRdapStatusValidation": -12313,
   "stdRdapPort43WhoisServerValidation": -12314,
   "stdRdapNoticesRemarksValidation": -12315,
-  "stdRdapConformanceValidation": -12317
+  "stdRdapConformanceValidation": -12317,
+  "validationName": "stdRdapEntityLookupValidation"
 }

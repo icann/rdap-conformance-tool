@@ -19,6 +19,6 @@ public class HostNameExceptionParser extends StringFormatExceptionParser<Hostnam
 
   @Override
   protected void doParse() {
-
+    System.out.println("");
   }
 }

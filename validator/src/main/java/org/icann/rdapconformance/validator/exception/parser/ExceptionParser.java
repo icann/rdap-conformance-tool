@@ -53,6 +53,8 @@ public abstract class ExceptionParser {
       parsers.add(new HostNameExceptionParser(basicException, schema, object, results));
       parsers.add(new Ipv4ExceptionParser(basicException, schema, object, results));
       parsers.add(new Ipv6ExceptionParser(basicException, schema, object, results));
+      parsers.add(new IdnHostNameExceptionParser(basicException, schema, object, results));
+      parsers.add(new UniqueItemsExceptionParser(basicException, schema, object, results));
     }
 
     return parsers;
