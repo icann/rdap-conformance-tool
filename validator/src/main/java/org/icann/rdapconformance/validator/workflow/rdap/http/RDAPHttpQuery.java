@@ -138,25 +138,31 @@ public class RDAPHttpQuery implements RDAPQuery {
           .build()
           .send(request, HttpResponse.BodyHandlers.ofString());
     } catch (ConnectException | HttpTimeoutException e) {
+      logger.error("Exception when connecting to RDAP server", e);
       status = RDAPValidationStatus.CONNECTION_FAILED;
-      if (hasCause(e, "UnresolvedAddressException")) {
+      if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
         status = RDAPValidationStatus.NETWORK_SEND_FAIL;
       }
     } catch (IOException e) {
+      logger.error("Exception receiving data from the RDAP server", e);
       status = RDAPValidationStatus.NETWORK_RECEIVE_FAIL;
-      if (hasCause(e, "CertificateExpiredException")) {
+      if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
         status = RDAPValidationStatus.EXPIRED_CERTIFICATE;
-      } else if (hasCause(e, "CertificateRevokedException")) {
+      } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
         status = RDAPValidationStatus.REVOKED_CERTIFICATE;
-      } else if (hasCause(e, "SSLHandshakeException") || hasCause(e, "CertificateException")) {
+      } else if (hasCause(e, "java.security.cert.CertificateException")) {
+        status = RDAPValidationStatus.CERTIFICATE_ERROR;
         if (e.getMessage().startsWith("No name matching") || e.getMessage()
             .startsWith("No subject alternative DNS name matching")) {
           status = RDAPValidationStatus.INVALID_CERTIFICATE;
-        } else {
-          status = RDAPValidationStatus.CERTIFICATE_ERROR;
         }
+      } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException")) {
+        status = RDAPValidationStatus.HANDSHAKE_FAILED;
+      } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
+        status = RDAPValidationStatus.CERTIFICATE_ERROR;
       }
     } catch (Exception e) {
+      logger.error("Exception with RDAP query", e);
       status = RDAPValidationStatus.CONNECTION_FAILED;
     }
   }
@@ -168,6 +174,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     int httpStatusCode = httpResponse.statusCode();
     if (String.valueOf(httpStatusCode).startsWith("30")) {
+      logger.error("Received to many redirects");
       status = RDAPValidationStatus.TOO_MANY_REDIRECTS;
       return;
     }
@@ -222,7 +229,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
   private boolean hasCause(Throwable e, String causeClassName) {
     while (e.getCause() != null) {
-      if (e.getCause().getClass().getSimpleName().equals(causeClassName)) {
+      if (e.getCause().getClass().getName().equals(causeClassName)) {
         return true;
       }
       e = e.getCause();

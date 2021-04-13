@@ -44,12 +44,22 @@ public class RDAPHttpQueryTest {
         {Fault.CONNECTION_RESET_BY_PEER}};
   }
 
+  @DataProvider(name = "tlsErrors")
+  public static Object[][] serverTlsErrors() {
+    // TODO the following data rely on web resources that may change without notice, should
+    // create our own certificates, CRL, etc.
+    return new Object[][]{{"https://expired.badssl.com", RDAPValidationStatus.EXPIRED_CERTIFICATE},
+        {"https://revoked.badssl.com", RDAPValidationStatus.REVOKED_CERTIFICATE},
+        {"https://wrong.host.badssl.com", RDAPValidationStatus.INVALID_CERTIFICATE},
+        {"https://untrusted-root.badssl.com", RDAPValidationStatus.HANDSHAKE_FAILED}};
+  }
+
   @BeforeMethod
   public void setUp(Method method) {
     WireMockConfiguration wmConfig = wireMockConfig()
         .dynamicHttpsPort()
         .bindAddress(wiremockHost);
-    if (method.getName().equals("test_WithHttps")) {
+    if (method.getName().contains("LocalTrustStore")) {
       String keyStorePath = this.getClass().getResource("/mykeystore/out/ca-cert.jks").toString();
       String trustStorePath = this.getClass().getResource("/mykeystore/out/server.jks").toString();
       System.setProperty("javax.net.ssl.trustStore", trustStorePath.replace("file:", ""));
@@ -79,7 +89,7 @@ public class RDAPHttpQueryTest {
 
   @Test
   @Ignore("System properties are not taken into account when launched among other tests, works as a standalone test though")
-  public void test_WithHttps() {
+  public void test_WithHttps_LocalTrustStore() {
     String path = "/domain/test.example";
     String response = "{\"objectClassName\": \"domain\"}";
 
@@ -99,6 +109,27 @@ public class RDAPHttpQueryTest {
     assertThat(rdapHttpQuery.getData()).isEqualTo(response);
     assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
     assertThat(rdapHttpQuery.jsonResponseIsArray()).isFalse();
+  }
+
+  @Test(dataProvider = "fault")
+  @Ignore("System properties are not taken into account when launched among other tests, works as a standalone test though")
+  public void test_ServerFaultWithHttps_LocalTrustStore(Fault fault) {
+    String path = "/domain/test.example";
+
+    doReturn(URI.create(
+        String.format("https://%s:%s%s", wiremockHost, wireMockServer.httpsPort(), path)))
+        .when(config).getUri();
+
+    configureFor("https", wiremockHost, wireMockServer.httpsPort());
+    stubFor(get(urlEqualTo(path))
+        .withScheme("https")
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withFault(fault)));
+
+    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.getErrorStatus())
+        .isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
   }
 
   @Test
@@ -144,7 +175,6 @@ public class RDAPHttpQueryTest {
     assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
     assertThat(rdapHttpQuery.jsonResponseIsArray()).isTrue();
   }
-
 
   @Test(dataProvider = "fault")
   public void test_ServerFault_ReturnsErrorStatus20(Fault fault) {
@@ -309,45 +339,15 @@ public class RDAPHttpQueryTest {
     assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.RESPONSE_INVALID);
   }
 
-  // TODO the following tests rely on web resources that may change without notice, should
-  // create our own certificates, CRL, etc.
-
-  @Test
-  public void test_WithHttpsCertificateExpired_ReturnsErrorStatus14() {
-    doReturn(URI.create("https://expired.badssl.com")).when(config).getUri();
+  @Test(dataProvider = "tlsErrors")
+  public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,
+      RDAPValidationStatus expectedStatus) {
+    doReturn(URI.create(url)).when(config).getUri();
 
     assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(rdapHttpQuery.getErrorStatus())
-        .isEqualTo(RDAPValidationStatus.EXPIRED_CERTIFICATE);
+        .isEqualTo(expectedStatus);
   }
-
-  @Test
-  public void test_WithHttpsCertificateRevoked_ReturnsErrorStatus13() {
-    doReturn(URI.create("https://revoked.badssl.com")).when(config).getUri();
-
-    assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus())
-        .isEqualTo(RDAPValidationStatus.REVOKED_CERTIFICATE);
-  }
-
-  @Test
-  public void test_WithHttpsCertificateInvalid_ReturnsErrorStatus12() {
-    doReturn(URI.create("https://wrong.host.badssl.com")).when(config).getUri();
-
-    assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus())
-        .isEqualTo(RDAPValidationStatus.INVALID_CERTIFICATE);
-  }
-
-  @Test
-  public void test_WithHttpsCertificateError_ReturnsErrorStatus15() {
-    doReturn(URI.create("https://untrusted-root.badssl.com")).when(config).getUri();
-
-    assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.CERTIFICATE_ERROR);
-  }
-
-  // END TODO
 
   @Test
   public void checkWithQueryType_StatusNot200_IsOk() {
@@ -362,7 +362,7 @@ public class RDAPHttpQueryTest {
         .withScheme("http")
         .willReturn(notFound()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
-        .withBody("{}")));
+            .withBody("{}")));
 
     assertThat(rdapHttpQuery.run()).isTrue();
     assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.DOMAIN)).isTrue();
