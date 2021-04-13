@@ -3,11 +3,14 @@ package org.icann.rdapconformance.validator.workflow;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
+import java.net.URI;
 import java.util.stream.Collectors;
 
 public class LocalFileSystem implements FileSystem {
@@ -42,6 +45,19 @@ public class LocalFileSystem implements FileSystem {
         Reader isr = new InputStreamReader(fis);
         BufferedReader br = new BufferedReader(isr)) {
       return br.lines().collect(Collectors.joining(System.lineSeparator()));
+    }
+  }
+
+  @Override
+  public boolean exists(String filepath) {
+    return new File(filepath).exists();
+  }
+
+  @Override
+  public void download(URI uri, String filePath) throws IOException {
+    try (InputStream is = uri.toURL().openStream();
+        OutputStream fis = new FileOutputStream(filePath, false)) {
+      is.transferTo(fis);
     }
   }
 }

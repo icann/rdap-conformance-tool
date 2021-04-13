@@ -57,7 +57,10 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
      * overwrite the datasets in the filesystem.
      * If one or more datasets cannot be downloaded, exit with a return code of 2.
      */
-    /* TODO */
+    RDAPDatasetService datasetService = new RDAPDatasetService(new LocalFileSystem());
+    if (!datasetService.download(this.config.useLocalDatasets())) {
+      return RDAPValidationStatus.DATASET_UNAVAILABLE.getValue();
+    }
 
     if (!queryTypeProcessor.check()) {
       return queryTypeProcessor.getErrorStatus().getValue();
