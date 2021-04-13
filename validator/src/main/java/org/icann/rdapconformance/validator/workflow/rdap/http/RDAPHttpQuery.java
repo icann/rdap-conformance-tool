@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -126,6 +127,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         String.valueOf(this.config.getMaxRedirects()));
     HttpRequest request = HttpRequest.newBuilder()
         .uri(uri)
+        .version(Version.HTTP_2)
         .timeout(Duration.of(this.config.getTimeout(), SECONDS))
         .GET()
         .build();
