@@ -59,8 +59,19 @@
       }
     },
     "uri": {
-      "type": "string",
-      "format": "uri",
+      "allOf": [
+        {
+          "pattern": "^(https?|http?)://",
+          "errorCode": -10401,
+          "errorMsg": "The scheme of the URI is not 'http' nor 'https'"
+        },
+        {
+          "type": "string",
+          "format": "uri",
+          "errorCode": -10400,
+          "errorMsg": "The URI is not syntactically valid according to RFC3986."
+        }
+      ],
       "validationName": "webUriValidation"
     },
     "rirBasicType": {

@@ -33,9 +33,9 @@ public class RegexExceptionParser extends ExceptionParser {
     results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message("The value of the JSON string data in the " + e.getPointerToViolation()
+        .message(e.getMessage("The value of the JSON string data in the " + e.getPointerToViolation()
             + " does not conform to "
-            + e.getSchemaLocation() + " syntax.")
+            + e.getSchemaLocation() + " syntax."))
         .build());
   }
 }

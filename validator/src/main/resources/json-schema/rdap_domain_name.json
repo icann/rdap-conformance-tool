@@ -6,7 +6,7 @@
   "properties": {
     "domain": {
       "type": "string",
-      "format": "hostname",
+      "format": "idn-hostname",
       "validationName": "DomainNameValidation"
     }
   }
