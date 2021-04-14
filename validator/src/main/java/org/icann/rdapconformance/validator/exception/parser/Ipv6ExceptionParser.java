@@ -3,13 +3,14 @@ package org.icann.rdapconformance.validator.exception.parser;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.internal.IPV6Validator;
+import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
 public class Ipv6ExceptionParser extends StringFormatExceptionParser<IPV6Validator> {
 
-  protected Ipv6ExceptionParser(ValidationException e, Schema schema,
+  protected Ipv6ExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results) {
     super(e, schema, jsonObject, results, IPV6Validator.class);
@@ -18,7 +19,7 @@ public class Ipv6ExceptionParser extends StringFormatExceptionParser<IPV6Validat
   @Override
   protected void doParse() {
     results.add(RDAPValidationResult.builder()
-        .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
+        .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message("The v6 structure is not syntactically valid.")
         .build());

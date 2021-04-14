@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import org.everit.json.schema.EnumSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
+import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
@@ -14,7 +15,7 @@ public class EnumExceptionParser extends ExceptionParser {
   static Pattern enumPattern = Pattern.compile("(.+) is not a valid enum value");
   private final Matcher matcher;
 
-  protected EnumExceptionParser(ValidationException e,
+  protected EnumExceptionParser(ValidationExceptionNode e,
       Schema schema, JSONObject jsonObject,
       RDAPValidatorResults results) {
     super(e, schema, jsonObject, results);
@@ -22,7 +23,7 @@ public class EnumExceptionParser extends ExceptionParser {
     matcher.find();
   }
 
-  public boolean matches(ValidationException basicException) {
+  public boolean matches(ValidationExceptionNode basicException) {
     return basicException.getViolatedSchema() instanceof EnumSchema;
   }
 
@@ -34,7 +35,7 @@ public class EnumExceptionParser extends ExceptionParser {
       schemaLocation = "Type=\"" + e.getSchemaLocation().replace("classpath://json-schema/", "") + "\"";
     }
     results.add(RDAPValidationResult.builder()
-        .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
+        .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()).toString())
         .message(
             "The JSON string is not included as a Value with " + schemaLocation

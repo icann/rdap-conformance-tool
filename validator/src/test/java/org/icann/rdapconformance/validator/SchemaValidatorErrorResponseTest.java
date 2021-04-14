@@ -8,7 +8,7 @@ public class SchemaValidatorErrorResponseTest extends SchemaValidatorObjectTest 
   public SchemaValidatorErrorResponseTest() {
     super(
         "error",
-        "rdap_error_object.json",
+        "rdap_error.json",
         "/validators/error/valid.json",
         -12100, // 7.2.17.1
         -12101, // 7.2.17.2

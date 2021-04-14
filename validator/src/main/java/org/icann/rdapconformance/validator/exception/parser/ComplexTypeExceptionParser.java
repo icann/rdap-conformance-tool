@@ -1,19 +1,21 @@
 package org.icann.rdapconformance.validator.exception.parser;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.everit.json.schema.Schema;
-import org.everit.json.schema.StringSchema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
-public class RegexExceptionParser extends ExceptionParser {
+public class ComplexTypeExceptionParser extends ExceptionParser {
 
-  static Pattern regexPattern = Pattern.compile("string (.+) does not match pattern (.+)");
+  static Pattern typePattern = Pattern.compile("expected type: (.+), found: (.+)");
+  protected Matcher matcher;
+  private String basicType;
 
-  protected RegexExceptionParser(ValidationExceptionNode e, Schema schema,
+  protected ComplexTypeExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results) {
     super(e, schema, jsonObject, results);
@@ -21,9 +23,12 @@ public class RegexExceptionParser extends ExceptionParser {
 
   @Override
   public boolean matches(ValidationExceptionNode e) {
-    if (e.getViolatedSchema() instanceof StringSchema) {
-      return ((StringSchema) e.getViolatedSchema()).getPattern() != null
-          && regexPattern.matcher(e.getMessage()).find();
+    matcher = typePattern.matcher(e.getMessage());
+    if (matcher.find()) {
+      basicType = matcher.group(1);
+      if (basicType.equals("JSONArray") || basicType.equals("JSONObject")) {
+        return true;
+      }
     }
     return false;
   }
@@ -31,11 +36,9 @@ public class RegexExceptionParser extends ExceptionParser {
   @Override
   protected void doParse() {
     results.add(RDAPValidationResult.builder()
-        .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
+        .code(parseErrorCode(() -> (int)e.getPropertyFromViolatedSchema("structureInvalid")))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message("The value of the JSON string data in the " + e.getPointerToViolation()
-            + " does not conform to "
-            + e.getSchemaLocation() + " syntax.")
+        .message("The " + e.getPointerToViolation() + " structure is not syntactically valid.")
         .build());
   }
 }

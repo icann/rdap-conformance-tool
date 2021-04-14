@@ -8,7 +8,7 @@ public class SchemaValidatorErrorResponseDescriptionTest extends SchemaValidator
 
   public SchemaValidatorErrorResponseDescriptionTest() {
     super(
-        "rdap_error_object.json",
+        "rdap_error.json",
         "/validators/error/valid.json");
   }
 

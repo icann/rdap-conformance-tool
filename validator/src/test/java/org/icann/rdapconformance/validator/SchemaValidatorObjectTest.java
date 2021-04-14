@@ -68,6 +68,6 @@ public abstract class SchemaValidatorObjectTest extends SchemaValidatorTest {
 
   protected void validateIsNotANumber(int errorCode, String key) {
     jsonObject.put(key, "not-a-number");
-    validate(errorCode, "#/" + key + ":not-a-number", "The JSON value is not a integer.");
+    super.validateIsNotANumber(errorCode, "#/" + key + ":not-a-number");
   }
 }

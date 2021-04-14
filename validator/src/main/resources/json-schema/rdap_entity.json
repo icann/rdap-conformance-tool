@@ -65,7 +65,7 @@
       "structureInvalid": -11800
     },
     "entities": {
-      "$ref": "rdap_common.json#/definitions/entities"
+      "$ref": "rdap_entities.json#"
     },
     "asEventActor": {
       "$ref": "rdap_asEventActor.json#"

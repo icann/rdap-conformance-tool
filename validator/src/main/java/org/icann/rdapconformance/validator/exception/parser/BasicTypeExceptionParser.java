@@ -1,9 +1,16 @@
 package org.icann.rdapconformance.validator.exception.parser;
 
+import java.text.MessageFormat;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.everit.json.schema.BooleanSchema;
+import org.everit.json.schema.NullSchema;
+import org.everit.json.schema.NumberSchema;
 import org.everit.json.schema.Schema;
+import org.everit.json.schema.StringSchema;
 import org.everit.json.schema.ValidationException;
+import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
@@ -11,39 +18,33 @@ import org.json.JSONObject;
 public class BasicTypeExceptionParser extends ExceptionParser {
 
   static Pattern basicTypePattern = Pattern.compile("expected type: (.+), found: (.+)");
+  private String basicType;
   protected Matcher matcher;
+  private Set<?> basicTypes = Set.of(
+      BooleanSchema.class,
+      StringSchema.class,
+      NullSchema.class
+      );
 
-  protected BasicTypeExceptionParser(ValidationException e, Schema schema,
+  protected BasicTypeExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject, RDAPValidatorResults results) {
     super(e, schema, jsonObject, results);
     matcher = basicTypePattern.matcher(e.getMessage());
-    matcher.find();
+    if (matcher.find()) {
+      basicType = matcher.group(1);
+    }
   }
 
-  public boolean matches(ValidationException e) {
-    return basicTypePattern.matcher(e.getMessage()).find();
+  public boolean matches(ValidationExceptionNode e) {
+    return basicTypePattern.matcher(e.getMessage()).find() && basicTypes.contains(e.getViolatedSchema().getClass());
   }
 
   @Override
   public void doParse() {
-    Object element = jsonObject.query(e.getPointerToViolation());
-    String icannErrorMsg =
-        "The JSON value is not a " + matcher.group(1).toLowerCase() + ".";
-    String value = e.getPointerToViolation() + ":" + element.toString();
-    int errorCode = parseErrorCode(() -> getErrorCodeFromViolatedSchema(e));
-    if (matcher.group(1).equals("JSONArray") || matcher.group(1).equals("JSONObject")) {
-      icannErrorMsg =
-          "The " + e.getPointerToViolation() + " structure is not syntactically valid.";
-      value =
-          e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()).toString();
-      errorCode = parseErrorCode(() ->
-          (int) e.getViolatedSchema().getUnprocessedProperties().get("structureInvalid"));
-    }
-
     results.add(RDAPValidationResult.builder()
-        .code(errorCode)
-        .value(value)
-        .message(icannErrorMsg)
+        .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
+        .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
+        .message(e.getMessage("The JSON value is not a " + basicType.toLowerCase() + "."))
         .build());
   }
 }

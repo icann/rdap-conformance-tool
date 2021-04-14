@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.everit.json.schema.ArraySchema;
 import org.everit.json.schema.BooleanSchema;
 import org.everit.json.schema.CombinedSchema;
@@ -50,17 +49,21 @@ public abstract class SchemaNode {
 
   public abstract List<SchemaNode> getChildren();
 
-  public List<SchemaNode> getAllChildren() {
+  public List<SchemaNode> getAllCombinedChildren() {
     List<SchemaNode> children = new ArrayList<>();
-    return getAllChildrenRecursively(children);
+    return getAllCombinedChildrenRecursively(children);
   }
 
-  List<SchemaNode> getAllChildrenRecursively(List<SchemaNode> children) {
+  List<SchemaNode> getAllCombinedChildrenRecursively(List<SchemaNode> children) {
     if (getChildren().isEmpty()) {
       children.add(this);
     } else {
       for (SchemaNode child : getChildren()) {
-        child.getAllChildrenRecursively(children);
+        if (child instanceof CombinedSchemaNode || child instanceof ReferenceSchemaNode) {
+          child.getAllCombinedChildrenRecursively(children);
+        } else {
+          children.add(child);
+        }
       }
     }
     return children;
@@ -158,14 +161,13 @@ public abstract class SchemaNode {
     return Optional.of(schemaNode);
   }
 
-  public List<ValidationNode> findValidationNodes(String jsonPointer, String validationName) {
+  public Set<ValidationNode> findValidationNodes(String jsonPointer, String validationName) {
     List<SchemaNode> schemaNodes = findAssociatedSchema(jsonPointer)
         .map(s -> s instanceof ReferenceSchemaNode ? ((ReferenceSchemaNode) s).getChild() : s)
-        // TODO: implement a getAllCombinedChildren instead, we don't want to go down too much
-        .map(s -> s instanceof CombinedSchemaNode ? s.getAllChildren() : List.of(s))
+        .map(s -> s instanceof CombinedSchemaNode ? s.getAllCombinedChildren() : List.of(s))
         .orElse(Collections.emptyList());
 
-    List<ValidationNode> validationNodes = new ArrayList<>();
+    Set<ValidationNode> validationNodes = new HashSet<>();
     for (SchemaNode parent : schemaNodes) {
       while (parent != null) {
         if (parent.containsErrorKey(validationName)) {

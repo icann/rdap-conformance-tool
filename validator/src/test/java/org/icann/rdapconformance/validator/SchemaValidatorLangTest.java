@@ -11,7 +11,7 @@ public class SchemaValidatorLangTest extends SchemaValidatorTest {
 
   public SchemaValidatorLangTest() {
     super(
-        "rdap_response_common.json",
+        "test_rdap_lang.json",
         "/validators/lang/valid.json");
   }
 

@@ -4,13 +4,14 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.StringSchema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.internal.DateTimeFormatValidator;
+import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
 public class DatetimeExceptionParser extends StringFormatExceptionParser<DateTimeFormatValidator> {
 
-  protected DatetimeExceptionParser(ValidationException e, Schema schema,
+  protected DatetimeExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results) {
     super(e, schema, jsonObject, results, DateTimeFormatValidator.class);
@@ -19,7 +20,7 @@ public class DatetimeExceptionParser extends StringFormatExceptionParser<DateTim
   @Override
   protected void doParse() {
     results.add(RDAPValidationResult.builder()
-        .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
+        .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message(
             "The JSON value shall be a syntactically valid time and date according to RFC3339.")

@@ -32,7 +32,7 @@
       "validationName": "stdRdapIpAddressesValidation"
     },
     "entities": {
-      "$ref": "rdap_common.json#/definitions/entities"
+      "$ref": "rdap_entities.json#"
     },
     "rdapConformance": {
       "$ref": "rdap_common.json#/definitions/rdapConformance"

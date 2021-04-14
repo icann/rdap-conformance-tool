@@ -1,6 +1,6 @@
 {
   "objectClassName": "domain",
-  "handle": "2138514_DOMAIN_COM-VRSN",
+  "handle": "2138514_DOMAIN_COM-EXMP",
   "ldhName": "EXAMPLE.COM",
   "links": [
     {
@@ -111,7 +111,15 @@
     }
   ],
   "secureDNS": {
-    "delegationSigned": false
+    "delegationSigned": false,
+    "dsData": [
+      {
+        "keyTag": 55204,
+        "algorithm": 8,
+        "digestType": 2,
+        "digest": "206D88653C43D99BF4567BBD7DF9C078DB357F59AA183741024D345723052E88"
+      }
+    ]
   },
   "nameservers": [
     {

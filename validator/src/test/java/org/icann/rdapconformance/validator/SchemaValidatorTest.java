@@ -110,22 +110,23 @@ public abstract class SchemaValidatorTest {
   }
 
   protected void validateIsNotADateTime(int errorCode, String value) {
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(results.getAll())
-        .filteredOn("code", errorCode)
-        .last()
-        .hasFieldOrPropertyWithValue("value", value)
-        .hasFieldOrPropertyWithValue("message",
-            "The JSON value shall be a syntactically valid time and date according to RFC3339.");
+    validate(errorCode, value, "The JSON value shall be a syntactically valid time and date according to RFC3339.");
   }
 
   protected void validateIsNotAJsonString(int errorCode, String value) {
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(results.getAll())
-        .filteredOn("code", errorCode)
-        .last()
-        .hasFieldOrPropertyWithValue("value", value)
-        .hasFieldOrPropertyWithValue("message", "The JSON value is not a string.");
+    validateBasicType(errorCode, value, "string");
+  }
+
+  protected void validateIsNotANumber(int errorCode, String value) {
+    validateBasicType(errorCode, value, "number");
+  }
+
+  protected void validateIsNotABoolean(int errorCode, String value) {
+    validateBasicType(errorCode, value, "boolean");
+  }
+
+  private void validateBasicType(int errorCode, String value, String violatedType) {
+    validate(errorCode, value, "The JSON value is not a " + violatedType + ".");
   }
 
   protected void validateInvalidJson(int error, String value) {
@@ -151,23 +152,19 @@ public abstract class SchemaValidatorTest {
       String value) {
     String key = getKey(value);
     assertThat(schemaValidator.validate(invalidJson)).isFalse();
-    assertThat(results.getAll()).filteredOn("code", errorCode)
-        .first()
-        .hasFieldOrPropertyWithValue("value", value)
-        .hasFieldOrPropertyWithValue("message",
-            "The value for the JSON name value does not pass "
-                + key + " validation [" + validationName + "].");
+    assertThat(results.getAll()).contains(
+        RDAPValidationResult.builder()
+            .code(errorCode)
+            .value(value)
+            .message("The value for the JSON name value does not pass "
+                + key + " validation [" + validationName + "].")
+            .build()
+    );
   }
 
   protected void testWrongConstant(int errorCode, String field, String goodValue) {
     jsonObject.put(field, "wrong-constant");
-    schemaValidator.validate(jsonObject.toString());
-    assertThat(results.getAll())
-        .filteredOn("code", errorCode)
-        .first()
-        .hasFieldOrPropertyWithValue("value", "#/" + field + ":wrong-constant")
-        .hasFieldOrPropertyWithValue("message",
-            "The JSON value is not " + goodValue + ".");
+    validate(errorCode, "#/" + field + ":wrong-constant", "The JSON value is not " + goodValue + ".");
   }
 
   protected void validateNotEnum(int errorCode, String enumType, String value) {
@@ -182,11 +179,9 @@ public abstract class SchemaValidatorTest {
 
   protected void validateKeyMissing(int errorCode, String key) {
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(results.getAll()).filteredOn(r -> r.getCode() == errorCode)
-        .hasSize(1)
-        .first()
-        .hasFieldOrPropertyWithValue("message",
-            "The " + key + " element does not exist.");
+    assertThat(results.getAll())
+        .filteredOn(r -> r.getCode() == errorCode && r.getMessage().equals("The " + key + " element does not exist."))
+        .hasSize(1);
   }
 
   protected void stdRdapRolesValidation(int errorCode) {

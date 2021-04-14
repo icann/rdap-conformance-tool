@@ -9,6 +9,7 @@ import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaClient;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.icann.rdapconformance.validator.customvalidator.IdnHostNameValidator;
+import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -110,10 +111,13 @@ public class SchemaValidator {
       exceptionParser.parse();
     }
 
-    List<ValidationException> validationExceptions = ExceptionParser.getAllExceptions(List.of(e));
-    for (ValidationException validationException : validationExceptions) {
-      if (exceptionParsers.stream().noneMatch(exceptionParser -> exceptionParser.matches(validationException))) {
-        logger.error("We found this error with no exception parser " + validationException.getMessage());
+    List<ValidationExceptionNode> validationExceptions =
+        new ValidationExceptionNode(null, e).getAllExceptions();
+    for (ValidationExceptionNode validationException : validationExceptions) {
+      if (exceptionParsers.stream()
+          .noneMatch(exceptionParser -> exceptionParser.matches(validationException))) {
+        logger.error(
+            "We found this error with no exception parser {}", validationException.getMessage());
       }
     }
   }

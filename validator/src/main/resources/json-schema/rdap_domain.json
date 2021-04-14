@@ -2,9 +2,15 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "domain",
   "id": "rdap_domain.json",
+  "definitions": {
+    "domainClass": {
+      "const": "domain",
+      "errorCode": -12203
+    }
+  },
   "properties": {
     "objectClassName": {
-      "$ref": "rdap_domain_object.json#/definitions/domainClass"
+      "$ref": "#/definitions/domainClass"
     },
     "handle": {
       "type": "string",
@@ -22,16 +28,15 @@
     "nameservers": {
       "type": "array",
       "items": {
-        "$ref": "rdap_nameserver_object.json#"
+        "$ref": "rdap_nameserver.json#"
       },
       "validationName": "stdRdapNameserverLookupValidation"
     },
     "secureDNS": {
-      "$ref": "rdap_domain_object.json#/definitions/secureDNS",
-      "validationName": "stdRdapSecureDnsValidation"
+      "$ref": "rdap_secureDNS.json#"
     },
     "entities": {
-      "$ref": "rdap_common.json#/definitions/entities"
+      "$ref": "rdap_entities.json#"
     },
     "status": {
       "$ref": "rdap_status.json#"

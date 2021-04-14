@@ -1,0 +1,11 @@
+{
+  "delegationSigned": false,
+  "keyData": [
+    {
+      "flags": 256,
+      "protocol": 3,
+      "publicKey": "oJB1W6WNGv+ldvQ3WDG0MQkg5IEhjRip8WTrPYGv07h108dUKGMeDPKijVCHX3DDKdfb+v6oB9wfuh3DTJXUAfI/M0zmO/zz8bW0Rznl8O3tGNazPwQKkRN20XPXV6nwwfoXmJQbsLNrLfkGJ5D6fwFm8nN+6pBzeDQfsS3Ap3o=",
+      "algorithm": 5
+    }
+  ]
+}

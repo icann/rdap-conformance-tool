@@ -1,27 +1,34 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "id" : "rdap_error.json",        
-  "oneOf": [
-  	   {
-	  "allOf": [
-	    {
-	      "$ref": "rdap_response_common.json#"
-	    },
-	    {
-	      "$ref": "rdap_error_object.json#"
-	    }
-	  ]
-	  },
-	  {
-	  "allOf": [
-	    { "not" : {
-		      "$ref": "rdap_response_common.json#"
-		   }
-	    },
-	    {
-	      "$ref": "rdap_error_object.json#"
-	    }
-	    ]
-	  }
-	]	  
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"id" : "rdap_error.json",
+	"title": "error",
+	"properties": {
+		"errorCode": {
+			"type": "number",
+			"errorCode": -12103
+		},
+		"title": {
+			"type": "string",
+			"errorCode": -12104
+		},
+		"description": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"errorCode": -12106
+			},
+			"structureInvalid": -12105
+		}
+	},
+	"required": [
+		"errorCode",
+		"title",
+		"description"
+	],
+	"errorCodeMissing": -12101,
+	"titleMissing": -12101,
+	"descriptionMissing": -12101,
+	"structureInvalid": -12100,
+	"duplicateKeys": -12102
+
 }

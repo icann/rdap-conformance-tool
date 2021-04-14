@@ -5,13 +5,14 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.StringSchema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.internal.IPV4Validator;
+import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
 public class Ipv4ExceptionParser extends StringFormatExceptionParser<IPV4Validator> {
 
-  protected Ipv4ExceptionParser(ValidationException e, Schema schema,
+  protected Ipv4ExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results) {
     super(e, schema, jsonObject, results, IPV4Validator.class);
@@ -20,7 +21,7 @@ public class Ipv4ExceptionParser extends StringFormatExceptionParser<IPV4Validat
   @Override
   protected void doParse() {
     results.add(RDAPValidationResult.builder()
-        .code(parseErrorCode(() -> getErrorCodeFromViolatedSchema(e)))
+        .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message("The v4 structure is not syntactically valid.")
         .build());

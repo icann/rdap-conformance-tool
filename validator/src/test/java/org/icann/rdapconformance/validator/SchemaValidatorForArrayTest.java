@@ -44,9 +44,15 @@ public abstract class SchemaValidatorForArrayTest extends SchemaValidatorTest {
     validateKeyMissing(errorCode, key);
   }
 
-  protected void replaceArrayProperty(String key, Object value) {
+  protected String removeKey(String key) {
+    jsonObject.getJSONArray(name).getJSONObject(0).remove(key);
+    return key;
+  }
+
+  protected String replaceArrayProperty(String key, Object value) {
     jsonObject.put(name, List.of(jsonObject.getJSONArray(name).getJSONObject(0).put(key,
         value)));
+    return "#/" + name + "/0/" + key + ":" + value;
   }
 
   protected void validateArrayAuthorizedKeys(int error, List<String> authorizedKeys) {

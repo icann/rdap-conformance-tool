@@ -52,15 +52,6 @@
       "validationName": "stdRdapConformanceValidation",
       "structureInvalid": -10500
     },
-    "entities": {
-      "type": "array",
-      "items": {
-        "$ref": "rdap_entity.json#"
-      },
-      "validationName": "stdRdapEntitiesValidation",
-      "structureInvalid": -11900,
-      "stdRdapEntityLookupValidation": -11901
-    },
     "stringArray": {
       "type": "array",
       "items": {

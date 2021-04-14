@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.schema;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class ValidationNode {
@@ -29,5 +30,23 @@ public class ValidationNode {
 
   public int getParentValidationCode() {
     return (int) parentValidationNode.get().getErrorKey(getValidationKey());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ValidationNode that = (ValidationNode) o;
+    return schemaNode.equals(that.schemaNode) &&
+        validationName.equals(that.validationName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(schemaNode, validationName);
   }
 }

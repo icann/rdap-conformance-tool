@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import org.everit.json.schema.ObjectSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
+import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
@@ -15,7 +16,7 @@ public class DependenciesExceptionParser extends ExceptionParser {
   static Pattern pattern = Pattern.compile("property \\[(.+)\\] is required");
   protected Matcher matcher;
 
-  protected DependenciesExceptionParser(ValidationException e, Schema schema,
+  protected DependenciesExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results) {
     super(e, schema, jsonObject, results);
@@ -24,7 +25,7 @@ public class DependenciesExceptionParser extends ExceptionParser {
   }
 
   @Override
-  public boolean matches(ValidationException e) {
+  public boolean matches(ValidationExceptionNode e) {
     return e.getKeyword() != null &&
         e.getViolatedSchema() instanceof ObjectSchema &&
         e.getKeyword().equals("dependencies") &&
@@ -42,7 +43,7 @@ public class DependenciesExceptionParser extends ExceptionParser {
       }
     }
     results.add(RDAPValidationResult.builder()
-        .code(parseErrorCode(() -> (int) getPropertyFromViolatedSchema(e, key + "Missing")))
+        .code(parseErrorCode(() -> (int) e.getPropertyFromViolatedSchema(key + "Missing")))
         .value(jsonObject.query(e.getPointerToViolation()).toString())
         .message("A " + parentKey + " structure was found but an " + key + " was not.")
         .build());

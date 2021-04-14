@@ -3,14 +3,15 @@ package org.icann.rdapconformance.validator.exception.parser;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.schema.ValidationNode;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,13 +19,13 @@ import org.slf4j.LoggerFactory;
 public abstract class ExceptionParser {
 
   private static final Logger logger = LoggerFactory.getLogger(ExceptionParser.class);
-  protected final ValidationException e;
+  protected final ValidationExceptionNode e;
   protected final Schema schema;
   protected final JSONObject schemaObject;
   protected final JSONObject jsonObject;
   protected final RDAPValidatorResults results;
 
-  protected ExceptionParser(ValidationException e, Schema schema,
+  protected ExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject, RDAPValidatorResults results) {
     this.e = e;
     this.schema = schema;
@@ -39,8 +40,9 @@ public abstract class ExceptionParser {
       JSONObject object, RDAPValidatorResults results) {
     List<ExceptionParser> parsers = new ArrayList<>();
 
-    List<ValidationException> basicExceptions = getAllExceptions(List.of(e));
-    for (ValidationException basicException : basicExceptions) {
+    ValidationExceptionNode rootException = new ValidationExceptionNode(null, e);
+    List<ValidationExceptionNode> basicExceptions = rootException.getAllExceptions();
+    for (ValidationExceptionNode basicException : basicExceptions) {
       parsers.add(new UnknowKeyExceptionParser(basicException, schema, object, results));
       parsers.add(new BasicTypeExceptionParser(basicException, schema, object, results));
       parsers.add(new EnumExceptionParser(basicException, schema, object, results));
@@ -55,6 +57,8 @@ public abstract class ExceptionParser {
       parsers.add(new Ipv6ExceptionParser(basicException, schema, object, results));
       parsers.add(new IdnHostNameExceptionParser(basicException, schema, object, results));
       parsers.add(new UniqueItemsExceptionParser(basicException, schema, object, results));
+      parsers.add(new NumberExceptionParser(basicException, schema, object, results));
+      parsers.add(new ComplexTypeExceptionParser(basicException, schema, object, results));
     }
 
     return parsers;
@@ -69,43 +73,15 @@ public abstract class ExceptionParser {
     }
   }
 
-  public static List<ValidationException> getAllExceptions(
-      List<ValidationException> causingExceptions) {
-    List<ValidationException> allExceptions = new ArrayList<>();
-    if (causingExceptions.isEmpty()) {
-      return allExceptions;
-    }
-
-    for (ValidationException causingException : causingExceptions) {
-      if (causingException.getCausingExceptions().isEmpty()) {
-        allExceptions.add(causingException);
-      }
-
-      List<ValidationException> candidateExceptions =
-          getAllExceptions(causingException.getCausingExceptions());
-      allExceptions.addAll(
-          candidateExceptions.stream().filter(c -> c.getCausingExceptions().isEmpty()).collect(
-              Collectors.toList()));
-    }
-    return allExceptions;
-  }
-
-  protected static Object getPropertyFromViolatedSchema(ValidationException e, String key) {
-    return e.getViolatedSchema().getUnprocessedProperties().get(key);
-  }
-
-  protected static int getErrorCodeFromViolatedSchema(ValidationException e) {
-    return (int) getPropertyFromViolatedSchema(e, "errorCode");
-  }
-
-  public abstract boolean matches(ValidationException e);
+  public abstract boolean matches(ValidationExceptionNode e);
 
   public void parse() {
     if (matches(e)) {
       doParse();
+
       if (e.getPointerToViolation() != null) {
         SchemaNode tree = SchemaNode.create(null, schema);
-        List<ValidationNode> validationNodes = tree.findValidationNodes(e.getPointerToViolation(),
+        Set<ValidationNode> validationNodes = tree.findValidationNodes(e.getPointerToViolation(),
             "validationName");
         for (ValidationNode validationNode : validationNodes) {
           if (validationNode.hasParentValidationCode()) {
