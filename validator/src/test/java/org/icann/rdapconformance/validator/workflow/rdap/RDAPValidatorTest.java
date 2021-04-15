@@ -19,31 +19,32 @@ public class RDAPValidatorTest {
   private final FileSystem fs = mock(FileSystem.class);
   private final RDAPQueryTypeProcessor processor = mock(RDAPQueryTypeProcessor.class);
   private final RDAPQuery query = mock(RDAPQuery.class);
+  private final ConfigurationFileParser configParser = mock(ConfigurationFileParser.class);
+  private final RDAPValidatorResults results = mock(RDAPValidatorResults.class);
+  private final RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
   private RDAPValidator validator;
 
   @BeforeMethod
   public void setUp() throws IOException {
-    File configFile = mock(File.class);
     doReturn(true).when(config).check();
-    validator = new RDAPValidator(config, fs, processor, query) {
+    validator = new RDAPValidator(config, fs, processor, query, configParser, results,
+        datasetService) {
 
     };
-    doReturn("config/path.json").when(configFile).getAbsolutePath();
-    doReturn(configFile).when(config).getConfigurationFile();
-    doReturn("{\"definitionIdentifier\": \"rdapct test\"}").when(fs).readFile("config/path.json");
     doReturn(true).when(processor).check();
+    doReturn(true).when(datasetService).download(any());
   }
 
   @Test
   public void testValidate_InvalidConfiguration_ReturnsErrorStatus1() throws IOException {
-    doReturn("{}").when(fs).readFile("config/path.json");
+    doThrow(IOException.class).when(configParser).parse(any());
 
     assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.CONFIG_INVALID.getValue());
   }
 
   @Test
-  @Ignore("Not implemented yet")
   public void testValidate_DatasetsError_ReturnsErrorStatus2() {
+    doReturn(false).when(datasetService).download(any());
 
     assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue());
   }

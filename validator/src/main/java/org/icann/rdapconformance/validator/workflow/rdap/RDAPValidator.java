@@ -17,11 +17,27 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
   private final RDAPQueryTypeProcessor queryTypeProcessor;
   private final RDAPQuery query;
   private final FileSystem fileSystem;
+  private final ConfigurationFileParser configParser;
+  private final RDAPValidatorResults results;
+  private final RDAPDatasetService datasetService;
 
   public RDAPValidator(RDAPValidatorConfiguration config,
       FileSystem fileSystem,
       RDAPQueryTypeProcessor queryTypeProcessor,
       RDAPQuery query) {
+    this(config, fileSystem, queryTypeProcessor, query,
+        new ConfigurationFileParser(fileSystem),
+        new RDAPValidatorResults(),
+        new RDAPDatasetService(fileSystem));
+  }
+
+  RDAPValidator(RDAPValidatorConfiguration config,
+      FileSystem fileSystem,
+      RDAPQueryTypeProcessor queryTypeProcessor,
+      RDAPQuery query,
+      ConfigurationFileParser configParser,
+      RDAPValidatorResults results,
+      RDAPDatasetService datasetService) {
     this.config = config;
     this.fileSystem = fileSystem;
     this.query = query;
@@ -30,6 +46,9 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
       throw new RuntimeException("Please fix the configuration");
     }
     this.queryTypeProcessor = queryTypeProcessor;
+    this.configParser = configParser;
+    this.results = results;
+    this.datasetService = datasetService;
   }
 
   @Override
@@ -40,24 +59,21 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
      */
     ConfigurationFile configurationFile;
     try {
-      ConfigurationFileParser configParser = new ConfigurationFileParser(fileSystem);
       configurationFile = configParser.parse(this.config.getConfigurationFile());
     } catch (Exception e) {
       logger.error("Configuration is invalid", e);
       return RDAPValidationStatus.CONFIG_INVALID.getValue();
     }
 
-    final RDAPValidatorResults results = new RDAPValidatorResults();
     final RDAPValidationResultFile rdapValidationResultFile = new RDAPValidationResultFile(results,
         config, configurationFile, fileSystem);
 
-    /* If the parameter (--use-local-datasets) is set, use the datasets found in the filesystem,
-     * download the datasets not found in the filesystem, and persist them in the filesystem.
-     * If the parameter (--use-local-datasets) is not set, download all the datasets, and
-     * overwrite the datasets in the filesystem.
-     * If one or more datasets cannot be downloaded, exit with a return code of 2.
+    /* If the parameter (--use-local-dataset) is set, use the dataset found in the filesystem,
+     * download the dataset not found in the filesystem, and persist them in the filesystem.
+     * If the parameter (--use-local-dataset) is not set, download all the dataset, and
+     * overwrite the dataset in the filesystem.
+     * If one or more dataset cannot be downloaded, exit with a return code of 2.
      */
-    RDAPDatasetService datasetService = new RDAPDatasetService(new LocalFileSystem());
     if (!datasetService.download(this.config.useLocalDatasets())) {
       return RDAPValidationStatus.DATASET_UNAVAILABLE.getValue();
     }
