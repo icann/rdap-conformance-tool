@@ -1,27 +1,26 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.BootstrapDomainNameSpaceDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.DNSSecAlgNumbersDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.DsRrTypesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.EPPRoidDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.IPv4AddressSpaceDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.IPv6AddressSpaceDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.LinkRelationsDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.MediaTypesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.RDAPDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.RDAPExtensionsDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.RDAPJsonValuesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.RegistrarIdDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.SpecialIPv4AddressesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.datasets.SpecialIPv6AddressesDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.BootstrapDomainNameSpaceDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.DNSSecAlgNumbersDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.DsRrTypesDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.EPPRoidDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.IPv4AddressSpaceDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.IPv6AddressSpaceDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.LinkRelationsDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.MediaTypesDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPExtensionsDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPJsonValuesDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.RegistrarIdDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv4AddressesDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv6AddressesDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +67,10 @@ public class RDAPDatasetService {
     for (RDAPDataset dataset : this.datasets.values()) {
       if (!dataset.download(useLocalDatasets)) {
         logger.error("Failed to download dataset {}", dataset.getName());
+        return false;
+      }
+      if (!dataset.parse()) {
+        logger.error("Failed to parse dataset {}", dataset.getName());
         return false;
       }
     }
