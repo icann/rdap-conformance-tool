@@ -10,9 +10,9 @@ import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
-public class HostNameExceptionParser extends StringFormatExceptionParser<HostnameFormatValidator> {
+public class HostNameInUriExceptionParser extends StringFormatExceptionParser<HostnameFormatValidator> {
 
-  protected HostNameExceptionParser(ValidationExceptionNode e, Schema schema,
+  protected HostNameInUriExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results) {
     super(e, schema, jsonObject, results, HostnameFormatValidator.class);

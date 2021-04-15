@@ -12,6 +12,7 @@
   <modules>
     <module>validator</module>
     <module>tool</module>
+    <module>jitpack</module>
   </modules>
 
   <properties>
