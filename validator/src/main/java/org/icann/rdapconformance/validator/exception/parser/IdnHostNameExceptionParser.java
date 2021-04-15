@@ -1,19 +1,18 @@
 package org.icann.rdapconformance.validator.exception.parser;
 
 import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
-import org.icann.rdapconformance.validator.customvalidator.IdnHostNameValidator;
+import org.icann.rdapconformance.validator.customvalidator.IdnHostNameFormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
-public class IdnHostNameExceptionParser extends StringFormatExceptionParser<IdnHostNameValidator> {
+public class IdnHostNameExceptionParser extends StringFormatExceptionParser<IdnHostNameFormatValidator> {
 
   protected IdnHostNameExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results, IdnHostNameValidator.class);
+    super(e, schema, jsonObject, results, IdnHostNameFormatValidator.class);
   }
 
   @Override
@@ -46,7 +45,7 @@ public class IdnHostNameExceptionParser extends StringFormatExceptionParser<IdnH
     results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message(("A label not being a valid \"U-label\"/\"A-label\" or \"NR-LDH label\" was "
+        .message(e.getMessage("A label not being a valid \"U-label\"/\"A-label\" or \"NR-LDH label\" was "
             + "found. " + e.getMessage().replace(e.getPointerToViolation(), "Reasons")))
         .build());
   }

@@ -70,6 +70,12 @@
           "format": "uri",
           "errorCode": -10400,
           "errorMsg": "The URI is not syntactically valid according to RFC3986."
+        },
+        {
+          "type": "string",
+          "format": "hostname-in-uri",
+          "errorCode": -10402,
+          "errorMsg": "The host does not pass Domain Name validation [domainNameValidation], IPv4 address validation [ipv4Validation] nor IPv6 address  validation [ipv6Validation]."
         }
       ],
       "validationName": "webUriValidation"

@@ -8,7 +8,8 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaClient;
 import org.everit.json.schema.loader.SchemaLoader;
-import org.icann.rdapconformance.validator.customvalidator.IdnHostNameValidator;
+import org.icann.rdapconformance.validator.customvalidator.HostNameInUriFormatValidator;
+import org.icann.rdapconformance.validator.customvalidator.IdnHostNameFormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
@@ -53,7 +54,8 @@ public class SchemaValidator {
         .schemaClient(SchemaClient.classPathAwareClient())
         .schemaJson(jsonSchema)
         .resolutionScope("classpath://" + scope)
-        .addFormatValidator(new IdnHostNameValidator())
+        .addFormatValidator(new IdnHostNameFormatValidator())
+        .addFormatValidator(new HostNameInUriFormatValidator())
         .draftV7Support()
         .build();
     return schemaLoader.load().build();

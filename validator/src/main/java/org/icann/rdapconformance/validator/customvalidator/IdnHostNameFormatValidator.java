@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.everit.json.schema.FormatValidator;
 
-public class IdnHostNameValidator implements FormatValidator {
+public class IdnHostNameFormatValidator implements FormatValidator {
 
   private static final IDNA idna = IDNA.getUTS46Instance(IDNA.NONTRANSITIONAL_TO_ASCII
       | IDNA.NONTRANSITIONAL_TO_UNICODE
