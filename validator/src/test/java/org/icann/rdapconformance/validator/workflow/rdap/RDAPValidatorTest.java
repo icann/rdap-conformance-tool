@@ -2,11 +2,13 @@ package org.icann.rdapconformance.validator.workflow.rdap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -32,7 +34,8 @@ public class RDAPValidatorTest {
 
     };
     doReturn(true).when(processor).check();
-    doReturn(true).when(datasetService).download(any());
+    doReturn(true).when(datasetService).download(anyBoolean());
+    doReturn(new ConfigurationFile.Builder().build()).when(configParser).parse(any());
   }
 
   @Test
@@ -44,7 +47,7 @@ public class RDAPValidatorTest {
 
   @Test
   public void testValidate_DatasetsError_ReturnsErrorStatus2() {
-    doReturn(false).when(datasetService).download(any());
+    doReturn(false).when(datasetService).download(anyBoolean());
 
     assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue());
   }
