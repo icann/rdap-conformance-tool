@@ -42,3 +42,6 @@ buildNumber.properties
 .idea
 *.iml
 
+# Tool outputs
+results
+datasets
