@@ -11,6 +11,7 @@ import org.everit.json.schema.loader.SchemaLoader;
 import org.icann.rdapconformance.validator.customvalidator.HostNameInUriFormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.IdnHostNameFormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.Ipv4FormatValidator;
+import org.icann.rdapconformance.validator.customvalidator.Ipv6FormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
@@ -51,8 +52,10 @@ public class SchemaValidator {
       String scope,
       ClassLoader classLoader,
       RDAPDatasetService ds) {
-    Ipv4FormatValidator ipv4FormatValidator = new Ipv4FormatValidator(ds.getIpv4AddressSpaceMock(),
+    Ipv4FormatValidator ipv4FormatValidator = new Ipv4FormatValidator(ds.getIpv4AddressSpace(),
         ds.getSpecialIPv4Addresses());
+    Ipv6FormatValidator ipv6FormatValidator = new Ipv6FormatValidator(ds.getIpv6AddressSpace(),
+        ds.getSpecialIPv6Addresses());
     JSONObject jsonSchema = new JSONObject(
         new JSONTokener(
             Objects.requireNonNull(
@@ -62,8 +65,9 @@ public class SchemaValidator {
         .schemaJson(jsonSchema)
         .resolutionScope("classpath://" + scope)
         .addFormatValidator(new IdnHostNameFormatValidator())
-        .addFormatValidator(new HostNameInUriFormatValidator(ipv4FormatValidator))
+        .addFormatValidator(new HostNameInUriFormatValidator(ipv4FormatValidator, ipv6FormatValidator))
         .addFormatValidator(ipv4FormatValidator)
+        .addFormatValidator(ipv6FormatValidator)
         .draftV7Support()
         .build();
     return schemaLoader.load().build();

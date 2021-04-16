@@ -9,7 +9,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class Ipv6AddressSpace extends XmlObject {
+public class Ipv6AddressSpace extends XmlObject implements IpAddressSpace {
 
   private final List<Record> records = new ArrayList<>();
 
@@ -29,8 +29,9 @@ public class Ipv6AddressSpace extends XmlObject {
     }
   }
 
-  public boolean isValid(String ipAddress) {
-    throw new RuntimeException("To be implemented");
+  @Override
+  public boolean isInvalid(String ipAddress) {
+    return false;
   }
 
   private static class Record {

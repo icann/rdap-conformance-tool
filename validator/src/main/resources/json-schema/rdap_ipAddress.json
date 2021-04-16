@@ -25,7 +25,7 @@
           "errorCode": -11408
         },
         {
-          "format": "ipv6",
+          "format": "ipv6-validation",
           "validationName": "IPv6Validation",
           "errorCode": -11407
         }

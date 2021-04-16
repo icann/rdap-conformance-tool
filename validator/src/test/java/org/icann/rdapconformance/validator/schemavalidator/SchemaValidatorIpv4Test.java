@@ -37,7 +37,7 @@ public class SchemaValidatorIpv4Test extends SchemaValidatorTest {
    */
   @Test
   public void v4NotAllocatedNorLegacy() {
-    doReturn(true).when(datasetService.getIpv4AddressSpaceMock()).isInvalid(any());
+    doReturn(true).when(datasetService.getIpv4AddressSpace()).isInvalid(any());
     validate(-10101, "#/ipv4:172.16.254.1",
         "The IPv4 address is not included in a prefix categorized as ALLOCATED or LEGACY in the IANA IPv4 Address Space Registry. Dataset: ipv4AddressSpace");
   }

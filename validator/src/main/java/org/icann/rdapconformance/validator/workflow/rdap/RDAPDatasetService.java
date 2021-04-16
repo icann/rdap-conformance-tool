@@ -22,7 +22,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.RegistrarIdData
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv4AddressesDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv6AddressesDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,11 +88,19 @@ public class RDAPDatasetService {
     );
   }
 
-  public Ipv4AddressSpace getIpv4AddressSpaceMock() {
+  public Ipv4AddressSpace getIpv4AddressSpace() {
     return (Ipv4AddressSpace) get("ipv4AddressSpace").getData();
   }
 
   public SpecialIPv4Addresses getSpecialIPv4Addresses() {
     return (SpecialIPv4Addresses) get("specialIPv4Addresses").getData();
+  }
+
+  public Ipv6AddressSpace getIpv6AddressSpace() {
+    return (Ipv6AddressSpace) get("ipv6AddressSpace").getData();
+  }
+
+  public SpecialIPv6Addresses getSpecialIPv6Addresses() {
+    return (SpecialIPv6Addresses) get("specialIPv6Addresses").getData();
   }
 }

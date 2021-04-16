@@ -53,9 +53,9 @@ public abstract class ExceptionParser {
       parsers.add(new DatetimeExceptionParser(basicException, schema, object, results));
       parsers.add(new DependenciesExceptionParser(basicException, schema, object, results));
       parsers.add(new HostNameInUriExceptionParser(basicException, schema, object, results));
-      parsers.add(new Ipv4ExceptionParser(basicException, schema, object, results));
       parsers.add(new Ipv4ValidationExceptionParser(basicException, schema, object, results));
       parsers.add(new Ipv6ExceptionParser(basicException, schema, object, results));
+      parsers.add(new Ipv6ValidationExceptionParser(basicException, schema, object, results));
       parsers.add(new IdnHostNameExceptionParser(basicException, schema, object, results));
       parsers.add(new UniqueItemsExceptionParser(basicException, schema, object, results));
       parsers.add(new NumberExceptionParser(basicException, schema, object, results));
