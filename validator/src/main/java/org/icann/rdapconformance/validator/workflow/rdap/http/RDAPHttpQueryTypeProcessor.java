@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -17,12 +18,13 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQueryTypeProcessor.class);
   private final RDAPValidatorConfiguration config;
+  private final RDAPDatasetService datasetService;
   private RDAPValidationStatus status = null;
   private RDAPHttpQueryType queryType = null;
 
-  public RDAPHttpQueryTypeProcessor(
-      RDAPValidatorConfiguration config) {
+  public RDAPHttpQueryTypeProcessor(RDAPValidatorConfiguration config, RDAPDatasetService datasetService) {
     this.config = config;
+    this.datasetService = datasetService;
   }
 
   @Override
@@ -51,7 +53,8 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
       String domainName = queryType.getValue(this.config.getUri().toString());
       String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
       RDAPValidatorResults testDomainResults = new RDAPValidatorResults();
-      SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults);
+      SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults,
+          datasetService);
       if (!validator.validate(domainNameJson)) {
         // TODO check if A-labels and U-labels are mixed: is this OK?
         if (testDomainResults.getAll().stream()

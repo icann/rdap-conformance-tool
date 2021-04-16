@@ -5,6 +5,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import java.net.URI;
+import org.icann.rdapconformance.validator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
@@ -15,7 +16,7 @@ import org.testng.annotations.Test;
 public class RDAPHttpQueryTypeProcessorTest {
 
   private final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-  private final RDAPQueryTypeProcessor processor = new RDAPHttpQueryTypeProcessor(config);
+  private final RDAPQueryTypeProcessor processor = new RDAPHttpQueryTypeProcessor(config, new RDAPDatasetServiceMock());
 
   @Test
   public void testDomainQuery() {

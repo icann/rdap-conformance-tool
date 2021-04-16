@@ -94,17 +94,17 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
 
     SchemaValidator validator = null;
     if (query.isErrorContent()) {
-      validator = new SchemaValidator("rdap_error.json", results);
+      validator = new SchemaValidator("rdap_error.json", results, datasetService);
     } else if (RDAPQueryType.DOMAIN.equals(queryTypeProcessor.getQueryType())) {
-      validator = new SchemaValidator("rdap_domain.json", results);
+      validator = new SchemaValidator("rdap_domain.json", results, datasetService);
     } else if (RDAPQueryType.HELP.equals(queryTypeProcessor.getQueryType())) {
-      validator = new SchemaValidator("rdap_help.json", results);
+      validator = new SchemaValidator("rdap_help.json", results, datasetService);
     } else if (RDAPQueryType.NAMESERVER.equals(queryTypeProcessor.getQueryType())) {
-      validator = new SchemaValidator("rdap_nameserver.json", results);
+      validator = new SchemaValidator("rdap_nameserver.json", results, datasetService);
     } else if (RDAPQueryType.NAMESERVERS.equals(queryTypeProcessor.getQueryType())) {
-      validator = new SchemaValidator("rdap_nameservers.json", results);
+      validator = new SchemaValidator("rdap_nameservers.json", results, datasetService);
     } else if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType())) {
-      validator = new SchemaValidator("rdap_entities.json", results);
+      validator = new SchemaValidator("rdap_entities.json", results, datasetService);
     }
     assert null != validator;
     validator.validate(query.getData());

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
@@ -46,8 +48,10 @@ public abstract class SchemaValidatorTest {
 
   @BeforeMethod
   public void setUp() throws IOException {
+    RDAPDatasetService datasetService = new RDAPDatasetServiceMock();
+    datasetService.download(true);
     results = new RDAPValidatorResults();
-    schemaValidator = new SchemaValidator(schemaName, results);
+    schemaValidator = new SchemaValidator(schemaName, results, datasetService);
     rdapContent = getResource(validJson);
     jsonObject = new JSONObject(rdapContent);
     name = schemaValidator.getSchema().getTitle();

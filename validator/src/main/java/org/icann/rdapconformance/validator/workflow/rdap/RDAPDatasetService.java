@@ -21,6 +21,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPJsonValuesD
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.RegistrarIdDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv4AddressesDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv6AddressesDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +79,18 @@ public class RDAPDatasetService {
     return true;
   }
 
-  public Optional<RDAPDataset> get(String name) {
-    return Optional.ofNullable(this.datasets.get(name));
+  private RDAPDataset get(String name) {
+    return Optional.ofNullable(this.datasets.get(name))
+        .orElseThrow(() ->
+        new IllegalArgumentException("Can't find required dataset " + name)
+    );
+  }
+
+  public Ipv4AddressSpace getIpv4AddressSpace() {
+    return (Ipv4AddressSpace) get("ipv4AddressSpace").getData();
+  }
+
+  public SpecialIPv4Addresses getSpecialIPv4Addresses() {
+    return (SpecialIPv4Addresses) get("specialIPv4Addresses").getData();
   }
 }

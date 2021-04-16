@@ -11,6 +11,10 @@ import org.xml.sax.SAXException;
 
 public class Ipv4AddressSpace extends XmlObject {
 
+  public List<Record> getRecords() {
+    return records;
+  }
+
   private final List<Record> records = new ArrayList<>();
 
   /**
@@ -34,9 +38,18 @@ public class Ipv4AddressSpace extends XmlObject {
     throw new RuntimeException("To be implemented");
   }
 
-  private static class Record {
+  public static class Record {
 
     private final String prefix;
+
+    public String getPrefix() {
+      return prefix;
+    }
+
+    public String getStatus() {
+      return status;
+    }
+
     private final String status;
 
     public Record(String prefix, String status) {

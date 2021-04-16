@@ -10,9 +10,11 @@ import org.everit.json.schema.loader.SchemaClient;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.icann.rdapconformance.validator.customvalidator.HostNameInUriFormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.IdnHostNameFormatValidator;
+import org.icann.rdapconformance.validator.customvalidator.Ipv4FormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONException;
@@ -25,17 +27,16 @@ public class SchemaValidator {
 
   private static final Logger logger = LoggerFactory.getLogger(SchemaValidator.class);
   static Pattern duplicateKeys = Pattern.compile("Duplicate key \"(.+)\" at");
+  private final RDAPDatasetService datasetService;
   private JSONObject schemaObject;
   private Schema schema;
   private RDAPValidatorResults results;
   private SchemaNode schemaRootNode;
 
-  public SchemaValidator(String schemaName, RDAPValidatorResults results) {
-    this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader()), results);
-  }
-
-  public SchemaValidator(Schema schema, RDAPValidatorResults results) {
-    this.init(schema, results);
+  public SchemaValidator(String schemaName, RDAPValidatorResults results,
+      RDAPDatasetService datasetService) {
+    this.datasetService = datasetService;
+    this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader(), datasetService), results);
   }
 
   private void init(Schema schema, RDAPValidatorResults results) {
@@ -45,7 +46,11 @@ public class SchemaValidator {
     this.results = results;
   }
 
-  public static Schema getSchema(String name, String scope, ClassLoader classLoader) {
+  public static Schema getSchema(
+      String name,
+      String scope,
+      ClassLoader classLoader,
+      RDAPDatasetService ds) {
     JSONObject jsonSchema = new JSONObject(
         new JSONTokener(
             Objects.requireNonNull(
@@ -56,6 +61,7 @@ public class SchemaValidator {
         .resolutionScope("classpath://" + scope)
         .addFormatValidator(new IdnHostNameFormatValidator())
         .addFormatValidator(new HostNameInUriFormatValidator())
+        .addFormatValidator(new Ipv4FormatValidator(ds.getIpv4AddressSpace(), ds.getSpecialIPv4Addresses()))
         .draftV7Support()
         .build();
     return schemaLoader.load().build();
