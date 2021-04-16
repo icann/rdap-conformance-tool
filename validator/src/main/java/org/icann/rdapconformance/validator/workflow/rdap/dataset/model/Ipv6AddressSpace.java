@@ -9,7 +9,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class Ipv6AddressSpace extends XmlObject implements IpAddressSpace {
+public class Ipv6AddressSpace extends XmlObject implements DatasetValidator {
 
   private final List<Record> records = new ArrayList<>();
 

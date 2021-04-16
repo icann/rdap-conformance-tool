@@ -4,34 +4,34 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.IpAddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DatasetValidator;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public abstract class IpFormatValidatorTest {
 
   public IpFormatValidatorTest(String ipAddress,
-      IpAddressSpace ipAddressSpace,
-      IpAddressSpace specialIpAddresses,
+      DatasetValidator datasetValidator,
+      DatasetValidator specialIpAddresses,
       String format,
       String invalidIp) {
     this.ipAddress = ipAddress;
-    this.ipAddressSpace = ipAddressSpace;
+    this.datasetValidator = datasetValidator;
     this.specialIpAddresses = specialIpAddresses;
     this.format = format;
     this.invalidIp = invalidIp;
   }
 
   protected final String ipAddress;
-  protected final IpAddressSpace ipAddressSpace;
-  protected final IpAddressSpace specialIpAddresses;
+  protected final DatasetValidator datasetValidator;
+  protected final DatasetValidator specialIpAddresses;
   protected IpFormatValidator ipFormatValidator;
   protected final String format;
   protected final String invalidIp;
 
   @BeforeMethod
   public void setUp() {
-    doReturn(false).when(ipAddressSpace).isInvalid(any());
+    doReturn(false).when(datasetValidator).isInvalid(any());
     doReturn(false).when(specialIpAddresses).isInvalid(any());
   }
 

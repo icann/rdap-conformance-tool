@@ -15,9 +15,12 @@ public abstract class SchemaValidatorForArrayOfStringTest extends SchemaValidato
     validateIsNotAJsonString(errorCode, "#/"+name+"/0:0");
   }
 
-  protected void notListOfEnum(int errorCode, String enumType) {
+  protected String wrongEnum() {
     jsonObject.put(name, List.of("wrong enum value"));
-    validateNotEnum(errorCode, enumType,
-        "#/"+name+"/0:wrong enum value");
+    return "#/"+name+"/0:wrong enum value";
+  }
+
+  protected void notListOfEnum(int errorCode, String enumType) {
+    validateNotEnum(errorCode, enumType, wrongEnum());
   }
 }

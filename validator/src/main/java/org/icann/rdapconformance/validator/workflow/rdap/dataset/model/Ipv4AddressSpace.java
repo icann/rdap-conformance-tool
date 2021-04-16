@@ -10,7 +10,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class Ipv4AddressSpace extends XmlObject implements IpAddressSpace {
+public class Ipv4AddressSpace extends XmlObject implements DatasetValidator {
 
   public List<Record> getRecords() {
     return records;

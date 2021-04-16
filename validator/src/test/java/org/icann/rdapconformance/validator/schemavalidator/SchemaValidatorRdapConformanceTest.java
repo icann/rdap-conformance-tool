@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 
 import java.util.List;
 import org.assertj.core.api.Assertions;
@@ -36,7 +38,9 @@ public class SchemaValidatorRdapConformanceTest extends SchemaValidatorForArrayO
    */
   @Test
   public void notListOfEnum() {
-    notListOfEnum(-10502, "rdap_common.json#/definitions/rdapExtensions/allOf/1");
+    doReturn(true).when(datasetService.getRdapExtensions()).isInvalid(any());
+    validate(-10502, wrongEnum(),
+        "The JSON string is not included as an Extension Identifier in RDAPExtensions.");
   }
 
   /**

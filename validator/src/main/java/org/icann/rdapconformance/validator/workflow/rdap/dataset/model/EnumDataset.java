@@ -2,8 +2,8 @@ package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -11,7 +11,7 @@ import org.xml.sax.SAXException;
 
 public class EnumDataset extends XmlObject {
 
-  private final List<String> records = new ArrayList<>();
+  private final Set<String> records = new HashSet<>();
   private final String key;
 
   EnumDataset() {
@@ -41,7 +41,7 @@ public class EnumDataset extends XmlObject {
     return value;
   }
 
-  public List<String> getValues() {
+  public Set<String> getValues() {
     return records;
   }
 }

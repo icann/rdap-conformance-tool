@@ -9,26 +9,10 @@
           "errorCode": -10501
         },
         {
-          "enum": [
-            "rdap_level_0",
-            "arin_originas0",
-            "artRecord",
-            "cidr0",
-            "fred",
-            "icann_rdap_response_profile_0",
-            "icann_rdap_technical_implementation_guide_0",
-            "nro_rdap_profile_0",
-            "nro_rdap_profile_asn_flat_0",
-            "nro_rdap_profile_asn_hierarchical_0",
-            "paging",
-            "platformNS",
-            "rdap_objectTag",
-            "redirect_with_content",
-            "regType",
-            "sorting",
-            "subsetting"
-          ],
-          "errorCode": -10502
+          "type": "string",
+          "format": "rdapExtensions",
+          "errorCode": -10502,
+          "errorMsg": "The JSON string is not included as an Extension Identifier in RDAPExtensions."
         }
       ]
     },

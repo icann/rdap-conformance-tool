@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.customvalidator;
 
 import org.everit.json.schema.internal.IPV6Validator;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.IpAddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DatasetValidator;
 
 public class Ipv6FormatValidator extends IpFormatValidator {
 
@@ -10,9 +10,9 @@ public class Ipv6FormatValidator extends IpFormatValidator {
   public static final String PART_OF_SPECIAL_ADDRESSES = "The IPv6 address is included in the IANA IPv6 Special-Purpose Address Registry. Dataset: specialIPv6Addresses";
 
   public Ipv6FormatValidator(
-      IpAddressSpace ipAddressSpace,
-      IpAddressSpace specialIpAddresses) {
-    super(ipAddressSpace, specialIpAddresses, new IPV6Validator());
+      DatasetValidator datasetValidator,
+      DatasetValidator specialIpAddresses) {
+    super(datasetValidator, specialIpAddresses, new IPV6Validator());
   }
 
 

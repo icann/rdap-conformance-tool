@@ -2,7 +2,7 @@ package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
 import inet.ipaddr.IPAddressString;
 
-public abstract class IpAddressSpecialRegistry extends EnumDataset implements IpAddressSpace {
+public abstract class IpAddressSpecialRegistry extends EnumDataset implements DatasetValidator {
 
   public IpAddressSpecialRegistry() {
     super("address");

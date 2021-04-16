@@ -19,6 +19,6 @@ public class Ipv6FormatValidatorTest extends IpFormatValidatorTest {
   @BeforeMethod
   public void setUp() {
     super.setUp();
-    ipFormatValidator = new Ipv6FormatValidator(ipAddressSpace, specialIpAddresses);
+    ipFormatValidator = new Ipv6FormatValidator(datasetValidator, specialIpAddresses);
   }
 }

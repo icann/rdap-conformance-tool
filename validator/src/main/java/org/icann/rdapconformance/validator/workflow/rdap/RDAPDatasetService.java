@@ -23,6 +23,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv4Addr
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv6AddressesDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 import org.slf4j.Logger;
@@ -102,5 +103,9 @@ public class RDAPDatasetService {
 
   public SpecialIPv6Addresses getSpecialIPv6Addresses() {
     return (SpecialIPv6Addresses) get("specialIPv6Addresses").getData();
+  }
+
+  public RDAPExtensions getRdapExtensions() {
+    return (RDAPExtensions) get("RDAPExtensions").getData();
   }
 }

@@ -2,7 +2,7 @@ package org.icann.rdapconformance.validator.customvalidator;
 
 import java.util.Optional;
 import org.everit.json.schema.FormatValidator;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.IpAddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DatasetValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,14 +10,14 @@ public abstract class IpFormatValidator implements FormatValidator {
 
   private static final Logger logger = LoggerFactory.getLogger(IpFormatValidator.class);
 
-  private final IpAddressSpace ipAddressSpace;
-  private final IpAddressSpace specialIpAddresses;
+  private final DatasetValidator datasetValidator;
+  private final DatasetValidator specialIpAddresses;
   private final FormatValidator ipValidator;
 
-  public IpFormatValidator(IpAddressSpace ipAddressSpace,
-      IpAddressSpace specialIpAddresses,
+  public IpFormatValidator(DatasetValidator datasetValidator,
+      DatasetValidator specialIpAddresses,
       FormatValidator ipValidator) {
-    this.ipAddressSpace = ipAddressSpace;
+    this.datasetValidator = datasetValidator;
     this.specialIpAddresses = specialIpAddresses;
     this.ipValidator = ipValidator;
   }
@@ -29,7 +29,7 @@ public abstract class IpFormatValidator implements FormatValidator {
       return invalidIpv4;
     }
 
-    if (ipAddressSpace.isInvalid(subject)) {
+    if (datasetValidator.isInvalid(subject)) {
       logger.error("IP address " + subject + " is not part of a prefix categorized as ALLOCATED or "
           + "LEGACY");
       return Optional.of(getNotAllocatedNorLegacyError());

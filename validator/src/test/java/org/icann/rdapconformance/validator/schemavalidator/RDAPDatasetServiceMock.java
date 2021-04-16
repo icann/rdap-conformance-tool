@@ -8,6 +8,7 @@ import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 
@@ -17,6 +18,7 @@ public class RDAPDatasetServiceMock extends RDAPDatasetService {
   private final SpecialIPv4Addresses specialIPv4AddressesMock;
   private final Ipv6AddressSpace ipv6AddressSpaceMock;
   private final SpecialIPv6Addresses specialIPv6AddressesMock;
+  private final RDAPExtensions rdapExtensionsMock;
 
   public RDAPDatasetServiceMock() {
     super(mock(FileSystem.class));
@@ -29,6 +31,9 @@ public class RDAPDatasetServiceMock extends RDAPDatasetService {
     this.specialIPv6AddressesMock = mock(SpecialIPv6Addresses.class);
     doReturn(false).when(ipv6AddressSpaceMock).isInvalid(any());
     doReturn(false).when(specialIPv6AddressesMock).isInvalid(any());
+
+    this.rdapExtensionsMock = mock(RDAPExtensions.class);
+    doReturn(false).when(rdapExtensionsMock).isInvalid(any());
   }
 
   @Override
@@ -54,5 +59,10 @@ public class RDAPDatasetServiceMock extends RDAPDatasetService {
   @Override
   public SpecialIPv6Addresses getSpecialIPv6Addresses() {
     return specialIPv6AddressesMock;
+  }
+
+  @Override
+  public RDAPExtensions getRdapExtensions() {
+    return rdapExtensionsMock;
   }
 }

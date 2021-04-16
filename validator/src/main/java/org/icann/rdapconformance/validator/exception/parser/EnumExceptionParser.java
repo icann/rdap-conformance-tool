@@ -4,7 +4,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.everit.json.schema.EnumSchema;
 import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -36,10 +35,10 @@ public class EnumExceptionParser extends ExceptionParser {
     }
     results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
-        .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()).toString())
-        .message(
-            "The JSON string is not included as a Value with " + schemaLocation
-                + " dataset ("+enumSchema.getPossibleValuesAsList()+").")
+        .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation())
+            .toString())
+        .message(e.getMessage("The JSON string is not included as a Value with " + schemaLocation
+            + " dataset (" + enumSchema.getPossibleValuesAsList() + ")."))
         .build());
   }
 }
