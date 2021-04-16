@@ -26,7 +26,7 @@ public abstract class SchemaValidatorTest {
   protected RDAPValidatorResults results;
   protected String name;
   protected String rdapContent;
-  protected RDAPDatasetService datasetService = new RDAPDatasetServiceMock();
+  protected RDAPDatasetService datasetService;
 
   public SchemaValidatorTest(
       String schemaName,
@@ -49,6 +49,7 @@ public abstract class SchemaValidatorTest {
 
   @BeforeMethod
   public void setUp() throws IOException {
+    datasetService = new RDAPDatasetServiceMock();
     datasetService.download(true);
     results = new RDAPValidatorResults();
     schemaValidator = new SchemaValidator(schemaName, results, datasetService);

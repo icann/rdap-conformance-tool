@@ -86,7 +86,7 @@ public class RDAPDatasetService {
     );
   }
 
-  public Ipv4AddressSpace getIpv4AddressSpace() {
+  public Ipv4AddressSpace getIpv4AddressSpaceMock() {
     return (Ipv4AddressSpace) get("ipv4AddressSpace").getData();
   }
 

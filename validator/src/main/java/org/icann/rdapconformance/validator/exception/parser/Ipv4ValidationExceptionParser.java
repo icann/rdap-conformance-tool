@@ -34,6 +34,22 @@ public class Ipv4ValidationExceptionParser extends StringFormatExceptionParser<I
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
         .build());
+
+    if (e.getMessage().contains(Ipv4FormatValidator.NOT_ALLOCATED_NOR_LEGACY)) {
+      results.add(RDAPValidationResult.builder()
+          .code(-10101)
+          .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
+          .message(Ipv4FormatValidator.NOT_ALLOCATED_NOR_LEGACY)
+          .build());
+    }
+
+    if (e.getMessage().contains(Ipv4FormatValidator.PART_OF_SPECIAL_ADDRESSES)) {
+      results.add(RDAPValidationResult.builder()
+          .code(-10102)
+          .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
+          .message(Ipv4FormatValidator.PART_OF_SPECIAL_ADDRESSES)
+          .build());
+    }
   }
 
 }

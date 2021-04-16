@@ -1,8 +1,6 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
 import org.testng.annotations.BeforeMethod;
@@ -75,7 +73,6 @@ public class SchemaValidatorWebUriTest extends SchemaValidatorTest {
    */
   @Test
   public void validIpv4HostnamePart() {
-    doReturn(false).when(datasetService.getIpv4AddressSpace()).isInvalid(any());
     jsonObject.put("webUri", "http://172.16.254.1#/subpath");
     assertThat(schemaValidator.validate(jsonObject.toString())).isTrue();
   }

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
 import org.testng.annotations.BeforeMethod;
@@ -29,5 +30,25 @@ public class SchemaValidatorIpv4Test extends SchemaValidatorTest {
     jsonObject.put("ipv4", "999");
     validate(-10100, "#/ipv4:999",
         "The IPv4 address is not syntactically valid in dot-decimal notation.");
+  }
+
+  /**
+   * 7.1.1.2
+   */
+  @Test
+  public void v4NotAllocatedNorLegacy() {
+    doReturn(true).when(datasetService.getIpv4AddressSpaceMock()).isInvalid(any());
+    validate(-10101, "#/ipv4:172.16.254.1",
+        "The IPv4 address is not included in a prefix categorized as ALLOCATED or LEGACY in the IANA IPv4 Address Space Registry. Dataset: ipv4AddressSpace");
+  }
+
+  /**
+   * 7.1.1.3
+   */
+  @Test
+  public void v4PartOfSpecialv4Addresses() {
+    doReturn(true).when(datasetService.getSpecialIPv4Addresses()).isInvalid(any());
+    validate(-10102, "#/ipv4:172.16.254.1",
+        "The IPv4 address is included in the IANA IPv4 Special-Purpose  Address Registry. Dataset: specialIPv4Addresses");
   }
 }

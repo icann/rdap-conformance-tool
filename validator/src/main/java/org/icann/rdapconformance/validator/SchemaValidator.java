@@ -51,7 +51,7 @@ public class SchemaValidator {
       String scope,
       ClassLoader classLoader,
       RDAPDatasetService ds) {
-    Ipv4FormatValidator ipv4FormatValidator = new Ipv4FormatValidator(ds.getIpv4AddressSpace(),
+    Ipv4FormatValidator ipv4FormatValidator = new Ipv4FormatValidator(ds.getIpv4AddressSpaceMock(),
         ds.getSpecialIPv4Addresses());
     JSONObject jsonSchema = new JSONObject(
         new JSONTokener(
