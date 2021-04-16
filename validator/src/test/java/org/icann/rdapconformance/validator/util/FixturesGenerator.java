@@ -7,7 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import org.icann.rdapconformance.validator.SchemaValidator;
-import org.icann.rdapconformance.validator.SchemaValidatorTest;
+import org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.ITestResult;

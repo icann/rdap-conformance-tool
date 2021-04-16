@@ -1,18 +1,18 @@
 package org.icann.rdapconformance.validator.exception.parser;
 
 import org.everit.json.schema.Schema;
-import org.everit.json.schema.internal.IPV4Validator;
+import org.icann.rdapconformance.validator.customvalidator.Ipv4FormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
-public class Ipv4ExceptionParser extends StringFormatExceptionParser<IPV4Validator> {
+public class Ipv4ValidationExceptionParser extends StringFormatExceptionParser<Ipv4FormatValidator> {
 
-  protected Ipv4ExceptionParser(ValidationExceptionNode e, Schema schema,
+  protected Ipv4ValidationExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results, IPV4Validator.class);
+    super(e, schema, jsonObject, results, Ipv4FormatValidator.class);
   }
 
   @Override
@@ -35,4 +35,5 @@ public class Ipv4ExceptionParser extends StringFormatExceptionParser<IPV4Validat
         .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
         .build());
   }
+
 }

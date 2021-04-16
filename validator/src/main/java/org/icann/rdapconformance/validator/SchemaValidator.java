@@ -51,6 +51,8 @@ public class SchemaValidator {
       String scope,
       ClassLoader classLoader,
       RDAPDatasetService ds) {
+    Ipv4FormatValidator ipv4FormatValidator = new Ipv4FormatValidator(ds.getIpv4AddressSpace(),
+        ds.getSpecialIPv4Addresses());
     JSONObject jsonSchema = new JSONObject(
         new JSONTokener(
             Objects.requireNonNull(
@@ -60,8 +62,8 @@ public class SchemaValidator {
         .schemaJson(jsonSchema)
         .resolutionScope("classpath://" + scope)
         .addFormatValidator(new IdnHostNameFormatValidator())
-        .addFormatValidator(new HostNameInUriFormatValidator())
-        .addFormatValidator(new Ipv4FormatValidator(ds.getIpv4AddressSpace(), ds.getSpecialIPv4Addresses()))
+        .addFormatValidator(new HostNameInUriFormatValidator(ipv4FormatValidator))
+        .addFormatValidator(ipv4FormatValidator)
         .draftV7Support()
         .build();
     return schemaLoader.load().build();

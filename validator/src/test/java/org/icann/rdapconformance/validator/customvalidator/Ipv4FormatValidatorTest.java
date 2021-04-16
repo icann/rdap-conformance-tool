@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.customvalidator;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -19,7 +20,7 @@ public class Ipv4FormatValidatorTest {
 
   @BeforeMethod
   public void setUp() {
-    doReturn(List.of(new Record("111.0.0.0/8", "ALLOCATED"))).when(ipv4AddressSpace).getRecords();
+    doReturn(false).when(ipv4AddressSpace).isInvalid(any());
     doReturn(List.of("0.0.0.0/8")).when(specialIPv4Addresses).getValues();
   }
 

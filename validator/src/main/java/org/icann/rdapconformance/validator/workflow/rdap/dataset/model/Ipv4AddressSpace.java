@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
+import inet.ipaddr.IPAddressString;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -34,8 +35,13 @@ public class Ipv4AddressSpace extends XmlObject {
     }
   }
 
-  public boolean isValid(String ipAddress) {
-    throw new RuntimeException("To be implemented");
+  public boolean isInvalid(String ipAddress) {
+    return records.stream()
+        .filter(r -> r.getStatus().equals("ALLOCATED") || r.getStatus().equals("LEGACY"))
+        .noneMatch(r -> {
+          IPAddressString net = new IPAddressString(r.getPrefix());
+          return net.contains(new IPAddressString(ipAddress));
+        });
   }
 
   public static class Record {

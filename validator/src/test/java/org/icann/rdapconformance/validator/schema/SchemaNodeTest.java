@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Optional;
-import org.icann.rdapconformance.validator.RDAPDatasetServiceMock;
+import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.testng.annotations.Test;
 

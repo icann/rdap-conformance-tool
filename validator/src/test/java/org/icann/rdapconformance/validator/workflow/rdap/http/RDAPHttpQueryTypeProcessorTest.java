@@ -5,7 +5,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import java.net.URI;
-import org.icann.rdapconformance.validator.RDAPDatasetServiceMock;
+import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;

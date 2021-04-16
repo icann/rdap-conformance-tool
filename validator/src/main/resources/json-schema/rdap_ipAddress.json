@@ -11,7 +11,7 @@
           "errorCode": -11405
         },
         {
-          "format": "ipv4",
+          "format": "ipv4-validation",
           "validationName": "IPv4Validation",
           "errorCode": -11404
         }

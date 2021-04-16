@@ -6,10 +6,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 import org.everit.json.schema.FormatValidator;
-import org.everit.json.schema.internal.IPV4Validator;
 import org.everit.json.schema.internal.IPV6Validator;
 
 public class HostNameInUriFormatValidator implements FormatValidator {
+
+  private final Ipv4FormatValidator ipv4FormatValidator;
+
+  public HostNameInUriFormatValidator(Ipv4FormatValidator ipv4FormatValidator) {
+    this.ipv4FormatValidator = ipv4FormatValidator;
+  }
 
   @Override
   public Optional<String> validate(String subject) {
@@ -20,7 +25,7 @@ public class HostNameInUriFormatValidator implements FormatValidator {
       }
       HostName hostName = new HostName(uri.getRawAuthority());
       if (hostName.isAddress(IPVersion.IPV4)) {
-        return new IPV4Validator().validate(hostName.getHost());
+        return ipv4FormatValidator.validate(hostName.getHost());
       } else if (hostName.isAddress(IPVersion.IPV6)) {
         return new IPV6Validator().validate(hostName.getHost());
       }
