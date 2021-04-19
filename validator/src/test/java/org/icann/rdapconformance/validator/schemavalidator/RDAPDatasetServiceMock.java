@@ -8,6 +8,7 @@ import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelations;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
@@ -19,6 +20,7 @@ public class RDAPDatasetServiceMock extends RDAPDatasetService {
   private final Ipv6AddressSpace ipv6AddressSpaceMock;
   private final SpecialIPv6Addresses specialIPv6AddressesMock;
   private final RDAPExtensions rdapExtensionsMock;
+  private final LinkRelations linkRelationsMock;
 
   public RDAPDatasetServiceMock() {
     super(mock(FileSystem.class));
@@ -34,6 +36,9 @@ public class RDAPDatasetServiceMock extends RDAPDatasetService {
 
     this.rdapExtensionsMock = mock(RDAPExtensions.class);
     doReturn(false).when(rdapExtensionsMock).isInvalid(any());
+
+    this.linkRelationsMock = mock(LinkRelations.class);
+    doReturn(false).when(linkRelationsMock).isInvalid(any());
   }
 
   @Override
@@ -64,5 +69,10 @@ public class RDAPDatasetServiceMock extends RDAPDatasetService {
   @Override
   public RDAPExtensions getRdapExtensions() {
     return rdapExtensionsMock;
+  }
+
+  @Override
+  public LinkRelations getLinkRelations() {
+    return linkRelationsMock;
   }
 }

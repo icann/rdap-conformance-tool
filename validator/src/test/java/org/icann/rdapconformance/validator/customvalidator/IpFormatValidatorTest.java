@@ -4,35 +4,31 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DatasetValidator;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public abstract class IpFormatValidatorTest {
+public abstract class IpFormatValidatorTest extends CustomValidatorTest<IpFormatValidator> {
 
   public IpFormatValidatorTest(String ipAddress,
-      DatasetValidator datasetValidator,
-      DatasetValidator specialIpAddresses,
+      IpFormatValidator formatValidator,
       String format,
       String invalidIp) {
+    super(format, formatValidator);
     this.ipAddress = ipAddress;
-    this.datasetValidator = datasetValidator;
-    this.specialIpAddresses = specialIpAddresses;
     this.format = format;
     this.invalidIp = invalidIp;
+    this.ipFormatValidator = formatValidator;
   }
 
   protected final String ipAddress;
-  protected final DatasetValidator datasetValidator;
-  protected final DatasetValidator specialIpAddresses;
   protected IpFormatValidator ipFormatValidator;
   protected final String format;
   protected final String invalidIp;
 
   @BeforeMethod
   public void setUp() {
-    doReturn(false).when(datasetValidator).isInvalid(any());
-    doReturn(false).when(specialIpAddresses).isInvalid(any());
+    doReturn(false).when(ipFormatValidator.getIpAddressesValidator()).isInvalid(any());
+    doReturn(false).when(ipFormatValidator.getSpecialIpAddresses()).isInvalid(any());
   }
 
   @Test
@@ -53,7 +49,7 @@ public abstract class IpFormatValidatorTest {
 
   @Test
   public void validate_isInSpecialRegistry() {
-    doReturn(true).when(specialIpAddresses).isInvalid(any());
+    doReturn(true).when(ipFormatValidator.getSpecialIpAddresses()).isInvalid(any());
     assertThat(ipFormatValidator.validate(ipAddress)).contains(ipFormatValidator.getPartOfSpecialAddressesSpaceError());
   }
 }

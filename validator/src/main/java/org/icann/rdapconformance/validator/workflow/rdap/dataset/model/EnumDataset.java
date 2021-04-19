@@ -9,7 +9,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class EnumDataset extends XmlObject {
+public class EnumDataset extends XmlObject implements DatasetValidator {
 
   private final Set<String> records = new HashSet<>();
   private final String key;
@@ -43,5 +43,10 @@ public class EnumDataset extends XmlObject {
 
   public Set<String> getValues() {
     return records;
+  }
+
+  @Override
+  public boolean isInvalid(String subject) {
+    return !getValues().contains(subject);
   }
 }

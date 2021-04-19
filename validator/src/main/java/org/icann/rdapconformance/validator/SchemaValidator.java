@@ -12,6 +12,7 @@ import org.icann.rdapconformance.validator.customvalidator.HostNameInUriFormatVa
 import org.icann.rdapconformance.validator.customvalidator.IdnHostNameFormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.Ipv4FormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.Ipv6FormatValidator;
+import org.icann.rdapconformance.validator.customvalidator.LinkRelationsValidator;
 import org.icann.rdapconformance.validator.customvalidator.RdapExtensionsFormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
@@ -57,6 +58,8 @@ public class SchemaValidator {
         ds.getSpecialIPv4Addresses());
     Ipv6FormatValidator ipv6FormatValidator = new Ipv6FormatValidator(ds.getIpv6AddressSpace(),
         ds.getSpecialIPv6Addresses());
+    LinkRelationsValidator linkRelationsValidator =
+        new LinkRelationsValidator(ds.getLinkRelations());
 
     RdapExtensionsFormatValidator rdapExtensionsFormatValidator =
         new RdapExtensionsFormatValidator(ds.getRdapExtensions());
@@ -73,6 +76,7 @@ public class SchemaValidator {
         .addFormatValidator(ipv4FormatValidator)
         .addFormatValidator(ipv6FormatValidator)
         .addFormatValidator(rdapExtensionsFormatValidator)
+        .addFormatValidator(linkRelationsValidator)
         .draftV7Support()
         .build();
     return schemaLoader.load().build();

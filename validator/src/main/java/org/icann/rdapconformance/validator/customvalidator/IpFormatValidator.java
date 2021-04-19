@@ -9,17 +9,24 @@ import org.slf4j.LoggerFactory;
 public abstract class IpFormatValidator implements FormatValidator {
 
   private static final Logger logger = LoggerFactory.getLogger(IpFormatValidator.class);
-
-  private final DatasetValidator datasetValidator;
+  private final DatasetValidator ipAddressesValidator;
   private final DatasetValidator specialIpAddresses;
   private final FormatValidator ipValidator;
 
   public IpFormatValidator(DatasetValidator datasetValidator,
       DatasetValidator specialIpAddresses,
       FormatValidator ipValidator) {
-    this.datasetValidator = datasetValidator;
+    this.ipAddressesValidator = datasetValidator;
     this.specialIpAddresses = specialIpAddresses;
     this.ipValidator = ipValidator;
+  }
+
+  public DatasetValidator getIpAddressesValidator() {
+    return ipAddressesValidator;
+  }
+
+  public DatasetValidator getSpecialIpAddresses() {
+    return specialIpAddresses;
   }
 
   @Override
@@ -29,7 +36,7 @@ public abstract class IpFormatValidator implements FormatValidator {
       return invalidIpv4;
     }
 
-    if (datasetValidator.isInvalid(subject)) {
+    if (ipAddressesValidator.isInvalid(subject)) {
       logger.error("IP address " + subject + " is not part of a prefix categorized as ALLOCATED or "
           + "LEGACY");
       return Optional.of(getNotAllocatedNorLegacyError());

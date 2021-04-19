@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
+import static org.mockito.Mockito.doReturn;
+
 import java.util.List;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
@@ -49,9 +51,9 @@ public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void relNotInEnum() {
-    replaceArrayProperty("rel", "wrong enum value");
-    validateNotEnum(-10604, "rdap_common.json#/definitions/link/properties/rel",
-        "#/links/0/rel:wrong enum value");
+    doReturn(true).when(datasetService.getLinkRelations()).isInvalid("wrong enum value");
+    validate(-10604, replaceArrayProperty("rel", "wrong enum value"),
+        "The JSON value is not included as a Relation Name in linkRelations.");
   }
 
   /**
