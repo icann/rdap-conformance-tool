@@ -1,11 +1,13 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import java.net.http.HttpResponse;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
+import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2019;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +115,11 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
      * Additionally, apply the relevant collection tests when the option
      * --use-rdap-profile-february-2019 is set.
      */
-    /* TODO */
+    if (config.userRdapProfileFeb2019()) {
+      RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(config,
+          results, (HttpResponse<String>) query.getRawResponse());
+      rdapProfileFebruary2019.validate();
+    }
 
     query.getStatusCode().ifPresent(rdapValidationResultFile::build);
 

@@ -63,4 +63,9 @@ public class RDAPFileQuery implements RDAPQuery {
   public String getData() {
     return this.data;
   }
+
+  @Override
+  public Object getRawResponse() {
+    return null;
+  }
 }

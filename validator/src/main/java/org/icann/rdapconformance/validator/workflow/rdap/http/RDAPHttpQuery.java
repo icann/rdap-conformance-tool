@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.makeHttpRequest;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -38,6 +39,19 @@ public class RDAPHttpQuery implements RDAPQuery {
 
   public RDAPHttpQuery(RDAPValidatorConfiguration config) {
     this.config = config;
+    /*
+     * If the scheme of the URI is "https", the tool will initiate a TLS connection to the server:
+     *  • The tool shall not try to match CA certs (if available) to a well-known CA.
+     *  • If the CRL or OCSP is unavailable, this won't constitute an error, but if CRL or OCSP are
+     *    accessible and indicate that the server certificate is revoked, the revocation
+     *    constitutes an error.
+     */
+    Security.setProperty("ocsp.enable", String.valueOf(true));
+    System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
+    System.setProperty("com.sun.security.enableCRLDP", String.valueOf(true));
+    System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
+    System.setProperty("jdk.httpclient.redirects.retrylimit",
+        String.valueOf(this.config.getMaxRedirects()));
   }
 
   /**
@@ -91,6 +105,11 @@ public class RDAPHttpQuery implements RDAPQuery {
     return httpResponse.body();
   }
 
+  @Override
+  public Object getRawResponse() {
+    return httpResponse;
+  }
+
   /**
    * Check if we got errors with the RDAP HTTP request.
    */
@@ -108,35 +127,8 @@ public class RDAPHttpQuery implements RDAPQuery {
 
 
   private void makeRequest() {
-    final URI uri = this.config.getUri();
-    /*
-     * If the scheme of the URI is "https", the tool will initiate a TLS connection to the server:
-     *  • The tool shall not try to match CA certs (if available) to a well-known CA.
-     *  • If the CRL or OCSP is unavailable, this won't constitute an error, but if CRL or OCSP are
-     *    accessible and indicate that the server certificate is revoked, the revocation
-     *    constitutes an error.
-     */
-    if (uri.getScheme().equals("https")) {
-      Security.setProperty("ocsp.enable", String.valueOf(true));
-      System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
-      System.setProperty("com.sun.security.enableCRLDP", String.valueOf(true));
-      System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
-    }
-
-    System.setProperty("jdk.httpclient.redirects.retrylimit",
-        String.valueOf(this.config.getMaxRedirects()));
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(uri)
-        .version(Version.HTTP_2)
-        .timeout(Duration.of(this.config.getTimeout(), SECONDS))
-        .GET()
-        .build();
     try {
-      httpResponse = java.net.http.HttpClient.newBuilder()
-          .connectTimeout(Duration.of(this.config.getTimeout(), SECONDS))
-          .followRedirects(Redirect.NORMAL)
-          .build()
-          .send(request, HttpResponse.BodyHandlers.ofString());
+      httpResponse = makeHttpRequest(this.config.getUri(), this.config.getTimeout());
     } catch (ConnectException | HttpTimeoutException e) {
       logger.error("Exception when connecting to RDAP server", e);
       status = RDAPValidationStatus.CONNECTION_FAILED;

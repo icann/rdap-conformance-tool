@@ -15,4 +15,6 @@ public interface RDAPQuery {
   boolean isErrorContent();
 
   String getData();
+
+  Object getRawResponse();
 }
