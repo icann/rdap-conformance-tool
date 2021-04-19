@@ -122,15 +122,10 @@
           "errorCode": -10705
         },
         {
-          "enum": [
-            "result set truncated due to authorization",
-            "result set truncated due to excessive load",
-            "result set truncated due to unexplainable reasons",
-            "object truncated due to authorization",
-            "object truncated due to excessive load",
-            "object truncated due to unexplainable reasons"
-          ],
-          "errorCode": -10706
+          "type": "string",
+          "format": "notice-and-remark",
+          "errorCode": -10706,
+          "errorMsg": "The JSON string is not included as a Value with Type=\"notice  and remark type\" in the RDAPJSONValues dataset."
         }
       ]
     },

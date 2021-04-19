@@ -1,11 +1,9 @@
 package org.icann.rdapconformance.validator.exception.parser;
 
-import java.util.Calendar;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.StringSchema;
-import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.internal.IPV4Validator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
@@ -26,5 +24,14 @@ public abstract class StringFormatExceptionParser<T> extends ExceptionParser {
     return e.getViolatedSchema() instanceof StringSchema &&
         ((StringSchema) e.getViolatedSchema())
             .getFormatValidator().getClass().equals(formatValidator);
+  }
+
+  @Override
+  protected void doParse() {
+    results.add(RDAPValidationResult.builder()
+        .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
+        .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
+        .message(e.getMessage(e.getMessage()))
+        .build());
   }
 }

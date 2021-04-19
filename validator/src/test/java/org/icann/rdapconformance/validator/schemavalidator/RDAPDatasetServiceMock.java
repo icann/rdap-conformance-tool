@@ -13,7 +13,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4Addre
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelations;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.MediaTypes;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPDatasetModel;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
@@ -41,16 +41,20 @@ public class RDAPDatasetServiceMock extends RDAPDatasetService {
     MediaTypes mediaTypesMock = mock(MediaTypes.class);
     doReturn(false).when(mediaTypesMock).isInvalid(any());
 
-    this.datasetModels = List.of(
+    NoticeAndRemarkJsonValues noticeAndRemarkJsonValues = mock(NoticeAndRemarkJsonValues.class);
+    doReturn(false).when(noticeAndRemarkJsonValues).isInvalid(any());
+
+    this.datasetValidatorModels = List.of(
         ipv4AddressSpaceMock,
         specialIPv4AddressesMock,
         ipv6AddressSpaceMock,
         specialIPv6AddressesMock,
         rdapExtensionsMock,
         linkRelationsMock,
-        mediaTypesMock
+        mediaTypesMock,
+        noticeAndRemarkJsonValues
     ).stream()
-        .collect(Collectors.toMap(RDAPDatasetModel::getClass, Function.identity()));
+        .collect(Collectors.toMap(Object::getClass, Function.identity()));
   }
 
   @Override
@@ -60,6 +64,6 @@ public class RDAPDatasetServiceMock extends RDAPDatasetService {
 
   @Override
   public <T> T get(Class<T> clazz) {
-    return (T) datasetModels.get(mock(clazz).getClass());
+    return (T) datasetValidatorModels.get(mock(clazz).getClass());
   }
 }

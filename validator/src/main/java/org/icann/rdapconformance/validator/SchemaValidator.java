@@ -14,6 +14,7 @@ import org.icann.rdapconformance.validator.customvalidator.Ipv4FormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.Ipv6FormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.LinkRelationsValidator;
 import org.icann.rdapconformance.validator.customvalidator.MediaTypesValidator;
+import org.icann.rdapconformance.validator.customvalidator.NoticeAndRemarkValidator;
 import org.icann.rdapconformance.validator.customvalidator.RdapExtensionsFormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
@@ -25,6 +26,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4Addre
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelations;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.MediaTypes;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
@@ -84,6 +86,7 @@ public class SchemaValidator {
         .addFormatValidator(rdapExtensionsFormatValidator)
         .addFormatValidator(new LinkRelationsValidator(ds.get(LinkRelations.class)))
         .addFormatValidator(new MediaTypesValidator(ds.get(MediaTypes.class)))
+        .addFormatValidator(new NoticeAndRemarkValidator(ds.get(NoticeAndRemarkJsonValues.class)))
         .draftV7Support()
         .build();
     return schemaLoader.load().build();

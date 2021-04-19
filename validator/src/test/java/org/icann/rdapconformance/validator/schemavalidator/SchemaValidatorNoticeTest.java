@@ -1,9 +1,11 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 
 import java.util.List;
 import org.assertj.core.api.Assertions;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
 import org.testng.annotations.Test;
 
 public class SchemaValidatorNoticeTest extends SchemaValidatorForArrayTest {
@@ -58,8 +60,11 @@ public class SchemaValidatorNoticeTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void typeNotInEnum() {
-    replaceArrayProperty("type", 0);
-    validateNotEnum(-10706, "rdap_common.json#/definitions/noticeType/allOf/1", "#/notices/0/type:0");
+    doReturn(true).when(datasetService.get(NoticeAndRemarkJsonValues.class))
+        .isInvalid("not-in-enum");
+    validate(-10706, replaceArrayProperty("type", "not-in-enum"),
+        "The JSON string is not included as a Value"
+        + " with Type=\"notice  and remark type\" in the RDAPJSONValues dataset.");
   }
 
   /**

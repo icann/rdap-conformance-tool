@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
@@ -31,11 +32,11 @@ public class RDAPJsonValues extends XmlObject {
     }
   }
 
-  public List<String> getByType(JsonValueType type) {
+  public Set<String> getByType(JsonValueType type) {
     return records.stream()
         .filter(r -> r.type.equals(type))
         .map(Record::getValue)
-        .collect(Collectors.toList());
+        .collect(Collectors.toSet());
   }
 
   public enum JsonValueType {

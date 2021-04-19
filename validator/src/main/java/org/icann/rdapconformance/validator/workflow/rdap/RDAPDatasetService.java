@@ -21,7 +21,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPJsonValuesD
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.RegistrarIdDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv4AddressesDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv6AddressesDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPDatasetModel;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPJsonValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +32,13 @@ public class RDAPDatasetService {
   public final static String DATASET_PATH = "datasets";
   private static final Logger logger = LoggerFactory.getLogger(RDAPDatasetService.class);
   private final FileSystem fileSystem;
+  private final List<RDAPDataset<? extends RDAPDatasetModel>> datasetList;
   protected Map<Class<? extends RDAPDataset>, RDAPDataset> datasets;
-  protected Map<Class<? extends RDAPDatasetModel>, RDAPDatasetModel> datasetModels;
+  protected Map<Class<?>, Object> datasetValidatorModels;
 
   public RDAPDatasetService(FileSystem fileSystem) {
     this.fileSystem = fileSystem;
-    List<RDAPDataset> datasetList = List.of(new IPv4AddressSpaceDataset(fileSystem),
+    datasetList = List.of(new IPv4AddressSpaceDataset(fileSystem),
         new SpecialIPv4AddressesDataset(fileSystem),
         new IPv6AddressSpaceDataset(fileSystem),
         new SpecialIPv6AddressesDataset(fileSystem),
@@ -51,10 +54,6 @@ public class RDAPDatasetService {
     this.datasets = datasetList
         .stream()
         .collect(Collectors.toMap(RDAPDataset::getClass, Function.identity()));
-    this.datasetModels = datasetList
-        .stream()
-        .map(RDAPDataset::getData)
-        .collect(Collectors.toMap(RDAPDatasetModel::getClass, Function.identity()));
   }
 
   /**
@@ -81,6 +80,15 @@ public class RDAPDatasetService {
         return false;
       }
     }
+
+    this.datasetValidatorModels = datasetList
+        .stream()
+        .map(RDAPDataset::getData)
+        .collect(Collectors.toMap(RDAPDatasetModel::getClass, Function.identity()));
+    // special case for these compound datasets:
+    this.datasetValidatorModels.put(NoticeAndRemarkJsonValues.class,
+        new NoticeAndRemarkJsonValues(get(RDAPJsonValues.class)));
+
     return true;
   }
 
@@ -92,34 +100,6 @@ public class RDAPDatasetService {
   }
 
   public <T> T get(Class<T> clazz) {
-    return (T) this.datasetModels.get(clazz);
+    return (T) this.datasetValidatorModels.get(clazz);
   }
-//
-//  public Ipv4AddressSpace getIpv4AddressSpace() {
-//    return (Ipv4AddressSpace) get("ipv4AddressSpace").getData();
-//  }
-//
-//  public SpecialIPv4Addresses getSpecialIPv4Addresses() {
-//    return (SpecialIPv4Addresses) get("specialIPv4Addresses").getData();
-//  }
-//
-//  public Ipv6AddressSpace getIpv6AddressSpace() {
-//    return (Ipv6AddressSpace) get("ipv6AddressSpace").getData();
-//  }
-//
-//  public SpecialIPv6Addresses getSpecialIPv6Addresses() {
-//    return (SpecialIPv6Addresses) get("specialIPv6Addresses").getData();
-//  }
-//
-//  public RDAPExtensions getRdapExtensions() {
-//    return (RDAPExtensions) get("RDAPExtensions").getData();
-//  }
-//
-//  public LinkRelations getLinkRelations() {
-//    return (LinkRelations) get("linkRelations").getData();
-//  }
-//
-//  public MediaTypes getMediaTypes() {
-//    return (MediaTypes) get("mediaTypes").getData();
-//  }
 }

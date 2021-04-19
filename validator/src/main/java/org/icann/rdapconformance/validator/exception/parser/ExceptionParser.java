@@ -62,6 +62,7 @@ public abstract class ExceptionParser {
       parsers.add(new RdapExtensionsExceptionParser(basicException, schema, object, results));
       parsers.add(new LinkRelationsExceptionParser(basicException, schema, object, results));
       parsers.add(new MediaTypesExceptionParser(basicException, schema, object, results));
+      parsers.add(new NoticeAndRemarkExceptionParser(basicException, schema, object, results));
     }
 
     return parsers;
