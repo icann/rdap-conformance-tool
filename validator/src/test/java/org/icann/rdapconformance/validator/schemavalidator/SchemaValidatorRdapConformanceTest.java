@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doReturn;
 
 import java.util.List;
 import org.assertj.core.api.Assertions;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
 import org.testng.annotations.Test;
 
 public class SchemaValidatorRdapConformanceTest extends SchemaValidatorForArrayOfStringTest {
@@ -38,7 +39,7 @@ public class SchemaValidatorRdapConformanceTest extends SchemaValidatorForArrayO
    */
   @Test
   public void notListOfEnum() {
-    doReturn(true).when(datasetService.getRdapExtensions()).isInvalid(any());
+    doReturn(true).when(datasetService.get(RDAPExtensions.class)).isInvalid(any());
     validate(-10502, wrongEnum(),
         "The JSON string is not included as an Extension Identifier in RDAPExtensions.");
   }

@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.customvalidator;
 
 import org.everit.json.schema.internal.IPV4Validator;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DatasetValidator;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DatasetValidatorModel;
 
 public class Ipv4FormatValidator extends IpFormatValidator {
 
@@ -13,9 +13,9 @@ public class Ipv4FormatValidator extends IpFormatValidator {
       + "IPv4 Special-Purpose  Address Registry. Dataset: specialIPv4Addresses";
 
   public Ipv4FormatValidator(
-      DatasetValidator datasetValidator,
-      DatasetValidator specialIpAddresses) {
-    super(datasetValidator, specialIpAddresses, new IPV4Validator());
+      DatasetValidatorModel datasetValidatorModel,
+      DatasetValidatorModel specialIpAddresses) {
+    super(datasetValidatorModel, specialIpAddresses, new IPV4Validator());
   }
 
 

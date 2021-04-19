@@ -3,7 +3,8 @@ package org.icann.rdapconformance.validator.schemavalidator;
 import static org.mockito.Mockito.doReturn;
 
 import java.util.List;
-import org.testng.annotations.Ignore;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelations;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.MediaTypes;
 import org.testng.annotations.Test;
 
 public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
@@ -51,21 +52,19 @@ public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void relNotInEnum() {
-    doReturn(true).when(datasetService.getLinkRelations()).isInvalid("wrong enum value");
+    doReturn(true).when(datasetService.get(LinkRelations.class)).isInvalid("wrong enum value");
     validate(-10604, replaceArrayProperty("rel", "wrong enum value"),
         "The JSON value is not included as a Relation Name in linkRelations.");
   }
 
   /**
    * 7.2.2.2.5.
-   * TODO when dataset handling will be done.
    */
-  @Ignore
   @Test
   public void typeNotInEnum() {
-    replaceArrayProperty("type", "wrong enum value");
-    validateNotEnum(-10605, "rdap_common.json#/definitions/link/properties/type",
-        "#/links/0/type:wrong enum value");
+    doReturn(true).when(datasetService.get(MediaTypes.class)).isInvalid("wrong enum value");
+    validate(-10605, replaceArrayProperty("type", "wrong enum value"),
+        "The JSON value is not included as a Name in mediaTypes.");
   }
 
   /**

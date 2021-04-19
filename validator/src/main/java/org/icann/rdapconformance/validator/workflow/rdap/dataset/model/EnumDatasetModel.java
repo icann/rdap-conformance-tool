@@ -9,16 +9,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class EnumDataset extends XmlObject implements DatasetValidator {
+public class EnumDatasetModel extends XmlObject implements DatasetValidatorModel {
 
   private final Set<String> records = new HashSet<>();
   private final String key;
 
-  EnumDataset() {
+  EnumDatasetModel() {
     this("value");
   }
 
-  EnumDataset(String key) {
+  EnumDatasetModel(String key) {
     this.key = key;
   }
 

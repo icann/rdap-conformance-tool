@@ -222,7 +222,8 @@
         },
         "type": {
           "type": "string",
-          "pattern": "[a-zA-Z][a-zA-Z0-9]*/[a-zA-Z][a-zA-Z0-9]*"
+          "format": "mediaTypes",
+          "errorCode": -10605
         }
       },
       "additionalProperties": false,

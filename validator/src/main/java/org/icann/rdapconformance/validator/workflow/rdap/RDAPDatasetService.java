@@ -21,12 +21,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPJsonValuesD
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.RegistrarIdDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv4AddressesDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv6AddressesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelations;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPDatasetModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,11 +30,12 @@ public class RDAPDatasetService {
   public final static String DATASET_PATH = "datasets";
   private static final Logger logger = LoggerFactory.getLogger(RDAPDatasetService.class);
   private final FileSystem fileSystem;
-  private final Map<String, RDAPDataset> datasets;
+  protected Map<Class<? extends RDAPDataset>, RDAPDataset> datasets;
+  protected Map<Class<? extends RDAPDatasetModel>, RDAPDatasetModel> datasetModels;
 
   public RDAPDatasetService(FileSystem fileSystem) {
     this.fileSystem = fileSystem;
-    this.datasets = List.of(new IPv4AddressSpaceDataset(fileSystem),
+    List<RDAPDataset> datasetList = List.of(new IPv4AddressSpaceDataset(fileSystem),
         new SpecialIPv4AddressesDataset(fileSystem),
         new IPv6AddressSpaceDataset(fileSystem),
         new SpecialIPv6AddressesDataset(fileSystem),
@@ -51,9 +47,14 @@ public class RDAPDatasetService {
         new DNSSecAlgNumbersDataset(fileSystem),
         new BootstrapDomainNameSpaceDataset(fileSystem),
         new RegistrarIdDataset(fileSystem),
-        new EPPRoidDataset(fileSystem))
+        new EPPRoidDataset(fileSystem));
+    this.datasets = datasetList
         .stream()
-        .collect(Collectors.toMap(RDAPDataset::getName, Function.identity()));
+        .collect(Collectors.toMap(RDAPDataset::getClass, Function.identity()));
+    this.datasetModels = datasetList
+        .stream()
+        .map(RDAPDataset::getData)
+        .collect(Collectors.toMap(RDAPDatasetModel::getClass, Function.identity()));
   }
 
   /**
@@ -86,31 +87,39 @@ public class RDAPDatasetService {
   private RDAPDataset get(String name) {
     return Optional.ofNullable(this.datasets.get(name))
         .orElseThrow(() ->
-        new IllegalArgumentException("Can't find required dataset " + name)
-    );
+            new IllegalArgumentException("Can't find required dataset " + name)
+        );
   }
 
-  public Ipv4AddressSpace getIpv4AddressSpace() {
-    return (Ipv4AddressSpace) get("ipv4AddressSpace").getData();
+  public <T> T get(Class<T> clazz) {
+    return (T) this.datasetModels.get(clazz);
   }
-
-  public SpecialIPv4Addresses getSpecialIPv4Addresses() {
-    return (SpecialIPv4Addresses) get("specialIPv4Addresses").getData();
-  }
-
-  public Ipv6AddressSpace getIpv6AddressSpace() {
-    return (Ipv6AddressSpace) get("ipv6AddressSpace").getData();
-  }
-
-  public SpecialIPv6Addresses getSpecialIPv6Addresses() {
-    return (SpecialIPv6Addresses) get("specialIPv6Addresses").getData();
-  }
-
-  public RDAPExtensions getRdapExtensions() {
-    return (RDAPExtensions) get("RDAPExtensions").getData();
-  }
-
-  public LinkRelations getLinkRelations() {
-    return (LinkRelations) get("linkRelations").getData();
-  }
+//
+//  public Ipv4AddressSpace getIpv4AddressSpace() {
+//    return (Ipv4AddressSpace) get("ipv4AddressSpace").getData();
+//  }
+//
+//  public SpecialIPv4Addresses getSpecialIPv4Addresses() {
+//    return (SpecialIPv4Addresses) get("specialIPv4Addresses").getData();
+//  }
+//
+//  public Ipv6AddressSpace getIpv6AddressSpace() {
+//    return (Ipv6AddressSpace) get("ipv6AddressSpace").getData();
+//  }
+//
+//  public SpecialIPv6Addresses getSpecialIPv6Addresses() {
+//    return (SpecialIPv6Addresses) get("specialIPv6Addresses").getData();
+//  }
+//
+//  public RDAPExtensions getRdapExtensions() {
+//    return (RDAPExtensions) get("RDAPExtensions").getData();
+//  }
+//
+//  public LinkRelations getLinkRelations() {
+//    return (LinkRelations) get("linkRelations").getData();
+//  }
+//
+//  public MediaTypes getMediaTypes() {
+//    return (MediaTypes) get("mediaTypes").getData();
+//  }
 }

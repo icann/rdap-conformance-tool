@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-public class RDAPExtensions extends EnumDataset implements DatasetValidator {
+public class RDAPExtensions extends EnumDatasetModel implements DatasetValidatorModel {
 
   @Override
   public boolean isInvalid(String subject) {

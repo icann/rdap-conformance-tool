@@ -22,7 +22,7 @@ public class EnumDatasetTest {
 
 
   private AbstractBooleanAssert<?> testInvalid(String value) {
-    EnumDataset enumDataset = spy(EnumDataset.class);
+    EnumDatasetModel enumDataset = spy(EnumDatasetModel.class);
     doReturn(Set.of("an enum value")).when(enumDataset).getValues();
     return assertThat(enumDataset.isInvalid(value));
   }

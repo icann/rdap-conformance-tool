@@ -2,30 +2,30 @@ package org.icann.rdapconformance.validator.customvalidator;
 
 import java.util.Optional;
 import org.everit.json.schema.FormatValidator;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DatasetValidator;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DatasetValidatorModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class IpFormatValidator implements FormatValidator {
 
   private static final Logger logger = LoggerFactory.getLogger(IpFormatValidator.class);
-  private final DatasetValidator ipAddressesValidator;
-  private final DatasetValidator specialIpAddresses;
+  private final DatasetValidatorModel ipAddressesValidator;
+  private final DatasetValidatorModel specialIpAddresses;
   private final FormatValidator ipValidator;
 
-  public IpFormatValidator(DatasetValidator datasetValidator,
-      DatasetValidator specialIpAddresses,
+  public IpFormatValidator(DatasetValidatorModel datasetValidatorModel,
+      DatasetValidatorModel specialIpAddresses,
       FormatValidator ipValidator) {
-    this.ipAddressesValidator = datasetValidator;
+    this.ipAddressesValidator = datasetValidatorModel;
     this.specialIpAddresses = specialIpAddresses;
     this.ipValidator = ipValidator;
   }
 
-  public DatasetValidator getIpAddressesValidator() {
+  public DatasetValidatorModel getIpAddressesValidator() {
     return ipAddressesValidator;
   }
 
-  public DatasetValidator getSpecialIpAddresses() {
+  public DatasetValidatorModel getSpecialIpAddresses() {
     return specialIpAddresses;
   }
 

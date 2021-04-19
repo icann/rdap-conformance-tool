@@ -13,6 +13,7 @@ import org.icann.rdapconformance.validator.customvalidator.IdnHostNameFormatVali
 import org.icann.rdapconformance.validator.customvalidator.Ipv4FormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.Ipv6FormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.LinkRelationsValidator;
+import org.icann.rdapconformance.validator.customvalidator.MediaTypesValidator;
 import org.icann.rdapconformance.validator.customvalidator.RdapExtensionsFormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
@@ -20,6 +21,13 @@ import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelations;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.MediaTypes;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -54,15 +62,13 @@ public class SchemaValidator {
       String scope,
       ClassLoader classLoader,
       RDAPDatasetService ds) {
-    Ipv4FormatValidator ipv4FormatValidator = new Ipv4FormatValidator(ds.getIpv4AddressSpace(),
-        ds.getSpecialIPv4Addresses());
-    Ipv6FormatValidator ipv6FormatValidator = new Ipv6FormatValidator(ds.getIpv6AddressSpace(),
-        ds.getSpecialIPv6Addresses());
-    LinkRelationsValidator linkRelationsValidator =
-        new LinkRelationsValidator(ds.getLinkRelations());
+    Ipv4FormatValidator ipv4FormatValidator = new Ipv4FormatValidator(ds.get(Ipv4AddressSpace.class),
+        ds.get(SpecialIPv4Addresses.class));
+    Ipv6FormatValidator ipv6FormatValidator = new Ipv6FormatValidator(ds.get(Ipv6AddressSpace.class),
+        ds.get(SpecialIPv6Addresses.class));
 
     RdapExtensionsFormatValidator rdapExtensionsFormatValidator =
-        new RdapExtensionsFormatValidator(ds.getRdapExtensions());
+        new RdapExtensionsFormatValidator(ds.get(RDAPExtensions.class));
     JSONObject jsonSchema = new JSONObject(
         new JSONTokener(
             Objects.requireNonNull(
@@ -76,7 +82,8 @@ public class SchemaValidator {
         .addFormatValidator(ipv4FormatValidator)
         .addFormatValidator(ipv6FormatValidator)
         .addFormatValidator(rdapExtensionsFormatValidator)
-        .addFormatValidator(linkRelationsValidator)
+        .addFormatValidator(new LinkRelationsValidator(ds.get(LinkRelations.class)))
+        .addFormatValidator(new MediaTypesValidator(ds.get(MediaTypes.class)))
         .draftV7Support()
         .build();
     return schemaLoader.load().build();

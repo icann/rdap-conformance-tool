@@ -7,7 +7,7 @@ import static org.mockito.Mockito.doReturn;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public abstract class IpFormatValidatorTest extends CustomValidatorTest<IpFormatValidator> {
+public abstract class IpFormatValidatorTest extends FormatValidatorTest<IpFormatValidator> {
 
   public IpFormatValidatorTest(String ipAddress,
       IpFormatValidator formatValidator,

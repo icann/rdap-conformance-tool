@@ -4,6 +4,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -37,7 +39,7 @@ public class SchemaValidatorIpv4Test extends SchemaValidatorTest {
    */
   @Test
   public void v4NotAllocatedNorLegacy() {
-    doReturn(true).when(datasetService.getIpv4AddressSpace()).isInvalid(any());
+    doReturn(true).when(datasetService.get(Ipv4AddressSpace.class)).isInvalid(any());
     validate(-10101, "#/ipv4:172.16.254.1",
         "The IPv4 address is not included in a prefix categorized as ALLOCATED or LEGACY in the IANA IPv4 Address Space Registry. Dataset: ipv4AddressSpace");
   }
@@ -47,7 +49,7 @@ public class SchemaValidatorIpv4Test extends SchemaValidatorTest {
    */
   @Test
   public void v4PartOfSpecialv4Addresses() {
-    doReturn(true).when(datasetService.getSpecialIPv4Addresses()).isInvalid(any());
+    doReturn(true).when(datasetService.get(SpecialIPv4Addresses.class)).isInvalid(any());
     validate(-10102, "#/ipv4:172.16.254.1",
         "The IPv4 address is included in the IANA IPv4 Special-Purpose  Address Registry. Dataset: specialIPv4Addresses");
   }
