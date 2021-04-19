@@ -14,7 +14,7 @@ public class RDAPValidationResult {
     this.message = message;
   }
 
-  static public Builder builder() {
+  public static Builder builder() {
     return new Builder();
   }
 

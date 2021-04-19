@@ -107,6 +107,10 @@ public class ConfigurationFile {
     return definitionNotes;
   }
 
+  public static Builder builder() {
+    return new Builder();
+  }
+
   public static class Builder {
 
     private String definitionIdentifier;

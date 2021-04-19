@@ -35,7 +35,7 @@ public class RDAPValidatorTest {
     };
     doReturn(true).when(processor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
-    doReturn(new ConfigurationFile.Builder().build()).when(configParser).parse(any());
+    doReturn(ConfigurationFile.builder().build()).when(configParser).parse(any());
   }
 
   @Test

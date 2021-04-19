@@ -36,14 +36,14 @@ public class ConfigurationFileParserTest {
         + "\"This is a configuration definition for a legacy gTLD.\","
         + "\"Developed by ICANN.\"]}").when(fs).readFile(any());
 
-    ConfigurationFile expectedConfig = new ConfigurationFile.Builder()
+    ConfigurationFile expectedConfig = ConfigurationFile.builder()
         .definitionIdentifier("gTLD Profile Version 1.0")
-        .definitionError(List.of(new DefinitionAlerts.Builder()
+        .definitionError(List.of(DefinitionAlerts.builder()
             .code(-1102)
             .notes(
                 "If the gTLD is a legacy gTLD, this may not indicate an error, review by a person is required.")
             .build()))
-        .definitionWarning(List.of(new DefinitionAlerts.Builder()
+        .definitionWarning(List.of(DefinitionAlerts.builder()
             .code(-2186)
             .notes("This only applies for a few gTLDs.")
             .build()))
@@ -83,7 +83,7 @@ public class ConfigurationFileParserTest {
   public void testParse_MandatoryFieldsOnly_IsOk() throws IOException {
     doReturn("{\"definitionIdentifier\": \"gTLD Profile Version 1.0\"}").when(fs).readFile(any());
 
-    ConfigurationFile expectedConfig = new ConfigurationFile.Builder()
+    ConfigurationFile expectedConfig = ConfigurationFile.builder()
         .definitionIdentifier("gTLD Profile Version 1.0")
         .build();
 

@@ -17,6 +17,10 @@ public class DefinitionAlerts {
     this.notes = notes;
   }
 
+  public static Builder builder() {
+    return new Builder();
+  }
+
   public int getCode() {
     return code;
   }
@@ -24,7 +28,6 @@ public class DefinitionAlerts {
   public String getNotes() {
     return notes;
   }
-
 
   public static class Builder {
 

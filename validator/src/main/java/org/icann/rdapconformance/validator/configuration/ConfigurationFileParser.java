@@ -22,7 +22,7 @@ public class ConfigurationFileParser {
   public ConfigurationFile parse(File configuration) throws IOException {
     String jsonConfigStr = fileSystem.readFile(configuration.getAbsolutePath());
     JSONObject jsonConfig = new JSONObject(jsonConfigStr);
-    return new ConfigurationFile.Builder()
+    return ConfigurationFile.builder()
         .definitionIdentifier(jsonConfig.getString("definitionIdentifier"))
         .definitionError(optJsonArrayToDefinitionAlerts(jsonConfig.optJSONArray("definitionError")))
         .definitionWarning(
@@ -41,7 +41,7 @@ public class ConfigurationFileParser {
     List<DefinitionAlerts> definitionAlerts = new ArrayList<>();
     while (it.hasNext()) {
       JSONObject obj = (JSONObject) it.next();
-      definitionAlerts.add(new DefinitionAlerts.Builder()
+      definitionAlerts.add(DefinitionAlerts.builder()
           .code(obj.getInt("code"))
           .notes(obj.optString("notes"))
           .build());
