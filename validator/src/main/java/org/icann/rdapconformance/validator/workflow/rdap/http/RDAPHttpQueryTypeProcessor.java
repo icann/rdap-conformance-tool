@@ -18,17 +18,16 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQueryTypeProcessor.class);
   private final RDAPValidatorConfiguration config;
-  private final RDAPDatasetService datasetService;
   private RDAPValidationStatus status = null;
   private RDAPHttpQueryType queryType = null;
 
-  public RDAPHttpQueryTypeProcessor(RDAPValidatorConfiguration config, RDAPDatasetService datasetService) {
+  public RDAPHttpQueryTypeProcessor(RDAPValidatorConfiguration config) {
     this.config = config;
-    this.datasetService = datasetService;
   }
 
   @Override
-  public boolean check() {
+  public boolean check(
+      RDAPDatasetService datasetService) {
     /* Verify the URI represent one of the following RDAP queries, and if not, exit with a return
      * code of 3:
      *  * domain/<domain name>

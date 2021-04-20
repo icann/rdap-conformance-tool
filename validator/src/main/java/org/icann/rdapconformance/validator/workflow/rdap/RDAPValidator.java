@@ -78,7 +78,7 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
       return RDAPValidationStatus.DATASET_UNAVAILABLE.getValue();
     }
 
-    if (!queryTypeProcessor.check()) {
+    if (!queryTypeProcessor.check(datasetService)) {
       return queryTypeProcessor.getErrorStatus().getValue();
     }
 

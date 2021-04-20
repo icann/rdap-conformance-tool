@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import java.net.URI;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
@@ -16,14 +17,15 @@ import org.testng.annotations.Test;
 public class RDAPHttpQueryTypeProcessorTest {
 
   private final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-  private final RDAPQueryTypeProcessor processor = new RDAPHttpQueryTypeProcessor(config, new RDAPDatasetServiceMock());
+  private final RDAPQueryTypeProcessor processor = new RDAPHttpQueryTypeProcessor(config);
+  private final RDAPDatasetService datasetService = new RDAPDatasetServiceMock();
 
   @Test
   public void testDomainQuery() {
     URI uri = URI.create("http://rdap.server.example/domain/test.example");
     doReturn(uri).when(config).getUri();
 
-    assertThat(processor.check()).isTrue();
+    assertThat(processor.check(new RDAPDatasetServiceMock())).isTrue();
     assertThat(processor.getQueryType()).isEqualTo(RDAPQueryType.DOMAIN);
   }
 
@@ -32,7 +34,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     URI uri = URI.create("http://rdap.server.example/nameserver/test.example");
     doReturn(uri).when(config).getUri();
 
-    assertThat(processor.check()).isTrue();
+    assertThat(processor.check(new RDAPDatasetServiceMock())).isTrue();
     assertThat(processor.getQueryType()).isEqualTo(RDAPQueryType.NAMESERVER);
   }
 
@@ -41,7 +43,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     URI uri = URI.create("http://rdap.server.example/entity/VG-1234");
     doReturn(uri).when(config).getUri();
 
-    assertThat(processor.check()).isTrue();
+    assertThat(processor.check(datasetService)).isTrue();
     assertThat(processor.getQueryType()).isEqualTo(RDAPQueryType.ENTITY);
   }
 
@@ -50,7 +52,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     URI uri = URI.create("http://rdap.server.example/help");
     doReturn(uri).when(config).getUri();
 
-    assertThat(processor.check()).isTrue();
+    assertThat(processor.check(datasetService)).isTrue();
     assertThat(processor.getQueryType()).isEqualTo(RDAPQueryType.HELP);
   }
 
@@ -59,7 +61,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     URI uri = URI.create("http://rdap.server.example/nameservers?ip=.*");
     doReturn(uri).when(config).getUri();
 
-    assertThat(processor.check()).isTrue();
+    assertThat(processor.check(datasetService)).isTrue();
     assertThat(processor.getQueryType()).isEqualTo(RDAPQueryType.NAMESERVERS);
   }
 
@@ -68,7 +70,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     URI uri = URI.create("http://rdap.server.example/");
     doReturn(uri).when(config).getUri();
 
-    assertThat(processor.check()).isFalse();
+    assertThat(processor.check(datasetService)).isFalse();
     assertThat(processor.getErrorStatus()).isEqualTo(RDAPValidationStatus.UNSUPPORTED_QUERY);
   }
 
@@ -78,7 +80,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     URI uri = URI.create("http://rdap.server.example/domain/xn--abcdé");
     doReturn(uri).when(config).getUri();
 
-    assertThat(processor.check()).isFalse();
+    assertThat(processor.check(datasetService)).isFalse();
     assertThat(processor.getErrorStatus()).isEqualTo(RDAPValidationStatus.MIXED_LABEL_FORMAT);
   }
 
@@ -88,7 +90,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     URI uri = URI.create("http://rdap.server.example/nameserver/xn--abcdé");
     doReturn(uri).when(config).getUri();
 
-    assertThat(processor.check()).isFalse();
+    assertThat(processor.check(datasetService)).isFalse();
     assertThat(processor.getErrorStatus()).isEqualTo(RDAPValidationStatus.MIXED_LABEL_FORMAT);
   }
 

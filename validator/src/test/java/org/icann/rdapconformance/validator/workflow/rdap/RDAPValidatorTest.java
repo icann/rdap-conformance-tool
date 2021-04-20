@@ -33,7 +33,7 @@ public class RDAPValidatorTest {
         datasetService) {
 
     };
-    doReturn(true).when(processor).check();
+    doReturn(true).when(processor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile.Builder().build()).when(configParser).parse(any());
   }
@@ -54,7 +54,7 @@ public class RDAPValidatorTest {
 
   @Test
   public void testValidate_QueryTypeProcessorError_ReturnsError() {
-    doReturn(false).when(processor).check();
+    doReturn(false).when(processor).check(datasetService);
     doReturn(RDAPValidationStatus.UNSUPPORTED_QUERY).when(processor).getErrorStatus();
 
     assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.UNSUPPORTED_QUERY.getValue());

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.file;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
@@ -14,7 +15,8 @@ public class RDAPFileQueryTypeProcessor implements RDAPQueryTypeProcessor {
   }
 
   @Override
-  public boolean check() {
+  public boolean check(
+      RDAPDatasetService datasetService) {
     return true;
   }
 
