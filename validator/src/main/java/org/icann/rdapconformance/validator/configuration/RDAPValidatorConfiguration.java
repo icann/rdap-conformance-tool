@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.configuration;
 
-import java.io.File;
 import java.net.URI;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.slf4j.Logger;
@@ -10,7 +9,7 @@ public interface RDAPValidatorConfiguration {
 
   Logger logger = LoggerFactory.getLogger(RDAPValidatorConfiguration.class);
 
-  File getConfigurationFile();
+  URI getConfigurationFile();
 
   URI getUri();
 

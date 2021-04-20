@@ -10,7 +10,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.stream.Collectors;
 
 public class LocalFileSystem implements FileSystem {
@@ -40,8 +42,8 @@ public class LocalFileSystem implements FileSystem {
   }
 
   @Override
-  public String readFile(String path) throws IOException {
-    try (InputStream fis = new FileInputStream(path);
+  public String readFile(URI uri) throws IOException {
+    try (InputStream fis = new FileInputStream(uri.getPath());
         Reader isr = new InputStreamReader(fis);
         BufferedReader br = new BufferedReader(isr)) {
       return br.lines().collect(Collectors.joining(System.lineSeparator()));
@@ -59,5 +61,16 @@ public class LocalFileSystem implements FileSystem {
         OutputStream fis = new FileOutputStream(filePath, false)) {
       is.transferTo(fis);
     }
+  }
+
+  @Override
+  public InputStream uriToStream(URI uri) throws IOException {
+    if (!uri.isAbsolute()) {
+      uri = URI.create(Path.of(uri.toString()).toAbsolutePath().toString());
+    }
+    if (null == uri.getScheme()) {
+      uri = URI.create("file://" + uri.toString());
+    }
+    return uri.toURL().openStream();
   }
 }

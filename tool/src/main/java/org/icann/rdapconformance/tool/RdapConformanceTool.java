@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.tool;
 
-import java.io.File;
 import java.net.URI;
 import java.util.concurrent.Callable;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -18,12 +17,11 @@ import picocli.CommandLine.Parameters;
 @Command(name = "rdap-conformance-tool", version = "0.1-alpha", mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
 
-  private FileSystem fileSystem = new LocalFileSystem();
-
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
+  private FileSystem fileSystem = new LocalFileSystem();
   @Option(names = {"-c", "--config"}, description = "Definition file", required = true)
-  private File configurationFile;
+  private URI configurationFile;
   @Option(names = {"--timeout"},
       description = "Timeout for connecting to the server", defaultValue = "20")
   private int timeout = 20;
@@ -50,7 +48,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   }
 
   @Override
-  public File getConfigurationFile() {
+  public URI getConfigurationFile() {
     return this.configurationFile;
   }
 

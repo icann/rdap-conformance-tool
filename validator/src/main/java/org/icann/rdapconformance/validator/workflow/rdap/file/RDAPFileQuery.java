@@ -36,7 +36,7 @@ public class RDAPFileQuery implements RDAPQuery {
     final URI uri = this.config.getUri();
 
     try {
-      data = fileSystem.readFile(uri.getPath());
+      data = fileSystem.readFile(uri);
     } catch (IOException e) {
       logger.error("Cannot read from uri {}", uri, e);
       return false;

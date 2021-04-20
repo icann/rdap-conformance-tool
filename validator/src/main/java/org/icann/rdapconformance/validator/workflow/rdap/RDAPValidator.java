@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 import org.icann.rdapconformance.validator.SchemaValidator;
@@ -62,7 +61,7 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
      * exit with a return code of 1.
      */
     ConfigurationFile configurationFile;
-    try (InputStream is = new FileInputStream(this.config.getConfigurationFile())) {
+    try (InputStream is = fileSystem.uriToStream(this.config.getConfigurationFile())) {
       configurationFile = configParser.parse(is);
     } catch (Exception e) {
       logger.error("Configuration is invalid", e);
