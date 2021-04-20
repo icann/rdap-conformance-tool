@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.configuration;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +15,7 @@ public class ConfigurationFile {
    * <p>The string is copied verbatim to the definitionIdentifier element of the results file.</p>
    */
   private final String definitionIdentifier;
+
   /**
    * An optional JSON array of objects.
    *
@@ -25,7 +28,8 @@ public class ConfigurationFile {
    * </ul>
    * </p>
    */
-  private final List<DefinitionAlerts> definitionError;
+  private final List<DefinitionError> definitionError;
+
   /**
    * An optional JSON array of objects.
    *
@@ -38,12 +42,14 @@ public class ConfigurationFile {
    * </ul>
    * </p>
    */
-  private final List<DefinitionAlerts> definitionWarning;
+  private final List<DefinitionWarning> definitionWarning;
+
   /**
    * An optional JSON array of single test identifiers that are ignored (i.e. not tested for). The
    * contents of this element are copied verbatim to the ignore section in the results file.
    */
   private final List<Integer> definitionIgnore;
+
   /**
    * An optional JSON array of strings that are copied verbatim to the notes section in the results
    * file.
@@ -53,25 +59,32 @@ public class ConfigurationFile {
   private final Set<Integer> errorCodes;
   private final Set<Integer> warningCodes;
 
-  public ConfigurationFile(String definitionIdentifier,
-      List<DefinitionAlerts> definitionError,
-      List<DefinitionAlerts> definitionWarning, List<Integer> definitionIgnore,
-      List<String> definitionNotes) {
+  @JsonCreator
+  public ConfigurationFile(
+      @JsonProperty(value = "definitionIdentifier", required = true) String definitionIdentifier,
+      @JsonProperty(value = "definitionError") List<DefinitionError> definitionError,
+      @JsonProperty(value = "definitionWarning") List<DefinitionWarning> definitionWarning,
+      @JsonProperty(value = "definitionIgnore") List<Integer> definitionIgnore,
+      @JsonProperty(value = "definitionNotes") List<String> definitionNotes) {
     this.definitionIdentifier = definitionIdentifier;
     this.definitionError = definitionError;
     this.definitionWarning = definitionWarning;
     this.definitionIgnore = definitionIgnore;
     this.definitionNotes = definitionNotes;
-    this.errorCodes = definitionError.stream()
-        .map(DefinitionAlerts::getCode)
-        .collect(Collectors.toSet());
-    this.warningCodes = definitionWarning.stream()
-        .map(DefinitionAlerts::getCode)
-        .collect(Collectors.toSet());
-  }
-
-  public String getDefinitionIdentifier() {
-    return definitionIdentifier;
+    if (null != definitionError) {
+      this.errorCodes = definitionError.stream()
+          .map(DefinitionAlert::getCode)
+          .collect(Collectors.toSet());
+    } else {
+      this.errorCodes = Collections.emptySet();
+    }
+    if (null != definitionWarning) {
+      this.warningCodes = definitionWarning.stream()
+          .map(DefinitionAlert::getCode)
+          .collect(Collectors.toSet());
+    } else {
+      this.warningCodes = Collections.emptySet();
+    }
   }
 
   public boolean isError(int code) {
@@ -83,20 +96,24 @@ public class ConfigurationFile {
   }
 
   public String getAlertNotes(int code) {
-    if (isError(code)) {
+    if (this.isError(code)) {
       return this.definitionError.stream()
           .filter(a -> a.getCode() == code)
           .findFirst()
-          .map(DefinitionAlerts::getNotes)
+          .map(DefinitionError::getNotes)
           .orElse("");
-    } else if (isWarning(code)) {
+    } else if (this.isWarning(code)) {
       return this.definitionWarning.stream()
           .filter(a -> a.getCode() == code)
           .findFirst()
-          .map(DefinitionAlerts::getNotes)
+          .map(DefinitionWarning::getNotes)
           .orElse("");
     }
     return "";
+  }
+
+  public String getDefinitionIdentifier() {
+    return definitionIdentifier;
   }
 
   public List<Integer> getDefinitionIgnore() {
@@ -105,48 +122,5 @@ public class ConfigurationFile {
 
   public List<String> getDefinitionNotes() {
     return definitionNotes;
-  }
-
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  public static class Builder {
-
-    private String definitionIdentifier;
-    private List<DefinitionAlerts> definitionError = Collections.emptyList();
-    private List<DefinitionAlerts> definitionWarning = Collections.emptyList();
-    private List<Integer> definitionIgnore = Collections.emptyList();
-    private List<String> definitionNotes = Collections.emptyList();
-
-    public Builder definitionIdentifier(String definitionIdentifier) {
-      this.definitionIdentifier = definitionIdentifier;
-      return this;
-    }
-
-    public Builder definitionError(List<DefinitionAlerts> definitionError) {
-      this.definitionError = definitionError;
-      return this;
-    }
-
-    public Builder definitionWarning(List<DefinitionAlerts> definitionWarning) {
-      this.definitionWarning = definitionWarning;
-      return this;
-    }
-
-    public Builder definitionIgnore(List<Integer> definitionIgnore) {
-      this.definitionIgnore = definitionIgnore;
-      return this;
-    }
-
-    public Builder definitionNotes(List<String> definitionNotes) {
-      this.definitionNotes = definitionNotes;
-      return this;
-    }
-
-    public ConfigurationFile build() {
-      return new ConfigurationFile(this.definitionIdentifier, this.definitionError,
-          this.definitionWarning, this.definitionIgnore, this.definitionNotes);
-    }
   }
 }

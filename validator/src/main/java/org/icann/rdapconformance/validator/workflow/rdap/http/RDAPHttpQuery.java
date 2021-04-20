@@ -1,29 +1,22 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
-import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.makeHttpRequest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ConnectException;
-import java.net.URI;
-import java.net.http.HttpClient.Redirect;
-import java.net.http.HttpClient.Version;
 import java.net.http.HttpHeaders;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.security.Security;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -231,20 +224,19 @@ public class RDAPHttpQuery implements RDAPQuery {
 
   static class JsonData {
 
-    private JSONObject rawJsonObject = null;
-    private JSONArray rawJsonArray = null;
+    private Map<String, Object> rawRdapMap = null;
+    private List<Object> rawRdapList = null;
 
 
     private JsonData(String data) {
+      ObjectMapper mapper = new ObjectMapper();
+
       try {
-        // FIXME JSONObject may be too permissive:
-        //  - accepts , after last element
-        //  - accepts string without " around
-        rawJsonObject = new JSONObject(data);
-      } catch (JSONException e1) {
+        rawRdapMap = mapper.readValue(data, Map.class);
+      } catch (Exception e1) {
         // JSON content may be a list
         try {
-          rawJsonArray = new JSONArray(data);
+          rawRdapList = mapper.readValue(data, List.class);
         } catch (Exception e2) {
           logger.error("Invalid JSON in RDAP response");
         }
@@ -255,18 +247,18 @@ public class RDAPHttpQuery implements RDAPQuery {
      * Parse the data into JSON.
      */
     public boolean isValid() {
-      return rawJsonObject != null || rawJsonArray != null;
+      return rawRdapMap != null || rawRdapList != null;
     }
 
     /**
      * Check whether the JSON data is an array.
      */
     public boolean isArray() {
-      return rawJsonArray != null;
+      return rawRdapList != null;
     }
 
     public boolean hasKey(String key) {
-      return isValid() && !isArray() && null != rawJsonObject.opt(key);
+      return isValid() && !isArray() && rawRdapMap.containsKey(key);
     }
   }
 }
