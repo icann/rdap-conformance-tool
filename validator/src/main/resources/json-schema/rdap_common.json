@@ -148,7 +148,8 @@
         "rel": {
           "type": "string",
           "format": "linkRelations",
-          "errorCode": -10604
+          "errorCode": -10604,
+          "errorMsg": "The JSON value is not included as a Relation Name in linkRelations."
         },
         "href": {
           "$ref": "#/definitions/uri",
@@ -218,7 +219,8 @@
         "type": {
           "type": "string",
           "format": "mediaTypes",
-          "errorCode": -10605
+          "errorCode": -10605,
+          "errorMsg": "The JSON value is not included as a Name in mediaTypes."
         }
       },
       "additionalProperties": false,

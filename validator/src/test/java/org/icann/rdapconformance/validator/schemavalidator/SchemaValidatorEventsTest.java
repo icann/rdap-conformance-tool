@@ -1,9 +1,11 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 
 import java.util.List;
 import org.assertj.core.api.Assertions;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.testng.annotations.Test;
 
 public class SchemaValidatorEventsTest extends SchemaValidatorForArrayTest {
@@ -56,9 +58,11 @@ public class SchemaValidatorEventsTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void eventActionNotInEnum() {
-    replaceArrayProperty("eventAction", "wrong enum value");
-    validateNotEnum(-10905, "rdap_event.json#/definitions/eventAction/allOf/1",
-        "#/events/0/eventAction:wrong enum value");
+    doReturn(true).when(datasetService.get(EventActionJsonValues.class))
+        .isInvalid("wrong enum value");
+    validate(-10905, replaceArrayProperty("eventAction", "wrong enum value"),
+        "The JSON string is not included as a Value with Type=\"event action\" in the "
+            + "RDAPJSONValues data set.");
   }
 
   /**

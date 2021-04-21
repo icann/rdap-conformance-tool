@@ -4,9 +4,9 @@ import static org.mockito.Mockito.mock;
 
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelations;
 
-public class LinkRelationsValidatorTest extends DatasetValidatorTest<LinkRelationsValidator> {
+public class LinkRelationsValidatorTest extends DatasetValidatorTest {
 
   public LinkRelationsValidatorTest() {
-    super("linkRelations", new LinkRelationsValidator(mock(LinkRelations.class)));
+    super("linkRelations", new DatasetValidator(mock(LinkRelations.class), "linkRelations"));
   }
 }

@@ -4,9 +4,9 @@ import static org.mockito.Mockito.mock;
 
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.MediaTypes;
 
-public class MediaTypesValidatorTest extends DatasetValidatorTest<MediaTypesValidator> {
+public class MediaTypesValidatorTest extends DatasetValidatorTest {
 
   public MediaTypesValidatorTest() {
-    super("mediaTypes", new MediaTypesValidator(mock(MediaTypes.class)));
+    super("mediaTypes", new DatasetValidator(mock(MediaTypes.class), "mediaTypes"));
   }
 }

@@ -10,21 +10,10 @@
           "errorCode": -10904
         },
         {
-          "enum": [
-            "registration",
-            "reregistration",
-            "last changed",
-            "expiration",
-            "deletion",
-            "reinstantiation",
-            "transfer",
-            "locked",
-            "unlocked",
-            "last update of RDAP database",
-            "registrar expiration",
-            "enum validation expiration"
-          ],
-          "errorCode": -10905
+          "type": "string",
+          "format": "event-action",
+          "errorCode": -10905,
+          "errorMsg": "The JSON string is not included as a Value with Type=\"event action\" in the RDAPJSONValues data set."
         }
       ]
     },

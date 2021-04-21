@@ -4,7 +4,7 @@ import java.util.Optional;
 import org.everit.json.schema.FormatValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DatasetValidatorModel;
 
-public abstract class DatasetValidator implements FormatValidator {
+public class DatasetValidator implements FormatValidator {
 
   protected final DatasetValidatorModel datasetValidatorModel;
   private final String formatName;
@@ -23,12 +23,14 @@ public abstract class DatasetValidator implements FormatValidator {
   @Override
   public Optional<String> validate(String s) {
     if (datasetValidatorModel.isInvalid(s)) {
-      return Optional.of(getErrorMsg());
+      return Optional.of("Invalid value for dataset " + datasetValidatorModel.getClass().getSimpleName());
     }
     return Optional.empty();
   }
 
-  protected abstract String getErrorMsg();
+  protected String getErrorMsg() {
+    return "";
+  }
 
   @Override
   public String formatName() {

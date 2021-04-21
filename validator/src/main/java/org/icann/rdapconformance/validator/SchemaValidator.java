@@ -8,13 +8,11 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaClient;
 import org.everit.json.schema.loader.SchemaLoader;
+import org.icann.rdapconformance.validator.customvalidator.DatasetValidator;
 import org.icann.rdapconformance.validator.customvalidator.HostNameInUriFormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.IdnHostNameFormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.Ipv4FormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.Ipv6FormatValidator;
-import org.icann.rdapconformance.validator.customvalidator.LinkRelationsValidator;
-import org.icann.rdapconformance.validator.customvalidator.MediaTypesValidator;
-import org.icann.rdapconformance.validator.customvalidator.NoticeAndRemarkValidator;
 import org.icann.rdapconformance.validator.customvalidator.RdapExtensionsFormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
@@ -22,6 +20,7 @@ import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelations;
@@ -80,13 +79,19 @@ public class SchemaValidator {
         .schemaJson(jsonSchema)
         .resolutionScope("classpath://" + scope)
         .addFormatValidator(new IdnHostNameFormatValidator())
-        .addFormatValidator(new HostNameInUriFormatValidator(ipv4FormatValidator, ipv6FormatValidator))
+        .addFormatValidator(
+            new HostNameInUriFormatValidator(ipv4FormatValidator, ipv6FormatValidator))
         .addFormatValidator(ipv4FormatValidator)
         .addFormatValidator(ipv6FormatValidator)
         .addFormatValidator(rdapExtensionsFormatValidator)
-        .addFormatValidator(new LinkRelationsValidator(ds.get(LinkRelations.class)))
-        .addFormatValidator(new MediaTypesValidator(ds.get(MediaTypes.class)))
-        .addFormatValidator(new NoticeAndRemarkValidator(ds.get(NoticeAndRemarkJsonValues.class)))
+        .addFormatValidator(
+            new DatasetValidator(ds.get(LinkRelations.class), "linkRelations"))
+        .addFormatValidator(
+            new DatasetValidator(ds.get(MediaTypes.class), "mediaTypes"))
+        .addFormatValidator(
+            new DatasetValidator(ds.get(NoticeAndRemarkJsonValues.class), "notice-and-remark"))
+        .addFormatValidator(
+            new DatasetValidator(ds.get(EventActionJsonValues.class), "event-action"))
         .draftV7Support()
         .build();
     return schemaLoader.load().build();
