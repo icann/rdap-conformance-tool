@@ -44,6 +44,19 @@ public abstract class XmlObject implements RDAPDatasetModel {
     return "";
   }
 
+  /**
+   * Get an attribute value.
+   */
+  String getAttribute(String attribute, Node node) {
+    Element element = (Element) node;
+    String value = element.getAttribute(attribute);
+    if (value == null) {
+      return "";
+    }
+    return value.strip();
+  }
+
+
   protected boolean numberEqualsOrInInterval(int numberToCheck, String numberOrInterval) {
     try {
       int nbr = Integer.parseInt(numberOrInterval);

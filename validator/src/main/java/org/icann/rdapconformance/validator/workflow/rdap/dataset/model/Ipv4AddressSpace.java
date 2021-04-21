@@ -12,10 +12,6 @@ import org.xml.sax.SAXException;
 
 public class Ipv4AddressSpace extends XmlObject implements DatasetValidatorModel {
 
-  public List<Record> getRecords() {
-    return records;
-  }
-
   private final List<Record> records = new ArrayList<>();
 
   /**

@@ -9,7 +9,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class EnumDatasetModel extends XmlObject implements DatasetValidatorModel {
+public abstract class EnumDatasetModel extends XmlObject implements DatasetValidatorModel {
 
   private final Set<String> records = new HashSet<>();
   private final String key;
