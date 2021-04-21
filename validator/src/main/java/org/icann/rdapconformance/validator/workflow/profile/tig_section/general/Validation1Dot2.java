@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator.workflow.profile.tig_section;
+package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import static org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.makeHttpRequest;
 
@@ -22,9 +22,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TigSectionGeneral {
+public class Validation1Dot2 {
 
-  private static final Logger logger = LoggerFactory.getLogger(TigSectionGeneral.class);
+  private static final Logger logger = LoggerFactory.getLogger(Validation1Dot2.class);
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final RDAPJsonComparator jsonComparator = new RDAPJsonComparator();

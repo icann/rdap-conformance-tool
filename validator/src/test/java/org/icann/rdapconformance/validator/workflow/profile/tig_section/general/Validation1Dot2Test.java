@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator.workflow.profile.tig_section;
+package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -18,14 +18,14 @@ import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.Comparator;
 import java.util.Optional;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigSectionGeneral.RDAPJsonComparator;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot2.RDAPJsonComparator;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.Test;
 
-public class TigSectionGeneralTest extends HttpTestingUtils {
+public class Validation1Dot2Test extends HttpTestingUtils {
 
   @Test
   public void testValidate_UriNotHttps_AddResult20100() {
@@ -37,7 +37,7 @@ public class TigSectionGeneralTest extends HttpTestingUtils {
     doReturn(URI.create("http://domain/test.example")).when(config).getUri();
     doReturn(config.getUri()).when(httpsResponse).uri();
 
-    assertThat(TigSectionGeneral.validate(httpsResponse, config, results)).isFalse();
+    assertThat(Validation1Dot2.validate(httpsResponse, config, results)).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20100)
@@ -67,7 +67,7 @@ public class TigSectionGeneralTest extends HttpTestingUtils {
     doReturn(Optional.of(httpsResponse2)).when(httpsResponse1).previousResponse();
     doReturn(Optional.of(httpsResponse3)).when(httpsResponse2).previousResponse();
 
-    assertThat(TigSectionGeneral.validate(httpsResponse1, config, results)).isFalse();
+    assertThat(Validation1Dot2.validate(httpsResponse1, config, results)).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20100)
@@ -100,7 +100,7 @@ public class TigSectionGeneralTest extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
 
-    assertThat(TigSectionGeneral.validate(httpsResponse, config, results)).isFalse();
+    assertThat(Validation1Dot2.validate(httpsResponse, config, results)).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20101)
@@ -111,7 +111,8 @@ public class TigSectionGeneralTest extends HttpTestingUtils {
   }
 
   @Test
-  public void testRDAPJsonComparator_WithUnorderedListExceptVCardAndDifferentLastUpdate_IsEqual() throws JsonProcessingException {
+  public void testRDAPJsonComparator_WithUnorderedListExceptVCardAndDifferentLastUpdate_IsEqual()
+      throws JsonProcessingException {
     String rdap1 = "{\n"
         + "  \"notices\": [\n"
         + "    {\n"
@@ -269,9 +270,10 @@ public class TigSectionGeneralTest extends HttpTestingUtils {
 
     ObjectMapper mapper = new ObjectMapper();
     Comparator<JsonNode> rdapJsonComparator = new RDAPJsonComparator();
-    assertThat(rdapJsonComparator.compare(mapper.readTree(rdap1), mapper.readTree(rdap2))).isEqualTo(0);
+    assertThat(rdapJsonComparator.compare(mapper.readTree(rdap1), mapper.readTree(rdap2)))
+        .isEqualTo(0);
   }
-  
+
   @Test
   public void testRDAPJsonComparator_WithDifference_IsNotOk() throws JsonProcessingException {
     String rdap1 = "{\n"
@@ -333,11 +335,13 @@ public class TigSectionGeneralTest extends HttpTestingUtils {
 
     ObjectMapper mapper = new ObjectMapper();
     Comparator<JsonNode> rdapJsonComparator = new RDAPJsonComparator();
-    assertThat(rdapJsonComparator.compare(mapper.readTree(rdap1), mapper.readTree(rdap2))).isEqualTo(1);
+    assertThat(rdapJsonComparator.compare(mapper.readTree(rdap1), mapper.readTree(rdap2)))
+        .isEqualTo(1);
   }
 
   @Test
-  public void testRDAPJsonComparator_WithUnorderedVCardArray_IsNotEqual() throws JsonProcessingException {
+  public void testRDAPJsonComparator_WithUnorderedVCardArray_IsNotEqual()
+      throws JsonProcessingException {
     String rdap1 = "{\n"
         + "  \"entities\": [\n"
         + "    {\n"
@@ -375,6 +379,7 @@ public class TigSectionGeneralTest extends HttpTestingUtils {
 
     ObjectMapper mapper = new ObjectMapper();
     Comparator<JsonNode> rdapJsonComparator = new RDAPJsonComparator();
-    assertThat(rdapJsonComparator.compare(mapper.readTree(rdap1), mapper.readTree(rdap2))).isEqualTo(1);
+    assertThat(rdapJsonComparator.compare(mapper.readTree(rdap1), mapper.readTree(rdap2)))
+        .isEqualTo(1);
   }
 }
