@@ -14,20 +14,10 @@
           "errorCode": -11801
         },
         {
-          "enum": [
-            "registrant",
-            "technical",
-            "administrative",
-            "abuse",
-            "billing",
-            "registrar",
-            "reseller",
-            "sponsor",
-            "proxy",
-            "notifications",
-            "noc"
-          ],
-          "errorCode": -11802
+          "type": "string",
+          "format": "role",
+          "errorCode": -11802,
+          "errorMsg": "The JSON string is not included as a Value with Type=\"role\"."
         }
       ]
     }

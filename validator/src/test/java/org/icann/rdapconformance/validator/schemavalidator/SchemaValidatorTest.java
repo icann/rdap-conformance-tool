@@ -26,7 +26,7 @@ public abstract class SchemaValidatorTest {
   protected RDAPValidatorResults results;
   protected String name;
   protected String rdapContent;
-  protected RDAPDatasetService datasetService;
+  protected RDAPDatasetService datasets;
   protected static final String WRONG_ENUM_VALUE = "wrong enum value";
 
   public SchemaValidatorTest(
@@ -50,10 +50,10 @@ public abstract class SchemaValidatorTest {
 
   @BeforeMethod
   public void setUp() throws IOException {
-    datasetService = new RDAPDatasetServiceMock();
-    datasetService.download(true);
+    datasets = new RDAPDatasetServiceMock();
+    datasets.download(true);
     results = new RDAPValidatorResults();
-    schemaValidator = new SchemaValidator(schemaName, results, datasetService);
+    schemaValidator = new SchemaValidator(schemaName, results, datasets);
     rdapContent = getResource(validJson);
     jsonObject = new JSONObject(rdapContent);
     name = schemaValidator.getSchema().getTitle();

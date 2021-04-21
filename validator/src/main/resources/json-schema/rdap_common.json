@@ -123,7 +123,7 @@
         },
         {
           "type": "string",
-          "format": "notice-and-remark",
+          "format": "noticeAndRemark",
           "errorCode": -10706,
           "errorMsg": "The JSON string is not included as a Value with Type=\"notice  and remark type\" in the RDAPJSONValues dataset."
         }

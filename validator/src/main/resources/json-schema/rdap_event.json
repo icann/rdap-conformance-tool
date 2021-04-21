@@ -11,7 +11,7 @@
         },
         {
           "type": "string",
-          "format": "event-action",
+          "format": "eventAction",
           "errorCode": -10905,
           "errorMsg": "The JSON string is not included as a Value with Type=\"event action\" in the RDAPJSONValues data set."
         }

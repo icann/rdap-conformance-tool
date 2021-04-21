@@ -60,7 +60,7 @@ public class SchemaValidatorNoticeTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void typeNotInEnum() {
-    doReturn(true).when(datasetService.get(NoticeAndRemarkJsonValues.class))
+    doReturn(true).when(datasets.get(NoticeAndRemarkJsonValues.class))
         .isInvalid("not-in-enum");
     validate(-10706, replaceArrayProperty("type", "not-in-enum"),
         "The JSON string is not included as a Value"

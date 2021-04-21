@@ -39,7 +39,7 @@ public class SchemaValidatorIpv6Test extends SchemaValidatorTest {
    */
   @Test
   public void v6NotAllocatedNorLegacy() {
-    doReturn(true).when(datasetService.get(Ipv6AddressSpace.class)).isInvalid(any());
+    doReturn(true).when(datasets.get(Ipv6AddressSpace.class)).isInvalid(any());
     validate(-10201, "#/ipv6:0:0:0:0:0:0:0:1",
         "The IPv6 address is not included in a "
             + "prefix categorized as Global Unicast in the Internet Protocol Version 6 Address Space. Dataset: ipv6AddressSpace");
@@ -50,7 +50,7 @@ public class SchemaValidatorIpv6Test extends SchemaValidatorTest {
    */
   @Test
   public void v6PartOfSpecialv6Addresses() {
-    doReturn(true).when(datasetService.get(SpecialIPv6Addresses.class)).isInvalid(any());
+    doReturn(true).when(datasets.get(SpecialIPv6Addresses.class)).isInvalid(any());
     validate(-10202, "#/ipv6:0:0:0:0:0:0:0:1",
         "The IPv6 address is included in the IANA "
             + "IPv6 Special-Purpose Address Registry. Dataset: specialIPv6Addresses");

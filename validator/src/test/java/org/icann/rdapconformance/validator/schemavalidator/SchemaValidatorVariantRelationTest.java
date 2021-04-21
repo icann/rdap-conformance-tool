@@ -1,6 +1,9 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
+import static org.mockito.Mockito.doReturn;
+
 import java.io.IOException;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -40,6 +43,8 @@ public class SchemaValidatorVariantRelationTest extends SchemaValidatorForArrayO
    */
   @Test
   public void notListOfEnum() {
-    notListOfEnum(-11505, "#/definitions/variantRelation/allOf/1");
+    doReturn(true).when(datasets.get(VariantRelationJsonValues.class)).isInvalid(WRONG_ENUM_VALUE);
+    notListOfEnumDataset(-11505,
+        "The JSON string is not included as a Value with Type=\"domain variant relation\".");
   }
 }

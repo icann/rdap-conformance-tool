@@ -1,7 +1,10 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
+import static org.mockito.Mockito.doReturn;
+
 import java.io.IOException;
 import java.util.List;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -60,9 +63,9 @@ public class SchemaValidatorAsEventActorTest extends SchemaValidatorForArrayTest
    */
   @Test
   public void eventActionNotInEnum() {
-    replaceArrayProperty("eventAction", WRONG_ENUM_VALUE);
-    validateNotEnum(-11306, "rdap_asEventActor_object.json#/definitions/eventAction/allOf/1",
-        "#/asEventActor/0/eventAction:" + WRONG_ENUM_VALUE);
+    doReturn(true).when(datasets.get(EventActionJsonValues.class)).isInvalid(WRONG_ENUM_VALUE);
+    validate(-11306, replaceArrayProperty("eventAction", WRONG_ENUM_VALUE),
+        "The JSON string is not included as a Value with Type=\"event action\" in the RDAPJSONValues dataset.");
   }
 
   /**

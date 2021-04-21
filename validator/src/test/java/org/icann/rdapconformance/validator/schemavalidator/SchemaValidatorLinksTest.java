@@ -52,7 +52,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void relNotInEnum() {
-    doReturn(true).when(datasetService.get(LinkRelations.class)).isInvalid(WRONG_ENUM_VALUE);
+    doReturn(true).when(datasets.get(LinkRelations.class)).isInvalid(WRONG_ENUM_VALUE);
     validate(-10604, replaceArrayProperty("rel", WRONG_ENUM_VALUE),
         "The JSON value is not included as a Relation Name in linkRelations.");
   }
@@ -62,7 +62,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void typeNotInEnum() {
-    doReturn(true).when(datasetService.get(MediaTypes.class)).isInvalid(WRONG_ENUM_VALUE);
+    doReturn(true).when(datasets.get(MediaTypes.class)).isInvalid(WRONG_ENUM_VALUE);
     validate(-10605, replaceArrayProperty("type", WRONG_ENUM_VALUE),
         "The JSON value is not included as a Name in mediaTypes.");
   }

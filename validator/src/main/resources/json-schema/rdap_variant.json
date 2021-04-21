@@ -10,14 +10,10 @@
           "errorCode": -11504
         },
         {
-          "enum": [
-            "registered",
-            "unregistered",
-            "registration restricted",
-            "open registration",
-            "conjoined"
-          ],
-          "errorCode": -11505
+          "type": "string",
+          "format": "variantRelation",
+          "errorCode": -11505,
+          "errorMsg": "The JSON string is not included as a Value with Type=\"domain variant relation\"."
         }
       ]
     }

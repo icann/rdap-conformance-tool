@@ -3,7 +3,6 @@ package org.icann.rdapconformance.validator.workflow.rdap;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -25,7 +24,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActi
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPDatasetModel;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPJsonValues;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RoleJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,14 +98,13 @@ public class RDAPDatasetService {
     this.datasetValidatorModels.put(StatusJsonValues.class,
         new StatusJsonValues(get(RDAPJsonValues.class)));
 
-    return true;
-  }
+    this.datasetValidatorModels.put(VariantRelationJsonValues.class,
+        new VariantRelationJsonValues(get(RDAPJsonValues.class)));
 
-  private RDAPDataset get(String name) {
-    return Optional.ofNullable(this.datasets.get(name))
-        .orElseThrow(() ->
-            new IllegalArgumentException("Can't find required dataset " + name)
-        );
+    this.datasetValidatorModels.put(RoleJsonValues.class,
+        new RoleJsonValues(get(RDAPJsonValues.class)));
+
+    return true;
   }
 
   public <T> T get(Class<T> clazz) {

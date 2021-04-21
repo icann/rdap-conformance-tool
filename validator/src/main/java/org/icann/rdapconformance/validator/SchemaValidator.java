@@ -27,9 +27,11 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelat
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.MediaTypes;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RoleJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -90,11 +92,15 @@ public class SchemaValidator {
         .addFormatValidator(
             new DatasetValidator(ds.get(MediaTypes.class), "mediaTypes"))
         .addFormatValidator(
-            new DatasetValidator(ds.get(NoticeAndRemarkJsonValues.class), "notice-and-remark"))
+            new DatasetValidator(ds.get(NoticeAndRemarkJsonValues.class), "noticeAndRemark"))
         .addFormatValidator(
-            new DatasetValidator(ds.get(EventActionJsonValues.class), "event-action"))
+            new DatasetValidator(ds.get(EventActionJsonValues.class), "eventAction"))
         .addFormatValidator(
             new DatasetValidator(ds.get(StatusJsonValues.class), "status"))
+        .addFormatValidator(
+            new DatasetValidator(ds.get(VariantRelationJsonValues.class), "variantRelation"))
+        .addFormatValidator(
+            new DatasetValidator(ds.get(RoleJsonValues.class), "role"))
         .draftV7Support()
         .build();
     return schemaLoader.load().build();

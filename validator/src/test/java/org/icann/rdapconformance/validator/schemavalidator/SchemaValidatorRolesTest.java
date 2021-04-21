@@ -1,9 +1,11 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
 import java.util.List;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RoleJsonValues;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -43,7 +45,8 @@ public class SchemaValidatorRolesTest extends SchemaValidatorForArrayOfStringTes
    */
   @Test
   public void notListOfEnum() {
-    notListOfEnum(-11802, "#/definitions/entityRole/allOf/1");
+    doReturn(true).when(datasets.get(RoleJsonValues.class)).isInvalid(WRONG_ENUM_VALUE);
+    notListOfEnumDataset(-11802, "The JSON string is not included as a Value with Type=\"role\".");
   }
 
   /**

@@ -39,7 +39,7 @@ public class SchemaValidatorIpv4Test extends SchemaValidatorTest {
    */
   @Test
   public void v4NotAllocatedNorLegacy() {
-    doReturn(true).when(datasetService.get(Ipv4AddressSpace.class)).isInvalid(any());
+    doReturn(true).when(datasets.get(Ipv4AddressSpace.class)).isInvalid(any());
     validate(-10101, "#/ipv4:172.16.254.1",
         "The IPv4 address is not included in a prefix categorized as ALLOCATED or LEGACY in the IANA IPv4 Address Space Registry. Dataset: ipv4AddressSpace");
   }
@@ -49,7 +49,7 @@ public class SchemaValidatorIpv4Test extends SchemaValidatorTest {
    */
   @Test
   public void v4PartOfSpecialv4Addresses() {
-    doReturn(true).when(datasetService.get(SpecialIPv4Addresses.class)).isInvalid(any());
+    doReturn(true).when(datasets.get(SpecialIPv4Addresses.class)).isInvalid(any());
     validate(-10102, "#/ipv4:172.16.254.1",
         "The IPv4 address is included in the IANA IPv4 Special-Purpose  Address Registry. Dataset: specialIPv4Addresses");
   }
