@@ -29,6 +29,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAnd
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -92,6 +93,8 @@ public class SchemaValidator {
             new DatasetValidator(ds.get(NoticeAndRemarkJsonValues.class), "notice-and-remark"))
         .addFormatValidator(
             new DatasetValidator(ds.get(EventActionJsonValues.class), "event-action"))
+        .addFormatValidator(
+            new DatasetValidator(ds.get(StatusJsonValues.class), "status"))
         .draftV7Support()
         .build();
     return schemaLoader.load().build();

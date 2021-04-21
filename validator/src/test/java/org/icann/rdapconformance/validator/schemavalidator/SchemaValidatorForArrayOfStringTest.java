@@ -23,4 +23,8 @@ public abstract class SchemaValidatorForArrayOfStringTest extends SchemaValidato
   protected void notListOfEnum(int errorCode, String enumType) {
     validateNotEnum(errorCode, enumType, wrongEnum());
   }
+
+  protected void notListOfEnumDataset(int errorCode, String msg) {
+    validate(errorCode, wrongEnum(), msg);
+  }
 }

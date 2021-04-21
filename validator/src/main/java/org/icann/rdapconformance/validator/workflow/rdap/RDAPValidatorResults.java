@@ -15,8 +15,9 @@ public class RDAPValidatorResults {
   private final Set<RDAPValidationResult> results = new HashSet<>();
 
   public void add(RDAPValidationResult result) {
-    logger.error("adding error result {}", result);
-    this.results.add(result);
+    if (this.results.add(result)) {
+      logger.error("adding error result {}", result);
+    }
   }
 
   public Set<RDAPValidationResult> getAll() {

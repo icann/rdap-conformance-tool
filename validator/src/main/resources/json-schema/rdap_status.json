@@ -10,43 +10,10 @@
           "errorCode": -11001
         },
         {
-          "enum": [
-            "validated",
-            "renew prohibited",
-            "update prohibited",
-            "transfer prohibited",
-            "delete prohibited",
-            "client renew prohibited",
-            "server renew prohibited",
-            "client update prohibited",
-            "server update prohibited",
-            "client transfer prohibited",
-            "server transfer prohibited",
-            "client delete prohibited",
-            "server delete prohibited",
-            "client hold",
-            "server hold",
-            "proxy",
-            "private",
-            "removed",
-            "obscured",
-            "associated",
-            "active",
-            "inactive",
-            "locked",
-            "pending create",
-            "pending renew",
-            "pending transfer",
-            "pending update",
-            "pending delete",
-            "pending restore",
-            "auto renew period",
-            "redemption period",
-            "renew period",
-            "transfer period",
-            "add period"
-          ],
-          "errorCode": -11002
+          "type": "string",
+          "format": "status",
+          "errorCode": -11002,
+          "errorMsg": "The JSON string is not included as a Value with \nType=\"status\"."
         }
       ]
     }

@@ -21,9 +21,11 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPJsonValuesD
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.RegistrarIdDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv4AddressesDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv6AddressesDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPDatasetModel;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPJsonValues;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,6 +90,12 @@ public class RDAPDatasetService {
     // special case for these compound datasets:
     this.datasetValidatorModels.put(NoticeAndRemarkJsonValues.class,
         new NoticeAndRemarkJsonValues(get(RDAPJsonValues.class)));
+
+    this.datasetValidatorModels.put(EventActionJsonValues.class,
+        new EventActionJsonValues(get(RDAPJsonValues.class)));
+
+    this.datasetValidatorModels.put(StatusJsonValues.class,
+        new StatusJsonValues(get(RDAPJsonValues.class)));
 
     return true;
   }

@@ -18,6 +18,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAnd
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 
 public class RDAPDatasetServiceMock extends RDAPDatasetService {
 
@@ -32,7 +33,8 @@ public class RDAPDatasetServiceMock extends RDAPDatasetService {
         mock(LinkRelations.class),
         mock(MediaTypes.class),
         mock(NoticeAndRemarkJsonValues.class),
-        mock(EventActionJsonValues.class)
+        mock(EventActionJsonValues.class),
+        mock(StatusJsonValues.class)
     ).stream()
         .peek(mock -> doReturn(false).when(mock).isInvalid(any()))
         .collect(Collectors.toMap(Object::getClass, Function.identity()));
