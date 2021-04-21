@@ -34,7 +34,7 @@ public class SchemaValidatorStatusTest extends SchemaValidatorForArrayOfStringTe
    */
   @Test
   public void notListOfEnum() {
-    doReturn(true).when(datasetService.get(StatusJsonValues.class)).isInvalid("wrong enum value");
+    doReturn(true).when(datasetService.get(StatusJsonValues.class)).isInvalid(WRONG_ENUM_VALUE);
     notListOfEnumDataset(-11002,
         "The JSON string is not included as a Value with \nType=\"status\".");
   }

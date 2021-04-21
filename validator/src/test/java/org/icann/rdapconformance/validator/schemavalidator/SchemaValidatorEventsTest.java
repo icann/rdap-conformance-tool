@@ -59,8 +59,8 @@ public class SchemaValidatorEventsTest extends SchemaValidatorForArrayTest {
   @Test
   public void eventActionNotInEnum() {
     doReturn(true).when(datasetService.get(EventActionJsonValues.class))
-        .isInvalid("wrong enum value");
-    validate(-10905, replaceArrayProperty("eventAction", "wrong enum value"),
+        .isInvalid(WRONG_ENUM_VALUE);
+    validate(-10905, replaceArrayProperty("eventAction", WRONG_ENUM_VALUE),
         "The JSON string is not included as a Value with Type=\"event action\" in the "
             + "RDAPJSONValues data set.");
   }

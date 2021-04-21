@@ -42,9 +42,9 @@ public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void mediaNotInEnum() {
-    replaceArrayProperty("media", "wrong enum value");
+    replaceArrayProperty("media", WRONG_ENUM_VALUE);
     validateNotEnum(-10603, "rdap_common.json#/definitions/link/properties/media/allOf/1",
-        "#/links/0/media:wrong enum value");
+        "#/links/0/media:" + WRONG_ENUM_VALUE);
   }
 
   /**
@@ -52,8 +52,8 @@ public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void relNotInEnum() {
-    doReturn(true).when(datasetService.get(LinkRelations.class)).isInvalid("wrong enum value");
-    validate(-10604, replaceArrayProperty("rel", "wrong enum value"),
+    doReturn(true).when(datasetService.get(LinkRelations.class)).isInvalid(WRONG_ENUM_VALUE);
+    validate(-10604, replaceArrayProperty("rel", WRONG_ENUM_VALUE),
         "The JSON value is not included as a Relation Name in linkRelations.");
   }
 
@@ -62,8 +62,8 @@ public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void typeNotInEnum() {
-    doReturn(true).when(datasetService.get(MediaTypes.class)).isInvalid("wrong enum value");
-    validate(-10605, replaceArrayProperty("type", "wrong enum value"),
+    doReturn(true).when(datasetService.get(MediaTypes.class)).isInvalid(WRONG_ENUM_VALUE);
+    validate(-10605, replaceArrayProperty("type", WRONG_ENUM_VALUE),
         "The JSON value is not included as a Name in mediaTypes.");
   }
 

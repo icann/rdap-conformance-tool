@@ -27,6 +27,7 @@ public abstract class SchemaValidatorTest {
   protected String name;
   protected String rdapContent;
   protected RDAPDatasetService datasetService;
+  protected static final String WRONG_ENUM_VALUE = "wrong enum value";
 
   public SchemaValidatorTest(
       String schemaName,

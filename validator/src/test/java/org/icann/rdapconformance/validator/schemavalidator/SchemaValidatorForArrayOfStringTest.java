@@ -16,8 +16,8 @@ public abstract class SchemaValidatorForArrayOfStringTest extends SchemaValidato
   }
 
   protected String wrongEnum() {
-    jsonObject.put(name, List.of("wrong enum value"));
-    return "#/"+name+"/0:wrong enum value";
+    jsonObject.put(name, List.of(WRONG_ENUM_VALUE));
+    return "#/"+name+"/0:"+WRONG_ENUM_VALUE;
   }
 
   protected void notListOfEnum(int errorCode, String enumType) {
