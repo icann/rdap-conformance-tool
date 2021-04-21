@@ -10,10 +10,15 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
 import java.net.http.HttpResponse;
+import java.util.Comparator;
 import java.util.Optional;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigSectionGeneral.RDAPJsonComparator;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -21,7 +26,6 @@ import org.mockito.ArgumentCaptor;
 import org.testng.annotations.Test;
 
 public class TigSectionGeneralTest extends HttpTestingUtils {
-
 
   @Test
   public void testValidate_UriNotHttps_AddResult20100() {
@@ -104,5 +108,273 @@ public class TigSectionGeneralTest extends HttpTestingUtils {
         .hasFieldOrPropertyWithValue("message",
             "The RDAP response was provided over HTTP, per section 1.2 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1shall be HTTPS only.");
+  }
+
+  @Test
+  public void testRDAPJsonComparator_WithUnorderedListExceptVCardAndDifferentLastUpdate_IsEqual() throws JsonProcessingException {
+    String rdap1 = "{\n"
+        + "  \"notices\": [\n"
+        + "    {\n"
+        + "      \"title\": \"Status Codes\",\n"
+        + "      \"links\": [\n"
+        + "        {\n"
+        + "          \"rel\": \"related\",\n"
+        + "          \"href\": \"https://icann.org/epp\"\n"
+        + "        }\n"
+        + "      ]\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"title\": \"RDDS Inaccuracy Complaint Form\",\n"
+        + "      \"links\": [\n"
+        + "        {\n"
+        + "          \"rel\": \"related\",\n"
+        + "          \"href\": \"https://www.icann.org/wicf\"\n"
+        + "        }\n"
+        + "      ]\n"
+        + "    }\n"
+        + "  ],\n"
+        + "  \"nameservers\": [\n"
+        + "    {\n"
+        + "      \"handle\": \"DEF-LRMS\",\n"
+        + "      \"status\": [\n"
+        + "        \"active\",\n"
+        + "        \"associated\"\n"
+        + "      ],\n"
+        + "      \"events\": [\n"
+        + "        {\n"
+        + "          \"eventAction\": \"registration\",\n"
+        + "          \"eventDate\": \"2017-06-05T12:03:04.000Z\"\n"
+        + "        },\n"
+        + "        {\n"
+        + "          \"eventAction\": \"last changed\",\n"
+        + "          \"eventDate\": \"2017-06-10T15:41:57.357Z\"\n"
+        + "        },\n"
+        + "        {\n"
+        + "          \"eventAction\": \"last update of RDAP database\",\n"
+        + "          \"eventDate\": \"2021-04-09T16:51:22.976Z\"\n"
+        + "        }\n"
+        + "      ]\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"handle\": \"ABC-LRMS\"\n"
+        + "    }\n"
+        + "  ],\n"
+        + "  \"events\": [\n"
+        + "    {\n"
+        + "      \"eventAction\": \"registration\",\n"
+        + "      \"eventDate\": \"2016-10-22T20:47:28.100Z\"\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"eventAction\": \"last changed\",\n"
+        + "      \"eventDate\": \"2020-08-21T21:57:42.127Z\"\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"eventAction\": \"last update of RDAP database\",\n"
+        + "      \"eventDate\": \"2021-04-09T16:51:22.976Z\"\n"
+        + "    }\n"
+        + "  ],\n"
+        + "  \"entities\": [\n"
+        + "    {\n"
+        + "      \"vcardArray\": [\n"
+        + "        \"vcard\",\n"
+        + "        [\n"
+        + "          [\n"
+        + "            \"version\",\n"
+        + "            {},\n"
+        + "            \"text\",\n"
+        + "            \"4.0\"\n"
+        + "          ]\n"
+        + "        ]\n"
+        + "      ]\n"
+        + "    }\n"
+        + "  ]\n"
+        + "}\n";
+    String rdap2 = "{\n"
+        + "  \"notices\": [\n"
+        + "    {\n"
+        + "      \"title\": \"RDDS Inaccuracy Complaint Form\",\n"
+        + "      \"links\": [\n"
+        + "        {\n"
+        + "          \"rel\": \"related\",\n"
+        + "          \"href\": \"https://www.icann.org/wicf\"\n"
+        + "        }\n"
+        + "      ]\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"title\": \"Status Codes\",\n"
+        + "      \"links\": [\n"
+        + "        {\n"
+        + "          \"rel\": \"related\",\n"
+        + "          \"href\": \"https://icann.org/epp\"\n"
+        + "        }\n"
+        + "      ]\n"
+        + "    }\n"
+        + "  ],\n"
+        + "  \"nameservers\": [\n"
+        + "    {\n"
+        + "      \"handle\": \"DEF-LRMS\",\n"
+        + "      \"status\": [\n"
+        + "        \"associated\",\n"
+        + "        \"active\"\n"
+        + "      ],\n"
+        + "      \"events\": [\n"
+        + "        {\n"
+        + "          \"eventAction\": \"last changed\",\n"
+        + "          \"eventDate\": \"2017-06-10T15:41:57.357Z\"\n"
+        + "        },\n"
+        + "        {\n"
+        + "          \"eventAction\": \"last update of RDAP database\",\n"
+        + "          \"eventDate\": \"2022-04-09T16:51:22.976Z\"\n"
+        + "        },\n"
+        + "        {\n"
+        + "          \"eventAction\": \"registration\",\n"
+        + "          \"eventDate\": \"2017-06-05T12:03:04.000Z\"\n"
+        + "        }\n"
+        + "      ]\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"handle\": \"ABC-LRMS\"\n"
+        + "    }\n"
+        + "  ],\n"
+        + "  \"events\": [\n"
+        + "    {\n"
+        + "      \"eventAction\": \"registration\",\n"
+        + "      \"eventDate\": \"2016-10-22T20:47:28.100Z\"\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"eventAction\": \"last update of RDAP database\",\n"
+        + "      \"eventDate\": \"2022-04-09T16:51:22.976Z\"\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"eventAction\": \"last changed\",\n"
+        + "      \"eventDate\": \"2020-08-21T21:57:42.127Z\"\n"
+        + "    }\n"
+        + "  ],\n"
+        + "  \"entities\": [\n"
+        + "    {\n"
+        + "      \"vcardArray\": [\n"
+        + "        \"vcard\",\n"
+        + "        [\n"
+        + "          [\n"
+        + "            \"version\",\n"
+        + "            {},\n"
+        + "            \"text\",\n"
+        + "            \"4.0\"\n"
+        + "          ]\n"
+        + "        ]\n"
+        + "      ]\n"
+        + "    }\n"
+        + "  ]\n"
+        + "}\n";
+
+    ObjectMapper mapper = new ObjectMapper();
+    Comparator<JsonNode> rdapJsonComparator = new RDAPJsonComparator();
+    assertThat(rdapJsonComparator.compare(mapper.readTree(rdap1), mapper.readTree(rdap2))).isEqualTo(0);
+  }
+  
+  @Test
+  public void testRDAPJsonComparator_WithDifference_IsNotOk() throws JsonProcessingException {
+    String rdap1 = "{\n"
+        + "  \"nameservers\": [\n"
+        + "    {\n"
+        + "      \"handle\": \"DEF-LRMS\",\n"
+        + "      \"status\": [\n"
+        + "        \"active\",\n"
+        + "        \"associated\"\n"
+        + "      ],\n"
+        + "      \"events\": [\n"
+        + "        {\n"
+        + "          \"eventAction\": \"registration\",\n"
+        + "          \"eventDate\": \"2017-06-05T12:03:04.000Z\"\n"
+        + "        },\n"
+        + "        {\n"
+        + "          \"eventAction\": \"last changed\",\n"
+        + "          \"eventDate\": \"2017-06-10T15:41:57.357Z\"\n"
+        + "        },\n"
+        + "        {\n"
+        + "          \"eventAction\": \"last update of RDAP database\",\n"
+        + "          \"eventDate\": \"2021-04-09T16:51:22.976Z\"\n"
+        + "        }\n"
+        + "      ]\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"handle\": \"ABC-LRMS\"\n"
+        + "    }\n"
+        + "  ]\n"
+        + "}\n";
+    String rdap2 = "{\n"
+        + "  \"nameservers\": [\n"
+        + "    {\n"
+        + "      \"handle\": \"GHI-LRMS\",\n"
+        + "      \"status\": [\n"
+        + "        \"active\",\n"
+        + "        \"associated\"\n"
+        + "      ],\n"
+        + "      \"events\": [\n"
+        + "        {\n"
+        + "          \"eventAction\": \"registration\",\n"
+        + "          \"eventDate\": \"2017-06-05T12:03:04.000Z\"\n"
+        + "        },\n"
+        + "        {\n"
+        + "          \"eventAction\": \"last changed\",\n"
+        + "          \"eventDate\": \"2017-06-10T15:41:57.357Z\"\n"
+        + "        },\n"
+        + "        {\n"
+        + "          \"eventAction\": \"last update of RDAP database\",\n"
+        + "          \"eventDate\": \"2021-04-09T16:51:22.976Z\"\n"
+        + "        }\n"
+        + "      ]\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"handle\": \"ABC-LRMS\"\n"
+        + "    }\n"
+        + "  ]\n"
+        + "}\n";
+
+    ObjectMapper mapper = new ObjectMapper();
+    Comparator<JsonNode> rdapJsonComparator = new RDAPJsonComparator();
+    assertThat(rdapJsonComparator.compare(mapper.readTree(rdap1), mapper.readTree(rdap2))).isEqualTo(1);
+  }
+
+  @Test
+  public void testRDAPJsonComparator_WithUnorderedVCardArray_IsNotEqual() throws JsonProcessingException {
+    String rdap1 = "{\n"
+        + "  \"entities\": [\n"
+        + "    {\n"
+        + "      \"vcardArray\": [\n"
+        + "        \"vcard\",\n"
+        + "        [\n"
+        + "          [\n"
+        + "            \"version\",\n"
+        + "            {},\n"
+        + "            \"text\",\n"
+        + "            \"4.0\"\n"
+        + "          ]\n"
+        + "        ]\n"
+        + "      ]\n"
+        + "    }\n"
+        + "  ]\n"
+        + "}\n";
+    String rdap2 = "{\n"
+        + "  \"entities\": [\n"
+        + "    {\n"
+        + "      \"vcardArray\": [\n"
+        + "        \"vcard\",\n"
+        + "        [\n"
+        + "          [\n"
+        + "            \"text\",\n"
+        + "            {},\n"
+        + "            \"version\",\n"
+        + "            \"4.0\"\n"
+        + "          ]\n"
+        + "        ]\n"
+        + "      ]\n"
+        + "    }\n"
+        + "  ]\n"
+        + "}\n";
+
+    ObjectMapper mapper = new ObjectMapper();
+    Comparator<JsonNode> rdapJsonComparator = new RDAPJsonComparator();
+    assertThat(rdapJsonComparator.compare(mapper.readTree(rdap1), mapper.readTree(rdap2))).isEqualTo(1);
   }
 }

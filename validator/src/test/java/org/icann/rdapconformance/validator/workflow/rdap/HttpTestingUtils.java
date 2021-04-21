@@ -29,7 +29,9 @@ public abstract class HttpTestingUtils {
 
   @AfterMethod
   public void tearDown() {
-    wireMockServer.stop();
+    if (null != wireMockServer && wireMockServer.isRunning()) {
+      wireMockServer.stop();
+    }
     System.clearProperty("javax.net.ssl.trustStore");
     System.clearProperty("javax.net.ssl.trustStorePassword");
     System.clearProperty("javax.net.ssl.trustStoreType");
