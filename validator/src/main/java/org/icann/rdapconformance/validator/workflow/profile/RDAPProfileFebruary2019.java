@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile;
 import java.net.http.HttpResponse;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot2;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot3;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public class RDAPProfileFebruary2019 {
@@ -21,6 +22,7 @@ public class RDAPProfileFebruary2019 {
   public boolean validate() {
     boolean result = true;
     result &= Validation1Dot2.validate(rdapResponse, config, results);
+    result &= Validation1Dot3.validate(config, results);
 
     return result;
   }
