@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "id" : "jcard.json",  
+  "$id" : "jcard.json",
   "definitions": {
     "string-or-string-array": {
     	"type": [

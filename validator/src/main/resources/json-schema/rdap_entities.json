@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "id" : "rdap_entities.json",
+  "$id" : "rdap_entities.json",
   "type": "array",
   "items": {
     "$ref": "rdap_entity.json#"

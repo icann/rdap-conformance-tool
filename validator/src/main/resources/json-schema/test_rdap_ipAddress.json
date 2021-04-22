@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "id" : "test_rdap_ipAddress.json",
+  "$id" : "test_rdap_ipAddress.json",
   "title": "ipAddress",
   "type": "object",
   "properties": {

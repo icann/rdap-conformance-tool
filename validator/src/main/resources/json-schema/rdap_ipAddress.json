@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ipAddress",
-  "id": "rdap_ipAddress.json",
+  "$id": "rdap_ipAddress.json",
   "definitions": {
     "ipv4": {
       "allOf": [

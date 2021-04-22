@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "status",
-  "id": "rdap_status.json",
+  "$id": "rdap_status.json",
   "definitions": {
     "statusValue": {
       "allOf": [

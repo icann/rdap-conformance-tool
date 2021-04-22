@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "id" : "rdap_entity_without_asEventActor.json",
+  "$id" : "rdap_entity_without_asEventActor.json",
   "title": "entity",
   "properties": {
     "rdapConformance": {
