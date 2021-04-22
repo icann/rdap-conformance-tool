@@ -1,41 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "id" : "rdap_entity.json",
+  "id" : "rdap_entity_without_asEventActor.json",
   "title": "entity",
-  "definitions": {
-    "entityClass" : {
-      "const": "entity",
-      "errorCode": -12303
-    },
-    "entityRole": {
-      "allOf": [
-        {
-          "type": "string",
-          "errorCode": -11801
-        },
-        {
-          "type": "string",
-          "format": "role",
-          "errorCode": -11802,
-          "errorMsg": "The JSON string is not included as a Value with Type=\"role\"."
-        }
-      ]
-    },
-    "roles": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/entityRole"
-      },
-      "uniqueItems": true,
-      "duplicateItemsErrorCode": -11803,
-      "validationName": "stdRdapRolesValidation",
-      "structureInvalid": -11800
-    },
-    "handle": {
-      "type": "string",
-      "errorCode": -12304
-    }
-  },
   "properties": {
     "rdapConformance": {
       "$ref": "rdap_common.json#/definitions/rdapConformance"
@@ -47,23 +13,19 @@
       "$ref": "rdap_notices.json#"
     },
     "objectClassName": {
-      "$ref": "#/definitions/entityClass"
+      "$ref": "rdap_entity.json#/definitions/entityClass"
     },
     "handle": {
-      "$ref": "#/definitions/handle"
+      "$ref": "rdap_entity.json#/definitions/handle"
     },
-
     "vcardArray": {
       "$ref": "jcard.json#/definitions/vcardArray"
     },
     "roles": {
-      "$ref": "#/definitions/roles"
+      "$ref": "rdap_entity.json#/definitions/roles"
     },
     "entities": {
       "$ref": "rdap_entities.json#"
-    },
-    "asEventActor": {
-      "$ref": "rdap_asEventActor.json#"
     },
     "publicIds": {
       "$ref": "rdap_publicIds.json#"

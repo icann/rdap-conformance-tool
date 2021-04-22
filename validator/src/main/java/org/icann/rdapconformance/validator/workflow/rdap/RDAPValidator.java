@@ -107,7 +107,8 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
     } else if (RDAPQueryType.NAMESERVERS.equals(queryTypeProcessor.getQueryType())) {
       validator = new SchemaValidator("rdap_nameservers.json", results, datasetService);
     } else if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType())) {
-      validator = new SchemaValidator("rdap_entities.json", results, datasetService);
+      // asEventActor property is not allow in topMost entity object, see spec 7.2.9.2
+      validator = new SchemaValidator("rdap_entity_without_asEventActor.json", results, datasetService);
     }
     assert null != validator;
     validator.validate(query.getData());
