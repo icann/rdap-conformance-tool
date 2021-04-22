@@ -28,10 +28,6 @@ public class DatasetValidator implements FormatValidator {
     return Optional.empty();
   }
 
-  protected String getErrorMsg() {
-    return "";
-  }
-
   @Override
   public String formatName() {
     return formatName;

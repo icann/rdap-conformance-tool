@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doReturn;
 import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
+import org.json.JSONObject;
 import org.testng.annotations.Test;
 
 public class SchemaValidatorEventsTest extends SchemaValidatorForArrayTest {
@@ -118,5 +119,15 @@ public class SchemaValidatorEventsTest extends SchemaValidatorForArrayTest {
   @Test
   public void linksViolatesLinksValidation() {
     linksViolatesLinksValidation(-10911);
+  }
+
+  /**
+   * 7.2.5.3
+   */
+  @Test
+  public void eventActionShallAppearsOnce() {
+    JSONObject firstEventWithEventAction = jsonObject.getJSONArray("events").getJSONObject(0);
+    jsonObject.getJSONArray("events").put(firstEventWithEventAction);
+    validate(-10912, "#/events/1/eventAction:registration", "An eventAction value exists more than once within the events array.");
   }
 }
