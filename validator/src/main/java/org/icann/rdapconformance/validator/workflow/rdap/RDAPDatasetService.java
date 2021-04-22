@@ -20,6 +20,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPJsonValuesD
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.RegistrarIdDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv4AddressesDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv6AddressesDataset;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DsRrTypes;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPDatasetModel;

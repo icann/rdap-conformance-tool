@@ -87,8 +87,9 @@ public class SchemaValidatorDsDataTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void algorithmNotInEnum() {
-    validateNotEnum(-12013, "the associated",
-        replaceArrayProperty("algorithm", 253));
+    validate(-12013, replaceArrayProperty("algorithm", 253),
+        "The JSON value is not listed with Zone Signing=Y in "
+            + "dnsSecAlgNumbers, or it's 253 or 254.");
   }
 
   /**
@@ -105,8 +106,8 @@ public class SchemaValidatorDsDataTest extends SchemaValidatorForArrayTest {
    */
   @Test
   public void digestTypeNotInEnum() {
-    validateNotEnum(-12015, "the associated",
-        replaceArrayProperty("digestType", 7));
+    validate(-12015, replaceArrayProperty("digestType", 7),
+        "The JSON value is not assigned in dsRrTypes.");
   }
 
   /**

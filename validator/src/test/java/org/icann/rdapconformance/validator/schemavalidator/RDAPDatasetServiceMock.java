@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DsRrTypes;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
