@@ -23,4 +23,8 @@ public class RDAPValidatorResults {
   public Set<RDAPValidationResult> getAll() {
     return results;
   }
+
+  public boolean isEmpty() {
+    return results.isEmpty();
+  }
 }

@@ -1,10 +1,11 @@
 package org.icann.rdapconformance.validator;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.everit.json.schema.EnumSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaClient;
@@ -21,7 +22,6 @@ import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DsRrTypes;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
@@ -124,7 +124,27 @@ public class SchemaValidator {
       parseException(e, jsonObject);
       return false;
     }
-    return true;
+
+    verifyUnicityOfEventAction("rdap_events.json", -10912, jsonObject);
+    verifyUnicityOfEventAction("rdap_asEventActor.json", -11310, jsonObject);
+
+    return results.isEmpty();
+  }
+
+  private void verifyUnicityOfEventAction(String schemaId, int errorCode, JSONObject jsonObject) {
+    Set<String> eventsJsonPointers = schemaRootNode.findJsonPointerBySchemaId(schemaId
+        , jsonObject);
+    Set<String> eventActions = new HashSet<>();
+    for (String jsonPointer : eventsJsonPointers) {
+      String eventAction = ((JSONObject) jsonObject.query(jsonPointer)).getString("eventAction");
+      if (!eventActions.add(eventAction)) {
+        results.add(RDAPValidationResult.builder()
+            .code(errorCode)
+            .value(jsonPointer + "/eventAction:" + eventAction)
+            .message("An eventAction value exists more than once within the events array.")
+            .build());
+      }
+    }
   }
 
   private RDAPValidationResult parseJsonException(JSONException e, String content) {

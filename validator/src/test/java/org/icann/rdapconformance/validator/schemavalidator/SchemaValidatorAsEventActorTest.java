@@ -5,6 +5,7 @@ import static org.mockito.Mockito.doReturn;
 import java.io.IOException;
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
+import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -77,7 +78,7 @@ public class SchemaValidatorAsEventActorTest extends SchemaValidatorForArrayTest
   }
 
   /**
-   * 7.2.5.2.7
+   * 7.2.9.3.7
    */
   @Test
   public void eventDateNotJsonString() {
@@ -85,10 +86,20 @@ public class SchemaValidatorAsEventActorTest extends SchemaValidatorForArrayTest
   }
 
   /**
-   * 7.2.5.2.8
+   * 7.2.9.3.8
    */
   @Test
   public void eventDateNotDateTime() {
     arrayItemKeyIsNotDateTime("eventDate", -11309);
+  }
+
+  /**
+   * 7.2.9.4
+   */
+  @Test
+  public void eventActionShallAppearsOnce() {
+    JSONObject firstEventWithEventAction = jsonObject.getJSONArray("asEventActor").getJSONObject(0);
+    jsonObject.getJSONArray("asEventActor").put(firstEventWithEventAction);
+    validate(-11310, "#/asEventActor/1/eventAction:registration", "An eventAction value exists more than once within the events array.");
   }
 }

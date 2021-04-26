@@ -4,31 +4,30 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Stack;
 import org.everit.json.schema.ArraySchema;
-import org.everit.json.schema.BooleanSchema;
 import org.everit.json.schema.CombinedSchema;
-import org.everit.json.schema.ConstSchema;
-import org.everit.json.schema.EnumSchema;
-import org.everit.json.schema.NumberSchema;
 import org.everit.json.schema.ObjectSchema;
 import org.everit.json.schema.ReferenceSchema;
 import org.everit.json.schema.Schema;
-import org.everit.json.schema.StringSchema;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class SchemaNode {
 
-  private static final Set<?> SIMPLE_SCHEMAS = Set.of(
-      NumberSchema.class,
-      StringSchema.class,
-      ConstSchema.class,
-      EnumSchema.class,
-      BooleanSchema.class);
+  private static final Logger logger = LoggerFactory.getLogger(SchemaNode.class);
+
   protected final SchemaNode parentNode;
   protected final Schema schema;
+  protected String propertyName;
 
   protected SchemaNode(SchemaNode parentNode, Schema schema) {
+    Objects.requireNonNull(schema);
     this.parentNode = parentNode;
     this.schema = schema;
   }
@@ -188,6 +187,84 @@ public abstract class SchemaNode {
     if (parent != null) {
       return Optional.of(parent);
     }
+    return Optional.empty();
+  }
+
+  public Set<String> findJsonPointerBySchemaId(String schemaId, JSONObject jsonObject) {
+    Objects.requireNonNull(schemaId);
+    return findById(schemaId, new HashSet<>()).map(schemaNode -> {
+      SchemaNode parent = schemaNode;
+      Stack<String> stack = new Stack<>();
+      while (parent != null) {
+        if (parent instanceof ArraySchemaNode) {
+          stack.add("{}");
+        }
+        if (parent.parentNode instanceof ObjectSchemaNode) {
+          stack.add(parent.propertyName);
+        }
+        parent = parent.parentNode;
+      }
+
+      Set<String> jsonPointers = Set.of("#");
+      while (!stack.empty()) {
+        String segment = stack.pop();
+        Set<String> newJsonPointers = new HashSet<>();
+        // this is an array:
+        if (segment.equals("{}")) {
+          for (String pointer : jsonPointers) {
+            JSONArray jsonArray = (JSONArray) jsonObject.query(pointer);
+
+            if (jsonArray == null) {
+              // there is no data at the jsonPointer location on the real object
+              continue;
+            }
+
+            int i = 0;
+            for (Object o : jsonArray) {
+              newJsonPointers.add(pointer + "/" + i);
+              i++;
+            }
+          }
+        } else {
+          for (String pointer : jsonPointers) {
+            newJsonPointers.add(pointer + "/" + segment);
+          }
+        }
+        jsonPointers = newJsonPointers;
+      }
+      return jsonPointers;
+    }).orElse(Collections.emptySet());
+  }
+
+  private Optional<SchemaNode> findById(String schemaId,
+      Set<String> alreadyVisitedIds) {
+    Objects.requireNonNull(schemaId);
+    if (schemaId.equals(schema.getId())) {
+      return Optional.of(this);
+    }
+
+    if (schema.getId() != null) {
+      alreadyVisitedIds.add(schema.getId());
+    }
+
+    Optional<SchemaNode> foundNode;
+    for (SchemaNode schemaNode : getChildren()) {
+      // jcard schema has recursive sub schemas without ids and will result in a stackoverflow:
+      if (schemaNode.propertyName != null && schemaNode.propertyName.equals("vcardArray")) {
+        continue;
+      }
+
+      // nested schema like entity/entities should be visited once:
+      if (alreadyVisitedIds.contains(schemaNode.schema.getId())) {
+        continue;
+      }
+
+      foundNode = schemaNode.findById(schemaId, alreadyVisitedIds);
+      if (foundNode.isPresent()) {
+        return foundNode;
+      }
+    }
+
     return Optional.empty();
   }
 }
