@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import static org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.makeHttpRequest;
+import static org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.makeHttpGetRequest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,6 +19,7 @@ import java.util.Set;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public class Validation1Dot2 {
     if (config.getUri().getScheme().equals("https")) {
       try {
         URI uri = URI.create(config.getUri().toString().replaceFirst("https://", "http://"));
-        HttpResponse<String> httpResponse = makeHttpRequest(uri, config.getTimeout());
+        HttpResponse<String> httpResponse = RDAPHttpRequest.makeHttpGetRequest(uri, config.getTimeout());
         JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
         JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
         if (jsonComparator.compare(httpResponseJson, httpsResponseJson) == 0) {

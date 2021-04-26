@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
-import static org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.makeHttpRequest;
+import static org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.makeHttpGetRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -121,7 +121,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
   private void makeRequest() {
     try {
-      httpResponse = makeHttpRequest(this.config.getUri(), this.config.getTimeout());
+      httpResponse = RDAPHttpRequest.makeHttpGetRequest(this.config.getUri(), this.config.getTimeout());
     } catch (ConnectException | HttpTimeoutException e) {
       logger.error("Exception when connecting to RDAP server", e);
       status = RDAPValidationStatus.CONNECTION_FAILED;

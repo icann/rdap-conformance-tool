@@ -13,14 +13,37 @@ import java.time.Duration;
 
 public class RDAPHttpRequest {
 
-  public static HttpResponse<String> makeHttpRequest(URI uri, int timeout)
+  public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeout)
       throws IOException, InterruptedException {
-    HttpRequest request = HttpRequest.newBuilder()
+    return makeHttpGetRequest(uri, timeout, "GET");
+  }
+
+  public static HttpResponse<String> makeHttpHeadRequest(URI uri, int timeout)
+      throws IOException, InterruptedException {
+    return makeHttpGetRequest(uri, timeout, "HEAD");
+  }
+
+  private static HttpResponse<String> makeHttpGetRequest(URI uri, int timeout, String method)
+      throws IOException, InterruptedException {
+    HttpRequest.Builder httpRequestBuilder = HttpRequest.newBuilder()
         .uri(uri)
         .version(Version.HTTP_2)
-        .timeout(Duration.of(timeout, SECONDS))
-        .GET()
-        .build();
+        .timeout(Duration.of(timeout, SECONDS));
+    HttpRequest request;
+    switch (method) {
+      case "GET":
+        request = httpRequestBuilder
+            .GET()
+            .build();
+        break;
+      case "HEAD":
+        request = httpRequestBuilder
+            .method("HEAD", HttpRequest.BodyPublishers.noBody())
+            .build();
+        break;
+      default:
+        throw new RuntimeException("Unsupported HTTP request method " + method);
+    }
     return HttpClient.newBuilder()
         .connectTimeout(Duration.of(timeout, SECONDS))
         .followRedirects(Redirect.ALWAYS)
