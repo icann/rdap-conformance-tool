@@ -10,6 +10,7 @@ public class SchemaValidatorSecureDnsTest extends SchemaValidatorTest {
   public SchemaValidatorSecureDnsTest() {
     super("rdap_domain.json",
         "/validators/domain/valid.json");
+    validationName = "stdRdapSecureDnsValidation";
   }
 
   @BeforeMethod

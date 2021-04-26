@@ -40,5 +40,6 @@
     }
   },
   "additionalProperties": false,
-  "unknownKeys": -11501
+  "unknownKeys": -11501,
+  "validationName": "stdRdapVariantsValidation"
 }

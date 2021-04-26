@@ -132,7 +132,8 @@
     "lang": {
       "type": "string",
       "pattern": "[a-z]{2}(-[A-Z][a-zA-Z]*(\\-[A-Z]{2})?)?",
-      "errorCode": -10800
+      "errorCode": -10800,
+      "validationName": "stdRdapLanguageIdentifierValidation"
     },
     "country": {
       "type": "string",

@@ -8,6 +8,7 @@ public class SchemaValidatorLdhNameTest extends SchemaValidatorIdnaTest {
 
   public SchemaValidatorLdhNameTest() {
     super("viagenie.ca");
+    validationName = "stdRdapLdhNameValidation";
   }
 
   @BeforeMethod

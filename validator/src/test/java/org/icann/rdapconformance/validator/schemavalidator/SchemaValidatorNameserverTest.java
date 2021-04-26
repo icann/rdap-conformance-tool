@@ -29,6 +29,7 @@ public class SchemaValidatorNameserverTest extends SchemaValidatorObjectTest {
             "rdapConformance"
         )
     );
+    validationName = "stdRdapNameserverLookupValidation";
   }
 
   @Test

@@ -27,7 +27,7 @@ public abstract class SchemaValidatorForArrayTest extends SchemaValidatorTest {
       ((JSONArray) jsonObject.get(name)).getJSONObject(0).put(keyValue, 0);
       keyValue = "#/" + name + "/0/" + keyValue + ":0";
     }
-    this.validateSubValidation(jsonObject.toString(), errorCode, validationName, keyValue);
+    this.validateSubValidation(errorCode, validationName, keyValue);
   }
 
   public void keyDoesNotExistInArray(String key, int errorCode) {

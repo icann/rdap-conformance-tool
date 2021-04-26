@@ -20,6 +20,7 @@ public class SchemaValidatorDomainTest extends SchemaValidatorObjectTest {
             "publicIds", "remarks", "links", "port43", "events", "notices", "rdapConformance",
             "lang")
     );
+    validationName = "stdRdapDomainLookupValidation";
   }
 
   @Test

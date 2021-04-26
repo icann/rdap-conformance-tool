@@ -8,6 +8,7 @@ public class SchemaValidatorUnicodeNameTest extends SchemaValidatorIdnaTest {
 
   public SchemaValidatorUnicodeNameTest() {
     super("viagénie.ca");
+    validationName = "stdRdapUnicodeNameValidation";
   }
 
   @BeforeMethod

@@ -15,6 +15,7 @@ public class SchemaValidatorEventsTest extends SchemaValidatorForArrayTest {
     super(
         "test_rdap_events.json",
         "/validators/events/valid.json");
+    validationName = "stdRdapEventsValidation";
   }
 
   /**

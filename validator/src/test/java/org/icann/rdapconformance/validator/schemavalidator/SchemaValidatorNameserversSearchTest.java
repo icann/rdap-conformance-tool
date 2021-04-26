@@ -21,6 +21,7 @@ public class SchemaValidatorNameserversSearchTest extends SchemaValidatorObjectT
             "rdapConformance"
         )
     );
+    validationName = "stdRdapNameserversSearchValidation";
   }
 
   @Test

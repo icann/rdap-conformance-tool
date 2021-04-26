@@ -10,6 +10,7 @@ public class SchemaValidatorKeyDataTest extends SchemaValidatorForArrayTest {
   public SchemaValidatorKeyDataTest() {
     super("rdap_secureDNS.json",
         "/validators/keyData/valid.json");
+    validationName = "stdRdapSecureDnsValidation";
   }
 
   @BeforeMethod

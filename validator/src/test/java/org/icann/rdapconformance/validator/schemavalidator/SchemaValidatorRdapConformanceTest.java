@@ -14,6 +14,7 @@ public class SchemaValidatorRdapConformanceTest extends SchemaValidatorForArrayO
   public SchemaValidatorRdapConformanceTest() {
     super("test_rdap_conformance.json",
         "/validators/rdapConformance/valid.json");
+    validationName = "stdRdapConformanceValidation";
   }
 
 

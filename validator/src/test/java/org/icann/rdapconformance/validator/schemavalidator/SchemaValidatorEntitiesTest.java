@@ -12,6 +12,7 @@ public class SchemaValidatorEntitiesTest extends SchemaValidatorForArrayTest {
     super(
         "rdap_domain.json",
         "/validators/domain/valid.json");
+    validationName = "stdRdapEntitiesValidation";
   }
 
   @BeforeMethod

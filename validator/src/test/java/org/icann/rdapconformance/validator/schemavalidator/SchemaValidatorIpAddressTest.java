@@ -12,6 +12,7 @@ public class SchemaValidatorIpAddressTest extends SchemaValidatorTest {
     super(
         "test_rdap_ipAddress.json",
         "/validators/ipAddress/valid.json");
+    validationName = "stdRdapIpAddressesValidation";
   }
 
   /**

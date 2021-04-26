@@ -39,5 +39,10 @@ public class SchemaValidatorPort43Test extends SchemaValidatorTest {
                 .message("The value for the JSON name value does not pass #/port43 validation [DomainNameValidation].")
                 .build()
         );
+    assertThat(results.getGroupErrorWarning()).contains(
+        "IPv4Validation",
+        "IPv6Validation",
+        "DomainNameValidation",
+        "stdRdapPort43WhoisServerValidation");
   }
 }

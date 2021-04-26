@@ -13,6 +13,7 @@ public class SchemaValidatorNoticeTest extends SchemaValidatorForArrayTest {
   public SchemaValidatorNoticeTest() {
     super("test_rdap_notices.json",
         "/validators/notices/valid.json");
+    validationName = "stdRdapNoticesRemarksValidation";
   }
 
   /**

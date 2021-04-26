@@ -12,6 +12,7 @@ public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
   public SchemaValidatorLinksTest() {
     super("test_rdap_links.json",
         "/validators/links/valid.json");
+    validationName = "stdRdapLinksValidation";
   }
 
   /**

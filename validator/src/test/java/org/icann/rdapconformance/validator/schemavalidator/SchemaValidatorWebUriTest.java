@@ -12,6 +12,7 @@ public class SchemaValidatorWebUriTest extends SchemaValidatorTest {
     super(
         "test_rdap_general_tests.json",
         "/validators/webUri/valid.json");
+    validationName = "webUriValidation";
   }
 
   @BeforeMethod

@@ -15,6 +15,7 @@ public class SchemaValidatorAsEventActorTest extends SchemaValidatorForArrayTest
     super(
         "rdap_entity.json",
         "/validators/asEventActor/valid.json");
+    validationName = "stdRdapAsEventActorValidation";
   }
 
   @BeforeMethod

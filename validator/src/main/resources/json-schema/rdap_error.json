@@ -29,6 +29,6 @@
 	"titleMissing": -12101,
 	"descriptionMissing": -12101,
 	"structureInvalid": -12100,
-	"duplicateKeys": -12102
-
+	"duplicateKeys": -12102,
+	"validationName": "stdRdapErrorResponseBodyValidation"
 }

@@ -14,6 +14,7 @@ public class SchemaValidatorErrorResponseTest extends SchemaValidatorObjectTest 
         -12101, // 7.2.17.2
         -12102, // 7.2.17.3
         List.of("description", "errorCode", "title"));
+    validationName = "stdRdapErrorResponseBodyValidation";
   }
 
   /**

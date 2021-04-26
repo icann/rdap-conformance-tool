@@ -10,6 +10,7 @@ public class SchemaValidatorErrorResponseDescriptionTest extends SchemaValidator
     super(
         "rdap_error.json",
         "/validators/error/valid.json");
+    validationName = "stdRdapErrorResponseBodyValidation";
   }
 
   @BeforeMethod

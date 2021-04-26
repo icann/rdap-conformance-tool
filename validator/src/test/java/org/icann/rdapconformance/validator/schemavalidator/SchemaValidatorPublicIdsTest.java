@@ -9,6 +9,7 @@ public class SchemaValidatorPublicIdsTest extends SchemaValidatorForArrayTest {
     super(
         "test_rdap_publicIds.json",
         "/validators/publicIds/valid.json");
+    validationName = "stdRdapPublicIdsValidation";
   }
 
   /**

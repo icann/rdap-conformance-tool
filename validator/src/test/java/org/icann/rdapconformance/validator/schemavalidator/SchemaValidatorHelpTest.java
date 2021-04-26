@@ -15,6 +15,7 @@ public class SchemaValidatorHelpTest extends SchemaValidatorObjectTest {
         -12502,
         List.of("notices", "rdapConformance", "lang")
     );
+    validationName = "stdRdapHelpValidation";
   }
 
   @Test

@@ -15,6 +15,7 @@ public class SchemaValidatorIpv6Test extends SchemaValidatorTest {
     super(
         "test_rdap_general_tests.json",
         "/validators/ipv6/valid.json");
+    validationName = "IPv6Validation";
   }
 
   @BeforeMethod

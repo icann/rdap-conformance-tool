@@ -14,6 +14,7 @@ public class SchemaValidatorRolesTest extends SchemaValidatorForArrayOfStringTes
   public SchemaValidatorRolesTest() {
     super("rdap_entity.json",
         "/validators/roles/valid.json");
+    validationName = "stdRdapRolesValidation";
   }
 
   @BeforeMethod

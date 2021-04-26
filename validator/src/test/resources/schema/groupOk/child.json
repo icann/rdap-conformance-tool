@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "child.json",
+  "title": "child",
+  "type": "object",
+  "definitions": {
+    "aField": {
+      "type": "object",
+      "properties": {
+        "aSubField": {
+          "id": "aSubFieldSchemaId",
+          "type": "string"
+        }
+      },
+      "validationName": "childItemValidation"
+    }
+  },
+  "properties": {
+    "childOfChild": {
+      "$ref": "childOfChild.json#"
+    },
+    "aField": {
+      "$ref": "#/definitions/aField"
+    }
+  }
+}

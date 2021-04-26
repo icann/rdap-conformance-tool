@@ -24,7 +24,7 @@ public abstract class SchemaNode {
 
   protected final SchemaNode parentNode;
   protected final Schema schema;
-  protected String propertyName;
+  protected String propertyName = "";
 
   protected SchemaNode(SchemaNode parentNode, Schema schema) {
     Objects.requireNonNull(schema);
@@ -250,7 +250,7 @@ public abstract class SchemaNode {
     Optional<SchemaNode> foundNode;
     for (SchemaNode schemaNode : getChildren()) {
       // jcard schema has recursive sub schemas without ids and will result in a stackoverflow:
-      if (schemaNode.propertyName != null && schemaNode.propertyName.equals("vcardArray")) {
+      if (schemaNode.propertyName.equals("vcardArray")) {
         continue;
       }
 
@@ -266,5 +266,40 @@ public abstract class SchemaNode {
     }
 
     return Optional.empty();
+  }
+
+  private List<SchemaNode> findAllChildren(List<SchemaNode> schemaNodes,
+      Set<String> alreadyVisitedIds) {
+    if (schema.getId() != null) {
+      alreadyVisitedIds.add(schema.getId());
+    }
+
+    schemaNodes.add(this);
+
+    for (SchemaNode schemaNode : getChildren()) {
+      // jcard schema has recursive sub schemas without ids and will result in a stackoverflow:
+      if (schemaNode.propertyName.equals("vcardArray") ||
+          // nested schema like entity/entities should be visited once:
+          alreadyVisitedIds.contains(schemaNode.schema.getId())
+      ) {
+        continue;
+      }
+
+      schemaNode.findAllChildren(schemaNodes, alreadyVisitedIds);
+    }
+
+    return schemaNodes;
+  }
+
+  public Set<String> findAllValuesOf(String key) {
+    Objects.requireNonNull(key);
+    Set<String> values = new HashSet<>();
+    List<SchemaNode> allSchemaNodes = findAllChildren(new ArrayList<>(), new HashSet<>());
+    for (SchemaNode schemaNode : allSchemaNodes) {
+      if (schemaNode.containsErrorKey(key)) {
+        values.add((String)schemaNode.getErrorKey(key));
+      }
+    }
+    return values;
   }
 }

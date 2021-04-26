@@ -10,6 +10,7 @@ public class SchemaValidatorLangTest extends SchemaValidatorTest {
     super(
         "test_rdap_lang.json",
         "/validators/lang/valid.json");
+    validationName = "stdRdapLanguageIdentifierValidation";
   }
 
   /**

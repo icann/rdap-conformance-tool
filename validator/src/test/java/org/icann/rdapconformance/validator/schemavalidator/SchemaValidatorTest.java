@@ -28,6 +28,7 @@ public abstract class SchemaValidatorTest {
   protected String rdapContent;
   protected RDAPDatasetService datasets;
   protected static final String WRONG_ENUM_VALUE = "wrong enum value";
+  protected String validationName;
 
   public SchemaValidatorTest(
       String schemaName,
@@ -66,13 +67,7 @@ public abstract class SchemaValidatorTest {
 
   protected void invalid(int error) {
     jsonObject.put(name, 0);
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(results.getAll()).filteredOn(r -> r.getCode() == error)
-        .hasSize(1)
-        .first()
-        .hasFieldOrPropertyWithValue("value", "#/"+name+":0")
-        .hasFieldOrPropertyWithValue("message",
-            "The #/" + name + " structure is not syntactically valid.");
+    validate(error, "#/"+name+":0", "The #/" + name + " structure is not syntactically valid.");
   }
 
   protected void insertForbiddenKey() {
@@ -89,6 +84,8 @@ public abstract class SchemaValidatorTest {
             .value(value)
             .message(msg)
             .build());
+    assertThat(results.getGroupOk()).doesNotContain(validationName);
+    assertThat(results.getGroupErrorWarning()).contains(validationName);
   }
 
   protected void validateAuthorizedKeys(int errorCode, List<String> authorizedKeys) {
@@ -105,14 +102,8 @@ public abstract class SchemaValidatorTest {
 
   protected void validateRegex(int errorCode, String regexType, String value) {
     String key = getKey(value);
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(results.getAll())
-        .filteredOn("code", errorCode)
-        .last()
-        .hasFieldOrPropertyWithValue("value", value)
-        .hasFieldOrPropertyWithValue("message",
-            "The value of the JSON string data in the " + key + " does not conform to "
-                + regexType + " syntax.");
+    validate(errorCode, value, "The value of the JSON string data in the " + key + " does not conform to "
+        + regexType + " syntax.");
   }
 
   protected void validateIsNotADateTime(int errorCode, String value) {
@@ -137,13 +128,7 @@ public abstract class SchemaValidatorTest {
 
   protected void validateInvalidJson(int error, String value) {
     String key = getKey(value);
-    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
-    assertThat(results.getAll()).filteredOn(r -> r.getCode() == error)
-        .hasSize(1)
-        .first()
-        .hasFieldOrPropertyWithValue("value", value)
-        .hasFieldOrPropertyWithValue("message",
-            "The " + key + " structure is not syntactically valid.");
+    validate(error, value, "The " + key + " structure is not syntactically valid.");
   }
 
   protected void validateSubValidation(String validationName, String keyValue, int errorCode) {
@@ -151,13 +136,13 @@ public abstract class SchemaValidatorTest {
       jsonObject.put(keyValue, 0);
       keyValue = "#/" + keyValue + ":0";
     }
-    this.validateSubValidation(jsonObject.toString(), errorCode, validationName, keyValue);
+    this.validateSubValidation(errorCode, validationName, keyValue);
   }
 
-  protected void validateSubValidation(String invalidJson, int errorCode, String validationName,
+  protected void validateSubValidation(int errorCode, String validationName,
       String value) {
     String key = getKey(value);
-    assertThat(schemaValidator.validate(invalidJson)).isFalse();
+    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
     assertThat(results.getAll()).contains(
         RDAPValidationResult.builder()
             .code(errorCode)
@@ -166,6 +151,7 @@ public abstract class SchemaValidatorTest {
                 + key + " validation [" + validationName + "].")
             .build()
     );
+    assertThat(results.getGroupErrorWarning()).contains(validationName);
   }
 
   protected void testWrongConstant(int errorCode, String field, String goodValue) {

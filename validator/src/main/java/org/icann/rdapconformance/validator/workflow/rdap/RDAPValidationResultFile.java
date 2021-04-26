@@ -54,7 +54,7 @@ public class RDAPValidationResultFile {
     fileMap.put("testedURI", config.getUri());
     fileMap.put("testedDate", Instant.now().toString());
     fileMap.put("receivedHttpStatusCode", statusCode);
-    fileMap.put("groupOK", new ArrayList<>());
+    fileMap.put("groupOK", this.createGroupOk());
     fileMap.put("groupErrorWarning", new ArrayList<>());
     fileMap.put("results", this.createResultsMap());
 
@@ -66,6 +66,10 @@ public class RDAPValidationResultFile {
     } catch (IOException e) {
       logger.error("Failed to write results into {}", path.toString(), e);
     }
+  }
+
+  Set<String> createGroupOk() {
+    return results.getGroupOk();
   }
 
   private Map<String, Object> createResultsMap() {

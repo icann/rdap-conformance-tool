@@ -82,20 +82,26 @@ public abstract class ExceptionParser {
       doParse();
 
       if (e.getPointerToViolation() != null) {
-        SchemaNode tree = SchemaNode.create(null, schema);
-        Set<ValidationNode> validationNodes = tree.findValidationNodes(e.getPointerToViolation(),
-            "validationName");
-        for (ValidationNode validationNode : validationNodes) {
-          if (validationNode.hasParentValidationCode()) {
-            results.add(RDAPValidationResult.builder()
-                .code(
-                    parseErrorCode(validationNode::getParentValidationCode))
-                .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-                .message(MessageFormat.format("The value for the JSON name value does not pass {0} "
-                    + "validation [{1}].", e.getPointerToViolation(), validationNode.getValidationKey()))
-                .build());
-          }
-        }
+        validateGroupTest(e.getPointerToViolation(), jsonObject, results, schema);
+      }
+    }
+  }
+
+  public static void validateGroupTest(String jsonPointer, JSONObject jsonObject,
+      RDAPValidatorResults results, Schema schema) {
+    SchemaNode tree = SchemaNode.create(null, schema);
+    Set<ValidationNode> validationNodes = tree.findValidationNodes(jsonPointer,
+        "validationName");
+    for (ValidationNode validationNode : validationNodes) {
+      results.addGroupErrorWarning(validationNode.getValidationKey());
+      if (validationNode.hasParentValidationCode()) {
+        results.add(RDAPValidationResult.builder()
+            .code(
+                parseErrorCode(validationNode::getParentValidationCode))
+            .value(jsonPointer + ":" + jsonObject.query(jsonPointer))
+            .message(MessageFormat.format("The value for the JSON name value does not pass {0} "
+                + "validation [{1}].", jsonPointer, validationNode.getValidationKey()))
+            .build());
       }
     }
   }

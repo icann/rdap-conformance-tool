@@ -94,5 +94,6 @@
   "stdRdapPort43WhoisServerValidation": -12412,
   "stdRdapEventsValidation": -12413,
   "stdRdapNoticesRemarksValidation": -12414,
-  "stdRdapConformanceValidation": -12416
+  "stdRdapConformanceValidation": -12416,
+  "validationName": "stdRdapNameserverLookupValidation"
 }

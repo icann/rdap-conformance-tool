@@ -106,5 +106,6 @@
   "stdRdapConformanceValidation": -12219,
   "structureInvalid": -12200,
   "unknownKeys": -12201,
-  "duplicateKeys": -12202
+  "duplicateKeys": -12202,
+  "validationName": "stdRdapDomainLookupValidation"
 }

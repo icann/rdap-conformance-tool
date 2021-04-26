@@ -30,6 +30,7 @@ public class SchemaValidatorEntityTest extends SchemaValidatorObjectTest {
             "rdapConformance"
         )
     );
+    validationName = "stdRdapEntityLookupValidation";
   }
 
   @Test

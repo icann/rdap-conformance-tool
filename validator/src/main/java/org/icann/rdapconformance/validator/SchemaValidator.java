@@ -128,6 +128,8 @@ public class SchemaValidator {
     verifyUnicityOfEventAction("rdap_events.json", -10912, jsonObject);
     verifyUnicityOfEventAction("rdap_asEventActor.json", -11310, jsonObject);
 
+    results.setGroups(schemaRootNode.findAllValuesOf("validationName"));
+
     return results.isEmpty();
   }
 
@@ -143,6 +145,8 @@ public class SchemaValidator {
             .value(jsonPointer + "/eventAction:" + eventAction)
             .message("An eventAction value exists more than once within the events array.")
             .build());
+        // and add also corresponding group test validation error:
+        ExceptionParser.validateGroupTest(jsonPointer + "/eventAction", jsonObject, results, schema);
       }
     }
   }

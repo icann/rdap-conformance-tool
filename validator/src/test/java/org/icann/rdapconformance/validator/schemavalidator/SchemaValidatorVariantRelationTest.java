@@ -13,6 +13,7 @@ public class SchemaValidatorVariantRelationTest extends SchemaValidatorForArrayO
     super(
         "rdap_variant.json",
         "/validators/relation/valid.json");
+    validationName = "stdRdapVariantsValidation";
   }
 
   @BeforeMethod
