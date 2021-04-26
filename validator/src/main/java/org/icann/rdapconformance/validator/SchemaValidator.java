@@ -157,10 +157,11 @@ public class SchemaValidator {
         value = valueMatcher.group(1).trim();
       }
 
-      // TODO: reinsert jackson for duplicate handling: without the json pointer where the element
-      // is duplicated, we can fall on the wrong duplicateKeys error code.
+      // limitation: here we search for the first key matching the one flag as duplicated, we don't
+      // know if it is the right one since the same key can be at multiple places in the hierarchy.
       return RDAPValidationResult.builder()
-          .code(schemaRootNode.searchBottomMostErrorCode(key, "duplicateKeys"))
+          .code(ExceptionParser.parseErrorCode(() -> schemaRootNode.searchBottomMostErrorCode(key,
+              "duplicateKeys")))
           .value(key + ":" + value)
           .message("The name in the name/value pair of a link structure was found more than once.")
           .build();

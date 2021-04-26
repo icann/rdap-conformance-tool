@@ -66,7 +66,7 @@ public abstract class ExceptionParser {
     return parsers;
   }
 
-  protected int parseErrorCode(Supplier<Integer> getErrorCodeFn) {
+  public static int parseErrorCode(Supplier<Integer> getErrorCodeFn) {
     try {
       return getErrorCodeFn.get();
     } catch (Exception parseException) {
