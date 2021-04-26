@@ -12,6 +12,7 @@ public class SchemaValidatorPort43Test extends SchemaValidatorTest {
     super(
         "test_rdap_port43.json",
         "/validators/port43/valid.json");
+    validationName = "stdRdapPort43WhoisServerValidation";
   }
 
   /**
@@ -43,6 +44,6 @@ public class SchemaValidatorPort43Test extends SchemaValidatorTest {
         "IPv4Validation",
         "IPv6Validation",
         "DomainNameValidation",
-        "stdRdapPort43WhoisServerValidation");
+        validationName);
   }
 }

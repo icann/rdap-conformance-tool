@@ -31,5 +31,6 @@
   "stdRdapConformanceValidation": -12505,
   "structureInvalid": -12500,
   "unknownKeys": -12501,
-  "duplicateKeys": -12502
+  "duplicateKeys": -12502,
+  "validationName": "stdRdapHelpValidation"
 }

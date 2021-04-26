@@ -48,4 +48,8 @@ public class RDAPValidatorResults {
   public void addGroupErrorWarning(String validationName) {
     groupErrorWarning.add(validationName);
   }
+
+  public Set<String> getGroups() {
+    return groups;
+  }
 }

@@ -109,6 +109,7 @@ public class SchemaValidator {
   }
 
   public boolean validate(String content) {
+    results.setGroups(schemaRootNode.findAllValuesOf("validationName"));
     JSONObject jsonObject;
     try {
       jsonObject = new JSONObject(content);
@@ -127,8 +128,6 @@ public class SchemaValidator {
 
     verifyUnicityOfEventAction("rdap_events.json", -10912, jsonObject);
     verifyUnicityOfEventAction("rdap_asEventActor.json", -11310, jsonObject);
-
-    results.setGroups(schemaRootNode.findAllValuesOf("validationName"));
 
     return results.isEmpty();
   }

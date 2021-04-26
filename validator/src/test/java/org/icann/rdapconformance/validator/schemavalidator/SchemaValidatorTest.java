@@ -63,6 +63,7 @@ public abstract class SchemaValidatorTest {
   @Test
   public void testValidate_ok() {
     assertThat(schemaValidator.validate(rdapContent)).isTrue();
+    assertThat(results.getGroupOk()).contains(validationName);
   }
 
   protected void invalid(int error) {
@@ -84,6 +85,7 @@ public abstract class SchemaValidatorTest {
             .value(value)
             .message(msg)
             .build());
+    assertThat(results.getGroups()).isNotEmpty();
     assertThat(results.getGroupOk()).doesNotContain(validationName);
     assertThat(results.getGroupErrorWarning()).contains(validationName);
   }

@@ -70,5 +70,6 @@
   "stdRdapRemarksValidation": -12605,
   "stdRdapEventsValidation": -12606,
   "stdRdapNoticesRemarksValidation": -12607,
-  "stdRdapConformanceValidation": -12609
+  "stdRdapConformanceValidation": -12609,
+  "validationName": "stdRdapNameserversSearchValidation"
 }
