@@ -1,0 +1,47 @@
+package org.icann.rdapconformance.validator.schema;
+
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+public class JsonPointers {
+  
+  private Set<String> jsonPointers = new HashSet<>();
+
+  public JsonPointers() {
+  }
+
+  public JsonPointers(Set<String> jsonPointers) {
+    this.jsonPointers = jsonPointers;
+  }
+
+  public Set<String> getAll() {
+    return jsonPointers;
+  }
+
+  /**
+   * Get the only the top most json pointers.
+   */
+  public Set<String> getOnlyTopMosts() {
+    int minElements =
+        jsonPointers.stream()
+            .map(s -> s.split("/").length)
+            .min(Integer::compare)
+            .orElse(0);
+
+    return jsonPointers.stream()
+        .filter(s -> s.split("/").length == minElements)
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * In case of an array, get the parent array instead of the elements.
+   */
+  public Optional<String> getParentOfTopMosts() {
+    return getOnlyTopMosts()
+        .stream().findFirst()
+        .map(jsonPointer -> jsonPointer.replace("/0", ""));
+
+  }
+}

@@ -77,7 +77,7 @@ public abstract class SchemaValidatorTest {
     jsonObject.getJSONObject(name).put("unknown", List.of(value));
   }
 
-  protected void validate(int errorCode, String value, String msg) {
+  protected void validateWithoutGroupTests(int errorCode, String value, String msg) {
     assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
     assertThat(results.getAll())
         .contains(RDAPValidationResult.builder()
@@ -85,6 +85,10 @@ public abstract class SchemaValidatorTest {
             .value(value)
             .message(msg)
             .build());
+  }
+
+  protected void validate(int errorCode, String value, String msg) {
+    validateWithoutGroupTests(errorCode, value, msg);
     assertThat(results.getGroups()).isNotEmpty();
     assertThat(results.getGroupOk()).doesNotContain(validationName);
     assertThat(results.getGroupErrorWarning()).contains(validationName);

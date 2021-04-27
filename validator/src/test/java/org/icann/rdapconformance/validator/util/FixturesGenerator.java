@@ -58,7 +58,7 @@ public class FixturesGenerator {
       case "links":
         jsonObject = domain.put("links", jsonObject.get("links"));
         break;
-      case "notice":
+      case "notices":
         jsonObject = domain.put("notices", jsonObject.get("notices"));
         break;
       case "rdapConformance":

@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,6 +19,7 @@ import org.icann.rdapconformance.validator.customvalidator.Ipv6FormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.RdapExtensionsFormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
+import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -126,15 +128,36 @@ public class SchemaValidator {
       return false;
     }
 
+    // customs validations...
     verifyUnicityOfEventAction("rdap_events.json", -10912, jsonObject);
     verifyUnicityOfEventAction("rdap_asEventActor.json", -11310, jsonObject);
+    tigSection_3_3_and_3_4_Validation(jsonObject);
 
     return results.isEmpty();
   }
 
-  private void verifyUnicityOfEventAction(String schemaId, int errorCode, JSONObject jsonObject) {
-    Set<String> eventsJsonPointers = schemaRootNode.findJsonPointerBySchemaId(schemaId
+  private void tigSection_3_3_and_3_4_Validation(JSONObject jsonObject) {
+    JsonPointers jsonPointers = schemaRootNode.findJsonPointersBySchemaId("rdap_notices.json"
         , jsonObject);
+    boolean noLinksInTopMost = jsonPointers.getOnlyTopMosts()
+        .stream()
+        .map(j ->  (JSONObject) jsonObject.query(j))
+        .noneMatch(notice -> notice.has("links"));
+    Optional<String> noticesArray = jsonPointers.getParentOfTopMosts();
+    if (noLinksInTopMost && noticesArray.isPresent()) {
+      results.add(RDAPValidationResult.builder()
+          .code(-20700)
+          .value(jsonObject.query(noticesArray.get()).toString())
+          .message("A links object was not found in the notices object in the "
+              + "topmost object. See section 3.3 and 3.4 of the "
+              + "RDAP_Technical_Implementation_Guide_2_1.")
+          .build());
+    }
+  }
+
+  private void verifyUnicityOfEventAction(String schemaId, int errorCode, JSONObject jsonObject) {
+    Set<String> eventsJsonPointers = schemaRootNode.findJsonPointersBySchemaId(schemaId
+        , jsonObject).getAll();
     Set<String> eventActions = new HashSet<>();
     for (String jsonPointer : eventsJsonPointers) {
       String eventAction = ((JSONObject) jsonObject.query(jsonPointer)).getString("eventAction");

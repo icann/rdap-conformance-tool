@@ -13,7 +13,9 @@
         "errorCode": -10503
       },
       "additionalItems": false,
-      "uniqueItems": true
+      "uniqueItems": true,
+      "validationName": "stdRdapConformanceValidation",
+      "structureInvalid": -10500
     },
     {
       "type": "array",
@@ -28,8 +30,5 @@
       "additionalItems": false,
       "uniqueItems": true
     }
-  ],
-  "validationName": "stdRdapConformanceValidation",
-  "structureInvalid": -10500,
-  "rdapExtensionsDataset": "https://www.iana.org/assignments/rdap-extensions/rdap-extensions.xml"
+  ]
 }

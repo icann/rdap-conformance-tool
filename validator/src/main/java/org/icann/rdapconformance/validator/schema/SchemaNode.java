@@ -190,50 +190,53 @@ public abstract class SchemaNode {
     return Optional.empty();
   }
 
-  public Set<String> findJsonPointerBySchemaId(String schemaId, JSONObject jsonObject) {
+  public JsonPointers findJsonPointersBySchemaId(String schemaId, JSONObject jsonObject) {
     Objects.requireNonNull(schemaId);
-    return findById(schemaId, new HashSet<>()).map(schemaNode -> {
-      SchemaNode parent = schemaNode;
-      Stack<String> stack = new Stack<>();
-      while (parent != null) {
-        if (parent instanceof ArraySchemaNode) {
-          stack.add("{}");
-        }
-        if (parent.parentNode instanceof ObjectSchemaNode) {
-          stack.add(parent.propertyName);
-        }
-        parent = parent.parentNode;
-      }
+    return findById(schemaId, new HashSet<>())
+        .map(schemaNode -> {
 
-      Set<String> jsonPointers = Set.of("#");
-      while (!stack.empty()) {
-        String segment = stack.pop();
-        Set<String> newJsonPointers = new HashSet<>();
-        // this is an array:
-        if (segment.equals("{}")) {
-          for (String pointer : jsonPointers) {
-            JSONArray jsonArray = (JSONArray) jsonObject.query(pointer);
-
-            if (jsonArray == null) {
-              // there is no data at the jsonPointer location on the real object
-              continue;
+          SchemaNode parent = schemaNode;
+          Stack<String> stack = new Stack<>();
+          while (parent != null) {
+            if (parent instanceof ArraySchemaNode) {
+              stack.add("{}");
             }
-
-            int i = 0;
-            for (Object o : jsonArray) {
-              newJsonPointers.add(pointer + "/" + i);
-              i++;
+            if (parent.parentNode instanceof ObjectSchemaNode) {
+              stack.add(parent.propertyName);
             }
+            parent = parent.parentNode;
           }
-        } else {
-          for (String pointer : jsonPointers) {
-            newJsonPointers.add(pointer + "/" + segment);
+
+          Set<String> jsonPointers = Set.of("#");
+          while (!stack.empty()) {
+            String segment = stack.pop();
+            Set<String> newJsonPointers = new HashSet<>();
+            // this is an array:
+            if (segment.equals("{}")) {
+              for (String pointer : jsonPointers) {
+                JSONArray jsonArray = (JSONArray) jsonObject.query(pointer);
+
+                if (jsonArray == null) {
+                  // there is no data at the jsonPointer location on the real object
+                  continue;
+                }
+
+                int i = 0;
+                for (Object o : jsonArray) {
+                  newJsonPointers.add(pointer + "/" + i);
+                  i++;
+                }
+              }
+            } else {
+              for (String pointer : jsonPointers) {
+                newJsonPointers.add(pointer + "/" + segment);
+              }
+            }
+            jsonPointers = newJsonPointers;
           }
-        }
-        jsonPointers = newJsonPointers;
-      }
-      return jsonPointers;
-    }).orElse(Collections.emptySet());
+          return new JsonPointers(jsonPointers);
+        })
+        .orElse(new JsonPointers());
   }
 
   private Optional<SchemaNode> findById(String schemaId,
