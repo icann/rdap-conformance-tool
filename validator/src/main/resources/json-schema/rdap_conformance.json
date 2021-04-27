@@ -1,17 +1,34 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id" : "rdap_conformance.json",
+  "$id": "rdap_conformance.json",
   "title": "rdapConformance",
-  "type": "array",
-  "items": {
-    "$ref": "rdap_common.json#/definitions/rdapExtensions"
-  },
-  "contains": {
-    "const": "rdap_level_0",
-    "errorCode": -10503
-  },
-  "additionalItems": false,
-  "uniqueItems": true,
+  "allOf": [
+    {
+      "type": "array",
+      "items": {
+        "$ref": "rdap_common.json#/definitions/rdapExtensions"
+      },
+      "contains": {
+        "const": "rdap_level_0",
+        "errorCode": -10503
+      },
+      "additionalItems": false,
+      "uniqueItems": true
+    },
+    {
+      "type": "array",
+      "items": {
+        "$ref": "rdap_common.json#/definitions/rdapExtensions"
+      },
+      "contains": {
+        "const": "icann_rdap_technical_implementation_guide_0",
+        "errorCode": -20600,
+        "errorMsg": "The RDAP Conformance data structure does not include icann_rdap_technical_implementation_guide_0. See section 1.14 of the RDAP_Technical_Implementation_Guide_2_1."
+      },
+      "additionalItems": false,
+      "uniqueItems": true
+    }
+  ],
   "validationName": "stdRdapConformanceValidation",
   "structureInvalid": -10500,
   "rdapExtensionsDataset": "https://www.iana.org/assignments/rdap-extensions/rdap-extensions.xml"

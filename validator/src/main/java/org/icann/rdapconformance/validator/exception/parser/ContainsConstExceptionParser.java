@@ -25,11 +25,15 @@ public class ContainsConstExceptionParser extends ExceptionParser {
   @Override
   protected void doParse() {
     ConstSchema constSchema = (ConstSchema) ((ArraySchema)e.getViolatedSchema()).getContainedItemSchema();
+    String errorMsg = "The "+e.getPointerToViolation()+" data structure does not include " + constSchema.getPermittedValue() +
+        ".";
+    if (constSchema.getUnprocessedProperties().containsKey("errorMsg")) {
+      errorMsg = (String)constSchema.getUnprocessedProperties().get("errorMsg");
+    }
     results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(() -> (int)constSchema.getUnprocessedProperties().get("errorCode")))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message("The "+e.getPointerToViolation()+" data structure does not include " + constSchema.getPermittedValue() +
-            ".")
+        .message(errorMsg)
         .build());
   }
 }
