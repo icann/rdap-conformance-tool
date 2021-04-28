@@ -3,10 +3,13 @@ package org.icann.rdapconformance.validator.schema;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class JsonPointers {
-  
+
+  private static Pattern lastArrayIndex = Pattern.compile("^(.*)\\/\\d+$");
   private Set<String> jsonPointers = new HashSet<>();
 
   public JsonPointers() {
@@ -41,7 +44,13 @@ public class JsonPointers {
   public Optional<String> getParentOfTopMosts() {
     return getOnlyTopMosts()
         .stream().findFirst()
-        .map(jsonPointer -> jsonPointer.replace("/0", ""));
+        .map(jsonPointer -> {
+          Matcher matcher = lastArrayIndex.matcher(jsonPointer);
+          if (matcher.find()) {
+            return matcher.group(1);
+          }
+          return jsonPointer;
+        });
 
   }
 }
