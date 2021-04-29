@@ -25,6 +25,7 @@ import org.icann.rdapconformance.validator.customvalidator.RdapExtensionsFormatV
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
+import org.icann.rdapconformance.validator.jcard.TigSection_7_1_and_7_2_Validation;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -167,13 +168,18 @@ public class SchemaValidator {
           JSONArray vcardElementArray = (JSONArray) vcardElement;
           int categoryArrayIndex = 0;
           for (Object categoryArray : vcardElementArray) {
-            String category = ((JSONArray) categoryArray).getString(0);
+            JSONArray categorieJsonArray = ((JSONArray) categoryArray);
+            String category = categorieJsonArray.getString(0);
+            String jsonExceptionPointer =
+                jsonPointer + "/" + vcardElementIndex + "/" + categoryArrayIndex;
+            TigSection_7_1_and_7_2_Validation validation =
+                new TigSection_7_1_and_7_2_Validation(jsonExceptionPointer, results);
+            validation.validate(category, categorieJsonArray);
+
             if (jcardCategoriesSchemas.hasCategory(category)) {
               try {
                 jcardCategoriesSchemas.getCategory(category).validate(categoryArray);
               } catch (ValidationException e) {
-                String jsonExceptionPointer =
-                    jsonPointer + "/" + vcardElementIndex + "/" + categoryArrayIndex;
                 if (category.equals("adr")) {
                   results.add(RDAPValidationResult.builder()
                       .code(-20800)
@@ -192,8 +198,8 @@ public class SchemaValidator {
               }
             } else {
               results.add(RDAPValidationResult.builder()
-                  .code(-999)
-                  .value(category)
+                  .code(-12305)
+                  .value(jsonExceptionPointer + ":" + category)
                   .message("unknown vcard category: \"" + category + "\".")
                   .build());
             }
