@@ -59,7 +59,7 @@ public class Validation1Dot2Test extends HttpTestingUtils {
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20100)
-        .hasFieldOrPropertyWithValue("value", redirectData.endingPath)
+        .hasFieldOrPropertyWithValue("value", redirectData.endingResponse.uri().toString())
         .hasFieldOrPropertyWithValue("message", "The URL is HTTP, per section 1.2 of "
             + "the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
   }

@@ -7,7 +7,10 @@ import static org.mockito.Mockito.mock;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.testng.annotations.AfterMethod;
@@ -22,6 +25,27 @@ public abstract class HttpTestingUtils {
   protected final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
   protected WireMockServer wireMockServer;
 
+  public static RedirectData givenChainedHttpRedirects() {
+    String path1 = "https://domain1/test1.example";
+    String path2 = "https://domain2/test2.example";
+    String path3 = "http://domain3/test3.example";
+    HttpResponse<String> httpsResponse1 = mock(HttpResponse.class);
+    HttpResponse<String> httpsResponse2 = mock(HttpResponse.class);
+    HttpResponse<String> httpsResponse3 = mock(HttpResponse.class);
+
+    // prepare chained HTTP response with one HTTP redirect
+    doReturn(URI.create(path1)).when(httpsResponse1).uri();
+    doReturn(URI.create(path2)).when(httpsResponse2).uri();
+    doReturn(URI.create(path3)).when(httpsResponse3).uri();
+    doReturn(Optional.of(httpsResponse2)).when(httpsResponse1).previousResponse();
+    doReturn(Optional.of(httpsResponse3)).when(httpsResponse2).previousResponse();
+    doReturn(HttpHeaders.of(Map.of("Access-Control-Allow-Origin", List.of("*")), (f1, f2) -> true))
+        .when(httpsResponse1).headers();
+    doReturn(HttpHeaders.of(Map.of("Access-Control-Allow-Origin", List.of("*")), (f1, f2) -> true))
+        .when(httpsResponse2).headers();
+
+    return new RedirectData(httpsResponse1, httpsResponse3);
+  }
 
   @BeforeMethod
   public void setUp() {
@@ -69,31 +93,14 @@ public abstract class HttpTestingUtils {
         .when(config).getUri();
   }
 
-  public static RedirectData givenChainedHttpRedirects() {
-    String path1 = "https://domain1/test1.example";
-    String path2 = "https://domain2/test2.example";
-    String path3 = "http://domain3/test3.example";
-    HttpResponse<String> httpsResponse1 = mock(HttpResponse.class);
-    HttpResponse<String> httpsResponse2 = mock(HttpResponse.class);
-    HttpResponse<String> httpsResponse3 = mock(HttpResponse.class);
-
-    // prepare chained HTTP response with one HTTP redirect
-    doReturn(URI.create(path1)).when(httpsResponse1).uri();
-    doReturn(URI.create(path2)).when(httpsResponse2).uri();
-    doReturn(URI.create(path3)).when(httpsResponse3).uri();
-    doReturn(Optional.of(httpsResponse2)).when(httpsResponse1).previousResponse();
-    doReturn(Optional.of(httpsResponse3)).when(httpsResponse2).previousResponse();
-
-    return new RedirectData(path3, httpsResponse1);
-  }
-
   public static class RedirectData {
-    public String endingPath;
+
+    public HttpResponse<String> endingResponse;
     public HttpResponse<String> startingResponse;
 
-    public RedirectData(String endingPath,
-        HttpResponse<String> startingResponse) {
-      this.endingPath = endingPath;
+    public RedirectData(HttpResponse<String> startingResponse,
+        HttpResponse<String> endingResponse) {
+      this.endingResponse = endingResponse;
       this.startingResponse = startingResponse;
     }
   }

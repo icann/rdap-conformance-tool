@@ -176,7 +176,7 @@ public class Validation1Dot8Test {
 
     RedirectData redirectData = givenChainedHttpRedirects();
     givenV4Ok();
-    givenV4AddressError(URI.create(redirectData.endingPath));
+    givenV4AddressError(redirectData.endingResponse.uri());
     givenV6Ok();
 
     assertThat(Validation1Dot8.validate(redirectData.startingResponse, results, datasetService))
@@ -242,7 +242,7 @@ public class Validation1Dot8Test {
     RedirectData redirectData = givenChainedHttpRedirects();
     givenV4Ok();
     givenV6Ok();
-    givenV6AddressError(URI.create(redirectData.endingPath));
+    givenV6AddressError(redirectData.endingResponse.uri());
 
     assertThat(Validation1Dot8.validate(redirectData.startingResponse, results, datasetService))
         .isFalse();
