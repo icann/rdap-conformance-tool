@@ -7,6 +7,8 @@ import static org.mockito.Mockito.mock;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
+import java.net.http.HttpResponse;
+import java.util.Optional;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -65,5 +67,34 @@ public abstract class HttpTestingUtils {
     doReturn(URI.create(
         String.format(scheme + "://%s:%s%s", WIREMOCK_HOST, port, path)))
         .when(config).getUri();
+  }
+
+  public static RedirectData givenChainedHttpRedirects() {
+    String path1 = "https://domain1/test1.example";
+    String path2 = "https://domain2/test2.example";
+    String path3 = "http://domain3/test3.example";
+    HttpResponse<String> httpsResponse1 = mock(HttpResponse.class);
+    HttpResponse<String> httpsResponse2 = mock(HttpResponse.class);
+    HttpResponse<String> httpsResponse3 = mock(HttpResponse.class);
+
+    // prepare chained HTTP response with one HTTP redirect
+    doReturn(URI.create(path1)).when(httpsResponse1).uri();
+    doReturn(URI.create(path2)).when(httpsResponse2).uri();
+    doReturn(URI.create(path3)).when(httpsResponse3).uri();
+    doReturn(Optional.of(httpsResponse2)).when(httpsResponse1).previousResponse();
+    doReturn(Optional.of(httpsResponse3)).when(httpsResponse2).previousResponse();
+
+    return new RedirectData(path3, httpsResponse1);
+  }
+
+  public static class RedirectData {
+    public String endingPath;
+    public HttpResponse<String> startingResponse;
+
+    public RedirectData(String endingPath,
+        HttpResponse<String> startingResponse) {
+      this.endingPath = endingPath;
+      this.startingResponse = startingResponse;
+    }
   }
 }

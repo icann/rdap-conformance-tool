@@ -119,7 +119,7 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
      */
     if (config.userRdapProfileFeb2019()) {
       RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(config,
-          results, (HttpResponse<String>) query.getRawResponse());
+          results, (HttpResponse<String>) query.getRawResponse(), datasetService);
       rdapProfileFebruary2019.validate();
     }
 

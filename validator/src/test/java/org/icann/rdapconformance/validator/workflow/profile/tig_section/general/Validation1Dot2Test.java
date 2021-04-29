@@ -17,7 +17,6 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.Comparator;
-import java.util.Optional;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot2.RDAPJsonComparator;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -48,30 +47,19 @@ public class Validation1Dot2Test extends HttpTestingUtils {
 
   @Test
   public void testValidate_UriNotHttpsInOneRedirect_AddResult20100() {
-    String path1 = "https://domain/test1.example";
-    String path2 = "https://domain/test2.example";
-    String path3 = "http://domain/test3.example";
-    HttpResponse<String> httpsResponse1 = mock(HttpResponse.class);
-    HttpResponse<String> httpsResponse2 = mock(HttpResponse.class);
-    HttpResponse<String> httpsResponse3 = mock(HttpResponse.class);
+    RedirectData redirectData = givenChainedHttpRedirects();
     RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
 
-    // set URI as being an HTTP request to avoid going through HTTP test for coce -20101
+    // set URI as being an HTTP request to avoid going through HTTP test for code -20101
     doReturn(URI.create("http://domain/test.example")).when(config).getUri();
-    // prepare chained HTTP response with one HTTP redirect
-    doReturn(URI.create(path1)).when(httpsResponse1).uri();
-    doReturn(URI.create(path2)).when(httpsResponse2).uri();
-    doReturn(URI.create(path3)).when(httpsResponse3).uri();
-    doReturn(Optional.of(httpsResponse2)).when(httpsResponse1).previousResponse();
-    doReturn(Optional.of(httpsResponse3)).when(httpsResponse2).previousResponse();
 
-    assertThat(Validation1Dot2.validate(httpsResponse1, config, results)).isFalse();
+    assertThat(Validation1Dot2.validate(redirectData.startingResponse, config, results)).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20100)
-        .hasFieldOrPropertyWithValue("value", path3)
+        .hasFieldOrPropertyWithValue("value", redirectData.endingPath)
         .hasFieldOrPropertyWithValue("message", "The URL is HTTP, per section 1.2 of "
             + "the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
   }

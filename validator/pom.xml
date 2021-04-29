@@ -67,6 +67,13 @@
       <artifactId>json-path</artifactId>
       <version>2.4.0</version>
     </dependency>
+
+    <dependency>
+      <groupId>dnsjava</groupId>
+      <artifactId>dnsjava</artifactId>
+      <version>3.3.1</version>
+    </dependency>
+
     <!-- test dependencies -->
     <dependency>
       <groupId>org.testng</groupId>
