@@ -46,7 +46,6 @@ public class Validation1Dot2 {
                     + "shall be HTTPS only.")
             .build());
         overallResult = false;
-        break;
       }
       responseOpt = response.previousResponse();
     }
