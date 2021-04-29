@@ -106,7 +106,8 @@ public class SchemaValidatorNoticesTest extends SchemaValidatorForArrayTest {
   @Test
   public void tigSection_3_3_and_3_4_Validation() {
     removeKey("links");
-    validateWithoutGroupTests(-20700, jsonObject.getJSONArray("notices").toString(), "A links object was not found in the "
+    validateWithoutGroupTests(-20700, jsonObject.getJSONArray("notices").toString(),
+        "A links object was not found in the "
         + "notices object in the "
         + "topmost object. See section 3.3 and 3.4 of the "
         + "RDAP_Technical_Implementation_Guide_2_1.");

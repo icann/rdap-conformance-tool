@@ -35,4 +35,10 @@ public class JsonPointersTest {
     JsonPointers jsonPointers = new JsonPointers(Set.of("#/myObject"));
     assertThat(jsonPointers.getParentOfTopMosts()).contains("#/myObject");
   }
+
+  @Test
+  public void fromJpath() {
+    String jsonPointer = JsonPointers.fromJpath("$['entities'][0]['entities'][0]['vcardArray']");
+    assertThat(jsonPointer).isEqualTo("#/entities/0/entities/0/vcardArray");
+  }
 }

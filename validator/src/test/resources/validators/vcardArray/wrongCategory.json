@@ -1,0 +1,33 @@
+{
+  "vcardArray": [
+    "vcard",
+    [
+      [
+        "version",
+        {},
+        "text",
+        "4.0"
+      ],
+      [
+        "fn",
+        {},
+        "text",
+        ""
+      ],
+      [
+        "tel",
+        {
+          "type": "voice"
+        },
+        "uri",
+        "tel:+1.9999999999"
+      ],
+      [
+        "wrong-category",
+        {},
+        "text",
+        "abusecomplaints@example.com"
+      ]
+    ]
+  ]
+}

@@ -192,9 +192,10 @@ public abstract class SchemaNode {
 
   public JsonPointers findJsonPointersBySchemaId(String schemaId, JSONObject jsonObject) {
     Objects.requireNonNull(schemaId);
-    return findById(schemaId, new HashSet<>())
+    List<SchemaNode> schemaNodes = findAllById(schemaId);
+    return schemaNodes
+        .stream()
         .map(schemaNode -> {
-
           SchemaNode parent = schemaNode;
           Stack<String> stack = new Stack<>();
           while (parent != null) {
@@ -235,40 +236,35 @@ public abstract class SchemaNode {
             jsonPointers = newJsonPointers;
           }
           return new JsonPointers(jsonPointers);
-        })
+        }).findFirst()
         .orElse(new JsonPointers());
   }
 
-  private Optional<SchemaNode> findById(String schemaId,
-      Set<String> alreadyVisitedIds) {
+  private List<SchemaNode> findAllById(String schemaId) {
+    List<SchemaNode> schemaNodes = new ArrayList<>();
+    findById(schemaId, new HashSet<>(), schemaNodes);
+    return schemaNodes;
+  }
+
+  private void findById(String schemaId,
+      Set<String> alreadyVisitedIds, List<SchemaNode> schemaNodes) {
     Objects.requireNonNull(schemaId);
     if (schemaId.equals(schema.getId())) {
-      return Optional.of(this);
-    }
-
-    if (schema.getId() != null) {
-      alreadyVisitedIds.add(schema.getId());
-    }
-
-    Optional<SchemaNode> foundNode;
-    for (SchemaNode schemaNode : getChildren()) {
-      // jcard schema has recursive sub schemas without ids and will result in a stackoverflow:
-      if (schemaNode.propertyName.equals("vcardArray")) {
-        continue;
+      schemaNodes.add(this);
+    } else {
+      if (schema.getId() != null) {
+        alreadyVisitedIds.add(schema.getId());
       }
 
-      // nested schema like entity/entities should be visited once:
-      if (alreadyVisitedIds.contains(schemaNode.schema.getId())) {
-        continue;
-      }
+      for (SchemaNode schemaNode : getChildren()) {
+        // nested schema like entity/entities should be visited once:
+        if (alreadyVisitedIds.contains(schemaNode.schema.getId())) {
+          continue;
+        }
 
-      foundNode = schemaNode.findById(schemaId, alreadyVisitedIds);
-      if (foundNode.isPresent()) {
-        return foundNode;
+        schemaNode.findById(schemaId, alreadyVisitedIds, schemaNodes);
       }
     }
-
-    return Optional.empty();
   }
 
   private List<SchemaNode> findAllChildren(List<SchemaNode> schemaNodes,

@@ -19,6 +19,14 @@ public class JsonPointers {
     this.jsonPointers = jsonPointers;
   }
 
+  public static String fromJpath(String absoluteJpath) {
+    return absoluteJpath
+        .replace("$", "#")
+        .replace("[", "/")
+        .replace("]", "")
+        .replace("'", "");
+  }
+
   public Set<String> getAll() {
     return jsonPointers;
   }

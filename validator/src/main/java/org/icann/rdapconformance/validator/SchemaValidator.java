@@ -1,5 +1,10 @@
 package org.icann.rdapconformance.validator;
 
+import static com.jayway.jsonpath.JsonPath.using;
+
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.Option;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -19,6 +24,7 @@ import org.icann.rdapconformance.validator.customvalidator.Ipv6FormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.RdapExtensionsFormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
+import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -36,6 +42,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIP
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -50,6 +57,7 @@ public class SchemaValidator {
   private JSONObject schemaObject;
   private Schema schema;
   private RDAPValidatorResults results;
+
   private SchemaNode schemaRootNode;
 
   public SchemaValidator(String schemaName, RDAPValidatorResults results,
@@ -110,6 +118,10 @@ public class SchemaValidator {
     return schemaLoader.load().build();
   }
 
+  public Schema getSchema() {
+    return schema;
+  }
+
   public boolean validate(String content) {
     results.setGroups(schemaRootNode.findAllValuesOf("validationName"));
     JSONObject jsonObject;
@@ -133,7 +145,64 @@ public class SchemaValidator {
     verifyUnicityOfEventAction("rdap_asEventActor.json", -11310, jsonObject);
     tigSection_3_3_and_3_4_Validation(jsonObject);
 
+    // vcard
+    validateVcardCategories(jsonObject);
+
     return results.isEmpty();
+  }
+
+  private void validateVcardCategories(JSONObject jsonObject) {
+    Configuration jsonPathConfig = Configuration.defaultConfiguration()
+        .addOptions(Option.AS_PATH_LIST)
+        .addOptions(Option.SUPPRESS_EXCEPTIONS);
+    DocumentContext jpath = using(jsonPathConfig).parse(jsonObject.toString());
+    List<String> vcardArraysPaths = jpath.read("$..entities..vcardArray");
+    JcardCategoriesSchemas jcardCategoriesSchemas = new JcardCategoriesSchemas();
+    for (String vcardArraysPath : vcardArraysPaths) {
+      String jsonPointer = JsonPointers.fromJpath(vcardArraysPath);
+      JSONArray vcardArray = (JSONArray) jsonObject.query(jsonPointer);
+      int vcardElementIndex = 0;
+      for (Object vcardElement : vcardArray) {
+        if (vcardElement instanceof JSONArray) {
+          JSONArray vcardElementArray = (JSONArray) vcardElement;
+          int categoryArrayIndex = 0;
+          for (Object categoryArray : vcardElementArray) {
+            String category = ((JSONArray) categoryArray).getString(0);
+            if (jcardCategoriesSchemas.hasCategory(category)) {
+              try {
+                jcardCategoriesSchemas.getCategory(category).validate(categoryArray);
+              } catch (ValidationException e) {
+                String jsonExceptionPointer =
+                    jsonPointer + "/" + vcardElementIndex + "/" + categoryArrayIndex;
+                if (category.equals("adr")) {
+                  results.add(RDAPValidationResult.builder()
+                      .code(-20800)
+                      .value(jsonExceptionPointer + ":" + categoryArray)
+                      .message(
+                          "An entity with a non-structured address was found. See section 4.1 of the TIG.")
+                      .build());
+                } else {
+                  results.add(RDAPValidationResult.builder()
+                      .code(-12305)
+                      .value(jsonExceptionPointer + ":" + categoryArray)
+                      .message(
+                          "The value for the JSON name value is not a syntactically valid vcardArray.")
+                      .build());
+                }
+              }
+            } else {
+              results.add(RDAPValidationResult.builder()
+                  .code(-999)
+                  .value(category)
+                  .message("unknown vcard category: \"" + category + "\".")
+                  .build());
+            }
+            categoryArrayIndex++;
+          }
+        }
+        vcardElementIndex++;
+      }
+    }
   }
 
   private void tigSection_3_3_and_3_4_Validation(JSONObject jsonObject) {
@@ -141,7 +210,7 @@ public class SchemaValidator {
         , jsonObject);
     boolean noLinksInTopMost = jsonPointers.getOnlyTopMosts()
         .stream()
-        .map(j ->  (JSONObject) jsonObject.query(j))
+        .map(j -> (JSONObject) jsonObject.query(j))
         .noneMatch(notice -> notice.has("links"));
     Optional<String> noticesArray = jsonPointers.getParentOfTopMosts();
     if (noLinksInTopMost && noticesArray.isPresent()) {
@@ -220,9 +289,5 @@ public class SchemaValidator {
 
   private int getErrorCode(String validationName) {
     return (int) schemaObject.get(validationName);
-  }
-
-  public Schema getSchema() {
-    return schema;
   }
 }
