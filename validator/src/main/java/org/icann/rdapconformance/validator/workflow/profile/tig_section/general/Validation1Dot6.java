@@ -14,6 +14,7 @@ public class Validation1Dot6 {
 
   public static boolean validate(int rdapResponseStatusCode, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
+    boolean overallResult = true;
     try {
       HttpResponse<String> httpResponse = RDAPHttpRequest
           .makeHttpHeadRequest(config.getUri(), config.getTimeout());
@@ -24,13 +25,14 @@ public class Validation1Dot6 {
             .message("The HTTP Status code obtained when using the HEAD method is different from "
                 + "the GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.")
             .build());
-        return false;
+        overallResult = false;
       }
     } catch (Exception e) {
       logger.error(
           "Exception when making HTTP HEAD request in order to check [tigSection_1_6_Validation]",
           e);
     }
-    return true;
+    results.addGroup("tigSection_1_6_Validation", !overallResult);
+    return overallResult;
   }
 }

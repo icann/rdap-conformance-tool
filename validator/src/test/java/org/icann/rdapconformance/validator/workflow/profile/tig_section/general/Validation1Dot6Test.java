@@ -8,7 +8,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
@@ -36,7 +36,8 @@ public class Validation1Dot6Test extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")));
 
     assertThat(Validation1Dot6.validate(200, config, results)).isTrue();
-    verifyNoInteractions(results);
+    verify(results).addGroup("tigSection_1_6_Validation", false);
+    verifyNoMoreInteractions(results);
   }
 
   @Test
@@ -66,5 +67,6 @@ public class Validation1Dot6Test extends HttpTestingUtils {
         .hasFieldOrPropertyWithValue("message",
             "The HTTP Status code obtained when using the HEAD method is different from the "
                 + "GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.");
+    verify(results).addGroup("tigSection_1_6_Validation", true);
   }
 }

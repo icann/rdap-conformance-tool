@@ -7,7 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -114,7 +114,8 @@ public class Validation1Dot8Test {
     givenV6Ok();
 
     assertThat(Validation1Dot8.validate(httpResponse, results, datasetService)).isTrue();
-    verifyNoInteractions(results);
+    verify(results).addGroup("tigSection_1_8_Validation", false);
+    verifyNoMoreInteractions(results);
   }
 
   @Test
@@ -136,6 +137,7 @@ public class Validation1Dot8Test {
         .hasFieldOrPropertyWithValue("message",
             "The RDAP service is not provided over IPv4. See section 1.8 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1.");
+    verify(results).addGroup("tigSection_1_8_Validation", true);
   }
 
   @Test
@@ -157,6 +159,7 @@ public class Validation1Dot8Test {
         .hasFieldOrPropertyWithValue("message",
             "The RDAP service is not provided over IPv4. See section 1.8 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1.");
+    verify(results).addGroup("tigSection_1_8_Validation", true);
   }
 
   private HttpResponse<String> givenHttpResponse() {
@@ -188,6 +191,7 @@ public class Validation1Dot8Test {
         .hasFieldOrPropertyWithValue("message",
             "The RDAP service is not provided over IPv4. See section 1.8 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1.");
+    verify(results).addGroup("tigSection_1_8_Validation", true);
   }
 
   @Test
@@ -209,6 +213,7 @@ public class Validation1Dot8Test {
         .hasFieldOrPropertyWithValue("message",
             "The RDAP service is not provided over IPv6. See section 1.8 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1.");
+    verify(results).addGroup("tigSection_1_8_Validation", true);
   }
 
 
@@ -230,6 +235,7 @@ public class Validation1Dot8Test {
         .hasFieldOrPropertyWithValue("message",
             "The RDAP service is not provided over IPv6. See section 1.8 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1.");
+    verify(results).addGroup("tigSection_1_8_Validation", true);
   }
 
   @Test
@@ -253,7 +259,6 @@ public class Validation1Dot8Test {
         .hasFieldOrPropertyWithValue("message",
             "The RDAP service is not provided over IPv6. See section 1.8 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1.");
+    verify(results).addGroup("tigSection_1_8_Validation", true);
   }
-
-
 }

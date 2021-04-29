@@ -5,7 +5,7 @@ import static org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
@@ -29,7 +29,8 @@ public class Validation1Dot13Test {
         .when(httpResponse).headers();
 
     assertThat(Validation1Dot13.validate(httpResponse, results)).isTrue();
-    verifyNoInteractions(results);
+    verify(results).addGroup("tigSection_1_13_Validation", false);
+    verifyNoMoreInteractions(results);
   }
 
   @Test
@@ -40,7 +41,8 @@ public class Validation1Dot13Test {
     HttpResponse<String> httpResponse = mock(HttpResponse.class);
 
     doReturn(HttpHeaders.of(Map
-            .of("Test-Header", List.of("value1", "value2"), "Access-Control-Allow-Origin", List.of("domain")),
+            .of("Test-Header", List.of("value1", "value2"), "Access-Control-Allow-Origin",
+                List.of("domain")),
         (f1, f2) -> true)).when(httpResponse).headers();
 
     assertThat(Validation1Dot13.validate(httpResponse, results)).isFalse();
@@ -52,6 +54,7 @@ public class Validation1Dot13Test {
         .hasFieldOrPropertyWithValue("message",
             "The HTTP header \"Access-Control-Allow-Origin: *\" is not included in the "
                 + "HTTP headers. See section 1.13 of the RDAP_Technical_Implementation_Guide_2_1.");
+    verify(results).addGroup("tigSection_1_13_Validation", true);
   }
 
   @Test
@@ -62,7 +65,8 @@ public class Validation1Dot13Test {
         .forClass(RDAPValidationResult.class);
 
     doReturn(HttpHeaders.of(Map
-            .of("Test-Header", List.of("value1", "value2"), "Access-Control-Allow-Origin", List.of("domain")),
+            .of("Test-Header", List.of("value1", "value2"), "Access-Control-Allow-Origin",
+                List.of("domain")),
         (f1, f2) -> true)).when(redirectData.endingResponse).headers();
 
     assertThat(Validation1Dot13.validate(redirectData.startingResponse, results)).isFalse();
@@ -74,5 +78,6 @@ public class Validation1Dot13Test {
         .hasFieldOrPropertyWithValue("message",
             "The HTTP header \"Access-Control-Allow-Origin: *\" is not included in the "
                 + "HTTP headers. See section 1.13 of the RDAP_Technical_Implementation_Guide_2_1.");
+    verify(results).addGroup("tigSection_1_13_Validation", true);
   }
 }

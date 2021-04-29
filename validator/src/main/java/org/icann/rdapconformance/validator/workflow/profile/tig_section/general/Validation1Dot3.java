@@ -52,6 +52,7 @@ public class Validation1Dot3 {
       }
       responseOpt = response.previousResponse();
     }
+    results.addGroup("tigSection_1_3_Validation", !overallResult);
     return overallResult;
   }
 }

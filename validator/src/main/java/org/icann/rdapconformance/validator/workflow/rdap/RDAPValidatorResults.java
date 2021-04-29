@@ -52,4 +52,11 @@ public class RDAPValidatorResults {
   public Set<String> getGroups() {
     return groups;
   }
+
+  public void addGroup(String group, boolean hasError) {
+    this.groups.add(group);
+    if (hasError) {
+      this.groupErrorWarning.add(group);
+    }
+  }
 }

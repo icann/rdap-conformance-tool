@@ -69,6 +69,7 @@ public class Validation1Dot2 {
             "Exception when making HTTP request in order to check [tigSection_1_2_Validation]", e);
       }
     }
+    results.addGroup("tigSection_1_2_Validation", !overallResult);
     return overallResult;
   }
 

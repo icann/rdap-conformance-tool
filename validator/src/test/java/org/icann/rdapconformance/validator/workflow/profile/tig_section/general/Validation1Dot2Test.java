@@ -43,6 +43,7 @@ public class Validation1Dot2Test extends HttpTestingUtils {
         .hasFieldOrPropertyWithValue("value", config.getUri().toString())
         .hasFieldOrPropertyWithValue("message", "The URL is HTTP, per section 1.2 of "
             + "the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
+    verify(results).addGroup("tigSection_1_2_Validation", true);
   }
 
   @Test
@@ -62,6 +63,7 @@ public class Validation1Dot2Test extends HttpTestingUtils {
         .hasFieldOrPropertyWithValue("value", redirectData.endingResponse.uri().toString())
         .hasFieldOrPropertyWithValue("message", "The URL is HTTP, per section 1.2 of "
             + "the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
+    verify(results).addGroup("tigSection_1_2_Validation", true);
   }
 
   @Test
@@ -96,6 +98,7 @@ public class Validation1Dot2Test extends HttpTestingUtils {
         .hasFieldOrPropertyWithValue("message",
             "The RDAP response was provided over HTTP, per section 1.2 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1shall be HTTPS only.");
+    verify(results).addGroup("tigSection_1_2_Validation", true);
   }
 
   @Test
