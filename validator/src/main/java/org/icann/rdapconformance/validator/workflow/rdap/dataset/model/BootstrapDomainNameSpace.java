@@ -4,17 +4,17 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class BootstrapDomainNameSpace implements RDAPDatasetModel {
 
-  private final Map<String, List<String>> tlds = new HashMap<>();
+  private final Map<String, Set<String>> tlds = new HashMap<>();
 
 
   @Override
@@ -29,7 +29,7 @@ public class BootstrapDomainNameSpace implements RDAPDatasetModel {
       JSONArray inArray = (JSONArray) dnsData;
       for (Object obj : inArray.getJSONArray(0)) {
         String tld = String.valueOf(obj);
-        List<String> urls = tlds.getOrDefault(tld, new ArrayList<>());
+        Set<String> urls = tlds.getOrDefault(tld, new HashSet<>());
         urls.addAll(inArray.getJSONArray(1).toList().stream()
             .map(String::valueOf)
             .collect(Collectors.toList()));
@@ -38,7 +38,7 @@ public class BootstrapDomainNameSpace implements RDAPDatasetModel {
     }
   }
 
-  public List<String> getUrlsForTld(String tld) {
+  public Set<String> getUrlsForTld(String tld) {
     return tlds.get(tld);
   }
 
@@ -46,4 +46,7 @@ public class BootstrapDomainNameSpace implements RDAPDatasetModel {
     return tlds.containsKey(tld);
   }
 
+  public Set<String> getTlds() {
+    return tlds.keySet();
+  }
 }

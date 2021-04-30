@@ -4,7 +4,6 @@ public interface RDAPQueryTypeProcessor {
 
   /**
    * Check the RDAP query type is valid.
-   * @param datasetService
    */
   boolean check(RDAPDatasetService datasetService);
 

@@ -113,7 +113,8 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
         return RDAPValidationStatus.USES_THIN_MODEL.getValue();
       }
       // asEventActor property is not allow in topMost entity object, see spec 7.2.9.2
-      validator = new SchemaValidator("rdap_entity_without_asEventActor.json", results, datasetService);
+      validator = new SchemaValidator("rdap_entity_without_asEventActor.json", results,
+          datasetService);
     }
     assert null != validator;
     validator.validate(query.getData());
@@ -124,7 +125,8 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
      */
     if (config.userRdapProfileFeb2019()) {
       RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(config,
-          results, (HttpResponse<String>) query.getRawResponse(), datasetService);
+          results, datasetService, (HttpResponse<String>) query.getRawResponse(),
+          queryTypeProcessor.getQueryType());
       rdapProfileFebruary2019.validate();
     }
 
