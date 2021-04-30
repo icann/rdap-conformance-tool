@@ -32,22 +32,22 @@ public class Validation1Dot8 {
 
   public static boolean validate(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
       RDAPDatasetService datasetService) {
-    boolean overallResult = true;
+    boolean hasError = false;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
       if (!validateHost(response.uri(), results, datasetService)) {
-        overallResult = false;
+        hasError = true;
       }
       responseOpt = response.previousResponse();
     }
-    results.addGroup("tigSection_1_8_Validation", !overallResult);
-    return overallResult;
+    results.addGroup("tigSection_1_8_Validation", hasError);
+    return !hasError;
   }
 
   private static boolean validateHost(URI uri, RDAPValidatorResults results,
       RDAPDatasetService datasetService) {
-    boolean overallResult = true;
+    boolean hasError = false;
     Name host;
     try {
       host = Name.fromString(uri.getHost());
@@ -69,7 +69,7 @@ public class Validation1Dot8 {
           .message("The RDAP service is not provided over IPv4. See section 1.8 of the "
               + "RDAP_Technical_Implementation_Guide_2_1.")
           .build());
-      overallResult = false;
+      hasError = true;
     }
 
     queryResult = dnsQuery.makeRequest(host, Type.AAAA);
@@ -84,10 +84,10 @@ public class Validation1Dot8 {
           .message("The RDAP service is not provided over IPv6. See section 1.8 of the "
               + "RDAP_Technical_Implementation_Guide_2_1.")
           .build());
-      overallResult = false;
+      hasError = true;
     }
 
-    return overallResult;
+    return !hasError;
   }
 
   private static boolean containsInvalidIPAddress(Set<InetAddress> addresses,

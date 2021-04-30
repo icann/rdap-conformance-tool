@@ -1,7 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import static org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.makeHttpGetRequest;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +31,7 @@ public class Validation1Dot2 {
   public static boolean validate(HttpResponse<String> rdapResponse,
       RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
-    boolean overallResult = true;
+    boolean hasError = false;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
@@ -45,7 +43,7 @@ public class Validation1Dot2 {
                 "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 "
                     + "shall be HTTPS only.")
             .build());
-        overallResult = false;
+        hasError = true;
       }
       responseOpt = response.previousResponse();
     }
@@ -62,15 +60,15 @@ public class Validation1Dot2 {
               .message("The RDAP response was provided over HTTP, per section 1.2 of the "
                   + "RDAP_Technical_Implementation_Guide_2_1shall be HTTPS only.")
               .build());
-          overallResult = false;
+          hasError = true;
         }
       } catch (Exception e) {
         logger.error(
             "Exception when making HTTP request in order to check [tigSection_1_2_Validation]", e);
       }
     }
-    results.addGroup("tigSection_1_2_Validation", !overallResult);
-    return overallResult;
+    results.addGroup("tigSection_1_2_Validation", hasError);
+    return !hasError;
   }
 
   /**

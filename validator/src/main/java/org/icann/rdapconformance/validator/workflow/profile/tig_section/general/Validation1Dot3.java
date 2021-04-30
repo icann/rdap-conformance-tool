@@ -21,7 +21,7 @@ public class Validation1Dot3 {
   public static boolean validate(HttpResponse<String> rdapResponse,
       RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
-    boolean overallResult = true;
+    boolean hasError = false;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
@@ -44,7 +44,7 @@ public class Validation1Dot3 {
                 .value(response.uri().toString())
                 .message("The RDAP server is offering SSLv2 and/or SSLv3.")
                 .build());
-            overallResult = false;
+            hasError = true;
           }
         } catch (NoSuchAlgorithmException | IOException e) {
           logger.error("Cannot create SSL context", e);
@@ -52,7 +52,7 @@ public class Validation1Dot3 {
       }
       responseOpt = response.previousResponse();
     }
-    results.addGroup("tigSection_1_3_Validation", !overallResult);
-    return overallResult;
+    results.addGroup("tigSection_1_3_Validation", hasError);
+    return !hasError;
   }
 }
