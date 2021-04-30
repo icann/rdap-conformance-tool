@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
