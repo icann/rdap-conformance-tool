@@ -97,6 +97,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     return this.uri;
   }
 
+  @Override
+  public void setUri(URI uri) {
+    this.uri = uri;
+  }
+
   private static class DependantRdapProfileGtld {
 
     @Option(names = {"--use-rdap-profile-february-2019"},
