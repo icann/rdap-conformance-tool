@@ -124,7 +124,7 @@ public class SchemaValidator {
   }
 
   public boolean validate(String content) {
-    results.setGroups(schemaRootNode.findAllValuesOf("validationName"));
+    results.addGroups(schemaRootNode.findAllValuesOf("validationName"));
     JSONObject jsonObject;
     try {
       jsonObject = new JSONObject(content);

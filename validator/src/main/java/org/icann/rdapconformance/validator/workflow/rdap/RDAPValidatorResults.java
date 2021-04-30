@@ -14,8 +14,8 @@ public class RDAPValidatorResults {
 
   private final Set<RDAPValidationResult> results = new HashSet<>();
 
-  private Set<String> groups = new HashSet<>();
-  private Set<String> groupErrorWarning = new HashSet<>();
+  private final Set<String> groups = new HashSet<>();
+  private final Set<String> groupErrorWarning = new HashSet<>();
 
   public void add(RDAPValidationResult result) {
     if (this.results.add(result)) {
@@ -37,8 +37,8 @@ public class RDAPValidatorResults {
     return groupsCopy;
   }
 
-  public void setGroups(Set<String> groups) {
-    this.groups = groups;
+  public void addGroups(Set<String> groups) {
+    this.groups.addAll(groups);
   }
 
   public Set<String> getGroupErrorWarning() {
