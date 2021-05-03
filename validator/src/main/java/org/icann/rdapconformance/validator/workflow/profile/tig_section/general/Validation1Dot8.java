@@ -101,8 +101,8 @@ public class Validation1Dot8 {
   }
 
   enum IPSchema {
-    V4("rdap_ipv4_address.json"),
-    V6("rdap_ipv6_address.json");
+    V4("ipv4_address.json"),
+    V6("ipv6_address.json");
 
     private final String value;
 
@@ -110,8 +110,8 @@ public class Validation1Dot8 {
       this.value = value;
     }
 
-    public String value() {
-      return value;
+    public String path() {
+      return "profile/tig_section/" + value;
     }
   }
 
@@ -169,7 +169,7 @@ public class Validation1Dot8 {
       }
 
       String ipAddressJson = String.format("{\"ip\": \"%s\"}", ipAddress.getHostAddress());
-      SchemaValidator validator = new SchemaValidator(schema.value(), new RDAPValidatorResults(),
+      SchemaValidator validator = new SchemaValidator(schema.path(), new RDAPValidatorResults(),
           datasetService);
       return !validator.validate(ipAddressJson);
     }
