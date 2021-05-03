@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "topmost",
+  "$id": "topmost_object.json",
+  "definitions": {
+    "links": {
+      "type": "array",
+      "contains": {
+        "$ref": "#/definitions/link"
+      }
+    },
+    "link": {
+      "type": "object",
+      "properties": {
+        "rel": {
+          "const": "related"
+        },
+        "href": {
+        }
+      },
+      "additionalProperties": true,
+      "required": [
+        "rel",
+        "href"
+      ]
+    }
+  },
+  "properties": {
+    "links": {
+      "$ref": "#/definitions/links"
+    }
+  },
+  "additionalProperties": true,
+  "required": [
+    "links"
+  ]
+}
