@@ -29,12 +29,6 @@ public class Ipv4ValidationExceptionParser extends StringFormatExceptionParser<I
         .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
         .build());
 
-    results.add(RDAPValidationResult.builder()
-        .code(-11406)
-        .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
-        .build());
-
     if (e.getMessage().contains(Ipv4FormatValidator.NOT_ALLOCATED_NOR_LEGACY)) {
       results.add(RDAPValidationResult.builder()
           .code(-10101)

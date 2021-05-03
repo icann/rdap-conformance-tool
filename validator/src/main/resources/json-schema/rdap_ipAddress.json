@@ -11,6 +11,13 @@
           "errorCode": -11405
         },
         {
+          "type": "string",
+          "pattern": "^([0-9]{1,3}\\.){3}[0-9]{1,3}$",
+          "validationName": "IPv4Validation",
+          "errorCode": -11406,
+          "errorMsg": "The IPv4 address is not syntactically valid in dot-decimal notation."
+        },
+        {
           "format": "ipv4-validation",
           "validationName": "IPv4Validation",
           "errorCode": -11404
