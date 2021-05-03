@@ -35,7 +35,7 @@ public class Validation1Dot8Test {
   private final DNSQuery dnsQuery = mock(DNSQuery.class);
   private final IPValidator ipValidator = mock(IPValidator.class);
   private final RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
-
+  private RDAPValidatorResults results;
 
   private void givenV6Ok() throws UnknownHostException {
     InetAddress ipv6AddressValid = Inet6Address
@@ -102,18 +102,16 @@ public class Validation1Dot8Test {
     Validation1Dot8.dnsQuery = dnsQuery;
     Validation1Dot8.ipValidator = ipValidator;
     doReturn(false).when(ipValidator).isInvalid(any(InetAddress.class), eq(datasetService));
-
+    results = mock(RDAPValidatorResults.class);
   }
 
   @Test
   public void testValidate() throws UnknownHostException {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
-
     HttpResponse<String> httpResponse = givenHttpResponse();
     givenV4Ok();
     givenV6Ok();
 
-    assertThat(Validation1Dot8.validate(httpResponse, results, datasetService)).isTrue();
+    assertThat(new Validation1Dot8(httpResponse, results, datasetService).validate()).isTrue();
     verify(results).addGroup("tigSection_1_8_Validation", false);
     verifyNoMoreInteractions(results);
   }
@@ -121,7 +119,6 @@ public class Validation1Dot8Test {
   @Test
   public void testValidate_InvalidIPv4_AddResult20400()
       throws UnknownHostException, TextParseException {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
 
@@ -129,7 +126,7 @@ public class Validation1Dot8Test {
     givenV4AddressError(httpResponse.uri());
     givenV6Ok();
 
-    assertThat(Validation1Dot8.validate(httpResponse, results, datasetService)).isFalse();
+    assertThat(new Validation1Dot8(httpResponse, results, datasetService).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20400)
@@ -143,7 +140,6 @@ public class Validation1Dot8Test {
   @Test
   public void testValidate_InvalidIPv4DnsResponse_AddResult20400()
       throws UnknownHostException {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
 
@@ -151,7 +147,7 @@ public class Validation1Dot8Test {
     givenV4QueryError();
     givenV6Ok();
 
-    assertThat(Validation1Dot8.validate(httpResponse, results, datasetService)).isFalse();
+    assertThat(new Validation1Dot8(httpResponse, results, datasetService).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20400)
@@ -173,7 +169,6 @@ public class Validation1Dot8Test {
   @Test
   public void testValidate_InvalidIPv4InRedirect_AddResult20400()
       throws UnknownHostException, TextParseException {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
 
@@ -182,7 +177,7 @@ public class Validation1Dot8Test {
     givenV4AddressError(redirectData.endingResponse.uri());
     givenV6Ok();
 
-    assertThat(Validation1Dot8.validate(redirectData.startingResponse, results, datasetService))
+    assertThat(new Validation1Dot8(redirectData.startingResponse, results, datasetService).validate())
         .isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
@@ -197,7 +192,6 @@ public class Validation1Dot8Test {
   @Test
   public void testValidate_InvalidIPv6_AddResult20401()
       throws UnknownHostException, TextParseException {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
 
@@ -205,7 +199,7 @@ public class Validation1Dot8Test {
     givenV4Ok();
     givenV6AddressError(httpResponse.uri());
 
-    assertThat(Validation1Dot8.validate(httpResponse, results, datasetService)).isFalse();
+    assertThat(new Validation1Dot8(httpResponse, results, datasetService).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20401)
@@ -219,7 +213,6 @@ public class Validation1Dot8Test {
 
   @Test
   public void testValidate_InvalidIPv6DnsResponse_AddResult20401() throws UnknownHostException {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
 
@@ -227,7 +220,7 @@ public class Validation1Dot8Test {
     givenV4Ok();
     givenV6QueryError();
 
-    assertThat(Validation1Dot8.validate(httpResponse, results, datasetService)).isFalse();
+    assertThat(new Validation1Dot8(httpResponse, results, datasetService).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20401)
@@ -241,7 +234,6 @@ public class Validation1Dot8Test {
   @Test
   public void testValidate_InvalidIPv6InRedirect_AddResult20401()
       throws TextParseException, UnknownHostException {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
 
@@ -250,7 +242,7 @@ public class Validation1Dot8Test {
     givenV6Ok();
     givenV6AddressError(redirectData.endingResponse.uri());
 
-    assertThat(Validation1Dot8.validate(redirectData.startingResponse, results, datasetService))
+    assertThat(new Validation1Dot8(redirectData.startingResponse, results, datasetService).validate())
         .isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();

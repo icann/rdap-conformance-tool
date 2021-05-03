@@ -24,14 +24,25 @@ import org.xbill.DNS.Record;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-public class Validation1Dot8 {
+public class Validation1Dot8 implements TigValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot8.class);
   static DNSQuery dnsQuery = new DNSQuery();
   static IPValidator ipValidator = new IPValidator();
+  private final HttpResponse<String> rdapResponse;
+  private final RDAPValidatorResults results;
+  private final RDAPDatasetService datasetService;
 
-  public static boolean validate(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
+  public Validation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
       RDAPDatasetService datasetService) {
+
+    this.rdapResponse = rdapResponse;
+    this.results = results;
+    this.datasetService = datasetService;
+  }
+
+  @Override
+  public boolean validate() {
     boolean hasError = false;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {

@@ -9,6 +9,12 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2019;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot13;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot2;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot3;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot6;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,9 +130,17 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
      * --use-rdap-profile-february-2019 is set.
      */
     if (config.userRdapProfileFeb2019()) {
-      RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(config,
-          results, datasetService, (HttpResponse<String>) query.getRawResponse(),
-          queryTypeProcessor.getQueryType());
+      HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
+      RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
+          config,
+          queryTypeProcessor.getQueryType(),
+          new Validation1Dot2(rdapResponse, config, results),
+          new Validation1Dot3(rdapResponse, config, results),
+          new Validation1Dot6(rdapResponse.statusCode(), config, results),
+          new Validation1Dot8(rdapResponse, results, datasetService),
+          new Validation1Dot13(rdapResponse, results),
+          new Validation1Dot11Dot1(config, results, datasetService)
+      );
       rdapProfileFebruary2019.validate();
     }
 

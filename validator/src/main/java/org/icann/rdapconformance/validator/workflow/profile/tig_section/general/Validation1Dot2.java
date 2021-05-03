@@ -21,16 +21,26 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Validation1Dot2 {
+public class Validation1Dot2 implements TigValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot2.class);
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final RDAPJsonComparator jsonComparator = new RDAPJsonComparator();
+  private final HttpResponse<String> rdapResponse;
+  private final RDAPValidatorConfiguration config;
+  private final RDAPValidatorResults results;
 
-  public static boolean validate(HttpResponse<String> rdapResponse,
+  public Validation1Dot2(HttpResponse<String> rdapResponse,
       RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
+    this.rdapResponse = rdapResponse;
+    this.config = config;
+    this.results = results;
+  }
+
+  @Override
+  public boolean validate() {
     boolean hasError = false;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {

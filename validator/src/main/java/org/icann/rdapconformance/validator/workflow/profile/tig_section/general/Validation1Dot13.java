@@ -6,10 +6,20 @@ import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class Validation1Dot13 {
+public class Validation1Dot13 implements TigValidation {
 
-  public static boolean validate(HttpResponse<String> rdapResponse,
+  private final HttpResponse<String> rdapResponse;
+  private final RDAPValidatorResults results;
+
+  public Validation1Dot13(HttpResponse<String> rdapResponse,
       RDAPValidatorResults results) {
+
+    this.rdapResponse = rdapResponse;
+    this.results = results;
+  }
+
+  @Override
+  public boolean validate() {
     boolean hasError = false;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {

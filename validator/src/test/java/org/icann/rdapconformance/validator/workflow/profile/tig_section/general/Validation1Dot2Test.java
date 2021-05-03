@@ -22,13 +22,21 @@ import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.mockito.ArgumentCaptor;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class Validation1Dot2Test extends HttpTestingUtils {
 
+  private RDAPValidatorResults results;
+
+  @BeforeMethod
+  public void setUp() {
+    super.setUp();
+    results = mock(RDAPValidatorResults.class);
+  }
+
   @Test
   public void testValidate_UriNotHttps_AddResult20100() {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
     HttpResponse<String> httpsResponse = mock(HttpResponse.class);
@@ -36,7 +44,7 @@ public class Validation1Dot2Test extends HttpTestingUtils {
     doReturn(URI.create("http://domain/test.example")).when(config).getUri();
     doReturn(config.getUri()).when(httpsResponse).uri();
 
-    assertThat(Validation1Dot2.validate(httpsResponse, config, results)).isFalse();
+    assertThat(new Validation1Dot2(httpsResponse, config, results).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20100)
@@ -49,14 +57,14 @@ public class Validation1Dot2Test extends HttpTestingUtils {
   @Test
   public void testValidate_UriNotHttpsInOneRedirect_AddResult20100() {
     RedirectData redirectData = givenChainedHttpRedirects();
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
 
     // set URI as being an HTTP request to avoid going through HTTP test for code -20101
     doReturn(URI.create("http://domain/test.example")).when(config).getUri();
 
-    assertThat(Validation1Dot2.validate(redirectData.startingResponse, config, results)).isFalse();
+    assertThat(new Validation1Dot2(redirectData.startingResponse, config, results).validate())
+        .isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20100)
@@ -68,7 +76,6 @@ public class Validation1Dot2Test extends HttpTestingUtils {
 
   @Test
   public void testValidate_HttpResponseEqualsHttpsResponse_AddResult20101() {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
     HttpResponse<String> httpsResponse = mock(HttpResponse.class);
@@ -90,7 +97,7 @@ public class Validation1Dot2Test extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
 
-    assertThat(Validation1Dot2.validate(httpsResponse, config, results)).isFalse();
+    assertThat(new Validation1Dot2(httpsResponse, config, results).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20101)

@@ -37,7 +37,7 @@ public class Validation1Dot11Dot1Test {
     doReturn(Set.of("https://domain.abc/rdap", "https://domain.test/rdap")).when(dataset)
         .getUrlsForTld("example");
 
-    assertThat(Validation1Dot11Dot1.validate(config, results, rdapDatasetService)).isTrue();
+    assertThat(new Validation1Dot11Dot1(config, results, rdapDatasetService).validate()).isTrue();
     verify(results).addGroup("tigSection_1_11_1_Validation", false);
     verifyNoMoreInteractions(results);
   }
@@ -51,7 +51,7 @@ public class Validation1Dot11Dot1Test {
     doReturn(false).when(dataset).tldExists("example");
     doReturn(Set.of("abc", "test")).when(dataset).getTlds();
 
-    assertThat(Validation1Dot11Dot1.validate(config, results, rdapDatasetService)).isFalse();
+    assertThat(new Validation1Dot11Dot1(config, results, rdapDatasetService).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -23100)
@@ -72,7 +72,7 @@ public class Validation1Dot11Dot1Test {
     doReturn(Set.of("https://domain.abc/rdap", "https://abc.test/rdap")).when(dataset)
         .getUrlsForTld("example");
 
-    assertThat(Validation1Dot11Dot1.validate(config, results, rdapDatasetService)).isFalse();
+    assertThat(new Validation1Dot11Dot1(config, results, rdapDatasetService).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -23101)
@@ -93,7 +93,7 @@ public class Validation1Dot11Dot1Test {
     doReturn(Set.of("http://domain.abc/rdap", "https://domain.test/rdap")).when(dataset)
         .getUrlsForTld("example");
 
-    assertThat(Validation1Dot11Dot1.validate(config, results, rdapDatasetService)).isFalse();
+    assertThat(new Validation1Dot11Dot1(config, results, rdapDatasetService).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -23102)

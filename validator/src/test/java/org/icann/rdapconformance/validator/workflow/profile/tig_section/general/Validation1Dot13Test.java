@@ -15,27 +15,33 @@ import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.Redire
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.mockito.ArgumentCaptor;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class Validation1Dot13Test {
 
+  private RDAPValidatorResults results;
+
+  @BeforeMethod
+  public void setUp() {
+    results = mock(RDAPValidatorResults.class);
+  }
+
   @Test
   public void testValidate() {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     HttpResponse<String> httpResponse = mock(HttpResponse.class);
 
     doReturn(HttpHeaders
         .of(Map.of("Access-Control-Allow-Origin", List.of("value", "*")), (f1, f2) -> true))
         .when(httpResponse).headers();
 
-    assertThat(Validation1Dot13.validate(httpResponse, results)).isTrue();
+    assertThat(new Validation1Dot13(httpResponse, results).validate()).isTrue();
     verify(results).addGroup("tigSection_1_13_Validation", false);
     verifyNoMoreInteractions(results);
   }
 
   @Test
   public void testValidate_NoHeader_AddResult20100() {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
     HttpResponse<String> httpResponse = mock(HttpResponse.class);
@@ -45,7 +51,7 @@ public class Validation1Dot13Test {
                 List.of("domain")),
         (f1, f2) -> true)).when(httpResponse).headers();
 
-    assertThat(Validation1Dot13.validate(httpResponse, results)).isFalse();
+    assertThat(new Validation1Dot13(httpResponse, results).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20500)
@@ -60,7 +66,6 @@ public class Validation1Dot13Test {
   @Test
   public void testValidate_UriNotHttpsInOneRedirect_AddResult20100() {
     RedirectData redirectData = givenChainedHttpRedirects();
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
 
@@ -69,7 +74,7 @@ public class Validation1Dot13Test {
                 List.of("domain")),
         (f1, f2) -> true)).when(redirectData.endingResponse).headers();
 
-    assertThat(Validation1Dot13.validate(redirectData.startingResponse, results)).isFalse();
+    assertThat(new Validation1Dot13(redirectData.startingResponse, results).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20500)

@@ -15,19 +15,27 @@ import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.mockito.ArgumentCaptor;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class Validation1Dot6Test extends HttpTestingUtils {
 
-  @Test
-  public void testValidate_HttpHeadStatusSameAsGet_IsOk() {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
 
+  private RDAPValidatorResults results;
+
+  @Override
+  @BeforeMethod
+  public void setUp() {
+    super.setUp();
     WireMockConfiguration wmConfig = wireMockConfig()
         .dynamicHttpsPort()
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
+    results = mock(RDAPValidatorResults.class);
+  }
 
+  @Test
+  public void testValidate_HttpHeadStatusSameAsGet_IsOk() {
     // configure wiremock for HTTP as we will make an HTTP request
     givenUri("http");
     stubFor(head(urlEqualTo(REQUEST_PATH))
@@ -35,21 +43,15 @@ public class Validation1Dot6Test extends HttpTestingUtils {
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")));
 
-    assertThat(Validation1Dot6.validate(200, config, results)).isTrue();
+    assertThat(new Validation1Dot6(200, config, results).validate()).isTrue();
     verify(results).addGroup("tigSection_1_6_Validation", false);
     verifyNoMoreInteractions(results);
   }
 
   @Test
   public void testValidate_HttpHeadStatusDifferentThanGet_AddResults20300() {
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
-
-    WireMockConfiguration wmConfig = wireMockConfig()
-        .dynamicHttpsPort()
-        .bindAddress(WIREMOCK_HOST);
-    prepareWiremock(wmConfig);
 
     // configure wiremock for HTTP as we will make an HTTP request
     givenUri("http");
@@ -59,7 +61,7 @@ public class Validation1Dot6Test extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withStatus(404)));
 
-    assertThat(Validation1Dot6.validate(200, config, results)).isFalse();
+    assertThat(new Validation1Dot6(200, config, results).validate()).isFalse();
     verify(results).add(resultCaptor.capture());
     RDAPValidationResult result = resultCaptor.getValue();
     assertThat(result).hasFieldOrPropertyWithValue("code", -20300)

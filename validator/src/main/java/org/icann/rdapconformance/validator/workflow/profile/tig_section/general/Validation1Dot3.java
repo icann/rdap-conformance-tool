@@ -14,13 +14,22 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Validation1Dot3 {
+public class Validation1Dot3 implements TigValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot3.class);
+  private final HttpResponse<String> rdapResponse;
+  private final RDAPValidatorConfiguration config;
+  private final RDAPValidatorResults results;
 
-  public static boolean validate(HttpResponse<String> rdapResponse,
-      RDAPValidatorConfiguration config,
+  public Validation1Dot3(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
+    this.rdapResponse = rdapResponse;
+    this.config = config;
+    this.results = results;
+  }
+
+  @Override
+  public boolean validate() {
     boolean hasError = false;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
