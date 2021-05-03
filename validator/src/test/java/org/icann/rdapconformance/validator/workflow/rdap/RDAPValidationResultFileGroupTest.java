@@ -13,14 +13,15 @@ import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class RDAPValidationResultFileGroupOkTest {
+public class RDAPValidationResultFileGroupTest {
 
   private FileSystem fileSystem;
   private RDAPValidationResultFile file;
+  private RDAPValidatorResults results;
 
   @BeforeMethod
   public void setUp() {
-    RDAPValidatorResults results = new RDAPValidatorResults();
+    results = new RDAPValidatorResults();
     fileSystem = mock(FileSystem.class);
     results.addGroups(Set.of("firstGroup"));
     file = new RDAPValidationResultFile(
@@ -34,5 +35,12 @@ public class RDAPValidationResultFileGroupOkTest {
   public void testGroupOkAssigned() throws IOException {
     file.build(200);
     verify(fileSystem).write(any(), contains("\"groupOK\": [\"firstGroup\"]"));
+  }
+
+  @Test
+  public void testGroupErrorWarningAssigned() throws IOException {
+    results.addGroupErrorWarning("secondGroup");
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"groupErrorWarning\": [\"secondGroup\"]"));
   }
 }
