@@ -54,17 +54,4 @@ public class SchemaValidatorRdapConformanceTest extends SchemaValidatorForArrayO
     jsonObject.put("rdapConformance", listWithNoRdapLevel0);
     validate(-10503, "#/rdapConformance:[\"icann_rdap_technical_implementation_guide_0\"]", "The #/rdapConformance data structure does not include rdap_level_0.");
   }
-
-  /**
-   * 8.1.6.
-   */
-  @Test
-  public void tigSection_1_14_Validation() {
-    List<String> listWithOnlyRdapLevel0 = List.of("rdap_level_0");
-    jsonObject.put("rdapConformance", listWithOnlyRdapLevel0);
-    validate(-20600, "#/rdapConformance:[\"rdap_level_0\"]",
-        "The RDAP Conformance data structure does not include "
-            + "icann_rdap_technical_implementation_guide_0. See section 1.14 of the "
-            + "RDAP_Technical_Implementation_Guide_2_1.");
-  }
 }

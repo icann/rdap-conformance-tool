@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot13;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot14;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot6;
@@ -24,6 +25,7 @@ public class RDAPProfileFebruary2019Test {
   private Validation1Dot8 validation1Dot8;
   private Validation1Dot13 validation1Dot13;
   private Validation1Dot11Dot1 validation1Dot11Dot1;
+  private Validation1Dot14 validation1Dot14;
   private RDAPValidatorConfiguration config;
   private RDAPQueryType queryType;
   private RDAPProfileFebruary2019 rdapProfileFebruary2019;
@@ -40,6 +42,7 @@ public class RDAPProfileFebruary2019Test {
     validation1Dot8 = mock(Validation1Dot8.class);
     validation1Dot13 = mock(Validation1Dot13.class);
     validation1Dot11Dot1 = mock(Validation1Dot11Dot1.class);
+    validation1Dot14 = mock(Validation1Dot14.class);
     rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
         config,
         queryType,
@@ -48,7 +51,8 @@ public class RDAPProfileFebruary2019Test {
         validation1Dot6,
         validation1Dot8,
         validation1Dot13,
-        validation1Dot11Dot1
+        validation1Dot11Dot1,
+        validation1Dot14
     );
   }
 
@@ -61,6 +65,7 @@ public class RDAPProfileFebruary2019Test {
     verify(validation1Dot8).validate();
     verify(validation1Dot13).validate();
     verify(validation1Dot11Dot1).validate();
+    verify(validation1Dot14).validate();
   }
 
   @Test
