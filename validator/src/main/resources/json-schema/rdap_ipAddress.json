@@ -65,7 +65,10 @@
           "then": {
             "properties": {
               "v4": {
-                "$ref": "#/definitions/ipv4"
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ipv4"
+                }
               }
             },
             "unknownKeys": -11401,
@@ -83,7 +86,10 @@
           "then": {
             "properties": {
               "v6": {
-                "$ref": "#/definitions/ipv6"
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ipv6"
+                }
               }
             },
             "unknownKeys": -11401,
