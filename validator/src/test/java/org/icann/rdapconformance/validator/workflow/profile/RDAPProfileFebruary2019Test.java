@@ -12,6 +12,7 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot6;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation6Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation3Dot2;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -28,6 +29,7 @@ public class RDAPProfileFebruary2019Test {
   private Validation1Dot11Dot1 validation1Dot11Dot1;
   private Validation1Dot14 validation1Dot14;
   private Validation3Dot2 validation3Dot2;
+  private Validation6Dot1 validation6Dot1;
   private RDAPValidatorConfiguration config;
   private RDAPQueryType queryType;
   private RDAPProfileFebruary2019 rdapProfileFebruary2019;
@@ -46,6 +48,7 @@ public class RDAPProfileFebruary2019Test {
     validation1Dot11Dot1 = mock(Validation1Dot11Dot1.class);
     validation1Dot14 = mock(Validation1Dot14.class);
     validation3Dot2 = mock(Validation3Dot2.class);
+    validation6Dot1 = mock(Validation6Dot1.class);
     rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
         config,
         queryType,
@@ -56,7 +59,8 @@ public class RDAPProfileFebruary2019Test {
         validation1Dot13,
         validation1Dot11Dot1,
         validation1Dot14,
-        validation3Dot2);
+        validation3Dot2,
+        validation6Dot1);
   }
 
   @Test
@@ -70,6 +74,7 @@ public class RDAPProfileFebruary2019Test {
     verify(validation1Dot11Dot1).validate();
     verify(validation1Dot14).validate();
     verify(validation3Dot2).validate();
+    verify(validation6Dot1).validate();
   }
 
   @Test
@@ -78,5 +83,6 @@ public class RDAPProfileFebruary2019Test {
     rdapProfileFebruary2019.validate();
     verifyNoInteractions(validation1Dot11Dot1);
     verifyNoInteractions(validation3Dot2);
+    verifyNoInteractions(validation6Dot1);
   }
 }

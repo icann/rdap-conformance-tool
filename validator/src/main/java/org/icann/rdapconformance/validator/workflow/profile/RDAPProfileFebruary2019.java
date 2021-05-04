@@ -7,6 +7,7 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot6;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation6Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation3Dot2;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -23,6 +24,7 @@ public class RDAPProfileFebruary2019 {
   private final Validation1Dot11Dot1 validation1Dot11Dot1;
   private final Validation1Dot14 validation1Dot14;
   private final Validation3Dot2 validation3Dot2;
+  private final Validation6Dot1 validation6Dot1;
 
   public RDAPProfileFebruary2019(
       RDAPValidatorConfiguration config,
@@ -34,7 +36,8 @@ public class RDAPProfileFebruary2019 {
       Validation1Dot13 validation1Dot13,
       Validation1Dot11Dot1 validation1Dot11Dot1,
       Validation1Dot14 validation1Dot14,
-      Validation3Dot2 validation3Dot2) {
+      Validation3Dot2 validation3Dot2,
+      Validation6Dot1 validation6Dot1) {
     this.config = config;
     this.queryType = queryType;
     this.validation1Dot2 = validation1Dot2;
@@ -45,6 +48,7 @@ public class RDAPProfileFebruary2019 {
     this.validation1Dot11Dot1 = validation1Dot11Dot1;
     this.validation1Dot14 = validation1Dot14;
     this.validation3Dot2 = validation3Dot2;
+    this.validation6Dot1 = validation6Dot1;
   }
 
   public boolean validate() {
@@ -59,6 +63,7 @@ public class RDAPProfileFebruary2019 {
     if (config.isGtldRegistry()) {
       if (queryType.equals(RDAPQueryType.DOMAIN)) {
         result &= validation1Dot11Dot1.validate();
+        result &= validation6Dot1.validate();
       }
       result &= validation3Dot2.validate();
     }
