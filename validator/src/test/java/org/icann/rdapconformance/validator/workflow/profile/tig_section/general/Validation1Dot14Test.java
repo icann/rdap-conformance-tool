@@ -15,6 +15,7 @@ public class Validation1Dot14Test extends SchemaValidatorRdapConformanceTest {
     Validation1Dot14 validation1Dot14 = new Validation1Dot14(jsonObject.toString(), datasets,
         results);
     assertThat(validation1Dot14.validate()).isTrue();
+    assertThat(results.getGroupOk()).containsExactly("tigSection_1_14_Validation");
   }
 
   /**
@@ -35,5 +36,6 @@ public class Validation1Dot14Test extends SchemaValidatorRdapConformanceTest {
                 + "icann_rdap_technical_implementation_guide_0. See section 1.14 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1.")
             .build());
+    assertThat(results.getGroupErrorWarning()).containsExactly("tigSection_1_14_Validation");
   }
 }

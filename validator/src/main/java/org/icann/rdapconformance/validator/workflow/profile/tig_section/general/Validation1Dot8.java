@@ -24,7 +24,7 @@ import org.xbill.DNS.Record;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-public class Validation1Dot8 implements TigValidation {
+public class Validation1Dot8 extends TigValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot8.class);
   static DNSQuery dnsQuery = new DNSQuery();
@@ -35,14 +35,19 @@ public class Validation1Dot8 implements TigValidation {
 
   public Validation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
       RDAPDatasetService datasetService) {
-
+    super(results);
     this.rdapResponse = rdapResponse;
     this.results = results;
     this.datasetService = datasetService;
   }
 
   @Override
-  public boolean validate() {
+  public String getGroupName() {
+    return "tigSection_1_8_Validation";
+  }
+
+  @Override
+  public boolean doValidate() {
     boolean hasError = false;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
@@ -52,7 +57,6 @@ public class Validation1Dot8 implements TigValidation {
       }
       responseOpt = response.previousResponse();
     }
-    results.addGroup("tigSection_1_8_Validation", hasError);
     return !hasError;
   }
 

@@ -15,7 +15,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
-public class Validation1Dot14 implements TigValidation {
+public class Validation1Dot14 extends TigValidation {
 
   private final String rdapResponse;
   private final RDAPDatasetService datasetService;
@@ -24,13 +24,19 @@ public class Validation1Dot14 implements TigValidation {
   public Validation1Dot14(String rdapResponse,
       RDAPDatasetService datasetService,
       RDAPValidatorResults results) {
+    super(results);
     this.rdapResponse = rdapResponse;
     this.datasetService = datasetService;
     this.results = results;
   }
 
   @Override
-  public boolean validate() {
+  public String getGroupName() {
+    return "tigSection_1_14_Validation";
+  }
+
+  @Override
+  public boolean doValidate() {
     // maybe pull up jpath parsing to avoid redoing it each time...
     Configuration jsonPathConfig = Configuration.defaultConfiguration()
         .addOptions(Option.AS_PATH_LIST)

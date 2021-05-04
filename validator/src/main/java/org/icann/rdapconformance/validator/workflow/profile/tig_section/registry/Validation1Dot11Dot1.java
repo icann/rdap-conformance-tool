@@ -10,7 +10,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.BootstrapDomainNameSpace;
 
-public class Validation1Dot11Dot1 implements TigValidation {
+public class Validation1Dot11Dot1 extends TigValidation {
 
 
   private final RDAPValidatorConfiguration config;
@@ -19,13 +19,19 @@ public class Validation1Dot11Dot1 implements TigValidation {
 
   public Validation1Dot11Dot1(RDAPValidatorConfiguration config,
       RDAPValidatorResults results, RDAPDatasetService datasetService) {
+    super(results);
     this.config = config;
     this.results = results;
     this.datasetService = datasetService;
   }
 
   @Override
-  public boolean validate() {
+  public String getGroupName() {
+    return "tigSection_1_11_1_Validation";
+  }
+
+  @Override
+  public boolean doValidate() {
     boolean hasError = false;
 
     BootstrapDomainNameSpace dataset = datasetService.get(BootstrapDomainNameSpace.class);
@@ -63,7 +69,6 @@ public class Validation1Dot11Dot1 implements TigValidation {
       }
     }
 
-    results.addGroup("tigSection_1_11_1_Validation", hasError);
     return !hasError;
   }
 }

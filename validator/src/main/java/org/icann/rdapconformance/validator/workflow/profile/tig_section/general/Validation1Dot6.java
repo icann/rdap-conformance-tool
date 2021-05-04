@@ -8,7 +8,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Validation1Dot6 implements TigValidation {
+public class Validation1Dot6 extends TigValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot6.class);
   private final int rdapResponseStatusCode;
@@ -17,13 +17,18 @@ public class Validation1Dot6 implements TigValidation {
 
   public Validation1Dot6(int rdapResponseStatusCode, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
+    super(results);
     this.rdapResponseStatusCode = rdapResponseStatusCode;
     this.config = config;
     this.results = results;
   }
 
-  public boolean validate() {
-    boolean hasError = false;
+  @Override
+  public String getGroupName() {
+    return "tigSection_1_6_Validation";
+  }
+
+  public boolean doValidate() {
     try {
       HttpResponse<String> httpResponse = RDAPHttpRequest
           .makeHttpHeadRequest(config.getUri(), config.getTimeout());
@@ -34,14 +39,13 @@ public class Validation1Dot6 implements TigValidation {
             .message("The HTTP Status code obtained when using the HEAD method is different from "
                 + "the GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.")
             .build());
-        hasError = true;
+        return false;
       }
     } catch (Exception e) {
       logger.error(
           "Exception when making HTTP HEAD request in order to check [tigSection_1_6_Validation]",
           e);
     }
-    results.addGroup("tigSection_1_6_Validation", hasError);
-    return !hasError;
+    return true;
   }
 }

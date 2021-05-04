@@ -21,7 +21,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Validation1Dot2 implements TigValidation {
+public class Validation1Dot2 extends TigValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot2.class);
 
@@ -34,13 +34,19 @@ public class Validation1Dot2 implements TigValidation {
   public Validation1Dot2(HttpResponse<String> rdapResponse,
       RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
+    super(results);
     this.rdapResponse = rdapResponse;
     this.config = config;
     this.results = results;
   }
 
   @Override
-  public boolean validate() {
+  public String getGroupName() {
+    return "tigSection_1_2_Validation";
+  }
+
+  @Override
+  public boolean doValidate() {
     boolean hasError = false;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
@@ -77,7 +83,6 @@ public class Validation1Dot2 implements TigValidation {
             "Exception when making HTTP request in order to check [tigSection_1_2_Validation]", e);
       }
     }
-    results.addGroup("tigSection_1_2_Validation", hasError);
     return !hasError;
   }
 

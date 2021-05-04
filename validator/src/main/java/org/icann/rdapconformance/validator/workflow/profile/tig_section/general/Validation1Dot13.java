@@ -6,20 +6,25 @@ import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class Validation1Dot13 implements TigValidation {
+public class Validation1Dot13 extends TigValidation {
 
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorResults results;
 
   public Validation1Dot13(HttpResponse<String> rdapResponse,
       RDAPValidatorResults results) {
-
+    super(results);
     this.rdapResponse = rdapResponse;
     this.results = results;
   }
 
   @Override
-  public boolean validate() {
+  public String getGroupName() {
+    return "tigSection_1_13_Validation";
+  }
+
+  @Override
+  public boolean doValidate() {
     boolean hasError = false;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
@@ -37,7 +42,6 @@ public class Validation1Dot13 implements TigValidation {
       }
       responseOpt = response.previousResponse();
     }
-    results.addGroup("tigSection_1_13_Validation", hasError);
     return !hasError;
   }
 }
