@@ -1,21 +1,25 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
-import org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorRdapConformanceTest;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.testng.annotations.Test;
 
-public class Validation1Dot14Test extends SchemaValidatorRdapConformanceTest {
+public class Validation1Dot14Test extends TigValidationTestBase {
 
+
+  public Validation1Dot14Test() {
+    super("test_rdap_conformance.json",
+        "/validators/rdapConformance/valid.json",
+        "tigSection_1_14_Validation");
+  }
 
   @Test
   public void testValidate_ok() {
-    Validation1Dot14 validation1Dot14 = new Validation1Dot14(jsonObject.toString(), datasets,
-        results);
-    assertThat(validation1Dot14.validate()).isTrue();
-    assertThat(results.getGroupOk()).containsExactly("tigSection_1_14_Validation");
+    testValidate_ok(
+        new Validation1Dot14(
+            jsonObject.toString(),
+            datasets,
+            results)
+    );
   }
 
   /**
@@ -27,15 +31,13 @@ public class Validation1Dot14Test extends SchemaValidatorRdapConformanceTest {
     jsonObject.put("rdapConformance", listWithOnlyRdapLevel0);
     Validation1Dot14 validation1Dot14 = new Validation1Dot14(jsonObject.toString(), datasets,
         results);
-    assertThat(validation1Dot14.validate()).isFalse();
-    assertThat(results.getAll())
-        .contains(RDAPValidationResult.builder()
-            .code(-20600)
-            .value("#/rdapConformance:[\"rdap_level_0\"]")
-            .message("The RDAP Conformance data structure does not include "
-                + "icann_rdap_technical_implementation_guide_0. See section 1.14 of the "
-                + "RDAP_Technical_Implementation_Guide_2_1.")
-            .build());
-    assertThat(results.getGroupErrorWarning()).containsExactly("tigSection_1_14_Validation");
+    validate(
+        validation1Dot14,
+        -20600,
+        "#/rdapConformance:[\"rdap_level_0\"]",
+        "The RDAP Conformance data structure does not include "
+            + "icann_rdap_technical_implementation_guide_0. See section 1.14 of the "
+            + "RDAP_Technical_Implementation_Guide_2_1."
+    );
   }
 }
