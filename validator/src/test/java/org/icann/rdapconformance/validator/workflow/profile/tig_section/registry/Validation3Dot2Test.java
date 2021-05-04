@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.IOException;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
@@ -17,7 +16,6 @@ import org.testng.annotations.Test;
 
 public class Validation3Dot2Test {
 
-  private final RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
   private final ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
       .forClass(RDAPValidationResult.class);
   private JSONObject rdapResponseJson;
@@ -26,13 +24,27 @@ public class Validation3Dot2Test {
   @BeforeMethod
   public void setUp() throws IOException {
     results = mock(RDAPValidatorResults.class);
-    rdapResponseJson = new JSONObject(getResource("/validators/links/valid.json"));
+    rdapResponseJson = new JSONObject("{\n"
+        + "  \"links\": [\n"
+        + "    {\n"
+        + "      \"value\": \"https://rdap.example.com/com/v1/domain/EXAMPLE.COM\",\n"
+        + "      \"rel\": \"self\",\n"
+        + "      \"href\": \"https://rdap.example.com/com/v1/domain/EXAMPLE.COM\",\n"
+        + "      \"type\": \"application/rdap+json\"\n"
+        + "    },\n"
+        + "    {\n"
+        + "      \"value\": \"https://rdap.markmonitor.com/rdap/domain/EXAMPLE.COM\",\n"
+        + "      \"rel\": \"related\",\n"
+        + "      \"href\": \"https://rdap.markmonitor.com/rdap/domain/EXAMPLE.COM\",\n"
+        + "      \"type\": \"application/rdap+json\"\n"
+        + "    }\n"
+        + "  ]\n"
+        + "}");
   }
 
   @Test
   public void validate() {
-    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results,
-        datasetService);
+    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results);
 
     assertThat(validation.validate()).isTrue();
     verify(results).addGroup("tigSection_3_2_Validation", false);
@@ -43,8 +55,7 @@ public class Validation3Dot2Test {
   public void testValidate_NoLinksInTopmostObject_AddResults23200() {
     rdapResponseJson.remove("links");
 
-    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results,
-        datasetService);
+    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results);
 
     assertThat(validation.validate()).isFalse();
     verify(results).add(resultCaptor.capture());
@@ -67,8 +78,7 @@ public class Validation3Dot2Test {
       }
     });
 
-    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results,
-        datasetService);
+    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results);
 
     assertThat(validation.validate()).isFalse();
     verify(results).add(resultCaptor.capture());
@@ -91,8 +101,8 @@ public class Validation3Dot2Test {
       }
     });
 
-    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results,
-        datasetService);
+    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results
+    );
 
     assertThat(validation.validate()).isFalse();
     verify(results).add(resultCaptor.capture());
