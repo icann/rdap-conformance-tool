@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import java.net.http.HttpResponse;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
@@ -13,14 +14,12 @@ public class Validation1Dot6 extends TigValidation {
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot6.class);
   private final int rdapResponseStatusCode;
   private final RDAPValidatorConfiguration config;
-  private final RDAPValidatorResults results;
 
   public Validation1Dot6(int rdapResponseStatusCode, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
     super(results);
     this.rdapResponseStatusCode = rdapResponseStatusCode;
     this.config = config;
-    this.results = results;
   }
 
   @Override

@@ -4,36 +4,40 @@ import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class Validation6Dot1 {
+public class Validation6Dot1 extends TigValidation {
 
   private final String rdapResponse;
-  private final RDAPValidatorResults results;
 
   public Validation6Dot1(String rdapResponse,
       RDAPValidatorResults results) {
+    super(results);
     this.rdapResponse = rdapResponse;
-    this.results = results;
   }
 
 
-  public boolean validate() {
-    boolean hasError = false;
+  @Override
+  protected String getGroupName() {
+    return "tigSection_6_1_Validation";
+  }
+
+  public boolean doValidate() {
+    boolean isValid = true;
     JSONArray registrarEntities = JsonPath.parse(rdapResponse)
         .read("$.entities[?(@.roles contains 'registrar')]");
 
     for (Object registrarEntity : registrarEntities) {
-      hasError |= checkEntity(new JSONObject((Map<String, ?>) registrarEntity));
+      isValid &= checkEntity(new JSONObject((Map<String, ?>) registrarEntity));
     }
 
-    results.addGroup("tigSection_6_1_Validation", hasError);
-    return !hasError;
+    return isValid;
   }
 
   private boolean checkEntity(JSONObject entity) {
-    boolean hasError = false;
+    boolean isValid = true;
 
     if (!entity.containsKey("publicIds")) {
       results.add(RDAPValidationResult.builder()
@@ -41,13 +45,13 @@ public class Validation6Dot1 {
           .value(entity.toJSONString())
           .message("A publicIds member is not included in the entity with the registrar role.")
           .build());
-      return true;
+      return false;
     }
     JSONArray publicIds = JsonPath.parse(entity).read("$.publicIds");
     for (Object registrarPublicId : publicIds) {
-      hasError |= checkPublicId(new JSONObject((Map<String, ?>) registrarPublicId));
+      isValid &= checkPublicId(new JSONObject((Map<String, ?>) registrarPublicId));
     }
-    return hasError;
+    return isValid;
   }
 
   private boolean checkPublicId(JSONObject publicId) {
@@ -64,8 +68,8 @@ public class Validation6Dot1 {
           .message("The identifier of the publicIds member of the entity with the registrar role "
               + "is not a positive integer.")
           .build());
-      return true;
+      return false;
     }
-    return false;
+    return true;
   }
 }

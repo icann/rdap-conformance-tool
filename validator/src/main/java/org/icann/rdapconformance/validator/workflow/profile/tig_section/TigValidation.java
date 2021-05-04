@@ -1,10 +1,10 @@
-package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
+package org.icann.rdapconformance.validator.workflow.profile.tig_section;
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public abstract class TigValidation {
 
-  private final RDAPValidatorResults results;
+  protected final RDAPValidatorResults results;
 
   public TigValidation(RDAPValidatorResults results) {
     this.results = results;

@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.DNSQuery.DNSQueryResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -30,14 +31,12 @@ public class Validation1Dot8 extends TigValidation {
   static DNSQuery dnsQuery = new DNSQuery();
   static IPValidator ipValidator = new IPValidator();
   private final HttpResponse<String> rdapResponse;
-  private final RDAPValidatorResults results;
   private final RDAPDatasetService datasetService;
 
   public Validation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
       RDAPDatasetService datasetService) {
     super(results);
     this.rdapResponse = rdapResponse;
-    this.results = results;
     this.datasetService = datasetService;
   }
 
@@ -48,21 +47,21 @@ public class Validation1Dot8 extends TigValidation {
 
   @Override
   public boolean doValidate() {
-    boolean hasError = false;
+    boolean isValid = true;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
       if (!validateHost(response.uri(), results, datasetService)) {
-        hasError = true;
+        isValid = false;
       }
       responseOpt = response.previousResponse();
     }
-    return !hasError;
+    return isValid;
   }
 
   private static boolean validateHost(URI uri, RDAPValidatorResults results,
       RDAPDatasetService datasetService) {
-    boolean hasError = false;
+    boolean isValid = true;
     Name host;
     try {
       host = Name.fromString(uri.getHost());
@@ -84,7 +83,7 @@ public class Validation1Dot8 extends TigValidation {
           .message("The RDAP service is not provided over IPv4. See section 1.8 of the "
               + "RDAP_Technical_Implementation_Guide_2_1.")
           .build());
-      hasError = true;
+      isValid = false;
     }
 
     queryResult = dnsQuery.makeRequest(host, Type.AAAA);
@@ -99,10 +98,10 @@ public class Validation1Dot8 extends TigValidation {
           .message("The RDAP service is not provided over IPv6. See section 1.8 of the "
               + "RDAP_Technical_Implementation_Guide_2_1.")
           .build());
-      hasError = true;
+      isValid = false;
     }
 
-    return !hasError;
+    return isValid;
   }
 
   private static boolean containsInvalidIPAddress(Set<InetAddress> addresses,

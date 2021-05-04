@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 import java.util.Optional;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
@@ -10,7 +11,6 @@ import org.json.JSONObject;
 public class Validation3Dot3And3Dot4 extends TigValidation {
 
   private final JSONObject jsonObject;
-  private final RDAPValidatorResults results;
   private final SchemaValidator schemaValidator;
 
   public Validation3Dot3And3Dot4(String rdapResponse,
@@ -18,7 +18,6 @@ public class Validation3Dot3And3Dot4 extends TigValidation {
       SchemaValidator schemaValidator) {
     super(results);
     this.jsonObject = new JSONObject(rdapResponse);
-    this.results = results;
     this.schemaValidator = schemaValidator;
   }
 
@@ -30,8 +29,7 @@ public class Validation3Dot3And3Dot4 extends TigValidation {
   @Override
   public boolean doValidate() {
     JsonPointers jsonPointers = schemaValidator.getSchemaRootNode().findJsonPointersBySchemaId(
-        "rdap_notices.json"
-        , jsonObject);
+        "rdap_notices.json", jsonObject);
     boolean noLinksInTopMost = jsonPointers.getOnlyTopMosts()
         .stream()
         .map(j -> (JSONObject) jsonObject.query(j))

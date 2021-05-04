@@ -4,7 +4,7 @@ import java.net.URI;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -14,14 +14,12 @@ public class Validation1Dot11Dot1 extends TigValidation {
 
 
   private final RDAPValidatorConfiguration config;
-  private final RDAPValidatorResults results;
   private final RDAPDatasetService datasetService;
 
   public Validation1Dot11Dot1(RDAPValidatorConfiguration config,
       RDAPValidatorResults results, RDAPDatasetService datasetService) {
     super(results);
     this.config = config;
-    this.results = results;
     this.datasetService = datasetService;
   }
 
@@ -32,7 +30,7 @@ public class Validation1Dot11Dot1 extends TigValidation {
 
   @Override
   public boolean doValidate() {
-    boolean hasError = false;
+    boolean isValid = true;
 
     BootstrapDomainNameSpace dataset = datasetService.get(BootstrapDomainNameSpace.class);
     String tld = config.getUri().toString()
@@ -46,7 +44,7 @@ public class Validation1Dot11Dot1 extends TigValidation {
           .message("The TLD is not included in the bootstrapDomainNameSpace. "
               + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
           .build());
-      hasError = true;
+      isValid = false;
     } else {
       Set<String> urls = dataset.getUrlsForTld(tld);
       if (urls.stream().noneMatch(u -> config.getUri().toString().startsWith(u))) {
@@ -56,7 +54,7 @@ public class Validation1Dot11Dot1 extends TigValidation {
             .message("The TLD entry in bootstrapDomainNameSpace does not contain a base URL. "
                 + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
             .build());
-        hasError = true;
+        isValid = false;
       }
       if (urls.stream().anyMatch(u -> !URI.create(u).getScheme().equals("https"))) {
         results.add(RDAPValidationResult.builder()
@@ -65,10 +63,10 @@ public class Validation1Dot11Dot1 extends TigValidation {
             .message("One or more of the base URLs for the TLD contain a schema different from "
                 + "https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.")
             .build());
-        hasError = true;
+        isValid = false;
       }
     }
 
-    return !hasError;
+    return isValid;
   }
 }

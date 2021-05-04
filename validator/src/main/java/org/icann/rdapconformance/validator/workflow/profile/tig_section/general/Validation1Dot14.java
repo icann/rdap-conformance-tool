@@ -10,6 +10,7 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -19,7 +20,6 @@ public class Validation1Dot14 extends TigValidation {
 
   private final String rdapResponse;
   private final RDAPDatasetService datasetService;
-  private final RDAPValidatorResults results;
 
   public Validation1Dot14(String rdapResponse,
       RDAPDatasetService datasetService,
@@ -27,7 +27,6 @@ public class Validation1Dot14 extends TigValidation {
     super(results);
     this.rdapResponse = rdapResponse;
     this.datasetService = datasetService;
-    this.results = results;
   }
 
   @Override

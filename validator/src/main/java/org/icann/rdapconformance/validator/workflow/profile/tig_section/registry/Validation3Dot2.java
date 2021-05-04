@@ -1,22 +1,28 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Validation3Dot2 {
+public class Validation3Dot2 extends TigValidation {
 
   private final String rdapResponse;
-  private final RDAPValidatorResults results;
 
   public Validation3Dot2(String rdapResponse, RDAPValidatorResults results) {
+    super(results);
     this.rdapResponse = rdapResponse;
-    this.results = results;
   }
 
-  public boolean validate() {
-    boolean hasError = true;
+  @Override
+  protected String getGroupName() {
+    return "tigSection_3_2_Validation";
+  }
+
+  @Override
+  public boolean doValidate() {
+    boolean isValid = false;
 
     JSONObject rdapResponseJson = new JSONObject(rdapResponse);
     JSONArray links = rdapResponseJson.optJSONArray("links");
@@ -24,12 +30,12 @@ public class Validation3Dot2 {
       for (Object link : links) {
         JSONObject l = (JSONObject) link;
         if (l.optString("rel").equals("related") && l.optString("href", null) != null) {
-          hasError = false;
+          isValid = true;
         }
       }
     }
 
-    if (hasError) {
+    if (!isValid) {
       String linksStr = links == null ? "" : links.toString();
       results.add(RDAPValidationResult.builder()
           .code(-23200)
@@ -39,7 +45,7 @@ public class Validation3Dot2 {
               + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.")
           .build());
     }
-    results.addGroup("tigSection_3_2_Validation", hasError);
-    return !hasError;
+    return isValid;
   }
+
 }

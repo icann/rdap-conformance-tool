@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
@@ -29,7 +30,6 @@ public class Validation1Dot2 extends TigValidation {
   private static final RDAPJsonComparator jsonComparator = new RDAPJsonComparator();
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
-  private final RDAPValidatorResults results;
 
   public Validation1Dot2(HttpResponse<String> rdapResponse,
       RDAPValidatorConfiguration config,
@@ -37,7 +37,6 @@ public class Validation1Dot2 extends TigValidation {
     super(results);
     this.rdapResponse = rdapResponse;
     this.config = config;
-    this.results = results;
   }
 
   @Override
@@ -47,7 +46,7 @@ public class Validation1Dot2 extends TigValidation {
 
   @Override
   public boolean doValidate() {
-    boolean hasError = false;
+    boolean isValid = true;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
@@ -59,7 +58,7 @@ public class Validation1Dot2 extends TigValidation {
                 "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 "
                     + "shall be HTTPS only.")
             .build());
-        hasError = true;
+        isValid = false;
       }
       responseOpt = response.previousResponse();
     }
@@ -76,14 +75,14 @@ public class Validation1Dot2 extends TigValidation {
               .message("The RDAP response was provided over HTTP, per section 1.2 of the "
                   + "RDAP_Technical_Implementation_Guide_2_1shall be HTTPS only.")
               .build());
-          hasError = true;
+          isValid = false;
         }
       } catch (Exception e) {
         logger.error(
             "Exception when making HTTP request in order to check [tigSection_1_2_Validation]", e);
       }
     }
-    return !hasError;
+    return isValid;
   }
 
   /**

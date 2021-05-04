@@ -9,6 +9,7 @@ import java.util.Optional;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.Logger;
@@ -19,14 +20,12 @@ public class Validation1Dot3 extends TigValidation {
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot3.class);
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
-  private final RDAPValidatorResults results;
 
   public Validation1Dot3(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
     super(results);
     this.rdapResponse = rdapResponse;
     this.config = config;
-    this.results = results;
   }
 
   @Override
@@ -36,7 +35,7 @@ public class Validation1Dot3 extends TigValidation {
 
   @Override
   public boolean doValidate() {
-    boolean hasError = false;
+    boolean isValid = true;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
@@ -59,7 +58,7 @@ public class Validation1Dot3 extends TigValidation {
                 .value(response.uri().toString())
                 .message("The RDAP server is offering SSLv2 and/or SSLv3.")
                 .build());
-            hasError = true;
+            isValid = false;
           }
         } catch (NoSuchAlgorithmException | IOException e) {
           logger.error("Cannot create SSL context", e);
@@ -67,6 +66,6 @@ public class Validation1Dot3 extends TigValidation {
       }
       responseOpt = response.previousResponse();
     }
-    return !hasError;
+    return isValid;
   }
 }
