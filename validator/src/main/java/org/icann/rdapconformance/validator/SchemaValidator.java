@@ -8,7 +8,6 @@ import com.jayway.jsonpath.Option;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -144,7 +143,6 @@ public class SchemaValidator {
     // customs validations...
     verifyUnicityOfEventAction("rdap_events.json", -10912, jsonObject);
     verifyUnicityOfEventAction("rdap_asEventActor.json", -11310, jsonObject);
-    tigSection_3_3_and_3_4_Validation(jsonObject);
 
     // vcard
     validateVcardCategories(jsonObject);
@@ -180,21 +178,12 @@ public class SchemaValidator {
               try {
                 jcardCategoriesSchemas.getCategory(category).validate(categoryArray);
               } catch (ValidationException e) {
-                if (category.equals("adr")) {
-                  results.add(RDAPValidationResult.builder()
-                      .code(-20800)
-                      .value(jsonExceptionPointer + ":" + categoryArray)
-                      .message(
-                          "An entity with a non-structured address was found. See section 4.1 of the TIG.")
-                      .build());
-                } else {
-                  results.add(RDAPValidationResult.builder()
-                      .code(-12305)
-                      .value(jsonExceptionPointer + ":" + categoryArray)
-                      .message(
-                          "The value for the JSON name value is not a syntactically valid vcardArray.")
-                      .build());
-                }
+                results.add(RDAPValidationResult.builder()
+                    .code(-12305)
+                    .value(jsonExceptionPointer + ":" + categoryArray)
+                    .message(
+                        "The value for the JSON name value is not a syntactically valid vcardArray.")
+                    .build());
               }
             } else {
               results.add(RDAPValidationResult.builder()
@@ -208,25 +197,6 @@ public class SchemaValidator {
         }
         vcardElementIndex++;
       }
-    }
-  }
-
-  private void tigSection_3_3_and_3_4_Validation(JSONObject jsonObject) {
-    JsonPointers jsonPointers = schemaRootNode.findJsonPointersBySchemaId("rdap_notices.json"
-        , jsonObject);
-    boolean noLinksInTopMost = jsonPointers.getOnlyTopMosts()
-        .stream()
-        .map(j -> (JSONObject) jsonObject.query(j))
-        .noneMatch(notice -> notice.has("links"));
-    Optional<String> noticesArray = jsonPointers.getParentOfTopMosts();
-    if (noLinksInTopMost && noticesArray.isPresent()) {
-      results.add(RDAPValidationResult.builder()
-          .code(-20700)
-          .value(jsonObject.query(noticesArray.get()).toString())
-          .message("A links object was not found in the notices object in the "
-              + "topmost object. See section 3.3 and 3.4 of the "
-              + "RDAP_Technical_Implementation_Guide_2_1.")
-          .build());
     }
   }
 

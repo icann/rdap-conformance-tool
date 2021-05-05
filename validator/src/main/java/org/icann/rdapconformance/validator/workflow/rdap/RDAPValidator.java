@@ -15,9 +15,11 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot6;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation6Dot1;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation3Dot3And3Dot4;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation4Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation3Dot2;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation6Dot1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +147,9 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
           new Validation1Dot11Dot1(config, results, datasetService),
           new Validation1Dot14(query.getData(), datasetService, results),
           new Validation3Dot2(query.getData(), results),
-          new Validation6Dot1(query.getData(), results));
+          new Validation6Dot1(query.getData(), results),
+          new Validation3Dot3And3Dot4(query.getData(), results, validator),
+          new Validation4Dot1(query.getData(), results));
       rdapProfileFebruary2019.validate();
     }
 

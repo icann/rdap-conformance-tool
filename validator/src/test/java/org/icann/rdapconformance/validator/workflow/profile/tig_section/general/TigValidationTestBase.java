@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 
 public class TigValidationTestBase extends SchemaValidatorTest {

@@ -7,9 +7,11 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot6;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation6Dot1;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation3Dot3And3Dot4;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation4Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation3Dot2;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation6Dot1;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 
 public class RDAPProfileFebruary2019 {
@@ -25,6 +27,8 @@ public class RDAPProfileFebruary2019 {
   private final Validation1Dot14 validation1Dot14;
   private final Validation3Dot2 validation3Dot2;
   private final Validation6Dot1 validation6Dot1;
+  private final Validation3Dot3And3Dot4 validation3Dot3And3Dot4;
+  private final Validation4Dot1 validation4Dot1;
 
   public RDAPProfileFebruary2019(
       RDAPValidatorConfiguration config,
@@ -37,7 +41,9 @@ public class RDAPProfileFebruary2019 {
       Validation1Dot11Dot1 validation1Dot11Dot1,
       Validation1Dot14 validation1Dot14,
       Validation3Dot2 validation3Dot2,
-      Validation6Dot1 validation6Dot1) {
+      Validation6Dot1 validation6Dot1,
+      Validation3Dot3And3Dot4 validation3Dot3And3Dot4,
+      Validation4Dot1 validation4Dot1) {
     this.config = config;
     this.queryType = queryType;
     this.validation1Dot2 = validation1Dot2;
@@ -49,6 +55,8 @@ public class RDAPProfileFebruary2019 {
     this.validation1Dot14 = validation1Dot14;
     this.validation3Dot2 = validation3Dot2;
     this.validation6Dot1 = validation6Dot1;
+    this.validation3Dot3And3Dot4 = validation3Dot3And3Dot4;
+    this.validation4Dot1 = validation4Dot1;
   }
 
   public boolean validate() {
@@ -59,6 +67,8 @@ public class RDAPProfileFebruary2019 {
     result &= validation1Dot8.validate();
     result &= validation1Dot13.validate();
     result &= validation1Dot14.validate();
+    result &= validation3Dot3And3Dot4.validate();
+    result &= validation4Dot1.validate();
 
     if (config.isGtldRegistry()) {
       if (queryType.equals(RDAPQueryType.DOMAIN)) {

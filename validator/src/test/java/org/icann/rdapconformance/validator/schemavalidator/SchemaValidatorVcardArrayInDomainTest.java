@@ -30,24 +30,6 @@ public class SchemaValidatorVcardArrayInDomainTest extends SchemaValidatorDomain
   }
 
   /**
-   * 8.1.8
-   */
-  @Test
-  public void tigSection_4_1_Validation() {
-    List<Object> addressArray = List.of(
-        "adr",
-        new JSONObject(),
-        "text",
-        List.of(0));
-    JSONArray vcardArray =
-        jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray")
-            .getJSONArray(1);
-    vcardArray.put(2, addressArray);
-    validateWithoutGroupTests(-20800, "#/entities/0/vcardArray/1/2:[\"adr\",{},\"text\",[0]]",
-        "An entity with a non-structured address was found. See section 4.1 of the TIG.");
-  }
-
-  /**
    * 8.1.9
    */
   @Test
