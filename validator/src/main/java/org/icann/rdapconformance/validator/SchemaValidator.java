@@ -24,7 +24,7 @@ import org.icann.rdapconformance.validator.customvalidator.RdapExtensionsFormatV
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
-import org.icann.rdapconformance.validator.jcard.TigSection_7_1_and_7_2_Validation;
+import org.icann.rdapconformance.validator.jcard.VcardArrayGeneralValidation;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -145,59 +145,11 @@ public class SchemaValidator {
     verifyUnicityOfEventAction("rdap_asEventActor.json", -11310, jsonObject);
 
     // vcard
-    validateVcardCategories(jsonObject);
+    if (content.contains("\"vcardArray\"")) {
+      new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
+    }
 
     return results.isEmpty();
-  }
-
-  private void validateVcardCategories(JSONObject jsonObject) {
-    Configuration jsonPathConfig = Configuration.defaultConfiguration()
-        .addOptions(Option.AS_PATH_LIST)
-        .addOptions(Option.SUPPRESS_EXCEPTIONS);
-    DocumentContext jpath = using(jsonPathConfig).parse(jsonObject.toString());
-    List<String> vcardArraysPaths = jpath.read("$..entities..vcardArray");
-    JcardCategoriesSchemas jcardCategoriesSchemas = new JcardCategoriesSchemas();
-    for (String vcardArraysPath : vcardArraysPaths) {
-      String jsonPointer = JsonPointers.fromJpath(vcardArraysPath);
-      JSONArray vcardArray = (JSONArray) jsonObject.query(jsonPointer);
-      int vcardElementIndex = 0;
-      for (Object vcardElement : vcardArray) {
-        if (vcardElement instanceof JSONArray) {
-          JSONArray vcardElementArray = (JSONArray) vcardElement;
-          int categoryArrayIndex = 0;
-          for (Object categoryArray : vcardElementArray) {
-            JSONArray categorieJsonArray = ((JSONArray) categoryArray);
-            String category = categorieJsonArray.getString(0);
-            String jsonExceptionPointer =
-                jsonPointer + "/" + vcardElementIndex + "/" + categoryArrayIndex;
-            TigSection_7_1_and_7_2_Validation validation =
-                new TigSection_7_1_and_7_2_Validation(jsonExceptionPointer, results);
-            validation.validate(category, categorieJsonArray);
-
-            if (jcardCategoriesSchemas.hasCategory(category)) {
-              try {
-                jcardCategoriesSchemas.getCategory(category).validate(categoryArray);
-              } catch (ValidationException e) {
-                results.add(RDAPValidationResult.builder()
-                    .code(-12305)
-                    .value(jsonExceptionPointer + ":" + categoryArray)
-                    .message(
-                        "The value for the JSON name value is not a syntactically valid vcardArray.")
-                    .build());
-              }
-            } else {
-              results.add(RDAPValidationResult.builder()
-                  .code(-12305)
-                  .value(jsonExceptionPointer + ":" + category)
-                  .message("unknown vcard category: \"" + category + "\".")
-                  .build());
-            }
-            categoryArrayIndex++;
-          }
-        }
-        vcardElementIndex++;
-      }
-    }
   }
 
   private void verifyUnicityOfEventAction(String schemaId, int errorCode, JSONObject jsonObject) {

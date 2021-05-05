@@ -9,6 +9,7 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation3Dot3And3Dot4;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation4Dot1;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation7Dot1And7Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation3Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation6Dot1;
@@ -29,6 +30,7 @@ public class RDAPProfileFebruary2019 {
   private final Validation6Dot1 validation6Dot1;
   private final Validation3Dot3And3Dot4 validation3Dot3And3Dot4;
   private final Validation4Dot1 validation4Dot1;
+  private final Validation7Dot1And7Dot2 validation7Dot1And7Dot2;
 
   public RDAPProfileFebruary2019(
       RDAPValidatorConfiguration config,
@@ -43,7 +45,8 @@ public class RDAPProfileFebruary2019 {
       Validation3Dot2 validation3Dot2,
       Validation6Dot1 validation6Dot1,
       Validation3Dot3And3Dot4 validation3Dot3And3Dot4,
-      Validation4Dot1 validation4Dot1) {
+      Validation4Dot1 validation4Dot1,
+      Validation7Dot1And7Dot2 validation7Dot1And7Dot2) {
     this.config = config;
     this.queryType = queryType;
     this.validation1Dot2 = validation1Dot2;
@@ -57,6 +60,7 @@ public class RDAPProfileFebruary2019 {
     this.validation6Dot1 = validation6Dot1;
     this.validation3Dot3And3Dot4 = validation3Dot3And3Dot4;
     this.validation4Dot1 = validation4Dot1;
+    this.validation7Dot1And7Dot2 = validation7Dot1And7Dot2;
   }
 
   public boolean validate() {
@@ -69,6 +73,7 @@ public class RDAPProfileFebruary2019 {
     result &= validation1Dot14.validate();
     result &= validation3Dot3And3Dot4.validate();
     result &= validation4Dot1.validate();
+    result &= validation7Dot1And7Dot2.validate();
 
     if (config.isGtldRegistry()) {
       if (queryType.equals(RDAPQueryType.DOMAIN)) {

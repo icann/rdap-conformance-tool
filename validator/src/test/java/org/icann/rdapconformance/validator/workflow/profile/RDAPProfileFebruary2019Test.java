@@ -14,6 +14,7 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation3Dot3And3Dot4;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation4Dot1;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation7Dot1And7Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation3Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation6Dot1;
@@ -37,6 +38,7 @@ public class RDAPProfileFebruary2019Test {
   private Validation6Dot1 validation6Dot1;
   private Validation3Dot3And3Dot4 validation3Dot3And3Dot4;
   private Validation4Dot1 validation4Dot1;
+  private Validation7Dot1And7Dot2 validation7Dot1And7Dot2;
 
   @BeforeMethod
   public void setUp() {
@@ -55,6 +57,7 @@ public class RDAPProfileFebruary2019Test {
     validation4Dot1 = mock(Validation4Dot1.class);
     validation3Dot2 = mock(Validation3Dot2.class);
     validation6Dot1 = mock(Validation6Dot1.class);
+    validation7Dot1And7Dot2 = mock(Validation7Dot1And7Dot2.class);
     rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
         config,
         queryType,
@@ -68,7 +71,8 @@ public class RDAPProfileFebruary2019Test {
         validation3Dot2,
         validation6Dot1,
         validation3Dot3And3Dot4,
-        validation4Dot1);
+        validation4Dot1,
+        validation7Dot1And7Dot2);
   }
 
   @Test
@@ -85,6 +89,7 @@ public class RDAPProfileFebruary2019Test {
     verify(validation6Dot1).validate();
     verify(validation3Dot3And3Dot4).validate();
     verify(validation4Dot1).validate();
+    verify(validation7Dot1And7Dot2).validate();
   }
 
   @Test
