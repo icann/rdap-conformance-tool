@@ -69,7 +69,7 @@ public class LocalFileSystem implements FileSystem {
       uri = URI.create(Path.of(uri.toString()).toAbsolutePath().toString());
     }
     if (null == uri.getScheme()) {
-      uri = URI.create("file://" + uri.toString());
+      uri = URI.create("file://" + uri);
     }
     return uri.toURL().openStream();
   }

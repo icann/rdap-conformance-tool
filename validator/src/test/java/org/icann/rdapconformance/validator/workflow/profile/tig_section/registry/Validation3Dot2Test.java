@@ -1,29 +1,26 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import java.io.IOException;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationTestBase;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.json.JSONObject;
-import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class Validation3Dot2Test {
+public class Validation3Dot2Test extends TigValidationTestBase {
 
-  private final ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-      .forClass(RDAPValidationResult.class);
+  private final static RDAPQueryType QUERY_TYPE = RDAPQueryType.DOMAIN;
+  private final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
   private JSONObject rdapResponseJson;
-  private RDAPValidatorResults results;
 
   @BeforeMethod
-  public void setUp() throws IOException {
-    results = mock(RDAPValidatorResults.class);
+  public void setUp() throws Throwable {
+    super.setUp();
+    doReturn(true).when(config).isGtldRegistry();
     rdapResponseJson = new JSONObject("{\n"
         + "  \"links\": [\n"
         + "    {\n"
@@ -42,31 +39,26 @@ public class Validation3Dot2Test {
         + "}");
   }
 
+  @Override
   @Test
-  public void validate() {
-    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results);
+  public void testValidate() {
+    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results, config,
+        QUERY_TYPE);
 
-    assertThat(validation.validate()).isTrue();
-    verify(results).addGroup("tigSection_3_2_Validation", false);
-    verifyNoMoreInteractions(results);
+    validateOk(validation);
   }
 
   @Test
   public void testValidate_NoLinksInTopmostObject_AddResults23200() {
     rdapResponseJson.remove("links");
 
-    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results);
+    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results, config,
+        QUERY_TYPE);
 
-    assertThat(validation.validate()).isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -23200)
-        .hasFieldOrPropertyWithValue("value", "")
-        .hasFieldOrPropertyWithValue("message",
-            "A links data structure in the topmost object exists, and the links object shall "
-                + "contain the elements rel:related and href, but they were not found. "
-                + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.");
-    verify(results).addGroup("tigSection_3_2_Validation", true);
+    validateNotOk(validation, -23200, "",
+        "A links data structure in the topmost object exists, and the links object shall "
+            + "contain the elements rel:related and href, but they were not found. "
+            + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.");
   }
 
   @Test
@@ -78,18 +70,13 @@ public class Validation3Dot2Test {
       }
     });
 
-    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results);
+    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results, config,
+        QUERY_TYPE);
 
-    assertThat(validation.validate()).isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -23200)
-        .hasFieldOrPropertyWithValue("value", rdapResponseJson.getJSONArray("links").toString())
-        .hasFieldOrPropertyWithValue("message",
-            "A links data structure in the topmost object exists, and the links object shall "
-                + "contain the elements rel:related and href, but they were not found. "
-                + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.");
-    verify(results).addGroup("tigSection_3_2_Validation", true);
+    validateNotOk(validation, -23200, rdapResponseJson.getJSONArray("links").toString(),
+        "A links data structure in the topmost object exists, and the links object shall "
+            + "contain the elements rel:related and href, but they were not found. "
+            + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.");
   }
 
   @Test
@@ -101,18 +88,25 @@ public class Validation3Dot2Test {
       }
     });
 
-    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results
-    );
+    Validation3Dot2 validation = new Validation3Dot2(rdapResponseJson.toString(), results,
+        config, QUERY_TYPE);
 
-    assertThat(validation.validate()).isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -23200)
-        .hasFieldOrPropertyWithValue("value", rdapResponseJson.getJSONArray("links").toString())
-        .hasFieldOrPropertyWithValue("message",
-            "A links data structure in the topmost object exists, and the links object shall "
-                + "contain the elements rel:related and href, but they were not found. "
-                + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.");
-    verify(results).addGroup("tigSection_3_2_Validation", true);
+    validateNotOk(validation, -23200, rdapResponseJson.getJSONArray("links").toString(),
+        "A links data structure in the topmost object exists, and the links object shall "
+            + "contain the elements rel:related and href, but they were not found. "
+            + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.");
+  }
+
+  @Test
+  public void testDoLaunch_NotARegistry_IsFalse() {
+    doReturn(false).when(config).isGtldRegistry();
+    assertThat(new Validation3Dot2("", results, config, QUERY_TYPE).doLaunch()).isFalse();
+  }
+
+  @Test
+  public void testDoLaunch_NotADomainQuery_IsFalse() {
+    doReturn(true).when(config).isGtldRegistry();
+    assertThat(new Validation3Dot2("", results, config, RDAPQueryType.NAMESERVER).doLaunch())
+        .isFalse();
   }
 }

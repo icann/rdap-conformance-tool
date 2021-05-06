@@ -14,7 +14,7 @@ public abstract class SchemaValidatorObjectTest extends SchemaValidatorTest {
   private final String rdapStructureName;
   private final int invalidJsonCode;
   private final int unknownKeyCode;
-  private List<String> authorizedKeys;
+  private final List<String> authorizedKeys;
 
   public SchemaValidatorObjectTest(
       String rdapStructureName,

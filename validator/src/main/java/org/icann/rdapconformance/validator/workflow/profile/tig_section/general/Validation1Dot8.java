@@ -25,7 +25,7 @@ import org.xbill.DNS.Record;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-public class Validation1Dot8 extends TigValidation {
+public final class Validation1Dot8 extends TigValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot8.class);
   static DNSQuery dnsQuery = new DNSQuery();

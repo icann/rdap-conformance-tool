@@ -15,7 +15,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Validation1Dot3 extends TigValidation {
+public final class Validation1Dot3 extends TigValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot3.class);
   private final HttpResponse<String> rdapResponse;

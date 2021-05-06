@@ -8,8 +8,7 @@ import org.json.JSONArray;
 
 public class VcardArrayGeneralValidation extends TigValidationVcardArray {
 
-  public VcardArrayGeneralValidation(String rdapResponse,
-      RDAPValidatorResults results) {
+  public VcardArrayGeneralValidation(String rdapResponse, RDAPValidatorResults results) {
     super(rdapResponse, results);
   }
 

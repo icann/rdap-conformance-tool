@@ -5,8 +5,8 @@ import java.util.Optional;
 
 public class ValidationNode {
 
-  private SchemaNode schemaNode;
-  private String validationName;
+  private final SchemaNode schemaNode;
+  private final String validationName;
   private Optional<SchemaNode> parentValidationNode = Optional.empty();
 
   public ValidationNode(SchemaNode schemaNode, String validationName) {

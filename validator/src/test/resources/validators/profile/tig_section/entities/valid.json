@@ -1,0 +1,31 @@
+{
+  "entities": [
+    {
+      "roles": [
+        "abuse"
+      ],
+      "publicIds": [
+        {
+          "type": "IANA Registrar ID",
+          "identifier": "292"
+        }
+      ]
+    },
+    {
+      "roles": [
+        "test",
+        "registrar"
+      ],
+      "publicIds": [
+        {
+          "type": "IANA Registrar ID",
+          "identifier": "292"
+        },
+        {
+          "type": "IANA Registrar ID",
+          "identifier": "293"
+        }
+      ]
+    }
+  ]
+}

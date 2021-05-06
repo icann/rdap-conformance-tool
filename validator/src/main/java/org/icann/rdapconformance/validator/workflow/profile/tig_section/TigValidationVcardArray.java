@@ -12,18 +12,15 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public abstract class TigValidationVcardArray extends TigValidation {
+public abstract class TigValidationVcardArray extends TigJsonValidation {
 
-  protected final JSONObject jsonObject;
-
-  public TigValidationVcardArray(String rdapResponse,
-      RDAPValidatorResults results) {
-    super(results);
-    jsonObject = new JSONObject(rdapResponse);
+  public TigValidationVcardArray(String rdapResponse, RDAPValidatorResults results) {
+    super(rdapResponse, results);
   }
 
   @Override
   protected boolean doValidate() {
+    JSONObject jsonObject = new JSONObject(rdapResponse);
     Configuration jsonPathConfig = Configuration.defaultConfiguration()
         .addOptions(Option.AS_PATH_LIST)
         .addOptions(Option.SUPPRESS_EXCEPTIONS);

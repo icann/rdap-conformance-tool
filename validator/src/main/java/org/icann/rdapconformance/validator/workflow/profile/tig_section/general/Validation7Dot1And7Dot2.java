@@ -8,9 +8,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Validation7Dot1And7Dot2 extends TigValidationVcardArray {
+public final class Validation7Dot1And7Dot2 extends TigValidationVcardArray {
 
-  private final Set<String> authorizedPhoneType = Set.of("voice", "fax");
+  private static final Set<String> AUTHORIZED_PHONE_TYPE = Set.of("voice", "fax");
 
   public Validation7Dot1And7Dot2(String rdapResponse,
       RDAPValidatorResults results) {
@@ -32,7 +32,7 @@ public class Validation7Dot1And7Dot2 extends TigValidationVcardArray {
         return false;
       }
 
-      if (!authorizedPhoneType.contains(((JSONObject)phoneType).get("type"))) {
+      if (!AUTHORIZED_PHONE_TYPE.contains(((JSONObject) phoneType).get("type"))) {
         logError(jsonExceptionPointer, phoneType);
         return false;
       }

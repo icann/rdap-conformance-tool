@@ -1,18 +1,24 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Validation3Dot2 extends TigValidation {
+public class Validation3Dot2 extends TigJsonValidation {
 
-  private final String rdapResponse;
+  private final RDAPValidatorConfiguration config;
+  private final RDAPQueryType queryType;
 
-  public Validation3Dot2(String rdapResponse, RDAPValidatorResults results) {
-    super(results);
-    this.rdapResponse = rdapResponse;
+  public Validation3Dot2(String rdapResponse, RDAPValidatorResults results,
+      RDAPValidatorConfiguration config,
+      RDAPQueryType queryType) {
+    super(rdapResponse, results);
+    this.config = config;
+    this.queryType = queryType;
   }
 
   @Override
@@ -46,6 +52,11 @@ public class Validation3Dot2 extends TigValidation {
           .build());
     }
     return isValid;
+  }
+
+  @Override
+  protected boolean doLaunch() {
+    return config.isGtldRegistry() && queryType.equals(RDAPQueryType.DOMAIN);
   }
 
 }

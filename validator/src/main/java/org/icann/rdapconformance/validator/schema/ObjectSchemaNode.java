@@ -10,7 +10,7 @@ import org.everit.json.schema.Schema;
 
 public class ObjectSchemaNode extends SchemaNode {
 
-  private ObjectSchema objectSchema;
+  private final ObjectSchema objectSchema;
 
   public ObjectSchemaNode(SchemaNode parentNode, Schema schema) {
     super(parentNode, schema);

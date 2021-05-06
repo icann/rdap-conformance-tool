@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public class JsonPointers {
 
-  private static Pattern lastArrayIndex = Pattern.compile("^(.*)\\/\\d+$");
+  private static final Pattern lastArrayIndex = Pattern.compile("^(.*)\\/\\d+$");
   private Set<String> jsonPointers = new HashSet<>();
 
   public JsonPointers() {

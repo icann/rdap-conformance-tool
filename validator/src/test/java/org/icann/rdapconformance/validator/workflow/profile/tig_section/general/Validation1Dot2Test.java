@@ -6,9 +6,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationTestBase.validateNotOk;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,9 +19,7 @@ import java.net.http.HttpResponse;
 import java.util.Comparator;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot2.RDAPJsonComparator;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -37,47 +35,30 @@ public class Validation1Dot2Test extends HttpTestingUtils {
 
   @Test
   public void testValidate_UriNotHttps_AddResult20100() {
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-        .forClass(RDAPValidationResult.class);
     HttpResponse<String> httpsResponse = mock(HttpResponse.class);
 
     doReturn(URI.create("http://domain/test.example")).when(config).getUri();
     doReturn(config.getUri()).when(httpsResponse).uri();
 
-    assertThat(new Validation1Dot2(httpsResponse, config, results).validate()).isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -20100)
-        .hasFieldOrPropertyWithValue("value", config.getUri().toString())
-        .hasFieldOrPropertyWithValue("message", "The URL is HTTP, per section 1.2 of "
-            + "the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
-    verify(results).addGroup("tigSection_1_2_Validation", true);
+    validateNotOk(new Validation1Dot2(httpsResponse, config, results), results,
+        -20100, config.getUri().toString(),
+        "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
   }
 
   @Test
   public void testValidate_UriNotHttpsInOneRedirect_AddResult20100() {
     RedirectData redirectData = givenChainedHttpRedirects();
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-        .forClass(RDAPValidationResult.class);
 
     // set URI as being an HTTP request to avoid going through HTTP test for code -20101
     doReturn(URI.create("http://domain/test.example")).when(config).getUri();
 
-    assertThat(new Validation1Dot2(redirectData.startingResponse, config, results).validate())
-        .isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -20100)
-        .hasFieldOrPropertyWithValue("value", redirectData.endingResponse.uri().toString())
-        .hasFieldOrPropertyWithValue("message", "The URL is HTTP, per section 1.2 of "
-            + "the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
-    verify(results).addGroup("tigSection_1_2_Validation", true);
+    validateNotOk(new Validation1Dot2(redirectData.startingResponse, config, results), results,
+        -20100, redirectData.endingResponse.uri().toString(),
+        "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
   }
 
   @Test
   public void testValidate_HttpResponseEqualsHttpsResponse_AddResult20101() {
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-        .forClass(RDAPValidationResult.class);
     HttpResponse<String> httpsResponse = mock(HttpResponse.class);
 
     WireMockConfiguration wmConfig = wireMockConfig()
@@ -97,16 +78,12 @@ public class Validation1Dot2Test extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
 
-    assertThat(new Validation1Dot2(httpsResponse, config, results).validate()).isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -20101)
-        .hasFieldOrPropertyWithValue("value", RDAP_RESPONSE + "\n/\n" + RDAP_RESPONSE)
-        .hasFieldOrPropertyWithValue("message",
-            "The RDAP response was provided over HTTP, per section 1.2 of the "
-                + "RDAP_Technical_Implementation_Guide_2_1shall be HTTPS only.");
-    verify(results).addGroup("tigSection_1_2_Validation", true);
+    validateNotOk(new Validation1Dot2(httpsResponse, config, results), results,
+        -20101, RDAP_RESPONSE + "\n/\n" + RDAP_RESPONSE,
+        "The RDAP response was provided over HTTP, per section 1.2 of the "
+            + "RDAP_Technical_Implementation_Guide_2_1shall be HTTPS only.");
   }
+
 
   @Test
   public void testRDAPJsonComparator_WithUnorderedListExceptVCardAndDifferentLastUpdate_IsEqual()

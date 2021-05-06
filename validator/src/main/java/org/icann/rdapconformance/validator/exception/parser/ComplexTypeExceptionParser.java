@@ -26,9 +26,7 @@ public class ComplexTypeExceptionParser extends ExceptionParser {
     matcher = typePattern.matcher(e.getMessage());
     if (matcher.find()) {
       basicType = matcher.group(1);
-      if (basicType.equals("JSONArray") || basicType.equals("JSONObject")) {
-        return true;
-      }
+      return basicType.equals("JSONArray") || basicType.equals("JSONObject");
     }
     return false;
   }

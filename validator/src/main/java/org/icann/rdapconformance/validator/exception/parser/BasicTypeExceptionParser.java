@@ -20,7 +20,7 @@ public class BasicTypeExceptionParser extends ExceptionParser {
   static Pattern basicTypePattern = Pattern.compile("expected type: (.+), found: (.+)");
   private String basicType;
   protected Matcher matcher;
-  private Set<?> basicTypes = Set.of(
+  private final static Set<?> basicTypes = Set.of(
       BooleanSchema.class,
       StringSchema.class,
       NullSchema.class

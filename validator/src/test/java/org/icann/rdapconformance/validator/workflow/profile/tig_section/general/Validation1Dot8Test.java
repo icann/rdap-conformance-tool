@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.givenChainedHttpRedirects;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -16,26 +15,23 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.util.Set;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.DNSQuery;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.DNSQuery.DNSQueryResult;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.IPValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.RedirectData;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.xbill.DNS.Name;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-public class Validation1Dot8Test {
+public class Validation1Dot8Test extends TigValidationTestBase {
 
   private final DNSQuery dnsQuery = mock(DNSQuery.class);
   private final IPValidator ipValidator = mock(IPValidator.class);
   private final RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
-  private RDAPValidatorResults results;
 
   private void givenV6Ok() throws UnknownHostException {
     InetAddress ipv6AddressValid = Inet6Address
@@ -97,67 +93,6 @@ public class Validation1Dot8Test {
     doReturn(Set.of(ipv6AddressValid)).when(resultV6).getIPAddresses();
   }
 
-  @BeforeMethod
-  public void setUp() {
-    Validation1Dot8.dnsQuery = dnsQuery;
-    Validation1Dot8.ipValidator = ipValidator;
-    doReturn(false).when(ipValidator).isInvalid(any(InetAddress.class), eq(datasetService));
-    results = mock(RDAPValidatorResults.class);
-  }
-
-  @Test
-  public void testValidate() throws UnknownHostException {
-    HttpResponse<String> httpResponse = givenHttpResponse();
-    givenV4Ok();
-    givenV6Ok();
-
-    assertThat(new Validation1Dot8(httpResponse, results, datasetService).validate()).isTrue();
-    verify(results).addGroup("tigSection_1_8_Validation", false);
-    verifyNoMoreInteractions(results);
-  }
-
-  @Test
-  public void testValidate_InvalidIPv4_AddResult20400()
-      throws UnknownHostException, TextParseException {
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-        .forClass(RDAPValidationResult.class);
-
-    HttpResponse<String> httpResponse = givenHttpResponse();
-    givenV4AddressError(httpResponse.uri());
-    givenV6Ok();
-
-    assertThat(new Validation1Dot8(httpResponse, results, datasetService).validate()).isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -20400)
-        .hasFieldOrPropertyWithValue("value", "127.0.0.1, 127.0.0.2")
-        .hasFieldOrPropertyWithValue("message",
-            "The RDAP service is not provided over IPv4. See section 1.8 of the "
-                + "RDAP_Technical_Implementation_Guide_2_1.");
-    verify(results).addGroup("tigSection_1_8_Validation", true);
-  }
-
-  @Test
-  public void testValidate_InvalidIPv4DnsResponse_AddResult20400()
-      throws UnknownHostException {
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-        .forClass(RDAPValidationResult.class);
-
-    HttpResponse<String> httpResponse = givenHttpResponse();
-    givenV4QueryError();
-    givenV6Ok();
-
-    assertThat(new Validation1Dot8(httpResponse, results, datasetService).validate()).isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -20400)
-        .hasFieldOrPropertyWithValue("value", "127.0.0.1")
-        .hasFieldOrPropertyWithValue("message",
-            "The RDAP service is not provided over IPv4. See section 1.8 of the "
-                + "RDAP_Technical_Implementation_Guide_2_1.");
-    verify(results).addGroup("tigSection_1_8_Validation", true);
-  }
-
   private HttpResponse<String> givenHttpResponse() {
     HttpResponse<String> httpsResponse = mock(HttpResponse.class);
     URI uri = URI.create("http://domain/test.example");
@@ -166,91 +101,102 @@ public class Validation1Dot8Test {
     return httpsResponse;
   }
 
+  @BeforeMethod
+  public void setUp() throws Throwable {
+    super.setUp();
+    Validation1Dot8.dnsQuery = dnsQuery;
+    Validation1Dot8.ipValidator = ipValidator;
+    doReturn(false).when(ipValidator).isInvalid(any(InetAddress.class), eq(datasetService));
+  }
+
+  @Override
+  @Test
+  public void testValidate() throws UnknownHostException {
+    HttpResponse<String> httpResponse = givenHttpResponse();
+    givenV4Ok();
+    givenV6Ok();
+
+    validateOk(new Validation1Dot8(httpResponse, results, datasetService));
+    verify(results).addGroup("tigSection_1_8_Validation", false);
+    verifyNoMoreInteractions(results);
+  }
+
+  @Test
+  public void testValidate_InvalidIPv4_AddResult20400()
+      throws UnknownHostException, TextParseException {
+    HttpResponse<String> httpResponse = givenHttpResponse();
+    givenV4AddressError(httpResponse.uri());
+    givenV6Ok();
+
+    validateNotOk(new Validation1Dot8(httpResponse, results, datasetService), -20400,
+        "127.0.0.1, 127.0.0.2",
+        "The RDAP service is not provided over IPv4. See section 1.8 of the "
+            + "RDAP_Technical_Implementation_Guide_2_1.");
+  }
+
+  @Test
+  public void testValidate_InvalidIPv4DnsResponse_AddResult20400()
+      throws UnknownHostException {
+    HttpResponse<String> httpResponse = givenHttpResponse();
+    givenV4QueryError();
+    givenV6Ok();
+
+    validateNotOk(new Validation1Dot8(httpResponse, results, datasetService), -20400, "127.0.0.1",
+        "The RDAP service is not provided over IPv4. See section 1.8 of the "
+            + "RDAP_Technical_Implementation_Guide_2_1.");
+  }
+
   @Test
   public void testValidate_InvalidIPv4InRedirect_AddResult20400()
       throws UnknownHostException, TextParseException {
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-        .forClass(RDAPValidationResult.class);
-
     RedirectData redirectData = givenChainedHttpRedirects();
     givenV4Ok();
     givenV4AddressError(redirectData.endingResponse.uri());
     givenV6Ok();
 
-    assertThat(new Validation1Dot8(redirectData.startingResponse, results, datasetService).validate())
-        .isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -20400)
-        .hasFieldOrPropertyWithValue("value", "127.0.0.1, 127.0.0.2")
-        .hasFieldOrPropertyWithValue("message",
-            "The RDAP service is not provided over IPv4. See section 1.8 of the "
-                + "RDAP_Technical_Implementation_Guide_2_1.");
-    verify(results).addGroup("tigSection_1_8_Validation", true);
+    validateNotOk(new Validation1Dot8(redirectData.startingResponse, results, datasetService),
+        -20400, "127.0.0.1, 127.0.0.2",
+        "The RDAP service is not provided over IPv4. See section 1.8 of the "
+            + "RDAP_Technical_Implementation_Guide_2_1.");
   }
 
   @Test
   public void testValidate_InvalidIPv6_AddResult20401()
       throws UnknownHostException, TextParseException {
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-        .forClass(RDAPValidationResult.class);
-
     HttpResponse<String> httpResponse = givenHttpResponse();
     givenV4Ok();
     givenV6AddressError(httpResponse.uri());
 
-    assertThat(new Validation1Dot8(httpResponse, results, datasetService).validate()).isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -20401)
-        .hasFieldOrPropertyWithValue("value", "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2")
-        .hasFieldOrPropertyWithValue("message",
-            "The RDAP service is not provided over IPv6. See section 1.8 of the "
-                + "RDAP_Technical_Implementation_Guide_2_1.");
-    verify(results).addGroup("tigSection_1_8_Validation", true);
+    validateNotOk(new Validation1Dot8(httpResponse, results, datasetService), -20401,
+        "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2",
+        "The RDAP service is not provided over IPv6. See section 1.8 of the "
+            + "RDAP_Technical_Implementation_Guide_2_1.");
   }
 
 
   @Test
   public void testValidate_InvalidIPv6DnsResponse_AddResult20401() throws UnknownHostException {
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-        .forClass(RDAPValidationResult.class);
-
     HttpResponse<String> httpResponse = givenHttpResponse();
     givenV4Ok();
     givenV6QueryError();
 
-    assertThat(new Validation1Dot8(httpResponse, results, datasetService).validate()).isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -20401)
-        .hasFieldOrPropertyWithValue("value", "0:0:0:0:0:0:0:1")
-        .hasFieldOrPropertyWithValue("message",
-            "The RDAP service is not provided over IPv6. See section 1.8 of the "
-                + "RDAP_Technical_Implementation_Guide_2_1.");
-    verify(results).addGroup("tigSection_1_8_Validation", true);
+    validateNotOk(new Validation1Dot8(httpResponse, results, datasetService), -20401,
+        "0:0:0:0:0:0:0:1",
+        "The RDAP service is not provided over IPv6. See section 1.8 of the "
+            + "RDAP_Technical_Implementation_Guide_2_1.");
   }
 
   @Test
   public void testValidate_InvalidIPv6InRedirect_AddResult20401()
       throws TextParseException, UnknownHostException {
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-        .forClass(RDAPValidationResult.class);
-
     RedirectData redirectData = givenChainedHttpRedirects();
     givenV4Ok();
     givenV6Ok();
     givenV6AddressError(redirectData.endingResponse.uri());
 
-    assertThat(new Validation1Dot8(redirectData.startingResponse, results, datasetService).validate())
-        .isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", -20401)
-        .hasFieldOrPropertyWithValue("value", "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2")
-        .hasFieldOrPropertyWithValue("message",
-            "The RDAP service is not provided over IPv6. See section 1.8 of the "
-                + "RDAP_Technical_Implementation_Guide_2_1.");
-    verify(results).addGroup("tigSection_1_8_Validation", true);
+    validateNotOk(new Validation1Dot8(redirectData.startingResponse, results, datasetService),
+        -20401, "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2",
+        "The RDAP service is not provided over IPv6. See section 1.8 of the "
+            + "RDAP_Technical_Implementation_Guide_2_1.");
   }
 }

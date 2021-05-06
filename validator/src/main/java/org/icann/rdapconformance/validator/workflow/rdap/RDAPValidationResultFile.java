@@ -64,7 +64,7 @@ public class RDAPValidationResultFile {
       fileSystem.mkdir("results");
       fileSystem.write(path.toString(), object.toString(4));
     } catch (IOException e) {
-      logger.error("Failed to write results into {}", path.toString(), e);
+      logger.error("Failed to write results into {}", path, e);
     }
   }
 

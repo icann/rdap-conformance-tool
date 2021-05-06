@@ -6,21 +6,25 @@ import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.BootstrapDomainNameSpace;
 
-public class Validation1Dot11Dot1 extends TigValidation {
+public final class Validation1Dot11Dot1 extends TigValidation {
 
 
   private final RDAPValidatorConfiguration config;
   private final RDAPDatasetService datasetService;
+  private final RDAPQueryType queryType;
 
   public Validation1Dot11Dot1(RDAPValidatorConfiguration config,
-      RDAPValidatorResults results, RDAPDatasetService datasetService) {
+      RDAPValidatorResults results, RDAPDatasetService datasetService,
+      RDAPQueryType queryType) {
     super(results);
     this.config = config;
     this.datasetService = datasetService;
+    this.queryType = queryType;
   }
 
   @Override
@@ -68,5 +72,10 @@ public class Validation1Dot11Dot1 extends TigValidation {
     }
 
     return isValid;
+  }
+
+  @Override
+  protected boolean doLaunch() {
+    return config.isGtldRegistry() && queryType.equals(RDAPQueryType.DOMAIN);
   }
 }

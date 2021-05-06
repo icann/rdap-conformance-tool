@@ -9,7 +9,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Validation1Dot6 extends TigValidation {
+public final class Validation1Dot6 extends TigValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot6.class);
   private final int rdapResponseStatusCode;

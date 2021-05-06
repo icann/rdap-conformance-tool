@@ -2,20 +2,23 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.registr
 
 import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
+import java.util.Set;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class Validation6Dot1 extends TigValidation {
+public class Validation6Dot1 extends TigJsonValidation {
 
-  private final String rdapResponse;
+  private final RDAPQueryType queryType;
 
   public Validation6Dot1(String rdapResponse,
-      RDAPValidatorResults results) {
-    super(results);
-    this.rdapResponse = rdapResponse;
+      RDAPValidatorResults results,
+      RDAPQueryType queryType) {
+    super(rdapResponse, results);
+    this.queryType = queryType;
   }
 
 
@@ -71,5 +74,11 @@ public class Validation6Dot1 extends TigValidation {
       return false;
     }
     return true;
+  }
+
+  @Override
+  protected boolean doLaunch() {
+    return Set.of(RDAPQueryType.DOMAIN, RDAPQueryType.NAMESERVER, RDAPQueryType.ENTITY)
+        .contains(queryType);
   }
 }

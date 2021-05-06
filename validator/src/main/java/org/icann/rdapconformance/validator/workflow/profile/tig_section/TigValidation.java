@@ -11,6 +11,9 @@ public abstract class TigValidation {
   }
 
   public boolean validate() {
+    if (!doLaunch()) {
+      return true;
+    }
     if (doValidate()) {
       results.addGroup(getGroupName(), false);
       return true;
@@ -22,4 +25,8 @@ public abstract class TigValidation {
   protected abstract String getGroupName();
 
   protected abstract boolean doValidate();
+
+  protected boolean doLaunch() {
+    return true;
+  }
 }

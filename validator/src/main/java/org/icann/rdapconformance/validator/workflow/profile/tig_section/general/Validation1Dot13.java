@@ -3,11 +3,12 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 import java.net.http.HttpResponse;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigHttpValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class Validation1Dot13 extends TigValidation {
+public final class Validation1Dot13 extends TigValidation {
 
   private final HttpResponse<String> rdapResponse;
 

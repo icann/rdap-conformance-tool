@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.io.InputStream;
 import java.net.http.HttpResponse;
+import java.util.List;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
@@ -138,20 +139,21 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
     if (config.userRdapProfileFeb2019()) {
       HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
       RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
-          config,
-          queryTypeProcessor.getQueryType(),
-          new Validation1Dot2(rdapResponse, config, results),
-          new Validation1Dot3(rdapResponse, config, results),
-          new Validation1Dot6(rdapResponse.statusCode(), config, results),
-          new Validation1Dot8(rdapResponse, results, datasetService),
-          new Validation1Dot13(rdapResponse, results),
-          new Validation1Dot11Dot1(config, results, datasetService),
-          new Validation1Dot14(query.getData(), datasetService, results),
-          new Validation3Dot2(query.getData(), results),
-          new Validation6Dot1(query.getData(), results),
-          new Validation3Dot3And3Dot4(query.getData(), results, validator),
-          new Validation4Dot1(query.getData(), results),
-          new Validation7Dot1And7Dot2(query.getData(), results));
+          List.of(
+              new Validation1Dot2(rdapResponse, config, results),
+              new Validation1Dot3(rdapResponse, config, results),
+              new Validation1Dot6(rdapResponse.statusCode(), config, results),
+              new Validation1Dot8(rdapResponse, results, datasetService),
+              new Validation1Dot13(rdapResponse, results),
+              new Validation1Dot11Dot1(config, results, datasetService,
+                  queryTypeProcessor.getQueryType()),
+              new Validation1Dot14(query.getData(), datasetService, results),
+              new Validation3Dot2(query.getData(), results, config, queryTypeProcessor.getQueryType()),
+              new Validation6Dot1(query.getData(), results, queryTypeProcessor.getQueryType()),
+              new Validation3Dot3And3Dot4(query.getData(), results, validator),
+              new Validation4Dot1(query.getData(), results),
+              new Validation7Dot1And7Dot2(query.getData(), results)
+          ));
       rdapProfileFebruary2019.validate();
     }
 

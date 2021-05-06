@@ -1,9 +1,12 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.mockito.Mockito.mock;
+
 import java.util.List;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
 import org.testng.annotations.Test;
 
-public class Validation1Dot14Test extends TigValidationTestBase {
+public class Validation1Dot14Test extends TigValidationFromSchemaTestBase {
 
 
   public Validation1Dot14Test() {
@@ -12,14 +15,9 @@ public class Validation1Dot14Test extends TigValidationTestBase {
         "tigSection_1_14_Validation");
   }
 
-  @Test
-  public void testValidate_ok() {
-    testValidate_ok(
-        new Validation1Dot14(
-            jsonObject.toString(),
-            datasets,
-            results)
-    );
+  @Override
+  public TigJsonValidation getTigValidation() {
+    return new Validation1Dot14(jsonObject.toString(), datasets, results);
   }
 
   /**
@@ -29,10 +27,7 @@ public class Validation1Dot14Test extends TigValidationTestBase {
   public void tigSection_1_14_Validation() {
     List<String> listWithOnlyRdapLevel0 = List.of("rdap_level_0");
     jsonObject.put("rdapConformance", listWithOnlyRdapLevel0);
-    Validation1Dot14 validation1Dot14 = new Validation1Dot14(jsonObject.toString(), datasets,
-        results);
     validate(
-        validation1Dot14,
         -20600,
         "#/rdapConformance:[\"rdap_level_0\"]",
         "The RDAP Conformance data structure does not include "

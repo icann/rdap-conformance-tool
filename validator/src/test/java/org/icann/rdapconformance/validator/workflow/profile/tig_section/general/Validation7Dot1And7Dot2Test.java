@@ -2,10 +2,11 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
 
-public class Validation7Dot1And7Dot2Test extends TigValidationTestBase {
+public class Validation7Dot1And7Dot2Test extends TigValidationFromSchemaTestBase {
 
   public Validation7Dot1And7Dot2Test() {
     super("rdap_domain.json",
@@ -13,9 +14,9 @@ public class Validation7Dot1And7Dot2Test extends TigValidationTestBase {
         "tigSection_7_1_and_7_2_Validation");
   }
 
-  @Test
-  public void testValidate_ok() {
-    testValidate_ok(new Validation7Dot1And7Dot2(jsonObject.toString(), results));
+  @Override
+  public TigJsonValidation getTigValidation() {
+    return new Validation7Dot1And7Dot2(jsonObject.toString(), results);
   }
 
   /**
@@ -29,7 +30,7 @@ public class Validation7Dot1And7Dot2Test extends TigValidationTestBase {
         .parse(jsonObject.toString())
         .set("$['entities'][0]['entities'][0]['vcardArray'][1][2][1]", wrongType)
         .jsonString());
-    validate(new Validation7Dot1And7Dot2(jsonObject.toString(), results), -20900,
+    validate(-20900,
         "#/entities/0/entities/0/vcardArray/1/2:{\"type\":\"not-voice-nor-fax\"}",
         "An entity with a tel property without a voice or fax "
             + "type was found. See section 7.1 and 7.2 of the TIG.");
