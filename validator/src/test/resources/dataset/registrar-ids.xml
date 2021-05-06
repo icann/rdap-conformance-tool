@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-stylesheet type="text/xsl" href="registrar-ids.xsl"?>
+<?xml-model href="registrar-ids.rng" schematypens="http://relaxng.org/ns/structure/1.0" ?>
+<registry xmlns="http://www.iana.org/assignments" id="registrar-ids">
+  <title>Registrar IDs</title>
+  <updated>2021-05-06</updated>
+  <registry id="registrar-ids-1">
+    <title>Registrar IDs</title>
+    <xref type="text">Not defined by an RFC</xref>
+    <registration_rule>Assigned by ICANN</registration_rule>
+    <record updated="2015-08-20">
+      <value>3</value>
+      <name>Test 1</name>
+      <status>Reserved</status>
+    </record>
+    <record>
+      <value>4</value>
+      <name>Test 2</name>
+      <status>Terminated</status>
+    </record>
+    <record date="2020-11-25" updated="2021-01-28">
+      <value>3878</value>
+      <name>Test 3</name>
+      <status>Accredited</status>
+      <rdapurl>
+        <server>https://www.17domain.com/rdap/domain/</server>
+      </rdapurl>
+    </record>
+    <record date="2020-06-10">
+      <value>9994</value>
+      <name>Test 4</name>
+      <status>Reserved</status>
+    </record>
+  </registry>
+  <people/>
+</registry>

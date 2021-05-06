@@ -100,13 +100,13 @@ public class Validation3Dot2Test extends ProfileValidationTestBase {
   @Test
   public void testDoLaunch_NotARegistry_IsFalse() {
     doReturn(false).when(config).isGtldRegistry();
-    assertThat(new Validation3Dot2("", results, config, QUERY_TYPE).doLaunch()).isFalse();
+    assertThat(new Validation3Dot2(rdapResponseJson.toString(), results, config, QUERY_TYPE).doLaunch()).isFalse();
   }
 
   @Test
   public void testDoLaunch_NotADomainQuery_IsFalse() {
     doReturn(true).when(config).isGtldRegistry();
-    assertThat(new Validation3Dot2("", results, config, RDAPQueryType.NAMESERVER).doLaunch())
+    assertThat(new Validation3Dot2(rdapResponseJson.toString(), results, config, RDAPQueryType.NAMESERVER).doLaunch())
         .isFalse();
   }
 }

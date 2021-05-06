@@ -20,11 +20,13 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPJsonValuesD
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.RegistrarIdDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv4AddressesDataset;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv6AddressesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.DsRrTypes;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPDatasetModel;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPJsonValues;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarIds;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarName;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RoleJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
@@ -104,6 +106,12 @@ public class RDAPDatasetService {
 
     this.datasetValidatorModels.put(RoleJsonValues.class,
         new RoleJsonValues(get(RDAPJsonValues.class)));
+
+    this.datasetValidatorModels.put(RegistrarName.class,
+        new RegistrarName(get(RegistrarIds.class)));
+
+    this.datasetValidatorModels.put(RegistrarId.class,
+        new RegistrarId(get(RegistrarIds.class)));
 
     return true;
   }

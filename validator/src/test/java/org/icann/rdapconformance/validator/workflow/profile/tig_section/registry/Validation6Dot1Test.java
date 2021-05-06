@@ -38,19 +38,19 @@ public class Validation6Dot1Test extends TigValidationFromSchemaTestBase {
 
   @Test
   public void testDoLaunch() {
-    assertThat(new Validation6Dot1("", results, RDAPQueryType.DOMAIN).doLaunch())
+    assertThat(new Validation6Dot1(jsonObject.toString(), results, RDAPQueryType.DOMAIN).doLaunch())
         .isTrue();
-    assertThat(new Validation6Dot1("", results, RDAPQueryType.NAMESERVER).doLaunch())
+    assertThat(new Validation6Dot1(jsonObject.toString(), results, RDAPQueryType.NAMESERVER).doLaunch())
         .isTrue();
-    assertThat(new Validation6Dot1("", results, RDAPQueryType.ENTITY).doLaunch())
+    assertThat(new Validation6Dot1(jsonObject.toString(), results, RDAPQueryType.ENTITY).doLaunch())
         .isTrue();
   }
 
   @Test
   public void testDoLaunch_NotAValidQuery_IsFalse() {
-    assertThat(new Validation6Dot1("", results, RDAPQueryType.NAMESERVERS).doLaunch())
+    assertThat(new Validation6Dot1(jsonObject.toString(), results, RDAPQueryType.NAMESERVERS).doLaunch())
         .isFalse();
-    assertThat(new Validation6Dot1("", results, RDAPQueryType.HELP).doLaunch())
+    assertThat(new Validation6Dot1(jsonObject.toString(), results, RDAPQueryType.HELP).doLaunch())
         .isFalse();
   }
 }

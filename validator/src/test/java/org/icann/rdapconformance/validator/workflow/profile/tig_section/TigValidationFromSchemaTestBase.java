@@ -42,7 +42,7 @@ public abstract class TigValidationFromSchemaTestBase extends SchemaValidatorTes
     assertThat(results.getGroupOk()).isEmpty();
   }
 
-  protected void replaceValue(String jpath, String value) {
+  protected void replaceValue(String jpath, Object value) {
     jsonObject = new JSONObject(JsonPath
         .parse(jsonObject.toString())
         .set(jpath, value)

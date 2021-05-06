@@ -3,20 +3,26 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.registr
 import com.jayway.jsonpath.DocumentContext;
 import java.util.List;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
 import org.json.JSONObject;
 
-public class Validation1Dot12Dot1 extends TigJsonValidation {
+public class Validation1Dot12Dot1 extends ProfileJsonValidation {
+
+  private final RDAPDatasetService datasetService;
 
   public Validation1Dot12Dot1(String rdapResponse,
-      RDAPValidatorResults results) {
+      RDAPValidatorResults results,
+      RDAPDatasetService datasetService) {
     super(rdapResponse, results);
+    this.datasetService = datasetService;
   }
 
   @Override
-  protected String getGroupName() {
+  public String getGroupName() {
     return "tigSection_1_12_1_Validation";
   }
 
@@ -38,12 +44,24 @@ public class Validation1Dot12Dot1 extends TigJsonValidation {
       if (!publicId.has("identifier")) {
         results.add(RDAPValidationResult.builder()
             .code(-26100)
-            .value(jsonPointer + ":" + publicId)
+            .value(getResultValue(jsonPointer))
             .message("An identifier in the publicIds within the entity data "
                 + "structure with the registrar role was not found. See section 1.12.1 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1.")
             .build());
         return false;
+      } else {
+        int identifier = publicId.getInt("identifier");
+        RegistrarId registrarId = datasetService.get(RegistrarId.class);
+        if (!registrarId.contains(identifier)) {
+          results.add(RDAPValidationResult.builder()
+              .code(-26101)
+              .value(getResultValue(jsonPointer + "/identifier"))
+              .message("The registrar identifier is not included in the registrarId. "
+                  + "See section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1.")
+              .build());
+          return false;
+        }
       }
     return true;
   }

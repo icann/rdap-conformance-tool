@@ -19,6 +19,7 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation3Dot3And3Dot4;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation4Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation7Dot1And7Dot2;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registrar.Validation1Dot12Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation3Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation6Dot1;
@@ -153,7 +154,8 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
               new Validation6Dot1(query.getData(), results, queryTypeProcessor.getQueryType()),
               new Validation3Dot3And3Dot4(query.getData(), results, validator),
               new Validation4Dot1(query.getData(), results),
-              new Validation7Dot1And7Dot2(query.getData(), results)
+              new Validation7Dot1And7Dot2(query.getData(), results),
+              new Validation1Dot12Dot1(query.getData(), results, datasetService)
           ));
       rdapProfileFebruary2019.validate();
     }
