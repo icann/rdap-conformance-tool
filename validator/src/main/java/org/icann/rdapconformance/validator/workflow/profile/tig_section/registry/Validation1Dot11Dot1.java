@@ -4,14 +4,14 @@ import java.net.URI;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.BootstrapDomainNameSpace;
 
-public final class Validation1Dot11Dot1 extends TigValidation {
+public final class Validation1Dot11Dot1 extends ProfileValidation {
 
 
   private final RDAPValidatorConfiguration config;

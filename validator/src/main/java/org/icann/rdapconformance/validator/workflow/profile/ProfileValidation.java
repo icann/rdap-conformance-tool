@@ -1,12 +1,12 @@
-package org.icann.rdapconformance.validator.workflow.profile.tig_section;
+package org.icann.rdapconformance.validator.workflow.profile;
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public abstract class TigValidation {
+public abstract class ProfileValidation {
 
   protected final RDAPValidatorResults results;
 
-  public TigValidation(RDAPValidatorResults results) {
+  public ProfileValidation(RDAPValidatorResults results) {
     this.results = results;
   }
 
@@ -22,7 +22,7 @@ public abstract class TigValidation {
     return false;
   }
 
-  protected abstract String getGroupName();
+  public abstract String getGroupName();
 
   protected abstract boolean doValidate();
 

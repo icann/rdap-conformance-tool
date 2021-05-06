@@ -2,16 +2,12 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.jayway.jsonpath.JsonPath;
 import org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
-import org.mockito.ArgumentCaptor;
 
 public abstract class TigValidationFromSchemaTestBase extends SchemaValidatorTest {
 

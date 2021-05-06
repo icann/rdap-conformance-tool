@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.SchemaValidator;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.DNSQuery.DNSQueryResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -25,7 +25,7 @@ import org.xbill.DNS.Record;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-public final class Validation1Dot8 extends TigValidation {
+public final class Validation1Dot8 extends ProfileValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot8.class);
   static DNSQuery dnsQuery = new DNSQuery();

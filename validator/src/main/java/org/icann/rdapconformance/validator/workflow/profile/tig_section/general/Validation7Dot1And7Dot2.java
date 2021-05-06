@@ -18,7 +18,7 @@ public final class Validation7Dot1And7Dot2 extends TigValidationVcardArray {
   }
 
   @Override
-  protected String getGroupName() {
+  public String getGroupName() {
     return "tigSection_7_1_and_7_2_Validation";
   }
 

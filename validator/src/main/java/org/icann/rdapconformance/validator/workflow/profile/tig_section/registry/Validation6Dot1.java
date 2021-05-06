@@ -23,7 +23,7 @@ public class Validation6Dot1 extends TigJsonValidation {
 
 
   @Override
-  protected String getGroupName() {
+  public String getGroupName() {
     return "tigSection_6_1_Validation";
   }
 

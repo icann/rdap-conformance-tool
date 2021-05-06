@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.mockito.ArgumentCaptor;
@@ -15,13 +16,13 @@ public abstract class TigValidationTestBase {
 
   protected RDAPValidatorResults results;
 
-  public static void validateOk(TigValidation validation, RDAPValidatorResults results) {
+  public static void validateOk(ProfileValidation validation, RDAPValidatorResults results) {
     assertThat(validation.validate()).isTrue();
     verify(results).addGroup(validation.getGroupName(), false);
     verifyNoMoreInteractions(results);
   }
 
-  public static void validateNotOk(TigValidation validation, RDAPValidatorResults results,
+  public static void validateNotOk(ProfileValidation validation, RDAPValidatorResults results,
       int code, String value, String message) {
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
@@ -39,11 +40,11 @@ public abstract class TigValidationTestBase {
     results = mock(RDAPValidatorResults.class);
   }
 
-  protected void validateOk(TigValidation validation) {
+  protected void validateOk(ProfileValidation validation) {
     validateOk(validation, results);
   }
 
-  protected void validateNotOk(TigValidation validation, int code, String value, String message) {
+  protected void validateNotOk(ProfileValidation validation, int code, String value, String message) {
     validateNotOk(validation, results, code, value, message);
   }
 

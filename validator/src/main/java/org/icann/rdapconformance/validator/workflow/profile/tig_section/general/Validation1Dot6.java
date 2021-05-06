@@ -2,14 +2,14 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import java.net.http.HttpResponse;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Validation1Dot6 extends TigValidation {
+public final class Validation1Dot6 extends ProfileValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot6.class);
   private final int rdapResponseStatusCode;

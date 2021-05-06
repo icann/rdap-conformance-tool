@@ -2,19 +2,12 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import static com.jayway.jsonpath.JsonPath.using;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.Option;
-import java.util.List;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
-import org.icann.rdapconformance.validator.schema.JsonPointers;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationVcardArray;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class Validation4Dot1 extends TigValidationVcardArray {
 
@@ -23,7 +16,7 @@ public class Validation4Dot1 extends TigValidationVcardArray {
   }
 
   @Override
-  protected String getGroupName() {
+  public String getGroupName() {
     return "tigSection_4_1_Validation";
   }
 

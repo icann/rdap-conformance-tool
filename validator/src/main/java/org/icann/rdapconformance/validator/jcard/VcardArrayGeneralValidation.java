@@ -13,7 +13,7 @@ public class VcardArrayGeneralValidation extends TigValidationVcardArray {
   }
 
   @Override
-  protected String getGroupName() {
+  public String getGroupName() {
     return "stdRdapEntityLookupValidation";
   }
 

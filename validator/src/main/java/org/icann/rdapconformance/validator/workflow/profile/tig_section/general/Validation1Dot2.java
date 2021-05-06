@@ -15,14 +15,14 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Validation1Dot2 extends TigValidation {
+public final class Validation1Dot2 extends ProfileValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot2.class);
 

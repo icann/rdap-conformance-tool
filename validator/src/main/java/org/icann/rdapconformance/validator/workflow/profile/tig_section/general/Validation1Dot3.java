@@ -9,13 +9,13 @@ import java.util.Optional;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Validation1Dot3 extends TigValidation {
+public final class Validation1Dot3 extends ProfileValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(Validation1Dot3.class);
   private final HttpResponse<String> rdapResponse;
