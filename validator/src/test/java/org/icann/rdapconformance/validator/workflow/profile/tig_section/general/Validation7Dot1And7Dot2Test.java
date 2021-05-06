@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationFromSchemaTestBase;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
 

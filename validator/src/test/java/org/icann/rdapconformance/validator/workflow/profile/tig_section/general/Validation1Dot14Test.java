@@ -4,6 +4,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationFromSchemaTestBase;
 import org.testng.annotations.Test;
 
 public class Validation1Dot14Test extends TigValidationFromSchemaTestBase {

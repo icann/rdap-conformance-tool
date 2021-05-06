@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
+package org.icann.rdapconformance.validator.workflow.profile.tig_section;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;

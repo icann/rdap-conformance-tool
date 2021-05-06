@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationFromSchemaTestBase;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
