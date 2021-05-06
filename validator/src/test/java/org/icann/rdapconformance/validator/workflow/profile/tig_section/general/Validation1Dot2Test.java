@@ -6,7 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationTestBase.validateNotOk;
+import static org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTestBase.validateNotOk;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 

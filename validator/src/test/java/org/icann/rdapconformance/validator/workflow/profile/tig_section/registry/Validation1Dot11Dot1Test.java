@@ -7,14 +7,14 @@ import static org.mockito.Mockito.mock;
 import java.net.URI;
 import java.util.Set;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationTestBase;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.BootstrapDomainNameSpace;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class Validation1Dot11Dot1Test extends TigValidationTestBase {
+public class Validation1Dot11Dot1Test extends ProfileValidationTestBase {
 
   private final static RDAPQueryType QUERY_TYPE = RDAPQueryType.DOMAIN;
   private final RDAPDatasetService rdapDatasetService = mock(RDAPDatasetService.class);

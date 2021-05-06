@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -15,7 +14,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.util.Set;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationTestBase;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.DNSQuery;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.DNSQuery.DNSQueryResult;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.IPValidator;
@@ -27,7 +26,7 @@ import org.xbill.DNS.Name;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-public class Validation1Dot8Test extends TigValidationTestBase {
+public class Validation1Dot8Test extends ProfileValidationTestBase {
 
   private final DNSQuery dnsQuery = mock(DNSQuery.class);
   private final IPValidator ipValidator = mock(IPValidator.class);

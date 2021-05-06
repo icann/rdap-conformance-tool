@@ -1,18 +1,17 @@
-package org.icann.rdapconformance.validator.workflow.profile.tig_section;
+package org.icann.rdapconformance.validator.workflow.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public abstract class TigValidationTestBase {
+public abstract class ProfileValidationTestBase {
 
   protected RDAPValidatorResults results;
 
@@ -44,7 +43,8 @@ public abstract class TigValidationTestBase {
     validateOk(validation, results);
   }
 
-  protected void validateNotOk(ProfileValidation validation, int code, String value, String message) {
+  protected void validateNotOk(ProfileValidation validation, int code, String value,
+      String message) {
     validateNotOk(validation, results, code, value, message);
   }
 

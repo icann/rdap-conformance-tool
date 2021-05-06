@@ -8,11 +8,11 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationTestBase;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.RedirectData;
 import org.testng.annotations.Test;
 
-public class Validation1Dot13Test extends TigValidationTestBase {
+public class Validation1Dot13Test extends ProfileValidationTestBase {
 
   @Override
   @Test
