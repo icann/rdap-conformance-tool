@@ -1,7 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import static org.mockito.Mockito.mock;
-
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationFromSchemaTestBase;

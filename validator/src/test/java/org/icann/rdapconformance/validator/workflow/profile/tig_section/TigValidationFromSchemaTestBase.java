@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 
 import com.jayway.jsonpath.JsonPath;
 import org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest;

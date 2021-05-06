@@ -74,6 +74,19 @@
       <version>3.3.1</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+      <artifactId>owasp-java-html-sanitizer</artifactId>
+      <version>20200713.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>1.9</version>
+    </dependency>
+
+
     <!-- test dependencies -->
     <dependency>
       <groupId>org.testng</groupId>
