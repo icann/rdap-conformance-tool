@@ -10,13 +10,13 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
-public class Validation1Dot14 extends TigJsonValidation {
+public class Validation1Dot14 extends ProfileJsonValidation {
 
   private final RDAPDatasetService datasetService;
 

@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.testng.annotations.Test;
 
 public class Validation3Dot3And3Dot4Test extends TigValidationFromSchemaTestBase {
@@ -12,7 +12,7 @@ public class Validation3Dot3And3Dot4Test extends TigValidationFromSchemaTestBase
   }
 
   @Override
-  public TigJsonValidation getTigValidation() {
+  public ProfileJsonValidation getTigValidation() {
     return new Validation3Dot3And3Dot4(jsonObject.toString(), results, schemaValidator);
   }
 

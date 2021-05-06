@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.testng.annotations.Test;
 
 public class Validation1Dot14Test extends TigValidationFromSchemaTestBase {
@@ -16,7 +16,7 @@ public class Validation1Dot14Test extends TigValidationFromSchemaTestBase {
   }
 
   @Override
-  public TigJsonValidation getTigValidation() {
+  public ProfileJsonValidation getTigValidation() {
     return new Validation1Dot14(jsonObject.toString(), datasets, results);
   }
 

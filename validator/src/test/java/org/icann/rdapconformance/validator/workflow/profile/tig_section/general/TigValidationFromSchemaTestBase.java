@@ -5,7 +5,7 @@ import static org.mockito.Mockito.verify;
 
 import com.jayway.jsonpath.JsonPath;
 import org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.json.JSONObject;
 
@@ -21,7 +21,7 @@ public abstract class TigValidationFromSchemaTestBase extends SchemaValidatorTes
     this.validationName = validationName;
   }
 
-  public abstract TigJsonValidation getTigValidation();
+  public abstract ProfileJsonValidation getTigValidation();
 
   @Override
   public void testValidate_ok() {

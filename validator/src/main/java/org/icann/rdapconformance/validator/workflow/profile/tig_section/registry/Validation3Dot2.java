@@ -1,14 +1,14 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Validation3Dot2 extends TigJsonValidation {
+public class Validation3Dot2 extends ProfileJsonValidation {
 
   private final RDAPValidatorConfiguration config;
   private final RDAPQueryType queryType;

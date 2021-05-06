@@ -5,12 +5,12 @@ import java.util.Map;
 import java.util.Set;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class Validation6Dot1 extends TigJsonValidation {
+public class Validation6Dot1 extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
 

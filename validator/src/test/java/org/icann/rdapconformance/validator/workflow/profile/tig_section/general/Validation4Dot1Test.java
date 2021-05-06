@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import java.util.List;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
@@ -15,7 +15,7 @@ public class Validation4Dot1Test extends TigValidationFromSchemaTestBase {
   }
 
   @Override
-  public TigJsonValidation getTigValidation() {
+  public ProfileJsonValidation getTigValidation() {
     return new Validation4Dot1(jsonObject.toString(), results);
   }
 

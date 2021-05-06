@@ -2,7 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
 
@@ -15,7 +15,7 @@ public class Validation7Dot1And7Dot2Test extends TigValidationFromSchemaTestBase
   }
 
   @Override
-  public TigJsonValidation getTigValidation() {
+  public ProfileJsonValidation getTigValidation() {
     return new Validation7Dot1And7Dot2(jsonObject.toString(), results);
   }
 
