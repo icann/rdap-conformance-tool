@@ -45,18 +45,16 @@ public class RDAPValidatorResults {
     return groupErrorWarning;
   }
 
-  public void addGroupErrorWarning(String validationName) {
-    groupErrorWarning.add(validationName);
+  public void addGroup(String group) {
+    this.groups.add(group);
+  }
+
+  public void addGroupErrorWarning(String group) {
+    this.addGroup(group);
+    this.groupErrorWarning.add(group);
   }
 
   public Set<String> getGroups() {
     return groups;
-  }
-
-  public void addGroup(String group, boolean hasError) {
-    this.groups.add(group);
-    if (hasError) {
-      this.groupErrorWarning.add(group);
-    }
   }
 }

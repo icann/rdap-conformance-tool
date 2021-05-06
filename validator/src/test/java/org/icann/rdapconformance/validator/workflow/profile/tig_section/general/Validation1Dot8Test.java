@@ -117,8 +117,6 @@ public class Validation1Dot8Test extends TigValidationTestBase {
     givenV6Ok();
 
     validateOk(new Validation1Dot8(httpResponse, results, datasetService));
-    verify(results).addGroup("tigSection_1_8_Validation", false);
-    verifyNoMoreInteractions(results);
   }
 
   @Test

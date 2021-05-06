@@ -18,7 +18,7 @@ public abstract class TigValidationTestBase {
 
   public static void validateOk(ProfileValidation validation, RDAPValidatorResults results) {
     assertThat(validation.validate()).isTrue();
-    verify(results).addGroup(validation.getGroupName(), false);
+    verify(results).addGroup(validation.getGroupName());
     verifyNoMoreInteractions(results);
   }
 
@@ -32,7 +32,7 @@ public abstract class TigValidationTestBase {
     assertThat(result).hasFieldOrPropertyWithValue("code", code)
         .hasFieldOrPropertyWithValue("value", value)
         .hasFieldOrPropertyWithValue("message", message);
-    verify(results).addGroup(validation.getGroupName(), true);
+    verify(results).addGroupErrorWarning(validation.getGroupName());
   }
 
   @BeforeMethod

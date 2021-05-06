@@ -14,11 +14,11 @@ public abstract class ProfileValidation {
     if (!doLaunch()) {
       return true;
     }
+    results.addGroup(getGroupName());
     if (doValidate()) {
-      results.addGroup(getGroupName(), false);
       return true;
     }
-    results.addGroup(getGroupName(), true);
+    results.addGroupErrorWarning(getGroupName());
     return false;
   }
 
