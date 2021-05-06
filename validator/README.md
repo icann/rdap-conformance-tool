@@ -4,14 +4,12 @@ Validator for the RDAP conformance tool
 
 # Architecture of json validation
 
-Currently, the architecture leverage the json schema draft 07 to validate rdap json responses.
+The architecture leverages the json schema draft 07 to validate rdap json responses.
 The main validation library used is [org.everit.json](https://github.com/everit-org/json-schema).
 
-We inspired our json-schemas from the one from [Mario Loffredo and Maurizio Martinelli](https://gitlab.centralnic.com/centralnic/rdap-json-schemas).
-But with multiple additions and modifications to comply with the specification from ICANN.
+The json-schemas were adapted from the one from [Mario Loffredo and Maurizio Martinelli](https://gitlab.centralnic.com/centralnic/rdap-json-schemas).
 
-In order to raise the right error codes when a specification is violated, we introduce two new 
-unprocessed properties in the json schema:
+In order to raise the right error codes when a specification is violated, two new unprocessed properties in the json schema:
 
 1. errorCode (for basic type validation violation)
 2. validationName (for object validation violation)
@@ -38,16 +36,14 @@ will produce the following error:
         "message": "The JSON value is not a string"
     }
     
-As you can see, we took the liberty to improve the value format in the specification by using a
- json pointer. This is better to locate the error, when the violation is deep in the json
-  hierarchy. We could be unfortunate and have to locate the 999 violation really far from the top
+The value format is using a json pointer. This is better to locate the error, when the violation is deep in the json hierarchy. However, locating the 999 violation can be really far from the top
   , e.g.:
   
     "#/someKey/someArray/2/someNestedKey/aString:999"
 
 ## 1. The validationName property
 
-Say, we validate this json:
+As an example, this json need to be validated:
 
     {
         "anObject": {
@@ -55,7 +51,7 @@ Say, we validate this json:
         }
     }
     
-Against this schema:
+against this schema:
 
     {
         "anObject": {
@@ -68,7 +64,7 @@ Against this schema:
         "stdRdapAnObjectValidation": -555
     }
     
-We are going to get now two errors:
+This triggers two errors:
 
         {
             "error": -1,
@@ -81,7 +77,7 @@ We are going to get now two errors:
             "message": "The value for the JSON name value does not pass #/anObject validation [stdRdapAnObjectValidation]"
         }
 
-Thus, we can always refer to this "validationName" and change the errorCode (-555 here) depending on
+Thus, one can always refer to this "validationName" and change the errorCode (-555 here) depending on
  the top most structure at hand. This is required by the specifications: the domain structure has:
  
       "stdRdapEntitiesValidation": -12210,
@@ -133,7 +129,7 @@ like the one above for `href`:
  
 ## Known Limitations
 
-Even if we can write a combined schema like this:
+Even if a combined schema like this can be used:
 
     "rdapExtensions": {
       "type": "string",
@@ -145,8 +141,7 @@ Even if we can write a combined schema like this:
       "errorCode": -10502
     }
 
-ICANN wants a different error code when the rdapExtensions is not a string and when the string is
- not part of the enum. Since we can't write:
+However, the specifications require a different error code when the rdapExtensions is not a string and when the string is not part of the enum. Since one can't write:
  
      "rdapExtensions": {
        "type": "string",
@@ -159,8 +154,8 @@ ICANN wants a different error code when the rdapExtensions is not a string and w
        "errorCode": -10502
      }
      
-and hope the json schema lib will understand, we need to explicitly write the json-schema in 
-its long form (allOf keyword) to support this:
+and hope the json schema lib will understand, the json-schema in 
+its long form (allOf keyword) is needed to support this:
 
      "rdapExtensions": {
            "allOf": [
