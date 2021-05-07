@@ -75,7 +75,7 @@ public final class Validation1Dot11Dot1 extends ProfileValidation {
   }
 
   @Override
-  protected boolean doLaunch() {
+  public boolean doLaunch() {
     return config.isGtldRegistry() && queryType.equals(RDAPQueryType.DOMAIN);
   }
 }

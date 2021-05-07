@@ -77,7 +77,7 @@ public class Validation6Dot1 extends ProfileJsonValidation {
   }
 
   @Override
-  protected boolean doLaunch() {
+  public boolean doLaunch() {
     return Set.of(RDAPQueryType.DOMAIN, RDAPQueryType.NAMESERVER, RDAPQueryType.ENTITY)
         .contains(queryType);
   }

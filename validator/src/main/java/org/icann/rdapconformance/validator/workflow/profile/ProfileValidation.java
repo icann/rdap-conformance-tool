@@ -26,7 +26,7 @@ public abstract class ProfileValidation {
 
   protected abstract boolean doValidate();
 
-  protected boolean doLaunch() {
+  public boolean doLaunch() {
     return true;
   }
 }

@@ -155,7 +155,7 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
               new Validation3Dot3And3Dot4(query.getData(), results, validator),
               new Validation4Dot1(query.getData(), results),
               new Validation7Dot1And7Dot2(query.getData(), results),
-              new Validation1Dot12Dot1(query.getData(), results, datasetService)
+              new Validation1Dot12Dot1(query.getData(), results, datasetService, queryTypeProcessor.getQueryType())
           ));
       rdapProfileFebruary2019.validate();
     }

@@ -27,6 +27,7 @@ public abstract class TigValidationFromSchemaTestBase extends SchemaValidatorTes
   public void testValidate_ok() {
     assertThat(getTigValidation().validate()).isTrue();
     assertThat(results.getGroupOk()).containsExactly(validationName);
+    assertThat(getTigValidation().doLaunch()).isTrue();
   }
 
   @Override

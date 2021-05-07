@@ -2,9 +2,11 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.registr
 
 import com.jayway.jsonpath.DocumentContext;
 import java.util.List;
+import java.util.Set;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
@@ -13,12 +15,20 @@ import org.json.JSONObject;
 public final class Validation1Dot12Dot1 extends ProfileJsonValidation {
 
   private final RDAPDatasetService datasetService;
+  private final RDAPQueryType queryType;
+  private static final Set<RDAPQueryType> AUTHORIZED_QUERY_TYPES = Set.of(
+      RDAPQueryType.DOMAIN,
+      RDAPQueryType.NAMESERVER,
+      RDAPQueryType.ENTITY
+  );
 
   public Validation1Dot12Dot1(String rdapResponse,
       RDAPValidatorResults results,
-      RDAPDatasetService datasetService) {
+      RDAPDatasetService datasetService,
+      RDAPQueryType queryType) {
     super(rdapResponse, results);
     this.datasetService = datasetService;
+    this.queryType = queryType;
   }
 
   @Override
@@ -75,5 +85,10 @@ public final class Validation1Dot12Dot1 extends ProfileJsonValidation {
         }
       }
     return true;
+  }
+
+  @Override
+  public boolean doLaunch() {
+    return AUTHORIZED_QUERY_TYPES.contains(queryType);
   }
 }

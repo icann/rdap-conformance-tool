@@ -53,7 +53,7 @@ public class Validation3Dot2 extends ProfileJsonValidation {
   }
 
   @Override
-  protected boolean doLaunch() {
+  public boolean doLaunch() {
     return config.isGtldRegistry() && queryType.equals(RDAPQueryType.DOMAIN);
   }
 

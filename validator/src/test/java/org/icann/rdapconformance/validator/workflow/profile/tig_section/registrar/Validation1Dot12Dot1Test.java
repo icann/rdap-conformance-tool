@@ -1,13 +1,18 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registrar;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationFromSchemaTestBase;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
 import org.testng.annotations.Test;
 
 public class Validation1Dot12Dot1Test extends TigValidationFromSchemaTestBase {
+
+  RDAPQueryType queryType = RDAPQueryType.DOMAIN;
 
   public Validation1Dot12Dot1Test() {
     super(
@@ -18,7 +23,7 @@ public class Validation1Dot12Dot1Test extends TigValidationFromSchemaTestBase {
 
   @Override
   public ProfileJsonValidation getTigValidation() {
-    return new Validation1Dot12Dot1(jsonObject.toString(), results, datasets);
+    return new Validation1Dot12Dot1(jsonObject.toString(), results, datasets, queryType);
   }
 
   /**
@@ -70,5 +75,13 @@ public class Validation1Dot12Dot1Test extends TigValidationFromSchemaTestBase {
     validate(-26102, "#/entities/1/publicIds/0/identifier:" + wrongXml,
         "One or more of the base URLs for the registrar contain a schema different from https. "
             + "See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.");
+  }
+
+  @Test
+  public void testDoLaunch_NotARegistryNorRegistrar_IsFalse() {
+    queryType = RDAPQueryType.HELP;
+    assertThat(getTigValidation().doLaunch()).isFalse();
+    queryType = RDAPQueryType.NAMESERVERS;
+    assertThat(getTigValidation().doLaunch()).isFalse();
   }
 }
