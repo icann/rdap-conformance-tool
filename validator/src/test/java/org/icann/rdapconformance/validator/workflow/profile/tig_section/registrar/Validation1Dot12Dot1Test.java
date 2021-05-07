@@ -39,10 +39,43 @@ public class Validation1Dot12Dot1Test extends TigValidationFromSchemaTestBase {
   @Test
   public void identifierNotInRegistrarIdDataset() {
     int registrarIdUnknown = -999;
-    doReturn(false).when(datasets.get(RegistrarId.class)).contains(registrarIdUnknown);
+    doReturn(false).when(datasets.get(RegistrarId.class)).containsId(registrarIdUnknown);
     replaceValue("$['entities'][1]['publicIds'][1]['identifier']", registrarIdUnknown);
     validate(-26101, "#/entities/1/publicIds/1/identifier:-999",
         "The registrar identifier is not included in the registrarId. "
             + "See section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1.");
+  }
+
+  /**
+   * 8.3.1.3
+   */
+  @Test
+  public void registrarIdUrlIsNotHttps() {
+    RegistrarId.Record record = new RegistrarId.Record(
+        292,
+        "Test",
+        "ftp://example.com/",
+        "<record date=\"2020-11-25\" updated=\"2021-01-28\">\n"
+            + "      <value>292</value>\n"
+            + "      <name>Test</name>\n"
+            + "      <status>Accredited</status>\n"
+            + "      <rdapurl>\n"
+            + "        <server>ftp://example.com/</server>\n"
+            + "      </rdapurl>\n"
+            + "    </record>");
+    doReturn(record)
+        .when(datasets.get(RegistrarId.class))
+        .getById(292);
+    validate(-26102, "#/entities/1/publicIds/0/identifier:"
+            + "<record date=\"2020-11-25\" updated=\"2021-01-28\">\n"
+            + "      <value>292</value>\n"
+            + "      <name>Test</name>\n"
+            + "      <status>Accredited</status>\n"
+            + "      <rdapurl>\n"
+            + "        <server>ftp://example.com/</server>\n"
+            + "      </rdapurl>\n"
+            + "    </record>",
+        "One or more of the base URLs for the registrar contain a schema different from https. "
+            + "See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.");
   }
 }

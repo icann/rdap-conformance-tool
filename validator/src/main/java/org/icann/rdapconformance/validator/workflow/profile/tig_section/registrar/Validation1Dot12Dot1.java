@@ -53,12 +53,23 @@ public class Validation1Dot12Dot1 extends ProfileJsonValidation {
       } else {
         int identifier = publicId.getInt("identifier");
         RegistrarId registrarId = datasetService.get(RegistrarId.class);
-        if (!registrarId.contains(identifier)) {
+        if (!registrarId.containsId(identifier)) {
           results.add(RDAPValidationResult.builder()
               .code(-26101)
               .value(getResultValue(jsonPointer + "/identifier"))
               .message("The registrar identifier is not included in the registrarId. "
                   + "See section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1.")
+              .build());
+          return false;
+        }
+
+        RegistrarId.Record record = registrarId.getById(identifier);
+        if (!record.getRdapUrl().startsWith("https")) {
+          results.add(RDAPValidationResult.builder()
+              .code(-26102)
+              .value(jsonPointer + "/identifier" + ":" + record)
+              .message("One or more of the base URLs for the registrar contain a "
+                      + "schema different from https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.")
               .build());
           return false;
         }

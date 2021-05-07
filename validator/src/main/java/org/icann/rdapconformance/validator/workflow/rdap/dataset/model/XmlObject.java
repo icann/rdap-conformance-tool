@@ -6,19 +6,27 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public abstract class XmlObject implements RDAPDatasetModel {
+
+  private static final Logger logger = LoggerFactory.getLogger(XmlObject.class);
+  private static final XPath xPath = XPathFactory.newInstance().newXPath();
 
   /**
    * Initialize the XML Object parser.
    */
   Document init(InputStream inputStream) throws ParserConfigurationException, IOException,
       SAXException {
+    logger.info("Fetching dataset " + this.getClass().getSimpleName());
     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
     documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
     DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -31,17 +39,11 @@ public abstract class XmlObject implements RDAPDatasetModel {
    * Get the value of a tag.
    */
   String getTagValue(String tag, Node node) {
-    Element element = (Element) node;
-    NodeList nodeList;
     try {
-      nodeList = element.getElementsByTagName(tag).item(0).getChildNodes();
-    } catch (NullPointerException e) {
+      return xPath.evaluate(tag, node);
+    } catch (NullPointerException | XPathExpressionException e) {
       return "";
     }
-    if (nodeList.getLength() > 0) {
-      return nodeList.item(0).getNodeValue().strip();
-    }
-    return "";
   }
 
   /**
