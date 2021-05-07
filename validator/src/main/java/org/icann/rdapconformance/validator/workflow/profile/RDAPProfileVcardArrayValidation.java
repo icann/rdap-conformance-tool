@@ -12,7 +12,6 @@ import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 public abstract class RDAPProfileVcardArrayValidation extends ProfileJsonValidation {
 

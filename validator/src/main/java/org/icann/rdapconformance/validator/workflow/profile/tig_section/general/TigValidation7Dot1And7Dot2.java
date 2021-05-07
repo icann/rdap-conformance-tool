@@ -44,8 +44,8 @@ public final class TigValidation7Dot1And7Dot2 extends RDAPProfileVcardArrayValid
     results.add(RDAPValidationResult.builder()
         .code(-20900)
         .value(jsonExceptionPointer + ":" + value.toString())
-        .message(
-            "An entity with a tel property without a voice or fax type was found. See section 7.1 and 7.2 of the TIG.")
+        .message("An entity with a tel property without a voice or fax type was found. "
+            + "See section 7.1 and 7.2 of the TIG.")
         .build());
   }
 }
