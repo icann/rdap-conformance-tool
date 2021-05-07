@@ -1,18 +1,17 @@
-package org.icann.rdapconformance.validator.workflow.profile.tig_section;
+package org.icann.rdapconformance.validator.workflow.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.jayway.jsonpath.JsonPath;
 import org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.json.JSONObject;
 
-public abstract class TigValidationFromSchemaTestBase extends SchemaValidatorTest {
+public abstract class ProfileValidationFromSchemaTestBase extends SchemaValidatorTest {
 
   protected final String validationName;
 
-  public TigValidationFromSchemaTestBase(
+  public ProfileValidationFromSchemaTestBase(
       String schemaName,
       String validJson,
       String validationName) {

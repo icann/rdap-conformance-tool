@@ -1,10 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationFromSchemaTestBase;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationFromSchemaTestBase;
 import org.testng.annotations.Test;
 
-public class TigValidation3Dot3And3Dot4Test extends TigValidationFromSchemaTestBase {
+public class TigValidation3Dot3And3Dot4Test extends ProfileValidationFromSchemaTestBase {
 
   public TigValidation3Dot3And3Dot4Test() {
     super("test_rdap_notices.json",
