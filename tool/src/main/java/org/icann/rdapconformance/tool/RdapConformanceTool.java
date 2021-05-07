@@ -19,20 +19,20 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
-  private final FileSystem fileSystem = new LocalFileSystem();
+  private FileSystem fileSystem = new LocalFileSystem();
   @Option(names = {"-c", "--config"}, description = "Definition file", required = true)
   private URI configurationFile;
   @Option(names = {"--timeout"},
       description = "Timeout for connecting to the server", defaultValue = "20")
-  private final int timeout = 20;
+  private int timeout = 20;
   @Option(names = {"--maximum-redirects"},
       description = "Maximum number of redirects to follow", defaultValue = "3")
-  private final int maxRedirects = 3;
+  private int maxRedirects = 3;
   @Option(names = {"--use-local-datasets"},
       description = "Use locally-persisted datasets", defaultValue = "false")
-  private final boolean useLocalDatasets = false;
+  private boolean useLocalDatasets = false;
   @ArgGroup(exclusive = false)
-  private final DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
+  private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
   @Option(names = {"--query-type"}, hidden = true)
   private RDAPQueryType queryType;
 
@@ -116,9 +116,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     @Option(names = {"--gtld-registrar"},
         description = "Validate the response as coming from a gTLD registrar",
         defaultValue = "false")
-    private final boolean gtldRegistrar = false;
+    private boolean gtldRegistrar = false;
     @ArgGroup(exclusive = false)
-    private final DependantRegistryThin dependantRegistryThin = new DependantRegistryThin();
+    private DependantRegistryThin dependantRegistryThin = new DependantRegistryThin();
   }
 
   private static class DependantRegistryThin {
@@ -129,6 +129,6 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     private boolean gtldRegistry;
     @Option(names = {"--thin"},
         description = "The TLD uses the thin model", defaultValue = "false")
-    private final boolean thin = false;
+    private boolean thin = false;
   }
 }
