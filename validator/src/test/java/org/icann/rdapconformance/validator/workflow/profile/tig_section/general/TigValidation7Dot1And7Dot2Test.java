@@ -7,9 +7,9 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValid
 import org.json.JSONObject;
 import org.testng.annotations.Test;
 
-public class Validation7Dot1And7Dot2Test extends TigValidationFromSchemaTestBase {
+public class TigValidation7Dot1And7Dot2Test extends TigValidationFromSchemaTestBase {
 
-  public Validation7Dot1And7Dot2Test() {
+  public TigValidation7Dot1And7Dot2Test() {
     super("rdap_domain.json",
         "/validators/domain/valid.json",
         "tigSection_7_1_and_7_2_Validation");
@@ -17,7 +17,7 @@ public class Validation7Dot1And7Dot2Test extends TigValidationFromSchemaTestBase
 
   @Override
   public ProfileJsonValidation getTigValidation() {
-    return new Validation7Dot1And7Dot2(jsonObject.toString(), results);
+    return new TigValidation7Dot1And7Dot2(jsonObject.toString(), results);
   }
 
   /**

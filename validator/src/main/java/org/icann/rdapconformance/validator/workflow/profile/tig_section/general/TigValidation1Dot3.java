@@ -15,13 +15,13 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Validation1Dot3 extends ProfileValidation {
+public final class TigValidation1Dot3 extends ProfileValidation {
 
-  private static final Logger logger = LoggerFactory.getLogger(Validation1Dot3.class);
+  private static final Logger logger = LoggerFactory.getLogger(TigValidation1Dot3.class);
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
 
-  public Validation1Dot3(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
+  public TigValidation1Dot3(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
     super(results);
     this.rdapResponse = rdapResponse;

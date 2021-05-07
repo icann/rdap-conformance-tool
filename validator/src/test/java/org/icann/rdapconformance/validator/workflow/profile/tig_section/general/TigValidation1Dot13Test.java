@@ -12,7 +12,7 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTes
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.RedirectData;
 import org.testng.annotations.Test;
 
-public class Validation1Dot13Test extends ProfileValidationTestBase {
+public class TigValidation1Dot13Test extends ProfileValidationTestBase {
 
   @Override
   @Test
@@ -23,7 +23,7 @@ public class Validation1Dot13Test extends ProfileValidationTestBase {
         .of(Map.of("Access-Control-Allow-Origin", List.of("value", "*")), (f1, f2) -> true))
         .when(httpResponse).headers();
 
-    validateOk(new Validation1Dot13(httpResponse, results));
+    validateOk(new TigValidation1Dot13(httpResponse, results));
   }
 
   @Test
@@ -35,7 +35,7 @@ public class Validation1Dot13Test extends ProfileValidationTestBase {
                 List.of("domain")),
         (f1, f2) -> true)).when(httpResponse).headers();
 
-    validateNotOk(new Validation1Dot13(httpResponse, results), -20500,
+    validateNotOk(new TigValidation1Dot13(httpResponse, results), -20500,
         "Access-Control-Allow-Origin=[domain], Test-Header=[value1, value2]",
         "The HTTP header \"Access-Control-Allow-Origin: *\" is not included in the "
             + "HTTP headers. See section 1.13 of the RDAP_Technical_Implementation_Guide_2_1.");
@@ -50,7 +50,7 @@ public class Validation1Dot13Test extends ProfileValidationTestBase {
                 List.of("domain")),
         (f1, f2) -> true)).when(redirectData.endingResponse).headers();
 
-    validateNotOk(new Validation1Dot13(redirectData.startingResponse, results), -20500,
+    validateNotOk(new TigValidation1Dot13(redirectData.startingResponse, results), -20500,
         "Access-Control-Allow-Origin=[domain], Test-Header=[value1, value2]",
         "The HTTP header \"Access-Control-Allow-Origin: *\" is not included in the "
             + "HTTP headers. See section 1.13 of the RDAP_Technical_Implementation_Guide_2_1.");

@@ -9,9 +9,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 
-public class Validation4Dot1 extends TigValidationVcardArray {
+public class TigValidation4Dot1 extends TigValidationVcardArray {
 
-  public Validation4Dot1(String rdapResponse, RDAPValidatorResults results) {
+  public TigValidation4Dot1(String rdapResponse, RDAPValidatorResults results) {
     super(rdapResponse, results);
   }
 

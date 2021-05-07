@@ -12,13 +12,13 @@ import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Validation1Dot2Dot2 extends ProfileJsonValidation {
+public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
 
-  private static final Logger logger = LoggerFactory.getLogger(Validation1Dot2Dot2.class);
+  private static final Logger logger = LoggerFactory.getLogger(ResponseValidation1Dot2Dot2.class);
   private static final ObjectMapper mapper = new ObjectMapper();
   private final String rdapResponse;
 
-  public Validation1Dot2Dot2(String rdapResponse, RDAPValidatorResults results) {
+  public ResponseValidation1Dot2Dot2(String rdapResponse, RDAPValidatorResults results) {
     super(rdapResponse, results);
     this.rdapResponse = rdapResponse;
   }

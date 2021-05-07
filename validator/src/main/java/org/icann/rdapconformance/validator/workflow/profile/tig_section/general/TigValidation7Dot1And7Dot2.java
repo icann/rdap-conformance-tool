@@ -8,11 +8,11 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public final class Validation7Dot1And7Dot2 extends TigValidationVcardArray {
+public final class TigValidation7Dot1And7Dot2 extends TigValidationVcardArray {
 
   private static final Set<String> AUTHORIZED_PHONE_TYPE = Set.of("voice", "fax");
 
-  public Validation7Dot1And7Dot2(String rdapResponse,
+  public TigValidation7Dot1And7Dot2(String rdapResponse,
       RDAPValidatorResults results) {
     super(rdapResponse, results);
   }

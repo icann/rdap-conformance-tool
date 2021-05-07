@@ -8,11 +8,11 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
-public class Validation3Dot3And3Dot4 extends ProfileJsonValidation {
+public class TigValidation3Dot3And3Dot4 extends ProfileJsonValidation {
 
   private final SchemaValidator schemaValidator;
 
-  public Validation3Dot3And3Dot4(String rdapResponse,
+  public TigValidation3Dot3And3Dot4(String rdapResponse,
       RDAPValidatorResults results,
       SchemaValidator schemaValidator) {
     super(rdapResponse, results);

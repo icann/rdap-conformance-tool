@@ -11,14 +11,14 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.BootstrapDomainNameSpace;
 
-public final class Validation1Dot11Dot1 extends ProfileValidation {
+public final class TigValidation1Dot11Dot1 extends ProfileValidation {
 
 
   private final RDAPValidatorConfiguration config;
   private final RDAPDatasetService datasetService;
   private final RDAPQueryType queryType;
 
-  public Validation1Dot11Dot1(RDAPValidatorConfiguration config,
+  public TigValidation1Dot11Dot1(RDAPValidatorConfiguration config,
       RDAPValidatorResults results, RDAPDatasetService datasetService,
       RDAPQueryType queryType) {
     super(results);

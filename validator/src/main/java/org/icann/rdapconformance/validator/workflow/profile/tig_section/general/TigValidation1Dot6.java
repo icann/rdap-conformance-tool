@@ -9,13 +9,13 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Validation1Dot6 extends ProfileValidation {
+public final class TigValidation1Dot6 extends ProfileValidation {
 
-  private static final Logger logger = LoggerFactory.getLogger(Validation1Dot6.class);
+  private static final Logger logger = LoggerFactory.getLogger(TigValidation1Dot6.class);
   private final int rdapResponseStatusCode;
   private final RDAPValidatorConfiguration config;
 
-  public Validation1Dot6(int rdapResponseStatusCode, RDAPValidatorConfiguration config,
+  public TigValidation1Dot6(int rdapResponseStatusCode, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
     super(results);
     this.rdapResponseStatusCode = rdapResponseStatusCode;

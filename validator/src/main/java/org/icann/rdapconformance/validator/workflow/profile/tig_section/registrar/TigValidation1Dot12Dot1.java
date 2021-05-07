@@ -12,7 +12,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
 import org.json.JSONObject;
 
-public final class Validation1Dot12Dot1 extends ProfileJsonValidation {
+public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
 
   private final RDAPDatasetService datasetService;
   private final RDAPQueryType queryType;
@@ -22,7 +22,7 @@ public final class Validation1Dot12Dot1 extends ProfileJsonValidation {
       RDAPQueryType.ENTITY
   );
 
-  public Validation1Dot12Dot1(String rdapResponse,
+  public TigValidation1Dot12Dot1(String rdapResponse,
       RDAPValidatorResults results,
       RDAPDatasetService datasetService,
       RDAPQueryType queryType) {

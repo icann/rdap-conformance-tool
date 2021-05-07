@@ -14,7 +14,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Bootstrap
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class Validation1Dot11Dot1Test extends ProfileValidationTestBase {
+public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
 
   private final static RDAPQueryType QUERY_TYPE = RDAPQueryType.DOMAIN;
   private final RDAPDatasetService rdapDatasetService = mock(RDAPDatasetService.class);
@@ -36,7 +36,7 @@ public class Validation1Dot11Dot1Test extends ProfileValidationTestBase {
     doReturn(Set.of("https://domain.abc/rdap", "https://domain.test/rdap")).when(dataset)
         .getUrlsForTld("example");
 
-    validateOk(new Validation1Dot11Dot1(config, results, rdapDatasetService, QUERY_TYPE));
+    validateOk(new TigValidation1Dot11Dot1(config, results, rdapDatasetService, QUERY_TYPE));
   }
 
   @Test
@@ -44,7 +44,7 @@ public class Validation1Dot11Dot1Test extends ProfileValidationTestBase {
     doReturn(false).when(dataset).tldExists("example");
     doReturn(Set.of("abc", "test")).when(dataset).getTlds();
 
-    validateNotOk(new Validation1Dot11Dot1(config, results, rdapDatasetService, QUERY_TYPE), -23100,
+    validateNotOk(new TigValidation1Dot11Dot1(config, results, rdapDatasetService, QUERY_TYPE), -23100,
         "example\n/\nabc, test",
         "The TLD is not included in the bootstrapDomainNameSpace. "
             + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.");
@@ -56,7 +56,7 @@ public class Validation1Dot11Dot1Test extends ProfileValidationTestBase {
     doReturn(Set.of("https://domain.abc/rdap", "https://abc.test/rdap")).when(dataset)
         .getUrlsForTld("example");
 
-    validateNotOk(new Validation1Dot11Dot1(config, results, rdapDatasetService, QUERY_TYPE), -23101,
+    validateNotOk(new TigValidation1Dot11Dot1(config, results, rdapDatasetService, QUERY_TYPE), -23101,
         "https://abc.test/rdap, https://domain.abc/rdap",
         "The TLD entry in bootstrapDomainNameSpace does not contain a base URL. "
             + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.");
@@ -68,7 +68,7 @@ public class Validation1Dot11Dot1Test extends ProfileValidationTestBase {
     doReturn(Set.of("http://domain.abc/rdap", "https://domain.test/rdap")).when(dataset)
         .getUrlsForTld("example");
 
-    validateNotOk(new Validation1Dot11Dot1(config, results, rdapDatasetService, QUERY_TYPE), -23102,
+    validateNotOk(new TigValidation1Dot11Dot1(config, results, rdapDatasetService, QUERY_TYPE), -23102,
         "http://domain.abc/rdap, https://domain.test/rdap",
         "One or more of the base URLs for the TLD contain a schema different from "
             + "https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.");
@@ -77,7 +77,7 @@ public class Validation1Dot11Dot1Test extends ProfileValidationTestBase {
   @Test
   public void testDoLaunch_NotARegistry_IsFalse() {
     doReturn(false).when(config).isGtldRegistry();
-    assertThat(new Validation1Dot11Dot1(config, results, rdapDatasetService, QUERY_TYPE).doLaunch())
+    assertThat(new TigValidation1Dot11Dot1(config, results, rdapDatasetService, QUERY_TYPE).doLaunch())
         .isFalse();
   }
 
@@ -85,7 +85,7 @@ public class Validation1Dot11Dot1Test extends ProfileValidationTestBase {
   public void testDoLaunch_NotADomainQuery_IsFalse() {
     doReturn(true).when(config).isGtldRegistry();
     assertThat(
-        new Validation1Dot11Dot1(config, results, rdapDatasetService, RDAPQueryType.NAMESERVER)
+        new TigValidation1Dot11Dot1(config, results, rdapDatasetService, RDAPQueryType.NAMESERVER)
             .doLaunch()).isFalse();
   }
 }

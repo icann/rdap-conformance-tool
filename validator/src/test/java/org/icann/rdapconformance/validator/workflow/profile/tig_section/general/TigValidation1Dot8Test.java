@@ -15,9 +15,9 @@ import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.util.Set;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTestBase;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.DNSQuery;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.DNSQuery.DNSQueryResult;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.IPValidator;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.DNSQuery;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.DNSQuery.DNSQueryResult;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.IPValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.RedirectData;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.testng.annotations.BeforeMethod;
@@ -26,7 +26,7 @@ import org.xbill.DNS.Name;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-public class Validation1Dot8Test extends ProfileValidationTestBase {
+public class TigValidation1Dot8Test extends ProfileValidationTestBase {
 
   private final DNSQuery dnsQuery = mock(DNSQuery.class);
   private final IPValidator ipValidator = mock(IPValidator.class);
@@ -103,8 +103,8 @@ public class Validation1Dot8Test extends ProfileValidationTestBase {
   @BeforeMethod
   public void setUp() throws Throwable {
     super.setUp();
-    Validation1Dot8.dnsQuery = dnsQuery;
-    Validation1Dot8.ipValidator = ipValidator;
+    TigValidation1Dot8.dnsQuery = dnsQuery;
+    TigValidation1Dot8.ipValidator = ipValidator;
     doReturn(false).when(ipValidator).isInvalid(any(InetAddress.class), eq(datasetService));
   }
 
@@ -115,7 +115,7 @@ public class Validation1Dot8Test extends ProfileValidationTestBase {
     givenV4Ok();
     givenV6Ok();
 
-    validateOk(new Validation1Dot8(httpResponse, results, datasetService));
+    validateOk(new TigValidation1Dot8(httpResponse, results, datasetService));
   }
 
   @Test
@@ -125,7 +125,7 @@ public class Validation1Dot8Test extends ProfileValidationTestBase {
     givenV4AddressError(httpResponse.uri());
     givenV6Ok();
 
-    validateNotOk(new Validation1Dot8(httpResponse, results, datasetService), -20400,
+    validateNotOk(new TigValidation1Dot8(httpResponse, results, datasetService), -20400,
         "127.0.0.1, 127.0.0.2",
         "The RDAP service is not provided over IPv4. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
@@ -138,7 +138,7 @@ public class Validation1Dot8Test extends ProfileValidationTestBase {
     givenV4QueryError();
     givenV6Ok();
 
-    validateNotOk(new Validation1Dot8(httpResponse, results, datasetService), -20400, "127.0.0.1",
+    validateNotOk(new TigValidation1Dot8(httpResponse, results, datasetService), -20400, "127.0.0.1",
         "The RDAP service is not provided over IPv4. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
   }
@@ -151,7 +151,7 @@ public class Validation1Dot8Test extends ProfileValidationTestBase {
     givenV4AddressError(redirectData.endingResponse.uri());
     givenV6Ok();
 
-    validateNotOk(new Validation1Dot8(redirectData.startingResponse, results, datasetService),
+    validateNotOk(new TigValidation1Dot8(redirectData.startingResponse, results, datasetService),
         -20400, "127.0.0.1, 127.0.0.2",
         "The RDAP service is not provided over IPv4. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
@@ -164,7 +164,7 @@ public class Validation1Dot8Test extends ProfileValidationTestBase {
     givenV4Ok();
     givenV6AddressError(httpResponse.uri());
 
-    validateNotOk(new Validation1Dot8(httpResponse, results, datasetService), -20401,
+    validateNotOk(new TigValidation1Dot8(httpResponse, results, datasetService), -20401,
         "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2",
         "The RDAP service is not provided over IPv6. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
@@ -177,7 +177,7 @@ public class Validation1Dot8Test extends ProfileValidationTestBase {
     givenV4Ok();
     givenV6QueryError();
 
-    validateNotOk(new Validation1Dot8(httpResponse, results, datasetService), -20401,
+    validateNotOk(new TigValidation1Dot8(httpResponse, results, datasetService), -20401,
         "0:0:0:0:0:0:0:1",
         "The RDAP service is not provided over IPv6. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
@@ -191,7 +191,7 @@ public class Validation1Dot8Test extends ProfileValidationTestBase {
     givenV6Ok();
     givenV6AddressError(redirectData.endingResponse.uri());
 
-    validateNotOk(new Validation1Dot8(redirectData.startingResponse, results, datasetService),
+    validateNotOk(new TigValidation1Dot8(redirectData.startingResponse, results, datasetService),
         -20401, "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2",
         "The RDAP service is not provided over IPv6. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");

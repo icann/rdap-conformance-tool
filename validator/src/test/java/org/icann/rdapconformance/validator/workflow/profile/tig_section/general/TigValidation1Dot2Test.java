@@ -17,13 +17,13 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.Comparator;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot2.RDAPJsonComparator;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2.RDAPJsonComparator;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class Validation1Dot2Test extends HttpTestingUtils {
+public class TigValidation1Dot2Test extends HttpTestingUtils {
 
   private RDAPValidatorResults results;
 
@@ -40,7 +40,7 @@ public class Validation1Dot2Test extends HttpTestingUtils {
     doReturn(URI.create("http://domain/test.example")).when(config).getUri();
     doReturn(config.getUri()).when(httpsResponse).uri();
 
-    validateNotOk(new Validation1Dot2(httpsResponse, config, results), results,
+    validateNotOk(new TigValidation1Dot2(httpsResponse, config, results), results,
         -20100, config.getUri().toString(),
         "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
   }
@@ -52,7 +52,7 @@ public class Validation1Dot2Test extends HttpTestingUtils {
     // set URI as being an HTTP request to avoid going through HTTP test for code -20101
     doReturn(URI.create("http://domain/test.example")).when(config).getUri();
 
-    validateNotOk(new Validation1Dot2(redirectData.startingResponse, config, results), results,
+    validateNotOk(new TigValidation1Dot2(redirectData.startingResponse, config, results), results,
         -20100, redirectData.endingResponse.uri().toString(),
         "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
   }
@@ -78,7 +78,7 @@ public class Validation1Dot2Test extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
 
-    validateNotOk(new Validation1Dot2(httpsResponse, config, results), results,
+    validateNotOk(new TigValidation1Dot2(httpsResponse, config, results), results,
         -20101, RDAP_RESPONSE + "\n/\n" + RDAP_RESPONSE,
         "The RDAP response was provided over HTTP, per section 1.2 of the "
             + "RDAP_Technical_Implementation_Guide_2_1shall be HTTPS only.");

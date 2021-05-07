@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8.DNSQuery.DNSQueryResult;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.DNSQuery.DNSQueryResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -25,15 +25,15 @@ import org.xbill.DNS.Record;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
-public final class Validation1Dot8 extends ProfileValidation {
+public final class TigValidation1Dot8 extends ProfileValidation {
 
-  private static final Logger logger = LoggerFactory.getLogger(Validation1Dot8.class);
+  private static final Logger logger = LoggerFactory.getLogger(TigValidation1Dot8.class);
   static DNSQuery dnsQuery = new DNSQuery();
   static IPValidator ipValidator = new IPValidator();
   private final HttpResponse<String> rdapResponse;
   private final RDAPDatasetService datasetService;
 
-  public Validation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
+  public TigValidation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
       RDAPDatasetService datasetService) {
     super(results);
     this.rdapResponse = rdapResponse;

@@ -7,9 +7,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
 
-public class Validation4Dot1Test extends TigValidationFromSchemaTestBase {
+public class TigValidation4Dot1Test extends TigValidationFromSchemaTestBase {
 
-  public Validation4Dot1Test() {
+  public TigValidation4Dot1Test() {
     super("rdap_domain.json",
         "/validators/domain/valid.json",
         "tigSection_4_1_Validation");
@@ -17,7 +17,7 @@ public class Validation4Dot1Test extends TigValidationFromSchemaTestBase {
 
   @Override
   public ProfileJsonValidation getTigValidation() {
-    return new Validation4Dot1(jsonObject.toString(), results);
+    return new TigValidation4Dot1(jsonObject.toString(), results);
   }
 
   /**

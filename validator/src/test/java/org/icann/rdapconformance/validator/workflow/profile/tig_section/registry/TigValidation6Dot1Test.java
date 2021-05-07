@@ -7,17 +7,17 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValid
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.Test;
 
-public class Validation6Dot1Test extends TigValidationFromSchemaTestBase {
+public class TigValidation6Dot1Test extends TigValidationFromSchemaTestBase {
 
   private final static RDAPQueryType QUERY_TYPE = RDAPQueryType.DOMAIN;
 
-  public Validation6Dot1Test() {
+  public TigValidation6Dot1Test() {
     super("rdap_entities.json", "/validators/profile/tig_section/entities/valid.json", "tigSection_6_1_Validation");
   }
 
   @Override
   public ProfileJsonValidation getTigValidation() {
-    return new Validation6Dot1(jsonObject.toString(), results, QUERY_TYPE);
+    return new TigValidation6Dot1(jsonObject.toString(), results, QUERY_TYPE);
   }
 
   @Test
@@ -38,19 +38,19 @@ public class Validation6Dot1Test extends TigValidationFromSchemaTestBase {
 
   @Test
   public void testDoLaunch() {
-    assertThat(new Validation6Dot1(jsonObject.toString(), results, RDAPQueryType.DOMAIN).doLaunch())
+    assertThat(new TigValidation6Dot1(jsonObject.toString(), results, RDAPQueryType.DOMAIN).doLaunch())
         .isTrue();
-    assertThat(new Validation6Dot1(jsonObject.toString(), results, RDAPQueryType.NAMESERVER).doLaunch())
+    assertThat(new TigValidation6Dot1(jsonObject.toString(), results, RDAPQueryType.NAMESERVER).doLaunch())
         .isTrue();
-    assertThat(new Validation6Dot1(jsonObject.toString(), results, RDAPQueryType.ENTITY).doLaunch())
+    assertThat(new TigValidation6Dot1(jsonObject.toString(), results, RDAPQueryType.ENTITY).doLaunch())
         .isTrue();
   }
 
   @Test
   public void testDoLaunch_NotAValidQuery_IsFalse() {
-    assertThat(new Validation6Dot1(jsonObject.toString(), results, RDAPQueryType.NAMESERVERS).doLaunch())
+    assertThat(new TigValidation6Dot1(jsonObject.toString(), results, RDAPQueryType.NAMESERVERS).doLaunch())
         .isFalse();
-    assertThat(new Validation6Dot1(jsonObject.toString(), results, RDAPQueryType.HELP).doLaunch())
+    assertThat(new TigValidation6Dot1(jsonObject.toString(), results, RDAPQueryType.HELP).doLaunch())
         .isFalse();
   }
 }

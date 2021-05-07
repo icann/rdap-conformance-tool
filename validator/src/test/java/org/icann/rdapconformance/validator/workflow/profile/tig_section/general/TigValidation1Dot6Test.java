@@ -15,7 +15,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class Validation1Dot6Test extends HttpTestingUtils {
+public class TigValidation1Dot6Test extends HttpTestingUtils {
 
   private RDAPValidatorResults results;
 
@@ -39,7 +39,7 @@ public class Validation1Dot6Test extends HttpTestingUtils {
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")));
 
-    validateOk(new Validation1Dot6(200, config, results), results);
+    validateOk(new TigValidation1Dot6(200, config, results), results);
   }
 
   @Test
@@ -52,7 +52,7 @@ public class Validation1Dot6Test extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withStatus(404)));
 
-    validateNotOk(new Validation1Dot6(200, config, results), results, -20300,
+    validateNotOk(new TigValidation1Dot6(200, config, results), results, -20300,
         200 + "\n/\n" + 404,
         "The HTTP Status code obtained when using the HEAD method is different from the "
             + "GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.");

@@ -11,20 +11,20 @@ import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2019;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot3;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.Validation1Dot2Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot13;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot14;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot3;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot6;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation1Dot8;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation3Dot3And3Dot4;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation4Dot1;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.Validation7Dot1And7Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registrar.Validation1Dot12Dot1;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation3Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation6Dot1;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2Dot2;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot13;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot14;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot3;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot6;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation4Dot1;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation7Dot1And7Dot2;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registrar.TigValidation1Dot12Dot1;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation1Dot11Dot1;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation6Dot1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,23 +143,23 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
       HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
       RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
           List.of(
-              new Validation1Dot2(rdapResponse, config, results),
-              new Validation1Dot3(rdapResponse, config, results),
-              new Validation1Dot6(rdapResponse.statusCode(), config, results),
-              new Validation1Dot8(rdapResponse, results, datasetService),
-              new Validation1Dot13(rdapResponse, results),
-              new Validation1Dot11Dot1(config, results, datasetService,
+              new TigValidation1Dot2(rdapResponse, config, results),
+              new TigValidation1Dot3(rdapResponse, config, results),
+              new TigValidation1Dot6(rdapResponse.statusCode(), config, results),
+              new TigValidation1Dot8(rdapResponse, results, datasetService),
+              new TigValidation1Dot13(rdapResponse, results),
+              new TigValidation1Dot11Dot1(config, results, datasetService,
                   queryTypeProcessor.getQueryType()),
-              new Validation1Dot14(query.getData(), results),
-              new Validation3Dot2(query.getData(), results, config,
+              new TigValidation1Dot14(query.getData(), results),
+              new TigValidation3Dot2(query.getData(), results, config,
                   queryTypeProcessor.getQueryType()),
-              new Validation6Dot1(query.getData(), results, queryTypeProcessor.getQueryType()),
-              new Validation3Dot3And3Dot4(query.getData(), results, validator),
-              new Validation4Dot1(query.getData(), results),
-              new Validation7Dot1And7Dot2(query.getData(), results),
-              new Validation1Dot12Dot1(query.getData(), results, datasetService,
+              new TigValidation6Dot1(query.getData(), results, queryTypeProcessor.getQueryType()),
+              new TigValidation3Dot3And3Dot4(query.getData(), results, validator),
+              new TigValidation4Dot1(query.getData(), results),
+              new TigValidation7Dot1And7Dot2(query.getData(), results),
+              new TigValidation1Dot12Dot1(query.getData(), results, datasetService,
                   queryTypeProcessor.getQueryType()),
-              new Validation1Dot2Dot2(query.getData(), results),
+              new ResponseValidation1Dot2Dot2(query.getData(), results),
               new ResponseValidation1Dot3(query.getData(), results)
           ));
       rdapProfileFebruary2019.validate();

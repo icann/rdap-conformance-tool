@@ -10,11 +10,11 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class Validation6Dot1 extends ProfileJsonValidation {
+public class TigValidation6Dot1 extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
 
-  public Validation6Dot1(String rdapResponse,
+  public TigValidation6Dot1(String rdapResponse,
       RDAPValidatorResults results,
       RDAPQueryType queryType) {
     super(rdapResponse, results);

@@ -5,16 +5,15 @@ import static org.mockito.Mockito.doReturn;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationFromSchemaTestBase;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.Validation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
 import org.testng.annotations.Test;
 
-public class Validation1Dot12Dot1Test extends TigValidationFromSchemaTestBase {
+public class TigValidation1Dot12Dot1Test extends TigValidationFromSchemaTestBase {
 
   RDAPQueryType queryType = RDAPQueryType.DOMAIN;
 
-  public Validation1Dot12Dot1Test() {
+  public TigValidation1Dot12Dot1Test() {
     super(
         "rdap_entities.json",
         "/validators/profile/tig_section/entities/valid.json",
@@ -23,7 +22,7 @@ public class Validation1Dot12Dot1Test extends TigValidationFromSchemaTestBase {
 
   @Override
   public ProfileJsonValidation getTigValidation() {
-    return new Validation1Dot12Dot1(jsonObject.toString(), results, datasets, queryType);
+    return new TigValidation1Dot12Dot1(jsonObject.toString(), results, datasets, queryType);
   }
 
   /**

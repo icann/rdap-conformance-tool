@@ -7,11 +7,11 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public final class Validation1Dot13 extends ProfileValidation {
+public final class TigValidation1Dot13 extends ProfileValidation {
 
   private final HttpResponse<String> rdapResponse;
 
-  public Validation1Dot13(HttpResponse<String> rdapResponse,
+  public TigValidation1Dot13(HttpResponse<String> rdapResponse,
       RDAPValidatorResults results) {
     super(results);
     this.rdapResponse = rdapResponse;

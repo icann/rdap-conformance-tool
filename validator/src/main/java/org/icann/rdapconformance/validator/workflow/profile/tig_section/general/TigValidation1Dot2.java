@@ -22,16 +22,16 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Validation1Dot2 extends ProfileValidation {
+public final class TigValidation1Dot2 extends ProfileValidation {
 
-  private static final Logger logger = LoggerFactory.getLogger(Validation1Dot2.class);
+  private static final Logger logger = LoggerFactory.getLogger(TigValidation1Dot2.class);
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final RDAPJsonComparator jsonComparator = new RDAPJsonComparator();
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
 
-  public Validation1Dot2(HttpResponse<String> rdapResponse,
+  public TigValidation1Dot2(HttpResponse<String> rdapResponse,
       RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
     super(results);
