@@ -10,7 +10,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class TigValidation6Dot1 extends ProfileJsonValidation {
+public final class TigValidation6Dot1 extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
 

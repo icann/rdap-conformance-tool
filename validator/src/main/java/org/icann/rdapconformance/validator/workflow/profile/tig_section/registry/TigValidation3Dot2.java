@@ -8,7 +8,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class TigValidation3Dot2 extends ProfileJsonValidation {
+public final class TigValidation3Dot2 extends ProfileJsonValidation {
 
   private final RDAPValidatorConfiguration config;
   private final RDAPQueryType queryType;
