@@ -2,13 +2,13 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import java.util.Set;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.TigValidationVcardArray;
+import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileVcardArrayValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public final class TigValidation7Dot1And7Dot2 extends TigValidationVcardArray {
+public final class TigValidation7Dot1And7Dot2 extends RDAPProfileVcardArrayValidation {
 
   private static final Set<String> AUTHORIZED_PHONE_TYPE = Set.of("voice", "fax");
 
@@ -23,10 +23,10 @@ public final class TigValidation7Dot1And7Dot2 extends TigValidationVcardArray {
   }
 
   @Override
-  public boolean validateVcardArray(String category, JSONArray categorieJsonArray,
+  public boolean validateVcardArray(String category, JSONArray categoryJsonArray,
       String jsonExceptionPointer, JcardCategoriesSchemas jcardCategoriesSchemas) {
     if (category.equals("tel")) {
-      Object phoneType = categorieJsonArray.get(1);
+      Object phoneType = categoryJsonArray.get(1);
       if (!(phoneType instanceof JSONObject)) {
         logError(jsonExceptionPointer, phoneType);
         return false;

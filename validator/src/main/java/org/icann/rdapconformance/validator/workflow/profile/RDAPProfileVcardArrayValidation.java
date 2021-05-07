@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator.workflow.profile.tig_section;
+package org.icann.rdapconformance.validator.workflow.profile;
 
 import static com.jayway.jsonpath.JsonPath.using;
 
@@ -8,14 +8,13 @@ import com.jayway.jsonpath.Option;
 import java.util.List;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public abstract class TigValidationVcardArray extends ProfileJsonValidation {
+public abstract class RDAPProfileVcardArrayValidation extends ProfileJsonValidation {
 
-  public TigValidationVcardArray(String rdapResponse, RDAPValidatorResults results) {
+  public RDAPProfileVcardArrayValidation(String rdapResponse, RDAPValidatorResults results) {
     super(rdapResponse, results);
   }
 
@@ -37,11 +36,11 @@ public abstract class TigValidationVcardArray extends ProfileJsonValidation {
           JSONArray vcardElementArray = (JSONArray) vcardElement;
           int categoryArrayIndex = 0;
           for (Object categoryArray : vcardElementArray) {
-            JSONArray categorieJsonArray = ((JSONArray) categoryArray);
-            String category = categorieJsonArray.getString(0);
+            JSONArray categoryJsonArray = ((JSONArray) categoryArray);
+            String category = categoryJsonArray.getString(0);
             String jsonExceptionPointer =
                 jsonPointer + "/" + vcardElementIndex + "/" + categoryArrayIndex;
-            isValid &= validateVcardArray(category, categorieJsonArray, jsonExceptionPointer,
+            isValid &= validateVcardArray(category, categoryJsonArray, jsonExceptionPointer,
                 jcardCategoriesSchemas);
             categoryArrayIndex++;
           }
