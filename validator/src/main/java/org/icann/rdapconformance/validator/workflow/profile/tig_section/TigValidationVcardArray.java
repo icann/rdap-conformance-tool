@@ -21,7 +21,6 @@ public abstract class TigValidationVcardArray extends ProfileJsonValidation {
 
   @Override
   protected boolean doValidate() {
-    JSONObject jsonObject = new JSONObject(rdapResponse);
     Configuration jsonPathConfig = Configuration.defaultConfiguration()
         .addOptions(Option.AS_PATH_LIST)
         .addOptions(Option.SUPPRESS_EXCEPTIONS);

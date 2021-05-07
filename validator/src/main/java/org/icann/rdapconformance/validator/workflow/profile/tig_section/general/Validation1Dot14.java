@@ -38,7 +38,7 @@ public class Validation1Dot14 extends ProfileJsonValidation {
     Configuration jsonPathConfig = Configuration.defaultConfiguration()
         .addOptions(Option.AS_PATH_LIST)
         .addOptions(Option.SUPPRESS_EXCEPTIONS);
-    DocumentContext jpath = using(jsonPathConfig).parse(rdapResponse);
+    DocumentContext jpath = using(jsonPathConfig).parse(jsonObject.toString());
     List<String> rdapConformances = jpath.read("$..rdapConformance");
 
     // using a schema to check if something is in an array is maybe an overkill
@@ -51,7 +51,7 @@ public class Validation1Dot14 extends ProfileJsonValidation {
 
     for (String rdapConformance : rdapConformances) {
       String jsonPointer = JsonPointers.fromJpath(rdapConformance);
-      Object value = new JSONObject(rdapResponse).query(jsonPointer);
+      Object value = jsonObject.query(jsonPointer);
       try {
         schema.validate(value);
       } catch (ValidationException e) {

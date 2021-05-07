@@ -29,9 +29,7 @@ public class Validation3Dot2 extends ProfileJsonValidation {
   @Override
   public boolean doValidate() {
     boolean isValid = false;
-
-    JSONObject rdapResponseJson = new JSONObject(rdapResponse);
-    JSONArray links = rdapResponseJson.optJSONArray("links");
+    JSONArray links = jsonObject.optJSONArray("links");
     if (links != null) {
       for (Object link : links) {
         JSONObject l = (JSONObject) link;

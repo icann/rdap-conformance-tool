@@ -29,7 +29,7 @@ public class Validation6Dot1 extends ProfileJsonValidation {
 
   public boolean doValidate() {
     boolean isValid = true;
-    JSONArray registrarEntities = JsonPath.parse(rdapResponse)
+    JSONArray registrarEntities = JsonPath.parse(jsonObject.toString())
         .read("$.entities[?(@.roles contains 'registrar')]");
 
     for (Object registrarEntity : registrarEntities) {

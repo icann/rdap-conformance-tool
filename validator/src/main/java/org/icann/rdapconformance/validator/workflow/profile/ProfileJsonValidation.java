@@ -10,12 +10,10 @@ import org.json.JSONObject;
 
 public abstract class ProfileJsonValidation extends ProfileValidation {
 
-  protected final String rdapResponse;
   protected final JSONObject jsonObject;
 
   public ProfileJsonValidation(String rdapResponse, RDAPValidatorResults results) {
     super(results);
-    this.rdapResponse = rdapResponse;
     jsonObject = new JSONObject(rdapResponse);
   }
 
@@ -23,7 +21,7 @@ public abstract class ProfileJsonValidation extends ProfileValidation {
     Configuration jsonPathConfig = Configuration.defaultConfiguration()
         .addOptions(Option.AS_PATH_LIST)
         .addOptions(Option.SUPPRESS_EXCEPTIONS);
-    return using(jsonPathConfig).parse(rdapResponse);
+    return using(jsonPathConfig).parse(jsonObject.toString());
   }
 
   public String getResultValue(String jsonPointer) {

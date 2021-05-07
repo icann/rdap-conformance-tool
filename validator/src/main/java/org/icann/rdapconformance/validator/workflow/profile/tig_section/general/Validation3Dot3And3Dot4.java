@@ -26,7 +26,6 @@ public class Validation3Dot3And3Dot4 extends ProfileJsonValidation {
 
   @Override
   public boolean doValidate() {
-    JSONObject jsonObject = new JSONObject(rdapResponse);
     JsonPointers jsonPointers = schemaValidator.getSchemaRootNode().findJsonPointersBySchemaId(
         "rdap_notices.json", jsonObject);
     boolean noLinksInTopMost = jsonPointers.getOnlyTopMosts()

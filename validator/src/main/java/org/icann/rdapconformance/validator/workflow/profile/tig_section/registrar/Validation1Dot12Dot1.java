@@ -10,7 +10,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
 import org.json.JSONObject;
 
-public class Validation1Dot12Dot1 extends ProfileJsonValidation {
+public final class Validation1Dot12Dot1 extends ProfileJsonValidation {
 
   private final RDAPDatasetService datasetService;
 
