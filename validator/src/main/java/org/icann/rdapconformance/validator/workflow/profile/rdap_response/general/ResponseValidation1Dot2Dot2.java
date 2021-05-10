@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,14 +35,15 @@ public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
     String rdapResponseSanitized = StringEscapeUtils.unescapeHtml4(policy.sanitize(rdapResponse));
     try {
       JsonNode beforeSanitizing = mapper.readTree(rdapResponse);
-      JsonNode afterSanitizing = mapper.readTree(rdapResponseSanitized);
+      JsonNode afterSanitizing;
+      try {
+        afterSanitizing = mapper.readTree(rdapResponseSanitized);
+      } catch (JsonParseException e) {
+        addResult();
+        return false;
+      }
       if (!beforeSanitizing.equals(afterSanitizing)) {
-        results.add(RDAPValidationResult.builder()
-            .code(-40100)
-            .value(rdapResponse)
-            .message("The RDAP response contains browser executable code (e.g., JavaScript). "
-                + "See section 1.2.2 of the RDAP_Response_Profile_2_1.")
-            .build());
+        addResult();
         return false;
       }
     } catch (JsonProcessingException e) {
@@ -49,6 +51,15 @@ public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
           "Exception when making HTTP request in order to check [tigSection_1_2_Validation]", e);
     }
     return true;
+  }
+
+  private void addResult() {
+    results.add(RDAPValidationResult.builder()
+        .code(-40100)
+        .value(rdapResponse)
+        .message("The RDAP response contains browser executable code (e.g., JavaScript). "
+            + "See section 1.2.2 of the RDAP_Response_Profile_2_1.")
+        .build());
   }
 
 }

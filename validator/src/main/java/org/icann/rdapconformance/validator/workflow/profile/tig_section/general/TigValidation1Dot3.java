@@ -62,6 +62,7 @@ public final class TigValidation1Dot3 extends ProfileValidation {
           }
         } catch (NoSuchAlgorithmException | IOException e) {
           logger.error("Cannot create SSL context", e);
+          return false;
         }
       }
       responseOpt = response.previousResponse();
