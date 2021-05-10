@@ -78,16 +78,13 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
   @Test
   public void testDoLaunch_NotARegistry_IsFalse() {
     doReturn(false).when(config).isGtldRegistry();
-    assertThat(getTigValidation().doLaunch())
-        .isFalse();
+    assertThat(getTigValidation().doLaunch()).isFalse();
   }
 
   @Test
   public void testDoLaunch_NotADomainQuery_IsFalse() {
     doReturn(true).when(config).isGtldRegistry();
     queryType = RDAPQueryType.NAMESERVER;
-    assertThat(
-        getTigValidation()
-            .doLaunch()).isFalse();
+    assertThat(getTigValidation().doLaunch()).isFalse();
   }
 }

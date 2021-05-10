@@ -6,7 +6,6 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.Option;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.schema.JsonPointers;

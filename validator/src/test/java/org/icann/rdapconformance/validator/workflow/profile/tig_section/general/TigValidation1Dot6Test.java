@@ -8,6 +8,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.mockito.Mockito.mock;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.ValidationTest;
@@ -29,6 +30,11 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
     results = mock(RDAPValidatorResults.class);
   }
 
+  @Override
+  public ProfileValidation getTigValidation() {
+    return new TigValidation1Dot6(200, config, results);
+  }
+
   @Test
   public void testValidate_HttpHeadStatusSameAsGet_IsOk() {
     // configure wiremock for HTTP as we will make an HTTP request
@@ -38,7 +44,7 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")));
 
-    validateOk(new TigValidation1Dot6(200, config, results), results);
+    validateOk(results);
   }
 
   @Test
@@ -51,7 +57,7 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withStatus(404)));
 
-    validateNotOk(new TigValidation1Dot6(200, config, results), results, -20300,
+    validateNotOk(results, -20300,
         200 + "\n/\n" + 404,
         "The HTTP Status code obtained when using the HEAD method is different from the "
             + "GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.");

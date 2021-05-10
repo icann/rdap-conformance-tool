@@ -9,14 +9,18 @@ import org.mockito.ArgumentCaptor;
 
 public interface ValidationTest {
 
-  default void validateOk(ProfileValidation validation, RDAPValidatorResults results) {
+  ProfileValidation getTigValidation();
+
+  default void validateOk(RDAPValidatorResults results) {
+    ProfileValidation validation = getTigValidation();
     assertThat(validation.validate()).isTrue();
     verify(results).addGroup(validation.getGroupName());
     verifyNoMoreInteractions(results);
   }
 
-  default void validateNotOk(ProfileValidation validation, RDAPValidatorResults results,
+  default void validateNotOk(RDAPValidatorResults results,
       int code, String value, String message) {
+    ProfileValidation validation = getTigValidation();
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
     assertThat(validation.validate()).isFalse();

@@ -12,11 +12,11 @@ import org.testng.annotations.BeforeMethod;
 public abstract class ProfileJsonValidationTestBase extends ProfileValidationTestBase {
 
   protected final String validJsonResourcePath;
+  protected final String testGroupName;
   protected JSONObject jsonObject;
   protected String rdapContent;
   protected RDAPDatasetService datasets;
   protected String validationName;
-  protected final String testGroupName;
 
   public ProfileJsonValidationTestBase(
       String validJsonResourcePath,
@@ -24,8 +24,6 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
     this.validJsonResourcePath = validJsonResourcePath;
     this.testGroupName = testGroupName;
   }
-
-  public abstract ProfileJsonValidation getTigValidation();
 
   @Override
   @BeforeMethod

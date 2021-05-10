@@ -15,7 +15,7 @@ public abstract class ProfileValidationTestBase implements ValidationTest {
   public abstract ProfileValidation getTigValidation();
 
   public void validate(int code, String value, String message) {
-    validateNotOk(getTigValidation(), results, code, value, message);
+    validateNotOk(results, code, value, message);
   }
 
   @BeforeMethod
@@ -25,6 +25,6 @@ public abstract class ProfileValidationTestBase implements ValidationTest {
 
   @Test
   public void testValidate_ok() {
-    validateOk(getTigValidation(), results);
+    validateOk(results);
   }
 }
