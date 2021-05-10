@@ -1,16 +1,14 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationFromSchemaTestBase;
-import org.json.JSONObject;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.testng.annotations.Test;
 
-public class TigValidation7Dot1And7Dot2Test extends ProfileValidationFromSchemaTestBase {
+public class TigValidation7Dot1And7Dot2Test extends ProfileJsonValidationTestBase {
 
   public TigValidation7Dot1And7Dot2Test() {
-    super("rdap_domain.json",
+    super(
         "/validators/domain/valid.json",
         "tigSection_7_1_and_7_2_Validation");
   }
@@ -27,10 +25,7 @@ public class TigValidation7Dot1And7Dot2Test extends ProfileValidationFromSchemaT
   public void tigSection_4_1_Validation() {
     // replace the type == voice/fax valid with a wrong value:
     Map<String, String> wrongType = Map.of("type", "not-voice-nor-fax");
-    jsonObject = new JSONObject(JsonPath
-        .parse(jsonObject.toString())
-        .set("$['entities'][0]['entities'][0]['vcardArray'][1][2][1]", wrongType)
-        .jsonString());
+    replaceValue("$['entities'][0]['entities'][0]['vcardArray'][1][2][1]", wrongType);
     validate(-20900,
         "#/entities/0/entities/0/vcardArray/1/2:{\"type\":\"not-voice-nor-fax\"}",
         "An entity with a tel property without a voice or fax "

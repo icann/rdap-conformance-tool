@@ -5,7 +5,9 @@ import static com.jayway.jsonpath.JsonPath.using;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.Option;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -24,7 +26,7 @@ public abstract class RDAPProfileVcardArrayValidation extends ProfileJsonValidat
         .addOptions(Option.AS_PATH_LIST)
         .addOptions(Option.SUPPRESS_EXCEPTIONS);
     DocumentContext jpath = using(jsonPathConfig).parse(jsonObject.toString());
-    List<String> vcardArraysPaths = jpath.read("$..entities..vcardArray");
+    Set<String> vcardArraysPaths = new HashSet<>(jpath.read("$..entities..vcardArray"));
     JcardCategoriesSchemas jcardCategoriesSchemas = new JcardCategoriesSchemas();
     boolean isValid = true;
     for (String vcardArraysPath : vcardArraysPaths) {

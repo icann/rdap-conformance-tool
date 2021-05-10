@@ -2,15 +2,15 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationFromSchemaTestBase;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
 
-public class TigValidation4Dot1Test extends ProfileValidationFromSchemaTestBase {
+public class TigValidation4Dot1Test extends ProfileJsonValidationTestBase {
 
   public TigValidation4Dot1Test() {
-    super("rdap_domain.json",
+    super(
         "/validators/domain/valid.json",
         "tigSection_4_1_Validation");
   }

@@ -8,37 +8,20 @@ import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public abstract class RDAPConformanceValidationTest<T extends RDAPConformanceValidation> extends
-    ProfileValidationTestBase {
+public abstract class RDAPConformanceValidationTest extends
+    ProfileJsonValidationTestBase {
 
-  private final Class<T> validationClass;
-  protected JSONObject jsonObject;
-
-  protected RDAPConformanceValidationTest(Class<T> validationClass) {
-    this.validationClass = validationClass;
+  protected RDAPConformanceValidationTest(String testGroupName) {
+    super("/validators/profile/rdapConformance/valid.json", testGroupName);
   }
 
-  @BeforeMethod
-  public void setUp() throws Throwable {
-    super.setUp();
-    this.jsonObject = new JSONObject(getResource("/validators/profile/rdapConformance/valid.json"));
-  }
-
-  @Test
   @Override
-  public void testValidate() throws Throwable {
-    T validation = validationClass.getConstructor(String.class, RDAPValidatorResults.class)
-        .newInstance(jsonObject.toString(), results);
-    validateOk(validation);
-  }
+  public abstract RDAPConformanceValidation getTigValidation();
 
   @Test
-  public void testValidate_RDAPConformanceDoesNotContainsValue_AddErrorCode() throws Throwable {
+  public void testValidate_RDAPConformanceDoesNotContainsValue_AddErrorCode() {
     jsonObject.put("rdapConformance", List.of("rdap_level_0"));
-
-    T validation = validationClass.getConstructor(String.class, RDAPValidatorResults.class)
-        .newInstance(jsonObject.toString(), results);
-    validateNotOk(validation, validation.code, "#/rdapConformance:[\"rdap_level_0\"]",
-        validation.message);
+    validate(getTigValidation().code, "#/rdapConformance:[\"rdap_level_0\"]",
+        getTigValidation().message);
   }
 }

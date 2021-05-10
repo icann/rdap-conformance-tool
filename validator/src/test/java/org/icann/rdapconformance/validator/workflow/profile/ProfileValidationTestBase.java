@@ -1,53 +1,30 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.mockito.ArgumentCaptor;
+import org.icann.rdapconformance.validator.workflow.rdap.ValidationTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public abstract class ProfileValidationTestBase {
+public abstract class ProfileValidationTestBase implements ValidationTest {
 
   protected RDAPValidatorResults results;
 
-  public static void validateOk(ProfileValidation validation, RDAPValidatorResults results) {
-    assertThat(validation.validate()).isTrue();
-    verify(results).addGroup(validation.getGroupName());
-    verifyNoMoreInteractions(results);
-  }
+  public abstract ProfileValidation getTigValidation();
 
-  public static void validateNotOk(ProfileValidation validation, RDAPValidatorResults results,
-      int code, String value, String message) {
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
-        .forClass(RDAPValidationResult.class);
-    assertThat(validation.validate()).isFalse();
-    verify(results).add(resultCaptor.capture());
-    RDAPValidationResult result = resultCaptor.getValue();
-    assertThat(result).hasFieldOrPropertyWithValue("code", code)
-        .hasFieldOrPropertyWithValue("value", value)
-        .hasFieldOrPropertyWithValue("message", message);
-    verify(results).addGroupErrorWarning(validation.getGroupName());
+  public void validate(int code, String value, String message) {
+    validateNotOk(getTigValidation(), results, code, value, message);
   }
 
   @BeforeMethod
-  public void setUp() throws Throwable {
+  public void setUp() throws IOException {
     results = mock(RDAPValidatorResults.class);
   }
 
-  protected void validateOk(ProfileValidation validation) {
-    validateOk(validation, results);
-  }
-
-  protected void validateNotOk(ProfileValidation validation, int code, String value,
-      String message) {
-    validateNotOk(validation, results, code, value, message);
-  }
-
   @Test
-  public abstract void testValidate() throws Throwable;
+  public void testValidate_ok() {
+    validateOk(getTigValidation(), results);
+  }
 }

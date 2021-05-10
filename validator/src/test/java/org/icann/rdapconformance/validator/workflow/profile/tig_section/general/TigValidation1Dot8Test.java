@@ -7,6 +7,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -14,6 +15,8 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.util.Set;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.DNSQuery;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.DNSQuery.DNSQueryResult;
@@ -31,6 +34,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
   private final DNSQuery dnsQuery = mock(DNSQuery.class);
   private final IPValidator ipValidator = mock(IPValidator.class);
   private final RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
+  private HttpResponse<String> httpResponse;
 
   private void givenV6Ok() throws UnknownHostException {
     InetAddress ipv6AddressValid = Inet6Address
@@ -100,32 +104,30 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
     return httpsResponse;
   }
 
+  @Override
+  public ProfileValidation getTigValidation() {
+    return new TigValidation1Dot8(httpResponse, results, datasetService);
+  }
+
   @BeforeMethod
-  public void setUp() throws Throwable {
+  public void setUp() throws IOException {
     super.setUp();
     TigValidation1Dot8.dnsQuery = dnsQuery;
     TigValidation1Dot8.ipValidator = ipValidator;
     doReturn(false).when(ipValidator).isInvalid(any(InetAddress.class), eq(datasetService));
-  }
-
-  @Override
-  @Test
-  public void testValidate() throws UnknownHostException {
-    HttpResponse<String> httpResponse = givenHttpResponse();
+    httpResponse = givenHttpResponse();
     givenV4Ok();
     givenV6Ok();
-
-    validateOk(new TigValidation1Dot8(httpResponse, results, datasetService));
   }
 
   @Test
   public void testValidate_InvalidIPv4_AddResult20400()
       throws UnknownHostException, TextParseException {
-    HttpResponse<String> httpResponse = givenHttpResponse();
+    httpResponse = givenHttpResponse();
     givenV4AddressError(httpResponse.uri());
     givenV6Ok();
 
-    validateNotOk(new TigValidation1Dot8(httpResponse, results, datasetService), -20400,
+    validate(-20400,
         "127.0.0.1, 127.0.0.2",
         "The RDAP service is not provided over IPv4. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
@@ -134,11 +136,11 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
   @Test
   public void testValidate_InvalidIPv4DnsResponse_AddResult20400()
       throws UnknownHostException {
-    HttpResponse<String> httpResponse = givenHttpResponse();
+    httpResponse = givenHttpResponse();
     givenV4QueryError();
     givenV6Ok();
 
-    validateNotOk(new TigValidation1Dot8(httpResponse, results, datasetService), -20400, "127.0.0.1",
+    validate(-20400, "127.0.0.1",
         "The RDAP service is not provided over IPv4. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
   }
@@ -150,9 +152,8 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
     givenV4Ok();
     givenV4AddressError(redirectData.endingResponse.uri());
     givenV6Ok();
-
-    validateNotOk(new TigValidation1Dot8(redirectData.startingResponse, results, datasetService),
-        -20400, "127.0.0.1, 127.0.0.2",
+    httpResponse = redirectData.startingResponse;
+    validate(-20400, "127.0.0.1, 127.0.0.2",
         "The RDAP service is not provided over IPv4. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
   }
@@ -160,11 +161,11 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
   @Test
   public void testValidate_InvalidIPv6_AddResult20401()
       throws UnknownHostException, TextParseException {
-    HttpResponse<String> httpResponse = givenHttpResponse();
+    httpResponse = givenHttpResponse();
     givenV4Ok();
     givenV6AddressError(httpResponse.uri());
 
-    validateNotOk(new TigValidation1Dot8(httpResponse, results, datasetService), -20401,
+    validate(-20401,
         "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2",
         "The RDAP service is not provided over IPv6. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
@@ -173,11 +174,11 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
 
   @Test
   public void testValidate_InvalidIPv6DnsResponse_AddResult20401() throws UnknownHostException {
-    HttpResponse<String> httpResponse = givenHttpResponse();
+    httpResponse = givenHttpResponse();
     givenV4Ok();
     givenV6QueryError();
 
-    validateNotOk(new TigValidation1Dot8(httpResponse, results, datasetService), -20401,
+    validate(-20401,
         "0:0:0:0:0:0:0:1",
         "The RDAP service is not provided over IPv6. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
@@ -190,9 +191,8 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
     givenV4Ok();
     givenV6Ok();
     givenV6AddressError(redirectData.endingResponse.uri());
-
-    validateNotOk(new TigValidation1Dot8(redirectData.startingResponse, results, datasetService),
-        -20401, "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2",
+    httpResponse = redirectData.startingResponse;
+    validate(-20401, "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2",
         "The RDAP service is not provided over IPv6. See section 1.8 of the "
             + "RDAP_Technical_Implementation_Guide_2_1.");
   }

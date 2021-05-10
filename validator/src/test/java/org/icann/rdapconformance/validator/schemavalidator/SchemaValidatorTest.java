@@ -19,22 +19,22 @@ import org.testng.annotations.Test;
 
 public abstract class SchemaValidatorTest {
 
-  protected final String schemaName;
-  protected final String validJson;
-  protected SchemaValidator schemaValidator;
+  protected final String validJsonResourcePath;
   protected JSONObject jsonObject;
   protected RDAPValidatorResults results;
-  protected String name;
   protected String rdapContent;
   protected RDAPDatasetService datasets;
+  protected final String schemaName;
+  protected SchemaValidator schemaValidator;
+  protected String name;
   protected static final String WRONG_ENUM_VALUE = "wrong enum value";
   protected String validationName;
 
   public SchemaValidatorTest(
       String schemaName,
-      String validJson) {
+      String validJsonResourcePath) {
+    this.validJsonResourcePath = validJsonResourcePath;
     this.schemaName = schemaName;
-    this.validJson = validJson;
   }
 
   public static String getResource(String path) throws IOException {
@@ -54,9 +54,9 @@ public abstract class SchemaValidatorTest {
     datasets = new RDAPDatasetServiceMock();
     datasets.download(true);
     results = new RDAPValidatorResults();
-    schemaValidator = new SchemaValidator(schemaName, results, datasets);
-    rdapContent = getResource(validJson);
+    rdapContent = getResource(validJsonResourcePath);
     jsonObject = new JSONObject(rdapContent);
+    schemaValidator = new SchemaValidator(schemaName, results, datasets);
     name = schemaValidator.getSchema().getTitle();
   }
 

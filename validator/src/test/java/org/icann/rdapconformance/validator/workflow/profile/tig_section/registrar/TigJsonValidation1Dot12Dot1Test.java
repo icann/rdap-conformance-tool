@@ -4,18 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationFromSchemaTestBase;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
 import org.testng.annotations.Test;
 
-public class TigValidation1Dot12Dot1Test extends ProfileValidationFromSchemaTestBase {
+public class TigJsonValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
 
   RDAPQueryType queryType = RDAPQueryType.DOMAIN;
 
-  public TigValidation1Dot12Dot1Test() {
+  public TigJsonValidation1Dot12Dot1Test() {
     super(
-        "rdap_entities.json",
         "/validators/profile/tig_section/entities/valid.json",
         "tigSection_1_12_1_Validation");
   }

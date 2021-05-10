@@ -3,16 +3,16 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.registr
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationFromSchemaTestBase;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.Test;
 
-public class TigValidation6Dot1Test extends ProfileValidationFromSchemaTestBase {
+public class TigJsonValidation6Dot1Test extends ProfileJsonValidationTestBase {
 
   private final static RDAPQueryType QUERY_TYPE = RDAPQueryType.DOMAIN;
 
-  public TigValidation6Dot1Test() {
-    super("rdap_entities.json", "/validators/profile/tig_section/entities/valid.json", "tigSection_6_1_Validation");
+  public TigJsonValidation6Dot1Test() {
+    super("/validators/profile/tig_section/entities/valid.json", "tigSection_6_1_Validation");
   }
 
   @Override
