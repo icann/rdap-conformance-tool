@@ -78,7 +78,6 @@ public final class TigValidation6Dot1 extends ProfileJsonValidation {
 
   @Override
   public boolean doLaunch() {
-    return Set.of(RDAPQueryType.DOMAIN, RDAPQueryType.NAMESERVER, RDAPQueryType.ENTITY)
-        .contains(queryType);
+    return queryType.isLookupQuery();
   }
 }

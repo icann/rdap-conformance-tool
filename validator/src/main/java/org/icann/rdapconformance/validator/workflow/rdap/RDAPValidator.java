@@ -12,6 +12,7 @@ import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2019;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot2;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous.ResponseValidationLastUpdateEvent;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot4;
@@ -165,6 +166,8 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
               new ResponseValidation1Dot2Dot2(query.getData(), results),
               new ResponseValidation1Dot3(query.getData(), results),
               new ResponseValidation1Dot4(query.getData(), results),
+              new ResponseValidationLastUpdateEvent(query.getData(), results,
+                  queryTypeProcessor.getQueryType()),
               new ResponseValidation2Dot1(query.getData(), results, config,
                   queryTypeProcessor.getQueryType()),
               new ResponseValidation2Dot2(query.getData(), results, datasetService,

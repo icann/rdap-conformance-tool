@@ -1,9 +1,8 @@
-package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
+package org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous;
 
 import com.jayway.jsonpath.DocumentContext;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import org.icann.rdapconformance.validator.EventActions;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
@@ -11,13 +10,11 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class ResponseTigValidation8Dot5 extends ProfileJsonValidation {
+public class ResponseValidationLastUpdateEvent extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
-  private final static Set<RDAPQueryType> AUTHORIZED_QUERY_TYPES = Set.of(RDAPQueryType.DOMAIN,
-      RDAPQueryType.NAMESERVER, RDAPQueryType.ENTITY);
 
-  public ResponseTigValidation8Dot5(String rdapResponse, RDAPValidatorResults results,
+  public ResponseValidationLastUpdateEvent(String rdapResponse, RDAPValidatorResults results,
       RDAPQueryType queryType) {
     super(rdapResponse, results);
     this.queryType = queryType;
@@ -32,31 +29,26 @@ public class ResponseTigValidation8Dot5 extends ProfileJsonValidation {
   protected boolean doValidate() {
     DocumentContext jpath = getJPath();
     List<String> eventActionsPath = jpath.read("$.events[*].eventAction");
-    boolean missingLastUpdateOfRdapDatabase = true;
     for (String eventActionPath : eventActionsPath) {
       String jsonPointer = JsonPointers.fromJpath(eventActionPath);
       String eventAction = (String) jsonObject.query(jsonPointer);
       if (Objects.equals(EventActions.LAST_UPDATE_OF_RDAP_DATABASE, eventAction)) {
-        missingLastUpdateOfRdapDatabase = false;
+        return true;
       }
     }
 
-    if (missingLastUpdateOfRdapDatabase) {
-      results.add(RDAPValidationResult.builder()
-          .code(-43100)
-          .value(jsonObject.get("events").toString())
-          .message("An eventAction type last update of RDAP database does not "
-              + "exists in the topmost events data structure. See section 2.3.1.3, 2.7.6, 3.3 and "
-              + "4.4 of the RDAP_Response_Profile_2_1.")
-          .build());
-      return false;
-    }
-
-    return true;
+    results.add(RDAPValidationResult.builder()
+        .code(-43100)
+        .value(jsonObject.get("events").toString())
+        .message("An eventAction type last update of RDAP database does not "
+            + "exists in the topmost events data structure. See section 2.3.1.3, 2.7.6, 3.3 and "
+            + "4.4 of the RDAP_Response_Profile_2_1.")
+        .build());
+    return false;
   }
 
   @Override
   public boolean doLaunch() {
-    return AUTHORIZED_QUERY_TYPES.contains(queryType);
+    return queryType.isLookupQuery();
   }
 }

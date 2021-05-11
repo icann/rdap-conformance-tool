@@ -1,7 +1,6 @@
-package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
+package org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
@@ -9,13 +8,13 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class ResponseTigValidation8Dot5Test extends
-    ProfileJsonValidationTestBase {
+public class ResponseValidationLastUpdateEventTest extends ProfileJsonValidationTestBase {
 
   private RDAPQueryType queryType;
 
-  protected ResponseTigValidation8Dot5Test() {
-    super("/validators/events/rdapResponseProfile_2_3_1_3_and_2_7_6_and_3_3_and_4_4_Validation.json",
+  protected ResponseValidationLastUpdateEventTest() {
+    super(
+        "/validators/events/rdapResponseProfile_2_3_1_3_and_2_7_6_and_3_3_and_4_4_Validation.json",
         "rdapResponseProfile_2_3_1_3_and_2_7_6_and_3_3_and_4_4_Validation");
   }
 
@@ -28,15 +27,16 @@ public class ResponseTigValidation8Dot5Test extends
 
   @Override
   public ProfileJsonValidation getTigValidation() {
-    return new ResponseTigValidation8Dot5(jsonObject.toString(), results, queryType);
+    return new ResponseValidationLastUpdateEvent(jsonObject.toString(), results, queryType);
   }
 
   @Test
   public void lastUpdateOfRdapDatabaseEventActionMissing() {
     replaceValue("$.events[0].eventAction", "registration");
-    validate(-43100, "[{\"eventAction\":\"registration\",\"eventDate\":\"1997-09-15T04:00:00Z\"}]", "An eventAction type last update of RDAP database does not "
-        + "exists in the topmost events data structure. See section 2.3.1.3, 2.7.6, 3.3 and "
-        + "4.4 of the RDAP_Response_Profile_2_1.");
+    validate(-43100, "[{\"eventAction\":\"registration\",\"eventDate\":\"1997-09-15T04:00:00Z\"}]",
+        "An eventAction type last update of RDAP database does not "
+            + "exists in the topmost events data structure. See section 2.3.1.3, 2.7.6, 3.3 and "
+            + "4.4 of the RDAP_Response_Profile_2_1.");
   }
 
   @Test
