@@ -12,10 +12,11 @@ import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2019;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous.ResponseValidationLastUpdateEvent;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot3Dot1Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot4;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous.ResponseValidationLastUpdateEvent;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot13;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot14;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2;
@@ -171,6 +172,8 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
               new ResponseValidation2Dot1(query.getData(), results, config,
                   queryTypeProcessor.getQueryType()),
               new ResponseValidation2Dot2(query.getData(), results, datasetService,
+                  queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot3Dot1Dot1(query.getData(), results,
                   queryTypeProcessor.getQueryType())
           ));
       rdapProfileFebruary2019.validate();

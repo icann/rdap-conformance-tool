@@ -24,7 +24,8 @@ public abstract class RDAPConformanceValidation extends ProfileJsonValidation {
   @Override
   protected boolean doValidate() {
     String jsonPointer = "#/rdapConformance";
-    JSONArray rdapConformance = (JSONArray) new JSONObject(jsonObject.toString()).query(jsonPointer);
+    JSONArray rdapConformance = (JSONArray) new JSONObject(jsonObject.toString())
+        .query(jsonPointer);
     Set<String> values = new HashSet<>();
     rdapConformance.forEach(v -> values.add(v.toString()));
     if (!values.contains(requiredValue)) {
