@@ -13,12 +13,12 @@ import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class TigJsonValidation3Dot2Test extends ProfileJsonValidationTestBase {
+public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
 
   private RDAPValidatorConfiguration config;
   private RDAPQueryType queryType;
 
-  public TigJsonValidation3Dot2Test() {
+  public TigValidation3Dot2Test() {
     super("/validators/profile/tig_section/links/valid.json",
         "tigSection_3_2_Validation");
   }

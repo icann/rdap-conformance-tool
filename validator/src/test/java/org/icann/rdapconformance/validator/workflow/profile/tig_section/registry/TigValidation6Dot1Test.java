@@ -7,11 +7,11 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidatio
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.Test;
 
-public class TigJsonValidation6Dot1Test extends ProfileJsonValidationTestBase {
+public class TigValidation6Dot1Test extends ProfileJsonValidationTestBase {
 
   private final static RDAPQueryType QUERY_TYPE = RDAPQueryType.DOMAIN;
 
-  public TigJsonValidation6Dot1Test() {
+  public TigValidation6Dot1Test() {
     super("/validators/profile/tig_section/entities/valid.json", "tigSection_6_1_Validation");
   }
 
