@@ -56,9 +56,17 @@ public class ResponseValidation2Dot2Test extends ProfileJsonValidationTestBase {
   }
 
   @Test
-  public void testDoLaunch_NotADomainQuery_IsFalse() {
+  public void testDoLaunch() {
+    queryType = RDAPQueryType.HELP;
+    assertThat(getProfileValidation().doLaunch()).isFalse();
+    queryType = RDAPQueryType.NAMESERVERS;
+    assertThat(getProfileValidation().doLaunch()).isFalse();
     queryType = RDAPQueryType.NAMESERVER;
-    assertThat(this.getProfileValidation().doLaunch()).isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
+    queryType = RDAPQueryType.ENTITY;
+    assertThat(getProfileValidation().doLaunch()).isFalse();
+    queryType = RDAPQueryType.DOMAIN;
+    assertThat(getProfileValidation().doLaunch()).isTrue();
   }
 
 }
