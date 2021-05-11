@@ -9,10 +9,10 @@ import org.mockito.ArgumentCaptor;
 
 public interface ValidationTest {
 
-  ProfileValidation getTigValidation();
+  ProfileValidation getProfileValidation();
 
   default void validateOk(RDAPValidatorResults results) {
-    ProfileValidation validation = getTigValidation();
+    ProfileValidation validation = getProfileValidation();
     assertThat(validation.validate()).isTrue();
     verify(results).addGroup(validation.getGroupName());
     verifyNoMoreInteractions(results);
@@ -20,7 +20,7 @@ public interface ValidationTest {
 
   default void validateNotOk(RDAPValidatorResults results,
       int code, String value, String message) {
-    ProfileValidation validation = getTigValidation();
+    ProfileValidation validation = getProfileValidation();
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor
         .forClass(RDAPValidationResult.class);
     assertThat(validation.validate()).isFalse();

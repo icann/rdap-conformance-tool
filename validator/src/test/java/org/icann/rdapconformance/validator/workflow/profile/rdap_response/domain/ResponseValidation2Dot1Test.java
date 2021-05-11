@@ -32,7 +32,7 @@ public class ResponseValidation2Dot1Test extends ProfileJsonValidationTestBase {
   }
 
   @Override
-  public ProfileValidation getTigValidation() {
+  public ProfileValidation getProfileValidation() {
     return new ResponseValidation2Dot1(jsonObject.toString(), results, config, queryType);
   }
 
@@ -72,7 +72,7 @@ public class ResponseValidation2Dot1Test extends ProfileJsonValidationTestBase {
   @Test
   public void testDoLaunch_NotADomainQuery_IsFalse() {
     queryType = RDAPQueryType.NAMESERVER;
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 
 }

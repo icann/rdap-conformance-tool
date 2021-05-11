@@ -20,7 +20,7 @@ public class TigValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
   }
 
   @Override
-  public ProfileJsonValidation getTigValidation() {
+  public ProfileJsonValidation getProfileValidation() {
     return new TigValidation1Dot12Dot1(jsonObject.toString(), results, datasets, queryType);
   }
 
@@ -78,8 +78,8 @@ public class TigValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
   @Test
   public void testDoLaunch_NotARegistryNorRegistrar_IsFalse() {
     queryType = RDAPQueryType.HELP;
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
     queryType = RDAPQueryType.NAMESERVERS;
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 }

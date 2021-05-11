@@ -31,7 +31,7 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
   }
 
   @Override
-  public ProfileValidation getTigValidation() {
+  public ProfileValidation getProfileValidation() {
     return new TigValidation1Dot6(200, config, results);
   }
 

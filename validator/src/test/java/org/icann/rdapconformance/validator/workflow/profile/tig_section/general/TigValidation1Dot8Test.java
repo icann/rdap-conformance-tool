@@ -105,7 +105,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
   }
 
   @Override
-  public ProfileValidation getTigValidation() {
+  public ProfileValidation getProfileValidation() {
     return new TigValidation1Dot8(httpResponse, results, datasetService);
   }
 

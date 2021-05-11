@@ -10,12 +10,12 @@ public abstract class RDAPConformanceValidationTest extends ProfileJsonValidatio
   }
 
   @Override
-  public abstract RDAPConformanceValidation getTigValidation();
+  public abstract RDAPConformanceValidation getProfileValidation();
 
   @Test
   public void testValidate_RDAPConformanceDoesNotContainsValue_AddErrorCode() {
     jsonObject.put("rdapConformance", List.of("rdap_level_0"));
-    validate(getTigValidation().code, "#/rdapConformance:[\"rdap_level_0\"]",
-        getTigValidation().message);
+    validate(getProfileValidation().code, "#/rdapConformance:[\"rdap_level_0\"]",
+        getProfileValidation().message);
   }
 }

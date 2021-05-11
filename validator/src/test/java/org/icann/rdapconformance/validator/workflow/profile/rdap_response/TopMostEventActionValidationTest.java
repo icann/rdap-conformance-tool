@@ -26,7 +26,7 @@ public abstract class TopMostEventActionValidationTest<T extends TopMostEventAct
   }
 
   @Override
-  public TopMostEventActionValidation getTigValidation() {
+  public TopMostEventActionValidation getProfileValidation() {
     try {
       return validationClass.getConstructor(String.class, RDAPValidatorResults.class,
           RDAPQueryType.class).newInstance(jsonObject.toString(), results, queryType);
@@ -38,7 +38,7 @@ public abstract class TopMostEventActionValidationTest<T extends TopMostEventAct
   @Test
   public void testValidate_EventsDoNotContainValue_AddErrorCode() {
     replaceValue("$.events[*].eventAction", "event");
-    TopMostEventActionValidation validation = getTigValidation();
+    TopMostEventActionValidation validation = getProfileValidation();
     validateNotOk(results, validation.code,
         "[{\"eventAction\":\"event\",\"eventDate\":\"1997-09-15T04:00:00Z\"},"
             + "{\"eventAction\":\"event\",\"eventDate\":\"2028-09-14T04:00:00Z\"},"

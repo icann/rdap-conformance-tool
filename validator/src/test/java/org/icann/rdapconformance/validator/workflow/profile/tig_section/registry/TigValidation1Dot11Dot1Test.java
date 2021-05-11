@@ -24,7 +24,7 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
   private RDAPQueryType queryType;
 
   @Override
-  public ProfileValidation getTigValidation() {
+  public ProfileValidation getProfileValidation() {
     return new TigValidation1Dot11Dot1(config, results, rdapDatasetService, queryType);
   }
 
@@ -78,13 +78,13 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
   @Test
   public void testDoLaunch_NotARegistry_IsFalse() {
     doReturn(false).when(config).isGtldRegistry();
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(this.getProfileValidation().doLaunch()).isFalse();
   }
 
   @Test
   public void testDoLaunch_NotADomainQuery_IsFalse() {
     doReturn(true).when(config).isGtldRegistry();
     queryType = RDAPQueryType.NAMESERVER;
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(this.getProfileValidation().doLaunch()).isFalse();
   }
 }

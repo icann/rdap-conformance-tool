@@ -15,14 +15,14 @@ public class ResponseValidation2Dot3Dot1Dot1Test extends
   @Override
   public void testDoLaunch() {
     queryType = RDAPQueryType.HELP;
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
     queryType = RDAPQueryType.NAMESERVERS;
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
     queryType = RDAPQueryType.NAMESERVER;
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
     queryType = RDAPQueryType.ENTITY;
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
     queryType = RDAPQueryType.DOMAIN;
-    assertThat(getTigValidation().doLaunch()).isTrue();
+    assertThat(getProfileValidation().doLaunch()).isTrue();
   }
 }

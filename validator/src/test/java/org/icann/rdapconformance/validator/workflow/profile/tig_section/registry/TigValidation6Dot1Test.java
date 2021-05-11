@@ -16,7 +16,7 @@ public class TigValidation6Dot1Test extends ProfileJsonValidationTestBase {
   }
 
   @Override
-  public ProfileJsonValidation getTigValidation() {
+  public ProfileJsonValidation getProfileValidation() {
     return new TigValidation6Dot1(jsonObject.toString(), results, QUERY_TYPE);
   }
 

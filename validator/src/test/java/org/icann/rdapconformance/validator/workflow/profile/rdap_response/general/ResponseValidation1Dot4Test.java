@@ -14,7 +14,7 @@ public class ResponseValidation1Dot4Test extends ProfileJsonValidationTestBase {
   }
 
   @Override
-  public ProfileJsonValidation getTigValidation() {
+  public ProfileJsonValidation getProfileValidation() {
     return new ResponseValidation1Dot4(jsonObject.toString(), results);
   }
 

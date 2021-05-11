@@ -10,7 +10,7 @@ public class ResponseValidation1Dot3Test extends RDAPConformanceValidationTest {
   }
 
   @Override
-  public RDAPConformanceValidation getTigValidation() {
+  public RDAPConformanceValidation getProfileValidation() {
     return new ResponseValidation1Dot3(jsonObject.toString(), results);
   }
 }

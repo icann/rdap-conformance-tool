@@ -17,14 +17,14 @@ public class ResponseValidationLastUpdateEventTest extends
   @Test
   public void testDoLaunch() {
     queryType = RDAPQueryType.HELP;
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
     queryType = RDAPQueryType.NAMESERVERS;
-    assertThat(getTigValidation().doLaunch()).isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
     queryType = RDAPQueryType.DOMAIN;
-    assertThat(getTigValidation().doLaunch()).isTrue();
+    assertThat(getProfileValidation().doLaunch()).isTrue();
     queryType = RDAPQueryType.NAMESERVER;
-    assertThat(getTigValidation().doLaunch()).isTrue();
+    assertThat(getProfileValidation().doLaunch()).isTrue();
     queryType = RDAPQueryType.ENTITY;
-    assertThat(getTigValidation().doLaunch()).isTrue();
+    assertThat(getProfileValidation().doLaunch()).isTrue();
   }
 }

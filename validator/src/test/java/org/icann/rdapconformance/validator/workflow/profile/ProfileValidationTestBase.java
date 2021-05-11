@@ -12,7 +12,7 @@ public abstract class ProfileValidationTestBase implements ValidationTest {
 
   protected RDAPValidatorResults results;
 
-  public abstract ProfileValidation getTigValidation();
+  public abstract ProfileValidation getProfileValidation();
 
   public void validate() {
     validateOk(results);
