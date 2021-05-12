@@ -9,12 +9,12 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class ResponseValidationNoticesIncludedTest extends ProfileJsonValidationTestBase {
+public class ResponseValidation2Dot10Test extends ProfileJsonValidationTestBase {
 
   private RDAPQueryType queryType;
 
-  public ResponseValidationNoticesIncludedTest() {
-    super("/validators/domain/valid.json", "rdapResponseProfile_notices_included_Validation");
+  public ResponseValidation2Dot10Test() {
+    super("/validators/domain/valid.json", "rdapResponseProfile_2_10_Validation");
   }
 
   @BeforeMethod
@@ -25,7 +25,7 @@ public class ResponseValidationNoticesIncludedTest extends ProfileJsonValidation
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidationNoticesIncluded(jsonObject.toString(), results, queryType);
+    return new ResponseValidation2Dot10(jsonObject.toString(), results, queryType);
   }
 
   @Test
@@ -43,9 +43,9 @@ public class ResponseValidationNoticesIncludedTest extends ProfileJsonValidation
   }
 
   @Test
-  public void testValidate_NoticesAbsent_AddResults46500() {
-    removeKey("notices");
-    validate(-46500, jsonObject.toString(),
-        "A notices members does not appear in the RDAP response.");
+  public void testValidate_SecureDNSAbsent_AddResults46800() {
+    removeKey("secureDNS");
+    validate(-46800, jsonObject.toString(),
+        "A secureDNS member does not appear in the domain object.");
   }
 }

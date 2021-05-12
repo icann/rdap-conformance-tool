@@ -5,11 +5,11 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class ResponseValidationNoticesIncluded extends ProfileJsonValidation {
+public class ResponseValidation2Dot10 extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
 
-  public ResponseValidationNoticesIncluded(String rdapResponse,
+  public ResponseValidation2Dot10(String rdapResponse,
       RDAPValidatorResults results,
       RDAPQueryType queryType) {
     super(rdapResponse, results);
@@ -23,11 +23,11 @@ public class ResponseValidationNoticesIncluded extends ProfileJsonValidation {
 
   @Override
   protected boolean doValidate() {
-    if (getPointerFromJPath("$..notices").isEmpty()) {
+    if (getPointerFromJPath("$.secureDNS").isEmpty()) {
       results.add(RDAPValidationResult.builder()
-          .code(-46500)
+          .code(-46800)
           .value(jsonObject.toString())
-          .message("A notices members does not appear in the RDAP response.")
+          .message("A secureDNS member does not appear in the domain object.")
           .build());
       return false;
     }
