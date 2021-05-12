@@ -23,7 +23,7 @@ public class TigValidation6Dot1Test extends ProfileJsonValidationTestBase {
   @Test
   public void testValidate_RegistrarEntityWithoutPublicIds_AddResults23300() {
     removeKey("$['entities'][1]['publicIds']");
-    validate(-23300, "{\"roles\":[\"test\",\"registrar\"]}",
+    validate(-23300, "#/entities/1:{\"roles\":[\"test\",\"registrar\"]}",
         "A publicIds member is not included in the entity with the registrar role.");
   }
 
@@ -32,7 +32,7 @@ public class TigValidation6Dot1Test extends ProfileJsonValidationTestBase {
     replaceValue("$['entities'][1]['publicIds'][1]['identifier']", "abc");
     validate(
         -23301,
-        "{\"type\":\"IANA Registrar ID\",\"identifier\":\"abc\"}",
+        "#/entities/1/publicIds/1:{\"identifier\":\"abc\",\"type\":\"IANA Registrar ID\"}",
         "The identifier of the publicIds member of the entity with the registrar role is not a positive integer.");
   }
 
