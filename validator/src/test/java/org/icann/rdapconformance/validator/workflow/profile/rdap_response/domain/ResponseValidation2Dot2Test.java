@@ -19,7 +19,6 @@ public class ResponseValidation2Dot2Test extends ProfileJsonValidationTestBase {
   private RDAPQueryType queryType;
   private EPPRoid eppRoid;
 
-
   public ResponseValidation2Dot2Test() {
     super("/validators/domain/valid.json", "rdapResponseProfile_2_1_Validation");
   }

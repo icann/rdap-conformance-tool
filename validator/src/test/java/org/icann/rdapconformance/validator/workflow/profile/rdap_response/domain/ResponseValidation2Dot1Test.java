@@ -1,32 +1,26 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.net.URI;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class ResponseValidation2Dot1Test extends ProfileJsonValidationTestBase {
+public class ResponseValidation2Dot1Test extends ResponseDomainValidationTestBase {
 
   private RDAPValidatorConfiguration config;
-  private RDAPQueryType queryType;
-
 
   public ResponseValidation2Dot1Test() {
-    super("/validators/domain/valid.json", "rdapResponseProfile_2_1_Validation");
+    super("rdapResponseProfile_2_1_Validation");
   }
 
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
-    queryType = RDAPQueryType.DOMAIN;
     config = mock(RDAPValidatorConfiguration.class);
     doReturn(URI.create("http://domain/test.example")).when(config).getUri();
   }
@@ -68,19 +62,4 @@ public class ResponseValidation2Dot1Test extends ProfileJsonValidationTestBase {
             + "not contain a unicodeName member. "
             + "See section 2.1 of the RDAP_Response_Profile_2_1.");
   }
-
-  @Test
-  public void testDoLaunch() {
-    queryType = RDAPQueryType.HELP;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVERS;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVER;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.ENTITY;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.DOMAIN;
-    assertThat(getProfileValidation().doLaunch()).isTrue();
-  }
-
 }

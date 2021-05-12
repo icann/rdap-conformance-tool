@@ -1,16 +1,11 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class NoticesValidationTest<T extends NoticesValidation> extends
-    ProfileJsonValidationTestBase {
+    ResponseDomainValidationTestBase {
 
   private final String TITLE;
   private final String DESCRIPTION;
@@ -19,11 +14,10 @@ public class NoticesValidationTest<T extends NoticesValidation> extends
   private final int noticeIndex;
   private final String message;
   private final Class<T> validationClass;
-  private RDAPQueryType queryType;
 
   public NoticesValidationTest(String testGroupName,
       String noticeValue, int noticeIndex, Class<T> validationClass) throws Throwable {
-    super("/validators/domain/valid.json", testGroupName);
+    super(testGroupName);
     this.noticeValue = noticeValue;
     this.noticeIndex = noticeIndex;
     this.validationClass = validationClass;
@@ -31,12 +25,6 @@ public class NoticesValidationTest<T extends NoticesValidation> extends
     DESCRIPTION = (String) validationClass.getDeclaredField("DESCRIPTION").get(String.class);
     HREF = (String) validationClass.getDeclaredField("HREF").get(String.class);
     message = String.format("The notice for %s was not found.", HREF);
-  }
-
-  @BeforeMethod
-  public void setUp() throws IOException {
-    super.setUp();
-    queryType = RDAPQueryType.DOMAIN;
   }
 
   @Override
@@ -71,19 +59,5 @@ public class NoticesValidationTest<T extends NoticesValidation> extends
     replaceValue(String.format("$['notices'][%d]['links'][0]['href']", noticeIndex), href);
     validate(getProfileValidation().code, String.format(noticeValue, DESCRIPTION, href, TITLE),
         message);
-  }
-
-  @Test
-  public void testDoLaunch() {
-    queryType = RDAPQueryType.HELP;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVERS;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVER;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.ENTITY;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.DOMAIN;
-    assertThat(getProfileValidation().doLaunch()).isTrue();
   }
 }
