@@ -21,7 +21,11 @@ public abstract class ProfileJsonValidation extends ProfileValidation {
     jsonObject = new JSONObject(rdapResponse);
   }
 
-  public DocumentContext getJPath(JSONObject json) {
+  public DocumentContext getJPath() {
+    return getJPath(jsonObject);
+  }
+
+  private DocumentContext getJPath(JSONObject json) {
     Configuration jsonPathConfig = Configuration.defaultConfiguration()
         .addOptions(Option.AS_PATH_LIST)
         .addOptions(Option.SUPPRESS_EXCEPTIONS);
@@ -42,5 +46,11 @@ public abstract class ProfileJsonValidation extends ProfileValidation {
 
   public String getResultValue(String jsonPointer) {
     return jsonPointer + ":" + jsonObject.query(jsonPointer);
+  }
+
+  public String getResultValue(List<String> jsonPointers) {
+    return jsonPointers.stream()
+        .map(this::getResultValue)
+        .collect(Collectors.joining(", "));
   }
 }
