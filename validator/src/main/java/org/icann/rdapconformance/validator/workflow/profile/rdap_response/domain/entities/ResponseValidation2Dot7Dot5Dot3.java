@@ -1,11 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -39,8 +35,8 @@ public class ResponseValidation2Dot7Dot5Dot3 extends ProfileJsonValidation {
       if (emailOmitted &&
           (getPointerFromJPath(entity, "$.remarks[?(@.title == 'EMAIL REDACTED FOR PRIVACY')]")
               .isEmpty() ||
-          getPointerFromJPath(entity,
-              "$.remarks[?(@.type == 'object redacted due to authorization')]").isEmpty())
+              getPointerFromJPath(entity,
+                  "$.remarks[?(@.type == 'object redacted due to authorization')]").isEmpty())
       ) {
         isValid = false;
         results.add(RDAPValidationResult.builder()
