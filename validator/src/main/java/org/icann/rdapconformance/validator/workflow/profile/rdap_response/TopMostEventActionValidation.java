@@ -1,10 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 
-import com.jayway.jsonpath.DocumentContext;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.icann.rdapconformance.validator.EventAction;
-import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -28,10 +26,8 @@ public abstract class TopMostEventActionValidation extends ProfileJsonValidation
 
   @Override
   protected boolean doValidate() {
-    DocumentContext jpath = getJPath();
-    List<String> eventActionsPath = jpath.read("$.events[*].eventAction");
-    for (String eventActionPath : eventActionsPath) {
-      String jsonPointer = JsonPointers.fromJpath(eventActionPath);
+    Set<String> eventActionsPath = getPointerFromJPath("$.events[*].eventAction");
+    for (String jsonPointer : eventActionsPath) {
       String eventAction = (String) jsonObject.query(jsonPointer);
       if (Objects.equals(this.eventAction.type, eventAction)) {
         return true;

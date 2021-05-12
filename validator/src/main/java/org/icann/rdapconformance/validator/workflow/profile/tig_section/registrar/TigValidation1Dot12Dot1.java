@@ -38,12 +38,10 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
 
   @Override
   protected boolean doValidate() {
-    DocumentContext jpath = getJPath();
-    List<String> publicIdsPaths = jpath.read(
+    Set<String> publicIdsPaths = getPointerFromJPath(
         "$.entities[?(@.roles contains 'registrar')]..publicIds.*");
     boolean isValid = true;
-    for (String publicIdsPath : publicIdsPaths) {
-      String jsonPointer = JsonPointers.fromJpath(publicIdsPath);
+    for (String jsonPointer : publicIdsPaths) {
       isValid &= checkPublicId(jsonPointer, (JSONObject) jsonObject.query(jsonPointer));
     }
     

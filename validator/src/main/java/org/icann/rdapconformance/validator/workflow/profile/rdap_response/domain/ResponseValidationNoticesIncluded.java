@@ -25,9 +25,7 @@ public class ResponseValidationNoticesIncluded extends ProfileJsonValidation {
 
   @Override
   protected boolean doValidate() {
-    DocumentContext jpath = getJPath();
-    List<?> notices = jpath.read("$..notices");
-    if (notices.isEmpty()) {
+    if (getPointerFromJPath("$..notices").isEmpty()) {
       results.add(RDAPValidationResult.builder()
           .code(-46500)
           .value(jsonObject.toString())
