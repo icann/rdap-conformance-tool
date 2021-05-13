@@ -85,7 +85,6 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   public void testDoLaunch_NotADomainQuery_IsFalse() {
     doReturn(true).when(config).isGtldRegistry();
     queryType = RDAPQueryType.NAMESERVER;
-    assertThat(getProfileValidation().doLaunch())
-        .isFalse();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 }

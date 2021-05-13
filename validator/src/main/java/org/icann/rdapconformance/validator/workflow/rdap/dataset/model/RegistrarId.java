@@ -68,7 +68,7 @@ public class RegistrarId extends XmlObject {
     private final int value;
     private final String name;
     private final String xmlRepresentation;
-    private String rdapUrl;
+    private final String rdapUrl;
 
     public Record(int value, String name, String rdapUrl, String xmlRepresentation) {
       this.value = value;
