@@ -140,19 +140,27 @@
   "nameservers": [
     {
       "objectClassName": "nameserver",
-      "ldhName": "NS1.EXAMPLE.COM"
+      "ldhName": "NS1.EXAMPLE.COM",
+      "handle": "2138514_NS1_DOMAIN_COM-EXMP",
+      "status": ["active"]
     },
     {
       "objectClassName": "nameserver",
-      "ldhName": "NS2.EXAMPLE.COM"
+      "ldhName": "NS2.EXAMPLE.COM",
+      "handle": "2138514_NS2_DOMAIN_COM-EXEMPLE",
+      "status": ["active"]
     },
     {
       "objectClassName": "nameserver",
-      "ldhName": "NS3.EXAMPLE.COM"
+      "ldhName": "NS3.EXAMPLE.COM",
+      "handle": "2138514_NS3_DOMAIN_COM-EXEMPLE",
+      "status": ["active"]
     },
     {
       "objectClassName": "nameserver",
-      "ldhName": "NS4.EXAMPLE.COM"
+      "ldhName": "NS4.EXAMPLE.COM",
+      "handle": "2138514_NS_DOMAIN_COM-EXEMPLE",
+      "status": ["active"]
     }
   ],
   "rdapConformance": [

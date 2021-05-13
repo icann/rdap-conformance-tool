@@ -28,11 +28,9 @@ public class ResponseValidationRFC3915 extends ProfileJsonValidation {
     Set<String> status = new HashSet<>();
     jsonObject.optJSONArray("status").forEach(s -> status.add((String) s));
 
-    Set<String> statusCopy1 = new HashSet<>(status);
-    Set<String> statusCopy2 = new HashSet<>(status);
-    statusCopy1.removeAll(Set.of("redemption period", "pending delete"));
-    statusCopy2.removeAll(Set.of("pending restore", "pending delete"));
-    if (!statusCopy1.isEmpty() || !statusCopy2.isEmpty()) {
+    status.remove("pending delete");
+    if ((status.contains("redemption period") || status.contains("pending restore"))
+        && status.size() > 1) {
       results.add(RDAPValidationResult.builder()
           .code(-47000)
           .value(getResultValue("#/status"))
