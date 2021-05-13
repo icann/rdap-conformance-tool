@@ -41,7 +41,7 @@ public class ResponseValidation2Dot7Dot5Dot3 extends ProfileJsonValidation {
         isValid = false;
         results.add(RDAPValidationResult.builder()
             .code(-55000)
-            .value(jsonPointer + ":" + entity)
+            .value(getResultValue(jsonPointer, entity))
             .message("An entity with the administrative, technical, or billing role "
                 + "without a valid \"EMAIL REDACTED FOR PRIVACY\" remark was found. See section 2.7.5.3 "
                 + "of the RDAP_Response_Profile_2_1.")

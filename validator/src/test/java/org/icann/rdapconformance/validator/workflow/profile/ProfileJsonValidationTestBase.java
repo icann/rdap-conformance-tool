@@ -35,6 +35,11 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
     jsonObject = new JSONObject(rdapContent);
   }
 
+  public <T> T  getValue(String jpath) {
+    return JsonPath
+        .read(jsonObject.toString(), jpath);
+  }
+
   public void replaceValue(String jpath, Object value) {
     rdapContent = JsonPath
         .parse(jsonObject.toString())

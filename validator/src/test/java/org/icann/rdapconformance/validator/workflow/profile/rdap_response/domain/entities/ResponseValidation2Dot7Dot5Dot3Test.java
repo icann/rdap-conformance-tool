@@ -1,5 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.testng.annotations.Test;
@@ -8,7 +13,7 @@ public class ResponseValidation2Dot7Dot5Dot3Test extends ProfileJsonValidationTe
 
   public ResponseValidation2Dot7Dot5Dot3Test() {
     super(
-        "/validators/profile/rdap_response/domain/entities/rdapResponseProfile_2_7_5_3_Validation.json",
+        "/validators/domain/valid.json",
         "rdapResponseProfile_2_7_5_3_Validation");
   }
 
@@ -16,7 +21,13 @@ public class ResponseValidation2Dot7Dot5Dot3Test extends ProfileJsonValidationTe
   public void remarkInvalidForRoleRegistrant() {
     // replace with target role:
     replaceValue("$['entities'][0]['roles'][0]", "registrant");
-    // there is no email, nor remark, so we have an invalid object, continue...
+
+    // there is no email, nor remark, so we have an invalid object:
+    List<String> vcardArrayElement = getValue("$.entities[0].vcardArray[*][*][*]");
+    assertThat(vcardArrayElement).doesNotContain("email");
+    Object remarks = jsonObject.query("#/entities/0/remarks");
+    assertThat(remarks).isNull();
+
     validate(-55000, "#/entities/0:" + jsonObject.query("#/entities/0"),
         "An entity with the administrative, technical, or billing role "
         + "without a valid \"EMAIL REDACTED FOR PRIVACY\" remark was found. See section 2.7.5.3 "

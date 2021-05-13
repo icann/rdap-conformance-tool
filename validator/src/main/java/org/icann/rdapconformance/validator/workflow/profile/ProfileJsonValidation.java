@@ -45,7 +45,11 @@ public abstract class ProfileJsonValidation extends ProfileValidation {
   }
 
   public String getResultValue(String jsonPointer) {
-    return jsonPointer + ":" + jsonObject.query(jsonPointer);
+    return getResultValue(jsonPointer, jsonObject);
+  }
+
+  protected String getResultValue(String jsonPointer, JSONObject entity) {
+    return jsonPointer + ":" + entity.query(jsonPointer);
   }
 
   public String getResultValue(Set<String> jsonPointers) {
