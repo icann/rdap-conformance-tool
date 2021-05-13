@@ -21,19 +21,17 @@ public class TigValidation4Dot1 extends RDAPProfileVcardArrayValidation {
   @Override
   protected boolean validateVcardArray(String category, JSONArray categoryJsonArray,
       String jsonExceptionPointer, JcardCategoriesSchemas jcardCategoriesSchemas) {
-    if (jcardCategoriesSchemas.hasCategory(category)) {
+    if (category.equals("adr")) {
       try {
         jcardCategoriesSchemas.getCategory(category).validate(categoryJsonArray);
       } catch (ValidationException e) {
-        if (category.equals("adr")) {
-          results.add(RDAPValidationResult.builder()
-              .code(-20800)
-              .value(jsonExceptionPointer + ":" + categoryJsonArray)
-              .message(
-                  "An entity with a non-structured address was found. See section 4.1 of the TIG.")
-              .build());
-          return false;
-        }
+        results.add(RDAPValidationResult.builder()
+            .code(-20800)
+            .value(jsonExceptionPointer + ":" + categoryJsonArray)
+            .message(
+                "An entity with a non-structured address was found. See section 4.1 of the TIG.")
+            .build());
+        return false;
       }
     }
     return true;
