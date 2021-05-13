@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class ResponseValidation2Dot11 extends NoticesValidation {
+public final class ResponseValidation2Dot11 extends NoticesValidation {
 
   final static String TITLE = "RDDS Inaccuracy Complaint Form";
   final static String DESCRIPTION = "URL of the ICANN RDDS Inaccuracy Complaint Form: https://icann.org/wicf";

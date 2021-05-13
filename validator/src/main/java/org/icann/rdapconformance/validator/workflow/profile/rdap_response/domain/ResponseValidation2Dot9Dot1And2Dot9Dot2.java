@@ -11,7 +11,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidation {
+public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidation {
 
   public ResponseValidation2Dot9Dot1And2Dot9Dot2(String rdapResponse,
       RDAPValidatorResults results,

@@ -11,7 +11,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ResponseValidation2Dot1 extends ProfileJsonValidation {
+public final class ResponseValidation2Dot1 extends ProfileJsonValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot1.class);
 

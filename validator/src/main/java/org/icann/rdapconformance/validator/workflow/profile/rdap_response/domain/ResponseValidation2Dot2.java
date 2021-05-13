@@ -4,7 +4,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class ResponseValidation2Dot2 extends HandleValidation {
+public final class ResponseValidation2Dot2 extends HandleValidation {
 
   public ResponseValidation2Dot2(String rdapResponse, RDAPValidatorResults results,
       RDAPDatasetService datasetService, RDAPQueryType queryType) {

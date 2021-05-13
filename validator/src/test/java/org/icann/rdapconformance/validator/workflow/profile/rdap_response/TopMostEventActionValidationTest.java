@@ -39,7 +39,7 @@ public abstract class TopMostEventActionValidationTest<T extends TopMostEventAct
   public void testValidate_EventsDoNotContainValue_AddErrorCode() {
     replaceValue("$.events[*].eventAction", "event");
     TopMostEventActionValidation validation = getProfileValidation();
-    validateNotOk(results, validation.code,
+    validate(validation.code,
         "[{\"eventAction\":\"event\",\"eventDate\":\"1997-09-15T04:00:00Z\"},"
             + "{\"eventAction\":\"event\",\"eventDate\":\"2028-09-14T04:00:00Z\"},"
             + "{\"eventAction\":\"event\",\"eventDate\":\"2021-03-18T09:24:18Z\"}]",

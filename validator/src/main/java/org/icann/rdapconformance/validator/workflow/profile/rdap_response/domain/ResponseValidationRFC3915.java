@@ -7,7 +7,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class ResponseValidationRFC3915 extends ProfileJsonValidation {
+public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
 

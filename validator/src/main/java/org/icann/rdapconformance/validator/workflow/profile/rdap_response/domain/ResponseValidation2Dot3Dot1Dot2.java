@@ -5,7 +5,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.TopMos
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public class ResponseValidation2Dot3Dot1Dot2 extends TopMostEventActionValidation {
+public final class ResponseValidation2Dot3Dot1Dot2 extends TopMostEventActionValidation {
 
   public ResponseValidation2Dot3Dot1Dot2(String rdapResponse, RDAPValidatorResults results,
       RDAPQueryType queryType) {
