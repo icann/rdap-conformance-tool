@@ -137,7 +137,7 @@
     },
     "country": {
       "type": "string",
-      "patter": "^[A-Z]{2}$"
+      "pattern": "^[A-Z]{2}$"
     },
     "link": {
       "type": "object",

@@ -55,6 +55,10 @@
             },
             "label": {
               "type": "string"
+            },
+            "cc": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
             }
           },
           "additionalProperties": {
