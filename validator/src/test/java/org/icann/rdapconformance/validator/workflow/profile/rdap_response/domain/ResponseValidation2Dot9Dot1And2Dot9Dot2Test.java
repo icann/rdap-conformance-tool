@@ -9,7 +9,6 @@ import org.testng.annotations.Test;
 public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
     HandleValidationTest<ResponseValidation2Dot9Dot1And2Dot9Dot2> {
 
-
   public ResponseValidation2Dot9Dot1And2Dot9Dot2Test() {
     super("/validators/domain/valid.json", "rdapResponseProfile_2_9_1_and_2_9_2_Validation",
         RDAPQueryType.DOMAIN, ResponseValidation2Dot9Dot1And2Dot9Dot2.class);

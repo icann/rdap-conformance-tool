@@ -109,6 +109,9 @@
       ]
     }
   ],
+  "status": [
+    "active"
+  ],
   "rdapConformance": [
     "rdap_level_0",
     "icann_rdap_technical_implementation_guide_0",
