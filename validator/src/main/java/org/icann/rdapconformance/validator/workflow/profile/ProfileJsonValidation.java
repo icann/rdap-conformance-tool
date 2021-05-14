@@ -55,6 +55,7 @@ public abstract class ProfileJsonValidation extends ProfileValidation {
   public String getResultValue(Set<String> jsonPointers) {
     return jsonPointers.stream()
         .map(this::getResultValue)
+        .sorted()
         .collect(Collectors.joining(", "));
   }
 }
