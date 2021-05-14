@@ -24,12 +24,11 @@ public class QueryValidationTest<T extends QueryValidation> extends
   private RDAPValidatorConfiguration config;
 
   public QueryValidationTest(String validJsonResourcePath, String testGroupName,
-      RDAPQueryType baseQueryType,
-      Class<T> validationClass) {
+      RDAPQueryType baseQueryType, Class<T> validationClass) {
     super(validJsonResourcePath, testGroupName);
     this.baseQueryType = baseQueryType;
     this.validationClass = validationClass;
-    this.baseUri = "http://" + this.baseQueryType.name();
+    this.baseUri = "http://" + this.baseQueryType.name().toLowerCase();
   }
 
   @BeforeMethod
@@ -73,8 +72,8 @@ public class QueryValidationTest<T extends QueryValidation> extends
     validate(validation.code, jsonObject.toString(),
         String.format("The RDAP Query URI contains only A-label or NR-LDH labels, the topmost %s "
                 + "object does not contain a ldhName member. "
-                + "See section %s of the RDAP_Response_Profile_2_1.", baseQueryType,
-            validation.sectionName));
+                + "See section %s of the RDAP_Response_Profile_2_1.",
+            baseQueryType.name().toLowerCase(), validation.sectionName));
   }
 
   @Test
@@ -85,7 +84,7 @@ public class QueryValidationTest<T extends QueryValidation> extends
         String.format("The RDAP Query URI contains one or more U-label, the topmost %s object does "
                 + "not contain a unicodeName member. "
                 + "See section %s of the RDAP_Response_Profile_2_1.",
-            baseQueryType, validation.sectionName));
+            baseQueryType.name().toLowerCase(), validation.sectionName));
   }
 
   @Test

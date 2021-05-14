@@ -14,9 +14,10 @@ import org.slf4j.LoggerFactory;
 public abstract class QueryValidation extends ProfileJsonValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(QueryValidation.class);
+
   protected final RDAPQueryType queryType;
-  final String sectionName;
-  final int code;
+  protected final int code;
+  protected final String sectionName;
   private final RDAPValidatorConfiguration config;
   private final IDNA idna;
 
@@ -58,7 +59,7 @@ public abstract class QueryValidation extends ProfileJsonValidation {
             .message(String.format("The RDAP Query URI contains only A-label or NR-LDH labels, "
                     + "the topmost %s object does not contain a ldhName member. "
                     + "See section %s of the RDAP_Response_Profile_2_1.",
-                queryType.name(), sectionName))
+                queryType.name().toLowerCase(), sectionName))
             .build());
         isValid = false;
       }
@@ -71,7 +72,7 @@ public abstract class QueryValidation extends ProfileJsonValidation {
             .message(String.format("The RDAP Query URI contains one or more U-label, the topmost "
                     + "%s object does not contain a unicodeName member. "
                     + "See section %s of the RDAP_Response_Profile_2_1.",
-                queryType.name(), sectionName))
+                queryType.name().toLowerCase(), sectionName))
             .build());
         isValid = false;
       }

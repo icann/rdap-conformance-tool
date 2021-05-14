@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
+import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public abstract class RegistrarEntityPublicIdsValidationTest extends ProfileJsonValidationTestBase {
@@ -11,11 +13,19 @@ public abstract class RegistrarEntityPublicIdsValidationTest extends ProfileJson
       + "[\"email\",{},\"text\",\"abusecomplaints@example.com\"],"
       + "[\"adr\",{\"type\":\"work\"},\"text\",[\"\",\"Suite 1234\",\"4321 Rue Somewhere\","
       + "\"Quebec\",\"QC\",\"G1V 2M2\",\"\"]]]],\"roles\":[\"abuse\"],\"handle\":\"292\"}],";
+  protected final RDAPQueryType baseQueryType;
   protected RDAPQueryType queryType;
 
-  public RegistrarEntityPublicIdsValidationTest(String testGroupName) {
-    super("/validators/domain/valid.json", testGroupName);
-    this.queryType = RDAPQueryType.DOMAIN;
+  public RegistrarEntityPublicIdsValidationTest(String validJsonResourcePath, String testGroupName,
+      RDAPQueryType baseQueryType) {
+    super(validJsonResourcePath, testGroupName);
+    this.baseQueryType = baseQueryType;
+  }
+
+  @BeforeMethod
+  public void setUp() throws IOException {
+    super.setUp();
+    this.queryType = baseQueryType;
   }
 
   @Override

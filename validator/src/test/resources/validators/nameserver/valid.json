@@ -21,6 +21,94 @@
       "eventDate": "2021-04-05T09:41:41Z"
     }
   ],
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "handle": "292",
+      "roles": [
+        "registrar"
+      ],
+      "publicIds": [
+        {
+          "type": "IANA Registrar ID",
+          "identifier": "292"
+        }
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "Example Inc."
+          ]
+        ]
+      ],
+      "entities": [
+        {
+          "objectClassName": "entity",
+          "handle": "292",
+          "roles": [
+            "abuse"
+          ],
+          "vcardArray": [
+            "vcard",
+            [
+              [
+                "version",
+                {},
+                "text",
+                "4.0"
+              ],
+              [
+                "fn",
+                {},
+                "text",
+                ""
+              ],
+              [
+                "tel",
+                {
+                  "type": "voice"
+                },
+                "uri",
+                "tel:+1.9999999999"
+              ],
+              [
+                "email",
+                {},
+                "text",
+                "abusecomplaints@example.com"
+              ],
+              [
+                "adr",
+                {
+                  "type": "work"
+                },
+                "text",
+                [
+                  "",
+                  "Suite 1234",
+                  "4321 Rue Somewhere",
+                  "Quebec",
+                  "QC",
+                  "G1V 2M2",
+                  ""
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
   "rdapConformance": [
     "rdap_level_0",
     "icann_rdap_technical_implementation_guide_0",

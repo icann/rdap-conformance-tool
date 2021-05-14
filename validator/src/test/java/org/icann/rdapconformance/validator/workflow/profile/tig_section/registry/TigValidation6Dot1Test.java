@@ -10,7 +10,7 @@ import org.testng.annotations.Test;
 public class TigValidation6Dot1Test extends RegistrarEntityPublicIdsValidationTest {
 
   public TigValidation6Dot1Test() {
-    super("tigSection_6_1_Validation");
+    super("/validators/domain/valid.json", "tigSection_6_1_Validation", RDAPQueryType.DOMAIN);
   }
 
   @Override

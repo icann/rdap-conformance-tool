@@ -12,15 +12,13 @@ public abstract class HandleValidation extends ProfileJsonValidation {
   private final RDAPDatasetService datasetService;
   protected final RDAPQueryType queryType;
   final int code;
-  final String objectName;
 
   public HandleValidation(String rdapResponse, RDAPValidatorResults results,
-      RDAPDatasetService datasetService, RDAPQueryType queryType, int code, String objectName) {
+      RDAPDatasetService datasetService, RDAPQueryType queryType, int code) {
     super(rdapResponse, results);
     this.datasetService = datasetService;
     this.queryType = queryType;
     this.code = code;
-    this.objectName = objectName;
   }
 
   protected boolean validateHandle(String handleJsonPointer) {
@@ -31,7 +29,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .code(code)
           .value(getResultValue(handleJsonPointer))
           .message(String.format("The handle in the %s object does not comply with the format "
-              + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", objectName))
+              + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", queryType.name().toLowerCase()))
           .build());
       return false;
     }
@@ -42,7 +40,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .code(code - 1)
           .value(getResultValue(handleJsonPointer))
           .message(String.format("The globally unique identifier in the %s object handle is not "
-              + "registered in EPPROID.", objectName))
+              + "registered in EPPROID.", queryType.name().toLowerCase()))
           .build());
       return false;
     }

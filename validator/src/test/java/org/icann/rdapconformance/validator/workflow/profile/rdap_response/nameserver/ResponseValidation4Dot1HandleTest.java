@@ -7,7 +7,7 @@ public class ResponseValidation4Dot1HandleTest extends
     HandleValidationTest<ResponseValidation4Dot1Handle> {
 
   public ResponseValidation4Dot1HandleTest() {
-    super("/validators/domain/valid.json", "rdapResponseProfile_4_1_Validation",
+    super("/validators/nameserver/valid.json", "rdapResponseProfile_4_1_Validation",
         RDAPQueryType.NAMESERVER, ResponseValidation4Dot1Handle.class);
   }
 
