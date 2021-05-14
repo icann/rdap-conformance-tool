@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
 import java.util.Set;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidationTest;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -9,8 +11,8 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
 
 
   public ResponseValidation2Dot9Dot1And2Dot9Dot2Test() {
-    super("rdapResponseProfile_2_9_1_and_2_9_2_Validation",
-        ResponseValidation2Dot9Dot1And2Dot9Dot2.class);
+    super("/validators/domain/valid.json", "rdapResponseProfile_2_9_1_and_2_9_2_Validation",
+        RDAPQueryType.DOMAIN, ResponseValidation2Dot9Dot1And2Dot9Dot2.class);
   }
 
   @DataProvider(name = "invalidStatus")

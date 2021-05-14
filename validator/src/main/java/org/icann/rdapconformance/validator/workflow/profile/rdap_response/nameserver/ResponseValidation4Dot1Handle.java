@@ -1,20 +1,20 @@
-package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
+package org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver;
 
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public final class ResponseValidation2Dot2 extends HandleValidation {
+public final class ResponseValidation4Dot1Handle extends HandleValidation {
 
-  public ResponseValidation2Dot2(String rdapResponse, RDAPValidatorResults results,
+  public ResponseValidation4Dot1Handle(String rdapResponse, RDAPValidatorResults results,
       RDAPDatasetService datasetService, RDAPQueryType queryType) {
-    super(rdapResponse, results, datasetService, queryType, -46200, "domain");
+    super(rdapResponse, results, datasetService, queryType, -49102, "nameserver");
   }
 
   @Override
   public String getGroupName() {
-    return "rdapResponseProfile_2_2_Validation";
+    return "rdapResponseProfile_4_1_Validation";
   }
 
   @Override
@@ -22,8 +22,8 @@ public final class ResponseValidation2Dot2 extends HandleValidation {
     return validateHandle("#/handle");
   }
 
-  @Override
+   @Override
   public boolean doLaunch() {
-    return queryType.equals(RDAPQueryType.DOMAIN);
+    return queryType.equals(RDAPQueryType.NAMESERVER);
   }
 }

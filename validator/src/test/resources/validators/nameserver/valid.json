@@ -1,6 +1,7 @@
 {
   "objectClassName": "nameserver",
   "ldhName": "NS1.EXAMPLE.COM",
+  "handle": "2138514_NS_COM-EXMP",
   "ipAddresses": {
     "v4": [
       "216.239.32.10"

@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
+package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -10,7 +10,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 public abstract class HandleValidation extends ProfileJsonValidation {
 
   private final RDAPDatasetService datasetService;
-  private final RDAPQueryType queryType;
+  protected final RDAPQueryType queryType;
   final int code;
   final String objectName;
 
@@ -47,10 +47,5 @@ public abstract class HandleValidation extends ProfileJsonValidation {
       return false;
     }
     return true;
-  }
-
-  @Override
-  public boolean doLaunch() {
-    return queryType.equals(RDAPQueryType.DOMAIN);
   }
 }

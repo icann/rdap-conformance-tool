@@ -1,24 +1,24 @@
-package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
+package org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.QueryValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public final class ResponseValidation2Dot1 extends QueryValidation {
+public final class ResponseValidation4Dot1Query extends QueryValidation {
 
-  public ResponseValidation2Dot1(String rdapResponse, RDAPValidatorResults results,
+  public ResponseValidation4Dot1Query(String rdapResponse, RDAPValidatorResults results,
       RDAPValidatorConfiguration config, RDAPQueryType queryType) {
-    super(rdapResponse, results, config, queryType, "2.1", -46100);
+    super(rdapResponse, results, config, queryType, "4.1", -49100);
   }
 
   @Override
   public String getGroupName() {
-    return "rdapResponseProfile_2_1_Validation";
+    return "rdapResponseProfile_4_1_Validation";
   }
 
   @Override
   public boolean doLaunch() {
-    return queryType.equals(RDAPQueryType.DOMAIN);
+    return queryType.equals(RDAPQueryType.NAMESERVER);
   }
 }

@@ -4,6 +4,7 @@ import static org.json.JSONObject.NULL;
 
 import java.util.HashSet;
 import java.util.Set;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -123,5 +124,10 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
       return false;
     }
     return true;
+  }
+
+  @Override
+  public boolean doLaunch() {
+    return queryType.equals(RDAPQueryType.DOMAIN);
   }
 }

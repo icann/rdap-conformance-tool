@@ -1,10 +1,11 @@
-package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
+package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import java.util.List;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -17,12 +18,15 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
     ProfileJsonValidationTestBase {
 
   private final Class<T> validationClass;
+  protected RDAPQueryType baseQueryType;
   private RDAPDatasetService datasetService;
   private RDAPQueryType queryType;
   private EPPRoid eppRoid;
 
-  public HandleValidationTest(String testGroupName, Class<T> validationClass) {
-    super("/validators/domain/valid.json", testGroupName);
+  public HandleValidationTest(String validJsonResourcePath, String testGroupName, RDAPQueryType baseQueryType,
+      Class<T> validationClass) {
+    super(validJsonResourcePath, testGroupName);
+    this.baseQueryType = baseQueryType;
     this.validationClass = validationClass;
   }
 
@@ -31,7 +35,7 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
     super.setUp();
     datasetService = mock(RDAPDatasetService.class);
     eppRoid = mock(EPPRoid.class);
-    queryType = RDAPQueryType.DOMAIN;
+    queryType = this.baseQueryType;
     doReturn(eppRoid).when(datasetService).get(EPPRoid.class);
     doReturn(false).when(eppRoid).isInvalid("EXMP");
   }
@@ -75,16 +79,15 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
 
   @Test
   public void testDoLaunch() {
-    queryType = RDAPQueryType.HELP;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVERS;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVER;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.ENTITY;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.DOMAIN;
-    assertThat(getProfileValidation().doLaunch()).isTrue();
+    for (RDAPQueryType queryTypeBeingTested : List
+        .of(RDAPQueryType.HELP, RDAPQueryType.NAMESERVERS, RDAPQueryType.NAMESERVER,
+            RDAPQueryType.ENTITY, RDAPQueryType.DOMAIN)) {
+      queryType = queryTypeBeingTested;
+      if (queryType.equals(baseQueryType)) {
+        assertThat(getProfileValidation().doLaunch()).isTrue();
+      } else {
+        assertThat(getProfileValidation().doLaunch()).isFalse();
+      }
+    }
   }
-
 }
