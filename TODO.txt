@@ -1,0 +1,4 @@
+- Do the condition table for entities within domain and alike.
+
+
+

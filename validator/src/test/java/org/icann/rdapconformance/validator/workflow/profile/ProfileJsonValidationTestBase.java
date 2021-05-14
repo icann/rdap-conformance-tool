@@ -40,6 +40,14 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
         .read(jsonObject.toString(), jpath);
   }
 
+  public void putValue(String jpath, String key, Object value) {
+    rdapContent = JsonPath
+        .parse(jsonObject.toString())
+        .put(jpath, key, value)
+        .jsonString();
+    jsonObject = new JSONObject(rdapContent);
+  }
+
   public void replaceValue(String jpath, Object value) {
     rdapContent = JsonPath
         .parse(jsonObject.toString())

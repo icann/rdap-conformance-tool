@@ -32,6 +32,10 @@ public abstract class ProfileJsonValidation extends ProfileValidation {
     return using(jsonPathConfig).parse(json.toString());
   }
 
+  protected boolean exists(String jpath) {
+    return !getPointerFromJPath(jsonObject, jpath).isEmpty();
+  }
+
   protected Set<String> getPointerFromJPath(String jpath) {
     return getPointerFromJPath(jsonObject, jpath);
   }
@@ -45,11 +49,7 @@ public abstract class ProfileJsonValidation extends ProfileValidation {
   }
 
   public String getResultValue(String jsonPointer) {
-    return getResultValue(jsonPointer, jsonObject);
-  }
-
-  protected String getResultValue(String jsonPointer, JSONObject entity) {
-    return jsonPointer + ":" + entity.query(jsonPointer);
+    return jsonPointer + ":" + jsonObject.query(jsonPointer);
   }
 
   public String getResultValue(Set<String> jsonPointers) {

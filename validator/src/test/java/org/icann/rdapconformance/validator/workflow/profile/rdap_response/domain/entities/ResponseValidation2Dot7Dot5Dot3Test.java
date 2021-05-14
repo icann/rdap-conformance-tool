@@ -1,20 +1,34 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class ResponseValidation2Dot7Dot5Dot3Test extends ProfileJsonValidationTestBase {
+
+  RDAPQueryType queryType;
+  RDAPValidatorConfiguration config;
 
   public ResponseValidation2Dot7Dot5Dot3Test() {
     super(
         "/validators/domain/valid.json",
         "rdapResponseProfile_2_7_5_3_Validation");
+  }
+
+  @Override
+  @BeforeMethod
+  public void setUp() throws java.io.IOException {
+    super.setUp();
+    queryType = RDAPQueryType.DOMAIN;
+    config = mock(RDAPValidatorConfiguration.class);
   }
 
   @Test
@@ -42,8 +56,21 @@ public class ResponseValidation2Dot7Dot5Dot3Test extends ProfileJsonValidationTe
     validateOk(results);
   }
 
+  @Test
+  public void testDoLaunch() {
+    assertThat(getProfileValidation().doLaunch()).isTrue();
+    doReturn(true).when(config).isGltdRegistrar();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
+  }
+
+  @Test
+  public void testDoLaunchWrongQueryType() {
+    queryType = RDAPQueryType.ENTITY;
+    assertThat(getProfileValidation().doLaunch()).isFalse();
+  }
+
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot7Dot5Dot3(jsonObject.toString(), results);
+    return new ResponseValidation2Dot7Dot5Dot3(jsonObject.toString(), results, queryType, config);
   }
 }

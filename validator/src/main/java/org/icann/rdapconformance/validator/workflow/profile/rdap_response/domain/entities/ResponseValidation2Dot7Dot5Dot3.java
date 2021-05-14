@@ -1,17 +1,20 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
 import java.util.Objects;
-import java.util.Set;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class ResponseValidation2Dot7Dot5Dot3 extends ProfileJsonValidation {
+public class ResponseValidation2Dot7Dot5Dot3 extends EntitiesWithinDomainProfileJsonValidation {
 
-  public ResponseValidation2Dot7Dot5Dot3(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
+  public ResponseValidation2Dot7Dot5Dot3(String rdapResponse,
+      RDAPValidatorResults results,
+      RDAPQueryType queryType,
+      RDAPValidatorConfiguration config) {
+    super(rdapResponse, results, queryType, config);
   }
 
   @Override
@@ -20,35 +23,24 @@ public class ResponseValidation2Dot7Dot5Dot3 extends ProfileJsonValidation {
   }
 
   @Override
-  protected boolean doValidate() {
-    Set<String> entityJsonPointers = getPointerFromJPath("$..entities[?("
-        + "@.roles contains 'registrant' || "
-        + "@.roles contains 'administrative' || "
-        + "@.roles contains 'technical' || "
-        + "@.roles contains 'billing'"
-        + ")]");
-
-    boolean isValid = true;
-    for (String jsonPointer : entityJsonPointers) {
-      JSONObject entity = (JSONObject) jsonObject.query(jsonPointer);
-      boolean emailOmitted = isEmailOmitted(entity);
-      if (emailOmitted &&
-          (getPointerFromJPath(entity, "$.remarks[?(@.title == 'EMAIL REDACTED FOR PRIVACY')]")
-              .isEmpty() ||
-              getPointerFromJPath(entity,
-                  "$.remarks[?(@.type == 'object redacted due to authorization')]").isEmpty())
-      ) {
-        isValid = false;
-        results.add(RDAPValidationResult.builder()
-            .code(-55000)
-            .value(getResultValue(jsonPointer, entity))
-            .message("An entity with the administrative, technical, or billing role "
-                + "without a valid \"EMAIL REDACTED FOR PRIVACY\" remark was found. See section 2.7.5.3 "
-                + "of the RDAP_Response_Profile_2_1.")
-            .build());
-      }
+  protected boolean doValidateEntity(String jsonPointer, JSONObject entity) {
+    boolean emailOmitted = isEmailOmitted(entity);
+    if (emailOmitted &&
+        (getPointerFromJPath(entity, "$.remarks[?(@.title == 'EMAIL REDACTED FOR PRIVACY')]")
+            .isEmpty() ||
+            getPointerFromJPath(entity,
+                "$.remarks[?(@.type == 'object redacted due to authorization')]").isEmpty())
+    ) {
+      results.add(RDAPValidationResult.builder()
+          .code(-55000)
+          .value(getResultValue(jsonPointer))
+          .message("An entity with the administrative, technical, or billing role "
+              + "without a valid \"EMAIL REDACTED FOR PRIVACY\" remark was found. See section 2.7.5.3 "
+              + "of the RDAP_Response_Profile_2_1.")
+          .build());
+      return false;
     }
-    return isValid;
+    return true;
   }
 
   private boolean isEmailOmitted(JSONObject entity) {
@@ -66,5 +58,11 @@ public class ResponseValidation2Dot7Dot5Dot3 extends ProfileJsonValidation {
       }
     }
     return true;
+  }
+
+  @Override
+  public boolean doLaunch() {
+    boolean isValid = super.doLaunch();
+    return isValid && !config.isGltdRegistrar();
   }
 }
