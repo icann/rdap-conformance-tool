@@ -11,7 +11,7 @@ import org.json.JSONObject;
  * 8.8.1.2
  */
 public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
-    EntitiesWithinDomainProfileJsonValidation {
+    ResponseValidation2Dot7Dot1DotXAndRelated {
 
   public ResponseValidation2Dot7Dot1DotXAndRelated2(String rdapResponse,
       RDAPValidatorResults results,
@@ -46,7 +46,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
   }
 
   private Set<String> getVcardPropertyPointers(JSONObject entity, String property) {
-    return getPointerFromJPath(entity, "vcardArray[1][*][?(@ == '"+property+"')]");
+    return getPointerFromJPath(entity, "vcardArray[1][*][?(@ == '" + property + "')]");
   }
 
   private boolean log52101(String jsonPointer) {

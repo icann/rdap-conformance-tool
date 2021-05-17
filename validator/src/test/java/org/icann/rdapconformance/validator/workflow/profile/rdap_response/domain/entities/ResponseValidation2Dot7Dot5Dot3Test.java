@@ -6,29 +6,27 @@ import static org.mockito.Mockito.mock;
 
 import java.util.List;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseDomainValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class ResponseValidation2Dot7Dot5Dot3Test extends ProfileJsonValidationTestBase {
+public class ResponseValidation2Dot7Dot5Dot3Test extends ResponseDomainValidationTestBase {
 
-  RDAPQueryType queryType;
   RDAPValidatorConfiguration config;
 
   public ResponseValidation2Dot7Dot5Dot3Test() {
-    super(
-        "/validators/domain/valid.json",
-        "rdapResponseProfile_2_7_5_3_Validation");
+    super("rdapResponseProfile_2_7_5_3_Validation");
   }
 
   @Override
   @BeforeMethod
   public void setUp() throws java.io.IOException {
     super.setUp();
-    queryType = RDAPQueryType.DOMAIN;
     config = mock(RDAPValidatorConfiguration.class);
+    doReturn(true).when(config).isGtldRegistry();
+    doReturn(false).when(config).isThin();
   }
 
   @Test
@@ -44,8 +42,8 @@ public class ResponseValidation2Dot7Dot5Dot3Test extends ProfileJsonValidationTe
 
     validate(-55000, "#/entities/0:" + jsonObject.query("#/entities/0"),
         "An entity with the administrative, technical, or billing role "
-        + "without a valid \"EMAIL REDACTED FOR PRIVACY\" remark was found. See section 2.7.5.3 "
-        + "of the RDAP_Response_Profile_2_1.");
+            + "without a valid \"EMAIL REDACTED FOR PRIVACY\" remark was found. "
+            + "See section 2.7.5.3 of the RDAP_Response_Profile_2_1.");
   }
 
   @Test
@@ -58,14 +56,9 @@ public class ResponseValidation2Dot7Dot5Dot3Test extends ProfileJsonValidationTe
 
   @Test
   public void testDoLaunch() {
-    assertThat(getProfileValidation().doLaunch()).isTrue();
-    doReturn(true).when(config).isGtldRegistrar();
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-  }
-
-  @Test
-  public void testDoLaunchWrongQueryType() {
-    queryType = RDAPQueryType.ENTITY;
+    super.testDoLaunch();
+    queryType = RDAPQueryType.DOMAIN;
+    doReturn(false).when(config).isGtldRegistry();
     assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 

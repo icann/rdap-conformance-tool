@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
-import java.util.Objects;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -25,12 +24,9 @@ public class ResponseValidation2Dot7Dot5Dot3 extends EntitiesWithinDomainProfile
   @Override
   protected boolean doValidateEntity(String jsonPointer, JSONObject entity) {
     boolean emailOmitted = isEmailOmitted(entity);
-    if (emailOmitted &&
-        (getPointerFromJPath(entity, "$.remarks[?(@.title == 'EMAIL REDACTED FOR PRIVACY')]")
-            .isEmpty() ||
-            getPointerFromJPath(entity,
-                "$.remarks[?(@.type == 'object redacted due to authorization')]").isEmpty())
-    ) {
+    if (emailOmitted && getPointerFromJPath(entity,
+        "$.remarks[?(@.title == 'EMAIL REDACTED FOR PRIVACY' && "
+            + "@.type == 'object redacted due to authorization')]").isEmpty()) {
       results.add(RDAPValidationResult.builder()
           .code(-55000)
           .value(getResultValue(jsonPointer))
@@ -51,7 +47,7 @@ public class ResponseValidation2Dot7Dot5Dot3 extends EntitiesWithinDomainProfile
         for (Object categoryArray : vcardElementArray) {
           JSONArray categoryJsonArray = ((JSONArray) categoryArray);
           String category = categoryJsonArray.getString(0);
-          if (Objects.equals(category, "email")) {
+          if (category.equals("email")) {
             return false;
           }
         }
@@ -62,7 +58,6 @@ public class ResponseValidation2Dot7Dot5Dot3 extends EntitiesWithinDomainProfile
 
   @Override
   public boolean doLaunch() {
-    boolean isValid = super.doLaunch();
-    return isValid && !config.isGtldRegistrar();
+    return queryType.equals(RDAPQueryType.DOMAIN) && !config.isThin() && config.isGtldRegistry();
   }
 }

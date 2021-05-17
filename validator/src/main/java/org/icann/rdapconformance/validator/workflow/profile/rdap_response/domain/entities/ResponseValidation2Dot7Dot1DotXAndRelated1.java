@@ -11,7 +11,7 @@ import org.json.JSONObject;
  * 8.8.1.1
  */
 public class ResponseValidation2Dot7Dot1DotXAndRelated1 extends
-    EntitiesWithinDomainProfileJsonValidation {
+    ResponseValidation2Dot7Dot1DotXAndRelated {
 
   public ResponseValidation2Dot7Dot1DotXAndRelated1(String rdapResponse,
       RDAPValidatorResults results,

@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
 
+import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
 import org.testng.annotations.BeforeMethod;
@@ -12,7 +13,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2Test extends
 
   @Override
   @BeforeMethod
-  public void setUp() throws java.io.IOException {
+  public void setUp() throws IOException {
     super.setUp();
     String validVcardJson = getResource(
         "/validators/profile/rdap_response/domain/entities/vcard/valid.json");

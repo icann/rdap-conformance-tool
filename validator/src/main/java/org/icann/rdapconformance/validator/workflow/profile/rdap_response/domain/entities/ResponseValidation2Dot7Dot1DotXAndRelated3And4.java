@@ -10,7 +10,7 @@ import org.json.JSONObject;
  * 8.8.1.3 & 8.8.1.4
  */
 public class ResponseValidation2Dot7Dot1DotXAndRelated3And4 extends
-    EntitiesWithinDomainProfileJsonValidation {
+    ResponseValidation2Dot7Dot1DotXAndRelated {
 
   private final SimpleHandleValidation simpleHandleValidation;
 

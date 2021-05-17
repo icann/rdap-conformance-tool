@@ -40,7 +40,7 @@ public abstract class EntitiesWithinDomainProfileJsonValidation extends ProfileJ
           .message("More than one entity with the following roles were found: "
               + "registrant, administrative, technical and billing.")
           .build());
-      isValid &= false;
+      isValid = false;
     }
 
     for (String jsonPointer : entityJsonPointers) {
@@ -50,18 +50,6 @@ public abstract class EntitiesWithinDomainProfileJsonValidation extends ProfileJ
     return isValid;
   }
 
-  @Override
-  public String getGroupName() {
-    return "rdapResponseProfile_2_7_1_X_and_2_7_2_X_and_2_7_3_X_and_2_7_4_X_Validation";
-  }
-
   protected abstract boolean doValidateEntity(String jsonPointer, JSONObject entity);
 
-  @Override
-  public boolean doLaunch() {
-    if (config.isThin()) {
-      return false;
-    }
-    return queryType.equals(RDAPQueryType.DOMAIN);
-  }
 }

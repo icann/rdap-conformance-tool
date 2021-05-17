@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import static org.mockito.Mockito.doReturn;
 
+import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 import org.testng.annotations.BeforeMethod;
@@ -12,7 +13,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4Test extends
 
   @Override
   @BeforeMethod
-  public void setUp() throws java.io.IOException {
+  public void setUp() throws IOException {
     super.setUp();
     replaceValue("['entities'][0]['handle']", "2138514_DOMAIN_COM-EXMP");
   }
