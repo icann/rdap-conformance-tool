@@ -25,7 +25,7 @@ public interface RDAPValidatorConfiguration {
 
   boolean userRdapProfileFeb2019();
 
-  boolean isGltdRegistrar();
+  boolean isGtldRegistrar();
 
   boolean isGtldRegistry();
 
@@ -44,7 +44,7 @@ public interface RDAPValidatorConfiguration {
       return false;
     }
 
-    if (isGltdRegistrar() && isGtldRegistry()) {
+    if (isGtldRegistrar() && isGtldRegistry()) {
       logger.error("gTLD cannot be a registrar and a registry at the same time");
       return false;
     }
@@ -52,7 +52,7 @@ public interface RDAPValidatorConfiguration {
       logger.error("Thin only applies for gTLD registry");
       return false;
     }
-    if (userRdapProfileFeb2019() && !(isGtldRegistry() || isGltdRegistrar())) {
+    if (userRdapProfileFeb2019() && !(isGtldRegistry() || isGtldRegistrar())) {
       logger.error("RDAP profile February 2019 need gTLD type to be specified");
       return false;
     }

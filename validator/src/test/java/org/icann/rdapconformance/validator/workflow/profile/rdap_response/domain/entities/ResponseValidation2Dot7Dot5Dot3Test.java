@@ -59,7 +59,7 @@ public class ResponseValidation2Dot7Dot5Dot3Test extends ProfileJsonValidationTe
   @Test
   public void testDoLaunch() {
     assertThat(getProfileValidation().doLaunch()).isTrue();
-    doReturn(true).when(config).isGltdRegistrar();
+    doReturn(true).when(config).isGtldRegistrar();
     assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 

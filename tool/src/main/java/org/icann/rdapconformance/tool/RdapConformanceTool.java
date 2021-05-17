@@ -73,7 +73,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   }
 
   @Override
-  public boolean isGltdRegistrar() {
+  public boolean isGtldRegistrar() {
     return this.dependantRdapProfileGtld.exclusiveGtldType.gtldRegistrar;
   }
 

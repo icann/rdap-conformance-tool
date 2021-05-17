@@ -63,6 +63,6 @@ public class ResponseValidation2Dot7Dot5Dot3 extends EntitiesWithinDomainProfile
   @Override
   public boolean doLaunch() {
     boolean isValid = super.doLaunch();
-    return isValid && !config.isGltdRegistrar();
+    return isValid && !config.isGtldRegistrar();
   }
 }
