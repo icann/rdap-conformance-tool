@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
@@ -41,7 +42,8 @@ public class RDAPDatasetServiceMock extends RDAPDatasetService {
         mock(EventActionJsonValues.class),
         mock(StatusJsonValues.class),
         mock(VariantRelationJsonValues.class),
-        mock(RoleJsonValues.class)
+        mock(RoleJsonValues.class),
+        mock(EPPRoid.class)
     ).stream()
         .peek(mock -> doReturn(false).when(mock).isInvalid(any()))
         .collect(Collectors.toMap(Object::getClass, Function.identity()));
