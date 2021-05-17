@@ -101,6 +101,18 @@ public class ResponseValidation2Dot7Dot1DotXAndRelatedTest extends ProfileJsonVa
         + "registrant, administrative, technical and billing.");
   }
 
+  /**
+   * 8.8.1.6
+   */
+  @Test
+  public void ccParameterNotIncluded() {
+    entitiesWithRole("registrant");
+    removeKey("$.['entities'][0]['vcardArray'][1][*][*]['cc']");
+    validate(-52105, "#/entities/0:" + jsonObject.query("#/entities/0"),
+        "An entity with the registrant role without the CC parameter "
+            + "was found. See section 2.7.4.1 of the RDAP_Response_Profile_2_1.");
+  }
+
   private void validateRemark() {
     entitiesWithRole("registrant");
     remarkMemberIs("title", "REDACTED FOR PRIVACY");

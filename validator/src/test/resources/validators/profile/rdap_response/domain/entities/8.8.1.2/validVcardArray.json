@@ -30,7 +30,8 @@
     [
       "adr",
       {
-        "type": "work"
+        "type": "work",
+        "cc": "US"
       },
       "text",
       [
