@@ -14,9 +14,8 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2Test extends
   @BeforeMethod
   public void setUp() throws java.io.IOException {
     super.setUp();
-    String validVcardJson =
-        getResource(
-            "/validators/profile/rdap_response/domain/entities/8.8.1.2/validVcardArray.json");
+    String validVcardJson = getResource(
+        "/validators/profile/rdap_response/domain/entities/vcard/valid.json");
     jsonObject
         .getJSONArray("entities")
         .getJSONObject(0)
