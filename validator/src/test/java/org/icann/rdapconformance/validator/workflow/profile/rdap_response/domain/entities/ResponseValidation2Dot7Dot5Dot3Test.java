@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
 
 public class ResponseValidation2Dot7Dot5Dot3Test extends ResponseDomainValidationTestBase {
 
-  RDAPValidatorConfiguration config;
+  private RDAPValidatorConfiguration config;
 
   public ResponseValidation2Dot7Dot5Dot3Test() {
     super("rdapResponseProfile_2_7_5_3_Validation");
