@@ -1,8 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
 
 import java.io.IOException;
+import java.util.List;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
 import org.testng.annotations.BeforeMethod;
@@ -49,10 +51,22 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2Test extends
     validateWithoutProperty("email");
   }
 
+  @Test
+  public void countryNotIncludedInAdrProperty() {
+    // remove all elements including country:
+    removeKey("$.['entities'][0]['vcardArray'][1][4][3][3:6]");
+    assertThat((List<String>) getValue("$.['entities'][0]['vcardArray'][1][4][3]")).hasSize(4);
+    validate52101();
+  }
+
   private void validateWithoutProperty(String property) {
+    removeKey("$.['entities'][0]['vcardArray'][1][*][?(@ == '" + property + "')]");
+    validate52101();
+  }
+
+  private void validate52101() {
     entitiesWithRole("registrant");
     remarkMemberIs("title", "NOT REDACTED FOR PRIVACY");
-    removeKey("$.['entities'][0]['vcardArray'][1][*][?(@ == '" + property + "')]");
     validate(-52101, "#/entities/0:" + jsonObject.query("#/entities/0"),
         "An entity with the registrant, administrative, technical or "
             + "billing role with a remarks members with the title \"REDACTED FOR PRIVACY\" was "
