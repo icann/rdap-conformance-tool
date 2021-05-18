@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
 import java.util.List;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
@@ -110,5 +111,10 @@ public class SchemaValidatorDomainTest extends SchemaValidatorObjectTest {
     JSONArray jsonArray = new JSONArray(List.of(variant));
     jsonObject.put("variants", jsonArray);
     validateSubValidation("stdRdapVariantsValidation", "#/variants/0/relation:0", -12207);
+  }
+
+  @Test
+  public void noticesNotInTopMost() {
+    noticesNotInTopMost(-12218);
   }
 }

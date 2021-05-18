@@ -105,4 +105,9 @@ public class SchemaValidatorEntityTest extends SchemaValidatorObjectTest {
   public void stdRdapConformanceValidation() {
     stdRdapConformanceValidation(-12317);
   }
+
+  @Test
+  public void noticesNotInTopMost() {
+    noticesNotInTopMost(-12316);
+  }
 }

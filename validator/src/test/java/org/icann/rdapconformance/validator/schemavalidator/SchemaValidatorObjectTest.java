@@ -71,4 +71,12 @@ public abstract class SchemaValidatorObjectTest extends SchemaValidatorTest {
     jsonObject.put(key, "not-a-number");
     super.validateIsNotANumber(errorCode, "#/" + key + ":not-a-number");
   }
+
+  protected void noticesNotInTopMost(int errorCode) {
+    jsonObject.getJSONArray("entities").getJSONObject(0).put("notices", jsonObject.get("notices"));
+    validate(errorCode,
+        "#/entities/0/notices:" + jsonObject.get("notices"),
+        "The value for the JSON name notices exists but " + name + " object is "
+            + "not the topmost JSON object.");
+  }
 }

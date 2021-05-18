@@ -149,6 +149,10 @@ public class SchemaValidator {
       new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
     }
 
+    if (content.contains("\"notices\"")) {
+      new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode).validate();
+    }
+
     return results.isEmpty();
   }
 

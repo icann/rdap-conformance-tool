@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
+import java.io.IOException;
 import java.util.List;
+import org.json.JSONObject;
 import org.testng.annotations.Test;
 
 public class SchemaValidatorNameserversSearchTest extends SchemaValidatorObjectTest {
@@ -47,5 +49,22 @@ public class SchemaValidatorNameserversSearchTest extends SchemaValidatorObjectT
   @Test
   public void stdRdapConformanceValidation() {
     stdRdapConformanceValidation(-12609);
+  }
+
+  @Test
+  public void noticesNotInTopMost() throws IOException {
+    // insert an entity under nameserverSearchResults with a notices in it:
+    jsonObject
+        .getJSONArray("nameserverSearchResults")
+        .getJSONObject(0)
+        .put("entities", List.of(new JSONObject(getResource("/validators/entity/valid.json"))))
+        .getJSONArray("entities")
+        .getJSONObject(0).put("notices", jsonObject.get("notices"));
+
+    validate(-12608,
+        "#/nameserverSearchResults/0/entities/0/notices:" + jsonObject.query(
+            "#/nameserverSearchResults/0/entities/0/notices"),
+        "The value for the JSON name notices exists but " + name + " object is "
+            + "not the topmost JSON object.");
   }
 }

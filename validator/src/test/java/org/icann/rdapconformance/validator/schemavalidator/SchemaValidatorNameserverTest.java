@@ -96,4 +96,9 @@ public class SchemaValidatorNameserverTest extends SchemaValidatorObjectTest {
   public void stdRdapConformanceValidation() {
     stdRdapConformanceValidation(-12416);
   }
+
+  @Test
+  public void noticesNotInTopMost() {
+    noticesNotInTopMost(-12415);
+  }
 }

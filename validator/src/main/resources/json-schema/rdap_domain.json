@@ -107,5 +107,6 @@
   "structureInvalid": -12200,
   "unknownKeys": -12201,
   "duplicateKeys": -12202,
+  "noticesTopMost": -12218,
   "validationName": "stdRdapDomainLookupValidation"
 }
