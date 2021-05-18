@@ -278,7 +278,7 @@ public class JcardCategoriesSchemasTest {
 
   @Test
   public void xPatternCategory() {
-    assertThat(jcardSchemas.getCategory("x-[a-z0-9-]*").toString())
+    assertThat(jcardSchemas.getCategory("x-foo").toString())
         .contains("\"pattern\":\"x-[a-z0-9-]*\"");
   }
 
