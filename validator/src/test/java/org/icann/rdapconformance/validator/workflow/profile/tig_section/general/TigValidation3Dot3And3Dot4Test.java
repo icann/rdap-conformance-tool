@@ -27,7 +27,7 @@ public class TigValidation3Dot3And3Dot4Test extends ProfileJsonValidationTestBas
   @Test
   public void tigSection_3_3_and_3_4_Validation() {
     jsonObject.getJSONArray("notices").getJSONObject(0).remove("links");
-    validate(-20700, jsonObject.getJSONArray("notices").toString(),
+    validate(-20700, "#/notices:" + jsonObject.getJSONArray("notices"),
         "A links object was not found in the "
             + "notices object in the "
             + "topmost object. See section 3.3 and 3.4 of the "

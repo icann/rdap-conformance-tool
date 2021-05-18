@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import java.util.Optional;
+import java.util.Set;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
@@ -26,17 +27,11 @@ public class TigValidation3Dot3And3Dot4 extends ProfileJsonValidation {
 
   @Override
   public boolean doValidate() {
-    JsonPointers jsonPointers = schemaValidator.getSchemaRootNode().findJsonPointersBySchemaId(
-        "rdap_notices.json", jsonObject);
-    boolean noLinksInTopMost = jsonPointers.getOnlyTopMosts()
-        .stream()
-        .map(j -> (JSONObject) jsonObject.query(j))
-        .noneMatch(notice -> notice.has("links"));
-    Optional<String> noticesArray = jsonPointers.getParentOfTopMosts();
-    if (noLinksInTopMost && noticesArray.isPresent()) {
+    Set<String> linksInTopMostNotices = getPointerFromJPath("$.notices[*].links");
+    if (linksInTopMostNotices.isEmpty()) {
       results.add(RDAPValidationResult.builder()
           .code(-20700)
-          .value(jsonObject.query(noticesArray.get()).toString())
+          .value(getResultValue("#/notices"))
           .message("A links object was not found in the notices object in the "
               + "topmost object. See section 3.3 and 3.4 of the "
               + "RDAP_Technical_Implementation_Guide_2_1.")
