@@ -19,16 +19,16 @@ public class ResponseValidation1Dot4 extends RDAPProfileVcardArrayValidation {
 
 
   @Override
-  protected boolean validateVcardArray(String category, JSONArray categorieJsonArray,
+  protected boolean validateVcardArray(String category, JSONArray categoryJsonArray,
       String jsonExceptionPointer, JcardCategoriesSchemas jcardCategoriesSchemas) {
     if (category.equals("adr")) {
-      Object address = categorieJsonArray.get(3);
+      Object address = categoryJsonArray.get(3);
       if (address instanceof JSONArray) {
         String country = ((JSONArray) address).getString(6);
         if (!country.isEmpty()) {
           results.add(RDAPValidationResult.builder()
               .code(-40400)
-              .value(jsonExceptionPointer + ":" + categorieJsonArray)
+              .value(jsonExceptionPointer + ":" + categoryJsonArray)
               .message("A vcard object with a country name parameter with data was found.")
               .build());
           return false;

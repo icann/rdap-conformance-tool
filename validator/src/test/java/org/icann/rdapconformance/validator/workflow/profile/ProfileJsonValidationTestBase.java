@@ -4,6 +4,7 @@ import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidato
 
 import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
+import net.minidev.json.JSONArray;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.json.JSONObject;
@@ -35,7 +36,7 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
     jsonObject = new JSONObject(rdapContent);
   }
 
-  public <T> T  getValue(String jpath) {
+  public <T> T getValue(String jpath) {
     return JsonPath
         .read(jsonObject.toString(), jpath);
   }
@@ -44,6 +45,16 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
     rdapContent = JsonPath
         .parse(jsonObject.toString())
         .put(jpath, key, value)
+        .jsonString();
+    jsonObject = new JSONObject(rdapContent);
+  }
+
+  public void addValue(String jpath, Object value) {
+    JSONArray array = getValue(jpath);
+    array.add(value);
+    rdapContent = JsonPath
+        .parse(jsonObject.toString())
+        .set(jpath, array)
         .jsonString();
     jsonObject = new JSONObject(rdapContent);
   }

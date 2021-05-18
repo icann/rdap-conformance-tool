@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
 import java.util.List;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
@@ -22,7 +23,7 @@ public class ResponseValidation2Dot7Dot5Dot3Test extends ResponseDomainValidatio
 
   @Override
   @BeforeMethod
-  public void setUp() throws java.io.IOException {
+  public void setUp() throws IOException {
     super.setUp();
     config = mock(RDAPValidatorConfiguration.class);
     doReturn(true).when(config).isGtldRegistry();
