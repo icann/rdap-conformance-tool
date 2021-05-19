@@ -93,7 +93,8 @@ public class ResponseValidation3Dot1Test extends ProfileJsonValidationTestBase {
     assertThat(getProfileValidation().doLaunch()).isFalse();
     queryType = RDAPQueryType.ENTITY;
     assertThat(getProfileValidation().doLaunch()).isTrue();
-
+    doReturn(false).when(config).isGtldRegistry();
+    assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 
 }
