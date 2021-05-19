@@ -61,6 +61,7 @@ public abstract class ExceptionParser {
       parsers.add(new ComplexTypeExceptionParser(basicException, schema, object, results));
       parsers.add(new RdapExtensionsExceptionParser(basicException, schema, object, results));
       parsers.add(new DatasetExceptionParser(basicException, schema, object, results));
+      parsers.add(new VcardExceptionParser(basicException, schema, object, results));
     }
 
     return parsers;

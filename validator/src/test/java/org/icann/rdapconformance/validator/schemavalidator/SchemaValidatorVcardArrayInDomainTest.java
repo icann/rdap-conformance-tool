@@ -14,12 +14,7 @@ public class SchemaValidatorVcardArrayInDomainTest extends SchemaValidatorDomain
 
   @Test
   public void testVcardWrongCategory() throws IOException {
-    JSONArray vcardArrayWithWrongCategory = new JSONObject(getResource(
-        "/validators/vcardArray/wrongCategory.json")).getJSONArray("vcardArray");
-    jsonObject
-        .getJSONArray("entities")
-        .getJSONObject(0)
-        .put("vcardArray", vcardArrayWithWrongCategory);
+    replaceVcardArray("/validators/vcardArray/wrongCategory.json");
     // #/entities/0/vcardArray/1/1/0:
     validateWithoutGroupTests(-12305,
         "#/entities/0/vcardArray/1/3:wrong-category",
@@ -27,5 +22,22 @@ public class SchemaValidatorVcardArrayInDomainTest extends SchemaValidatorDomain
     assertThat(results.getAll())
         .filteredOn("value", "version")
         .isEmpty();
+  }
+
+  @Test
+  public void testFnMissing() throws IOException {
+    replaceVcardArray("/validators/vcardArray/fnMissing.json");
+    validateWithoutGroupTests(-12305,
+        "#/entities/0/vcardArray/1:" + jsonObject.query("#/entities/0/vcardArray/1"),
+        "The value for the JSON name value is not a syntactically valid vcardArray.");
+  }
+
+  private void replaceVcardArray(String wrongVcardPath) throws IOException {
+    JSONArray vcardArrayWithWrongCategory = new JSONObject(getResource(
+        wrongVcardPath)).getJSONArray("vcardArray");
+    jsonObject
+        .getJSONArray("entities")
+        .getJSONObject(0)
+        .put("vcardArray", vcardArrayWithWrongCategory);
   }
 }
