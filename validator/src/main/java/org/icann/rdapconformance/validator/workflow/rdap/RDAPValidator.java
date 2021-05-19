@@ -25,11 +25,23 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidationNoticesIncluded;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidationRFC3915;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidationRFC5731;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated1;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated2;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated3And4;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated6;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot3;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.SimpleHandleValidation;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidation3Dot1;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidation3Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot4;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous.ResponseValidationLastUpdateEvent;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseNameserverStatusValidation;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Query;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot13;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot14;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2;
@@ -211,7 +223,33 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
               new ResponseValidation2Dot4Dot2And2Dot4Dot3(query.getData(), results,
                   datasetService, queryTypeProcessor.getQueryType()),
               new ResponseValidation2Dot4Dot5(query.getData(), results,
-                  queryTypeProcessor.getQueryType())
+                  queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot7Dot1DotXAndRelated1(query.getData(), results,
+                  queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation2Dot7Dot1DotXAndRelated2(query.getData(), results,
+                  queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation2Dot7Dot1DotXAndRelated3And4(query.getData(), results,
+                  queryTypeProcessor.getQueryType(), config,
+                  new SimpleHandleValidation(query.getData(), results, datasetService,
+                      queryTypeProcessor.getQueryType(), -52102)),
+              new ResponseValidation2Dot7Dot1DotXAndRelated6(query.getData(), results,
+                  queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation2Dot7Dot5Dot2(query.getData(), results,
+                  queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation2Dot7Dot5Dot3(query.getData(), results,
+                  queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation3Dot1(query.getData(), results,
+                  queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation3Dot2(query.getData(), results,
+                  queryTypeProcessor.getQueryType(), config),
+              new ResponseNameserverStatusValidation(query.getData(), results,
+                  queryTypeProcessor.getQueryType()),
+              new ResponseValidation4Dot1Handle(query.getData(), results,
+                  datasetService, queryTypeProcessor.getQueryType()),
+              new ResponseValidation4Dot1Query(query.getData(), results,
+                  config, queryTypeProcessor.getQueryType()),
+              new ResponseValidation4Dot3(query.getData(), results,
+                  datasetService, queryTypeProcessor.getQueryType())
           ));
       rdapProfileFebruary2019.validate();
     }
