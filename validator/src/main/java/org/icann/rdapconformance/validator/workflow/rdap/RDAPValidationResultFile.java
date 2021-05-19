@@ -9,6 +9,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,7 +76,12 @@ public class RDAPValidationResultFile {
 
     Set<RDAPValidationResult> allResults = results.getAll();
 
+    Set<Integer> codeToIgnore = new HashSet<>(configurationFile.getDefinitionIgnore());
     for (RDAPValidationResult result : allResults) {
+      if (codeToIgnore.contains(result.getCode())) {
+        continue;
+      }
+
       Map<String, Object> resultMap = new HashMap<>();
       resultMap.put("code", result.getCode());
       resultMap.put("value", result.getValue());
