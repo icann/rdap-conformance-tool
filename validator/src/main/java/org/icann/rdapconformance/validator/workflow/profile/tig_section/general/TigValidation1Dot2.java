@@ -73,7 +73,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
               .code(-20101)
               .value(httpResponse.body() + "\n/\n" + rdapResponse.body())
               .message("The RDAP response was provided over HTTP, per section 1.2 of the "
-                  + "RDAP_Technical_Implementation_Guide_2_1shall be HTTPS only.")
+                  + "RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.")
               .build());
           isValid = false;
         }

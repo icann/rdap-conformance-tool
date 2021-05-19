@@ -87,7 +87,7 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
     validateNotOk(results,
         -20101, RDAP_RESPONSE + "\n/\n" + RDAP_RESPONSE,
         "The RDAP response was provided over HTTP, per section 1.2 of the "
-            + "RDAP_Technical_Implementation_Guide_2_1shall be HTTPS only.");
+            + "RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
   }
 
 

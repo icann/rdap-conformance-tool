@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.configuration;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -67,10 +68,10 @@ public class ConfigurationFile {
       @JsonProperty(value = "definitionIgnore") List<Integer> definitionIgnore,
       @JsonProperty(value = "definitionNotes") List<String> definitionNotes) {
     this.definitionIdentifier = definitionIdentifier;
-    this.definitionError = definitionError;
-    this.definitionWarning = definitionWarning;
-    this.definitionIgnore = definitionIgnore;
-    this.definitionNotes = definitionNotes;
+    this.definitionError = emptyListIfNull(definitionError);
+    this.definitionWarning = emptyListIfNull(definitionWarning);
+    this.definitionIgnore = emptyListIfNull(definitionIgnore);
+    this.definitionNotes = emptyListIfNull(definitionNotes);
     if (null != definitionError) {
       this.errorCodes = definitionError.stream()
           .map(DefinitionAlert::getCode)
@@ -85,6 +86,10 @@ public class ConfigurationFile {
     } else {
       this.warningCodes = Collections.emptySet();
     }
+  }
+
+  private <T> List<T> emptyListIfNull(List<T> list) {
+    return list == null ? new ArrayList<>() : list;
   }
 
   public boolean isError(int code) {
