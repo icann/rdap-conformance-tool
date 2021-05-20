@@ -1,10 +1,5 @@
 package org.icann.rdapconformance.validator;
 
-import static com.jayway.jsonpath.JsonPath.using;
-
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.Option;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -23,9 +18,7 @@ import org.icann.rdapconformance.validator.customvalidator.Ipv6FormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.RdapExtensionsFormatValidator;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
-import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.jcard.VcardArrayGeneralValidation;
-import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -42,7 +35,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIP
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -54,6 +46,7 @@ public class SchemaValidator {
   private static final Logger logger = LoggerFactory.getLogger(SchemaValidator.class);
   static Pattern duplicateKeys = Pattern.compile("Duplicate key \"(.+)\" at");
   private final RDAPDatasetService datasetService;
+  private final JpathUtil jpathUtil;
   private JSONObject schemaObject;
   private Schema schema;
   private RDAPValidatorResults results;
@@ -63,7 +56,9 @@ public class SchemaValidator {
   public SchemaValidator(String schemaName, RDAPValidatorResults results,
       RDAPDatasetService datasetService) {
     this.datasetService = datasetService;
-    this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader(), datasetService), results);
+    this.jpathUtil = new JpathUtil();
+    this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader(), datasetService),
+        results);
   }
 
   private void init(Schema schema, RDAPValidatorResults results) {
@@ -137,12 +132,11 @@ public class SchemaValidator {
       schema.validate(jsonObject);
     } catch (ValidationException e) {
       parseException(e, jsonObject);
-      return false;
     }
 
     // customs validations...
-    verifyUnicityOfEventAction("rdap_events.json", -10912, jsonObject);
-    verifyUnicityOfEventAction("rdap_asEventActor.json", -11310, jsonObject);
+    verifyUnicityOfEventAction("events", -10912, jsonObject);
+    verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
     // vcard
     if (content.contains("\"vcardArray\"")) {
@@ -157,19 +151,26 @@ public class SchemaValidator {
   }
 
   private void verifyUnicityOfEventAction(String schemaId, int errorCode, JSONObject jsonObject) {
-    Set<String> eventsJsonPointers = schemaRootNode.findJsonPointersBySchemaId(schemaId
-        , jsonObject).getAll();
+    Set<String> eventsJsonPointers = jpathUtil.getPointerFromJPath(jsonObject,
+        "$.." + schemaId + "[?(@.eventAction)]");
+    // String
     Set<String> eventActions = new HashSet<>();
     for (String jsonPointer : eventsJsonPointers) {
-      String eventAction = ((JSONObject) jsonObject.query(jsonPointer)).getString("eventAction");
-      if (!eventActions.add(eventAction)) {
-        results.add(RDAPValidationResult.builder()
-            .code(errorCode)
-            .value(jsonPointer + "/eventAction:" + eventAction)
-            .message("An eventAction value exists more than once within the events array.")
-            .build());
-        // and add also corresponding group test validation error:
-        ExceptionParser.validateGroupTest(jsonPointer + "/eventAction", jsonObject, results, schema);
+      try {
+        String eventAction = ((JSONObject) jsonObject.query(jsonPointer)).getString("eventAction");
+        if (!eventActions.add(eventAction)) {
+          results.add(RDAPValidationResult.builder()
+              .code(errorCode)
+              .value(jsonPointer + "/eventAction:" + eventAction)
+              .message("An eventAction value exists more than once within the events array.")
+              .build());
+          // and add also corresponding group test validation error:
+          ExceptionParser
+              .validateGroupTest(jsonPointer + "/eventAction", jsonObject, results, schema);
+        }
+      } catch (Exception e) {
+        logger.error("Exception during evaluation of eventAction String: {} \n\n details: {}",
+            jsonObject.query(jsonPointer), e);
       }
     }
   }

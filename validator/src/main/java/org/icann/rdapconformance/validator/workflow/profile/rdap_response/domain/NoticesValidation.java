@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import com.jayway.jsonpath.DocumentContext;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import net.minidev.json.JSONArray;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
@@ -32,13 +33,11 @@ public abstract class NoticesValidation extends ProfileJsonValidation {
 
   @Override
   protected boolean doValidate() {
-    DocumentContext jpath = getJPath();
     String path = String.format(
         "$..notices[?(@.title == '%s' && @.description contains '%s')].links[?(@.href == '%s')]",
         title, description, href);
-    JSONArray matchingNode = jpath.read(path);
-    if (matchingNode.isEmpty()) {
-      List<String> noticesPaths = jpath.read("$..notices");
+    if (!exists(path)) {
+      Set<String> noticesPaths = getPointerFromJPath("$..notices");
       results.add(RDAPValidationResult.builder()
           .code(code)
           .value(getResultValue(noticesPaths.stream()

@@ -7,20 +7,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Stack;
 import org.everit.json.schema.ArraySchema;
 import org.everit.json.schema.CombinedSchema;
 import org.everit.json.schema.ObjectSchema;
 import org.everit.json.schema.ReferenceSchema;
 import org.everit.json.schema.Schema;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class SchemaNode {
-
-  private static final Logger logger = LoggerFactory.getLogger(SchemaNode.class);
 
   protected final SchemaNode parentNode;
   protected final Schema schema;
@@ -188,83 +181,6 @@ public abstract class SchemaNode {
       return Optional.of(parent);
     }
     return Optional.empty();
-  }
-
-  public JsonPointers findJsonPointersBySchemaId(String schemaId, JSONObject jsonObject) {
-    Objects.requireNonNull(schemaId);
-    List<SchemaNode> schemaNodes = findAllById(schemaId);
-    return schemaNodes
-        .stream()
-        .map(schemaNode -> {
-          SchemaNode parent = schemaNode;
-          Stack<String> stack = new Stack<>();
-          while (parent != null) {
-            if (parent instanceof ArraySchemaNode) {
-              stack.add("{}");
-            }
-            if (parent.parentNode instanceof ObjectSchemaNode) {
-              stack.add(parent.propertyName);
-            }
-            parent = parent.parentNode;
-          }
-
-          Set<String> jsonPointers = Set.of("#");
-          while (!stack.empty()) {
-            String segment = stack.pop();
-            Set<String> newJsonPointers = new HashSet<>();
-            // this is an array:
-            if (segment.equals("{}")) {
-              for (String pointer : jsonPointers) {
-                JSONArray jsonArray = (JSONArray) jsonObject.query(pointer);
-
-                if (jsonArray == null) {
-                  // there is no data at the jsonPointer location on the real object
-                  continue;
-                }
-
-                int i = 0;
-                for (Object o : jsonArray) {
-                  newJsonPointers.add(pointer + "/" + i);
-                  i++;
-                }
-              }
-            } else {
-              for (String pointer : jsonPointers) {
-                newJsonPointers.add(pointer + "/" + segment);
-              }
-            }
-            jsonPointers = newJsonPointers;
-          }
-          return new JsonPointers(jsonPointers);
-        }).findFirst()
-        .orElse(new JsonPointers());
-  }
-
-  private List<SchemaNode> findAllById(String schemaId) {
-    List<SchemaNode> schemaNodes = new ArrayList<>();
-    findById(schemaId, new HashSet<>(), schemaNodes);
-    return schemaNodes;
-  }
-
-  private void findById(String schemaId,
-      Set<String> alreadyVisitedIds, List<SchemaNode> schemaNodes) {
-    Objects.requireNonNull(schemaId);
-    if (schemaId.equals(schema.getId())) {
-      schemaNodes.add(this);
-    } else {
-      if (schema.getId() != null) {
-        alreadyVisitedIds.add(schema.getId());
-      }
-
-      for (SchemaNode schemaNode : getChildren()) {
-        // nested schema like entity/entities should be visited once:
-        if (alreadyVisitedIds.contains(schemaNode.schema.getId())) {
-          continue;
-        }
-
-        schemaNode.findById(schemaId, alreadyVisitedIds, schemaNodes);
-      }
-    }
   }
 
   private List<SchemaNode> findAllChildren(List<SchemaNode> schemaNodes,
