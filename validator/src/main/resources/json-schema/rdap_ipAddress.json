@@ -64,7 +64,7 @@
       }
     }
   },
-  "oneOf": [
+  "anyOf": [
     {
       "required": [
         "v4"
