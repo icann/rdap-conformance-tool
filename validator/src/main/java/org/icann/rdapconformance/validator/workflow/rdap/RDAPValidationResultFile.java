@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -78,7 +80,7 @@ public class RDAPValidationResultFile {
 
     Set<Integer> codeToIgnore = new HashSet<>(configurationFile.getDefinitionIgnore());
     for (RDAPValidationResult result : allResults) {
-      if (codeToIgnore.contains(result.getCode())) {
+      if (codeToIgnore.contains(result.getCode()) || result.getCode() == UNKNOWN_ERROR_CODE) {
         continue;
       }
 

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.doReturn;
@@ -57,6 +58,11 @@ public class RDAPValidationResultFileTest {
         .code(ignoredCode)
         .value("ignoreCode")
         .message("this is a code to ignore")
+        .build());
+    results.add(RDAPValidationResult.builder()
+        .code(UNKNOWN_ERROR_CODE)
+        .value("unknown_code")
+        .message("We log unknown error code, but they aren't part of the result file")
         .build());
     doReturn(List.of(ignoredCode)).when(configurationFile).getDefinitionIgnore();
     file.build(200);

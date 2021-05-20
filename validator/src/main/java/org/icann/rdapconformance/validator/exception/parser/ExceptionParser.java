@@ -24,6 +24,7 @@ public abstract class ExceptionParser {
   protected final JSONObject schemaObject;
   protected final JSONObject jsonObject;
   protected final RDAPValidatorResults results;
+  public final static int UNKNOWN_ERROR_CODE = -999;
 
   protected ExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject, RDAPValidatorResults results) {
@@ -71,8 +72,8 @@ public abstract class ExceptionParser {
     try {
       return getErrorCodeFn.get();
     } catch (Exception parseException) {
-      logger.info("Can't find the corresponding error in schema, replacing by -999");
-      return -999;
+      logger.info("Can't find the corresponding error in schema, replacing by {}", UNKNOWN_ERROR_CODE);
+      return UNKNOWN_ERROR_CODE;
     }
   }
 
