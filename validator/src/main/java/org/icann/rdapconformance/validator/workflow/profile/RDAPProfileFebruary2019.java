@@ -20,7 +20,7 @@ public class RDAPProfileFebruary2019 {
       try {
         result &= validation.validate();
       } catch (Exception e) {
-        logger.info("Exception during validation of : {} \n details: {}",
+        logger.error("Exception during validation of : {} \n details: {}",
             validation.getClass().getSimpleName(), e);
         result = false;
       }

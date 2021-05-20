@@ -1,6 +1,6 @@
 # RDAP Conformance Validator
 
-Validator for the RDAP conformance tool
+Validator library module for the RDAP conformance tool
 
 # Architecture of json validation
 
@@ -36,8 +36,9 @@ will produce the following error:
         "message": "The JSON value is not a string"
     }
     
-The value format is using a json pointer. This is better to locate the error, when the violation is deep in the json hierarchy. However, locating the 999 violation can be really far from the top
-  , e.g.:
+The value format is using a json pointer. This is better to locate the error, when the violation is
+deep in the json hierarchy. For instance, locating the 999 violation can be really far from the top,
+e.g.:
   
     "#/someKey/someArray/2/someNestedKey/aString:999"
 
@@ -179,17 +180,37 @@ us to specify different error codes for each of the combined schemas.
 
 ## ExceptionParser(s)
 
-The base class ExceptionParser defined two methods: 
+The base class ExceptionParser defined two methods:
 
-1. matches(e) that tell if the ValidationException of org.everit.json matches the subclass at
-     hand. For instance, MissingKeyExceptionParser matches telling a required key is missing.
+1. matches(e) that tell if the ValidationException of org.everit.json matches the subclass at hand.
+   For instance, MissingKeyExceptionParser matches telling a required key is missing.
 2. parse() that will generate the right formatted errors for ICANN standards.
 
 Most of the parser exception classes are implemented right now, but if you see new cases, or new
 edge cases, feel free to implement a new one suiting to your specific schema violations.
 
+Every time a parser exception class does not exist, the tool will log an error like this:
+
+    [main] ERROR ... We found this error with no exception parser {{#/jsonPointer/of/exception}}: {{exception details}}
+
 ## SchemaNode(s)
 
-The base class SchemaNode is a classic tree structure (representing the schema tree). This
- structure is only there to find the schemas associated to violation and pickup the error codes
- or the detailed information to display when it occurs. 
+The base class SchemaNode is a classic tree structure (representing the schema tree). This structure
+is only there to find the schemas associated to violation and pickup the error codes or the detailed
+information to display when it occurs.
+
+## Profile February 2019 validations
+
+The [RDAP profile February 2019](https://www.icann.org/gtld-rdap-profile) validations consist more
+of data validations than schema validations as the other ones. Thus, these validations don't use
+json-schema but rather leverage the [jpath query language](https://github.com/json-path/JsonPath)
+to get the data relevant to perform each checks.
+
+Of course, if the json-schema is wrong, these queries can, as expected, failed (e.g. we expect an
+string, but we get an array). When they fail, we log an error like this:
+
+    [main] ERROR ... Exception during validation of : TigValidation1Dot12Dot1 details: Missing property in path $['something'][1]['somethingelse']
+
+and we continue the execution. TigValidation1Dot12Dot1 stands for Tig
+-> [Technical Implementation Guide](https://www.icann.org/en/system/files/files/rdap-technical-implementation-guide-15feb19-en.pdf)
+section 1.12.1.
