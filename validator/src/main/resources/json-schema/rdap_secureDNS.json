@@ -165,10 +165,22 @@
   },
   "anyOf": [
     {
+      "properties": {
+        "delegationSigned": { "const": true }
+      },
       "required": ["delegationSigned", "dsData"]
     },
     {
+      "properties": {
+        "delegationSigned": { "const": true }
+      },
       "required": ["delegationSigned", "keyData"]
+    },
+    {
+      "properties": {
+        "delegationSigned": { "const": false }
+      },
+      "required": ["delegationSigned"]
     }
   ],
   "additionalProperties": false,

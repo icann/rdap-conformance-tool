@@ -79,6 +79,7 @@ public class SchemaValidatorSecureDnsTest extends SchemaValidatorTest {
    */
   @Test
   public void keyDataAndDsDataMissing() {
+    jsonObject.getJSONObject("secureDNS").put("delegationSigned", true);
     jsonObject.getJSONObject("secureDNS").remove("dsData");
     validateKeyMissing(-12007, "dsData");
     validateKeyMissing(-12007, "keyData");
