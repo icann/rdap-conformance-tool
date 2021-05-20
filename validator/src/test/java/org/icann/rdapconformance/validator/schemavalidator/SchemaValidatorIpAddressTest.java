@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.json.JSONObject;
 import org.testng.annotations.Test;
 
 public class SchemaValidatorIpAddressTest extends SchemaValidatorTest {
@@ -32,25 +33,24 @@ public class SchemaValidatorIpAddressTest extends SchemaValidatorTest {
   }
 
   /**
-   * 7.2.10.4 == 7.2.10.2
+   * 7.2.10.4
    */
   @Test
-  public void v4Orv6NotBoth() {
-    // add a v6 address to the jsonObject with v4 already:
-    jsonObject.getJSONObject("ipAddress").put("v6", List.of("2001:db8:0000:1:1:1:1:1"));
-    // validate...
+  public void v4NOrv6() {
+    // no v4 nor v6:
+    jsonObject.put("ipAddress", new JSONObject());
     schemaValidator.validate(jsonObject.toString());
     assertThat(results.getAll())
         .contains(
             RDAPValidationResult.builder()
-                .code(-11401)
-                .value("#/ipAddress/v6:[\"2001:db8:0000:1:1:1:1:1\"]")
-                .message("The name in the name/value pair is not of: v4.")
+                .code(-11403)
+                .value("{\"ipAddress\":{}}")
+                .message("The v4 element does not exist.")
                 .build(),
             RDAPValidationResult.builder()
-                .code(-11401)
-                .value("#/ipAddress/v4:[\"172.16.254.1\"]")
-                .message("The name in the name/value pair is not of: v6.")
+                .code(-11403)
+                .value("{\"ipAddress\":{}}")
+                .message("The v6 element does not exist.")
                 .build()
         );
   }
