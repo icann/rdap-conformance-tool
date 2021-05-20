@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
@@ -47,25 +46,21 @@ public final class TigValidation1Dot2 extends ProfileValidation {
   @Override
   public boolean doValidate() {
     boolean isValid = true;
-    Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
-    while (responseOpt.isPresent()) {
-      HttpResponse<String> response = responseOpt.get();
-      if (response.uri().getScheme().equals("http")) {
-        results.add(RDAPValidationResult.builder()
-            .code(-20100)
-            .value(response.uri().toString())
-            .message(
-                "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 "
-                    + "shall be HTTPS only.")
-            .build());
-        isValid = false;
-      }
-      responseOpt = response.previousResponse();
+    if (rdapResponse.uri().getScheme().equals("http")) {
+      results.add(RDAPValidationResult.builder()
+          .code(-20100)
+          .value(rdapResponse.uri().toString())
+          .message(
+              "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 "
+                  + "shall be HTTPS only.")
+          .build());
+      isValid = false;
     }
-    if (config.getUri().getScheme().equals("https")) {
+    if (rdapResponse.uri().getScheme().equals("https")) {
       try {
-        URI uri = URI.create(config.getUri().toString().replaceFirst("https://", "http://"));
-        HttpResponse<String> httpResponse = RDAPHttpRequest.makeHttpGetRequest(uri, config.getTimeout());
+        URI uri = URI.create(rdapResponse.uri().toString().replaceFirst("https://", "http://"));
+        HttpResponse<String> httpResponse = RDAPHttpRequest
+            .makeHttpGetRequest(uri, config.getTimeout());
         JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
         JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
         if (jsonComparator.compare(httpResponseJson, httpsResponseJson) == 0) {

@@ -53,19 +53,6 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
   }
 
   @Test
-  public void testValidate_UriNotHttpsInOneRedirect_AddResult20100() {
-    RedirectData redirectData = givenChainedHttpRedirects();
-    httpsResponse = redirectData.startingResponse;
-
-    // set URI as being an HTTP request to avoid going through HTTP test for code -20101
-    doReturn(URI.create("http://domain/test.example")).when(config).getUri();
-
-    validateNotOk(results,
-        -20100, redirectData.endingResponse.uri().toString(),
-        "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
-  }
-
-  @Test
   public void testValidate_HttpResponseEqualsHttpsResponse_AddResult20101() {
     WireMockConfiguration wmConfig = wireMockConfig()
         .dynamicHttpsPort()
