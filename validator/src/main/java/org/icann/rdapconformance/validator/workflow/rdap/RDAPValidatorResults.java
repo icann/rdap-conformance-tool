@@ -19,7 +19,7 @@ public class RDAPValidatorResults {
 
   public void add(RDAPValidationResult result) {
     if (this.results.add(result)) {
-      logger.error("adding error result {}", result);
+      logger.debug("adding error result {}", result);
     }
   }
 

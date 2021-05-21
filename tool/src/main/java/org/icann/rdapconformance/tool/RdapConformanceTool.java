@@ -35,6 +35,8 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
   @Option(names = {"--query-type"}, hidden = true)
   private RDAPQueryType queryType;
+  @Option(names = {"-v", "--verbose"}, description = "display all logs")
+  private boolean isVerbose = false;
 
   @Override
   public Integer call() throws Exception {
@@ -44,7 +46,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     } else {
       validator = new RDAPFileValidator(this, fileSystem);
     }
-    return validator.validate();
+    return validator.validate(isVerbose);
   }
 
   @Override

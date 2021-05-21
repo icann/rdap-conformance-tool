@@ -26,7 +26,7 @@ public abstract class XmlObject implements RDAPDatasetModel {
    */
   Document init(InputStream inputStream) throws ParserConfigurationException, IOException,
       SAXException {
-    logger.info("Fetching dataset " + this.getClass().getSimpleName());
+    logger.info("Loading dataset " + this.getClass().getSimpleName());
     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
     documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
     DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
