@@ -1,5 +1,6 @@
 ## https://github.com/github/gitignore/blob/master/Java.gitignore
 TODO.txt
+fixtures/
 
 # Compiled class file
 *.class

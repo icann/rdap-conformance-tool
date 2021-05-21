@@ -6,8 +6,11 @@ import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
 import net.minidev.json.JSONArray;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
+import org.icann.rdapconformance.validator.util.FixturesGenerator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.json.JSONObject;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
 public abstract class ProfileJsonValidationTestBase extends ProfileValidationTestBase {
@@ -73,5 +76,10 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
         .delete(jpath)
         .jsonString();
     jsonObject = new JSONObject(rdapContent);
+  }
+
+  @AfterMethod
+  public void tearDown(ITestResult testResult) throws IOException {
+    FixturesGenerator.generate(testResult, jsonObject);
   }
 }

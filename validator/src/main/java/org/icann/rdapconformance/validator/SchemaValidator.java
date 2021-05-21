@@ -35,6 +35,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIP
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -152,21 +153,27 @@ public class SchemaValidator {
 
   private void verifyUnicityOfEventAction(String schemaId, int errorCode, JSONObject jsonObject) {
     Set<String> eventsJsonPointers = jpathUtil.getPointerFromJPath(jsonObject,
-        "$.." + schemaId + "[?(@.eventAction)]");
-    // String
-    Set<String> eventActions = new HashSet<>();
+        "$.." + schemaId);
+
     for (String jsonPointer : eventsJsonPointers) {
       try {
-        String eventAction = ((JSONObject) jsonObject.query(jsonPointer)).getString("eventAction");
-        if (!eventActions.add(eventAction)) {
-          results.add(RDAPValidationResult.builder()
-              .code(errorCode)
-              .value(jsonPointer + "/eventAction:" + eventAction)
-              .message("An eventAction value exists more than once within the events array.")
-              .build());
-          // and add also corresponding group test validation error:
-          ExceptionParser
-              .validateGroupTest(jsonPointer + "/eventAction", jsonObject, results, schema);
+        JSONArray events = (JSONArray) jsonObject.query(jsonPointer);
+        Set<String> eventActions = new HashSet<>();
+        int i = 0;
+        for (Object event : events) {
+          String eventAction = ((JSONObject) event).getString("eventAction");
+          if (!eventActions.add(eventAction)) {
+            results.add(RDAPValidationResult.builder()
+                .code(errorCode)
+                .value(jsonPointer + "/" + i + "/eventAction:" + eventAction)
+                .message("An eventAction value exists more than once within the events array.")
+                .build());
+            // and add also corresponding group test validation error:
+            ExceptionParser
+                .validateGroupTest(jsonPointer + "/" + i + "/eventAction", jsonObject, results,
+                    schema);
+          }
+          i++;
         }
       } catch (Exception e) {
         logger.error("Exception during evaluation of eventAction String: {} \n\n details: {}",

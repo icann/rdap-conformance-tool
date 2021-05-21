@@ -54,8 +54,8 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2Test extends
   @Test
   public void countryNotIncludedInAdrProperty() {
     // remove all elements including country:
-    removeKey("$.['entities'][0]['vcardArray'][1][4][3][3:6]");
-    assertThat((List<String>) getValue("$.['entities'][0]['vcardArray'][1][4][3]")).hasSize(4);
+    removeKey("$.['entities'][0]['vcardArray'][1][4][3][2:6]");
+    assertThat((List<String>) getValue("$.['entities'][0]['vcardArray'][1][4][3]")).hasSize(3);
     validate52101();
   }
 

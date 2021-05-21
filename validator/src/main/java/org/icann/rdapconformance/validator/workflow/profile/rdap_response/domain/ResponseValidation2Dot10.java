@@ -4,6 +4,7 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidatio
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.json.JSONObject;
 
 public final class ResponseValidation2Dot10 extends ProfileJsonValidation {
 
@@ -31,6 +32,29 @@ public final class ResponseValidation2Dot10 extends ProfileJsonValidation {
           .build());
       return false;
     }
+
+    if (getPointerFromJPath("$.secureDNS.delegationSigned").isEmpty()) {
+      results.add(RDAPValidationResult.builder()
+          .code(-46801)
+          .value(jsonObject.toString())
+          .message("The delegationSigned element does not exist.")
+          .build());
+      return false;
+    }
+
+    JSONObject secureDNS = jsonObject.getJSONObject("secureDNS");
+    if (secureDNS.getBoolean("delegationSigned") &&
+        !secureDNS.has("dsData") &&
+        !secureDNS.has("keyData")) {
+      results.add(RDAPValidationResult.builder()
+          .code(-46802)
+          .value(jsonObject.toString())
+          .message("delegationSigned value is true, but no dsData nor keyData "
+              + "name/value pair exists.")
+          .build());
+      return false;
+    }
+
     return true;
   }
 

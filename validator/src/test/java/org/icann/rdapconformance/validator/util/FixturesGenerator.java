@@ -1,18 +1,12 @@
 package org.icann.rdapconformance.validator.util;
 
 import com.github.jknack.handlebars.internal.text.WordUtils;
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
-import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -31,7 +25,8 @@ public class FixturesGenerator {
     String objectName = result.getInstanceName()
         .replace("SchemaValidator", "")
         .replace("Test", "")
-        .replace("org.icann.rdapconformance.validator.schemavalidator.", "");
+        .replace("org.icann.rdapconformance.validator.schemavalidator.", "")
+        .replace("org.icann.rdapconformance.validator.workflow.", "");
     objectName = WordUtils.uncapitalize(objectName);
 
     JSONObject domain = new JSONObject(
@@ -161,10 +156,11 @@ public class FixturesGenerator {
         break;
     }
 
-    String root = "/home/gblanchet/Documents/viagenie/RDAP/fixtures/";
-    File file = new File(root + result.getInstanceName());
+    String root = "../fixtures/";
+    File file = new File(root + objectName);
     file.mkdirs();
-    Files.write(Paths.get(file.getAbsolutePath() + "/" + result.getMethod().getMethodName()),
+    Files.write(
+        Paths.get(file.getAbsolutePath() + "/" + result.getMethod().getMethodName() + ".json"),
         jsonObject.toString(1).getBytes());
   }
 

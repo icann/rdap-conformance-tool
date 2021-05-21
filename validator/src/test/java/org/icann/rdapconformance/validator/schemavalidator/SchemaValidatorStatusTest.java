@@ -3,7 +3,9 @@ package org.icann.rdapconformance.validator.schemavalidator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
+import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
+import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
@@ -50,9 +52,10 @@ public class SchemaValidatorStatusTest extends SchemaValidatorForArrayOfStringTe
   }
 
   @AfterMethod
-  public void tearDown() {
+  public void tearDown(ITestResult testResult) throws IOException {
     if (results.isEmpty()) {
       assertThat(results.getGroupOk()).containsExactly("stdRdapStatusValidation");
     }
+    super.tearDown(testResult);
   }
 }

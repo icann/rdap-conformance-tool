@@ -55,8 +55,8 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
         if (property.equals("adr")) {
           // check if adr contains an address with street (index == 2), City (index == 3) & Country (index == 6)
           Set<String> adrPointers = getPointerFromJPath(entity,
-              "vcardArray[1][?(@[0]=='adr')][3][2,3,6]");
-          if (adrPointers.size() < 3) {
+              "vcardArray[1][?(@[0]=='adr')][3][2,3]");
+          if (adrPointers.size() < 2) {
             // less than 3 means an address component is missing, we log an error:
             isValid &= log52101(jsonPointer);
           }

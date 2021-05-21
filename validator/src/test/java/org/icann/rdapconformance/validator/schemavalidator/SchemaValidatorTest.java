@@ -10,10 +10,13 @@ import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.util.FixturesGenerator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -236,5 +239,10 @@ public abstract class SchemaValidatorTest {
 
   protected String getKey(String value) {
     return value.split(":")[0];
+  }
+
+  @AfterMethod
+  public void tearDown(ITestResult testResult) throws IOException {
+    FixturesGenerator.generate(testResult, jsonObject);
   }
 }

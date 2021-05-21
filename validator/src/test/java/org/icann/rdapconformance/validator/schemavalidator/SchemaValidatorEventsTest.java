@@ -131,4 +131,14 @@ public class SchemaValidatorEventsTest extends SchemaValidatorForArrayTest {
     jsonObject.getJSONArray("events").put(firstEventWithEventAction);
     validate(-10912, "#/events/1/eventAction:registration", "An eventAction value exists more than once within the events array.");
   }
+
+  /**
+   * 7.2.5.3
+   */
+  @Test
+  public void eventActionCanAppearTwiceInTwoDistinctEvents() {
+    jsonObject.put("someOtherObject", new JSONObject(jsonObject.toString()));
+    assertThat(schemaValidator.validate(jsonObject.toString())).isTrue();
+    assertThat(results.getGroupOk()).contains(validationName);
+  }
 }

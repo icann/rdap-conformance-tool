@@ -75,7 +75,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(rdapHttpQuery.run()).isTrue();
     assertThat(rdapHttpQuery.getData()).isEqualTo(RDAP_RESPONSE);
     assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
-    assertThat(rdapHttpQuery.jsonResponseIsArray()).isFalse();
+    assertThat(rdapHttpQuery.jsonIsSearchResponse()).isFalse();
   }
 
   @Test(dataProvider = "fault")
@@ -105,13 +105,13 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(rdapHttpQuery.run()).isTrue();
     assertThat(rdapHttpQuery.getData()).isEqualTo(RDAP_RESPONSE);
     assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
-    assertThat(rdapHttpQuery.jsonResponseIsArray()).isFalse();
+    assertThat(rdapHttpQuery.jsonIsSearchResponse()).isFalse();
   }
 
   @Test
   public void test_WithJsonArray() {
     String path = "/nameservers?ip=.*";
-    String response = "[{\"objectClassName\": \"nameserver\"}]";
+    String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
 
     givenUri("http", path);
     stubFor(get(urlEqualTo(path))
@@ -123,7 +123,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(rdapHttpQuery.run()).isTrue();
     assertThat(rdapHttpQuery.getData()).isEqualTo(response);
     assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
-    assertThat(rdapHttpQuery.jsonResponseIsArray()).isTrue();
+    assertThat(rdapHttpQuery.jsonIsSearchResponse()).isTrue();
   }
 
   @Test(dataProvider = "fault")
@@ -311,7 +311,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Test
   public void checkWithQueryType_JsonResponseIsAnArray_IsOk() {
     String path = "/nameservers?ip=.*";
-    String response = "[{\"objectClassName\": \"nameserver\"}]";
+    String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
 
     givenUri("http", path);
     stubFor(get(urlEqualTo(path))
@@ -327,7 +327,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Test
   public void checkWithQueryType_JsonResponseIsNotAnArray_ReturnsErrorStatus8() {
     String path = "/nameservers?ip=.*";
-    String response = "{\"objectClassName\": \"nameserver\"}";
+    String response = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";
 
     givenUri("http", path);
     stubFor(get(urlEqualTo(path))

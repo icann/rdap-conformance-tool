@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
@@ -102,5 +103,17 @@ public class SchemaValidatorAsEventActorTest extends SchemaValidatorForArrayTest
     JSONObject firstEventWithEventAction = jsonObject.getJSONArray("asEventActor").getJSONObject(0);
     jsonObject.getJSONArray("asEventActor").put(firstEventWithEventAction);
     validate(-11310, "#/asEventActor/1/eventAction:registration", "An eventAction value exists more than once within the events array.");
+  }
+
+  /**
+   * 7.2.9.4
+   */
+  @Test
+  public void eventActionCanAppearTwiceInTwoDistinctEvents() {
+    jsonObject.put("someOtherObject", new JSONObject(jsonObject.toString()));
+    schemaValidator.validate(jsonObject.toString());
+    assertThat(results.getAll())
+        .filteredOn("code", -11310)
+        .isEmpty();
   }
 }

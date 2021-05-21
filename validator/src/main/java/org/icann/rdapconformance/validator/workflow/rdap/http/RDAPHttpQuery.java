@@ -1,7 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
-import static org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.makeHttpGetRequest;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -10,6 +8,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.security.Security;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,7 +78,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         logger.error("objectClassName was not found in the topmost object");
         status = RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND;
         return false;
-      } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonResponseIsArray()) {
+      } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
         logger.error("No JSON array in answer");
         status = RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND;
         return false;
@@ -206,10 +205,11 @@ public class RDAPHttpQuery implements RDAPQuery {
   }
 
   /**
-   * Check if the RDAP json response is a JSON array
+   * Check if the RDAP is a JSON array results response
    */
-  boolean jsonResponseIsArray() {
-    return null != jsonResponse && jsonResponse.isArray();
+  boolean jsonIsSearchResponse() {
+    return null != jsonResponse && jsonResponse.hasKey("nameserverSearchResults")
+        && jsonResponse.getValue("nameserverSearchResults") instanceof Collection<?>;
   }
 
   private boolean hasCause(Throwable e, String causeClassName) {
@@ -259,6 +259,10 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     public boolean hasKey(String key) {
       return isValid() && !isArray() && rawRdapMap.containsKey(key);
+    }
+
+    public Object getValue(String key) {
+      return rawRdapMap.get(key);
     }
   }
 }
