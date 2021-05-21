@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.tool;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import java.net.URI;
 import java.util.concurrent.Callable;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -9,6 +11,7 @@ import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -40,13 +43,17 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Override
   public Integer call() throws Exception {
+    if (!isVerbose) {
+      Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+      root.setLevel(Level.INFO);
+    }
     ValidatorWorkflow validator;
     if (uri.getScheme() != null && uri.getScheme().startsWith("http")) {
       validator = new RDAPHttpValidator(this, fileSystem);
     } else {
       validator = new RDAPFileValidator(this, fileSystem);
     }
-    return validator.validate(isVerbose);
+    return validator.validate();
   }
 
   @Override
