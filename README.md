@@ -5,7 +5,7 @@ the specifications developed by the IETF (RFC7481, RFC7482, RFC7483, RFC7484) an
 profile (https://www.icann.org/gtld-rdap-profile). It only tests RDAP servers related to domains. 
 Apart from generic RDAP tests, there are no specific tests for IP addresses and AS Numbers RDAP servers.
 
-This tool implements more than 200 tests, as detailed in the doc directory.
+This tool implements more than 300 tests, as detailed in the doc directory.
 
 The tool is divided into two modules with their respective documentation:
 
