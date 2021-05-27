@@ -1,14 +1,20 @@
-# rdapct
+# RDAP Conformance Tool (rdapct)
 
-The RDAP Conformance Tool is divided into two modules with their respective documentation:
+The RDAP Conformance Tool is a stand-alone tool that verifies that an RDAP server implements the
+specifications developed by the IETF and the ICANN gTLD RDAP
+profile (https://www.icann.org/gtld-rdap-profile).
+
+The tool is shipped as an executable `jar` file.
+
+The tool is divided into two modules with their respective documentation:
 
 - [Command line module (tool)](./tool/README.md) the main entry point
 - [Validator module](./validator/README.md) the rdap validation library
 
 # Installation
 
-There is no installation needed. The tool is provided as a JAVA11 jar file that can be executed 
-with java, e.g.:
+There is no installation needed. The tool is provided as a JAVA11 jar file that can be executed with
+java, e.g.:
 
     java -jar rdapct-1.0.jar -c ./rdapct-config.json https://rdap.example.com/com/v1/domain/viagenie.com
 
@@ -21,25 +27,41 @@ The definition file specifies which single tests are errors, warnings, or ignore
 Note: a definition file is required for starting a test.
 A configuration definition file specifies:
 
-- definitionIdentifier: a required JSON string that identifies the configuration definition file. 
-The string is copied
-verbatim to the definitionIdentifier element of the results file.
+- definitionIdentifier: a required JSON string that identifies the configuration definition file.
+  The string is copied verbatim to the definitionIdentifier element of the results file.
 - definitionError: an optional JSON array of objects.
     - Each object contains the following elements:
         - code: a required JSON number that identifies a single test.
-        - notes: a required JSON string that is copied verbatim if the test fails, generating an 
+        - notes: a required JSON string that is copied verbatim if the test fails, generating an
           entry in the results section in the results file.
 - definitionWarning: an optional JSON array of objects.
     - Each object contains the following elements:
         - code: a required JSON number that identifies a single test.
-        - notes: an optional JSON string that is copied verbatim if the test fails, generating 
-          an entry in the results section in the results file.
-- definitionIgnore: an optional JSON array of single test identifiers that are ignored (i.e. not 
-          tested for). The contents of this element are copied verbatim to the ignore section in the results file.
-- definitionNotes: an optional JSON array of strings that are copied verbatim to the notes 
-  section in the results file.
-  
-An example of a configuration definition file is shown below:
+        - notes: an optional JSON string that is copied verbatim if the test fails, generating an
+          entry in the results section in the results file.
+- definitionIgnore: an optional JSON array of single test identifiers that are ignored (i.e. not
+  tested for). The contents of this element are copied verbatim to the ignore section in the results
+  file.
+- definitionNotes: an optional JSON array of strings that are copied verbatim to the notes section
+  in the results file.
+
+## Minimal config file
+
+The simplest config file one can write looks like this:
+
+```
+{
+    "definitionIdentifier": "test"
+}
+```
+
+This config file will simply tells the tool to put the id "test" inside the output result file. This
+id allows the user to discriminate test runs between each other.
+
+## A more complete example
+
+A more complete example of a configuration definition file is shown below:
+
 ```
 {
     "definitionIdentifier": "gTLD Profile Version 1.0",
@@ -55,9 +77,18 @@ An example of a configuration definition file is shown below:
     "definitionNotes": ["This is a configuration definition for a legacy gTLD.", "Developed by ICANN."]
 }
 ```
+
+# How to build this project
+
+This is a maven project: to build the executable jar simply run
+
+    mvn package -DskipTests
+
 # Requirements
+
 - Java 11
 
 # Acknowledgements
+
 This RDAP conformance tool has been developed by Viagénie
 (Julien Bernard, Guillaume Blanchet, Marc Blanchet, Pierre Larochelle) under a contract from ICANN.
