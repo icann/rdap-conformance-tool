@@ -135,17 +135,22 @@ public class SchemaValidator {
       parseException(e, jsonObject);
     }
 
-    // customs validations...
-    verifyUnicityOfEventAction("events", -10912, jsonObject);
-    verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
+    try {
+      // customs validations...
+      verifyUnicityOfEventAction("events", -10912, jsonObject);
+      verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
-    // vcard
-    if (content.contains("\"vcardArray\"")) {
-      new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
-    }
+      // vcard
+      if (content.contains("\"vcardArray\"")) {
+        new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
+      }
 
-    if (content.contains("\"notices\"")) {
-      new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode).validate();
+      if (content.contains("\"notices\"")) {
+        new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode).validate();
+      }
+    } catch (Exception e) {
+      logger.error("Exception during schema validation. This is likely caused by a schema deeply "
+          + "non-compliant \n details", e);
     }
 
     return results.isEmpty();

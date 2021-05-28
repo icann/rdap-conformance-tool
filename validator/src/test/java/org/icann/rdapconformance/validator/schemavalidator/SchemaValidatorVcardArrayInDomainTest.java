@@ -32,6 +32,14 @@ public class SchemaValidatorVcardArrayInDomainTest extends SchemaValidatorDomain
         "The value for the JSON name value is not a syntactically valid vcardArray.");
   }
 
+  @Test
+  public void testVcardDoesNotContainsProperty() throws IOException {
+    replaceVcardArray("/validators/vcardArray/trivialArray.json");
+    validateWithoutGroupTests(-12305,
+        "#/entities/0/vcardArray:" + jsonObject.query("#/entities/0/vcardArray"),
+        "The value for the JSON name value is not a syntactically valid vcardArray.");
+  }
+
   private void replaceVcardArray(String wrongVcardPath) throws IOException {
     JSONArray vcardArrayWithWrongCategory = new JSONObject(getResource(
         wrongVcardPath)).getJSONArray("vcardArray");
