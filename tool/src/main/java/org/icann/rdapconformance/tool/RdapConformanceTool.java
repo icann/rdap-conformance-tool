@@ -17,7 +17,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "rdap-conformance-tool", version = "0.1-alpha", mixinStandardHelpOptions = true)
+@Command(name = "rdap-conformance-tool", version = "1.0.0", mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
