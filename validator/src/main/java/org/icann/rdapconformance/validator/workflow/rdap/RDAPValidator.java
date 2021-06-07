@@ -7,6 +7,7 @@ import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2019;
@@ -164,13 +165,17 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
     }
     assert null != validator;
     validator.validate(query.getData());
+    HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
+
+    // extra validations not categorized (change request):
+    new DomainCaseFoldingValidation(rdapResponse, config, results,
+        queryTypeProcessor.getQueryType()).validate();
 
     /*
      * Additionally, apply the relevant collection tests when the option
      * --use-rdap-profile-february-2019 is set.
      */
     if (config.userRdapProfileFeb2019()) {
-      HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
       RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
           List.of(
               new TigValidation1Dot2(rdapResponse, config, results),

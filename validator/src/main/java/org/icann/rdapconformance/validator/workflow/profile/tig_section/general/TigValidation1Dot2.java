@@ -85,7 +85,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
    *
    * <p>Ignore list ordering except in vcard and ignore update events.</p>
    */
-  static class RDAPJsonComparator implements Comparator<JsonNode> {
+  public static class RDAPJsonComparator implements Comparator<JsonNode> {
 
     /**
      * Ignore event with action "last updateof RDAP database"
