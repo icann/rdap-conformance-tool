@@ -14,9 +14,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 public abstract class NoticesValidation extends ProfileJsonValidation {
 
   final int code;
-  private final String title;
-  private final String description;
-  private final String href;
+  final String title;
+  final String description;
+  final String href;
   private final RDAPQueryType queryType;
 
   public NoticesValidation(String rdapResponse,

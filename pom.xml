@@ -10,9 +10,9 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>jitpack</module>
     <module>validator</module>
     <module>tool</module>
-    <module>jitpack</module>
   </modules>
 
   <properties>

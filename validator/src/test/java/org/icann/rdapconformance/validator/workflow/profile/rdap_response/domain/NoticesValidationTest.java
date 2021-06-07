@@ -2,46 +2,42 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class NoticesValidationTest<T extends NoticesValidation> extends
-    ResponseDomainValidationTestBase {
+public abstract class NoticesValidationTest extends ResponseDomainValidationTestBase {
 
-  private final String TITLE;
-  private final String DESCRIPTION;
-  private final String HREF;
+  private String TITLE;
+  private String DESCRIPTION;
+  private String HREF;
   private final String noticeValue;
   private final int noticeIndex;
-  private final String message;
-  private final Class<T> validationClass;
+  private String message;
 
   public NoticesValidationTest(String testGroupName,
-      String noticeValue, int noticeIndex, Class<T> validationClass) throws Throwable {
+      String noticeValue, int noticeIndex) throws Throwable {
     super(testGroupName);
     this.noticeValue = noticeValue;
     this.noticeIndex = noticeIndex;
-    this.validationClass = validationClass;
-    TITLE = (String) validationClass.getDeclaredField("TITLE").get(String.class);
-    DESCRIPTION = (String) validationClass.getDeclaredField("DESCRIPTION").get(String.class);
-    HREF = (String) validationClass.getDeclaredField("HREF").get(String.class);
-    message = String.format("The notice for %s was not found.", HREF);
   }
 
   @Override
-  public NoticesValidation getProfileValidation() {
-    try {
-      return validationClass.getConstructor(String.class, RDAPValidatorResults.class,
-          RDAPQueryType.class).newInstance(jsonObject.toString(), results, queryType);
-    } catch (Exception e) {
-      return null;
-    }
+  @BeforeMethod
+  public void setUp() throws java.io.IOException {
+    super.setUp();
+    NoticesValidation validation = ((NoticesValidation)getProfileValidation());
+    TITLE = validation.title;
+    DESCRIPTION = validation.description;
+    HREF = validation.href;
+    message = String.format("The notice for %s was not found.", HREF);
   }
 
   @Test
   public void testValidate_NoNoticeMatchingWithTitle_AddErrorCode() {
     String title = "TEST";
     replaceValue(String.format("$['notices'][%d]['title']", noticeIndex), title);
-    validate(getProfileValidation().code, String.format(noticeValue, DESCRIPTION, HREF, title),
+    validate(((NoticesValidation)getProfileValidation()).code, String.format(noticeValue,
+      DESCRIPTION, HREF, title),
         message);
   }
 
@@ -49,7 +45,7 @@ public class NoticesValidationTest<T extends NoticesValidation> extends
   public void testValidate_NoNoticeMatchingWithDescription_AddErrorCode() {
     String description = "TEST";
     replaceValue(String.format("$['notices'][%d]['description'][0]", noticeIndex), description);
-    validate(getProfileValidation().code, String.format(noticeValue, description, HREF, TITLE),
+    validate(((NoticesValidation)getProfileValidation()).code, String.format(noticeValue, description, HREF, TITLE),
         message);
   }
 
@@ -57,7 +53,7 @@ public class NoticesValidationTest<T extends NoticesValidation> extends
   public void testValidate_NoNoticeMatchingWithLinksHref_AddErrorCode() {
     String href = "http://test.example";
     replaceValue(String.format("$['notices'][%d]['links'][0]['href']", noticeIndex), href);
-    validate(getProfileValidation().code, String.format(noticeValue, DESCRIPTION, href, TITLE),
+    validate(((NoticesValidation)getProfileValidation()).code, String.format(noticeValue, DESCRIPTION, href, TITLE),
         message);
   }
 }
