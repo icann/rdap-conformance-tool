@@ -2,16 +2,24 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.names
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPublicIdsValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.RegistrarEntityValidationTest;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot4Dot2And2Dot4Dot3;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.Test;
 
 public class ResponseValidation4Dot3Test extends
-    RegistrarEntityValidationTest<ResponseValidation4Dot3> {
+    RegistrarEntityValidationTest {
 
   public ResponseValidation4Dot3Test() {
     super("/validators/nameserver/valid.json", "rdapResponseProfile_4_3_Validation",
-        RDAPQueryType.NAMESERVER, ResponseValidation4Dot3.class);
+        RDAPQueryType.NAMESERVER);
+  }
+
+  @Override
+  public RegistrarEntityPublicIdsValidation getProfileValidation() {
+    return new ResponseValidation4Dot3(jsonObject.toString(), results,
+        datasetService, queryType);
   }
 
   @Test

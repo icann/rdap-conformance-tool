@@ -1,7 +1,9 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+
 public class ResponseValidation2Dot11Test extends
-    NoticesValidationTest<ResponseValidation2Dot11> {
+    NoticesValidationTest {
 
   private static final String NOTICE_VALUE = "#/notices:["
       + "{\"description\":[\"Service subject to Terms of Use.\"],"
@@ -17,7 +19,11 @@ public class ResponseValidation2Dot11Test extends
       + "\"title\":\"%s\"}]";
 
   public ResponseValidation2Dot11Test() throws Throwable {
-    super("rdapResponseProfile_2_11_Validation", NOTICE_VALUE, 2,
-        ResponseValidation2Dot11.class);
+    super("rdapResponseProfile_2_11_Validation", NOTICE_VALUE, 2);
+  }
+
+  @Override
+  public ProfileValidation getProfileValidation() {
+    return new ResponseValidation2Dot11(jsonObject.toString(), results, queryType);
   }
 }

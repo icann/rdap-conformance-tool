@@ -9,22 +9,18 @@ import java.util.List;
 import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPublicIdsValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class RegistrarEntityValidationTest<T extends RegistrarEntityValidation> extends
-    RegistrarEntityPublicIdsValidationTest {
+public abstract class RegistrarEntityValidationTest extends RegistrarEntityPublicIdsValidationTest {
 
-  private final Class<T> validationClass;
-  private RDAPDatasetService datasetService;
+  protected RDAPDatasetService datasetService;
   private RegistrarId registrarId;
 
   public RegistrarEntityValidationTest(String validJsonResourcePath, String testGroupName,
-      RDAPQueryType baseQueryType, Class<T> validationClass) {
+      RDAPQueryType baseQueryType) {
     super(validJsonResourcePath, testGroupName, baseQueryType);
-    this.validationClass = validationClass;
   }
 
   @BeforeMethod
@@ -36,21 +32,14 @@ public class RegistrarEntityValidationTest<T extends RegistrarEntityValidation> 
     doReturn(true).when(registrarId).containsId(292);
   }
 
-  @Override
-  public RegistrarEntityValidation getProfileValidation() {
-    try {
-      return validationClass.getConstructor(String.class, RDAPValidatorResults.class,
-          RDAPDatasetService.class, RDAPQueryType.class)
-          .newInstance(jsonObject.toString(), results, datasetService, queryType);
-    } catch (Exception e) {
-      return null;
-    }
+  private RegistrarEntityValidation getRegistrarEntityValidation() {
+    return (RegistrarEntityValidation) getProfileValidation();
   }
 
   @Test
   public void testValidate_RegistrarEntityWithHandleNotAPositiveInteger_AddResults47402() {
     replaceValue("$['entities'][0]['handle']", "abc");
-    validate(getProfileValidation().code - 2, String.format(
+    validate(getRegistrarEntityValidation().code - 2, String.format(
         "#/entities/0:{\"objectClassName\":\"entity\",\"publicIds\":[{\"identifier\":\"292\","
             + "\"type\":\"IANA Registrar ID\"}],\"vcardArray\":[\"vcard\","
             + "[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Inc.\"]]],%s"
@@ -61,7 +50,7 @@ public class RegistrarEntityValidationTest<T extends RegistrarEntityValidation> 
   @Test
   public void testValidate_PublicIdsIdentifierNotEqualsHandle_AddResults47403() {
     replaceValue("$['entities'][0]['publicIds'][0]['identifier']", "293");
-    validate(getProfileValidation().code - 3, String.format(
+    validate(getRegistrarEntityValidation().code - 3, String.format(
         "{\"objectClassName\":\"entity\",\"publicIds\":[{\"identifier\":\"293\","
             + "\"type\":\"IANA Registrar ID\"}],\"vcardArray\":[\"vcard\","
             + "[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Inc.\"]]],%s"
@@ -72,7 +61,7 @@ public class RegistrarEntityValidationTest<T extends RegistrarEntityValidation> 
   @Test
   public void testValidate_HandleNotInRegistrarId_AddResults47404() {
     doReturn(false).when(registrarId).containsId(292);
-    validate(getProfileValidation().code - 4, String.format(
+    validate(getRegistrarEntityValidation().code - 4, String.format(
         "#/entities/0:{\"objectClassName\":\"entity\",\"publicIds\":[{\"identifier\":\"292\","
             + "\"type\":\"IANA Registrar ID\"}],\"vcardArray\":[\"vcard\","
             + "[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Inc.\"]]],%s"

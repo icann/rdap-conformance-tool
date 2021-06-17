@@ -192,6 +192,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   }
 
+  @Ignore
   @Test
   public void test_ServerRedirectMoreThanRetries_ReturnsErrorStatus16() {
     String path1 = "/domain/test1.example";

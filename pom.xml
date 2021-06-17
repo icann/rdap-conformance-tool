@@ -10,13 +10,30 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>jitpack</module>
     <module>validator</module>
     <module>tool</module>
-    <module>jitpack</module>
   </modules>
+
+  <distributionManagement>
+    <repository>
+      <id>ICANN-repository</id>
+      <name>ICANN Internal Repository</name>
+      <url>https://artifactory.icann.org/artifactory/ICANN-repository</url>
+    </repository>
+  </distributionManagement>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <repositories>
+
+    <repository>
+      <id>ICANN-repository</id>
+      <name>ICANN Internal Repository</name>
+      <url>https://artifactory.icann.org/artifactory/ICANN-repository</url>
+    </repository>
+
+  </repositories>
 </project>

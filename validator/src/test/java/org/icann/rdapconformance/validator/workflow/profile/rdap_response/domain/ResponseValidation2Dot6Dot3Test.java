@@ -1,7 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-public class ResponseValidation2Dot6Dot3Test extends
-    NoticesValidationTest<ResponseValidation2Dot6Dot3> {
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+
+public class ResponseValidation2Dot6Dot3Test extends NoticesValidationTest {
 
   private static final String NOTICE_VALUE = "#/notices:["
       + "{\"description\":[\"Service subject to Terms of Use.\"],"
@@ -15,7 +16,11 @@ public class ResponseValidation2Dot6Dot3Test extends
       + "\"title\":\"RDDS Inaccuracy Complaint Form\"}]";
 
   public ResponseValidation2Dot6Dot3Test() throws Throwable {
-    super("rdapResponseProfile_2_6_3_Validation", NOTICE_VALUE, 1,
-        ResponseValidation2Dot6Dot3.class);
+    super("rdapResponseProfile_2_6_3_Validation", NOTICE_VALUE, 1);
+  }
+
+  @Override
+  public ProfileValidation getProfileValidation() {
+    return new ResponseValidation2Dot6Dot3(jsonObject.toString(), results, queryType);
   }
 }
