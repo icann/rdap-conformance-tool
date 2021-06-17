@@ -9,7 +9,7 @@
     <artifactId>rdap-conformance</artifactId>
     <version>1.0</version>
   </parent>
-  <artifactId>tool</artifactId>
+  <artifactId>rdapct</artifactId>
   <version>1.0</version>
   <name>rdap-conformance-tool</name>
 
