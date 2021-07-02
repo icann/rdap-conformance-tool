@@ -63,7 +63,9 @@ public final class TigValidation1Dot2 extends ProfileValidation {
             .makeHttpGetRequest(uri, config.getTimeout());
         JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
         JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
-        if (jsonComparator.compare(httpResponseJson, httpsResponseJson) == 0) {
+        if (!httpResponse.uri().getScheme().equals("https") // if redirect to https, do not validate
+        && jsonComparator.compare(httpResponseJson,
+            httpsResponseJson) == 0) {
           results.add(RDAPValidationResult.builder()
               .code(-20101)
               .value(httpResponse.body() + "\n/\n" + rdapResponse.body())
