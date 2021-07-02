@@ -72,7 +72,7 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
         }
 
         RegistrarId.Record record = registrarId.getById(identifier);
-        if (!record.getRdapUrl().startsWith("https")) {
+        if (!record.getRdapUrl().isBlank() && !record.getRdapUrl().startsWith("https")) {
           results.add(RDAPValidationResult.builder()
               .code(-26102)
               .value(jsonPointer + "/identifier" + ":" + record)
