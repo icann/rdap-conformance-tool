@@ -168,8 +168,10 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
     HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
 
     // extra validations not categorized (change request):
-    new DomainCaseFoldingValidation(rdapResponse, config, results,
-        queryTypeProcessor.getQueryType()).validate();
+    if (rdapResponse != null) {
+      new DomainCaseFoldingValidation(rdapResponse, config, results,
+          queryTypeProcessor.getQueryType()).validate();
+    }
 
     /*
      * Additionally, apply the relevant collection tests when the option
