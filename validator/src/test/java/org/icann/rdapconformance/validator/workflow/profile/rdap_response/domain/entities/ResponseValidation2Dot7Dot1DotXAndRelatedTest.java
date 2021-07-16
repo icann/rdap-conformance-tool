@@ -40,10 +40,24 @@ public abstract class ResponseValidation2Dot7Dot1DotXAndRelatedTest extends
     // verify we have two entity with registrant role:
     assertThat((List<String>) getValue("$.entities[*].roles[?(@ == 'registrant')]")).hasSize(2);
 
-    String twoRegistrants = "#/entities/0:" + jsonObject.query("#/entities/0") + ", " +
-        "#/entities/1:" + jsonObject.query("#/entities/1");
-    validate(-52104, twoRegistrants, "More than one entity with the following roles were found: "
+    String registrant = "#/entities/0:" + jsonObject.query("#/entities/0");
+    validate(-52104, registrant, "More than one entity with the following roles were found: "
         + "registrant, administrative, technical and billing.");
+  }
+
+  /**
+   * 8.8.1.5
+   */
+  @Test
+  public void moreThanOneEntityWithDifferentRoles() {
+    entitiesWithRole("registrant");
+    // add another role:
+    jsonObject.getJSONArray("entities").put(jsonObject.getJSONArray("entities").getJSONObject(0));
+    replaceValue("$['entities'][1]['roles'][0]", "administrative");
+    // verify we have two entity with different roles:
+    assertThat((List<String>) getValue("$.entities[*].roles[?(@ == 'registrant' || @ == 'administrative')]")).hasSize(2);
+
+    validate();
   }
 
   protected void remarkMemberIs(String key, String value) {
