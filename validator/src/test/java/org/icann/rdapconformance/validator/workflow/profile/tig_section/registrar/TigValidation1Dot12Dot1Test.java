@@ -75,6 +75,27 @@ public class TigValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
             + "See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.");
   }
 
+  /**
+   * 8.3.1.3
+   */
+  @Test
+  public void registrarIdWithNoUrl() {
+    String wrongXml = "<record date=\"2020-11-25\" updated=\"2021-01-28\">\n"
+        + "      <value>292</value>\n"
+        + "      <name>Test</name>\n"
+        + "      <status>Accredited</status>\n"
+        + "    </record>";
+    RegistrarId.Record record = new RegistrarId.Record(
+        292,
+        "Test",
+        "",
+        wrongXml);
+    doReturn(record)
+        .when(datasets.get(RegistrarId.class))
+        .getById(292);
+    validate();
+  }
+
   @Test
   public void testDoLaunch_NotARegistryNorRegistrar_IsFalse() {
     queryType = RDAPQueryType.HELP;
