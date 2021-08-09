@@ -138,13 +138,15 @@ public final class TigValidation1Dot8 extends ProfileValidation {
           getIPRecords(lookup));
     }
 
-    private Set<InetAddress> getIPRecords(Lookup lookup) {
+    Set<InetAddress> getIPRecords(Lookup lookup) {
       Set<InetAddress> addresses = new HashSet<>();
-      for (Record record : lookup.getAnswers()) {
-        if (record instanceof ARecord) {
-          addresses.add(((ARecord) record).getAddress());
-        } else if (record instanceof AAAARecord) {
-          addresses.add(((AAAARecord) record).getAddress());
+      if (lookup.getAnswers() != null) {
+        for (Record record : lookup.getAnswers()) {
+          if (record instanceof ARecord) {
+            addresses.add(((ARecord) record).getAddress());
+          } else if (record instanceof AAAARecord) {
+            addresses.add(((AAAARecord) record).getAddress());
+          }
         }
       }
       return addresses;

@@ -44,7 +44,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
   }
 
   @Override
-  public boolean doValidate() {
+  public boolean doValidate() throws Exception {
     boolean isValid = true;
     if (rdapResponse.uri().getScheme().equals("http")) {
       results.add(RDAPValidationResult.builder()
@@ -77,6 +77,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
       } catch (Exception e) {
         logger.error(
             "Exception when making HTTP request in order to check [tigSection_1_2_Validation]", e);
+        throw new Exception("Exception when making HTTP request in order to check [tigSection_1_2_Validation]");
       }
     }
     return isValid;

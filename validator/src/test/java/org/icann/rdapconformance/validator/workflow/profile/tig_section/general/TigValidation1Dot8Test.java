@@ -1,11 +1,12 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.givenChainedHttpRedirects;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -15,7 +16,6 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.util.Set;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.DNSQuery;
@@ -25,6 +25,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.Redire
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Name;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
@@ -118,6 +119,17 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
     httpResponse = givenHttpResponse();
     givenV4Ok();
     givenV6Ok();
+  }
+
+  /**
+   * Dns java returns null when no answer is returned.
+   */
+  @Test
+  public void testDnsJavaReturningNullAnswer() {
+    Lookup lookup = mock(Lookup.class);
+    when(lookup.getAnswers()).thenReturn(null);
+    DNSQuery dnsQuery = new DNSQuery();
+    assertThat(dnsQuery.getIPRecords(lookup)).isEmpty();
   }
 
   @Test

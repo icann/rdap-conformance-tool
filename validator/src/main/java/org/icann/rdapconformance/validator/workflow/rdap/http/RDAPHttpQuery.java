@@ -122,13 +122,13 @@ public class RDAPHttpQuery implements RDAPQuery {
     try {
       httpResponse = RDAPHttpRequest.makeHttpGetRequest(this.config.getUri(), this.config.getTimeout());
     } catch (ConnectException | HttpTimeoutException e) {
-      logger.error("Exception when connecting to RDAP server", e);
+      logger.info("Exception when connecting to RDAP server", e);
       status = RDAPValidationStatus.CONNECTION_FAILED;
       if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
         status = RDAPValidationStatus.NETWORK_SEND_FAIL;
       }
     } catch (IOException e) {
-      logger.error("Exception receiving data from the RDAP server", e);
+      logger.info("Exception receiving data from the RDAP server", e);
       status = RDAPValidationStatus.NETWORK_RECEIVE_FAIL;
       if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
         status = RDAPValidationStatus.EXPIRED_CERTIFICATE;
@@ -146,7 +146,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         status = RDAPValidationStatus.CERTIFICATE_ERROR;
       }
     } catch (Exception e) {
-      logger.error("Exception with RDAP query", e);
+      logger.info("Exception with RDAP query", e);
       status = RDAPValidationStatus.CONNECTION_FAILED;
     }
   }
