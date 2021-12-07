@@ -1,0 +1,19 @@
+{
+    "definitionIdentifier": "Sample rdap-conformance-tool configuration file",
+    "definitionWarning": [
+       { "code": -12308,
+         "notes": "Entity includes invalid Entities array: See errors for details." },
+       { "code": -12309,
+         "notes": "Entity includes invalid Remarks array: See specific errors for details." },
+       { "code": -12213,
+         "notes": "Domain includes invalid Remarks object; See errors for details." },
+       { "code": -12210,
+         "notes": "Domain includes invalid Entities array; See errors for details." },
+       { "code": -11901,
+         "notes": "Entities array includes invalid Entity: See specific errors for details." },
+       { "code": -12214,
+         "notes": "Domain includes invalid Links array: See specific errors for details." }
+    ],
+    "definitionIgnore": [],
+    "definitionNotes": ["This is a custom configuration definition to filter hierarchical errors as warnings."]
+}
