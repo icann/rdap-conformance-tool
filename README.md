@@ -14,18 +14,17 @@ The tool is divided into two modules with their respective documentation:
 
 # Usage
 
-There is no installation needed. Building the tool (see below) creates a JAVA11 jar file that can be executed with
-java, e.g.:
+There is no installation needed. The compliled executable jar file and configuration file are available for download at [tool/bin/](./tool/bin/) that can be executed with java. Alternatively, the executable JAVA11 jar file can be created by building the tool (see below). e.g.:
 
     java -jar rdapct-1.0.jar -c ./rdapct-config.json https://rdap.registry.com/domain/example.com
 
 where rdapct-config.json is the configuration file.
-
+ 
 The tool do the query specified on the command line, parses the response and test the response. It also do other queries
 to the server such as the /help query.
 
-The result code shows the primary issue, if any, of all issues found. The details of the tests are found in the results 
-directory.
+The result code shows the primary issue, if any, of all issues found. The details of the tests are found in the /results 
+directory, and the datasets retrieved from the relevant IANA registries are found in the /datasets directory.
 
 Queries such as domain, nameserver, entity are supported. Basic search (RFC 7482) is also supported.
 
@@ -80,17 +79,23 @@ A more complete example of a configuration definition file is shown below:
 
 ```
 {
-    "definitionIdentifier": "gTLD Profile Version 1.0",
-    "definitionError": [{
-        "code": -1102,
-        "notes": "If the gTLD is a legacy gTLD, this may not indicate an error, review by a person is required."
-    }],
-    "definitionWarning": [{
-        "code": -2186,
-        "notes": "This only applies for a few gTLDs."
-    }],
-    "definitionIgnore": [-2323, -2345, -2346],
-    "definitionNotes": ["This is a configuration definition for a legacy gTLD.", "Developed by ICANN."]
+    "definitionIdentifier": "Sample rdap-conformance-tool configuration file",
+    "definitionWarning": [
+       { "code": -12308,
+         "notes": "Entity includes invalid Entities array: See errors for details." },
+       { "code": -12309,
+         "notes": "Entity includes invalid Remarks array: See errors for details." },
+       { "code": -12213,
+         "notes": "Domain includes invalid Remarks object; See errors for details." },
+       { "code": -12210,
+         "notes": "Domain includes invalid Entities array; See errors for details." },
+       { "code": -11901,
+         "notes": "Entities array includes invalid Entity: See errors for details." },
+       { "code": -12214,
+         "notes": "Domain includes invalid Links array: See errors for details." }
+    ],
+    "definitionIgnore": [],
+    "definitionNotes": ["This is a custom configuration definition to filter hierarchical errors as warnings."]
 }
 ```
 
