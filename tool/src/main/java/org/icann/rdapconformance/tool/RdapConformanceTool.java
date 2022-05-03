@@ -2,6 +2,7 @@ package org.icann.rdapconformance.tool;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import java.io.File;
 import java.net.URI;
 import java.util.concurrent.Callable;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -24,7 +25,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   URI uri;
   private FileSystem fileSystem = new LocalFileSystem();
   @Option(names = {"-c", "--config"}, description = "Definition file", required = true)
-  private URI configurationFile;
+  String configurationFile;
   @Option(names = {"--timeout"},
       description = "Timeout for connecting to the server", defaultValue = "20")
   private int timeout = 20;
@@ -58,7 +59,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Override
   public URI getConfigurationFile() {
-    return this.configurationFile;
+    if (this.configurationFile.startsWith("file:/")) {
+      return URI.create(this.configurationFile);
+    }
+    // handle windows uri:
+    return new File(this.configurationFile).toURI();
   }
 
   @Override
