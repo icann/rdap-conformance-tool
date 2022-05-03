@@ -2,6 +2,7 @@ package org.icann.rdapconformance.tool;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.testng.annotations.Test;
 
 public class RdapConformanceToolTest {
@@ -29,6 +30,8 @@ public class RdapConformanceToolTest {
 
   @Test
   public void testWindowsFilePath() {
-    assertThat(getUriStrFromConfig("D:\\tmp\\test")).endsWith("/tmp/test");
+    if (SystemUtils.IS_OS_WINDOWS) {
+      assertThat(getUriStrFromConfig("D:\\tmp\\test")).endsWith("/tmp/test");
+    }
   }
 }
