@@ -29,6 +29,11 @@ public class RdapConformanceToolTest {
   }
 
   @Test
+  public void testURIRemotePath() {
+    assertThat(getUriStrFromConfig("http://tmp/test")).endsWith("/tmp/test");
+  }
+
+  @Test
   public void testWindowsFilePath() {
     if (SystemUtils.IS_OS_WINDOWS) {
       assertThat(getUriStrFromConfig("D:\\tmp\\test")).endsWith("/tmp/test");

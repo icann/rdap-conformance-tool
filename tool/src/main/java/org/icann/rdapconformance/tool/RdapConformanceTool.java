@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger;
 import java.io.File;
 import java.net.URI;
 import java.util.concurrent.Callable;
+import org.apache.commons.lang3.SystemUtils;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
@@ -59,11 +60,16 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Override
   public URI getConfigurationFile() {
-    if (this.configurationFile.startsWith("file:/")) {
+    try {
       return URI.create(this.configurationFile);
+    } catch (IllegalArgumentException ex) {
+      // handle Windows uri without compromising remote file:
+      if (SystemUtils.IS_OS_WINDOWS) {
+        return new File(this.configurationFile).toURI();
+      }
+
+      throw ex;
     }
-    // handle windows uri:
-    return new File(this.configurationFile).toURI();
   }
 
   @Override
