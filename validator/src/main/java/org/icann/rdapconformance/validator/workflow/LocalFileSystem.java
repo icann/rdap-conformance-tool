@@ -66,7 +66,8 @@ public class LocalFileSystem implements FileSystem {
   @Override
   public InputStream uriToStream(URI uri) throws IOException {
     if (!uri.isAbsolute()) {
-      uri = URI.create(Path.of(uri.toString()).toAbsolutePath().toString());
+      String filePath = Path.of(uri.toString()).toAbsolutePath().toString();
+      uri = new File(filePath).toURI();
     }
     if (null == uri.getScheme()) {
       uri = URI.create("file://" + uri);
