@@ -32,7 +32,12 @@ public final class TigValidation7Dot1And7Dot2 extends RDAPProfileVcardArrayValid
         return false;
       }
 
-      if (!AUTHORIZED_PHONE_TYPE.contains(((JSONObject) phoneType).get("type"))) {
+      Object type = ((JSONObject) phoneType).get("type");
+      if (type instanceof JSONArray) {
+        type = ((JSONArray) type).getString(0);
+      }
+
+      if (!AUTHORIZED_PHONE_TYPE.contains(type.toString())) {
         logError(jsonExceptionPointer, phoneType);
         return false;
       }
