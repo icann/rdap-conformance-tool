@@ -1,0 +1,35 @@
+{
+  "vcardArray": [
+    "vcard",
+    [
+      [
+        "version",
+        {},
+        "text",
+        "4.0"
+      ],
+      [
+        "adr",
+        {},
+        "text",
+        [
+          "TR"
+        ]
+      ],
+      [
+        "fn",
+        {},
+        "text",
+        [
+          "REDACTED FOR PRIVACY"
+        ]
+      ],
+      [
+        "contact-uri",
+        {},
+        "uri",
+        "https://valid.com/vcard-property"
+      ]
+    ]
+  ]
+}

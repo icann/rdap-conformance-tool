@@ -251,6 +251,11 @@ public class JcardCategoriesSchemasTest {
   }
 
   @Test
+  public void contactUriCategory() {
+    testLoadingCategory("contact-uri");
+  }
+
+  @Test
   public void interestCategory() {
     testLoadingCategory("interest");
   }
