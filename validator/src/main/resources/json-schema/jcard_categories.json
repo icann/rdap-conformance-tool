@@ -2103,6 +2103,33 @@
           "type": "string"
         }
       ]
+    },
+    "contact-uri": {
+      "description": "The CONTACT-URI property can be used to include URIs representing an email address or a location for a web form.",
+      "type": "array",
+      "items": [
+        {
+          "const": "contact-uri"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "jcard.json#/definitions/any-param-type"
+          },
+          "type": "object",
+          "properties": {
+            "pref": {
+              "$ref": "jcard.json#/definitions/pref-type"
+            }
+          }
+        },
+        {
+          "const": "uri"
+        },
+        {
+          "format": "uri",
+          "type": "string"
+        }
+      ]
     }
   }
 }
