@@ -2,7 +2,7 @@
 
 properties([[$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '7', artifactNumToKeepStr: '8', daysToKeepStr: '7', numToKeepStr: '8']],])
 
-node('general') {
+node('docker') {
 
     def utils = new icann.Utilities()
 
