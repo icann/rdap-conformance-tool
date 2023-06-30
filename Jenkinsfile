@@ -19,7 +19,7 @@ node('docker') {
         stage ('Run Tests'){
 
             if( "${env.BRANCH_NAME}" == 'master'){
-                utils.mvn(args: 'clean deploy', jdkVersion: 'jdk11')
+                utils.mvn(args: 'clean deploy', jdkVersion: 'jdk11', publishArtifacts: true)
             }
             else{
                 utils.mvn(args: 'clean test', jdkVersion: 'jdk11')
