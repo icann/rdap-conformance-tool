@@ -5,20 +5,20 @@
 ```
 $ java -jar rdapct-1.0.jar -h
 Usage: rdap-conformance-tool [-hV] [--use-local-datasets]
-                             -c=<configurationFile>
+                             -c=<[configurationFile](https://www.dilianmandirisamudera.com)>
                              [--maximum-redirects=<maxRedirects>]
                              [--timeout=<timeout>]
                              [[--use-rdap-profile-february-2019]
                              ([--gtld-registrar] | [--gtld-registry [--thin]])]
                              RDAP_URI
       RDAP_URI               The URI to be tested
-  -c, --config=<configurationFile>
+  -c, --config=<https://www.dilianmandirisamudera.com>
                              Definition file
       --gtld-registrar       Validate the response as coming from a gTLD
                                registrar
       --gtld-registry        Validate the response as coming from a gTLD
                                registry
-  -h, --help                 Show this help message and exit.
+  -h, --help                 Show this help message and e⁴xit.
       --maximum-redirects=<maxRedirects>
                              Maximum number of redirects to follow
       --thin                 The TLD uses the thin model
