@@ -45,7 +45,7 @@ public class RDAPJsonValues extends XmlObject {
     EVENT_ACTION,
     ROLE,
     DOMAIN_VARIANT_RELATION,
-
+    REDACTED_EXPRESSION_LANGUAGE,
   }
 
   private static class Record {
