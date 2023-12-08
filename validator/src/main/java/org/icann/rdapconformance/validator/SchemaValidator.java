@@ -30,6 +30,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelat
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.MediaTypes;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPExtensions;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RedactedExpressionLanguageJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RoleJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
@@ -105,6 +106,8 @@ public class SchemaValidator {
             new DatasetValidator(ds.get(EventActionJsonValues.class), "eventAction"))
         .addFormatValidator(
             new DatasetValidator(ds.get(StatusJsonValues.class), "status"))
+        .addFormatValidator(
+            new DatasetValidator(ds.get(RedactedExpressionLanguageJsonValues.class), "redactedExpressionLanguage"))
         .addFormatValidator(
             new DatasetValidator(ds.get(VariantRelationJsonValues.class), "variantRelation"))
         .addFormatValidator(
