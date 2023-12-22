@@ -7,10 +7,10 @@
   <parent>
     <groupId>org.icann</groupId>
     <artifactId>rdap-conformance</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
   </parent>
   <artifactId>validator</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <packaging>jar</packaging>
   <name>rdap-conformance-validator</name>
 

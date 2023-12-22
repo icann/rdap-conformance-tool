@@ -7,10 +7,10 @@
   <parent>
     <groupId>org.icann</groupId>
     <artifactId>rdap-conformance</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
   </parent>
   <artifactId>rdapct</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <name>rdap-conformance-tool</name>
 
   <properties>
@@ -25,7 +25,7 @@
     <dependency>
       <groupId>org.icann</groupId>
       <artifactId>validator</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
 
     <dependency>
