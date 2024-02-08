@@ -1,0 +1,206 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-stylesheet type="text/xsl" href="rdap-extensions.xsl"?>
+<?xml-model href="rdap-extensions.rng" schematypens="http://relaxng.org/ns/structure/1.0" ?>
+<registry xmlns="http://www.iana.org/assignments" id="rdap-extensions">
+  <title>RDAP Extensions</title>
+  <category>Registration Data Access Protocol (RDAP)</category>
+  <created>2015-01-12</created>
+  <updated>2023-11-30</updated>
+  
+  <registry id="rdap-extensions-1">
+    <title>RDAP Extensions</title>
+    <xref type="rfc" data="rfc7480"/>
+    <registration_rule>Specification Required</registration_rule>
+    <expert>Andy Newton, Scott Hollenbeck</expert>
+    
+    <record date="2018-07-31">
+      <value>arin_originas0</value>
+      <operator><xref type="person" data="ARIN"/></operator>
+      <xref type="uri" data="https://bitbucket.org/arin-specs/arin-rdap-originas/src/master/arin-rdap-originas.txt"/>
+      <contact><xref type="person" data="ARIN"/></contact>
+      <usage>COMMON</usage>
+    </record>
+    <record date="2019-03-15">
+      <value>artRecord</value>
+      <operator>.ART</operator>
+      <xref type="uri" data="https://gitlab.centralnic.com/centralnic/centralnic-rdap-extensions/blob/master/art-records.md"/>
+      <contact><xref type="person" data="Gavin_Brown"/></contact>
+      <usage>COMMON</usage>
+    </record>
+    <record date="2018-07-31">
+      <value>cidr0</value>
+      <operator>Various RIRs under the NRO</operator>
+      <xref type="uri" data="https://bitbucket.org/nroecg/nro-rdap-cidr/src/master/nro-rdap-cidr.txt"/>
+      <contact><xref type="person" data="ARIN"/></contact>
+      <usage>COMMON</usage>
+    </record>
+    <record date="2023-11-09">
+      <value>farv1</value>
+      <operator>Any</operator>
+      <xref type="draft" data="RFC-ietf-regext-rdap-openid-27"/>
+      <contact><xref type="person" data="IETF"/></contact>
+      <usage>This extension describes version 1 of a federated authentication 
+        method for RDAP using OAuth 2.0 and OpenID Connect.</usage>
+    </record>
+    <record>
+      <value>fred</value>
+      <operator><xref type="person" data="CZ.NIC_z._s._p._o."/></operator>
+      <xref type="uri" data="https://fred.nic.cz/rdap-extension/"/>
+      <contact><xref type="person" data="Jaromir_Talir"/></contact>
+      <usage>FRED is open source domain registry system that includes RDAP 
+        server. This RDAP server provides some extended features defined in 
+        specification.</usage>
+    </record>
+    <record date="2019-06-21">
+      <value>icann_rdap_response_profile_0</value>
+      <operator>ICANN</operator>
+      <xref type="uri" data="https://www.icann.org/gtld-rdap-profile"/>
+      <contact><xref type="person" data="ICANN"/></contact>
+      <usage>COMMON</usage>
+    </record>
+    <record date="2019-06-21">
+      <value>icann_rdap_technical_implementation_guide_0</value>
+      <operator>ICANN</operator>
+      <xref type="uri" data="https://www.icann.org/gtld-rdap-profile"/>
+      <contact><xref type="person" data="ICANN"/></contact>
+      <usage>COMMON</usage>
+    </record>
+    <record date="2021-01-27">
+      <value>nro_rdap_profile_0</value>
+      <operator>Any</operator>
+      <xref type="uri" data="https://bitbucket.org/nroecg/nro-rdap-profile/raw/v1/nro-rdap-profile.txt"/>
+      <contact><xref type="person" data="NRO"/></contact>
+      <usage>ADDRESS REGISTRIES</usage>
+    </record>
+    <record date="2021-01-27">
+      <value>nro_rdap_profile_asn_flat_0</value>
+      <operator>Any</operator>
+      <xref type="uri" data="https://bitbucket.org/nroecg/nro-rdap-profile/raw/v1/nro-rdap-profile.txt"/>
+      <contact><xref type="person" data="NRO"/></contact>
+      <usage>ADDRESS REGISTRIES</usage>
+    </record>
+    <record date="2021-01-27">
+      <value>nro_rdap_profile_asn_hierarchical_0</value>
+      <operator>Any</operator>
+      <xref type="uri" data="https://bitbucket.org/nroecg/nro-rdap-profile/raw/v1/nro-rdap-profile.txt"/>
+      <contact><xref type="person" data="NRO"/></contact>
+      <usage>ADDRESS REGISTRIES</usage>
+    </record>
+    <record date="2020-12-07">
+      <value>paging</value>
+      <operator>Any</operator>
+      <xref type="rfc" data="rfc8977"/>
+      <contact><xref type="person" data="IETF"/></contact>
+      <usage>This extension describes a best practice for result
+      set paging.</usage>
+    </record>
+    <record date="2019-03-15">
+      <value>platformNS</value>
+      <operator>Any</operator>
+      <xref type="uri" data="https://gitlab.centralnic.com/centralnic/centralnic-rdap-extensions/blob/master/platformNS.md"/>
+      <contact><xref type="person" data="Gavin_Brown"/></contact>
+      <usage>COMMON</usage>
+    </record>
+    <record date="2018-08-27">
+      <value>rdap_objectTag</value>
+      <operator>Any</operator>
+      <xref type="rfc" data="rfc8521"/>
+      <contact><xref type="person" data="IESG"/></contact>
+      <usage>This extension describes a best practice for
+        structuring entity identifiers to enable query bootstrapping.</usage>
+    </record>
+    <record date="2023-11-30">
+      <value>redacted</value>
+      <operator>Any</operator>
+      <xref type="draft" data="RFC-ietf-regext-rdap-redacted-16"/>
+      <contact><xref type="person" data="IETF"/></contact>
+      <usage>This extension identifies the redacted fields in an RDAP response.</usage>
+    </record>
+    <record date="2020-12-15" updated="2021-01-05">
+      <value>redirect_with_content</value>
+      <operator>Any</operator>
+      <xref type="uri" data="https://raw.githubusercontent.com/APNIC-net/rdap-redirect-with-content/v1/apnic-rdap-redirect-with-content.txt"/>
+      <contact><xref type="person" data="Tom_Harrison"/></contact>
+      <usage>COMMON</usage>
+    </record>
+    <record date="2019-03-15">
+      <value>regType</value>
+      <operator>Any</operator>
+      <xref type="uri" data="https://gitlab.centralnic.com/centralnic/centralnic-rdap-extensions/blob/master/regtype.md"/>
+      <contact><xref type="person" data="Gavin_Brown"/></contact>
+      <usage>COMMON</usage>
+    </record>
+    <record date="2023-10-02">
+      <value>reverse_search</value>
+      <operator>Any</operator>
+      <xref type="draft" data="RFC-ietf-regext-rdap-reverse-search-25"/>
+      <contact><xref type="person" data="IETF"/></contact>
+      <usage>This extension identifier is used for both URI path 
+        segments and response extensions related to the reverse 
+        search in RDAP.</usage>
+    </record>
+    <record date="2020-12-07">
+      <value>sorting</value>
+      <operator>Any</operator>
+      <xref type="rfc" data="rfc8977"/>
+      <contact><xref type="person" data="IETF"/></contact>
+      <usage>This extension describes a best practice for result
+      set sorting.</usage>
+    </record>
+    <record date="2021-01-01">
+      <value>subsetting</value>
+      <operator>Any</operator>
+      <xref type="rfc" data="rfc8982"/>
+      <contact><xref type="person" data="IETF"/></contact>
+      <usage>This extension describes best practice for partial
+      response provisioning.</usage>
+    </record>
+    
+  </registry>
+    
+  <people>
+    <person id="ARIN">
+      <name>American Registry for Internet Numbers</name>
+      <uri>mailto:info&amp;arin.net</uri>
+      <updated>2023-01-02</updated>
+    </person>
+    <person id="CZ.NIC_z._s._p._o.">
+      <name>CZ.NIC, z. s. p. o.</name>
+      <uri>mailto:tech&amp;nic.cz</uri>
+      <updated>2016-03-30</updated>
+    </person>
+    <person id="Gavin_Brown">
+      <name>Gavin Brown</name>
+      <uri>mailto:rdap&amp;centralnic.com</uri>
+      <updated>2019-03-15</updated>
+    </person>
+    <person id="ICANN">
+      <name>ICANN</name>
+      <uri>mailto:globalsupport&amp;icann.org</uri>
+    </person>
+    <person id="IESG">
+      <name>IESG</name>
+      <uri>mailto:iesg&amp;ietf.org</uri>
+    </person>
+    <person id="IETF">
+      <name>IETF</name>
+      <uri>mailto:iesg&amp;ietf.org</uri>
+    </person>
+    <person id="Jaromir_Talir">
+      <name>Jaromir Talir</name>
+      <uri>mailto:jaromir.talir&amp;nic.cz</uri>
+      <updated>2016-03-30</updated>
+    </person>
+    <person id="NRO">
+      <name>NRO</name>
+      <uri>mailto:secretariat&amp;nro.net</uri>
+	  <updated>2021-01-27</updated>
+    </person>
+    <person id="Tom_Harrison">
+      <name>Tom Harrison</name>
+      <uri>mailto:tomh&amp;apnic.net</uri>
+      <updated>2021-01-05</updated>
+    </person>
+  </people>
+  
+</registry>

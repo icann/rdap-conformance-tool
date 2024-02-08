@@ -1,33 +1,20 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import java.io.IOException;
-import java.io.InputStream;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "registry", namespace = "http://www.iana.org/assignments")
 public class DsRrTypes extends XmlObject {
 
+  @XmlElementWrapper(name = "registry", namespace = "http://www.iana.org/assignments")
+  @XmlElement(name = "record", namespace = "http://www.iana.org/assignments")
   protected final List<Record> records = new ArrayList<>();
-
-  /**
-   * Read from an XML file stream using the DOM.
-   */
-  @Override
-  public void parse(InputStream inputStream)
-      throws ParserConfigurationException, IOException, SAXException {
-    Document document = this.init(inputStream);
-    Element element = (Element) document.getElementsByTagName("registry").item(0);
-    NodeList nodeList = element.getElementsByTagName("record");
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      this.records.add(new Record(getTagValue("value", nodeList.item(i)),
-          getTagValue("status", nodeList.item(i))));
-    }
-  }
 
   public boolean isAssigned(int number) {
     return this.records.stream()
@@ -35,14 +22,12 @@ public class DsRrTypes extends XmlObject {
         .anyMatch(r -> numberEqualsOrInInterval(number, r.value));
   }
 
+  @XmlAccessorType(XmlAccessType.FIELD)
   private static class Record {
 
-    private final String value;
-    private final String status;
-
-    public Record(String value, String status) {
-      this.value = value;
-      this.status = status;
-    }
+    @XmlElement(name = "value", namespace = "http://www.iana.org/assignments")
+    private String value;
+    @XmlElement(name = "status", namespace = "http://www.iana.org/assignments")
+    private String status;
   }
 }

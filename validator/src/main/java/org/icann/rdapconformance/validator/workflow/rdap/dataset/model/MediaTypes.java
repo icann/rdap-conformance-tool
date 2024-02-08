@@ -1,47 +1,52 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import java.io.IOException;
-import java.io.InputStream;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-public class MediaTypes extends XmlObject implements DatasetValidatorModel {
+import static java.util.stream.Collectors.toSet;
 
-  private final Set<String> records = new HashSet<>();
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "registry", namespace = "http://www.iana.org/assignments")
+public class MediaTypes implements RDAPDatasetModel, DatasetValidatorModel {
 
-  /**
-   * Read from an XML file using the DOM.
-   *
-   * @param inputStream InputStream object
-   */
-  @Override
-  public void parse(InputStream inputStream)
-      throws IOException, SAXException, ParserConfigurationException {
-    Document document = this.init(inputStream);
-    NodeList registryList = document.getElementsByTagName("registry");
-    for (int i = 0; i < registryList.getLength(); i++) {
-      Node registry = registryList.item(i);
-      String registryId = getAttribute("id", registry);
-      if (registryId.equals("media-types")) {
-        // skip main registry
-        continue;
-      }
-      Element element = (Element) registry;
-      NodeList recordList = element.getElementsByTagName("record");
-      for (int j = 0; j < recordList.getLength(); j++) {
-        records.add(registryId + "/" + getTagValue("name", recordList.item(j)));
-      }
+    @XmlElementWrapper(name = "registry", namespace = "http://www.iana.org/assignments")
+    @XmlElement(name = "record", namespace = "http://www.iana.org/assignments")
+    private List<MediaTypesRecord> recordsObject;
+
+    private Set<String> records = new HashSet<>();
+
+    void afterUnmarshal(Unmarshaller u, Object parent) {
+        this.records = recordsObject.stream().map(MediaTypesRecord::getName).collect(toSet());
     }
-  }
 
-  @Override
-  public boolean isInvalid(String subject) {
-    return !records.contains(subject);
-  }
+    @Override
+    public boolean isInvalid(String subject) {
+        return !records.contains(subject);
+    }
+
+    public Set<String> getRecords() {
+        return records;
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    static class MediaTypesRecord {
+
+        @XmlElement(name = "name", namespace = "http://www.iana.org/assignments")
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
 }

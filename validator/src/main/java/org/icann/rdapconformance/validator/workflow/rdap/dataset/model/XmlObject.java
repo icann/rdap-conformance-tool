@@ -35,6 +35,10 @@ public abstract class XmlObject implements RDAPDatasetModel {
     return document;
   }
 
+  public void parse(InputStream inputStream) throws Throwable {
+    Document document = init(inputStream);;
+  }
+
   /**
    * Get the value of a tag.
    */

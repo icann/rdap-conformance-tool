@@ -2,6 +2,8 @@ package org.icann.rdapconformance.validator.schemavalidator;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -16,6 +18,7 @@ public class SchemaValidatorDsDataTest extends SchemaValidatorForArrayTest {
   @BeforeMethod
   @Override
   public void setUp() throws IOException {
+    Locale.setDefault(Locale.US);
     super.setUp();
     name = "dsData";
   }

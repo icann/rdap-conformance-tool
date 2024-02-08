@@ -1,0 +1,768 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-stylesheet type="text/xsl" href="rdap-json-values.xsl"?>
+<?xml-model href="rdap-json-values.rng" schematypens="http://relaxng.org/ns/structure/1.0" ?>
+<registry xmlns="http://www.iana.org/assignments" id="rdap-json-values">
+  <title>RDAP JSON Values</title>
+  <category>Registration Data Access Protocol (RDAP)</category>
+  <created>2015-01-12</created>
+  <updated>2023-11-30</updated>
+  
+  <registry id="rdap-json-values-1">
+    <title>RDAP JSON Values</title>
+    <xref type="rfc" data="rfc9083"/>
+    <xref type="draft" data="RFC-ietf-regext-rdap-redacted-16"/>
+    <registration_rule>Expert Review</registration_rule>
+    <expert>Andy Newton, Scott Hollenbeck</expert>
+
+    <record date="2015-01-12">
+      <value>result set truncated due to authorization</value>
+      <type>notice and remark type</type>
+      <description>The list of results does not contain all results
+          due to lack of authorization.  This may indicate to some
+          clients that proper authorization will yield a longer result
+          set.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>result set truncated due to excessive load</value>
+      <type>notice and remark type</type>
+      <description>The list of results does not contain all results
+          due to an excessively heavy load on the server.  This may
+          indicate to some clients that requerying at a later time will
+          yield a longer result set.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>result set truncated due to unexplainable reasons</value>
+      <type>notice and remark type</type>
+      <description>The list of results does not contain all results
+          for an unexplainable reason.  This may indicate to some
+          clients that requerying for any reason will not yield a longer
+          result set.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>object truncated due to authorization</value>
+      <type>notice and remark type</type>
+      <description>The object does not contain all data due to lack
+          of authorization.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>object truncated due to excessive load</value>
+      <type>notice and remark type</type>
+      <description>The object does not contain all data due to an 
+          excessively heavy load on the server.  This may indicate to
+          some clients that requerying at a later time will yield all
+          data of the object.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>object truncated due to unexplainable reasons</value>
+      <type>notice and remark type</type>
+      <description>The object does not contain all data for an
+          unexplainable reason.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>validated</value>
+      <type>status</type>
+      <description>Signifies that the data of the object instance
+           has been found to be accurate.  This type of status is
+           usually found on entity object instances to note the validity
+           of identifying contact information.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>renew prohibited</value>
+      <type>status</type>
+      <description>Renewal or reregistration of the object instance
+           is forbidden.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>update prohibited</value>
+      <type>status</type>
+      <description>Updates to the object instance are forbidden.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>transfer prohibited</value>
+      <type>status</type>
+      <description>Transfers of the registration from one registrar
+           to another are forbidden.  This type of status normally
+           applies to DNR domain names.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>delete prohibited</value>
+      <type>status</type>
+      <description>Deletion of the registration of the object
+           instance is forbidden.  This type of status normally applies
+           to DNR domain names.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>proxy</value>
+      <type>status</type>
+      <description>The registration of the object instance has been
+           performed by a third party.  This is most commonly applied to
+           entities.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>private</value>
+      <type>status</type>
+      <description>The information of the object instance is not
+           designated for public consumption.  This is most commonly
+           applied to entities.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>removed</value>
+      <type>status</type>
+      <description>Some of the information of the object instance
+           has not been made available and has been removed.  This is
+           most commonly applied to entities.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>obscured</value>
+      <type>status</type>
+      <description>Some of the information of the object instance
+           has been altered for the purposes of not readily revealing 
+           the actual information of the object instance.  This is most
+           commonly applied to entities.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>associated</value>
+      <type>status</type>
+      <description>The object instance is associated with other
+           object instances in the registry.  This is most commonly used
+           to signify that a nameserver is associated with a domain or
+           that an entity is associated with a network resource or
+           domain.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>active</value>
+      <type>status</type>
+      <description>The object instance is in use.  For domain
+           names, it signifies that the domain name is published in DNS.
+           For network and autnum registrations, it signifies that they
+           are allocated or assigned for use in operational networks.
+           This maps to the "OK" status of the Extensible Provisioning 
+           Protocol (EPP) <xref type="rfc" data="rfc5730"/>.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>inactive</value>
+      <type>status</type>
+      <description>The object instance is not in use.  See
+           "active".</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>locked</value>
+      <type>status</type>
+      <description>Changes to the object instance cannot be made,
+           including the association of other object instances.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>pending create</value>
+      <type>status</type>
+      <description>A request has been received for the creation of
+           the object instance, but this action is not yet complete.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>pending renew</value>
+      <type>status</type>
+      <description>A request has been received for the renewal of
+           the object instance, but this action is not yet complete.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>pending transfer</value>
+      <type>status</type>
+      <description>A request has been received for the transfer of
+           the object instance, but this action is not yet complete.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>pending update</value>
+      <type>status</type>
+      <description>A request has been received for the update or
+           modification of the object instance, but this action is not
+           yet complete.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>pending delete</value>
+      <type>status</type>
+      <description>A request has been received for the deletion or
+           removal of the object instance, but this action is not yet
+           complete.  For domains, this might mean that the name is no
+           longer published in DNS but has not yet been purged from the
+           registry database.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>add period</value>
+      <type>status</type>
+      <description>This grace period is provided after the initial
+        registration of the object.  If the object is deleted by the client
+        during this period, the server provides a credit to the client for
+        the cost of the registration.  This maps to the Domain Registry Grace
+        Period Mapping for the Extensible Provisioning Protocol (EPP)
+        <xref type="rfc" data="rfc3915"/> 'addPeriod' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>auto renew period</value>
+      <type>status</type>
+      <description>This grace period is provided after an object
+        registration period expires and is extended (renewed) automatically
+        by the server.  If the object is deleted by the client during this
+        period, the server provides a credit to the client for the cost of
+        the auto renewal.  This maps to the Domain Registry Grace Period
+        Mapping for the Extensible Provisioning Protocol (EPP) <xref type="rfc" data="rfc3915"/> 
+        'autoRenewPeriod' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>client delete prohibited</value>
+      <type>status</type>
+      <description>The client requested that requests to delete the object
+        MUST be rejected.  This maps to the Extensible Provisioning Protocol
+        (EPP) Domain Name Mapping <xref type="rfc" data="rfc5731"/>, Extensible Provisioning Protocol
+        (EPP) Host Mapping <xref type="rfc" data="rfc5732"/>, and Extensible Provisioning Protocol
+        (EPP) Contact Mapping <xref type="rfc" data="rfc5733"/> 'clientDeleteProhibited' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>client hold</value>
+      <type>status</type>
+      <description>The client requested that the DNS delegation information
+        MUST NOT be published for the object.  This maps to the Extensible
+        Provisioning Protocol (EPP) Domain Name Mapping <xref type="rfc" data="rfc5731"/>
+        'clientHold' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>client renew prohibited</value>
+      <type>status</type>
+      <description>The client requested that requests to renew the object
+        MUST be rejected.  This maps to the Extensible Provisioning Protocol
+        (EPP) Domain Name Mapping <xref type="rfc" data="rfc5731"/> 'clientRenewProhibited' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>client transfer prohibited</value>
+      <type>status</type>
+      <description>The client requested that requests to transfer the
+        object MUST be rejected.  This maps to the Extensible Provisioning
+        Protocol (EPP) Domain Name Mapping <xref type="rfc" data="rfc5731"/> and Extensible
+        Provisioning Protocol (EPP) Contact Mapping <xref type="rfc" data="rfc5733"/>
+        'clientTransferProhibited' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>client update prohibited</value>
+      <type>status</type>
+      <description>The client requested that requests to update the object
+        (other than to remove this status) MUST be rejected.  This maps to
+        the Extensible Provisioning Protocol (EPP) Domain Name Mapping
+        <xref type="rfc" data="rfc5731"/>, Extensible Provisioning Protocol (EPP) Host Mapping
+        <xref type="rfc" data="rfc5732"/>, and Extensible Provisioning Protocol (EPP) Contact Mapping
+        <xref type="rfc" data="rfc5733"/> 'clientUpdateProhibited' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>pending restore</value>
+      <type>status</type>
+      <description>An object is in the process of being restored after
+        being in the redemption period state.  This maps to the Domain
+        Registry Grace Period Mapping for the Extensible Provisioning
+        Protocol (EPP) <xref type="rfc" data="rfc3915"/> 'pendingRestore' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>redemption period</value>
+      <type>status</type>
+      <description>A delete has been received, but the object has not yet
+        been purged because an opportunity exists to restore the object and
+        abort the deletion process.  This maps to the Domain Registry Grace
+        Period Mapping for the Extensible Provisioning Protocol (EPP)
+        <xref type="rfc" data="rfc3915"/> 'redemptionPeriod' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>renew period</value>
+      <type>status</type>
+      <description>This grace period is provided after an object
+        registration period is explicitly extended (renewed) by the client.
+        If the object is deleted by the client during this period, the server
+        provides a credit to the client for the cost of the renewal.  This
+        maps to the Domain Registry Grace Period Mapping for the Extensible
+        Provisioning Protocol (EPP) <xref type="rfc" data="rfc3915"/> 'renewPeriod' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>server delete prohibited</value>
+      <type>status</type>
+      <description>The server set the status so that requests to delete the
+        object MUST be rejected.  This maps to the Extensible Provisioning
+        Protocol (EPP) Domain Name Mapping <xref type="rfc" data="rfc5731"/>, Extensible Provisioning
+        Protocol (EPP) Host Mapping <xref type="rfc" data="rfc5732"/>, and Extensible Provisioning
+        Protocol (EPP) Contact Mapping <xref type="rfc" data="rfc5733"/> 'serverDeleteProhibited'
+        status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>server renew prohibited</value>
+      <type>status</type>
+      <description>The server set the status so that requests to renew the
+        object MUST be rejected.  This maps to the Extensible Provisioning
+        Protocol (EPP) Domain Name Mapping <xref type="rfc" data="rfc5731"/> 'serverRenewProhibited'
+        status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>server transfer prohibited</value>
+      <type>status</type>
+      <description>The server set the status so that requests to transfer
+        the object MUST be rejected.  This maps to the Extensible
+        Provisioning Protocol (EPP) Domain Name Mapping <xref type="rfc" data="rfc5731"/> and
+        Extensible Provisioning Protocol (EPP) Contact Mapping <xref type="rfc" data="rfc5733"/>
+        'serverTransferProhibited' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>server update prohibited</value>
+      <type>status</type>
+      <description>The server set the status so that requests to update the
+        object (other than to remove this status) MUST be rejected.  This
+        maps to the Extensible Provisioning Protocol (EPP) Domain Name
+        Mapping <xref type="rfc" data="rfc5731"/>, Extensible Provisioning Protocol (EPP) Host
+        Mapping <xref type="rfc" data="rfc5732"/>, and Extensible Provisioning Protocol (EPP) Contact
+        Mapping <xref type="rfc" data="rfc5733"/> 'serverUpdateProhibited' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>server hold</value>
+      <type>status</type>
+      <description>The server set the status so that DNS delegation
+        information MUST NOT be published for the object.  This maps to the
+        Extensible Provisioning Protocol (EPP) Domain Name Mapping <xref type="rfc" data="rfc5731"/>
+        'serverHold' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2016-11-22">
+      <value>transfer period</value>
+      <type>status</type>
+      <description>This grace period is provided after the successful
+        transfer of object registration sponsorship from one client to
+        another client.  If the object is deleted by the client during this
+        period, the server provides a credit to the client for the cost of
+        the transfer.  This maps to the Domain Registry Grace Period Mapping
+        for the Extensible Provisioning Protocol (EPP) <xref type="rfc" data="rfc3915"/>
+        'transferPeriod' status.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc8056"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>registration</value>
+      <type>event action</type>
+      <description>The object instance was initially registered.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>reregistration</value>
+      <type>event action</type>
+      <description>The object instance was registered subsequently
+          to initial registration.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>last changed</value>
+      <type>event action</type>
+      <description>An action noting when the information in the
+          object instance was last changed.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>expiration</value>
+      <type>event action</type>
+      <description>The object instance has been removed or will be
+          removed at a predetermined date and time from the registry.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>deletion</value>
+      <type>event action</type>
+      <description>The object instance was removed from the registry
+          at a point in time that was not predetermined.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>reinstantiation</value>
+      <type>event action</type>
+      <description>The object instance was reregistered after having
+          been removed from the registry.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12" updated="2021-03-08">
+      <value>transfer</value>
+      <type>event action</type>
+      <description>The object instance was transferred from one
+      registrar to another.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>locked</value>
+      <type>event action</type>
+      <description>The object instance was locked (see the "locked"
+          status).</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>unlocked</value>
+      <type>event action</type>
+      <description>The object instance was unlocked (see the
+          "locked" status).</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>registrant</value>
+      <type>role</type>
+      <description>The entity object instance is the registrant of
+           the registration.  In some registries, this is known as a
+           maintainer.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>technical</value>
+      <type>role</type>
+      <description>The entity object instance is a technical
+           contact for the registration.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>administrative</value>
+      <type>role</type>
+      <description>The entity object instance is an administrative
+           contact for the registration.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>abuse</value>
+      <type>role</type>
+      <description>The entity object instance handles network abuse
+           issues on behalf of the registrant of the registration.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>billing</value>
+      <type>role</type>
+      <description>The entity object instance handles payment and
+           billing issues on behalf of the registrant of the
+           registration.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>registrar</value>
+      <type>role</type>
+      <description>The entity object instance represents the
+           authority responsible for the registration in the registry.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>reseller</value>
+      <type>role</type>
+      <description>The entity object instance represents a third
+           party through which the registration was conducted (i.e., not
+           the registry or registrar).</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>sponsor</value>
+      <type>role</type>
+      <description>The entity object instance represents a domain
+           policy sponsor, such as an ICANN-approved sponsor.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>proxy</value>
+      <type>role</type>
+      <description>The entity object instance represents a proxy
+           for another entity object, such as a registrant.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>notifications</value>
+      <type>role</type>
+      <description>An entity object instance designated to receive
+           notifications about association object instances.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>noc</value>
+      <type>role</type>
+      <description>The entity object instance handles
+           communications related to a network operations center (NOC).</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>registered</value>
+      <type>domain variant relation</type>
+      <description>The variant names are registered in the registry.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>unregistered</value>
+      <type>domain variant relation</type>
+      <description>The variant names are not found in the registry.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>registration restricted</value>
+      <type>domain variant relation</type>
+      <description>Registration of the variant names is restricted
+          to certain parties or within certain rules.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>open registration</value>
+      <type>domain variant relation</type>
+      <description>Registration of the variant names is available to
+          generally qualified registrants.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>conjoined</value>
+      <type>domain variant relation</type>
+      <description>Registration of the variant names occurs
+          automatically with the registration of the containing domain
+          registration.</description>
+      <registrant><xref type="person" data="IESG"/></registrant>
+      <xref type="rfc" data="rfc9083"/>
+    </record>
+    
+    <record date="2015-12-14">
+      <value>last update of RDAP database</value>
+      <type>event action</type>
+      <description>An action noting when the information in the object
+instance in the RDAP database was last synchronized from the
+authoritative database (e.g. registry database).</description>
+      <registrant><xref type="person" data="ICANN"/></registrant>
+    </record>
+    
+    <record date="2015-12-14">
+      <value>registrar expiration</value>
+      <type>event action</type>
+      <description>An action noting the expiration date of the object in
+the registrar system.</description>
+      <registrant><xref type="person" data="ICANN"/></registrant>
+    </record>
+    
+    <record date="2016-03-30">
+      <value>enum validation expiration</value>
+      <type>event action</type>
+      <description>Association of phone number represented by this ENUM domain 
+        to registrant has expired or will expire at a predetermined date and 
+        time.</description>
+      <registrant><xref type="person" data="CZ.NIC_z._s._p._o."/></registrant>
+    </record>
+	
+    <record date="2019-08-15">
+      <value>object redacted due to authorization</value>
+      <type>notice and remark type</type>
+      <description>The object contains redacted data due to lack of 
+authorization.</description>
+      <registrant><xref type="person" data="ICANN"/></registrant>
+    </record>
+	
+    <record date="2021-01-27">
+      <value>administrative</value>
+      <type>status</type>
+      <description>The object instance has been allocated
+administratively (i.e., not for use by the recipient in their own
+right in operational networks).</description>
+      <registrant><xref type="person" data="NRO"/></registrant>
+    </record>
+	
+    <record date="2021-01-27">
+      <value>reserved</value>
+      <type>status</type>
+      <description>The object instance has been allocated to an IANA
+special-purpose address registry.</description>
+      <registrant><xref type="person" data="NRO"/></registrant>
+    </record>
+    
+    <record date="2015-01-12">
+      <value>jsonpath</value>
+      <type>redacted expression language</type>
+      <description>JSON path expression language, as defined in 
+        <xref type="draft" data="draft-ietf-jsonpath-base"/>.</description>
+      <registrant><xref type="person" data="IETF"/></registrant>
+      <xref type="draft" data="RFC-ietf-regext-rdap-redacted-16"/>
+    </record>
+
+  </registry>
+  
+  <people>
+    <person id="CZ.NIC_z._s._p._o.">
+      <name>CZ.NIC, z. s. p. o.</name>
+      <uri>mailto:tech&amp;nic.cz</uri>
+      <updated>2016-03-30</updated>
+    </person>
+    <person id="ICANN">
+      <name>ICANN</name>
+      <uri>mailto:globalsupport&amp;icann.org</uri>
+	  <updated>2019-08-02</updated>
+    </person>
+    <person id="IESG">
+      <name>IESG</name>
+      <uri>mailto:iesg&amp;ietf.org</uri>
+    </person>
+    <person id="IETF">
+      <name>IETF</name>
+      <uri>mailto:iesg&amp;ietf.org</uri>
+    </person>
+    <person id="NRO">
+      <name>NRO</name>
+      <uri>mailto:secretariat&amp;nro.net</uri>
+	  <updated>2021-01-27</updated>
+    </person>
+  </people>
+</registry>

@@ -47,3 +47,8 @@ buildNumber.properties
 # Tool outputs
 results
 datasets
+.project
+.settings/
+jitpack/
+.classpath
+.java-version

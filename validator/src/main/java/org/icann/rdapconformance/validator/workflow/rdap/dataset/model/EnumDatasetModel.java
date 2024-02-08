@@ -1,41 +1,22 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import java.io.IOException;
-import java.io.InputStream;
+import javax.xml.bind.Unmarshaller;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-public abstract class EnumDatasetModel extends XmlObject implements DatasetValidatorModel {
+import static java.util.stream.Collectors.toSet;
 
-  private final Set<String> records = new HashSet<>();
-  private final String key;
 
-  EnumDatasetModel() {
-    this("value");
+public abstract class EnumDatasetModel<T extends EnumDatasetModelRecord> extends XmlObject implements DatasetValidatorModel {
+
+  private Set<String> records = new HashSet<>();
+
+  public void afterUnmarshal(Unmarshaller u, Object parent) {
+    this.records = getValueRecords().stream().map(r -> transform(r.getValue())).collect(toSet());
   }
 
-  EnumDatasetModel(String key) {
-    this.key = key;
-  }
-
-  /**
-   * Read from an XML file using the DOM.
-   *
-   * @param inputStream InputStream object
-   */
-  @Override
-  public void parse(InputStream inputStream)
-      throws IOException, SAXException, ParserConfigurationException {
-    Document document = this.init(inputStream);
-    NodeList nodeList = document.getElementsByTagName("record");
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      records.add(transform(getTagValue(key, nodeList.item(i))));
-    }
-  }
+  protected abstract List<T> getValueRecords();
 
   String transform(String value) {
     return value;
