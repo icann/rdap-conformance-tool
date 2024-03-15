@@ -4,14 +4,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "registry", namespace = "http://www.iana.org/assignments")
 public class Ipv6AddressSpace extends XmlObject implements DatasetValidatorModel {
 
-  private final List<Record> records = new ArrayList<>();
+  @XmlElementWrapper(name = "registry", namespace = "http://www.iana.org/assignments")
+  @XmlElement(name = "record", namespace = "http://www.iana.org/assignments")
+  private final List<Ipv6AddressSpaceRecord> records = new ArrayList<>();
 
   /**
    * Read from an XML file using the DOM.
@@ -21,12 +30,6 @@ public class Ipv6AddressSpace extends XmlObject implements DatasetValidatorModel
   @Override
   public void parse(InputStream inputStream)
       throws ParserConfigurationException, IOException, SAXException {
-    Document document = this.init(inputStream);
-    NodeList nodeList = document.getElementsByTagName("record");
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      this.records.add(new Record(getTagValue("prefix", nodeList.item(i)),
-          getTagValue("description", nodeList.item(i))));
-    }
   }
 
   @Override
@@ -34,12 +37,18 @@ public class Ipv6AddressSpace extends XmlObject implements DatasetValidatorModel
     return false;
   }
 
-  private static class Record {
+  @XmlAccessorType(XmlAccessType.FIELD)
+  static class Ipv6AddressSpaceRecord {
 
-    private final String prefix;
-    private final String description;
+    @XmlElement(name = "prefix", namespace = "http://www.iana.org/assignments")
+    private String prefix;
+    @XmlElement(name = "description", namespace = "http://www.iana.org/assignments")
+    private String description;
 
-    public Record(String prefix, String description) {
+    public Ipv6AddressSpaceRecord() {
+    }
+
+    public Ipv6AddressSpaceRecord(String prefix, String description) {
       this.prefix = prefix;
       this.description = description;
     }

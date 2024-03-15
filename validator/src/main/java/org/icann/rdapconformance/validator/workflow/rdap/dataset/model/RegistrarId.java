@@ -1,115 +1,124 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public class RegistrarId extends XmlObject {
+@XmlRootElement(name = "registry", namespace = "http://www.iana.org/assignments")
+@XmlAccessorType(XmlAccessType.FIELD)
+public class RegistrarId implements RDAPDatasetModel {
 
-  final Map<Integer, Record> recordByIdentifier = new HashMap<>();
-  final Set<String> names = new HashSet<>();
+    @XmlElementWrapper(name = "registry", namespace = "http://www.iana.org/assignments")
+    @XmlElement(name = "record", namespace = "http://www.iana.org/assignments")
+    private List<Record> records;
 
-  private static String nodeToString(Node node) {
-    StringWriter sw = new StringWriter();
-    try {
-      Transformer t = TransformerFactory.newInstance().newTransformer();
-      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-      t.setOutputProperty(OutputKeys.INDENT, "yes");
-      t.transform(new DOMSource(node), new StreamResult(sw));
-    } catch (TransformerException te) {
-      System.out.println("nodeToString Transformer Exception");
-    }
-    return sw.toString();
-  }
+    @XmlTransient
+    Map<Integer, Record> recordByIdentifier = new HashMap<>();
 
-  @Override
-  public void parse(InputStream inputStream)
-      throws IOException, SAXException, ParserConfigurationException {
-    Document document = this.init(inputStream);
-    NodeList nodeList = document.getElementsByTagName("record");
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      Node node = nodeList.item(i);
-      Record record = new Record(
-          Integer.parseInt(getTagValue("value", node)),
-          getTagValue("name", node),
-          getTagValue("rdapurl/server", node),
-          nodeToString(node));
-      recordByIdentifier.put(record.value, record);
-      names.add(record.name);
-    }
-  }
+    Set<String> names = new HashSet<>();
 
-  public boolean containsId(int registrarId) {
-    return recordByIdentifier.containsKey(registrarId);
-  }
-
-  public Record getById(int registrarId) {
-    return recordByIdentifier.get(registrarId);
-  }
-
-  public static class Record {
-
-    private final int value;
-    private final String name;
-    private final String xmlRepresentation;
-    private final String rdapUrl;
-
-    public Record(int value, String name, String rdapUrl, String xmlRepresentation) {
-      this.value = value;
-      this.name = name;
-      this.rdapUrl = rdapUrl;
-      this.xmlRepresentation = xmlRepresentation;
+    void afterUnmarshal(Unmarshaller u, Object parent) {
+        this.recordByIdentifier = records.stream().peek(Record::loadRdapUrl)
+                                         .collect(Collectors.toMap(Record::getValue, Function.identity()));
+        this.names = records.stream().map(Record::getName).collect(Collectors.toSet());
     }
 
-    public int getValue() {
-      return value;
+    public boolean containsId(int registrarId) {
+        return recordByIdentifier.containsKey(registrarId);
     }
 
-    public String getName() {
-      return name;
+    public Record getById(int registrarId) {
+        return recordByIdentifier.get(registrarId);
     }
 
-    public String getRdapUrl() {
-      return rdapUrl;
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class Record {
+
+        @XmlElement(name = "value", namespace = "http://www.iana.org/assignments")
+        private int value;
+        @XmlElement(name = "name", namespace = "http://www.iana.org/assignments")
+        private String name;
+        private String xmlRepresentation;
+        @XmlElement(name = "rdapurl", namespace = "http://www.iana.org/assignments")
+        private RdapUrl rdapUrlObj = new RdapUrl();
+        @XmlTransient
+        private String rdapUrl;
+
+        public Record(int value, String name, String rdapUrl, String xmlRepresentation) {
+            this.value = value;
+            this.name = name;
+            this.rdapUrl = rdapUrl;
+            this.xmlRepresentation = xmlRepresentation;
+        }
+
+        public Record() {
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getRdapUrl() {
+            return rdapUrl;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Record record = (Record) o;
+            return value == record.value && name.equals(record.name) && Objects
+                    .equals(rdapUrl, record.rdapUrl);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(value, name, rdapUrl);
+        }
+
+        @Override
+        public String toString() {
+            return xmlRepresentation;
+        }
+
+        private void loadRdapUrl() {
+            if (rdapUrlObj != null) {
+                this.rdapUrl = rdapUrlObj.getServer();
+            }
+        }
     }
 
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      Record record = (Record) o;
-      return value == record.value && name.equals(record.name) && Objects
-          .equals(rdapUrl, record.rdapUrl);
-    }
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class RdapUrl {
+        @XmlElement(name = "server", namespace = "http://www.iana.org/assignments")
+        private String server = "";
 
-    @Override
-    public int hashCode() {
-      return Objects.hash(value, name, rdapUrl);
-    }
+        public String getServer() {
+            return server;
+        }
 
-    @Override
-    public String toString() {
-      return xmlRepresentation;
+        public void setServer(String server) {
+            this.server = server;
+        }
     }
-  }
 }

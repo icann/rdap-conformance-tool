@@ -1,0 +1,2984 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-stylesheet type="text/xsl" href="epp-repository-ids.xsl"?>
+<?xml-model href="epp-repository-ids.rng" schematypens="http://relaxng.org/ns/structure/1.0" ?>
+<registry xmlns="http://www.iana.org/assignments" id="epp-repository-ids">
+  <title>Extensible Provisioning Protocol (EPP) Repository Identifiers</title>
+  <created>2004-10-26</created>
+  <updated>2023-12-19</updated>
+  <registry id="epp-repository-ids-1">
+    <title>EPP Repository Identifiers</title>
+    <xref type="rfc" data="rfc5730"/>
+    <registration_rule>First Come First Served</registration_rule>
+    <note>Until the IANA requests or implements an automated process for the
+registration of these identifiers, any specifications must make that
+request part of the IANA considerations section of their respective
+documents.  A request must be in the form of the following template:
+
+ID
+  The repository identifier to be registered by IANA. If the
+  registrant is requesting that the IANA assign an ID then this
+  field should be specified as "Please assign".  IANA will then
+  assign an identifier derived from provided contact information,
+  such as by using an organizational name.  Formatting
+  requirements:
+
+  * 1 character minimum length
+  * 8 characters maximum length
+  * String MUST contain only letters or digits as defined by XML 1.0.  
+    XML letter and digit characters are defined here:
+
+    http://www.w3.org/TR/2000/REC-xml-20001006#CharClasses
+
+  The registration request must contain both the requested string
+  and the hexadecimal representation of the characters present in
+  the string, formatted according to the XML character classes.
+  For example, the string "foo" would be identified as follows:
+
+  ID: foo, #x0066 #x006F #x006F
+
+Registrant Contact
+  The individual/organization that is the registration contact for
+  the component being registered.  Ideally, this will include the
+  name and pertinent physical and network contact information.
+
+Change Controller
+  The individual/organization that can authorize modification or 
+  deletion of the registration.
+
+Requests MAY be sent directly to IANA without a formal specification.
+The registry itself should be a list of registered strings.
+No review beyond IANA review is required.
+    </note>
+    <record>
+      <id>ENUMAT, #x0045 #x004E #x0055 #x004D #x0041 #x0054</id>
+      <change/>
+      <xref type="person" data="enum_at_GmbH"/>
+    </record>
+    <record>
+      <id>MX, #x004D #x0058</id>
+      <change/>
+      <xref type="person" data="Network_Information"/>
+    </record>
+    <record updated="2015-09-01">
+      <id>NAME, #x004E #x0041 #x004D #x0045</id>
+      <change/>
+      <xref type="person" data="VeriSign"/>
+    </record>
+    <record updated="2015-09-01">
+      <id>VRSN, #x0056 #x0052 #x0053 #x004E</id>
+      <change/>
+      <xref type="person" data="VeriSign"/>
+    </record>
+    <record>
+      <id>IENUM43, #x0049 #x0045 #x004e #x0055 #x004d #x0034 #x0033</id>
+      <change/>
+      <xref type="person" data="enum_at_GmbH"/>
+    </record>
+    <record>
+      <id>SWITCH, #x0053 #x0057 #x0049 #x0054 #x0043 #x0048</id>
+      <change/>
+      <xref type="person" data="SWITCH"/>
+    </record>
+    <record updated="2015-05-06">
+      <id>DOMIOM, #x0044 #x004F #x004D #x0049 #x004F #x004D</id>
+      <change><xref type="person" data="Domicilium"/></change>
+      <xref type="person" data="Domicilium"/>
+    </record>
+    <record>
+      <id>CNIC, #x0043 #x004E #x0049 #x0043</id>
+      <change/>
+      <xref type="person" data="CentralNic_Ltd"/>
+    </record>
+    <record date="2007-12-10">
+      <id>NORID, #x004E #x004F #x0052 #x0049 #x0044</id>
+      <change/>
+      <xref type="person" data="UNINETT_Norid_AS"/>
+    </record>
+    <record date="2008-05-29">
+      <id>FRNIC, #x0046 #x0052 #x004e #x0049 #x0043</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2009-07-22">
+      <id>CIRA, #x0043 #x0049 #x0052 #x0041</id>
+      <change><xref type="person" data="Canadian_Internet_Re"/></change>
+      <xref type="person" data="Canadian_Internet_Re"/>
+    </record>
+    <record date="2009-10-26">
+      <id>NETUA, #x004E #x0045 #x0054 #x0055 #x0041</id>
+      <change/>
+      <xref type="person" data="NET_UA_Network_Coord"/>
+    </record>
+    <record date="2009-11-20" updated="2015-09-24">
+      <id>SMALL, #x0053 #x004D #x0041 #x004C #x004C</id>
+      <change/>
+      <xref type="person" data="Smallregistry"/>
+    </record>
+    <record date="2010-06-16">
+      <id>UA, #x0055 #x0041</id>
+      <change/>
+      <xref type="person" data="Communication_System"/>
+    </record>
+    <record date="2010-06-22">
+      <id>CUNIC, #x0043 #x0055 #x004E #x0049 #x0043</id>
+      <change/>
+      <xref type="person" data="Sergey_Bulakh"/>
+    </record>
+    <record date="2010-06-25">
+      <id>DPNIC, #x0044 #x0050 #x004E #x0049 #x0043</id>
+      <change/>
+      <xref type="person" data="Vladimir_Kiyan"/>
+    </record>
+    <record date="2010-09-28" updated="2015-10-06">
+      <id>UACMNIC, #x0055 #x0041 #x0043 #x004D #x004E #x0049 #x0043</id>
+      <change/>
+      <xref type="person" data="UA_CM_Registry"/>
+    </record>
+    <record date="2010-09-28" updated="2015-10-06">
+      <id>UACM, #x0055 #x0041 #x0043 #x004D</id>
+      <change/>
+      <xref type="person" data="UA_CM_Registry"/>
+    </record>
+    <record date="2010-10-12">
+      <id>UKR, #x0055 #x004B #x0052</id>
+      <change/>
+      <xref type="person" data="UA_CM_Registry"/>
+    </record>   
+    <record date="2013-04-18">
+      <id>GMO, #x0047 #x004D #x004F</id>
+      <change/>
+      <xref type="person" data="GMO_Registry_Inc."/>
+    </record>
+    <record date="2015-03-30">
+      <id>BR, #x0042 #x0052</id>
+      <change><xref type="person" data="NIC_BR"/></change>
+      <xref type="person" data="Frederico_A_C_Neves"/>
+    </record>
+    <record date="2015-03-30">
+      <id>NICBR, #x004E #x0049 #x0043 #x0042 #x0052</id>
+      <change><xref type="person" data="NIC_BR"/></change>
+      <xref type="person" data="Frederico_A_C_Neves"/>
+    </record>
+    <record date="2015-03-30">
+      <id>LACNIC, #x004C #x0041 #x0043 #x004E #x0049 #x0043</id>
+      <change><xref type="person" data="NIC_BR"/></change>
+      <xref type="person" data="Frederico_A_C_Neves"/>
+    </record>
+    <record date="2015-03-30">
+      <id>UOL, #x0055 #x004F #x004C</id>
+      <change><xref type="person" data="NIC_BR"/></change>
+      <xref type="person" data="Frederico_A_C_Neves"/>
+    </record>
+    <record date="2015-03-30">
+      <id>RIO, #x0052 #x0049 #x004F</id>
+      <change><xref type="person" data="NIC_BR"/></change>
+      <xref type="person" data="Frederico_A_C_Neves"/>
+    </record>
+    <record date="2015-03-30">
+      <id>GLOBO, #x0047 #x004C #x004F #x0042 #x004F</id>
+      <change><xref type="person" data="NIC_BR"/></change>
+      <xref type="person" data="Frederico_A_C_Neves"/>
+    </record>
+    <record date="2015-03-30">
+      <id>BOM, #x0042 #x004F #x004D</id>
+      <change><xref type="person" data="NIC_BR"/></change>
+      <xref type="person" data="Frederico_A_C_Neves"/>
+    </record>
+    <record date="2015-03-30">
+      <id>FINAL, #x0046 #x0049 #x004E #x0041 #x004C</id>
+      <change><xref type="person" data="NIC_BR"/></change>
+      <xref type="person" data="Frederico_A_C_Neves"/>
+    </record>
+    <record date="2015-06-15">
+      <id>BERLIN, #x0042 #x0045 #x0052 #x004c #x0049 #x004e</id>
+      <change><xref type="person" data="TLDBOX"/></change>
+      <xref type="person" data="TLDBOX"/>
+    </record>
+    <record date="2015-06-15">
+      <id>HAMBURG, #x0048 #x0041 #x004d #x0042 #x0055 #x0052 #x0047</id>
+      <change><xref type="person" data="TLDBOX"/></change>
+      <xref type="person" data="TLDBOX"/>
+    </record>
+    <record date="2015-06-15">
+      <id>IKANO, #x0049 #x004b #x0041 #x004e #x004f</id>
+      <change><xref type="person" data="TLDBOX"/></change>
+      <xref type="person" data="TLDBOX"/>
+    </record>
+    <record date="2015-06-15">
+      <id>TIROL, #x0054 #x0049 #x0052 #x004f #x004c</id>
+      <change><xref type="person" data="TLDBOX"/></change>
+      <xref type="person" data="TLDBOX"/>
+    </record>
+    <record date="2015-06-15">
+      <id>VERS, #x0056 #x0045 #x0052 #x0053</id>
+      <change><xref type="person" data="TLDBOX"/></change>
+      <xref type="person" data="TLDBOX"/>
+    </record>
+    <record date="2015-06-15">
+      <id>VOTING, #x0056 #x004f #x0054 #x0049 #x004e #x0047</id>
+      <change><xref type="person" data="TLDBOX"/></change>
+      <xref type="person" data="TLDBOX"/>
+    </record>
+    <record date="2015-06-15">
+      <id>WIEN, #x0057 #x0049 #x0045 #x004e</id>
+      <change><xref type="person" data="TLDBOX"/></change>
+      <xref type="person" data="TLDBOX"/>
+    </record>
+    <record date="2015-07-02">
+      <id>JOBURG, #x004A #x004F #x0042 #x0055 #x0052 #x0047</id>
+      <change><xref type="person" data="DNS_INT"/></change>
+      <xref type="person" data="DNS_INT"/>
+    </record>
+    <record date="2015-07-02">
+      <id>DURBAN, #x0044 #x0055 #x0052 #x0042 #x0041 #x004E</id>
+      <change><xref type="person" data="DNS_INT"/></change>
+      <xref type="person" data="DNS_INT"/>
+    </record>
+    <record date="2015-07-02">
+      <id>CAPETOWN, #x0043 #x0041 #x0050 #x0045 #x0054 #x004F #x0057 #x004E</id>
+      <change><xref type="person" data="DNS_INT"/></change>
+      <xref type="person" data="DNS_INT"/>
+    </record>
+    <record date="2015-07-02">
+      <id>AFRICA, #x0041 #x0046 #x0052 #x0049 #x0043 #x0041</id>
+      <change><xref type="person" data="DNS_INT"/></change>
+      <xref type="person" data="DNS_INT"/>
+    </record>
+    <record date="2015-07-03">
+      <id>AT, #x0041 #x0054</id>
+      <change><xref type="person" data="TLDAT"/></change>
+      <xref type="person" data="TLDAT"/>
+    </record>
+    <record date="2015-07-08">
+      <id>QCKA1PMC, #x0051 #x0043 #x004B #x0041 #x0031 #x0050 #x004D #x0043</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>FLW351E, #x0046 #x004C #x0057 #x0033 #x0035 #x0031 #x0045</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>ANDROID, #x0041 #x004E #x0044 #x0052 #x004F #x0049 #x0044</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>GOOGLE, #x0047 #x004F #x004F #x0047 #x004C #x0045</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>GMAIL, #x0047 #x004D #x0041 #x0049 #x004C</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>YOUTUBE, #x0059 #x004F #x0055 #x0054 #x0055 #x0042 #x0045</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>CHROME, #x0043 #x0048 #x0052 #x004F #x004D #x0045</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>NEXUS, #x004E #x0045 #x0058 #x0055 #x0053</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>PLAY, #x0050 #x004C #x0041 #x0059</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>DRIVE, #x0044 #x0052 #x0049 #x0056 #x0045</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>DOCS, #x0044 #x004F #x0043 #x0053</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>APP, #x0041 #x0050 #x0050</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>MAP, #x004D #x0041 #x0050</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>SEARCH, #x0053 #x0045 #x0041 #x0052 #x0043 #x0048</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>PAGE, #x0050 #x0041 #x0047 #x0045</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>MEET, #x004D #x0045 #x0045 #x0054</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>GBIZ, #x0047 #x0042 #x0049 #x005A</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>CAL, #x0043 #x0041 #x004C</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>DCLK, #x0044 #x0043 #x004C #x004B</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>PROD, #x0050 #x0052 #x004F #x0044</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>HANGOUT, #x0048 #x0041 #x004E #x0047 #x004F #x0055 #x0054</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>DEV, #x0044 #x0045 #x0056</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>GLE, #x0047 #x004C #x0045</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>GUGE, #x0047 #x0055 #x0047 #x0045</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>GOOG, #x0047 #x004F #x004F #x0047</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>CHANNEL, #x0043 #x0048 #x0041 #x004E #x004E #x0045 #x004C</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>ADS, #x0041 #x0044 #x0053</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>HERE, #x0048 #x0045 #x0052 #x0045</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>FOO, #x0046 #x004F #x004F</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>EAT, #x0045 #x0041 #x0054</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>Q9JYB4C, #x0051 #x0039 #x004A #x0059 #x0042 #x0034 #x0043</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>SOY, #x0053 #x004F #x0059</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>HOW, #x0048 #x004F #x0057</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>ZIP, #x005A #x0049 #x0050</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>MOV, #x004D #x004F #x0056</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>FLY, #x0046 #x004C #x0059</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>MEME, #x004D #x0045 #x004D #x0045</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>RSVP, #x0052 #x0053 #x0056 #x0050</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>DAY, #x0044 #x0041 #x0059</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>BOO, #x0042 #x004F #x004F</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>DAD, #x0044 #x0041 #x0044</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>NEW, #x004E #x0045 #x0057</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>ING, #x0049 #x004E #x0047</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>ESQ, #x0045 #x0053 #x0051</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>PROF, #x0050 #x0052 #x004F #x0046</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>PHD, #x0050 #x0048 #x0044</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>roid, #x0072 #x006F #x0069 #x0064</id>
+      <change><xref type="person" data="iana_contact_at_google.com"/></change>
+      <xref type="person" data="iana_contact_at_google.com"/>
+    </record>
+    <record date="2015-07-08">
+      <id>NCCGROUP, #x004E #x0043 #x0043 #x0047 #x0052 #x004F #x0055 #x0050</id>
+      <change><xref type="person" data="NCC_Group"/></change>
+      <xref type="person" data="NCC_Group"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>BARNA, #x0042 #x0041 #x0052 #x004E #x0041</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>BAZAAR, #x0042 #x0041 #x005A #x0041 #x0041 #x0052</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>BCN, #x0042 #x0043 #x004E</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>ERNI, #x0045 #x0052 #x004E #x0049</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>EUROVISN, #x0045 #x0055 #x0052 #x004F #x0056 #x0049 #x0053 #x004E</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>LACAIXA, #x004C #x0041 #x0043 #x0041 #x0049 #x0058 #x0041</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>MADRID, #x004D #x0041 #x0044 #x0052 #x0049 #x0044</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>MOVISTAR, #x004D #x004F #x0056 #x0049 #x0053 #x0054 #x0041 #x0052</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>QUEBEC, #x0051 #x0055 #x0045 #x0042 #x0045 #x0043</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>SEAT, #x0053 #x0045 #x0041 #x0054</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>SPORT, #x0053 #x0050 #x004F #x0052 #x0054</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>SWISS, #x0053 #x0057 #x0049 #x0053 #x0053</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-23">
+      <id>TELEFONI, #x0054 #x0045 #x004C #x0045 #x0046 #x004F #x004E #x0049</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-26">
+      <id>BAUHAUS, #x0042 #x0041 #x0055 #x0048 #x0041 #x0055 #x0053</id>
+      <change><xref type="person" data="TANGO"/></change>
+      <xref type="person" data="TANGO"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-26">
+      <id>COLOGNE, #x0043 #x004F #x004C #x004F #x0047 #x004E #x0045</id>
+      <change><xref type="person" data="TANGO"/></change>
+      <xref type="person" data="TANGO"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-26">
+      <id>GMX, #x0047 #x004D #x0058</id>
+      <change><xref type="person" data="TANGO"/></change>
+      <xref type="person" data="TANGO"/>
+    </record> 
+    <record date="2015-07-15" updated="2015-09-24">
+      <id>IFM, #x0049 #x0046 #x004D</id>
+      <change><xref type="person" data="TANGO"/></change>
+      <xref type="person" data="TANGO"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-26">
+      <id>KOELN, #x004B #x004F #x0045 #x004C #x004E</id>
+      <change><xref type="person" data="TANGO"/></change>
+      <xref type="person" data="TANGO"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-26">
+      <id>MAN, #x004D #x0041 #x004E</id>
+      <change><xref type="person" data="TANGO"/></change>
+      <xref type="person" data="TANGO"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-26">
+      <id>NRW, #x004E #x0052 #x0057</id>
+      <change><xref type="person" data="TANGO"/></change>
+      <xref type="person" data="TANGO"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-26">
+      <id>RUHR, #x0052 #x0055 #x0048 #x0052</id>
+      <change><xref type="person" data="TANGO"/></change>
+      <xref type="person" data="TANGO"/>
+    </record>
+    <record date="2015-07-15" updated="2015-07-26">
+      <id>SAP, #x0053 #x0041 #x0050</id>
+      <change><xref type="person" data="TANGO"/></change>
+      <xref type="person" data="TANGO"/>
+    </record>
+    <record date="2015-08-06">
+      <id>FIR, #x0046 #x0049 #x0052</id>
+      <change><xref type="person" data="FAITID"/></change>
+      <xref type="person" data="FAITID"/>
+    </record>
+    <record date="2015-08-06">
+      <id>fir, #x0066 #x0069 #x0072</id>
+      <change><xref type="person" data="FAITID"/></change>
+      <xref type="person" data="FAITID"/>
+    </record>
+    <record date="2015-08-12">
+      <id>VLAANDER, #x0056 #x004C #x0041 #x0041 #x004E #x0044 #x0045 #x0052</id>
+      <change><xref type="person" data="DNSBE"/></change>
+      <xref type="person" data="DNSBE"/>
+    </record>
+    <record date="2015-08-12" updated="2015-09-24">
+      <id>BRUSSELS, #x0042 #x0052 #x0055 #x0053 #x0053 #x0045 #x004C #x0053</id>
+      <change><xref type="person" data="DNSBE"/></change>
+      <xref type="person" data="DNSBE"/>
+    </record>
+    <record date="2015-08-14">
+      <id>ALFZ, #x0041 #x004C #x0046 #x005A</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>ARHI, #x0041 #x0052 #x0048 #x0049</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>BMW, #x0042 #x004D #x0057</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>DESI, #x0044 #x0045 #x0053 #x0049</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>DVAG, #x0044 #x0056 #x0041 #x0047</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>FLSH, #x0046 #x004C #x0053 #x0048</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>FRES, #x0046 #x0052 #x0045 #x0053</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>MINI, #x004D #x0049 #x004E #x0049</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>POHL, #x0050 #x004F #x0048 #x004C</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>SAAR, #x0053 #x0041 #x0041 #x0052</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>SPGL, #x0053 #x0050 #x0047 #x004C</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>TUI, #x0054 #x0055 #x0049</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>VMGR, #x0056 #x004D #x0047 #x0052</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>VMGB, #x0056 #x004D #x0047 #x0042</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-14">
+      <id>ZRCH, #x005A #x0052 #x0043 #x0048</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-08-19" updated="2021-10-26">
+      <id>ARI, #x0041 #x0052 #x0049</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-08-19" updated="2021-10-26">
+      <id>AR, #x0041 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-08-27">
+      <id>SE, #x0053 #x0045</id>
+      <change><xref type="person" data="IIS"/></change>
+      <xref type="person" data="IIS"/>
+    </record>
+    <record date="2015-08-27">
+      <id>NU, #x004E #x0055</id>
+      <change><xref type="person" data="IIS"/></change>
+      <xref type="person" data="IIS"/>
+    </record>
+    <record date="2015-08-28">
+      <id>UR, #x0055 #x0052</id>
+      <change><xref type="person" data="Uniregistry_Support"/></change>
+      <xref type="person" data="Uniregistry_Support"/>
+    </record>
+    <record date="2015-09-01">
+      <id>ALSTOM, #x0041 #x004C #x0053 #x0054 #x004F #x004D</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2015-09-01">
+      <id>DONUTS, #x0044 #x004F #x004E #x0055 #x0054 #x0053</id>
+      <change><xref type="person" data="Donuts_IANA"/></change>
+      <xref type="person" data="Donuts_IANA"/>
+    </record>
+    <record date="2015-09-01">
+      <id>IIS, #x0049 #x0049 #x0053</id>
+      <change><xref type="person" data="IIS"/></change>
+      <xref type="person" data="IIS"/>
+    </record>
+    <record date="2015-09-01">
+      <id>AGRS, #x0041 #x0047 #x0052 #x0053</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-01">
+      <id>LRMS, #x004C #x0052 #x004D #x0053</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-01">
+      <id>LROR, #x004C #x0052 #x004F #x0052</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-01">
+      <id>LRCC, #x004C #x0052 #x0043 #x0043</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-01">
+      <id>ASIA, #x0041 #x0053 #x0049 #x0041</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-01">
+      <id>MOBI, #x004D #x004F #x0042 #x0049</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-01">
+      <id>PRO, #x0050 #x0052 #x004F</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-01">
+      <id>AFIN, #x0041 #x0046 #x0049 #x004E</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-01">
+      <id>AERO, #x0041 #x0045 #x0052 #x004F</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-03">
+      <id>RSIDE, #x0052 #x0053 #x0049 #x0044 #x0045</id>
+      <change><xref type="person" data="RIGHTSIDE"/></change>
+      <xref type="person" data="RIGHTSIDE"/>
+    </record>
+    <record date="2015-09-09">
+      <id>ACRS, #x0041 #x0043 #x0052 #x0053</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-14">
+      <id>BOSTIK, #x0042 #x004F #x0053 #x0054 #x0049 #x004B</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>TOTAL, #x0054 #x004F #x0054 #x0041 #x004C</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>CPLUS, #x0043 #x0050 #x004C #x0055 #x0053</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>AQUARL, #x0041 #x0051 #x0055 #x0041 #x0052 #x004C</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>PARIS, #x0050 #x0041 #x0052 #x0049 #x0053</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>FROGANS, #x0046 #x0052 #x004F #x0047 #x0041 #x004E #x0053</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>ALSACE, #x0041 #x004C #x0053 #x0041 #x0043 #x0045</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>CORSICA, #x0043 #x004F #x0052 #x0053 #x0049 #x0043 #x0041</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>BZH, #x0042 #x005A #x0048</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>SNCF, #x0053 #x004E #x0043 #x0046</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>LECLERC, #x004C #x0045 #x0043 #x004C #x0045 #x0052 #x0043</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>MUTUELLE, #x004D #x0055 #x0054 #x0055 #x0045 #x004C #x004C #x0045</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>OVH, #x004F #x0056 #x0048</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>MMA, #x004D #x004D #x0041</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-14">
+      <id>LANCASTR, #x004C #x0041 #x004E #x0043 #x0041 #x0053 #x0054 #x0052</id>
+      <change/>
+      <xref type="person" data="AFNIC"/>
+    </record>
+    <record date="2015-09-16">
+      <id>ACRP, #x0041 #x0043 #x0052 #x0050</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2015-09-21">
+      <id>zdns, #x007A #x0064 #x006E #x0073</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>wang, #x0077 #x0061 #x006E #x0067</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>top, #x0074 #x006F #x0070</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>show, #x0073 #x0068 #x006F #x0077</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>citic, #x0063 #x0069 #x0074 #x0069 #x0063</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>shop, #x0073 #x0068 #x006F #x0070</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>ren, #x0072 #x0065 #x006E</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>sohu, #x0073 #x006F #x0068 #x0075</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>bagua, #x0062 #x0061 #x0067 #x0075 #x0061</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>wangzhi, #x0077 #x0061 #x006E #x0067 #x007A #x0068 #x0069</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>wangzhan, #x0077 #x0061 #x006E #x0067 #x007A #x0068 #x0061 #x006E</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>zhongxin, #x007A #x0068 #x006F #x006E #x0067 #x0078 #x0069 #x006E</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>yule, #x0079 #x0075 #x006C #x0065</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>wangdian, #x0077 #x0061 #x006E #x0067 #x0064 #x0069 #x0061 #x006E</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>sb, #x0073 #x0062</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>zhaopin, #x007A #x0068 #x0061 #x006F #x0070 #x0069 #x006E</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>woaini, #x0077 #x006F #x0061 #x0069 #x006E #x0069</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>shishang, #x0073 #x0068 #x0069 #x0073 #x0068 #x0061 #x006E #x0067</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>canting, #x0063 #x0061 #x006E #x0074 #x0069 #x006E #x0067</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>cishan, #x0063 #x0069 #x0073 #x0068 #x0061 #x006E</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>sc, #x0073 #x0063</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>xinwen, #x0078 #x0069 #x006E #x0077 #x0065 #x006E</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-21">
+      <id>jituan, #x006A #x0069 #x0074 #x0075 #x0061 #x006E</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2015-09-23">
+      <id>WALES, #x0057 #x0041 #x004C #x0045 #x0053</id>
+      <change><xref type="person" data="NIC_WALES"/></change>
+      <xref type="person" data="NIC_WALES"/>
+    </record>
+    <record date="2015-09-24">
+      <id>GENT, #x0047 #x0045 #x004E #x0054</id>
+      <change><xref type="person" data="NCC_Group"/></change>
+      <xref type="person" data="NCC_Group"/>
+    </record>
+    <record date="2015-09-25">
+      <id>FRL, #x0046 #x0052 #x004C</id>
+      <change><xref type="person" data="NCC_Group"/></change>
+      <xref type="person" data="NCC_Group"/>
+    </record>
+    <record date="2015-09-30">
+      <id>SX, #x0053 #x0058</id>
+      <change><xref type="person" data="NCC_Group"/></change>
+      <xref type="person" data="NCC_Group"/>
+    </record>
+    <record date="2015-09-30">
+      <id>CYMRU, #x0043 #x0059 #x004D #x0052 #x0055</id>
+      <change><xref type="person" data="NIC_WALES"/></change>
+      <xref type="person" data="NIC_WALES"/>
+    </record>
+    <record date="2015-10-02">
+      <id>BBC, #x0042 #x0042 #x0043</id>
+      <change><xref type="person" data="NIC_BBC"/></change>
+      <xref type="person" data="NIC_BBC"/>
+    </record>
+    <record date="2015-10-05">
+      <id>ÅÄÖ, #x00C5 #x00C4 #x00D6</id>
+      <change><xref type="person" data="IIS"/></change>
+      <xref type="person" data="IIS"/>
+    </record>
+    <record date="2015-10-09">
+      <id>BENTLEY, #x0042 #x0045 #x004E #x0054 #x004C #x0045 #x0059</id>
+      <change><xref type="person" data="NIC_BENTLEY"/></change>
+      <xref type="person" data="NIC_BENTLEY"/>
+    </record>
+    <record date="2015-10-09">
+      <id>COMCAST, #x0043 #x004F #x004D #x0043 #x0041 #x0053 #x0054</id>
+      <change><xref type="person" data="NIC_COMCAST"/></change>
+      <xref type="person" data="NIC_COMCAST"/>
+    </record>
+    <record date="2015-10-09">
+      <id>TELECITY, #x0054 #x0045 #x004C #x0045 #x0043 #x0049 #x0054 #x0059</id>
+      <change><xref type="person" data="NIC_TELECITY"/></change>
+      <xref type="person" data="NIC_TELECITY"/>
+    </record>
+    <record date="2015-10-12">
+      <id>XFINITY, #x0058 #x0046 #x0049 #x004E #x0049 #x0054 #x0059</id>
+      <change><xref type="person" data="NIC_COMCAST"/></change>
+      <xref type="person" data="NIC_COMCAST"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>AAA, #x0041 #x0041 #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>COUNTANT, #x0043 #x004F #x0055 #x004E #x0054 #x0041 #x004E #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>AIG, #x0041 #x0049 #x0047</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>AMICA, #x0041 #x004D #x0049 #x0043 #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>AUDIBLE, #x0041 #x0055 #x0044 #x0049 #x0042 #x004C #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>AXA, #x0041 #x0058 #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>BEST, #x0042 #x0045 #x0053 #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>BIBLE, #x0042 #x0049 #x0042 #x004C #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>BID, #x0042 #x0049 #x0044</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>BOOK, #x0042 #x004F #x004F #x004B</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>BUZZ, #x0042 #x0055 #x005A #x005A</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>CARAVAN, #x0043 #x0041 #x0052 #x0041 #x0056 #x0041 #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>CARTIER, #x0043 #x0041 #x0052 #x0054 #x0049 #x0045 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>CBN, #x0043 #x0042 #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>CEO, #x0043 #x0045 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>CHASE, #x0043 #x0048 #x0041 #x0053 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>CHLOE, #x0043 #x0048 #x004C #x004F #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>CISCO, #x0043 #x0049 #x0053 #x0043 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>CLUB, #x0043 #x004C #x0055 #x0042</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>CRICKET, #x0043 #x0052 #x0049 #x0043 #x004B #x0045 #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>DATE, #x0044 #x0041 #x0054 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>DEAL, #x0044 #x0045 #x0041 #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>DEALER, #x0044 #x0045 #x0041 #x004C #x0045 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>DELL, #x0044 #x0045 #x004C #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>DOWNLOAD, #x0044 #x004F #x0057 #x004E #x004C #x004F #x0041 #x0044</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>DUPONT, #x0044 #x0055 #x0050 #x004F #x004E #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>EARTH, #x0045 #x0041 #x0052 #x0054 #x0048</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>EVERBANK, #x0045 #x0056 #x0045 #x0052 #x0042 #x0041 #x004E #x004B</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>FAITH, #x0046 #x0041 #x0049 #x0054 #x0048</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>FIRE, #x0046 #x0049 #x0052 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>FORD, #x0046 #x004F #x0052 #x0044</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>FOX, #x0046 #x004F #x0058</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>GRAINGER, #x0047 #x0052 #x0041 #x0049 #x004E #x0047 #x0045 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>HOT, #x0048 #x004F #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>HOTELES, #x0048 #x004F #x0054 #x0045 #x004C #x0045 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>HSBC, #x0048 #x0053 #x0042 #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>IEEE, #x0049 #x0045 #x0045 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>IMDB, #x0049 #x004D #x0044 #x0042</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>IPIRANGA, #x0049 #x0050 #x0049 #x0052 #x0041 #x004E #x0047 #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>ITAU, #x0049 #x0054 #x0041 #x0055</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>IWC, #x0049 #x0057 #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>JETZT, #x004A #x0045 #x0054 #x005A #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>JLC, #x004A #x004C #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>JPMORGAN, #x004A #x0050 #x004D #x004F #x0052 #x0047 #x0041 #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>KINDER, #x004B #x0049 #x004E #x0044 #x0045 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>KINDLE, #x004B #x0049 #x004E #x0044 #x004C #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>KRED, #x004B #x0052 #x0045 #x0044</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>LANXESS, #x004C #x0041 #x004E #x0058 #x0045 #x0053 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>LINCOLN, #x004C #x0049 #x004E #x0043 #x004F #x004C #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>LOAN, #x004C #x004F #x0041 #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>MOBILY, #x004D #x004F #x0042 #x0049 #x004C #x0059</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>MOE, #x004D #x004F #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>MOI, #x004D #x004F #x0049</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>ONTBLANC, #x004F #x004E #x0054 #x0042 #x004C #x0041 #x004E #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>NEUSTAR, #x004E #x0045 #x0055 #x0053 #x0054 #x0041 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>RNMUTUAL, #x0052 #x004E #x004D #x0055 #x0054 #x0055 #x0041 #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>NOW, #x004E #x004F #x0057</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>NYC, #x004E #x0059 #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>OFFICE, #x004F #x0046 #x0046 #x0049 #x0043 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>OSAKA, #x004F #x0053 #x0041 #x004B #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>PANERAI, #x0050 #x0041 #x004E #x0045 #x0052 #x0041 #x0049</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>PARTY, #x0050 #x0041 #x0052 #x0054 #x0059</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>PHARMACY, #x0050 #x0048 #x0041 #x0052 #x004D #x0041 #x0043 #x0059</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>PIAGET, #x0050 #x0049 #x0041 #x0047 #x0045 #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>PRAXI, #x0050 #x0052 #x0041 #x0058 #x0049</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>PRIME, #x0050 #x0052 #x0049 #x004D #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>QPON, #x0051 #x0050 #x004F #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>RACING, #x0052 #x0041 #x0043 #x0049 #x004E #x0047</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>REVIEW, #x0052 #x0045 #x0056 #x0049 #x0045 #x0057</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>SCIENCE, #x0053 #x0043 #x0049 #x0045 #x004E #x0043 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>SILK, #x0053 #x0049 #x004C #x004B</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>SKYPE, #x0053 #x004B #x0059 #x0050 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>TAIPEI, #x0054 #x0041 #x0049 #x0050 #x0045 #x0049</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>TARGET, #x0054 #x0041 #x0052 #x0047 #x0045 #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>TRADE, #x0054 #x0052 #x0041 #x0044 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>UNO, #x0055 #x004E #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>WATCHES, #x0057 #x0041 #x0054 #x0043 #x0048 #x0045 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>WEBCAM, #x0057 #x0045 #x0042 #x0043 #x0041 #x004D</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>WHOSWHO, #x0057 #x0048 #x004F #x0053 #x0057 #x0048 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>LIAMHILL, #x004C #x0049 #x0041 #x004D #x0048 #x0049 #x004C #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>WIN, #x0057 #x0049 #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>KPU716F, #x004B #x0050 #x0055 #x0037 #x0031 #x0036 #x0046</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>BB9FBPOB, #x0042 #x0042 #x0039 #x0046 #x0042 #x0050 #x004F #x0042</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>NYQY26A, #x004E #x0059 #x0051 #x0059 #x0032 #x0036 #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>PBT977C, #x0050 #x0042 #x0054 #x0039 #x0037 #x0037 #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>RHQV96G, #x0052 #x0048 #x0051 #x0056 #x0039 #x0036 #x0047</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>YAMAXUN, #x0059 #x0041 #x004D #x0041 #x0058 #x0055 #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>YANDEX, #x0059 #x0041 #x004E #x0044 #x0045 #x0058</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>ZAPPOS, #x005A #x0041 #x0050 #x0050 #x004F #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-10-20" updated="2021-10-26">
+      <id>ZIPPO, #x005A #x0049 #x0050 #x0050 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-11-23">
+      <id>bti, #x0062 #x0074 #x0069</id>
+      <change><xref type="person" data="Teleinfo"/></change>
+      <xref type="person" data="Teleinfo"/>
+    </record>
+    <record date="2015-11-23">
+      <id>BTI, #x0042 #x0054 #x0049</id>
+      <change><xref type="person" data="Teleinfo"/></change>
+      <xref type="person" data="Teleinfo"/>
+    </record>
+    <record date="2015-11-23">
+      <id>teleinfo, #x0074 #x0065 #x006C #x0065 #x0069 #x006E #x0066 #x006F</id>
+      <change><xref type="person" data="Teleinfo"/></change>
+      <xref type="person" data="Teleinfo"/>
+    </record>
+    <record date="2015-11-23">
+      <id>Teleinfo, #x0054 #x0065 #x006C #x0065 #x0069 #x006E #x0066 #x006F</id>
+      <change><xref type="person" data="Teleinfo"/></change>
+      <xref type="person" data="Teleinfo"/>
+    </record>
+    <record date="2015-11-23">
+      <id>TELEINFO, #x0054 #x0045 #x004C #x0045 #x0049 #x004E #x0046 #x004F</id>
+      <change><xref type="person" data="Teleinfo"/></change>
+      <xref type="person" data="Teleinfo"/>
+    </record>
+    <record date="2015-11-23">
+      <id>infoplus, #x0069 #x006E #x0066 #x006F #x0070 #x006C #x0075 #x0073</id>
+      <change><xref type="person" data="Teleinfo"/></change>
+      <xref type="person" data="Teleinfo"/>
+    </record>
+    <record date="2015-12-11">
+      <id>JPRS, #x004A #x0050 #x0052 #x0053</id>
+      <change><xref type="person" data="JPRS"/></change>
+      <xref type="person" data="JPRS"/>
+    </record>
+    <record date="2015-12-11">
+      <id>NTT, #x004E #x0054 #x0054</id>
+      <change><xref type="person" data="JPRS"/></change>
+      <xref type="person" data="JPRS"/>
+    </record>
+    <record date="2015-12-11">
+      <id>SAKURA, #x0053 #x0041 #x004B #x0055 #x0052 #x0041</id>
+      <change><xref type="person" data="JPRS"/></change>
+      <xref type="person" data="JPRS"/>
+    </record>
+    <record date="2015-12-21">
+      <id>CAM, #x0043 #x0041 #x004D</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>NSURANCE, #x004E #x0053 #x0055 #x0052 #x0041 #x004E #x0043 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>ASSAGENS, #x0041 #x0053 #x0053 #x0041 #x0047 #x0045 #x004E #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>EREDCHEF, #x0045 #x0052 #x0045 #x0044 #x0043 #x0048 #x0045 #x0046</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>NALYTICS, #x004E #x0041 #x004C #x0059 #x0054 #x0049 #x0043 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>YAHOO, #x0059 #x0041 #x0048 #x004F #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>WANGGOU, #x0057 #x0041 #x004E #x0047 #x0047 #x004F #x0055</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>NETFLIX, #x004E #x0045 #x0054 #x0046 #x004C #x0049 #x0058</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>TUNES, #x0054 #x0055 #x004E #x0045 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>9A5DRE4C, #x0039 #x0041 #x0035 #x0044 #x0052 #x0045 #x0034 #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>TATEFARM, #x0054 #x0041 #x0054 #x0045 #x0046 #x0041 #x0052 #x004D</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>RCHANNEL, #x0052 #x0043 #x0048 #x0041 #x004E #x004E #x0045 #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>BABY, #x0042 #x0041 #x0042 #x0059</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2015-12-21" updated="2021-10-26">
+      <id>TUBE, #x0054 #x0055 #x0042 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-04">
+      <id>LOCUS, #x004C #x004F #x0043 #x0055 #x0053</id>
+      <change><xref type="person" data="NIC_LOCUS"/></change>
+      <xref type="person" data="NIC_LOCUS"/>
+    </record>
+    <record date="2016-01-07">
+      <id>TRA, #x0054 #x0052 #x0041</id>
+      <change><xref type="person" data="TRA_UAE"/></change>
+      <xref type="person" data="TRA_UAE"/>
+    </record>
+    <record date="2016-01-07">
+      <id>AE, #x0041 #x0045</id>
+      <change><xref type="person" data="aeDA"/></change>
+      <xref type="person" data="aeDA"/>
+    </record>
+    <record date="2016-01-12" updated="2021-10-26">
+      <id>DISCOVER, #x0044 #x0049 #x0053 #x0043 #x004f #x0056 #x0045 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-12" updated="2021-10-26">
+      <id>CHINTAI, #x0043 #x0048 #x0049 #x004E #x0054 #x0041 #x0049</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>ABLE, #x0041 #x0042 #x004C #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>AETNA, #x0041 #x0045 #x0054 #x004E #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>NEXPRESS, #x004E #x0045 #x0058 #x0050 #x0052 #x0045 #x0053 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>AMEX, #x0041 #x004D #x0045 #x0058</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>ARAMCO, #x0041 #x0052 #x0041 #x004D #x0043 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>ATHLETA, #x0041 #x0054 #x0048 #x004C #x0045 #x0054 #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>AUTHOR, #x0041 #x0055 #x0054 #x0048 #x004F #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>AWS, #x0041 #x0057 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>BANAMEX, #x0042 #x0041 #x004E #x0041 #x004D #x0045 #x0058</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>REPUBLIC, #x0052 #x0045 #x0050 #x0055 #x0042 #x004C #x0049 #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>BASEBALL, #x0042 #x0041 #x0053 #x0045 #x0042 #x0041 #x004C #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>BEATS, #x0042 #x0045 #x0041 #x0054 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>BOOKING, #x0042 #x004F #x004F #x004B #x0049 #x004E #x0047</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>BOT, #x0042 #x004F #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>CALL, #x0043 #x0041 #x004C #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>VINKLEIN, #x0056 #x0049 #x004E #x004B #x004C #x0045 #x0049 #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>CBRE, #x0043 #x0042 #x0052 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>CIRCLE, #x0043 #x0049 #x0052 #x0043 #x004C #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>CITADEL, #x0043 #x0049 #x0054 #x0041 #x0044 #x0045 #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>CITI, #x0043 #x0049 #x0054 #x0049</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>DUNS, #x0044 #x0055 #x004E #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>FARMERS, #x0046 #x0041 #x0052 #x004D #x0045 #x0052 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>FAST, #x0046 #x0041 #x0053 #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>FERRERO, #x0046 #x0045 #x0052 #x0052 #x0045 #x0052 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>FLICKR, #x0046 #x004C #x0049 #x0043 #x004B #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>FLIR, #x0046 #x004C #x0049 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>FREE, #x0046 #x0052 #x0045 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>FRONTIER, #x0046 #x0052 #x004F #x004E #x0054 #x0049 #x0045 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>FTR, #x0046 #x0054 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>GAP, #x0047 #x0041 #x0050</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>GOT, #x0047 #x004F #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>GUCCI, #x0047 #x0055 #x0043 #x0043 #x0049</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>HBO, #x0048 #x0042 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>HEALTH, #x0048 #x0045 #x0041 #x004C #x0054 #x0048</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>OMEGOODS, #x004F #x004D #x0045 #x0047 #x004F #x004F #x0044 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>OMESENSE, #x004F #x004D #x0045 #x0053 #x0045 #x004E #x0053 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>ONEYWELL, #x004F #x004E #x0045 #x0059 #x0057 #x0045 #x004C #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>HTC, #x0048 #x0054 #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>HYATT, #x0048 #x0059 #x0041 #x0054 #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>INTUIT, #x0049 #x004E #x0054 #x0055 #x0049 #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>JMP, #x004A #x004D #x0050</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>JNJ, #x004A #x004E #x004A</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>JOT, #x004A #x004F #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>JOY, #x004A #x004F #x0059</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>GANCHASE, #x0047 #x0041 #x004E #x0043 #x0048 #x0041 #x0053 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>KPMG, #x004B #x0050 #x004D #x0047</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>LIKE, #x004C #x0049 #x004B #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>LILLY, #x004C #x0049 #x004C #x004C #x0059</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>LOFT, #x004C #x004F #x0046 #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>ARSHALLS, #x0041 #x0052 #x0053 #x0048 #x0041 #x004C #x004C #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>MATTEL, #x004D #x0041 #x0054 #x0054 #x0045 #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>MCD, #x004D #x0043 #x0044</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>CDONALDS, #x0043 #x0044 #x004F #x004E #x0041 #x004C #x0044 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>MINT, #x004D #x0049 #x004E #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>MLB, #x004D #x004C #x0042</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>NBA, #x004E #x0042 #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>NFL, #x004E #x0046 #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>NIKE, #x004E #x0049 #x004B #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>OLDNAVY, #x004F #x004C #x0044 #x004E #x0041 #x0056 #x0059</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>OPEN, #x004F #x0050 #x0045 #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>PAY, #x0050 #x0041 #x0059</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>PFIZER, #x0050 #x0046 #x0049 #x005A #x0045 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>PIN, #x0050 #x0049 #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>PING, #x0050 #x0049 #x004E #x0047</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>RAMERICA, #x0052 #x0041 #x004D #x0045 #x0052 #x0049 #x0043 #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>PRU, #x0050 #x0052 #x0055</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>UDENTIAL, #x0055 #x0044 #x0045 #x004E #x0054 #x0049 #x0041 #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>QVC, #x0051 #x0056 #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>READ, #x0052 #x0045 #x0041 #x0044</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>ROCHER, #x0052 #x004F #x0043 #x0048 #x0045 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>ROOM, #x0052 #x004F #x004F #x004D</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>SAFE, #x0053 #x0041 #x0046 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>SAFETY, #x0053 #x0041 #x0046 #x0045 #x0054 #x0059</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>SAS, #x0053 #x0041 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>SAVE, #x0053 #x0041 #x0056 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>SECURE, #x0053 #x0045 #x0043 #x0055 #x0052 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>SMILE, #x0053 #x004d #x0049 #x004C #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>SONG, #x0053 #x004F #x004E #x0047</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>SPOT, #x0053 #x0050 #x004F #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>STAPLES, #x0053 #x0054 #x0041 #x0050 #x004C #x0045 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>STREAM, #x0053 #x0054 #x0052 #x0045 #x0041 #x004D</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>IFTCOVER, #x0049 #x0046 #x0054 #x0043 #x004F #x0056 #x0045 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>TALK, #x0054 #x0041 #x004C #x004B</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>TAOBAO, #x0054 #x0041 #x004F #x0042 #x0041 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>TEVA, #x0054 #x0045 #x0056 #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>TJMAXX, #x0054 #x004A #x004D #x0041 #x0058 #x0058</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>TJX, #x0054 #x004A #x0058</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>TKMAXX, #x0054 #x004b #x004d #x0041 #x0058 #x0058</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>TMALL, #x0054 #x004D #x0041 #x004C #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>TUSHU, #x0054 #x0055 #x0053 #x0048 #x0055</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>UNICOM, #x0055 #x004E #x0049 #x0043 #x004F #x004D</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>VIVO, #x0056 #x0049 #x0056 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>VUELOS, #x0056 #x0055 #x0045 #x004C #x004F #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>WEATHER, #x0057 #x0045 #x0041 #x0054 #x0048 #x0045 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>WINNERS, #x0057 #x0049 #x004E #x004E #x0045 #x0052 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>WOW, #x0057 #x004F #x0057</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>YOU, #x0059 #x004F #x0055</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>ZERO, #x005A #x0045 #x0052 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>8Y0A063A, #x0038 #x0059 #x0030 #x0041 #x0030 #x0036 #x0033 #x0041</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>G2XX48C, #x0047 #x0032 #x0058 #x0058 #x0034 #x0038 #x0043</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>BA3A3EJT, #x0042 #x0041 #x0033 #x0041 #x0033 #x0045 #x004A #x0054</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>GCKR3F0F, #x0047 #x0043 #x004B #x0052 #x0033 #x0046 #x0030 #x0046</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>CCK2B3B, #x0043 #x0043 #x004b #x0032 #x0042 #x0033 #x0042</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>1CK2E1B, #x0031 #x0043 #x004B #x0032 #x0045 #x0031 #x0042</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>CKVDTC9D, #x0043 #x004B #x0056 #x0044 #x0054 #x0043 #x0039 #x0044</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>FCT429K, #x0046 #x0043 #x0054 #x0034 #x0032 #x0039 #x004B</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>ROVU88B, #x0052 #x004f #x0056 #x0055 #x0038 #x0038 #x0042</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>GK3AT1E, #x0047 #x004b #x0033 #x0041 #x0054 #x0031 #x0045</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-19" updated="2021-10-26">
+      <id>JVR189M, #x004A #x0056 #x0052 #x0031 #x0038 #x0039 #x004D</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-01-27" updated="2021-10-26">
+      <id>FUN, #x0046 #x0055 #x004E</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-02-12" updated="2021-10-26">
+      <id>TDK, #x0054 #x0044 #x004B</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-02-19">
+      <id>MANGO, #x004D #x0041 #x004E #x0047 #x004F</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2016-02-19">
+      <id>GAL, #x0047 #x0041 #x004C</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2016-02-19">
+      <id>EUS, #x0045 #x0055 #x0053</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2016-02-19">
+      <id>SCOT, #x0053 #x0043 #x004F #x0054</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2016-02-19">
+      <id>80ASWG, #x0038 #x0030 #x0041 #x0053 #x0057 #x0047</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2016-02-19">
+      <id>80ASEHDB, #x0038 #x0030 #x0041 #x0053 #x0045 #x0048 #x0044 #x0042</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2016-02-26" updated="2021-10-26">
+      <id>INTEL, #x0049 #x004E #x0054 #x0045 #x004C</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-02-26">
+      <id>BLOG, #x0042 #x004C #x004F #x0047</id>
+      <change><xref type="person" data="NIC_BLOG"/></change>
+      <xref type="person" data="NIC_BLOG"/>
+    </record>
+    <record date="2016-03-11" updated="2021-10-26">
+      <id>NSR, #x004E #x0053 #x0052</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-05-04" updated="2021-10-26">
+      <id>HOTELS, #x0048 #x004F #x0054 #x0045 #x004C #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-05-04" updated="2021-10-26">
+      <id>MOTO, #x004D #x004F #x0054 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2016-05-19">
+      <id>BOSTON, #x0042 #x004F #x0053 #x0054 #x004F #x004E</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-20">
+      <id>DDS, #x0044 #x0044 #x0053</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-20">
+      <id>LUXE, #x004C #x0055 #x0058 #x0045</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-20">
+      <id>CASA, #x0043 #x0041 #x0053 #x0041</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-20">
+      <id>COOKING, #x0043 #x004F #x004F #x004B #x0049 #x004E #x0047</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-23">
+      <id>BUDAPEST, #x0042 #x0055 #x0044 #x0041 #x0050 #x0045 #x0053 #x0054</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-25">
+      <id>HORSE, #x0048 #x004F #x0052 #x0053 #x0045</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-25">
+      <id>BRADESCO, #x0042 #x0052 #x0041 #x0044 #x0045 #x0053 #x0043 #x004F</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-25">
+      <id>BROADWAY, #x0042 #x0052 #x004F #x0041 #x0044 #x0057 #x0041 #x0059</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-25">
+      <id>RODEO, #x0052 #x004F #x0044 #x0045 #x004F</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-25">
+      <id>BEER, #x0042 #x0045 #x0045 #x0052</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-25">
+      <id>FASHION, #x0046 #x0041 #x0053 #x0048 #x0049 #x004F #x004E</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-25">
+      <id>FIT, #x0046 #x0049 #x0054</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-27">
+      <id>WEDDING, #x0057 #x0045 #x0044 #x0044 #x0049 #x004E #x0047</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-27">
+      <id>YOGA, #x0059 #x004F #x0047 #x0041</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-27">
+      <id>GOP, #x0047 #x004F #x0050</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-27">
+      <id>FISHING, #x0046 #x0049 #x0053 #x0048 #x0049 #x004E #x0047</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-27">
+      <id>SURF, #x0053 #x0055 #x0052 #x0046</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-05-27">
+      <id>VODKA, #x0056 #x004F #x0044 #x004B #x0041</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-06-06">
+      <id>GARDEN, #x0047 #x0041 #x0052 #x0044 #x0045 #x004E</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-06-06">
+      <id>VIP, #x0056 #x0049 #x0050</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-06-06">
+      <id>ABOGADO, #x0041 #x0042 #x004F #x0047 #x0041 #x0044 #x004F</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-06-09">
+      <id>LONDON, #x004C #x004F #x004E #x0044 #x004F #x004E</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-06-09">
+      <id>BAYERN, #x0042 #x0041 #x0059 #x0045 #x0052 #x004E</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-06-09">
+      <id>MIAMI, #x004D #x0049 #x0041 #x004D #x0049</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-06-09">
+      <id>LAW, #x004C #x0041 #x0057</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-06-09">
+      <id>WORK, #x0057 #x004F #x0052 #x004B</id>
+      <change><xref type="person" data="NIC_MMX"/></change>
+      <xref type="person" data="NIC_MMX"/>
+    </record>
+    <record date="2016-08-01">
+      <id>KIWI, #x004B #x0049 #x0057 #x0049</id>
+      <change><xref type="person" data="Canadian_Internet_Re"/></change>
+      <xref type="person" data="Canadian_Internet_Re"/>
+    </record>
+    <record date="2016-08-18">
+      <id>RADIO, #x0052 #x0041 #x0044 #x0049 #x004F</id>
+      <change><xref type="person" data="CORE"/></change>
+      <xref type="person" data="CORE"/>
+    </record>
+    <record date="2016-10-21">
+      <id>GDN, #x0047 #x0044 #x004E</id>
+      <change><xref type="person" data="GDN_Registry"/></change>
+      <xref type="person" data="Lee_Yen_Chew"/>
+    </record>
+    <record date="2016-12-07">
+      <id>CNNIC, #x0043 #x004E #x004E #x0049 #x0043</id>
+      <change><xref type="person" data="CNNIC"/></change>
+      <xref type="person" data="CNNIC"/>
+    </record>
+    <record date="2017-04-10">
+      <id>EXAMPLE, #x0045 #x0058 #x0041 #x004D #x0050 #x004C #x0045</id>
+      <change><xref type="person" data="Kim_Davies"/></change>
+      <xref type="person" data="Kim_Davies"/>
+    </record>
+    <record date="2017-04-17">
+      <id>SMART, #x0053 #x004D #x0041 #x0052 #x0054</id>
+      <change><xref type="person" data="Smart_Communications_Inc"/></change>
+      <xref type="person" data="Smart_Communications_Inc"/>
+    </record>
+    <record date="2017-05-16">
+      <id>KNIC, #x004B #x004E #x0049 #x0043</id>
+      <change><xref type="person" data="Whois"/></change>
+      <xref type="person" data="Junmyoung_Oh"/>
+    </record>
+    <record date="2017-06-09">
+      <id>SFR, #x0053 #x0046 #x0052</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2017-06-13">
+      <id>ADAC, #x0041 #x0044 #x0041 #x0043</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2017-06-13">
+      <id>DHL, #x0044 #x0048 #x004C</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2017-06-13">
+      <id>EPOS, #x0045 #x0050 #x004F #x0053</id>
+      <change><xref type="person" data="KSregistry_GmbH"/></change>
+      <xref type="person" data="KSregistry_GmbH"/>
+    </record>
+    <record date="2017-11-14">
+      <id>baidu, #x0062 #x0061 #x0069 #x0064 #x0075</id>
+      <change><xref type="person" data="ZDNS"/></change>
+      <xref type="person" data="fengshuo"/>
+    </record>
+    <record date="2018-01-23">
+      <id>twnic, #x0074 #x0077 #x006E #x0069 #x0063</id>
+      <change><xref type="person" data="TWNIC"/></change>
+      <xref type="person" data="TWNIC"/>
+    </record>
+    <record date="2018-01-25" updated="2021-10-26">
+      <id>US, #x0055 #x0053</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2018-01-25" updated="2021-10-26">
+      <id>BIZ, #x0042 #x0049 #x005A</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2018-01-25" updated="2021-10-26">
+      <id>CO, #x0043 #x004F</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2018-02-01">
+      <id>AGIT, #x0041 #x0047 #x0049 #x0054</id>
+      <change><xref type="person" data="Tolga_Kaprol"/></change>
+      <xref type="person" data="Tolga_Kaprol"/>
+    </record>
+    <record date="2018-07-20">
+      <id>AU, #x0041 #x0055</id>
+      <change><xref type="person" data="Afilias_TLD_Tech"/></change>
+      <xref type="person" data="Afilias_TLD_Tech"/>
+    </record>
+    <record date="2018-11-14">
+      <id>MLS, #x004D #x004C #x0053</id>
+      <change><xref type="person" data="Canadian_Internet_Re"/></change>
+      <xref type="person" data="Canadian_Internet_Re"/>
+    </record>
+    <record date="2019-01-09" updated="2021-10-26">
+      <id>BUY, #x0042 #x0055 #x0059</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2019-03-29">
+      <id>NATURA, #x004E #x0041 #x0054 #x0055 #x0052 #x0041</id>
+      <change><xref type="person" data="NIC_BR"/></change>
+      <xref type="person" data="Frederico_A_C_Neves"/>
+    </record>
+    <record date="2019-09-16">
+      <id>REGI, #x0052 #x0045 #x0047 #x0049</id>
+      <change><xref type="person" data="REGISTRIO"/></change>
+      <xref type="person" data="REGISTRIO"/>
+    </record>
+    <record date="2020-02-19">
+      <id>LEMRA, #x004C #x0045 #x004D #x0052 #x0041</id>
+      <change><xref type="person" data="LEMARIT_GmbH"/></change>
+      <xref type="person" data="LEMARIT_GmbH"/>
+    </record>
+    <record date="2020-03-04">
+      <id>VIRGIN, #x0056 #x0049 #x0052 #x0047 #x0049 #x004E</id>
+      <change><xref type="person" data="NIC_VIRGIN"/></change>
+      <xref type="person" data="NIC_VIRGIN"/>
+    </record>
+    <record date="2020-03-30">
+      <id>AMAZON, #x0041 #x004D #x0041 #x005A #x004F #x004E</id>
+      <change><xref type="person" data="NIC_AMAZON"/></change>
+      <xref type="person" data="NIC_AMAZON"/>
+    </record>
+    <record date="2020-03-30">
+      <id>AMAZONJP, #x0041 #x004D #x0041 #x005A #x004F #x004E #x004A #x0050</id>
+      <change><xref type="person" data="NIC_AMAZONJP"/></change>
+      <xref type="person" data="NIC_AMAZONJP"/>
+    </record>
+    <record date="2020-03-30">
+      <id>AMAZONCN, #x0041 #x004D #x0041 #x005A #x004F #x004E #x0043 #x004E</id>
+      <change><xref type="person" data="NIC_AMAZONCN"/></change>
+      <xref type="person" data="NIC_AMAZONCN"/>
+    </record>
+    <record date="2020-06-25">
+      <id>MTN, #x004D #x0054 #x004E</id>
+      <change><xref type="person" data="NIC_MTN"/></change>
+      <xref type="person" data="NIC_MTN"/>
+    </record>
+    <record date="2020-10-14">
+      <id>BBVA, #x0042 #x0042 #x0056 #x0041</id>
+      <change><xref type="person" data="NIC_BBVA"/></change>
+      <xref type="person" data="NIC_BBVA"/>
+    </record>
+    <record date="2021-01-29">
+      <id>ABBVIE, #x0041 #x0042 #x0042 #x0056 #x0049 #x0045</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2021-01-29">
+      <id>CAREER, #x0043 #x0041 #x0052 #x0045 #x0045 #x0052</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2021-01-29">
+      <id>JOBS, #x004A #x004F #x0042 #x0053</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2021-01-29">
+      <id>MED, #x004D #x0045 #x0044</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2021-01-29">
+      <id>REALTOR, #x0052 #x0045 #x0041 #x004C #x0054 #x004F #x0052</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2021-01-29">
+      <id>UK, #x0055 #x004B</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2021-02-24">
+      <id>REALEST, #x0052 #x0045 #x0041 #x004C #x0045 #x0053 #x0054</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2021-04-23">
+      <id>ECO, #x0045 #x0043 #x004F</id>
+      <change><xref type="person" data="Canadian_Internet_Re"/></change>
+      <xref type="person" data="Canadian_Internet_Re"/>
+    </record>
+    <record date="2021-08-30">
+      <id>INZ, #x0049 #x004E #x005A</id>
+      <change><xref type="person" data="InternetNZ"/></change>
+      <xref type="person" data="InternetNZ"/>
+    </record>
+    <record date="2021-10-05">
+      <id>GDREG, #x0047 #x0044 #x0052 #x0045 #x0047</id>
+      <change><xref type="person" data="GoDaddy_Registry"/></change>
+      <xref type="person" data="GoDaddy_Registry"/>
+    </record>
+    <record date="2021-10-20">
+      <id>YOCTO, #x0059 #x004F #x0043 #x0054 #x004F</id>
+      <change><xref type="person" data="Yocto"/></change>
+      <xref type="person" data="Yocto"/>
+    </record>
+    <record date="2022-04-18">
+      <id>SIDN, #x0053 #x0049 #x0044 #x004E</id>
+      <change><xref type="person" data="SIDN"/></change>
+      <xref type="person" data="SIDN"/>
+    </record>
+    <record date="2022-04-18">
+      <id>POLITIE, #x0050 #x004F #x004C #x0049 #x0054 #x0049 #x0045</id>
+      <change><xref type="person" data="SIDN"/></change>
+      <xref type="person" data="SIDN"/>
+    </record>
+    <record date="2022-06-13">
+      <id>PIONEER, #x0050 #x0049 #x004F #x004E #x0045 #x0045 #x0052</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2023-01-03">
+      <id>SKY, #x0053 #x004B #x0059</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2023-01-19">
+      <id>CROWN, #x0043 #x0052 #x004F #x0057 #x004E</id>
+      <change><xref type="person" data="Canadian_Internet_Re"/></change>
+      <xref type="person" data="Canadian_Internet_Re"/>
+    </record>
+    <record date="2023-02-06">
+      <id>AMS, #x0041 #x004D #x0053</id>
+      <change><xref type="person" data="SIDN"/></change>
+      <xref type="person" data="SIDN"/>
+    </record>
+    <record date="2023-06-23">
+      <id>AZURE, #x0041 #x005A #x0055 #x0052 #x0045</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2023-06-23">
+      <id>BING, #x0042 #x0049 #x004E #x0047</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2023-06-23">
+      <id>HOTMAIL, #x0048 #x004F #x0054 #x004D #x0041 #x0049 #x004C</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    <record date="2023-06-23">
+      <id>MSFT, #x004D #x0053 #x0046 #x0054</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record> 
+    <record date="2023-06-23">
+      <id>WINDOWS, #x0057 #x0049 #x004E #x0044 #x004F #x0057 #x0053</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record> 
+    <record date="2023-06-23">
+      <id>XBOX, #x0058 #x0042 #x004F #x0058</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record> 
+    <record date="2023-09-21" updated="2023-09-25">
+      <id>TEL, #x0054 #x0045 #x004C</id>
+      <change><xref type="person" data="TANGO"/></change>
+      <xref type="person" data="TANGO"/>
+    </record>
+    <record date="2023-12-19">
+      <id>FAIRWIND, #x0046 #x0041 #x0049 #x0052 #x0057 #x0049 #x004E #x0044</id>
+      <change><xref type="person" data="NOMINET"/></change>
+      <xref type="person" data="NOMINET"/>
+    </record>
+    
+  </registry>
+  
+  <people>
+    <person id="aeDA">
+      <name>ae Domain Administration</name>
+      <uri>mailto:support&amp;aeda.ae</uri>
+      <updated>2016-01-07</updated>
+    </person>
+    <person id="Afilias_TLD_Tech">
+      <name>Afilias TLD Tech</name>
+      <uri>mailto:tldtech&amp;afilias.info</uri>
+      <updated>2018-07-20</updated>
+    </person>
+    <person id="AFNIC">
+      <name>AFNIC</name>
+      <uri>mailto:tld-tech&amp;afnic.fr</uri>
+      <updated>2015-09-14</updated>
+    </person>
+    <person id="Canadian_Internet_Re">
+      <name>Canadian Internet Registration Authority</name>
+      <uri>mailto:info&amp;cira.ca</uri>
+      <updated>2023-01-20</updated>
+    </person>
+    <person id="CentralNic_Ltd">
+      <name>CentralNic Ltd</name>
+      <uri>mailto:gavin.brown&amp;centralnic.com</uri>
+    </person>
+    <person id="Communication_System">
+      <name>Communication Systems Ltd</name>
+      <uri>mailto:dk&amp;nic.net.ua</uri>
+    </person>
+    <person id="CNNIC">
+      <name>China Internet Network Information Center (CNNIC)</name>
+      <uri>mailto:tech-support&amp;cnnic.cn</uri>
+      <updated>2016-12-07</updated>
+    </person>
+    <person id="CORE">
+      <name>CORE Association</name>
+      <uri>mailto:support&amp;rs.corenic.net</uri>
+      <updated>2016-08-18</updated>
+    </person>
+    <person id="DNS_INT">
+      <name>Domain Name Services (Pty) Ltd</name>
+      <uri>mailto:info&amp;dns.net.za</uri>
+      <updated>2015-07-02</updated>
+    </person>
+    <person id="DNSBE">
+      <name>DNS Belgium vzw</name>
+      <uri>mailto:iana&amp;dnsbelgium.be</uri>
+      <updated>2015-08-12</updated>
+    </person>
+    <person id="Domicilium">
+      <name>Domicilium (IOM) Ltd</name>
+      <uri>mailto:padcock&amp;domicilium.com</uri>
+      <updated>2015-05-06</updated>
+    </person>
+    <person id="Donuts_IANA">
+      <name>Donuts IANA</name>
+      <uri>mailto:iana&amp;donuts.co</uri>
+      <updated>2015-09-01</updated>
+    </person>
+    <person id="enum_at_GmbH">
+      <name>enum.at GmbH</name>
+      <uri>mailto:office&amp;enum.at</uri>
+    </person>
+    <person id="FAITID">
+      <name>Foundation for Assistance for Internet Technologies and Infrastructure Development (FAITID)</name>
+      <uri>mailto:tech.contact&amp;faitid.org</uri>
+      <updated>2015-08-06</updated>
+    </person>
+    <person id="fengshuo">
+      <name>fengshuo</name>
+      <uri>mailto:fengshuo&amp;zdns.cn</uri>
+      <updated>2015-09-21</updated>
+    </person>
+    <person id="Frederico_A_C_Neves">
+      <name>Frederico A C Neves</name>
+      <uri>mailto:fneves&amp;registro.br</uri>
+      <updated>2015-05-06</updated>
+    </person>
+    <person id="GDN_Registry">
+      <name>GDN Registry</name>
+      <uri>mailto:lee&amp;nic.gdn</uri>
+      <updated>2016-10-21</updated>
+    </person>    
+    <person id="GMO_Registry_Inc.">
+      <name>GMO Registry Inc.</name>
+      <uri>mailto:op&amp;gmoregistry.com</uri>
+    </person>
+    <person id="GoDaddy_Registry">
+      <name>GoDaddy Registry</name>
+      <uri>mailto:iana&amp;registry.godaddy</uri>
+      <updated>2021-10-26</updated>
+    </person>
+    <person id="iana_contact_at_google.com">
+      <name>iana_contact_at_google.com</name>
+      <uri>mailto:iana-contact&amp;google.com</uri>
+      <updated>2015-07-08</updated>
+    </person>
+    <person id="IIS">
+      <name>IIS - Internetstiftelsen i Sverige</name>
+      <uri>mailto:jan.sall&amp;iis.se</uri>
+      <updated>2015-10-05</updated>
+    </person>
+    <person id="InternetNZ">
+      <name>Internet New Zealand Limited</name>
+      <uri>mailto:ianatech&amp;internetnz.net.nz</uri>
+      <updated>2021-08-30</updated>
+    </person>
+    <person id="JPRS">
+      <name>JPRS</name>
+      <uri>mailto:iana-contact&amp;jprs.jp</uri>
+      <updated>2015-12-11</updated>
+    </person>
+    <person id="Junmyoung_Oh">
+      <name>Junmyoung Oh</name>
+      <uri>mailto:info&amp;yesnic.com</uri>
+      <updated>2017-05-16</updated>
+    </person>
+    <person id="Kim_Davies">
+      <name>Kim Davies</name>
+      <uri>mailto:kim.davies&amp;iana.org</uri>
+      <updated>2017-04-10</updated>
+    </person>
+    <person id="KSregistry_GmbH">
+      <name>KSregistry GmbH</name>
+      <uri>mailto:icann&amp;ksregistry.com</uri>
+      <updated>2017-06-13</updated>
+    </person>
+    <person id="Lee_Yen_Chew">
+      <name>Lee Yen Chew</name>
+      <uri>mailto:lee&amp;nic.gdn</uri>
+      <updated>2016-10-21</updated>
+    </person>
+    <person id="LEMARIT_GmbH">
+      <name>LEMARIT GmbH</name>
+      <uri>mailto:lrs&amp;lemarit.com</uri>
+      <updated>2020-02-19</updated>
+    </person>
+    <person id="NCC_Group">
+      <name>NCC Group Domain Services</name>
+      <uri>mailto:registry&amp;openregistry.com</uri>
+      <updated>2015-09-30</updated>
+    </person>
+    <person id="NET_UA_Network_Coord">
+      <name>NET.UA Network Coordination Group</name>
+      <uri>mailto:hostmaster&amp;net.ua</uri>
+    </person>
+    <person id="Network_Information">
+      <name>Network Information Center México</name>
+      <uri>mailto:dtic&amp;nic.mx</uri>
+    </person>
+    <person id="NIC_AMAZON">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2020-03-30</updated>
+    </person>
+    <person id="NIC_AMAZONCN">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2020-03-30</updated>
+    </person>
+    <person id="NIC_AMAZONJP">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2020-03-30</updated>
+    </person>
+    <person id="NIC_BENTLEY">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2015-10-09</updated>
+    </person>
+    <person id="NIC_BBC">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2015-10-02</updated>
+    </person>
+    <person id="NIC_BBVA">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2020-10-14</updated>
+    </person>
+    <person id="NIC_BLOG">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2016-02-26</updated>
+    </person> 
+    <person id="NIC_BR">
+      <name>Nic.br</name>
+      <updated>2015-05-06</updated>
+    </person>
+    <person id="NIC_COMCAST">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2015-10-12</updated>
+    </person>
+    <person id="NIC_LOCUS">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2016-01-04</updated>
+    </person>
+    <person id="NIC_MMX">
+      <name>Minds and Machines</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2016-06-09</updated>
+    </person>
+    <person id="NIC_MTN">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2020-06-25</updated>
+    </person>
+    <person id="NIC_TELECITY">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2015-10-09</updated>
+    </person>
+    <person id="NIC_VIRGIN">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2020-03-04</updated>
+    </person>
+    <person id="NIC_WALES">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2015-09-30</updated>
+    </person>
+    <person id="NOMINET">
+      <name>Nominet UK</name>
+      <uri>mailto:icann-tech-response&amp;nominet.org.uk</uri>
+      <updated>2023-06-23</updated>
+    </person>
+    <person id="REGISTRIO">
+      <name>REGISTRIO</name>
+      <uri>mailto:hello&amp;registr.io</uri>
+      <updated>2019-09-16</updated>
+    </person>    
+    <person id="RIGHTSIDE">
+      <name>Rightside Registry</name>
+      <uri>mailto:registrycs&amp;rightside.co</uri>
+    </person>  
+    <person id="Sergey_Bulakh">
+      <name>Sergey Bulakh</name>
+      <uri>mailto:corpor&amp;so.ua</uri>
+    </person>
+    <person id="SIDN">
+      <name>SIDN</name>
+      <uri>mailto:iana.tech&amp;sidn.nl</uri>
+      <updated>2023-02-06</updated>
+    </person> 
+    <person id="Smallregistry">
+      <name>Smallregistry</name>
+      <uri>mailto:root&amp;smallregistry.net</uri>
+    </person>
+    <person id="Smart_Communications_Inc">
+      <name>Smart Communications, Inc.</name>
+      <uri>mailto:dotsmart&amp;smart.com.ph</uri>
+      <updated>2017-04-17</updated>
+    </person>
+    <person id="SWITCH">
+      <name>SWITCH - Teleinformatikdienste für Lehre und Forschung</name>
+      <uri>mailto:info&amp;switch.ch</uri>
+    </person>
+    <person id="TANGO">
+      <name>TANGO Registry Services</name>
+      <uri>mailto:support&amp;tango-rs.com</uri>
+      <updated>2023-09-25</updated>
+    </person>
+    <person id="Teleinfo">
+      <name>Beijing Tele-info Network Technology Co., Ltd.</name>
+      <uri>mailto:gtld&amp;teleinfo.cn</uri>
+      <uri>mailto:ceo&amp;teleinfo.cn</uri>
+      <updated>2015-11-23</updated>
+    </person>
+    <person id="TLDAT">
+      <name>TLDAT</name>
+      <uri>mailto:domain-admin&amp;univie.ac.at</uri>
+      <updated>2015-07-02</updated>
+    </person>
+    <person id="TLDBOX">
+      <name>TLD-BOX Registrydienstleistungen GmbH</name>
+      <uri>mailto:service&amp;tld-box.at</uri>
+      <updated>2015-06-15</updated>
+    </person>
+    <person id="Tolga_Kaprol">
+      <name>Tolga Kaprol</name>
+      <uri>mailto:kaprol&amp;agitsys.com</uri>
+      <updated>2018-02-01</updated>
+    </person>
+    <person id="TRA_UAE">
+      <name>Telecommunication Regulatory Authority of UAE</name>
+      <uri>mailto:gtldsupport&amp;aeda.ae</uri>
+      <updated>2016-01-07</updated>
+    </person>
+    <person id="TWNIC">
+      <name>TWNIC</name>
+      <uri>mailto:tech&amp;twnic.net.tw</uri>
+      <updated>2018-01-23</updated>
+    </person>
+    <person id="UA_CM_Registry">
+      <name>UA.CM Registry</name>
+      <uri>mailto:hostmaster&amp;ua.cm</uri>
+    </person>
+    <person id="UNINETT_Norid_AS">
+      <name>UNINETT Norid AS</name>
+      <uri>mailto:info&amp;norid.no</uri>
+    </person>
+    <person id="Uniregistry_Support">
+      <name>Uniregistry Support</name>
+      <uri>mailto:support&amp;uniregistry.link</uri>
+      <updated>2015-08-28</updated>
+    </person>
+    <person id="VeriSign">
+      <name>VeriSign Inc.</name>
+      <uri>mailto:epp-registry&amp;verisign.com</uri>
+      <updated>2015-09-01</updated>
+    </person>
+    <person id="Vladimir_Kiyan">
+      <name>Vladimir Kiyan</name>
+      <uri>mailto:hostmaster&amp;dp.ua</uri>
+    </person>
+    <person id="Whois">
+      <name>Whois Corp. and Whois Networks Co., Ltd.</name>
+      <uri>mailto:info&amp;yesnic.com</uri>
+      <updated>2017-05-16</updated>
+    </person>
+    <person id="Yocto">
+      <name>Yocto</name>
+      <uri>mailto:onoma&amp;yocto.nu</uri>
+      <updated>2021-10-20</updated>
+    </person>
+    <person id="ZDNS">
+      <name>ZDNS</name>
+      <uri>mailto:fengshuo&amp;zdns.cn</uri>
+      <updated>2017-11-14</updated>
+    </person>
+  </people>
+</registry>
