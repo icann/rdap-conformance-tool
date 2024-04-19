@@ -12,7 +12,26 @@ The tool is divided into two modules with their respective documentation:
 - [Command line module (tool)](./tool/README.md) the main entry point
 - [Validator module](./validator/README.md) the rdap validation library
 
-# Usage
+# Using with Docker
+
+This repository contains a Dockerfile which builds an image containing the tool.
+
+To build it, run this command:
+
+    docker buildx build -t [image_name] .
+
+Replace `[image_name]` with a unique memorable name such as `rdapct`. Once the
+image has been built, you can run the tool using
+
+    docker run rdapct ARGS
+
+When run via Docker, a minimal configuration file is used, and the results are
+printed to `STDOUT`.
+
+Datasets are added to the image at build time and are not refreshed, so the image
+should be rebuilt in order to ensure they are up-to-date.
+
+# Normal usage
 
 There is no installation needed. The compliled executable jar file and configuration file are available for download at [tool/bin/](./tool/bin/) that can be executed with java. Alternatively, the executable JAVA11 jar file can be created by building the tool (see below). e.g.:
 
