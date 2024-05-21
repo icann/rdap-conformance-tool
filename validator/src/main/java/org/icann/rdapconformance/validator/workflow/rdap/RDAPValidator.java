@@ -59,7 +59,7 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class RDAPValidator implements ValidatorWorkflow {
+public class RDAPValidator implements ValidatorWorkflow {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
 
@@ -81,7 +81,7 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
         new RDAPDatasetService(fileSystem));
   }
 
-  RDAPValidator(RDAPValidatorConfiguration config,
+  public RDAPValidator(RDAPValidatorConfiguration config,
       FileSystem fileSystem,
       RDAPQueryTypeProcessor queryTypeProcessor,
       RDAPQuery query,
