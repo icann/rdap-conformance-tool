@@ -5,9 +5,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Service locator for RDAP validation.
- */
 public class RDAPValidatorResults {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPValidatorResults.class);

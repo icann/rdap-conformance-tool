@@ -88,7 +88,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   }
 
   @Override
-  public boolean userRdapProfileFeb2019() {
+  public boolean useRdapProfileFeb2019() {
     return this.dependantRdapProfileGtld.useRdapProfileFeb2019;
   }
 
