@@ -1,8 +1,9 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 
 public abstract class BaseUnmarshallingTest<T> {
 

@@ -142,7 +142,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_NetworkSendFail_ReturnsErrorStatus19() {
-    doReturn(URI.create("http://unknown")).when(config).getUri();
+    doReturn(URI.create("http://test.example")).when(config).getUri();
 
     assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.NETWORK_SEND_FAIL);

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.Unmarshaller;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
