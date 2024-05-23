@@ -11,6 +11,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
       String domainName = queryType.getValue(this.config.getUri().toString());
       String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
-      RDAPValidatorResults testDomainResults = new RDAPValidatorResults();
+      RDAPValidatorResults testDomainResults = new RDAPValidatorResultsImpl();
       SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults,
           datasetService);
       if (!validator.validate(domainNameJson)) {

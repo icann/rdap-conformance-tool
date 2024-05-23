@@ -27,7 +27,7 @@ public class RDAPValidationResultFileTest {
 
   @BeforeMethod
   public void setUp() {
-    results = new RDAPValidatorResults();
+    results = new RDAPValidatorResultsImpl();
     fileSystem = mock(FileSystem.class);
     results.addGroups(Set.of("firstGroup"));
     configurationFile = mock(ConfigurationFile.class);

@@ -6,6 +6,7 @@ import java.util.List;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
+import org.icann.rdapconformance.validator.configuration.ConfigurationFileParserImpl;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -76,9 +77,9 @@ public class RDAPValidator implements ValidatorWorkflow {
       RDAPQueryTypeProcessor queryTypeProcessor,
       RDAPQuery query) {
     this(config, fileSystem, queryTypeProcessor, query,
-        new ConfigurationFileParser(),
-        new RDAPValidatorResults(),
-        new RDAPDatasetService(fileSystem));
+        new ConfigurationFileParserImpl(),
+        new RDAPValidatorResultsImpl(),
+        new RDAPDatasetServiceImpl(fileSystem));
   }
 
   public RDAPValidator(RDAPValidatorConfiguration config,
