@@ -6,7 +6,7 @@
 
     <groupId>org.icann</groupId>
     <artifactId>rdap-conformance</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -25,6 +25,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <org.aspectj-version>1.9.6</org.aspectj-version>
 
         <maven.compiler.target>11</maven.compiler.target>
