@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
@@ -14,7 +13,6 @@ import java.util.Set;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
-import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -27,7 +25,7 @@ public class RDAPValidationResultFileTest {
 
   @BeforeMethod
   public void setUp() {
-    results = new RDAPValidatorResults();
+    results = new RDAPValidatorResultsImpl();
     fileSystem = mock(FileSystem.class);
     results.addGroups(Set.of("firstGroup"));
     configurationFile = mock(ConfigurationFile.class);

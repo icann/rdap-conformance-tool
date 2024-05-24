@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.util.List;
 import org.testng.annotations.Test;
 
-public class ConfigurationFileParserTest {
+public class ConfigurationFileParserImplTest {
 
-  private final ConfigurationFileParser configParser = new ConfigurationFileParser();
+  private final ConfigurationFileParser configParser = new ConfigurationFileParserImpl();
 
   @Test
   public void testParse() throws IOException {

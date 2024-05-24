@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset;
 
+import jakarta.xml.bind.JAXBException;
 import org.icann.rdapconformance.validator.workflow.Deserializer;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.JsonDeserializer;
@@ -8,7 +9,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPDatas
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;

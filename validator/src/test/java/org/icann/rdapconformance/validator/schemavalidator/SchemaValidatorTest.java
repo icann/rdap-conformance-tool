@@ -14,6 +14,7 @@ import org.icann.rdapconformance.validator.util.FixturesGenerator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.json.JSONObject;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
@@ -56,7 +57,7 @@ public abstract class SchemaValidatorTest {
   public void setUp() throws IOException {
     datasets = new RDAPDatasetServiceMock();
     datasets.download(true);
-    results = new RDAPValidatorResults();
+    results = new RDAPValidatorResultsImpl();
     rdapContent = getResource(validJsonResourcePath);
     jsonObject = new JSONObject(rdapContent);
     schemaValidator = new SchemaValidator(schemaName, results, datasets);

@@ -1,12 +1,12 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
 import inet.ipaddr.IPAddressString;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElementWrapper;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.List;
 
 public abstract class IpAddressSpecialRegistry extends EnumDatasetModel<IpAddressSpecialRegistry.IpAddressSpecialRecord> {

@@ -6,6 +6,7 @@ import java.util.List;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
+import org.icann.rdapconformance.validator.configuration.ConfigurationFileParserImpl;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -59,7 +60,7 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class RDAPValidator implements ValidatorWorkflow {
+public class RDAPValidator implements ValidatorWorkflow {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
 
@@ -76,12 +77,12 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
       RDAPQueryTypeProcessor queryTypeProcessor,
       RDAPQuery query) {
     this(config, fileSystem, queryTypeProcessor, query,
-        new ConfigurationFileParser(),
-        new RDAPValidatorResults(),
-        new RDAPDatasetService(fileSystem));
+        new ConfigurationFileParserImpl(),
+        new RDAPValidatorResultsImpl(),
+        new RDAPDatasetServiceImpl(fileSystem));
   }
 
-  RDAPValidator(RDAPValidatorConfiguration config,
+  public RDAPValidator(RDAPValidatorConfiguration config,
       FileSystem fileSystem,
       RDAPQueryTypeProcessor queryTypeProcessor,
       RDAPQuery query,
@@ -177,7 +178,7 @@ public abstract class RDAPValidator implements ValidatorWorkflow {
      * Additionally, apply the relevant collection tests when the option
      * --use-rdap-profile-february-2019 is set.
      */
-    if (config.userRdapProfileFeb2019()) {
+    if (config.useRdapProfileFeb2019()) {
       RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
           List.of(
               new TigValidation1Dot2(rdapResponse, config, results),

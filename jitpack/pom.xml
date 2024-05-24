@@ -7,8 +7,9 @@
   <parent>
     <groupId>org.icann</groupId>
     <artifactId>rdap-conformance</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
   </parent>
+  <groupId>org.icann.rdap-conformance</groupId>
   <artifactId>jitpack</artifactId>
   <packaging>pom</packaging>
 
@@ -19,15 +20,6 @@
     </repository>
   </repositories>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-    <maven.compiler.target>11</maven.compiler.target>
-    <maven.compiler.source>11</maven.compiler.source>
-
-    <org.aspectj-version>1.9.6</org.aspectj-version>
-  </properties>
-
   <dependencies>
 
     <dependency>
@@ -37,7 +29,6 @@
     </dependency>
 
   </dependencies>
-
   <build>
     <plugins>
       <plugin>

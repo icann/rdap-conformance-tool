@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv4AddressSpace;
@@ -26,7 +26,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIP
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
 
-public class RDAPDatasetServiceMock extends RDAPDatasetService {
+public class RDAPDatasetServiceMock extends RDAPDatasetServiceImpl {
 
   public RDAPDatasetServiceMock() {
     super(mock(FileSystem.class));

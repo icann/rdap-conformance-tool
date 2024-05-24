@@ -1,11 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,12 +23,6 @@ public class DNSSecAlgNumbers extends XmlObject {
   void afterUnmarshal(Unmarshaller u, Object parent) {
     this.records = registries.stream().flatMap(r -> r.records.stream()).collect(toList());
   }
-
-  /**
-   * Read from an XML file using the DOM.
-   *
-   * @param inputStream InputStream object
-   */
 
   public boolean isValid(int number) {
     if (INVALID.contains(number)) {

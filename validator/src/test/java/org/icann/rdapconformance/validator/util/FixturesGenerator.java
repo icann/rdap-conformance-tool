@@ -1,12 +1,13 @@
 package org.icann.rdapconformance.validator.util;
 
-import com.github.jknack.handlebars.internal.text.WordUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
+
+import com.github.jknack.handlebars.internal.text.WordUtils;
 import org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,12 +15,6 @@ import org.testng.ITestResult;
 
 public class FixturesGenerator {
 
-  /**
-   * To be called in a
-   *
-   * @AfterMethod public void tearDown(ITestResult result) method in case one wants to generate file
-   * fixtures based on unit tests.
-   */
   public static void generate(ITestResult result, JSONObject jsonObject)
       throws IOException {
     String objectName = result.getInstanceName()
