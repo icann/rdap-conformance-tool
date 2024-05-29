@@ -8,8 +8,6 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 
-import static org.testng.Assert.*;
-
 public class MediaTypesTest extends BaseUnmarshallingTest<MediaTypes> {
 
     private MediaTypes mediaTypes;

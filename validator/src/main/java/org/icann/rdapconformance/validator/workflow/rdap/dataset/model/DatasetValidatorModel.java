@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-public interface DatasetValidatorModel {
+import java.io.Serializable;
+
+public interface DatasetValidatorModel extends Serializable {
   boolean isInvalid(String subject);
 }
