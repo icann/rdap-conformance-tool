@@ -25,6 +25,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAnd
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPDatasetModel;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RedactedExpressionLanguageJsonValues;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RedactedNameJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RoleJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
@@ -100,6 +101,9 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
 
     this.datasetValidatorModels.put(RedactedExpressionLanguageJsonValues.class,
         new RedactedExpressionLanguageJsonValues(get(RDAPJsonValues.class)));
+
+    this.datasetValidatorModels.put(RedactedNameJsonValues.class,
+        new RedactedNameJsonValues(get(RDAPJsonValues.class)));
 
     this.datasetValidatorModels.put(VariantRelationJsonValues.class,
         new VariantRelationJsonValues(get(RDAPJsonValues.class)));

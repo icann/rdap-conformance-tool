@@ -15,7 +15,6 @@ public class BootstrapDomainNameSpaceTest extends BaseUnmarshallingTest<Bootstra
 
     @BeforeMethod
     public void setUp() throws Throwable {
-        //this.bootstrapDomainNameSpace.parse(getClass().getResourceAsStream("/dataset/dns.json"));;
         this.bootstrapDomainNameSpace = deserializer.deserialize(new File(getClass().getResource("/dataset/dns.json").getFile()));
     }
 

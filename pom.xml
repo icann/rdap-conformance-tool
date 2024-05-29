@@ -6,7 +6,7 @@
 
     <groupId>org.icann</groupId>
     <artifactId>rdap-conformance</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -149,7 +149,7 @@
             </dependency>
 
             <dependency>
-                <groupId>com.github.tomakehurst</groupId>
+                <groupId>org.wiremock</groupId>
                 <artifactId>wiremock</artifactId>
                 <version>${wiremock.version}</version>
                 <scope>test</scope>

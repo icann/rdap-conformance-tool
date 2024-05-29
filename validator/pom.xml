@@ -7,11 +7,10 @@
   <parent>
     <groupId>org.icann</groupId>
     <artifactId>rdap-conformance</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
   </parent>
   <groupId>org.icann.rdap-conformance</groupId>
   <artifactId>validator</artifactId>
-
   <packaging>jar</packaging>
   <name>rdap-conformance-validator</name>
 
@@ -106,7 +105,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
+            <groupId>org.wiremock</groupId>
             <artifactId>wiremock</artifactId>
         </dependency>
 

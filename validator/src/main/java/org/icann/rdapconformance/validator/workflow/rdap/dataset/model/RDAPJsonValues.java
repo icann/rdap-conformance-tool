@@ -18,6 +18,7 @@ public class RDAPJsonValues extends XmlObject {
 
   public Set<String> getByType(JsonValueType type) {
     return records.stream()
+        .filter(r -> r.type != null)  // this may append when new value types are created
         .filter(r -> r.type.equals(type))
         .map(RDAPJsonValuesRecord::getValue)
         .collect(Collectors.toSet());
@@ -30,7 +31,8 @@ public class RDAPJsonValues extends XmlObject {
     @XmlEnumValue("event action") EVENT_ACTION,
     @XmlEnumValue("role") ROLE,
     @XmlEnumValue("domain variant relation") DOMAIN_VARIANT_RELATION,
-    @XmlEnumValue("redacted expression language") REDACTED_EXPRESSION_LANGUAGE;
+    @XmlEnumValue("redacted expression language") REDACTED_EXPRESSION_LANGUAGE,
+    @XmlEnumValue("redacted name") REDACTED_NAME
 
   }
 
