@@ -9,4 +9,10 @@ public interface ValidatorWorkflow {
    */
   int validate();
 
+  /**
+   * Get the results path.
+   * @return the results path
+   */
+  String getResultsPath();
+
 }

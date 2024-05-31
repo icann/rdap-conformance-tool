@@ -30,6 +30,7 @@ public class RDAPValidationResultFile {
   private final RDAPValidatorConfiguration config;
   private final ConfigurationFile configurationFile;
   private final FileSystem fileSystem;
+  public String resultPath;
 
   public RDAPValidationResultFile(RDAPValidatorResults results,
       RDAPValidatorConfiguration config,
@@ -65,6 +66,7 @@ public class RDAPValidationResultFile {
     Path path = Paths.get("results", getFilename());
     try {
       fileSystem.mkdir("results");
+      this.resultPath = path.toString();
       fileSystem.write(path.toString(), object.toString(4));
     } catch (IOException e) {
       logger.error("Failed to write results into {}", path, e);
