@@ -19,6 +19,8 @@ for arg in "$@" ; do
   fi
 done
 
-java -jar tool/bin/rdapct-1.0.jar -c config.json --use-local-datasets "$@" 1>&2
+java -jar tool/target/rdapct-1.0.4.jar -c config.json --use-local-datasets "$@" 1>&2
+
+
 
 find results -type f -exec cat {} \; -delete
