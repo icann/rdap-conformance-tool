@@ -18,8 +18,9 @@ import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import picocli.CommandLine.IVersionProvider;
 
-@Command(name = "rdap-conformance-tool", version = "1.0.0", mixinStandardHelpOptions = true)
+@Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
@@ -153,3 +154,4 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     private boolean thin = false;
   }
 }
+

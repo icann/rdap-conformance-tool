@@ -49,7 +49,6 @@ results
 datasets
 .project
 .settings/
-jitpack/
 .classpath
 .java-version
 
