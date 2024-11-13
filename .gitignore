@@ -49,6 +49,8 @@ results
 datasets
 .project
 .settings/
-jitpack/
 .classpath
 .java-version
+
+# stupid MacOS things
+.DS_Store

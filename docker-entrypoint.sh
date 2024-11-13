@@ -19,7 +19,7 @@ for arg in "$@" ; do
   fi
 done
 
-java -jar tool/target/rdapct-1.0.4.jar -c config.json --use-local-datasets "$@" 1>&2
+java -jar tool/target/rdapct-1.0.4.jar -c tool/bin/rdapct_config.json --use-local-datasets "$@" 1>&2
 
 
 

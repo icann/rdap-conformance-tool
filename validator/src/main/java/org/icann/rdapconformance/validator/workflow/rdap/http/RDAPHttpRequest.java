@@ -28,6 +28,7 @@ public class RDAPHttpRequest {
     HttpRequest.Builder httpRequestBuilder = HttpRequest.newBuilder()
         .uri(uri)
         .version(Version.HTTP_2)
+        .header("Accept", "application/rdap+json, application/json")
         .timeout(Duration.of(timeout, SECONDS));
     HttpRequest request;
     switch (method) {

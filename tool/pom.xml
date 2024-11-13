@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.icann</groupId>
     <artifactId>rdap-conformance</artifactId>
-    <version>1.0.4</version>
+    <version>${rdap-conformance.version}</version>
   </parent>
   <groupId>org.icann.rdap-conformance</groupId>
   <artifactId>tool</artifactId>
@@ -64,6 +64,12 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>   
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
