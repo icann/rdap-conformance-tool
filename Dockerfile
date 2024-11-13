@@ -8,8 +8,6 @@ COPY . /app
 
 RUN mvn package -DskipTests --quiet
 
-RUN jo definitionIdentifier=test > config.json
-
 RUN mkdir datasets results
 
 ADD https://www.iana.org/assignments/rdap-extensions/rdap-extensions.xml datasets/rdap-extensions.xml
