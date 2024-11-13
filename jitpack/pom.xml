@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.icann</groupId>
     <artifactId>rdap-conformance</artifactId>
-    <version>${revision}</version>
+    <version>${rdap-conformance.version}</version>
   </parent>
   <groupId>org.icann.rdap-conformance</groupId>
   <artifactId>jitpack</artifactId>
