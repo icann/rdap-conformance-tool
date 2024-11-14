@@ -27,6 +27,6 @@ jobs:
       with:
         files: |
           tool/target/rdapct-*.jar
-          tool/target/bin/rdapct_config.json
+          tool/bin/rdapct_config.json
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
