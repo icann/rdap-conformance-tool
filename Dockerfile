@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN apk -q update ; apk -q add maven git
+RUN apk -q update ; apk -q add maven git xq
 
 WORKDIR /app
 
