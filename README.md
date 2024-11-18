@@ -91,7 +91,7 @@ This is a maven project: to build the executable jar simply run
 
 # Requirements
 
-- Java 11
+- Java 21
 
 # Internals
 
