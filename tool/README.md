@@ -48,8 +48,9 @@ Usage: rdap-conformance-tool [-hV] [--use-local-datasets]
 | RDAP Response Profile - Entities within Domain - Registry        |                      | x              |                  |                              |                  |                 |                  |                 |                  |                    |                  |
 | RDAP Response Profile - Entities within Domain - Registrar       |                      |                | x                |                              |                  |                 |                  |                 |                  |                    |                  |
 | RDAP Response Profile - Entity - Registrar                       |                      |                |                  |                              |                  | x               |                  |                 |                  |                    |                  |
+
 # Requirements
-- Java 11
+- Java 21
 
 # Acknowledgements
 This RDAP conformance tool has been developed by Viagénie

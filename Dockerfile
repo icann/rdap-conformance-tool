@@ -8,7 +8,7 @@ COPY . /app
 
 RUN mvn package -DskipTests --quiet
 
-RUN mkdir datasets results
+RUN mkdir -p datasets results
 
 ADD https://www.iana.org/assignments/rdap-extensions/rdap-extensions.xml datasets/rdap-extensions.xml
 ADD https://www.iana.org/assignments/registrar-ids/registrar-ids.xml datasets/registrar-ids.xml

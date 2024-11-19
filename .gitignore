@@ -51,6 +51,7 @@ datasets
 .settings/
 .classpath
 .java-version
+.flattened-pom.xml
 
 # stupid MacOS things
 .DS_Store
