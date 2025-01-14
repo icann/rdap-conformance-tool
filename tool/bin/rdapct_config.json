@@ -1,6 +1,14 @@
 {
-    "definitionIdentifier": "Default RDAP Conformance Tool Configuration",
-    "definitionWarning": [],
-    "definitionIgnore": [ -46101, -10403, -10605, -10704, -12214, -12217, -12210, -12208, -12411, -12310, -11901 ],
-    "definitionNotes": ["This configuration removes tests that are known to be false positives."]
+  "definitionIdentifier": "Default RDAP Conformance Tool Configuration",
+  "definitionWarning": [],
+  "definitionIgnore": [
+    -46101,
+    -10403,
+    -52104,
+    -47000,
+    -47203
+  ],
+  "definitionNotes": [
+    "This configuration removes tests that are known to be false positives."
+  ]
 }
