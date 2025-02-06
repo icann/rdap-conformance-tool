@@ -48,7 +48,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   public Integer call() throws Exception {
     if (!isVerbose) {
       Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-      root.setLevel(Level.OFF);
+      root.setLevel(Level.ERROR);
     }
 
     ValidatorWorkflow validator;
