@@ -50,7 +50,9 @@ public abstract class QueryValidation extends ProfileJsonValidation {
       logger.error("Invalid domain name");
       return false;
     }
-    if (ldhNameBuilder.toString().equals(domainName)) {
+
+    // Using equalsIgnoreCase based on nameToASCII method returns in lowercase domain name
+    if (ldhNameBuilder.toString().equalsIgnoreCase(domainName)) {
       // URI contains only A-label or NR-LDH labels
       if (NULL.equals(jsonObject.opt("ldhName"))) {
         results.add(RDAPValidationResult.builder()
