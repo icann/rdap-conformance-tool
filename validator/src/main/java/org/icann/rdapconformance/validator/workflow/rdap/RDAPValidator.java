@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.rdap;
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.List;
+
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
@@ -175,13 +176,15 @@ public class RDAPValidator implements ValidatorWorkflow {
       new DomainCaseFoldingValidation(rdapResponse, config, results,
           queryTypeProcessor.getQueryType()).validate();
     }
+    logger.info("Has query 404 as content ----- {}", query.isErrorContent());
 
     /*
      * Additionally, apply the relevant collection tests when the option
      * --use-rdap-profile-february-2019 is set.
+     * query.isErrorContent() added as condition in cases where they have 404 as body content
      */
-    if (config.useRdapProfileFeb2019()) {
-      RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
+    if (config.useRdapProfileFeb2019() && !query.isErrorContent()) {
+        RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
           List.of(
               new TigValidation1Dot2(rdapResponse, config, results),
               new TigValidation1Dot3(rdapResponse, config, results),
