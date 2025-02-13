@@ -3,15 +3,15 @@ package org.icann.rdapconformance.validator.workflow.rdap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
+import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2019;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -24,6 +24,7 @@ public class RDAPValidatorTest {
   private final ConfigurationFileParser configParser = mock(ConfigurationFileParser.class);
   private final RDAPValidatorResults results = mock(RDAPValidatorResults.class);
   private final RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
+  private final RDAPProfileFebruary2019 rdapProfileFebruary2019 = mock(RDAPProfileFebruary2019.class);
   private RDAPValidator validator;
 
   @BeforeMethod
@@ -66,6 +67,15 @@ public class RDAPValidatorTest {
     doReturn(RDAPValidationStatus.CONNECTION_FAILED).when(query).getErrorStatus();
 
     assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED.getValue());
+  }
+
+  @Test
+  public void testCallProfile2019_QueryNonContentRdapResponse_ProfileIsNotInvoked() {
+    doReturn(true).when(query).run();
+    doReturn(true).when(query).checkWithQueryType(RDAPQueryType.DOMAIN);
+    doReturn(true).when(query).isErrorContent();
+
+   verify(rdapProfileFebruary2019, times(0)).validate();
   }
 
   @Test
