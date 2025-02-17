@@ -29,6 +29,10 @@ public final class ResponseValidation2Dot4Dot5 extends ProfileJsonValidation {
         "$.entities[?(@.roles contains 'registrar')]..entities[?(@.roles contains 'abuse')]")
         .isEmpty();
 
+    isValid &= !getPointerFromJPath(
+            "$.entities[?(@.roles contains 'registrar')]..entities[?(@.roles contains 'abuse')].vcardArray")
+            .isEmpty();
+
     Set<String> vcardJsonPointers = getPointerFromJPath(
         "$.entities[?(@.roles contains 'registrar')]..entities[?(@.roles contains 'abuse')].vcardArray");
     for (String jsonPointer : vcardJsonPointers) {
