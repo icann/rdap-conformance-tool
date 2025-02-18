@@ -25,6 +25,8 @@ public interface RDAPValidatorConfiguration {
 
   boolean useRdapProfileFeb2019();
 
+  boolean useRdapProfileFeb2024();
+
   boolean isGtldRegistrar();
 
   boolean isGtldRegistry();

@@ -39,6 +39,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private boolean useLocalDatasets = false;
   @ArgGroup(exclusive = false)
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
+
   @Option(names = {"--query-type"}, hidden = true)
   private RDAPQueryType queryType;
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
@@ -91,13 +92,19 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Override
   public boolean useRdapProfileFeb2019() {
-    return this.dependantRdapProfileGtld.useRdapProfileFeb2019;
+    return this.dependantRdapProfileGtld.exclusiveRdapProfile.useRdapProfileFeb2019;
+  }
+
+  @Override
+  public boolean useRdapProfileFeb2024() {
+    return this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2024;
   }
 
   @Override
   public boolean isGtldRegistrar() {
     return this.dependantRdapProfileGtld.exclusiveGtldType.gtldRegistrar;
   }
+
 
   @Override
   public boolean isGtldRegistry() {
@@ -125,12 +132,26 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   }
 
   private static class DependantRdapProfileGtld {
-
-    @Option(names = {"--use-rdap-profile-february-2019"},
-        description = "Use RDAP Profile February 2019", defaultValue = "false")
-    boolean useRdapProfileFeb2019 = false;
+    @ArgGroup(multiplicity = "1")
+    ExclusiveRdapProfile exclusiveRdapProfile = new ExclusiveRdapProfile();
     @ArgGroup(multiplicity = "1")
     ExclusiveGtldType exclusiveGtldType = new ExclusiveGtldType();
+  }
+
+  private static class ExclusiveRdapProfile {
+    @Option(names = {"--use-rdap-profile-february-2019"},
+            description = "Use RDAP Profile February 2019", defaultValue = "false")
+    boolean useRdapProfileFeb2019 = false;
+
+    @ArgGroup(exclusive = false)
+    private DependantRdapProfile dependantRdapProfile = new DependantRdapProfile();
+  }
+
+  private static class DependantRdapProfile {
+
+    @Option(names = {"--use-rdap-profile-february-2024"},
+            description = "Use RDAP Profile February 2024", required = true)
+    private boolean useRdapProfileFeb2024 = false;
   }
 
   private static class ExclusiveGtldType {
@@ -139,6 +160,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
         description = "Validate the response as coming from a gTLD registrar",
         defaultValue = "false")
     private boolean gtldRegistrar = false;
+
     @ArgGroup(exclusive = false)
     private DependantRegistryThin dependantRegistryThin = new DependantRegistryThin();
   }
