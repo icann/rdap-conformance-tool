@@ -28,6 +28,19 @@ public class ResponseValidation2Dot4Dot5Test extends ResponseDomainValidationTes
   }
 
   @Test
+  public void testValidate_EntitiesWithAbuseRoleAndNoVcard_AddResults47500() {
+    removeKey("$['entities'][0]['entities'][0]['vcardArray']");
+    validate(-47500,
+            "#/entities/0:{\"objectClassName\":\"entity\"," +
+                    "\"publicIds\":[{\"identifier\":\"292\",\"type\":\"IANA Registrar ID\"}]," +
+                    "\"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Inc.\"]]]," +
+                    "\"entities\":[{\"objectClassName\":\"entity\",\"roles\":[\"abuse\"],\"handle\":\"292\"}]," +
+                    "\"roles\":[\"registrar\"],\"handle\":\"292\"}",
+            "Tel and email members were not found for the entity within the entity with the "
+                    + "abuse role in the topmost domain object.");
+  }
+
+  @Test
   public void testValidate_EntitiesWithAbuseRoleAndVcardWithoutEmail_AddResults47500() {
     removeKey("$['entities'][0]['entities'][0]['vcardArray'][1][3]");
     validate(-47500,
