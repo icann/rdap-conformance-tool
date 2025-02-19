@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.DNSQuery.DNSQueryResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -29,16 +30,18 @@ import org.xbill.DNS.Type;
 public final class TigValidation1Dot8 extends ProfileValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(TigValidation1Dot8.class);
+  private final RDAPValidatorConfiguration config;
   static DNSQuery dnsQuery = new DNSQuery();
   static IPValidator ipValidator = new IPValidator();
   private final HttpResponse<String> rdapResponse;
   private final RDAPDatasetService datasetService;
 
   public TigValidation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
-      RDAPDatasetService datasetService) {
+      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
     super(results);
     this.rdapResponse = rdapResponse;
     this.datasetService = datasetService;
+    this.config = config;
   }
 
   @Override
@@ -52,7 +55,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
-      if (!validateHost(response.uri(), results, datasetService)) {
+      if (!validateHost(response.uri(), results, datasetService, config)) {
         isValid = false;
       }
       responseOpt = response.previousResponse();
@@ -61,7 +64,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   }
 
   private static boolean validateHost(URI uri, RDAPValidatorResults results,
-      RDAPDatasetService datasetService) {
+      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
     boolean isValid = true;
     Name host;
     try {
@@ -74,7 +77,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
     DNSQueryResult queryResult = dnsQuery.makeRequest(host, Type.A);
     if (queryResult.hasError() || containsInvalidIPAddress(queryResult.getIPAddresses(),
-        datasetService)) {
+        datasetService, config)) {
       results.add(RDAPValidationResult.builder()
           .code(-20400)
           .value(queryResult.getIPAddresses().stream()
@@ -89,7 +92,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
     queryResult = dnsQuery.makeRequest(host, Type.AAAA);
     if (queryResult.hasError() || containsInvalidIPAddress(queryResult.getIPAddresses(),
-        datasetService)) {
+        datasetService, config)) {
       results.add(RDAPValidationResult.builder()
           .code(-20401)
           .value(queryResult.getIPAddresses().stream()
@@ -106,9 +109,9 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   }
 
   private static boolean containsInvalidIPAddress(Set<InetAddress> addresses,
-      RDAPDatasetService datasetService) {
+      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
     for (InetAddress address : addresses) {
-      if (ipValidator.isInvalid(address, datasetService)) {
+      if (ipValidator.isInvalid(address, datasetService, config)) {
         return true;
       }
     }
@@ -175,7 +178,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
   static class IPValidator {
 
-    boolean isInvalid(InetAddress ipAddress, RDAPDatasetService datasetService) {
+    boolean isInvalid(InetAddress ipAddress, RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
       IPSchema schema;
       if (ipAddress instanceof Inet4Address) {
         schema = IPSchema.V4;
@@ -187,7 +190,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
       String ipAddressJson = String.format("{\"ip\": \"%s\"}", ipAddress.getHostAddress());
       SchemaValidator validator = new SchemaValidator(schema.path(), new RDAPValidatorResultsImpl(),
-          datasetService);
+          datasetService, config);
       return !validator.validate(ipAddressJson);
     }
   }
