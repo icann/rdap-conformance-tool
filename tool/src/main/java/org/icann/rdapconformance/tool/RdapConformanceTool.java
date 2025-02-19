@@ -37,6 +37,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"--use-local-datasets"},
       description = "Use locally-persisted datasets", defaultValue = "false")
   private boolean useLocalDatasets = false;
+
+  @Option(names = {"--no-ipv4-queries"},
+      description = "No queries over IPv4 are to be issued" )
+  private boolean noIPV4Queries = false;
+
   @ArgGroup(exclusive = false)
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
   @Option(names = {"--query-type"}, hidden = true)
@@ -107,6 +112,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Override
   public boolean isThin() {
     return this.dependantRdapProfileGtld.exclusiveGtldType.dependantRegistryThin.thin;
+  }
+
+  @Override
+  public boolean isNoIPV4Queries() {
+    return this.noIPV4Queries;
   }
 
   @Override
