@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
 import java.io.IOException;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

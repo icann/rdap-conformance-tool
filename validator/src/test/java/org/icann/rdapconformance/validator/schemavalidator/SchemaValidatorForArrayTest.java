@@ -1,16 +1,15 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public abstract class SchemaValidatorForArrayTest extends SchemaValidatorTest {
 
   public SchemaValidatorForArrayTest(
-      String schemaName,
-      String validJson) {
+          String schemaName,
+          String validJson) {
     super(schemaName, validJson);
   }
 

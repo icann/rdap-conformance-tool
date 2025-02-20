@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.exception.ValidationExceptionNode;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.schema.ValidationNode;
@@ -38,7 +39,7 @@ public abstract class ExceptionParser {
   public static List<ExceptionParser> createParsers(
       ValidationException e,
       Schema schema,
-      JSONObject object, RDAPValidatorResults results) {
+      JSONObject object, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
     List<ExceptionParser> parsers = new ArrayList<>();
 
     ValidationExceptionNode rootException = new ValidationExceptionNode(null, e);
@@ -54,7 +55,6 @@ public abstract class ExceptionParser {
       parsers.add(new DatetimeExceptionParser(basicException, schema, object, results));
       parsers.add(new DependenciesExceptionParser(basicException, schema, object, results));
       parsers.add(new HostNameInUriExceptionParser(basicException, schema, object, results));
-      parsers.add(new Ipv4ValidationExceptionParser(basicException, schema, object, results));
       parsers.add(new Ipv6ValidationExceptionParser(basicException, schema, object, results));
       parsers.add(new IdnHostNameExceptionParser(basicException, schema, object, results));
       parsers.add(new UniqueItemsExceptionParser(basicException, schema, object, results));
@@ -63,6 +63,10 @@ public abstract class ExceptionParser {
       parsers.add(new RdapExtensionsExceptionParser(basicException, schema, object, results));
       parsers.add(new DatasetExceptionParser(basicException, schema, object, results));
       parsers.add(new VcardExceptionParser(basicException, schema, object, results));
+
+      if(!config.isNoIPV4Queries()) {
+        parsers.add(new Ipv4ValidationExceptionParser(basicException, schema, object, results));
+      }
     }
 
     return parsers;

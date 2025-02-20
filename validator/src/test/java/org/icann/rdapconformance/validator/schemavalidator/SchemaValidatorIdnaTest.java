@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+
 public abstract class SchemaValidatorIdnaTest extends SchemaValidatorTest {
 
   private final String label;
