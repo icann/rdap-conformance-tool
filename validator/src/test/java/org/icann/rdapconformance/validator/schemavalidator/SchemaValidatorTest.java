@@ -76,6 +76,9 @@ public abstract class SchemaValidatorTest {
       }
 
       @Override
+      public boolean useRdapProfileFeb2024() { return false; }
+
+      @Override
       public boolean isGtldRegistrar() {
         return false;
       }

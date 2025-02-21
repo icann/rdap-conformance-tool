@@ -13,6 +13,7 @@ import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2019;
+import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot10;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot11;
@@ -267,8 +268,89 @@ public class RDAPValidator implements ValidatorWorkflow {
       rdapProfileFebruary2019.validate();
     }
 
-    if (config.useRdapProfileFeb2024()) {
+    if (config.useRdapProfileFeb2024() && !query.isErrorContent()) {
       logger.error("entro a 2024 profile");
+      RDAPProfileFebruary2024 rdapProfileFebruary2024 = new RDAPProfileFebruary2024(
+          List.of(
+              new TigValidation1Dot2(rdapResponse, config, results),
+              new TigValidation1Dot3(rdapResponse, config, results),
+              new TigValidation1Dot6(rdapResponse.statusCode(), config, results),
+              new TigValidation1Dot8(rdapResponse, results, datasetService, config),
+              new TigValidation1Dot13(rdapResponse, results),
+              new TigValidation1Dot11Dot1(config, results, datasetService,
+                      queryTypeProcessor.getQueryType()),
+              new TigValidation1Dot14(query.getData(), results),
+              new TigValidation3Dot2(query.getData(), results, config,
+                      queryTypeProcessor.getQueryType()),
+              new TigValidation6Dot1(query.getData(), results, queryTypeProcessor.getQueryType()),
+              new TigValidation3Dot3And3Dot4(query.getData(), results, validator),
+              new TigValidation4Dot1(query.getData(), results),
+              new TigValidation7Dot1And7Dot2(query.getData(), results),
+              new TigValidation1Dot12Dot1(query.getData(), results, datasetService,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation1Dot2Dot2(query.getData(), results),
+              new ResponseValidation1Dot3(query.getData(), results),
+              new ResponseValidation1Dot4(query.getData(), results),
+              new ResponseValidationLastUpdateEvent(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot1(query.getData(), results, config,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot2(query.getData(), results, datasetService,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot3Dot1Dot1(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot3Dot1Dot2(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidationNoticesIncluded(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot6Dot3(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot11(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot10(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidationRFC5731(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidationRFC3915(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot6Dot1(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot9Dot1And2Dot9Dot2(query.getData(), results,
+                      datasetService, queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot4Dot1(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot4Dot2And2Dot4Dot3(query.getData(), results,
+                      datasetService, queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot4Dot5(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation2Dot7Dot1DotXAndRelated1(query.getData(), results,
+                      queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation2Dot7Dot1DotXAndRelated2(query.getData(), results,
+                      queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation2Dot7Dot1DotXAndRelated3And4(query.getData(), results,
+                      queryTypeProcessor.getQueryType(), config,
+                      new SimpleHandleValidation(query.getData(), results, datasetService,
+                              queryTypeProcessor.getQueryType(), -52102)),
+              new ResponseValidation2Dot7Dot1DotXAndRelated6(query.getData(), results,
+                      queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation2Dot7Dot5Dot2(query.getData(), results,
+                      queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation2Dot7Dot5Dot3(query.getData(), results,
+                      queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation3Dot1(query.getData(), results,
+                      queryTypeProcessor.getQueryType(), config),
+              new ResponseValidation3Dot2(query.getData(), results,
+                      queryTypeProcessor.getQueryType(), config),
+              new ResponseNameserverStatusValidation(query.getData(), results,
+                      queryTypeProcessor.getQueryType()),
+              new ResponseValidation4Dot1Handle(query.getData(), results,
+                      datasetService, queryTypeProcessor.getQueryType()),
+              new ResponseValidation4Dot1Query(query.getData(), results,
+                      config, queryTypeProcessor.getQueryType()),
+              new ResponseValidation4Dot3(query.getData(), results,
+                      datasetService, queryTypeProcessor.getQueryType())
+          ));
+      rdapProfileFebruary2024.validate();
     }
 
     query.getStatusCode().ifPresent(rdapValidationResultFile::build);
