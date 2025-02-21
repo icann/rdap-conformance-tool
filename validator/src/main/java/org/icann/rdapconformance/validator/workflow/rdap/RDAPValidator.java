@@ -176,8 +176,7 @@ public class RDAPValidator implements ValidatorWorkflow {
       new DomainCaseFoldingValidation(rdapResponse, config, results,
           queryTypeProcessor.getQueryType()).validate();
     }
-    logger.info("Has query 404 as content ----- {}", query.isErrorContent());
-
+    
     /*
      * Additionally, apply the relevant collection tests when the option
      * --use-rdap-profile-february-2019 is set.
