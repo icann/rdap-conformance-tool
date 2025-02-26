@@ -5,8 +5,13 @@ import inet.ipaddr.IPAddress.IPVersion;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
 import org.everit.json.schema.FormatValidator;
+import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HostNameInUriFormatValidator implements FormatValidator {
 
@@ -35,7 +40,8 @@ public class HostNameInUriFormatValidator implements FormatValidator {
         return ipv6FormatValidator.validate(hostName.getHost());
       }
 
-      return new IdnHostNameFormatValidator().validate(uri.getRawAuthority());
+      var uriWithoutPort = StringUtils.substringBefore(uri.getAuthority(), ":");
+      return new IdnHostNameFormatValidator().validate(uriWithoutPort);
     } catch (URISyntaxException e) {
       return Optional.of(e.getMessage());
     }
