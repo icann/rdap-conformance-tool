@@ -37,7 +37,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4Test extends
   public void invalidHandleFormat() {
     entitiesWithRole("registrant");
     replaceValue("['entities'][0]['handle']", "ABCD");
-    validate(-52102, "#/entities/0/handle:ABCD", "The handle in the domain object does not comply "
+    validate(-52102, "#/entities/0/handle:ABCD", "The handle in the entity object does not comply "
         + "with the format "
         + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
   }
