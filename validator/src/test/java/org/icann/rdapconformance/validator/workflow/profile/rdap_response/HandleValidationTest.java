@@ -65,8 +65,8 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
     String value = givenInvalidHandle();
     HandleValidation validation = getProfileValidation();
     validate(validation.code, value,
-        String.format("The handle in the %s object does not comply with the format "
-            + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", baseQueryType.name().toLowerCase()));
+        String.format("The handle in the entity object does not comply with the format "
+            + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730."));
   }
 
   @Test

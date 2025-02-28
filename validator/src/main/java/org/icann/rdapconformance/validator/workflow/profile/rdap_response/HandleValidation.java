@@ -28,8 +28,8 @@ public abstract class HandleValidation extends ProfileJsonValidation {
       results.add(RDAPValidationResult.builder()
           .code(code)
           .value(getResultValue(handleJsonPointer))
-          .message(String.format("The handle in the %s object does not comply with the format "
-              + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", queryType.name().toLowerCase()))
+          .message(String.format("The handle in the entity object does not comply with the format "
+              + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730."))
           .build());
       return false;
     }
