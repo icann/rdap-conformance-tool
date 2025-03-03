@@ -31,8 +31,6 @@ public interface RDAPValidatorConfiguration {
 
   boolean isThin();
 
-  boolean isNoIPV4Queries();
-
   RDAPQueryType getQueryType();
 
   default boolean check() {

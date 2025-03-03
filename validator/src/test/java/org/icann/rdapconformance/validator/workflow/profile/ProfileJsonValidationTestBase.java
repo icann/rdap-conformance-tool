@@ -5,7 +5,6 @@ import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidato
 import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
 import net.minidev.json.JSONArray;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.util.FixturesGenerator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;

@@ -30,18 +30,16 @@ import org.xbill.DNS.Type;
 public final class TigValidation1Dot8 extends ProfileValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(TigValidation1Dot8.class);
-  private final RDAPValidatorConfiguration config;
   static DNSQuery dnsQuery = new DNSQuery();
   static IPValidator ipValidator = new IPValidator();
   private final HttpResponse<String> rdapResponse;
   private final RDAPDatasetService datasetService;
 
   public TigValidation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
-      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
+      RDAPDatasetService datasetService) {
     super(results);
     this.rdapResponse = rdapResponse;
     this.datasetService = datasetService;
-    this.config = config;
   }
 
   @Override
@@ -55,7 +53,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
-      if (!validateHost(response.uri(), results, datasetService, config)) {
+      if (!validateHost(response.uri(), results, datasetService)) {
         isValid = false;
       }
       responseOpt = response.previousResponse();
@@ -64,7 +62,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   }
 
   private static boolean validateHost(URI uri, RDAPValidatorResults results,
-      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
+      RDAPDatasetService datasetService) {
     boolean isValid = true;
     Name host;
     try {
@@ -77,7 +75,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
     DNSQueryResult queryResult = dnsQuery.makeRequest(host, Type.A);
     if (queryResult.hasError() || containsInvalidIPAddress(queryResult.getIPAddresses(),
-        datasetService, config)) {
+        datasetService)) {
       results.add(RDAPValidationResult.builder()
           .code(-20400)
           .value(queryResult.getIPAddresses().stream()
@@ -92,7 +90,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
     queryResult = dnsQuery.makeRequest(host, Type.AAAA);
     if (queryResult.hasError() || containsInvalidIPAddress(queryResult.getIPAddresses(),
-        datasetService, config)) {
+        datasetService)) {
       results.add(RDAPValidationResult.builder()
           .code(-20401)
           .value(queryResult.getIPAddresses().stream()
@@ -109,9 +107,9 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   }
 
   private static boolean containsInvalidIPAddress(Set<InetAddress> addresses,
-      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
+      RDAPDatasetService datasetService) {
     for (InetAddress address : addresses) {
-      if (ipValidator.isInvalid(address, datasetService, config)) {
+      if (ipValidator.isInvalid(address, datasetService)) {
         return true;
       }
     }
@@ -178,7 +176,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
   static class IPValidator {
 
-    boolean isInvalid(InetAddress ipAddress, RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
+    boolean isInvalid(InetAddress ipAddress, RDAPDatasetService datasetService) {
       IPSchema schema;
       if (ipAddress instanceof Inet4Address) {
         schema = IPSchema.V4;
@@ -190,7 +188,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
       String ipAddressJson = String.format("{\"ip\": \"%s\"}", ipAddress.getHostAddress());
       SchemaValidator validator = new SchemaValidator(schema.path(), new RDAPValidatorResultsImpl(),
-          datasetService, config);
+          datasetService);
       return !validator.validate(ipAddressJson);
     }
   }
