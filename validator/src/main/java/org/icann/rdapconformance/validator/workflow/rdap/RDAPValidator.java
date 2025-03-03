@@ -172,7 +172,8 @@ public class RDAPValidator implements ValidatorWorkflow {
     HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
 
     // extra validations not categorized (change request):
-    if (rdapResponse != null) {
+    // query.isErrorContent() added as condition in cases where they have 404 as status code
+    if (rdapResponse != null && !query.isErrorContent()) {
       new DomainCaseFoldingValidation(rdapResponse, config, results,
           queryTypeProcessor.getQueryType()).validate();
     }
@@ -180,7 +181,7 @@ public class RDAPValidator implements ValidatorWorkflow {
     /*
      * Additionally, apply the relevant collection tests when the option
      * --use-rdap-profile-february-2019 is set.
-     * query.isErrorContent() added as condition in cases where they have 404 as body content
+     * query.isErrorContent() added as condition in cases where they have 404 as status code
      */
     if (config.useRdapProfileFeb2019() && !query.isErrorContent()) {
         RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
