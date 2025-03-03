@@ -1,15 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
-import static com.jayway.jsonpath.JsonPath.using;
-
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.Option;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.JpathUtil;
-import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 

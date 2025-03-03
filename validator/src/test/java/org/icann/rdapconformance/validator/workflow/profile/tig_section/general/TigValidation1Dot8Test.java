@@ -37,7 +37,6 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
   private final DNSQuery dnsQuery = mock(DNSQuery.class);
   private final IPValidator ipValidator = mock(IPValidator.class);
   private final RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
-  private final  RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
   private HttpResponse<String> httpResponse;
 
   private void givenV6Ok() throws UnknownHostException {
@@ -64,7 +63,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
     doReturn(resultV4).when(dnsQuery).makeRequest(Name.fromString(uri.getHost()), Type.A);
     doReturn(false).when(resultV4).hasError();
     doReturn(Set.of(ipv4AddressInvalid, ipv4AddressValid)).when(resultV4).getIPAddresses();
-    doReturn(true).when(ipValidator).isInvalid(ipv4AddressInvalid, datasetService, config);
+    doReturn(true).when(ipValidator).isInvalid(ipv4AddressInvalid, datasetService);
   }
 
   private void givenV4QueryError() throws UnknownHostException {
@@ -87,7 +86,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
     doReturn(resultV6).when(dnsQuery).makeRequest(Name.fromString(uri.getHost()), Type.AAAA);
     doReturn(false).when(resultV6).hasError();
     doReturn(Set.of(ipv6AddressInvalid, ipv6AddressValid)).when(resultV6).getIPAddresses();
-    doReturn(true).when(ipValidator).isInvalid(ipv6AddressInvalid, datasetService, config);
+    doReturn(true).when(ipValidator).isInvalid(ipv6AddressInvalid, datasetService);
   }
 
   private void givenV6QueryError() throws UnknownHostException {
@@ -110,7 +109,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new TigValidation1Dot8(httpResponse, results, datasetService, config);
+    return new TigValidation1Dot8(httpResponse, results, datasetService);
   }
 
   @BeforeMethod
@@ -118,7 +117,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
     super.setUp();
     TigValidation1Dot8.dnsQuery = dnsQuery;
     TigValidation1Dot8.ipValidator = ipValidator;
-    doReturn(false).when(ipValidator).isInvalid(any(InetAddress.class), eq(datasetService), eq(config));
+    doReturn(false).when(ipValidator).isInvalid(any(InetAddress.class), eq(datasetService));
     httpResponse = givenHttpResponse();
     givenV4Ok();
     givenV6Ok();
