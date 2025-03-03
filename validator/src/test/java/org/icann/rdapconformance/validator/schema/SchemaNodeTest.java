@@ -14,7 +14,67 @@ import org.testng.annotations.Test;
 public class SchemaNodeTest {
 
   SchemaNode schemaNode = SchemaNode.create(null, SchemaValidator.getSchema("simple.json", "schema/",
-          getClass().getClassLoader(), new RDAPDatasetServiceMock()));
+          getClass().getClassLoader(), new RDAPDatasetServiceMock(), new RDAPValidatorConfiguration() {
+            @Override
+            public URI getConfigurationFile() {
+              return null;
+            }
+
+            @Override
+            public URI getUri() {
+              return null;
+            }
+
+            @Override
+            public void setUri(URI uri) {
+
+            }
+
+            @Override
+            public int getTimeout() {
+              return 0;
+            }
+
+            @Override
+            public int getMaxRedirects() {
+              return 0;
+            }
+
+            @Override
+            public boolean useLocalDatasets() {
+              return false;
+            }
+
+            @Override
+            public boolean useRdapProfileFeb2019() {
+              return false;
+            }
+
+            @Override
+            public boolean isGtldRegistrar() {
+              return false;
+            }
+
+            @Override
+            public boolean isGtldRegistry() {
+              return false;
+            }
+
+            @Override
+            public boolean isThin() {
+              return false;
+            }
+
+            @Override
+            public boolean isNoIPV4Queries() {
+              return false;
+            }
+
+            @Override
+            public RDAPQueryType getQueryType() {
+              return null;
+            }
+          }));
 
   @Test
   public void testSchemaNodeGetChildren() {

@@ -148,15 +148,15 @@ public class RDAPValidator implements ValidatorWorkflow {
 
     SchemaValidator validator = null;
     if (query.isErrorContent()) {
-      validator = new SchemaValidator("rdap_error.json", results, datasetService);
+      validator = new SchemaValidator("rdap_error.json", results, datasetService, config);
     } else if (RDAPQueryType.DOMAIN.equals(queryTypeProcessor.getQueryType())) {
-      validator = new SchemaValidator("rdap_domain.json", results, datasetService);
+      validator = new SchemaValidator("rdap_domain.json", results, datasetService, config);
     } else if (RDAPQueryType.HELP.equals(queryTypeProcessor.getQueryType())) {
-      validator = new SchemaValidator("rdap_help.json", results, datasetService);
+      validator = new SchemaValidator("rdap_help.json", results, datasetService, config);
     } else if (RDAPQueryType.NAMESERVER.equals(queryTypeProcessor.getQueryType())) {
-      validator = new SchemaValidator("rdap_nameserver.json", results, datasetService);
+      validator = new SchemaValidator("rdap_nameserver.json", results, datasetService, config);
     } else if (RDAPQueryType.NAMESERVERS.equals(queryTypeProcessor.getQueryType())) {
-      validator = new SchemaValidator("rdap_nameservers.json", results, datasetService);
+      validator = new SchemaValidator("rdap_nameservers.json", results, datasetService, config);
     } else if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType())) {
       if (config.isThin()) {
         logger.error("Thin flag is set while validating entity");
@@ -165,7 +165,7 @@ public class RDAPValidator implements ValidatorWorkflow {
       }
       // asEventActor property is not allow in topMost entity object, see spec 7.2.9.2
       validator = new SchemaValidator("rdap_entity_without_asEventActor.json", results,
-          datasetService);
+          datasetService, config);
     }
     assert null != validator;
     validator.validate(query.getData());
@@ -188,7 +188,7 @@ public class RDAPValidator implements ValidatorWorkflow {
               new TigValidation1Dot2(rdapResponse, config, results),
               new TigValidation1Dot3(rdapResponse, config, results),
               new TigValidation1Dot6(rdapResponse.statusCode(), config, results),
-              new TigValidation1Dot8(rdapResponse, results, datasetService),
+              new TigValidation1Dot8(rdapResponse, results, datasetService, config),
               new TigValidation1Dot13(rdapResponse, results),
               new TigValidation1Dot11Dot1(config, results, datasetService,
                   queryTypeProcessor.getQueryType()),
