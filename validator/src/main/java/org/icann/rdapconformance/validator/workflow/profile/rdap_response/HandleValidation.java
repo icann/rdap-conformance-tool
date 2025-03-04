@@ -22,9 +22,17 @@ public abstract class HandleValidation extends ProfileJsonValidation {
   }
 
   protected boolean validateHandle(String handleJsonPointer) {
-    String handle = (String) jsonObject.query(handleJsonPointer);
+    String handle = null;
 
-    if (!handle.matches("(\\w|_){1,80}-\\w{1,8}")) {
+    Object obj = jsonObject.query(handleJsonPointer);
+    if (obj != null) {
+      // have to use .toString() instead of cast (String),
+      // because if the value is JSONObject.NULL, it won't cast
+      // added testValidate_HandleIsNull_AddErrorCode unit test for this
+      handle = obj.toString();
+    }
+
+    if (handle == null || !handle.matches("(\\w|_){1,80}-\\w{1,8}")) {
       results.add(RDAPValidationResult.builder()
           .code(code)
           .value(getResultValue(handleJsonPointer))
