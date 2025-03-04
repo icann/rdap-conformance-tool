@@ -27,4 +27,11 @@ public class BootstrapDomainNameSpaceTest extends BaseUnmarshallingTest<Bootstra
         System.out.println(bootstrapDomainNameSpace.getUrlsForTld("ryukyu"));
         System.out.println(bootstrapDomainNameSpace.getUrlsForTld("sharp"));
     }
+
+    @Test
+    public void givenValidTlds_thenNoMatterCaseSensitiveValues() {
+        assertThat(bootstrapDomainNameSpace.tldExists("COM")).isTrue();
+        assertThat(bootstrapDomainNameSpace.tldExists("com")).isTrue();
+        assertThat(bootstrapDomainNameSpace.tldExists("Xn--45Q11c")).isTrue();
+    }
 }
