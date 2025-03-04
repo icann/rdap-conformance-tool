@@ -3,11 +3,7 @@ package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class BootstrapDomainNameSpace implements RDAPDatasetModel {
 
@@ -42,7 +38,7 @@ public class BootstrapDomainNameSpace implements RDAPDatasetModel {
     }
 
     public boolean tldExists(String tld) {
-        return tlds.containsKey(tld);
+        return tlds.keySet().stream().anyMatch(key -> key.equalsIgnoreCase(tld));
     }
 
     public Set<String> getTlds() {
