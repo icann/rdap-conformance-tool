@@ -32,7 +32,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated6 extends
               .code(-52105)
               .value(getResultValue(jsonPointer))
               .message("An entity with the registrant role without the CC parameter "
-                  + "was found. See section 2.7.4.1 of the RDAP_Response_Profile_2_1.")
+                  + "was found. See section 2.7.3.1 of the RDAP_Response_Profile_2_1.")
               .build());
           return false;
         }

@@ -35,6 +35,6 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated6Test extends
     removeKey("$..vcardArray[1][?(@[0] == 'adr')][1]['cc']");
     validate(-52105, "#/entities/0/entities/0:" + jsonObject.query("#/entities/0/entities/0"),
         "An entity with the registrant role without the CC parameter "
-            + "was found. See section 2.7.4.1 of the RDAP_Response_Profile_2_1.");
+            + "was found. See section 2.7.3.1 of the RDAP_Response_Profile_2_1.");
   }
 }
