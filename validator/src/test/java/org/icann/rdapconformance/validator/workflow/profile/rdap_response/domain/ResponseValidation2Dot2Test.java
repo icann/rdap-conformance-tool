@@ -37,8 +37,8 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
     String value = givenNullHandle();
     getProfileValidation();
     validate(-46200, value,
-        String.format("The handle in the %s object does not comply with the format "
-            + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", baseQueryType.name().toLowerCase()));
+        "The handle in the entity object does not comply with the format "
+            + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
   }
 
   @Test
@@ -46,7 +46,7 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
     String value = givenNullHandle2();
     getProfileValidation();
     validate(-46200, value,
-        String.format("The handle in the %s object does not comply with the format "
-            + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", baseQueryType.name().toLowerCase()));
+        "The handle in the entity object does not comply with the format "
+            + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
   }
 }
