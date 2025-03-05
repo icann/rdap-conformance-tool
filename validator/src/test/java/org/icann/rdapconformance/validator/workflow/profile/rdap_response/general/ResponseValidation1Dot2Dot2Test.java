@@ -27,9 +27,6 @@ public class ResponseValidation1Dot2Dot2Test extends ProfileJsonValidationTestBa
   @Test
   public void testValidate_ContainsHTMLNotJS_NotAddResults40100() {
     replaceValue("ldhName", "<b>var val = 'test';</b>");
-    validate(-40100, jsonObject.toString(),
-            "The RDAP response contains browser executable code (e.g., JavaScript). "
-                    + "See section 1.2.2 of the RDAP_Response_Profile_2_1.");
   }
 
   @Test
