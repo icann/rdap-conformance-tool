@@ -1,21 +1,24 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.text.StringEscapeUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.owasp.html.HtmlPolicyBuilder;
-import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(ResponseValidation1Dot2Dot2.class);
+  public static final String WORD_MATCHED = "script";
+
+  /*  (?i) enables case-insensitivity
+      .* uses every character except line breaks
+   */
+  public static final String WORD_MATCHED_REGEX="<(?i).*" + WORD_MATCHED + ".*>";
   private static final ObjectMapper mapper = new ObjectMapper();
   private final String rdapResponse;
 
@@ -31,25 +34,13 @@ public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
 
   @Override
   protected boolean doValidate() {
-    PolicyFactory policy = new HtmlPolicyBuilder().toFactory();
-    String rdapResponseSanitized = StringEscapeUtils.unescapeHtml4(policy.sanitize(rdapResponse));
-    try {
-      JsonNode beforeSanitizing = mapper.readTree(rdapResponse);
-      JsonNode afterSanitizing;
-      try {
-        afterSanitizing = mapper.readTree(rdapResponseSanitized);
-      } catch (JsonParseException e) {
-        addResult();
-        return false;
-      }
-      if (!beforeSanitizing.equals(afterSanitizing)) {
-        addResult();
-        return false;
-      }
-    } catch (JsonProcessingException e) {
-      logger.error(
-          "Exception when making HTTP request in order to check [tigSection_1_2_Validation]", e);
+    final Pattern pattern = Pattern.compile(WORD_MATCHED_REGEX);
+    final Matcher matcher = pattern.matcher(rdapResponse);
+    if(matcher.find()) {
+      addResult();
+      return false;
     }
+
     return true;
   }
 
