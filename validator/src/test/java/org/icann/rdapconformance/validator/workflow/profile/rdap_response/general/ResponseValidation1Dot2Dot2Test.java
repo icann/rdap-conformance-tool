@@ -23,4 +23,22 @@ public class ResponseValidation1Dot2Dot2Test extends ProfileJsonValidationTestBa
         "The RDAP response contains browser executable code (e.g., JavaScript). "
             + "See section 1.2.2 of the RDAP_Response_Profile_2_1.");
   }
+
+  @Test
+  public void testValidate_ContainsHTMLNotJS_NotAddResults40100() {
+    replaceValue("ldhName", "<b>var val = 'test';</b>");
+    validate(-40100, jsonObject.toString(),
+            "The RDAP response contains browser executable code (e.g., JavaScript). "
+                    + "See section 1.2.2 of the RDAP_Response_Profile_2_1.");
+  }
+
+  @Test
+  public void testValidate_ContainsJsCaseInsensitiveAndHTML_AddResults40100() {
+    replaceValue("ldhName", "<ScriPt>var val = 'test';</ScriPt>");
+    replaceValue("status", "<b>var val2 = 'test2';</b>");
+    replaceValue("objectClassName", "<script>var val3 = 'test3';</script>");
+    validate(-40100, jsonObject.toString(),
+            "The RDAP response contains browser executable code (e.g., JavaScript). "
+                    + "See section 1.2.2 of the RDAP_Response_Profile_2_1.");
+  }
 }
