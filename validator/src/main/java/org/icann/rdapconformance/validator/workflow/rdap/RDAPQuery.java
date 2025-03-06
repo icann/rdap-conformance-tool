@@ -17,4 +17,6 @@ public interface RDAPQuery {
   String getData();
 
   Object getRawResponse();
+
+  void setResults(RDAPValidatorResults results);
 }

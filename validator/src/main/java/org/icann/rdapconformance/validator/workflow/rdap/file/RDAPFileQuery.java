@@ -8,6 +8,7 @@ import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,4 +69,7 @@ public class RDAPFileQuery implements RDAPQuery {
   public Object getRawResponse() {
     return null;
   }
+
+  @Override
+  public void setResults(RDAPValidatorResults results) {}
 }
