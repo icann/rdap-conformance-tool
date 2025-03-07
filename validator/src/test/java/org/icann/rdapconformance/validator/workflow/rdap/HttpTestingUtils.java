@@ -12,6 +12,8 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -23,6 +25,7 @@ public abstract class HttpTestingUtils {
 
   protected final static String WIREMOCK_HOST = "localhost";
   protected final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+  protected final RDAPValidatorResults results = mock(RDAPValidatorResults.class);
   protected WireMockServer wireMockServer;
 
   public static RedirectData givenChainedHttpRedirects() {
@@ -51,6 +54,12 @@ public abstract class HttpTestingUtils {
   public void setUp() {
     doReturn(10).when(config).getTimeout();
     doReturn(3).when(config).getMaxRedirects();
+    doReturn(Set.of(RDAPValidationResult.builder()
+            .code(-13000)
+            .value("Content-Type")
+            .message("The content-type header does not contain the application/rdap+json media type.")
+            .build()))
+            .when(results).getAll();
   }
 
   @AfterMethod

@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -227,7 +228,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   @Test
-  public void test_NoContentType_ReturnsErrorStatus5() {
+  public void test_NoContentType_ErrorCode13000AddedInResults() {
+    rdapHttpQuery.setResults(results);
     givenUri("http");
     stubFor(get(urlEqualTo(REQUEST_PATH))
         .withScheme("http")
@@ -235,8 +237,13 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .withHeader("Content-Type", "application/json;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
 
-    assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.WRONG_CONTENT_TYPE);
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(results.getAll()).contains(
+            RDAPValidationResult.builder()
+            .code(-13000)
+            .value("Content-Type")
+            .message("The content-type header does not contain the application/rdap+json media type.")
+            .build());
   }
 
   @Test

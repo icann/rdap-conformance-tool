@@ -136,6 +136,7 @@ public class RDAPValidator implements ValidatorWorkflow {
       return queryTypeProcessor.getErrorStatus().getValue();
     }
 
+    query.setResults(results);
     if (!query.run()) {
       query.getStatusCode().ifPresent(rdapValidationResultFile::build);
       return query.getErrorStatus().getValue();

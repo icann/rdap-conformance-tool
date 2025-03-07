@@ -12,10 +12,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import com.sun.net.httpserver.Headers;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
+import org.icann.rdapconformance.validator.workflow.rdap.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +24,7 @@ public class RDAPHttpQuery implements RDAPQuery {
   private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
   private final RDAPValidatorConfiguration config;
+  private RDAPValidatorResults results = null;
   private HttpResponse<String> httpResponse = null;
   private RDAPValidationStatus status = null;
   private JsonData jsonResponse = null;
@@ -102,6 +103,11 @@ public class RDAPHttpQuery implements RDAPQuery {
     return httpResponse;
   }
 
+  @Override
+  public void setResults(RDAPValidatorResults results) {
+    this.results = results;
+  }
+
   /**
    * Check if we got errors with the RDAP HTTP request.
    */
@@ -165,15 +171,16 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     /*
      * If a response is available to the tool, and the header Content-Type is not
-     * application/rdap+JSON, exit with a return code of 5.
+     * application/rdap+JSON, error code -13000 added in results file.
      */
     HttpHeaders headers = httpResponse.headers();
     if (Arrays.stream(String.join(";", headers.allValues("Content-Type")).split(";"))
         .noneMatch(s -> s.equalsIgnoreCase("application/rdap+JSON"))) {
-      logger.error("Content-Type is {}, should be application/rdap+JSON",
-          headers.firstValue("Content-Type").orElse("missing"));
-      status = RDAPValidationStatus.WRONG_CONTENT_TYPE;
-      return;
+      results.add(RDAPValidationResult.builder()
+              .code(-13000)
+              .value(headers.firstValue("Content-Type").orElse("missing"))
+              .message("The content-type header does not contain the application/rdap+json media type.")
+              .build());
     }
 
     /*
