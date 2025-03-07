@@ -6,6 +6,8 @@ import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.util.List;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -45,9 +47,9 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
   public HandleValidation getProfileValidation() {
     try {
       return validationClass
-          .getConstructor(String.class, RDAPValidatorResults.class, RDAPDatasetService.class,
+          .getConstructor(RDAPValidatorConfiguration.class, String.class, RDAPValidatorResults.class, RDAPDatasetService.class,
               RDAPQueryType.class)
-          .newInstance(jsonObject.toString(), results, datasetService, queryType);
+          .newInstance(config, jsonObject.toString(), results, datasetService, queryType);
     } catch (Exception e) {
       return null;
     }
