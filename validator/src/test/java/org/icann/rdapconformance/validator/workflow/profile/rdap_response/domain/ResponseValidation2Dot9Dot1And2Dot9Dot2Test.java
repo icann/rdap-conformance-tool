@@ -1,17 +1,30 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import java.io.IOException;
 import java.util.Set;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+
 public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
     HandleValidationTest<ResponseValidation2Dot9Dot1And2Dot9Dot2> {
-
   public ResponseValidation2Dot9Dot1And2Dot9Dot2Test() {
     super("/validators/domain/valid.json", "rdapResponseProfile_2_9_1_and_2_9_2_Validation",
         RDAPQueryType.DOMAIN, ResponseValidation2Dot9Dot1And2Dot9Dot2.class);
+  }
+
+  @BeforeMethod
+  public void setUp() throws IOException {
+    super.setUp();
+    config = mock(RDAPValidatorConfiguration.class);
+    doReturn(true).when(config).isGtldRegistrar();
   }
 
   @DataProvider(name = "invalidStatus")

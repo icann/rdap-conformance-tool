@@ -4,6 +4,8 @@ import static org.json.JSONObject.NULL;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -14,11 +16,15 @@ import org.json.JSONObject;
 
 public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidation {
 
-  public ResponseValidation2Dot9Dot1And2Dot9Dot2(String rdapResponse,
+  private final RDAPValidatorConfiguration config;
+
+  public ResponseValidation2Dot9Dot1And2Dot9Dot2(RDAPValidatorConfiguration config,
+      String rdapResponse,
       RDAPValidatorResults results,
       RDAPDatasetService datasetService,
       RDAPQueryType queryType) {
     super(rdapResponse, results, datasetService, queryType, -47201);
+    this.config = config;
   }
 
   @Override
@@ -128,6 +134,6 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
 
   @Override
   public boolean doLaunch() {
-    return queryType.equals(RDAPQueryType.DOMAIN);
+     return config.isGtldRegistrar() && queryType.equals(RDAPQueryType.DOMAIN);
   }
 }
