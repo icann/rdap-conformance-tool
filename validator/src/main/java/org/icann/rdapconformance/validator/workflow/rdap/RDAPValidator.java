@@ -31,6 +31,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated1;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated3And4;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated5;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated6;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot3;
@@ -246,6 +247,8 @@ public class RDAPValidator implements ValidatorWorkflow {
                   queryTypeProcessor.getQueryType(), config,
                   new SimpleHandleValidation(query.getData(), results, datasetService,
                       queryTypeProcessor.getQueryType(), -52102)),
+              new ResponseValidation2Dot7Dot1DotXAndRelated5(query.getData(), results,
+                  queryTypeProcessor.getQueryType(), config),
               new ResponseValidation2Dot7Dot1DotXAndRelated6(query.getData(), results,
                   queryTypeProcessor.getQueryType(), config),
               new ResponseValidation2Dot7Dot5Dot2(query.getData(), results,
