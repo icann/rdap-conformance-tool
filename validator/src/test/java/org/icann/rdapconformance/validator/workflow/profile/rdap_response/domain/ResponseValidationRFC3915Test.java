@@ -27,8 +27,8 @@ public class ResponseValidationRFC3915Test extends ResponseDomainValidationTestB
 
   @DataProvider(name = "validStatus")
   public static Object[][] validStatus() {
-    return new Object[][]{{Set.of("redemption period", "pending delete")},
-        {Set.of("pending restore", "pending delete")}
+    return new Object[][]{{Set.of("redemption period", "pending deleted")},
+        {Set.of("pending restore")}
     };
   }
 
