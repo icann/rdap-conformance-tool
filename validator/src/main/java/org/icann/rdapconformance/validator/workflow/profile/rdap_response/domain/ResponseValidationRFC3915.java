@@ -2,13 +2,13 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import java.util.HashSet;
 import java.util.Set;
+
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
-
   private final RDAPQueryType queryType;
 
   public ResponseValidationRFC3915(String rdapResponse,
@@ -28,15 +28,23 @@ public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
     Set<String> status = new HashSet<>();
     jsonObject.optJSONArray("status").forEach(s -> status.add((String) s));
 
-    status.remove("pending delete");
-    if ((status.contains("redemption period") || status.contains("pending restore"))
-        && status.size() > 1) {
-      results.add(RDAPValidationResult.builder()
-          .code(-47000)
-          .value(getResultValue("#/status"))
-          .message("The values of the status data structure does not comply with RFC3915.")
-          .build());
-      return false;
+    // Status -47000 was added into ignored list and changed for new codes -47001 and -47002
+    if(status.contains("pending delete")) {
+      if (status.contains("redemption period")) {
+        results.add(RDAPValidationResult.builder()
+                .code(-47001)
+                .value(getResultValue("#/status"))
+                .message("'redemption period' is only valid with a status of 'pending delete'")
+                .build());
+        return false;
+      } else if (status.contains("pending restore")) {
+        results.add(RDAPValidationResult.builder()
+                .code(-47102)
+                .value(getResultValue("#/status"))
+                .message("'pending restore' is only valid with a status of 'pending delete'")
+                .build());
+        return false;
+      }
     }
     return true;
   }
