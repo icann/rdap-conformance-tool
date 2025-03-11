@@ -196,7 +196,7 @@ public class RDAPValidator implements ValidatorWorkflow {
               new TigValidation1Dot11Dot1(config, results, datasetService,
                   queryTypeProcessor.getQueryType()),
               new TigValidation1Dot14(query.getData(), results),
-              new TigValidation3Dot2(query.getData(), results, config,
+              new TigValidation3Dot2(query.getData(), results, config, datasetService,
                   queryTypeProcessor.getQueryType()),
               new TigValidation6Dot1(query.getData(), results, queryTypeProcessor.getQueryType()),
               new TigValidation3Dot3And3Dot4(query.getData(), results, validator),
