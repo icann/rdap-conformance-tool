@@ -1,8 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
 import java.net.URI;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -38,7 +40,7 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
 
     BootstrapDomainNameSpace dataset = datasetService.get(BootstrapDomainNameSpace.class);
     String tld = config.getUri().toString()
-        .substring(config.getUri().toString().lastIndexOf(".") + 1);
+        .substring(config.getUri().toString().lastIndexOf(".") + 1).toLowerCase(Locale.ROOT);
 
     if (!dataset.tldExists(tld)) {
       results.add(RDAPValidationResult.builder()
