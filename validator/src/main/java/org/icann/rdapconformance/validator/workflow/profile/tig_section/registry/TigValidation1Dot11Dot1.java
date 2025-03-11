@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.registr
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,8 +44,7 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
 
     BootstrapDomainNameSpace dataset = datasetService.get(BootstrapDomainNameSpace.class);
     String urlWithoutPort = removePortInURL();
-    String tld = urlWithoutPort
-        .substring(urlWithoutPort.lastIndexOf(".") + 1);
+    String tld = urlWithoutPort.substring(urlWithoutPort.lastIndexOf(".") + 1).toLowerCase(Locale.ROOT);
 
     if (!dataset.tldExists(tld)) {
       results.add(RDAPValidationResult.builder()
