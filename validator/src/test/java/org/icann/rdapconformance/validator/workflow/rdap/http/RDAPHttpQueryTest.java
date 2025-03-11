@@ -247,7 +247,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   @Test
-  public void test_InvalidJson_ReturnsErrorStatus6() {
+  public void test_InvalidJson_ErrorCode13001AddedInResults() {
+    rdapHttpQuery.setResults(results);
     String response = "{\"objectClassName\"}";
 
     givenUri("http");
@@ -257,8 +258,13 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.RESPONSE_INVALID);
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(results.getAll()).contains(
+            RDAPValidationResult.builder()
+                    .code(-13001)
+                    .value("response body not given")
+                    .message("The response was not valid JSON.")
+                    .build());
   }
 
   @Ignore("revoked.badssl.com has an expired certificate nowadays, so this test will always fails")

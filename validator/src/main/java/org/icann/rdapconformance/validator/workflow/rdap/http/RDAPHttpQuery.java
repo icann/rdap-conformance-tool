@@ -184,14 +184,17 @@ public class RDAPHttpQuery implements RDAPQuery {
     }
 
     /*
-     * If a response is available to the tool, but it's not syntactically valid JSON object, exit
-     * with a return code of 6.
+     * If a response is available to the tool, but it's not syntactically valid JSON object, error
+     * code -13001 added in results file.
      */
     String rdapResponse = httpResponse.body();
     jsonResponse = new JsonData(rdapResponse);
     if (!jsonResponse.isValid()) {
-      status = RDAPValidationStatus.RESPONSE_INVALID;
-      return;
+      results.add(RDAPValidationResult.builder()
+                      .code(-13001)
+                      .value("response body not given")
+                      .message("The response was not valid JSON.")
+                      .build());
     }
 
     /* If a response is available to the tool, but the HTTP status code is not 200 nor 404, exit

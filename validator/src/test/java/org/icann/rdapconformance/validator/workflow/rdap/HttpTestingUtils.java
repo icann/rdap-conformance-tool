@@ -54,11 +54,18 @@ public abstract class HttpTestingUtils {
   public void setUp() {
     doReturn(10).when(config).getTimeout();
     doReturn(3).when(config).getMaxRedirects();
-    doReturn(Set.of(RDAPValidationResult.builder()
-            .code(-13000)
-            .value("Content-Type")
-            .message("The content-type header does not contain the application/rdap+json media type.")
-            .build()))
+    doReturn(Set.of(
+            RDAPValidationResult.builder()
+                    .code(-13000)
+                    .value("Content-Type")
+                    .message("The content-type header does not contain the application/rdap+json media type.")
+                    .build(),
+            RDAPValidationResult.builder()
+                    .code(-13001)
+                    .value("response body not given")
+                    .message("The response was not valid JSON.")
+                    .build()
+            ))
             .when(results).getAll();
   }
 
