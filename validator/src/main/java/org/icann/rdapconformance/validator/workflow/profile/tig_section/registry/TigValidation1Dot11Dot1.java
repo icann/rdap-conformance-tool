@@ -1,10 +1,12 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -12,10 +14,12 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.BootstrapDomainNameSpace;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class TigValidation1Dot11Dot1 extends ProfileValidation {
 
-
+  private final static Logger logger = LoggerFactory.getLogger(TigValidation1Dot11Dot1.class);
   private final RDAPValidatorConfiguration config;
   private final RDAPDatasetService datasetService;
   private final RDAPQueryType queryType;
@@ -39,8 +43,8 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
     boolean isValid = true;
 
     BootstrapDomainNameSpace dataset = datasetService.get(BootstrapDomainNameSpace.class);
-    String tld = config.getUri().toString()
-        .substring(config.getUri().toString().lastIndexOf(".") + 1).toLowerCase(Locale.ROOT);
+    String urlWithoutPort = removePortInURL();
+    String tld = urlWithoutPort.substring(urlWithoutPort.lastIndexOf(".") + 1).toLowerCase(Locale.ROOT);
 
     if (!dataset.tldExists(tld)) {
       results.add(RDAPValidationResult.builder()
@@ -53,7 +57,7 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
       isValid = false;
     } else {
       Set<String> urls = dataset.getUrlsForTld(tld);
-      if (urls.stream().noneMatch(u -> config.getUri().toString().startsWith(u))) {
+      if (StringUtils.isNoneBlank(urlWithoutPort) && urls.stream().noneMatch(urlWithoutPort::startsWith)) {
         results.add(RDAPValidationResult.builder()
             .code(-23101)
             .value(urls.stream().sorted().collect(Collectors.joining(", ")))
@@ -79,5 +83,16 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
   @Override
   public boolean doLaunch() {
     return config.isGtldRegistry() && queryType.equals(RDAPQueryType.DOMAIN);
+  }
+
+  private String removePortInURL() {
+    URI uri = URI.create(config.getUri().toString());
+    try {
+      uri = new URI(uri.getScheme(), uri.getHost(), uri.getPath(), uri.getFragment());
+    } catch (URISyntaxException e) {
+      logger.error("URI has a syntax issue: ", e);
+      return StringUtils.EMPTY;
+    }
+    return uri.toString();
   }
 }

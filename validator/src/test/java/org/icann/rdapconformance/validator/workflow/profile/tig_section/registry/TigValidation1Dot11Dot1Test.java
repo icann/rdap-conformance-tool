@@ -33,7 +33,7 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
     super.setUp();
     queryType = RDAPQueryType.DOMAIN;
     doReturn(dataset).when(rdapDatasetService).get(BootstrapDomainNameSpace.class);
-    doReturn(URI.create("https://domain.test/rdap/test.example")).when(config).getUri();
+    doReturn(URI.create("https://domain.test:433/rdap/test.example")).when(config).getUri();
     doReturn(true).when(config).isGtldRegistry();
     doReturn(true).when(dataset).tldExists("example");
     doReturn(Set.of("https://domain.abc/rdap", "https://domain.test/rdap")).when(dataset)
