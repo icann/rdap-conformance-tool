@@ -54,6 +54,8 @@ public abstract class HttpTestingUtils {
   public void setUp() {
     doReturn(10).when(config).getTimeout();
     doReturn(3).when(config).getMaxRedirects();
+    String response = "{\"NoObjectClassName\": \"domain\"}";
+    String responseNameServer = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";
     doReturn(Set.of(
             RDAPValidationResult.builder()
                     .code(-13000)
@@ -64,6 +66,16 @@ public abstract class HttpTestingUtils {
                     .code(-13001)
                     .value("response body not given")
                     .message("The response was not valid JSON.")
+                    .build(),
+            RDAPValidationResult.builder()
+                    .code(-13003)
+                    .value(response)
+                    .message("The response does not have an objectClassName string.")
+                    .build(),
+            RDAPValidationResult.builder()
+                    .code(-13003)
+                    .value(responseNameServer)
+                    .message("The response does not have an objectClassName string.")
                     .build()
             ))
             .when(results).getAll();

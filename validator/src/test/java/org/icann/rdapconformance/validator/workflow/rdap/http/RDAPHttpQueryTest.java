@@ -306,9 +306,10 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   @Test
-  public void checkWithQueryType_NoObjectClassNameInJsonResponse_ReturnsErrorStatus8() {
+  public void checkWithQueryType_NoObjectClassNameInJsonResponse_ReturnsErrorCode13003InResults() {
     givenUri("http");
     String response = "{\"NoObjectClassName\": \"domain\"}";
+    rdapHttpQuery.setResults(results);
 
     stubFor(get(urlEqualTo(REQUEST_PATH))
         .withScheme("http")
@@ -318,8 +319,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     assertThat(rdapHttpQuery.run()).isTrue();
     assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.DOMAIN)).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus())
-        .isEqualTo(RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND);
+    assertThat(results.getAll()).contains(
+            RDAPValidationResult.builder()
+                    .code(-13003)
+                    .value(response)
+                    .message("The response does not have an objectClassName string.")
+                    .build());
 
   }
 
@@ -340,9 +345,10 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   @Test
-  public void checkWithQueryType_JsonResponseIsNotAnArray_ReturnsErrorStatus8() {
+  public void checkWithQueryType_JsonResponseIsNotAnArray_ReturnsErrorCode13003InResults() {
     String path = "/nameservers?ip=.*";
     String response = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";
+    rdapHttpQuery.setResults(results);
 
     givenUri("http", path);
     stubFor(get(urlEqualTo(path))
@@ -353,8 +359,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     assertThat(rdapHttpQuery.run()).isTrue();
     assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.NAMESERVERS)).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus())
-        .isEqualTo(RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND);
+    assertThat(results.getAll()).contains(
+            RDAPValidationResult.builder()
+                    .code(-13003)
+                    .value(response)
+                    .message("The response does not have an objectClassName string.")
+                    .build());
 
   }
 }
