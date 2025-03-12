@@ -72,16 +72,24 @@ public class RDAPHttpQuery implements RDAPQuery {
      * object was not found for a lookup query (i.e. domain/<domain name>,
      * nameserver/<nameserver name> and entity/<handle>) nor the expected JSON array
      * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
-     * not validation on the contents) for a search query, exit with an return code of 8.
+     * not validation on the contents) for a search query, code error -13003 added in results file.
      */
     if (httpResponse.statusCode() == 200) {
       if (queryType.isLookupQuery() && !jsonResponseValid()) {
         logger.error("objectClassName was not found in the topmost object");
-        status = RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND;
+        results.add(RDAPValidationResult.builder()
+                .code(-13003)
+                .value(httpResponse.body())
+                .message("The response does not have an objectClassName string.")
+                .build());
         return false;
       } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
         logger.error("No JSON array in answer");
-        status = RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND;
+        results.add(RDAPValidationResult.builder()
+                .code(-13003)
+                .value(httpResponse.body())
+                .message("The response does not have an objectClassName string.")
+                .build());
         return false;
       }
     }
@@ -181,6 +189,7 @@ public class RDAPHttpQuery implements RDAPQuery {
               .value(headers.firstValue("Content-Type").orElse("missing"))
               .message("The content-type header does not contain the application/rdap+json media type.")
               .build());
+      return;
     }
 
     /*
@@ -195,6 +204,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                       .value("response body not given")
                       .message("The response was not valid JSON.")
                       .build());
+      return;
     }
 
     /* If a response is available to the tool, but the HTTP status code is not 200 nor 404, exit
