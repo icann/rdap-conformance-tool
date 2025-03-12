@@ -25,6 +25,10 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4 extends
 
   @Override
   protected boolean doValidateEntity(String jsonPointer, JSONObject entity) {
+    if (isChildOfRegistrar(jsonPointer)) {
+      return true;
+    }
+
     Set<String> withRemarkTitleRedactedForPrivacy =
         getPointerFromJPath(entity, "$.remarks[?(@.title == 'REDACTED FOR PRIVACY')]");
 
