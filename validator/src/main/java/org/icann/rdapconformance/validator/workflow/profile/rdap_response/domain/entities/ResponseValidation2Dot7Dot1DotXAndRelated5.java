@@ -2,22 +2,17 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import java.util.HashSet;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 8.8.1.5
  */
 public class ResponseValidation2Dot7Dot1DotXAndRelated5 extends
     ResponseValidation2Dot7Dot1DotXAndRelated {
-    private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot1DotXAndRelated5.class);
 
     private final Set<String> roles = new HashSet<>();
 
@@ -54,31 +49,5 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated5 extends
         }
 
         return isValid;
-    }
-
-    private boolean isChildOfRegistrar(String jsonPointer) {
-        int level = StringUtils.countMatches(jsonPointer, "entities");
-
-        if (level == 1) {
-            jsonPointer = jsonPointer + "/roles";
-
-            JSONArray roles = (JSONArray) jsonObject.query(jsonPointer);
-
-            for (Object role : roles) {
-                if ("registrar".equalsIgnoreCase(role.toString())) {
-                    return true;
-                }
-            }
-        } else if (level > 1) {
-            // it is child
-            jsonPointer = jsonPointer.substring(0, jsonPointer.lastIndexOf("entities") - 1);
-
-            return isChildOfRegistrar(jsonPointer);
-        } else {
-            //level < 1, i.e. "entities" is not found in the jsonPointer, should never happen
-            logger.warn("level = {}, jsonPointer = {}", level, jsonPointer);
-        }
-
-        return false;
     }
 }
