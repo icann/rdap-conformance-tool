@@ -271,6 +271,11 @@ public class RDAPValidator implements ValidatorWorkflow {
       rdapProfileFebruary2019.validate();
     }
 
+    if (config.useRdapProfileFeb2024()) {
+      logger.info("Validations for 2024 profile");
+    }
+
+
     query.getStatusCode().ifPresent(rdapValidationResultFile::build);
 
     this.resultsPath = rdapValidationResultFile.resultPath;

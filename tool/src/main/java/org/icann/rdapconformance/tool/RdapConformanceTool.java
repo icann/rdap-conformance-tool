@@ -92,22 +92,25 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Override
   public boolean useRdapProfileFeb2019() {
-    return this.dependantRdapProfileGtld.useRdapProfileFeb2019;
-  }
+    return this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2019;}
+
+  @Override
+  public boolean useRdapProfileFeb2024() { return this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2024; }
+
 
   @Override
   public boolean isGtldRegistrar() {
-    return this.dependantRdapProfileGtld.exclusiveGtldType.gtldRegistrar;
+    return this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.gtldRegistrar;
   }
 
   @Override
   public boolean isGtldRegistry() {
-    return this.dependantRdapProfileGtld.exclusiveGtldType.dependantRegistryThin.gtldRegistry;
+    return this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.dependantRegistryThin.gtldRegistry;
   }
 
   @Override
   public boolean isThin() {
-    return this.dependantRdapProfileGtld.exclusiveGtldType.dependantRegistryThin.thin;
+    return this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.dependantRegistryThin.thin;
   }
 
   @Override
@@ -126,12 +129,27 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   }
 
   private static class DependantRdapProfileGtld {
+    @ArgGroup(multiplicity = "1", exclusive = false)
+    ExclusiveRdapProfile exclusiveRdapProfile = new ExclusiveRdapProfile();
+  }
 
-    @Option(names = {"--use-rdap-profile-february-2019"},
-        description = "Use RDAP Profile February 2019", defaultValue = "false")
-    boolean useRdapProfileFeb2019 = false;
+  private static class ExclusiveRdapProfile {
+
+    @ArgGroup()
+    private DependantRdapProfile dependantRdapProfile = new DependantRdapProfile();
+
     @ArgGroup(multiplicity = "1")
     ExclusiveGtldType exclusiveGtldType = new ExclusiveGtldType();
+
+  }
+
+  private static class DependantRdapProfile {
+    @Option(names = {"--use-rdap-profile-february-2019"},
+            description = "Use RDAP Profile February 2019", defaultValue = "false")
+    boolean useRdapProfileFeb2019 = false;
+    @Option(names = {"--use-rdap-profile-february-2024"},
+            description = "Use RDAP Profile February 2024", required = true)
+    private boolean useRdapProfileFeb2024 = false;
   }
 
   private static class ExclusiveGtldType {
