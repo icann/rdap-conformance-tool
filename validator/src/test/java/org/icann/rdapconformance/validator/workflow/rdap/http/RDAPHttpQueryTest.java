@@ -267,6 +267,24 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                     .build());
   }
 
+  @Test
+  public void test_InvalidHttpStatus_ErrorCode13002AddedInResults() {
+    rdapHttpQuery.setResults(results);
+
+    givenUri("http");
+    stubFor(get(urlEqualTo(REQUEST_PATH))
+        .withScheme("http")
+        .willReturn(aResponse().withStatus(403)));
+
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(results.getAll()).contains(
+        RDAPValidationResult.builder()
+            .code(-13002)
+            .value("403")
+            .message("The HTTP status code was neither 200 nor 404.")
+            .build());
+  }
+
   @Ignore("revoked.badssl.com has an expired certificate nowadays, so this test will always fails")
   @Test(dataProvider = "tlsErrors")
   public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,

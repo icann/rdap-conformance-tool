@@ -9,13 +9,6 @@ public enum RDAPValidationStatus {
   UNSUPPORTED_QUERY(3, "The RDAP query is not supported by the tool."),
   MIXED_LABEL_FORMAT(4, "The RDAP query is domain/<domain name> or nameserver/<nameserver>, "
       + "but A-labels and U-labels are mixed."),
-  WRONG_CONTENT_TYPE(5, "A response was available to the tool, but the Content-Type is not "
-      + "application/rdap+JSON in the response."),
-  RESPONSE_INVALID(6, "A response was available to the tool, the Content-Type is "
-      + "application/rdap+JSON in the response, but the RDAP response is not a syntactically "
-      + "valid JSON object."),
-  INVALID_HTTP_STATUS(7, "A response was available to the tool, the Content-Type is "
-      + "application/rdap+JSON in the response, but the HTTP Status is not 200 nor 404."),
   EXPECTED_OBJECT_NOT_FOUND(8, "A response was available to the tool, the Content-Type is "
       + "application/rdap+JSON in the response, the HTTP Status is 200 or 404, but the expected "
       + "objectClassName in the topmost object was not found for a lookup query or the JSON "

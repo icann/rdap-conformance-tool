@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public abstract class ResponseValidation2Dot7Dot1DotXAndRelated extends
     EntitiesWithinDomainProfileJsonValidation {
 
-  private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot1DotXAndRelated5.class);
+  private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot1DotXAndRelated.class);
 
   public ResponseValidation2Dot7Dot1DotXAndRelated(String rdapResponse,
       RDAPValidatorResults results,

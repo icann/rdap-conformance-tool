@@ -207,13 +207,16 @@ public class RDAPHttpQuery implements RDAPQuery {
       return;
     }
 
-    /* If a response is available to the tool, but the HTTP status code is not 200 nor 404, exit
-     * with a return code of 7.
+    /* If a response is available to the tool, but the HTTP status code is not 200 nor 404, error
+     * code -13002 added in results file
      */
     if (!List.of(200, 404).contains(httpStatusCode)) {
       logger.error("Invalid HTTP status {}", httpStatusCode);
-      status = RDAPValidationStatus.INVALID_HTTP_STATUS;
-      return;
+      results.add(RDAPValidationResult.builder()
+          .code(-13002)
+          .value(String.valueOf(httpStatusCode))
+          .message("The HTTP status code was neither 200 nor 404.")
+          .build());
     }
   }
 

@@ -68,6 +68,11 @@ public abstract class HttpTestingUtils {
                     .message("The response was not valid JSON.")
                     .build(),
             RDAPValidationResult.builder()
+                    .code(-13002)
+                    .value("403")
+                    .message("The HTTP status code was neither 200 nor 404.")
+                    .build(),
+            RDAPValidationResult.builder()
                     .code(-13003)
                     .value(response)
                     .message("The response does not have an objectClassName string.")
