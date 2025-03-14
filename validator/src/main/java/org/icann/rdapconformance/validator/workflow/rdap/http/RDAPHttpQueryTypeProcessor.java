@@ -54,7 +54,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
       String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
       RDAPValidatorResults testDomainResults = new RDAPValidatorResultsImpl();
       SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults,
-          datasetService);
+          datasetService, config);
       if (!validator.validate(domainNameJson)) {
         // TODO check if A-labels and U-labels are mixed: is this OK?
         if (testDomainResults.getAll().stream()

@@ -32,12 +32,74 @@ public abstract class SchemaValidatorTest {
   protected String name;
   protected static final String WRONG_ENUM_VALUE = "wrong enum value";
   protected String validationName;
+  protected RDAPValidatorConfiguration config;
 
   public SchemaValidatorTest(
       String schemaName,
       String validJsonResourcePath) {
     this.validJsonResourcePath = validJsonResourcePath;
     this.schemaName = schemaName;
+    this.config = new RDAPValidatorConfiguration() {
+      @Override
+      public URI getConfigurationFile() {
+        return null;
+      }
+
+      @Override
+      public URI getUri() {
+        return null;
+      }
+
+      @Override
+      public void setUri(URI uri) {
+
+      }
+
+      @Override
+      public int getTimeout() {
+        return 0;
+      }
+
+      @Override
+      public int getMaxRedirects() {
+        return 0;
+      }
+
+      @Override
+      public boolean useLocalDatasets() {
+        return false;
+      }
+
+      @Override
+      public boolean useRdapProfileFeb2019() {
+        return false;
+      }
+
+      @Override
+      public boolean isGtldRegistrar() {
+        return false;
+      }
+
+      @Override
+      public boolean isGtldRegistry() {
+        return false;
+      }
+
+      @Override
+      public boolean isThin() {
+        return false;
+      }
+
+      @Override
+      public boolean isNoIPV4Queries() {
+        return false;
+      }
+
+      @Override
+      public RDAPQueryType getQueryType() {
+        return null;
+      }
+    };
   }
 
   public static String getResource(String path) throws IOException {
@@ -59,7 +121,7 @@ public abstract class SchemaValidatorTest {
     results = new RDAPValidatorResultsImpl();
     rdapContent = getResource(validJsonResourcePath);
     jsonObject = new JSONObject(rdapContent);
-    schemaValidator = new SchemaValidator(schemaName, results, datasets);
+    schemaValidator = new SchemaValidator(schemaName, results, datasets, config);
     name = schemaValidator.getSchema().getTitle();
   }
 
