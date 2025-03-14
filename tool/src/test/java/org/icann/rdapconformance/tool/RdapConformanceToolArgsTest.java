@@ -81,7 +81,7 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testThinArg_WithGtldRegistry_IsOk() {
-    String[] args = "--config=/tmp/test --thin --gtld-registry http://example.org".split(" ");
+    String[] args = "--config=/tmp/test --thin --gtld-registry http://example.org --use-rdap-profile-february-2019".split(" ");
 
     assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
         .doesNotThrowAnyException();
@@ -101,5 +101,22 @@ public class RdapConformanceToolArgsTest {
 
     assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
         .doesNotThrowAnyException();
+  }
+
+  @Test
+  public void testUseProfile2024Arg_IsBadMissingRegistrar() {
+    String[] args = "--config=/tmp/test --use-rdap-profile-february-2024 http://example.org".split(" ");
+
+    assertThatExceptionOfType(MissingParameterException.class).isThrownBy(
+                    () -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
+            .withMessage("Error: Missing required argument(s): ([--gtld-registrar] | [--gtld-registry [--thin]])");
+  }
+
+  @Test
+  public void testUseProfile2024Arg_IsOk() {
+    String[] args = "--config=/tmp/test --gtld-registrar --use-rdap-profile-february-2024 http://example.org".split(" ");
+
+    assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
+            .doesNotThrowAnyException();
   }
 }
