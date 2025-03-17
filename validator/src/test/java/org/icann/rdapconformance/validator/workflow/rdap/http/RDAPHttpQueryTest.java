@@ -336,7 +336,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .withBody(response)));
 
     assertThat(rdapHttpQuery.run()).isTrue();
-    assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.DOMAIN)).isFalse();
+    assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.DOMAIN)).isTrue();
     assertThat(results.getAll()).contains(
             RDAPValidationResult.builder()
                     .code(-13003)
@@ -376,7 +376,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .withBody(response)));
 
     assertThat(rdapHttpQuery.run()).isTrue();
-    assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.NAMESERVERS)).isFalse();
+    assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.NAMESERVERS)).isTrue();
     assertThat(results.getAll()).contains(
             RDAPValidationResult.builder()
                     .code(-13003)

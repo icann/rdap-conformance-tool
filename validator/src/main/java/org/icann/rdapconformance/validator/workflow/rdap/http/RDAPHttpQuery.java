@@ -82,7 +82,6 @@ public class RDAPHttpQuery implements RDAPQuery {
                 .value(httpResponse.body())
                 .message("The response does not have an objectClassName string.")
                 .build());
-        return false;
       } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
         logger.error("No JSON array in answer");
         results.add(RDAPValidationResult.builder()
@@ -90,7 +89,6 @@ public class RDAPHttpQuery implements RDAPQuery {
                 .value(httpResponse.body())
                 .message("The response does not have an objectClassName string.")
                 .build());
-        return false;
       }
     }
     return true;
@@ -189,7 +187,6 @@ public class RDAPHttpQuery implements RDAPQuery {
               .value(headers.firstValue("Content-Type").orElse("missing"))
               .message("The content-type header does not contain the application/rdap+json media type.")
               .build());
-      return;
     }
 
     /*
@@ -204,7 +201,6 @@ public class RDAPHttpQuery implements RDAPQuery {
                       .value("response body not given")
                       .message("The response was not valid JSON.")
                       .build());
-      return;
     }
 
     /* If a response is available to the tool, but the HTTP status code is not 200 nor 404, error
