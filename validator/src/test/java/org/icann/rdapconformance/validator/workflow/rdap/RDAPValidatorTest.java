@@ -12,7 +12,7 @@ import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
-import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2019;
+import org.icann.rdapconformance.validator.workflow.profile.RDAPProfile;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -25,7 +25,7 @@ public class RDAPValidatorTest {
   private final ConfigurationFileParser configParser = mock(ConfigurationFileParser.class);
   private final RDAPValidatorResults results = mock(RDAPValidatorResults.class);
   private final RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
-  private final RDAPProfileFebruary2019 rdapProfileFebruary2019 = mock(RDAPProfileFebruary2019.class);
+  private final RDAPProfile rdapProfile = mock(RDAPProfile.class);
   private final DomainCaseFoldingValidation domainCaseFoldingValidation = mock(DomainCaseFoldingValidation.class);
   private RDAPValidator validator;
 
@@ -77,7 +77,7 @@ public class RDAPValidatorTest {
     doReturn(true).when(query).checkWithQueryType(RDAPQueryType.DOMAIN);
     doReturn(true).when(query).isErrorContent();
 
-   verify(rdapProfileFebruary2019, times(0)).validate();
+   verify(rdapProfile, times(0)).validate();
   }
 
   @Test

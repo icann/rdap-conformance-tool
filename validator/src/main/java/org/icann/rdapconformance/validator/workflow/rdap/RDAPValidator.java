@@ -12,7 +12,7 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
-import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileFebruary2019;
+import org.icann.rdapconformance.validator.workflow.profile.RDAPProfile;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot10;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot11;
@@ -50,6 +50,7 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot14;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot3;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot3_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot6;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4;
@@ -182,11 +183,12 @@ public class RDAPValidator implements ValidatorWorkflow {
     
     /*
      * Additionally, apply the relevant collection tests when the option
-     * --use-rdap-profile-february-2019 is set.
+     * --use-rdap-profile-february-2019 or --use-rdap-profile-february-2024 is set
      * query.isErrorContent() added as condition in cases where they have 404 as status code
      */
-    if (config.useRdapProfileFeb2019() && !query.isErrorContent()) {
-        RDAPProfileFebruary2019 rdapProfileFebruary2019 = new RDAPProfileFebruary2019(
+    if ((config.useRdapProfileFeb2019() || config.useRdapProfileFeb2024()) && !query.isErrorContent()) {
+        logger.info("Validations for 2019 profile");
+        RDAPProfile rdapProfile = new RDAPProfile(
           List.of(
               new TigValidation1Dot2(rdapResponse, config, results),
               new TigValidation1Dot3(rdapResponse, config, results),
@@ -268,11 +270,21 @@ public class RDAPValidator implements ValidatorWorkflow {
               new ResponseValidation4Dot3(query.getData(), results,
                   datasetService, queryTypeProcessor.getQueryType())
           ));
-      rdapProfileFebruary2019.validate();
+      rdapProfile.validate();
     }
 
-    if (config.useRdapProfileFeb2024()) {
+    /*
+     * Additionally, apply the relevant collection tests when the option
+     * --use-rdap-profile-february-2024 is set
+     * query.isErrorContent() added as condition in cases where they have 404 as status code
+     */
+    if (config.useRdapProfileFeb2024() && !query.isErrorContent()) {
       logger.info("Validations for 2024 profile");
+      RDAPProfile rdapProfile = new RDAPProfile(
+          List.of(
+              new TigValidation1Dot3_2024(query.getData(), results)
+          ));
+      rdapProfile.validate();
     }
 
 
