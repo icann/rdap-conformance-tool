@@ -4,12 +4,12 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RDAPProfileFebruary2019 {
+public class RDAPProfile {
 
-  private static final Logger logger = LoggerFactory.getLogger(RDAPProfileFebruary2019.class);
+  private static final Logger logger = LoggerFactory.getLogger(RDAPProfile.class);
   private final List<ProfileValidation> validations;
 
-  public RDAPProfileFebruary2019(List<ProfileValidation> validations) {
+  public RDAPProfile(List<ProfileValidation> validations) {
     this.validations = validations;
   }
 
