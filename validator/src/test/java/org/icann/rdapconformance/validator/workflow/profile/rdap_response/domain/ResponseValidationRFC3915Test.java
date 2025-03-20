@@ -14,21 +14,21 @@ public class ResponseValidationRFC3915Test extends ResponseDomainValidationTestB
   @DataProvider(name = "invalidStatusRedemption")
   public static Object[][] invalidStatusRedemption() {
     return new Object[][]{
-        {Set.of("redemption period", "pending delete", "any")}
+        {Set.of("redemption period", "any")}
     };
   }
 
   @DataProvider(name = "invalidStatusPendingRestore")
   public static Object[][] invalidStatusPendingRestore() {
     return new Object[][]{
-            {Set.of("pending restore", "pending delete", "any")}
+            {Set.of("pending restore", "any")}
     };
   }
 
   @DataProvider(name = "validStatus")
   public static Object[][] validStatus() {
-    return new Object[][]{{Set.of("redemption period", "any")},
-        {Set.of("pending restore")}
+    return new Object[][]{{Set.of("redemption period", "any", "pending delete")},
+        {Set.of("pending restore", "pending delete")}
     };
   }
 
