@@ -75,6 +75,10 @@ public class RDAPHttpQuery implements RDAPQuery {
      * not validation on the contents) for a search query, code error -13003 added in results file.
      */
     if (httpResponse.statusCode() == 200) {
+      if(!jsonResponse.isValid()) {
+        logger.error("The response was not valid JSON");
+        return false;
+      }
       if (queryType.isLookupQuery() && !jsonResponseValid()) {
         logger.error("objectClassName was not found in the topmost object");
         results.add(RDAPValidationResult.builder()
@@ -219,6 +223,7 @@ public class RDAPHttpQuery implements RDAPQuery {
   /**
    * Check if the RDAP json response contains a specific key.
    */
+
   private boolean jsonResponseValid() {
     return null != jsonResponse && jsonResponse.hasKey("objectClassName");
   }
