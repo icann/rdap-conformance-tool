@@ -29,22 +29,20 @@ public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
     jsonObject.optJSONArray("status").forEach(s -> status.add((String) s));
 
     // Status -47000 was added into ignored list and changed for new codes -47001 and -47002
-    if(status.contains("pending delete")) {
-      if (status.contains("redemption period")) {
-        results.add(RDAPValidationResult.builder()
-                .code(-47001)
-                .value(getResultValue("#/status"))
-                .message("'redemption period' is only valid with a status of 'pending delete'")
-                .build());
-        return false;
-      } else if (status.contains("pending restore")) {
-        results.add(RDAPValidationResult.builder()
-                .code(-47102)
-                .value(getResultValue("#/status"))
-                .message("'pending restore' is only valid with a status of 'pending delete'")
-                .build());
-        return false;
-      }
+    if (status.contains("redemption period") && !status.contains("pending delete")) {
+      results.add(RDAPValidationResult.builder()
+              .code(-47001)
+              .value(getResultValue("#/status"))
+              .message("'redemption period' is only valid with a status of 'pending delete'")
+              .build());
+      return false;
+    } else if (status.contains("pending restore") && !status.contains("pending delete")) {
+      results.add(RDAPValidationResult.builder()
+              .code(-47102)
+              .value(getResultValue("#/status"))
+              .message("'pending restore' is only valid with a status of 'pending delete'")
+              .build());
+      return false;
     }
     return true;
   }
