@@ -54,87 +54,91 @@ public class RDAPHttpQuery implements RDAPQuery {
         System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
     }
 
-    /**
-     * Launch the HTTP request and validate it.
-     */
-    @Override
-    public boolean run() {
-        this.makeRequest();
-        this.validate();
-        return this.isQuerySuccessful();
-    }
+  /**
+   * Launch the HTTP request and validate it.
+   */
+  @Override
+  public boolean run() {
+    this.makeRequest();
+    this.validate();
+    return this.isQuerySuccessful();
+  }
 
-    /**
-     * Get the HTTP response status code
-     */
-    @Override
-    public Optional<Integer> getStatusCode() {
-        return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
-    }
+  /**
+   * Get the HTTP response status code
+   */
+  @Override
+  public Optional<Integer> getStatusCode() {
+    return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
+  }
 
-    @Override
-    public boolean checkWithQueryType(RDAPQueryType queryType) {
-        /*
-         * If a response is available to the tool, but the expected objectClassName in the topmost
-         * object was not found for a lookup query (i.e. domain/<domain name>,
-         * nameserver/<nameserver name> and entity/<handle>) nor the expected JSON array
-         * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
-         * not validation on the contents) for a search query, code error -13003 added in results file.
-         */
-        if (httpResponse.statusCode() == HTTP_OK) {
-            if (queryType.isLookupQuery() && !jsonResponseValid()) {
-                logger.error("objectClassName was not found in the topmost object");
-                results.add(RDAPValidationResult.builder()
-                                                .code(-13003)
-                                                .value(httpResponse.body())
-                                                .message("The response does not have an objectClassName string.")
-                                                .build());
-            } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
-                logger.error("No JSON array in answer");
-                results.add(RDAPValidationResult.builder()
-                                                .code(-13003)
-                                                .value(httpResponse.body())
-                                                .message("The response does not have an objectClassName string.")
-                                                .build());
-            }
-        }
-        return true;
+  @Override
+  public boolean checkWithQueryType(RDAPQueryType queryType) {
+    /*
+     * If a response is available to the tool, but the expected objectClassName in the topmost
+     * object was not found for a lookup query (i.e. domain/<domain name>,
+     * nameserver/<nameserver name> and entity/<handle>) nor the expected JSON array
+     * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
+     * not validation on the contents) for a search query, code error -13003 added in results file.
+     */
+    if (httpResponse.statusCode() == HTTP_OK) {
+      if(!jsonResponse.isValid()) {
+        logger.error("The response was not valid JSON");
+        return false;
+      }
+      if (queryType.isLookupQuery() && !jsonResponseValid()) {
+        logger.error("objectClassName was not found in the topmost object");
+        results.add(RDAPValidationResult.builder()
+                .code(-13003)
+                .value(httpResponse.body())
+                .message("The response does not have an objectClassName string.")
+                .build());
+      } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
+        logger.error("No JSON array in answer");
+        results.add(RDAPValidationResult.builder()
+                .code(-13003)
+                .value(httpResponse.body())
+                .message("The response does not have an objectClassName string.")
+                .build());
+      }
     }
+    return true;
+  }
 
     @Override
     public boolean isErrorContent() {
         return httpResponse.statusCode() == HTTP_NOT_FOUND;
     }
 
-    @Override
-    public String getData() {
-        return httpResponse.body();
-    }
+  @Override
+  public String getData() {
+    return httpResponse.body();
+  }
 
-    @Override
-    public Object getRawResponse() {
-        return httpResponse;
-    }
+  @Override
+  public Object getRawResponse() {
+    return httpResponse;
+  }
 
-    @Override
-    public void setResults(RDAPValidatorResults results) {
-        this.results = results;
-    }
+  @Override
+  public void setResults(RDAPValidatorResults results) {
+    this.results = results;
+  }
 
-    /**
-     * Check if we got errors with the RDAP HTTP request.
-     */
-    private boolean isQuerySuccessful() {
-        return status == null;
-    }
+  /**
+   * Check if we got errors with the RDAP HTTP request.
+   */
+  private boolean isQuerySuccessful() {
+    return status == null;
+  }
 
 
-    /**
-     * Get the RDAP status in case of error
-     */
-    public RDAPValidationStatus getErrorStatus() {
-        return status;
-    }
+  /**
+   * Get the RDAP status in case of error
+   */
+  public RDAPValidationStatus getErrorStatus() {
+    return status;
+  }
 
 
     private void makeRequest() {
@@ -331,47 +335,47 @@ public class RDAPHttpQuery implements RDAPQuery {
         return false;
     }
 
-    static class JsonData {
+  static class JsonData {
 
-        private Map<String, Object> rawRdapMap = null;
-        private List<Object> rawRdapList = null;
+    private Map<String, Object> rawRdapMap = null;
+    private List<Object> rawRdapList = null;
 
 
-        private JsonData(String data) {
-            ObjectMapper mapper = new ObjectMapper();
+    private JsonData(String data) {
+      ObjectMapper mapper = new ObjectMapper();
 
-            try {
-                rawRdapMap = mapper.readValue(data, Map.class);
-            } catch (Exception e1) {
-                // JSON content may be a list
-                try {
-                    rawRdapList = mapper.readValue(data, List.class);
-                } catch (Exception e2) {
-                    logger.error("Invalid JSON in RDAP response");
-                }
-            }
+      try {
+        rawRdapMap = mapper.readValue(data, Map.class);
+      } catch (Exception e1) {
+        // JSON content may be a list
+        try {
+          rawRdapList = mapper.readValue(data, List.class);
+        } catch (Exception e2) {
+          logger.error("Invalid JSON in RDAP response");
         }
-
-        /**
-         * Parse the data into JSON.
-         */
-        public boolean isValid() {
-            return rawRdapMap != null || rawRdapList != null;
-        }
-
-        /**
-         * Check whether the JSON data is an array.
-         */
-        public boolean isArray() {
-            return rawRdapList != null;
-        }
-
-        public boolean hasKey(String key) {
-            return isValid() && !isArray() && rawRdapMap.containsKey(key);
-        }
-
-        public Object getValue(String key) {
-            return rawRdapMap.get(key);
-        }
+      }
     }
+
+    /**
+     * Parse the data into JSON.
+     */
+    public boolean isValid() {
+      return rawRdapMap != null || rawRdapList != null;
+    }
+
+    /**
+     * Check whether the JSON data is an array.
+     */
+    public boolean isArray() {
+      return rawRdapList != null;
+    }
+
+    public boolean hasKey(String key) {
+      return isValid() && !isArray() && rawRdapMap.containsKey(key);
+    }
+
+    public Object getValue(String key) {
+      return rawRdapMap.get(key);
+    }
+  }
 }
