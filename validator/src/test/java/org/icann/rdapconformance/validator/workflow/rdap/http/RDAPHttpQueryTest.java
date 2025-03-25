@@ -254,9 +254,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(result).isTrue();
     assertThat(results.getAll()).contains(
         RDAPValidationResult.builder()
-                            .code(-9999)
-                            .value("query params blindly copied")
-                            .message("The query parameters were blindly copied into the location header.")
+                            .code(-13004)
+                            .value("<location header value>")
+                            .message("Response redirect contained query parameters copied from the request.")
                             .build());
   }
 
@@ -277,9 +277,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(result).isFalse();
     assertThat(results.getAll()).doesNotContain(
         RDAPValidationResult.builder()
-                            .code(-9999)
-                            .value("query params blindly copied")
-                            .message("The query parameters were blindly copied into the location header.")
+                            .code(-13004)
+                            .value("<location header value>")
+                            .message("Response redirect contained query parameters copied from the request.")
                             .build());
   }
 

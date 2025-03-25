@@ -255,10 +255,10 @@ public class RDAPHttpQuery implements RDAPQuery {
             // They copied the query over, this is bad
             if (originalQuery != null && originalQuery.equals(locationQuery)) {
                 results.add(RDAPValidationResult.builder()
-                                                .code(-9999)
-                                                .value("query params blindly copied")
+                                                .code(-13004)
+                                                .value("<location header value>")
                                                 .message(
-                                                    "The query parameters were blindly copied into the location header.")
+                                                    "Response redirect contained query parameters copied from the request.")
                                                 .build());
                 return true;
             }
