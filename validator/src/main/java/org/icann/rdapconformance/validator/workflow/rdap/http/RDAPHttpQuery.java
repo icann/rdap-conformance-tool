@@ -8,6 +8,7 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -31,6 +32,8 @@ public class RDAPHttpQuery implements RDAPQuery {
     public static final String NAMESERVER_SEARCH_RESULTS = "nameserverSearchResults";
     public static final String APPLICATION_RDAP_JSON = "application/rdap+JSON";
 
+   private List<URI> redirects = new ArrayList<>();
+    private String acceptHeader;
     private final RDAPValidatorConfiguration config;
     private RDAPValidatorResults results = null;
     private HttpResponse<String> httpResponse = null;
@@ -71,6 +74,22 @@ public class RDAPHttpQuery implements RDAPQuery {
   public Optional<Integer> getStatusCode() {
     return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
   }
+
+  // These two (getRedirects and getAcceptHeader) are specific to HTTP queries
+  /**
+   * Get the list of redirects
+   */
+  public List<URI> getRedirects() {
+    return redirects;
+  }
+
+  /**
+   * Get the Accept header
+   */
+  public String getAcceptHeader() {
+    return acceptHeader;
+  }
+
 
   @Override
   public boolean checkWithQueryType(RDAPQueryType queryType) {
@@ -162,6 +181,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                         redirectUri = currentUri.resolve(redirectUri);
                     }
 
+                    redirects.add(redirectUri);
                     logger.info("Redirecting to: {}", redirectUri);
 
                     // this check is only done on redirects
@@ -311,29 +331,30 @@ public class RDAPHttpQuery implements RDAPQuery {
   }
 
   /**
-     * Check if the RDAP json response contains a specific key.
-     */
-    private boolean jsonResponseValid() {
-        return null != jsonResponse && jsonResponse.hasKey("objectClassName");
-    }
+   * Check if the RDAP json response contains a specific key.
+   */
 
-    /**
-     * Check if the RDAP is a JSON array results response
-     */
-    boolean jsonIsSearchResponse() {
-        return null != jsonResponse && jsonResponse.hasKey(NAMESERVER_SEARCH_RESULTS) && jsonResponse.getValue(
-            NAMESERVER_SEARCH_RESULTS) instanceof Collection<?>;
-    }
+  private boolean jsonResponseValid() {
+    return null != jsonResponse && jsonResponse.hasKey("objectClassName");
+  }
 
-    private boolean hasCause(Throwable e, String causeClassName) {
-        while (e.getCause() != null) {
-            if (e.getCause().getClass().getName().equals(causeClassName)) {
-                return true;
-            }
-            e = e.getCause();
-        }
-        return false;
+  /**
+   * Check if the RDAP is a JSON array results response
+   */
+  boolean jsonIsSearchResponse() {
+    return null != jsonResponse && jsonResponse.hasKey("nameserverSearchResults")
+        && jsonResponse.getValue("nameserverSearchResults") instanceof Collection<?>;
+  }
+
+  private boolean hasCause(Throwable e, String causeClassName) {
+    while (e.getCause() != null) {
+      if (e.getCause().getClass().getName().equals(causeClassName)) {
+        return true;
+      }
+      e = e.getCause();
     }
+    return false;
+  }
 
   static class JsonData {
 

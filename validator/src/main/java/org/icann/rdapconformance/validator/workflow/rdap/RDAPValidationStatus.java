@@ -42,4 +42,13 @@ public enum RDAPValidationStatus {
   public String getDescription() {
     return description;
   }
+
+  public static RDAPValidationStatus fromValue(int value) {
+    for (RDAPValidationStatus status : values()) {
+      if (status.value == value) {
+        return status;
+      }
+    }
+    throw new IllegalArgumentException("Unknown value: " + value);
+  }
 }
