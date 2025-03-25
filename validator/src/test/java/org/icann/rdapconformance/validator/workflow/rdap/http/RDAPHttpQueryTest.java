@@ -10,21 +10,32 @@ import static com.github.tomakehurst.wiremock.client.WireMock.temporaryRedirect;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.http.Fault;
-import java.lang.reflect.Method;
-import java.net.URI;
-import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
+
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.http.HttpHeaders;
+import java.util.Optional;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+
 
 public class RDAPHttpQueryTest extends HttpTestingUtils {
 
@@ -193,7 +204,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   }
 
-  @Ignore
   @Test
   public void test_ServerRedirectMoreThanRetries_ReturnsErrorStatus16() {
     String path1 = "/domain/test1.example";
@@ -225,6 +235,52 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     verify(exactly(1), getRequestedFor(urlEqualTo(path2)));
     verify(exactly(1), getRequestedFor(urlEqualTo(path3)));
     verify(exactly(0), getRequestedFor(urlEqualTo(path4)));
+  }
+
+  @Test
+  public void testIsBlindlyCopyingParams() {
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    HttpHeaders headers = mock(HttpHeaders.class);
+    URI originalUri = URI.create("http://example.com?param=value");
+
+    rdapHttpQuery.setResults(results);
+    when(config.getUri()).thenReturn(originalUri);
+    when(headers.firstValue("Location")).thenReturn(Optional.of("http://example.com/redirected?param=value"));
+
+    boolean result = rdapHttpQuery.isBlindlyCopyingParams(headers);
+
+    assertThat(result).isTrue();
+    assertThat(results.getAll()).contains(
+        RDAPValidationResult.builder()
+                            .code(-13004)
+                            .value("<location header value>")
+                            .message("Response redirect contained query parameters copied from the request.")
+                            .build());
+  }
+
+  @Test
+  public void testIsBlindlyCopyingParams_NotCopied() {
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    HttpHeaders headers = mock(HttpHeaders.class);
+    URI originalUri = URI.create("http://example.com?param=value");
+
+    rdapHttpQuery.setResults(results);
+    when(config.getUri()).thenReturn(originalUri);
+    when(headers.firstValue("Location")).thenReturn(Optional.of("http://example.com/redirected"));
+
+    boolean result = rdapHttpQuery.isBlindlyCopyingParams(headers);
+
+    assertThat(result).isFalse();
+    assertThat(results.getAll()).doesNotContain(
+        RDAPValidationResult.builder()
+                            .code(-13004)
+                            .value("<location header value>")
+                            .message("Response redirect contained query parameters copied from the request.")
+                            .build());
   }
 
   @Test
