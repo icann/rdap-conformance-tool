@@ -36,6 +36,7 @@ public class RDAPHttpQuery implements RDAPQuery {
     private HttpResponse<String> httpResponse = null;
     private RDAPValidationStatus status = null;
     private JsonData jsonResponse = null;
+  private boolean isQuerySuccessful = true;
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
@@ -82,10 +83,6 @@ public class RDAPHttpQuery implements RDAPQuery {
      * not validation on the contents) for a search query, code error -13003 added in results file.
      */
     if (httpResponse.statusCode() == HTTP_OK) {
-      if(!jsonResponse.isValid()) {
-        logger.error("The response was not valid JSON");
-        return false;
-      }
       if (queryType.isLookupQuery() && !jsonResponseValid()) {
         logger.error("objectClassName was not found in the topmost object");
         results.add(RDAPValidationResult.builder()
@@ -129,9 +126,8 @@ public class RDAPHttpQuery implements RDAPQuery {
    * Check if we got errors with the RDAP HTTP request.
    */
   private boolean isQuerySuccessful() {
-    return status == null;
+    return status == null && isQuerySuccessful;
   }
-
 
   /**
    * Get the RDAP status in case of error
@@ -139,7 +135,6 @@ public class RDAPHttpQuery implements RDAPQuery {
   public RDAPValidationStatus getErrorStatus() {
     return status;
   }
-
 
     private void makeRequest() {
         try {
@@ -225,6 +220,9 @@ public class RDAPHttpQuery implements RDAPQuery {
                                             .value("response body not given")
                                             .message("The response was not valid JSON.")
                                             .build());
+
+          isQuerySuccessful = false;
+          return;
         }
 
         // If a response is available to the tool, but the HTTP status code is not 200 nor 404, error code -13002 added in results file
@@ -235,8 +233,8 @@ public class RDAPHttpQuery implements RDAPQuery {
                                             .value(String.valueOf(httpStatusCode))
                                             .message("The HTTP status code was neither 200 nor 404.")
                                             .build());
+          isQuerySuccessful = false;
         }
-        // Finished
     }
 
     /**

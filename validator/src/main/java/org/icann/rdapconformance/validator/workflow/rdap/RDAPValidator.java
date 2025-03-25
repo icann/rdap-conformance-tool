@@ -141,12 +141,18 @@ public class RDAPValidator implements ValidatorWorkflow {
     query.setResults(results);
     if (!query.run()) {
       query.getStatusCode().ifPresent(rdapValidationResultFile::build);
+
+      if (query.getErrorStatus() == null) {
+        // it means it is 13001 or 13002, the status will be null and we should exit with code 0
+        return RDAPValidationStatus.SUCCESS.getValue();
+      }
+
       return query.getErrorStatus().getValue();
     }
 
     if (!query.checkWithQueryType(queryTypeProcessor.getQueryType())) {
       query.getStatusCode().ifPresent(rdapValidationResultFile::build);
-      return RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND.getValue();
+      return query.getErrorStatus().getValue();
     }
 
     SchemaValidator validator = null;

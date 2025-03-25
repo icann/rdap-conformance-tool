@@ -314,7 +314,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(results.getAll()).contains(
             RDAPValidationResult.builder()
                     .code(-13001)
@@ -332,7 +332,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         .withScheme("http")
         .willReturn(aResponse().withStatus(403)));
 
-    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(results.getAll()).contains(
         RDAPValidationResult.builder()
             .code(-13002)
