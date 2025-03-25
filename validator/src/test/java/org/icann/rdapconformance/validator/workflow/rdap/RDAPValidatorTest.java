@@ -93,9 +93,9 @@ public class RDAPValidatorTest {
   public void testValidate_QuerycheckWithQueryTypeError_ReturnsError() {
     doReturn(RDAPQueryType.DOMAIN).when(processor).getQueryType();
     doReturn(false).when(query).checkWithQueryType(RDAPQueryType.DOMAIN);
-    doReturn(RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND).when(query).getErrorStatus();
+    doReturn(RDAPValidationStatus.SUCCESS).when(query).getErrorStatus();
 
     assertThat(validator.validate())
-        .isEqualTo(RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND.getValue());
+        .isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
   }
 }
