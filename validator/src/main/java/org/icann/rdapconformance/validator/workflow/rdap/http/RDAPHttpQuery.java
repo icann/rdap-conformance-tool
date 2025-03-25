@@ -39,6 +39,7 @@ public class RDAPHttpQuery implements RDAPQuery {
     private HttpResponse<String> httpResponse = null;
     private RDAPValidationStatus status = null;
     private JsonData jsonResponse = null;
+  private boolean isQuerySuccessful = true;
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
@@ -101,10 +102,6 @@ public class RDAPHttpQuery implements RDAPQuery {
      * not validation on the contents) for a search query, code error -13003 added in results file.
      */
     if (httpResponse.statusCode() == HTTP_OK) {
-      if(!jsonResponse.isValid()) {
-        logger.error("The response was not valid JSON");
-        return false;
-      }
       if (queryType.isLookupQuery() && !jsonResponseValid()) {
         logger.error("objectClassName was not found in the topmost object");
         results.add(RDAPValidationResult.builder()
@@ -148,9 +145,8 @@ public class RDAPHttpQuery implements RDAPQuery {
    * Check if we got errors with the RDAP HTTP request.
    */
   private boolean isQuerySuccessful() {
-    return status == null;
+    return status == null && isQuerySuccessful;
   }
-
 
   /**
    * Get the RDAP status in case of error
@@ -159,9 +155,8 @@ public class RDAPHttpQuery implements RDAPQuery {
     return status;
   }
 
-
     private void makeRequest() {
-        try {
+      try {
             URI currentUri = this.config.getUri();
             int remainingRedirects = this.config.getMaxRedirects();
             HttpResponse<String> response = null;
@@ -170,6 +165,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                 response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
 
                 int status = response.statusCode();
+
                 if (isRedirectStatus(status)) {
                     Optional<String> location = response.headers().firstValue(LOCATION);
                     if (location.isEmpty()) {
@@ -186,6 +182,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
                     // this check is only done on redirects
                     if (isBlindlyCopyingParams(response.headers())) {
+                        httpResponse = response; // Set the response before returning
                         return;
                     }
 
@@ -237,6 +234,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                                             .build());
         }
 
+        System.out.println("Check the JSON data....");
         // If a response is available to the tool, but it's not syntactically valid JSON object, error code -13001 added in results file.
         jsonResponse = new JsonData(rdapResponse);
         if (!jsonResponse.isValid()) {
@@ -245,18 +243,24 @@ public class RDAPHttpQuery implements RDAPQuery {
                                             .value("response body not given")
                                             .message("The response was not valid JSON.")
                                             .build());
+
+          isQuerySuccessful = false;
+            System.out.println("Invalid JSON data -- return early");
+          return;
         }
 
+        System.out.println("Check the HTTP status code....");
         // If a response is available to the tool, but the HTTP status code is not 200 nor 404, error code -13002 added in results file
         if (!List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpStatusCode)) {
+            System.out.println("Invalid HTTP status " + httpStatusCode);
             logger.error("Invalid HTTP status {}", httpStatusCode);
             results.add(RDAPValidationResult.builder()
                                             .code(-13002)
                                             .value(String.valueOf(httpStatusCode))
                                             .message("The HTTP status code was neither 200 nor 404.")
                                             .build());
+            isQuerySuccessful = false;
         }
-        // Finished
     }
 
     /**
@@ -275,10 +279,10 @@ public class RDAPHttpQuery implements RDAPQuery {
             // They copied the query over, this is bad
             if (originalQuery != null && originalQuery.equals(locationQuery)) {
                 results.add(RDAPValidationResult.builder()
-                                                .code(-9999)
-                                                .value("query params blindly copied")
+                                                .code(-13004)
+                                                .value("<location header value>")
                                                 .message(
-                                                    "The query parameters were blindly copied into the location header.")
+                                                    "Response redirect contained query parameters copied from the request.")
                                                 .build());
                 return true;
             }

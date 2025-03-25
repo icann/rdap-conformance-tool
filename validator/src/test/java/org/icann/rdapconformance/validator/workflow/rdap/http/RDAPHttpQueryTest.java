@@ -18,6 +18,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Ignore;
@@ -254,9 +255,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(result).isTrue();
     assertThat(results.getAll()).contains(
         RDAPValidationResult.builder()
-                            .code(-9999)
-                            .value("query params blindly copied")
-                            .message("The query parameters were blindly copied into the location header.")
+                            .code(-13004)
+                            .value("<location header value>")
+                            .message("Response redirect contained query parameters copied from the request.")
                             .build());
   }
 
@@ -277,10 +278,61 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(result).isFalse();
     assertThat(results.getAll()).doesNotContain(
         RDAPValidationResult.builder()
-                            .code(-9999)
-                            .value("query params blindly copied")
-                            .message("The query parameters were blindly copied into the location header.")
+                            .code(-13004)
+                            .value("<location header value>")
+                            .message("Response redirect contained query parameters copied from the request.")
                             .build());
+  }
+
+  @Test
+  public void testIsBlindlyCopyingParams_Hit() {
+    String path1 = "/domain/test1.example";
+    String path2 = "/domain/test2.example?param=value";
+
+    givenUri("http", path1 + "?param=value");
+    stubFor(get(urlEqualTo(path1 + "?param=value"))
+        .withScheme("http")
+        .willReturn(temporaryRedirect(path2)));
+    stubFor(get(urlEqualTo(path2))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "text/plain")
+            .withBody("Redirected successfully"))); // No JSON needed
+
+    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    rdapHttpQuery.setResults(results);
+
+    assertThat(rdapHttpQuery.run()).isFalse();
+
+    // Act
+    List<URI> redirects = rdapHttpQuery.getRedirects();
+
+    // Assert
+    assertThat(redirects).containsExactly(
+        URI.create("http://localhost:8080/domain/test2.example?param=value")
+    );
+  }
+
+  @Test
+  public void test_RedirectWithoutLocationHeader_BreaksLoop() {
+    String path1 = "/domain/test1.example";
+
+    givenUri("http", path1);
+    stubFor(get(urlEqualTo(path1))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withStatus(302))); // Redirect status without Location header
+
+    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    rdapHttpQuery.setResults(results);
+
+    assertThat(rdapHttpQuery.run()).isFalse();
+
+    // Act
+    List<URI> redirects = rdapHttpQuery.getRedirects();
+
+    // Assert
+    assertThat(redirects).isEmpty(); // No redirects should be followed
   }
 
   @Test
@@ -314,7 +366,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(results.getAll()).contains(
             RDAPValidationResult.builder()
                     .code(-13001)
@@ -332,7 +384,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         .withScheme("http")
         .willReturn(aResponse().withStatus(403)));
 
-    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(results.getAll()).contains(
         RDAPValidationResult.builder()
             .code(-13002)
@@ -440,5 +492,59 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                     .message("The response does not have an objectClassName string.")
                     .build());
 
+  }
+
+
+  @Test
+  public void testGetRedirects_NoRedirects() {
+    // Arrange
+    doReturn(URI.create("http://example.com")).when(config).getUri();
+    stubFor(get(urlEqualTo("/"))
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withBody("{}")));
+    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    rdapHttpQuery.setResults(results);
+
+    // Act
+    rdapHttpQuery.run();
+
+    // Assert
+    List<URI> redirects = rdapHttpQuery.getRedirects();
+    assertThat(redirects).isEmpty();
+  }
+
+  @Test
+  public void testGetRedirects_WithRedirects() {
+    String path1 = "/domain/test1.example";
+    String path2 = "/domain/test2.example";
+    String path3 = "/domain/test3.example";
+
+    givenUri("http", path1);
+    stubFor(get(urlEqualTo(path1))
+        .withScheme("http")
+        .willReturn(temporaryRedirect(path2)));
+    stubFor(get(urlEqualTo(path2))
+        .withScheme("http")
+        .willReturn(temporaryRedirect(path3)));
+    stubFor(get(urlEqualTo(path3))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withBody(RDAP_RESPONSE)));
+
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.getData()).isEqualTo(RDAP_RESPONSE);
+    assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
+
+    // Act
+    List<URI> redirects = rdapHttpQuery.getRedirects();
+    System.out.println("---> " + redirects);
+
+    // Assert
+    assertThat(redirects).containsExactly(
+        URI.create("http://localhost:8080/domain/test2.example"),
+        URI.create("http://localhost:8080/domain/test3.example")
+    );
   }
 }

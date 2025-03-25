@@ -5,6 +5,9 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
@@ -63,8 +66,8 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation6Dot1;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+
 
 public class RDAPValidator implements ValidatorWorkflow {
 
@@ -147,12 +150,18 @@ public class RDAPValidator implements ValidatorWorkflow {
         query.setResults(results);
         if (!query.run()) {
             query.getStatusCode().ifPresent(rdapValidationResultFile::build);
+
+            if (query.getErrorStatus() == null) {
+                // it means it is 13001 or 13002, the status will be null and we should exit with code 0
+                return RDAPValidationStatus.SUCCESS.getValue();
+            }
+
             return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
         }
 
         if (!query.checkWithQueryType(queryTypeProcessor.getQueryType())) {
             query.getStatusCode().ifPresent(rdapValidationResultFile::build);
-            return dumpErrorInfo(RDAPValidationStatus.EXPECTED_OBJECT_NOT_FOUND.getValue(), config, query);
+            return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
         }
 
         // Schema validation
@@ -187,7 +196,9 @@ public class RDAPValidator implements ValidatorWorkflow {
         // query.isErrorContent() added as condition in cases where they have 404 as status code
         if ((config.useRdapProfileFeb2019() || config.useRdapProfileFeb2024()) && !query.isErrorContent()) {
             logger.info("Validations for 2019 profile");
-            RDAPProfile rdapProfile = new RDAPProfile(getRdapValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, validator, query));
+            RDAPProfile rdapProfile = new RDAPProfile(
+                getRdapValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, validator,
+                    query));
             rdapProfile.validate();
         }
 
@@ -213,9 +224,14 @@ public class RDAPValidator implements ValidatorWorkflow {
         return this.resultsPath;
     }
 
-    private List<ProfileValidation> getRdapValidations(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config, RDAPValidatorResults results, RDAPDatasetService datasetService, RDAPQueryTypeProcessor queryTypeProcessor, SchemaValidator validator, RDAPQuery query) {
-        return List.of(
-            new TigValidation1Dot2(rdapResponse, config, results),
+    private List<ProfileValidation> getRdapValidations(HttpResponse<String> rdapResponse,
+                                                       RDAPValidatorConfiguration config,
+                                                       RDAPValidatorResults results,
+                                                       RDAPDatasetService datasetService,
+                                                       RDAPQueryTypeProcessor queryTypeProcessor,
+                                                       SchemaValidator validator,
+                                                       RDAPQuery query) {
+        return List.of(new TigValidation1Dot2(rdapResponse, config, results),
             new TigValidation1Dot3(rdapResponse, config, results),
             new TigValidation1Dot6(rdapResponse.statusCode(), config, results),
             new TigValidation1Dot8(rdapResponse, results, datasetService),
@@ -225,15 +241,15 @@ public class RDAPValidator implements ValidatorWorkflow {
             new TigValidation3Dot2(query.getData(), results, config, datasetService, queryTypeProcessor.getQueryType()),
             new TigValidation6Dot1(query.getData(), results, queryTypeProcessor.getQueryType()),
             new TigValidation3Dot3And3Dot4(query.getData(), results, validator),
-            new TigValidation4Dot1(query.getData(), results),
-            new TigValidation7Dot1And7Dot2(query.getData(), results),
+            new TigValidation4Dot1(query.getData(), results), new TigValidation7Dot1And7Dot2(query.getData(), results),
             new TigValidation1Dot12Dot1(query.getData(), results, datasetService, queryTypeProcessor.getQueryType()),
             new ResponseValidation1Dot2Dot2(query.getData(), results),
             new ResponseValidation1Dot3(query.getData(), results),
             new ResponseValidation1Dot4(query.getData(), results),
             new ResponseValidationLastUpdateEvent(query.getData(), results, queryTypeProcessor.getQueryType()),
             new ResponseValidation2Dot1(query.getData(), results, config, queryTypeProcessor.getQueryType()),
-            new ResponseValidation2Dot2(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType()),
+            new ResponseValidation2Dot2(config, query.getData(), results, datasetService,
+                queryTypeProcessor.getQueryType()),
             new ResponseValidation2Dot3Dot1Dot1(query.getData(), results, queryTypeProcessor.getQueryType()),
             new ResponseValidation2Dot3Dot1Dot2(query.getData(), results, queryTypeProcessor.getQueryType()),
             new ResponseValidationNoticesIncluded(query.getData(), results, queryTypeProcessor.getQueryType()),
@@ -243,27 +259,35 @@ public class RDAPValidator implements ValidatorWorkflow {
             new ResponseValidationRFC5731(query.getData(), results, queryTypeProcessor.getQueryType()),
             new ResponseValidationRFC3915(query.getData(), results, queryTypeProcessor.getQueryType()),
             new ResponseValidation2Dot6Dot1(query.getData(), results, queryTypeProcessor.getQueryType()),
-            new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType()),
+            new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, query.getData(), results, datasetService,
+                queryTypeProcessor.getQueryType()),
             new ResponseValidation2Dot4Dot1(query.getData(), results, queryTypeProcessor.getQueryType()),
-            new ResponseValidation2Dot4Dot2And2Dot4Dot3(query.getData(), results, datasetService, queryTypeProcessor.getQueryType()),
+            new ResponseValidation2Dot4Dot2And2Dot4Dot3(query.getData(), results, datasetService,
+                queryTypeProcessor.getQueryType()),
             new ResponseValidation2Dot4Dot5(query.getData(), results, queryTypeProcessor.getQueryType()),
-            new ResponseValidation2Dot7Dot1DotXAndRelated1(query.getData(), results, queryTypeProcessor.getQueryType(), config),
-            new ResponseValidation2Dot7Dot1DotXAndRelated2(query.getData(), results, queryTypeProcessor.getQueryType(), config),
-            new ResponseValidation2Dot7Dot1DotXAndRelated3And4(query.getData(), results, queryTypeProcessor.getQueryType(), config, new SimpleHandleValidation(query.getData(), results, datasetService, queryTypeProcessor.getQueryType(), -52102)),
-            new ResponseValidation2Dot7Dot1DotXAndRelated5(query.getData(), results, queryTypeProcessor.getQueryType(), config),
-            new ResponseValidation2Dot7Dot1DotXAndRelated6(query.getData(), results, queryTypeProcessor.getQueryType(), config),
+            new ResponseValidation2Dot7Dot1DotXAndRelated1(query.getData(), results, queryTypeProcessor.getQueryType(),
+                config),
+            new ResponseValidation2Dot7Dot1DotXAndRelated2(query.getData(), results, queryTypeProcessor.getQueryType(),
+                config), new ResponseValidation2Dot7Dot1DotXAndRelated3And4(query.getData(), results,
+                queryTypeProcessor.getQueryType(), config,
+                new SimpleHandleValidation(query.getData(), results, datasetService, queryTypeProcessor.getQueryType(),
+                    -52102)),
+            new ResponseValidation2Dot7Dot1DotXAndRelated5(query.getData(), results, queryTypeProcessor.getQueryType(),
+                config),
+            new ResponseValidation2Dot7Dot1DotXAndRelated6(query.getData(), results, queryTypeProcessor.getQueryType(),
+                config),
             new ResponseValidation2Dot7Dot5Dot2(query.getData(), results, queryTypeProcessor.getQueryType(), config),
             new ResponseValidation2Dot7Dot5Dot3(query.getData(), results, queryTypeProcessor.getQueryType(), config),
             new ResponseValidation3Dot1(query.getData(), results, queryTypeProcessor.getQueryType(), config),
             new ResponseValidation3Dot2(query.getData(), results, queryTypeProcessor.getQueryType(), config),
             new ResponseNameserverStatusValidation(query.getData(), results, queryTypeProcessor.getQueryType()),
-            new ResponseValidation4Dot1Handle(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType()),
+            new ResponseValidation4Dot1Handle(config, query.getData(), results, datasetService,
+                queryTypeProcessor.getQueryType()),
             new ResponseValidation4Dot1Query(query.getData(), results, config, queryTypeProcessor.getQueryType()),
-            new ResponseValidation4Dot3(query.getData(), results, datasetService, queryTypeProcessor.getQueryType())
-        );
+            new ResponseValidation4Dot3(query.getData(), results, datasetService, queryTypeProcessor.getQueryType()));
     }
 
-    private int dumpErrorInfo(int exitCode, RDAPValidatorConfiguration config, RDAPQuery query) {
+    public int dumpErrorInfo(int exitCode, RDAPValidatorConfiguration config, RDAPQuery query) {
         System.out.println("Exit code: " + exitCode + " - " + RDAPValidationStatus.fromValue(exitCode).name());
         System.out.println("URI used for the query: " + config.getUri());
         if (query instanceof RDAPHttpQuery httpQuery) {
@@ -283,5 +307,3 @@ public class RDAPValidator implements ValidatorWorkflow {
         return exitCode;
     }
 }
-
-
