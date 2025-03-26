@@ -155,7 +155,7 @@ public class RDAPHttpQuery implements RDAPQuery {
     return status;
   }
 
-    private void makeRequest() {
+    public void makeRequest() {
       try {
             URI currentUri = this.config.getUri();
             int remainingRedirects = this.config.getMaxRedirects();
@@ -199,7 +199,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             }
 
             httpResponse = response;
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
           handleRequestException(e); // catch for all subclasses of these exceptions
         }
     }
@@ -234,7 +234,6 @@ public class RDAPHttpQuery implements RDAPQuery {
                                             .build());
         }
 
-        System.out.println("Check the JSON data....");
         // If a response is available to the tool, but it's not syntactically valid JSON object, error code -13001 added in results file.
         jsonResponse = new JsonData(rdapResponse);
         if (!jsonResponse.isValid()) {
@@ -245,14 +244,11 @@ public class RDAPHttpQuery implements RDAPQuery {
                                             .build());
 
           isQuerySuccessful = false;
-            System.out.println("Invalid JSON data -- return early");
           return;
         }
 
-        System.out.println("Check the HTTP status code....");
         // If a response is available to the tool, but the HTTP status code is not 200 nor 404, error code -13002 added in results file
         if (!List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpStatusCode)) {
-            System.out.println("Invalid HTTP status " + httpStatusCode);
             logger.error("Invalid HTTP status {}", httpStatusCode);
             results.add(RDAPValidationResult.builder()
                                             .code(-13002)
@@ -295,7 +291,6 @@ public class RDAPHttpQuery implements RDAPQuery {
      */
   private void handleRequestException(Exception e) {
     logger.info("Exception during RDAP query", e);
-
     if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
       status = hasCause(e, "java.nio.channels.UnresolvedAddressException")
           ? RDAPValidationStatus.NETWORK_SEND_FAIL

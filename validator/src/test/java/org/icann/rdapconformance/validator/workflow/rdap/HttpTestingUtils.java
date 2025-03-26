@@ -54,36 +54,6 @@ public abstract class HttpTestingUtils {
   public void setUp() {
     doReturn(10).when(config).getTimeout();
     doReturn(3).when(config).getMaxRedirects();
-    String response = "{\"NoObjectClassName\": \"domain\"}";
-    String responseNameServer = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";
-    doReturn(Set.of(
-            RDAPValidationResult.builder()
-                    .code(-13000)
-                    .value("Content-Type")
-                    .message("The content-type header does not contain the application/rdap+json media type.")
-                    .build(),
-            RDAPValidationResult.builder()
-                    .code(-13001)
-                    .value("response body not given")
-                    .message("The response was not valid JSON.")
-                    .build(),
-            RDAPValidationResult.builder()
-                    .code(-13002)
-                    .value("403")
-                    .message("The HTTP status code was neither 200 nor 404.")
-                    .build(),
-            RDAPValidationResult.builder()
-                    .code(-13003)
-                    .value(response)
-                    .message("The response does not have an objectClassName string.")
-                    .build(),
-            RDAPValidationResult.builder()
-                    .code(-13003)
-                    .value(responseNameServer)
-                    .message("The response does not have an objectClassName string.")
-                    .build()
-            ))
-            .when(results).getAll();
   }
 
   @AfterMethod
