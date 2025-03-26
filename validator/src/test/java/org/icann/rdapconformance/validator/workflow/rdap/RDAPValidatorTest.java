@@ -5,8 +5,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import java.io.PrintStream;
+import java.net.URI;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -97,5 +100,29 @@ public class RDAPValidatorTest {
 
     assertThat(validator.validate())
         .isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
+  }
+
+
+  @Test
+  public void testDumpErrorInfo() {
+    int exitCode = RDAPValidationStatus.CONFIG_INVALID.getValue();
+    when(config.getUri()).thenReturn(URI.create("http://example.com"));
+
+    // Redirect standard output to capture the output
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outContent));
+
+    int result = validator.dumpErrorInfo(exitCode, config, query);
+
+    assertThat(result).isEqualTo(exitCode);
+    String expectedOutput = "Exit code: " + exitCode + " - " + RDAPValidationStatus.fromValue(exitCode).name() + "\n" +
+        "URI used for the query: http://example.com\n" +
+        "Redirects followed: N/A (query is not an RDAPHttpQuery)\n" +
+        "Accept header used for the query: N/A (query is not an RDAPHttpQuery)\n" +
+        "IP protocol used for the query: IPv4\n";
+    assertThat(outContent.toString()).isEqualTo(expectedOutput);
+
+    // Ensure we reset standard output
+    System.setOut(System.out);
   }
 }

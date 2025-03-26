@@ -22,7 +22,6 @@ public enum RDAPValidationStatus {
   NETWORK_SEND_FAIL(19, "Failure sending network data."),
   NETWORK_RECEIVE_FAIL(20, "Failure in receiving network data.");
 
-
   private final int value;
   private final String description;
 
@@ -37,5 +36,14 @@ public enum RDAPValidationStatus {
 
   public String getDescription() {
     return description;
+  }
+
+  public static RDAPValidationStatus fromValue(int value) {
+    for (RDAPValidationStatus status : values()) {
+      if (status.value == value) {
+        return status;
+      }
+    }
+    throw new IllegalArgumentException("Unknown value: " + value);
   }
 }
