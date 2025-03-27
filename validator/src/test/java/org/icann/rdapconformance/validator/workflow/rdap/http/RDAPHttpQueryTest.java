@@ -70,7 +70,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   public static final int UNTRUSTED_ROOT_CERT_PORT = 8446;
   public static final int PAUSE = 1000;
   public static final String EXPIRED = "expired";
-  public static final String INVALIDHOST = "invalidhost";
+  public static final String INVALID_HOST = "invalidhost";
   public static final String UNTRUSTED = "untrusted";
   public static final String HTTPS_LOCALHOST = "https://localhost:";
   private RDAPHttpQuery rdapHttpQuery;
@@ -683,7 +683,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     public static void main(String[] args) throws Exception {
       startHttpsServer(EXPIRED_CERT_PORT, EXPIRED);
-      startHttpsServer(INVALID_CERT_PORT, INVALIDHOST);
+      startHttpsServer(INVALID_CERT_PORT, INVALID_HOST);
       startHttpsServer(UNTRUSTED_ROOT_CERT_PORT, UNTRUSTED);
     }
 
@@ -773,7 +773,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     // Start HTTPS servers with different certificates
     MultiCertHttpsTestServer.startHttpsServer(EXPIRED_CERT_PORT, EXPIRED);
-    MultiCertHttpsTestServer.startHttpsServer(INVALID_CERT_PORT, INVALIDHOST);
+    MultiCertHttpsTestServer.startHttpsServer(INVALID_CERT_PORT, INVALID_HOST);
     MultiCertHttpsTestServer.startHttpsServer(UNTRUSTED_ROOT_CERT_PORT, UNTRUSTED);
     // we need to sleep before we can start testing it
     Thread.sleep(PAUSE);
