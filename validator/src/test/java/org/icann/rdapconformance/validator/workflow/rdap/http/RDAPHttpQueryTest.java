@@ -404,11 +404,11 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .message("The HTTP status code was neither 200 nor 404.")
             .build());
   }
-
-  @Ignore("revoked.badssl.com has an expired certificate nowadays, so this test will always fails")
+  
   @Test(dataProvider = "tlsErrors")
   public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,
       RDAPValidationStatus expectedStatus) {
+    System.out.println("checking url: " + url  + " for expected status of: " + expectedStatus.getDescription());
     doReturn(URI.create(url)).when(config).getUri();
 
     assertThat(rdapHttpQuery.run()).isFalse();
