@@ -13,11 +13,30 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.http.Fault;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsServer;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.security.KeyStore;
+import java.util.ArrayList;
+import java.util.Objects;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import org.mockito.MockedStatic;
 
 import org.testng.annotations.BeforeMethod;
@@ -45,6 +64,15 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 
 public class RDAPHttpQueryTest extends HttpTestingUtils {
+
+  public static final int EXPIRED_CERT_PORT = 8444;
+  public static final int INVALID_CERT_PORT = 8445;
+  public static final int UNTRUSTED_ROOT_CERT_PORT = 8446;
+  public static final int PAUSE = 1000;
+  public static final String EXPIRED = "expired";
+  public static final String INVALIDHOST = "invalidhost";
+  public static final String UNTRUSTED = "untrusted";
+  public static final String HTTPS_LOCALHOST = "https://localhost:";
   private RDAPHttpQuery rdapHttpQuery;
 
   @DataProvider(name = "fault")
@@ -311,10 +339,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     assertThat(rdapHttpQuery.run()).isFalse();
 
-    // Act
     List<URI> redirects = rdapHttpQuery.getRedirects();
 
-    // Assert
     assertThat(redirects).containsExactly(
         URI.create("http://localhost:8080/domain/test2.example?param=value")
     );
@@ -404,7 +430,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .message("The HTTP status code was neither 200 nor 404.")
             .build());
   }
-  
+
+  @Ignore
   @Test(dataProvider = "tlsErrors")
   public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,
       RDAPValidationStatus expectedStatus) {
@@ -556,14 +583,14 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Test
   public void test_HandleRequestException_ConnectionFailed() throws IOException, InterruptedException {
     doReturn(URI.create("http://test.example")).when(config).getUri();
-    doReturn(1000).when(config).getTimeout();
+    doReturn(PAUSE).when(config).getTimeout();
 
     RDAPHttpQuery query = new RDAPHttpQuery(config);
 
     // Mock the static method
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
       // Simulate a ConnectException
-      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create("http://test.example"), 1000))
+      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create("http://test.example"), PAUSE))
                   .thenThrow(new ConnectException("Connection failed"));
       query.makeRequest();
       assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
@@ -647,5 +674,132 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                             .message("Server responded with a redirect to itself for domain 'test.invalid'.")
                             .build()
     );
+  }
+
+
+  public static class MultiCertHttpsTestServer {
+
+    private static final List<ServerInstance> servers = new ArrayList<>();
+
+    public static void main(String[] args) throws Exception {
+      startHttpsServer(EXPIRED_CERT_PORT, EXPIRED);
+      startHttpsServer(INVALID_CERT_PORT, INVALIDHOST);
+      startHttpsServer(UNTRUSTED_ROOT_CERT_PORT, UNTRUSTED);
+    }
+
+    public static void startHttpsServer(int port, String certName) throws Exception {
+      HttpsServer httpsServer = HttpsServer.create(new InetSocketAddress(port), 0);
+      SSLContext sslContext = createSSLContext(certName);
+      httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext));
+      httpsServer.createContext("/", new SimpleHandler(certName));
+      httpsServer.setExecutor(null);
+      new Thread(httpsServer::start).start();
+
+      servers.add(new ServerInstance(port, httpsServer));
+    }
+
+    public static void stopAll() {
+      for (ServerInstance s : servers) {
+        s.server.stop(0);
+      }
+    }
+
+    private static SSLContext createSSLContext(String name) throws Exception {
+      String keystoreFile = "keystores/" + name + ".p12";  // Created using OpenSSL or keytool
+      char[] password = "password".toCharArray();
+
+      KeyStore ks = KeyStore.getInstance("PKCS12");
+      ClassLoader classLoader = MultiCertHttpsTestServer.class.getClassLoader();
+      try (FileInputStream fis = new FileInputStream(new File(
+          Objects.requireNonNull(classLoader.getResource(keystoreFile)).getFile()))) {
+        ks.load(fis, password);
+      }
+
+      KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+      kmf.init(ks, password);
+
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+      sslContext.init(kmf.getKeyManagers(), null, null);
+      return sslContext;
+    }
+
+    static class SimpleHandler implements HttpHandler {
+      private final String certName;
+
+      public SimpleHandler(String certName) {
+        this.certName = certName;
+      }
+
+      @Override
+      public void handle(HttpExchange exchange) throws IOException {
+        String response = "Served by cert: " + certName;
+        exchange.sendResponseHeaders(HTTP_OK, response.length());
+        try (OutputStream os = exchange.getResponseBody()) {
+          os.write(response.getBytes());
+        }
+      }
+    }
+
+    static class ServerInstance {
+      int port;
+      HttpsServer server;
+
+      ServerInstance(int port, HttpsServer server) {
+        this.port = port;
+        this.server = server;
+      }
+    }
+  }
+
+  @Test
+  public void test_WithLocalHttpsCertificateError_ReturnsAppropriateErrorStatus() throws Exception {
+    // 🔥 Disable OCSP checking for test certs
+    System.setProperty("com.sun.net.ssl.checkRevocation", "false");
+
+    KeyStore trustStore = KeyStore.getInstance("JKS");
+    try (InputStream is = getClass().getClassLoader().getResourceAsStream("keystores/truststore.jks")) {
+      trustStore.load(is, "password".toCharArray());
+    }
+
+    // this stuff is essential
+    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    tmf.init(trustStore);
+
+    // Again, painful, but we have to set this just to get the errors
+    SSLContext sslContext = SSLContext.getInstance("TLS");
+    sslContext.init(null, tmf.getTrustManagers(), null);
+    SSLContext.setDefault(sslContext);
+    HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+
+    // Start HTTPS servers with different certificates
+    MultiCertHttpsTestServer.startHttpsServer(EXPIRED_CERT_PORT, EXPIRED);
+    MultiCertHttpsTestServer.startHttpsServer(INVALID_CERT_PORT, INVALIDHOST);
+    MultiCertHttpsTestServer.startHttpsServer(UNTRUSTED_ROOT_CERT_PORT, UNTRUSTED);
+    // we need to sleep before we can start testing it
+    Thread.sleep(PAUSE);
+
+    try {
+      RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+      rdapHttpQuery.setResults(results);
+
+      // Test expired certificate
+      doReturn(URI.create(HTTPS_LOCALHOST + EXPIRED_CERT_PORT)).when(config).getUri();
+      assertThat(rdapHttpQuery.run()).isFalse();
+      RDAPValidationStatus errorStatus = rdapHttpQuery.getErrorStatus();
+      assertThat(errorStatus).isEqualTo(RDAPValidationStatus.EXPIRED_CERTIFICATE);
+
+      // Test invalid host certificate
+      doReturn(URI.create(HTTPS_LOCALHOST + INVALID_CERT_PORT)).when(config).getUri();
+      assertThat(rdapHttpQuery.run()).isFalse();
+      assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.INVALID_CERTIFICATE);
+
+      // Test untrusted certificate
+      doReturn(URI.create(HTTPS_LOCALHOST + UNTRUSTED_ROOT_CERT_PORT)).when(config).getUri();
+      assertThat(rdapHttpQuery.run()).isFalse();
+      assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.HANDSHAKE_FAILED);
+    } finally {
+      // Stop all HTTPS servers
+      MultiCertHttpsTestServer.stopAll();
+    }
   }
 }
