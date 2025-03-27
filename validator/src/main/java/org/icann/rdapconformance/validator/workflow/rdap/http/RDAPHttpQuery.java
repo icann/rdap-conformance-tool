@@ -346,16 +346,16 @@ public class RDAPHttpQuery implements RDAPQuery {
           objectClassExists = false;
       }
 
-      if(objectClassExists) {
+      List entities = (List) jsonResponse.getValue("entities");
+      if(objectClassExists && entities != null) {
           logger.info("Validating objectClass property in entities");
-          List a = (List) jsonResponse.getValue("entities");
-          objectClassExists = verifyIfObjectClassPropExits(a, "entities");
+          objectClassExists = verifyIfObjectClassPropExits(entities, "entities");
       }
 
-      if(objectClassExists) {
+      List nameservers = (List) jsonResponse.getValue("nameservers");
+      if(objectClassExists && nameservers != null) {
           logger.info("Validating objectClass property in nameservers");
-          List b = (List) jsonResponse.getValue("nameservers");
-          objectClassExists = verifyIfObjectClassPropExits(b, "nameservers");
+          objectClassExists = verifyIfObjectClassPropExits(nameservers, "nameservers");
       }
 
     return null != jsonResponse && objectClassExists;
