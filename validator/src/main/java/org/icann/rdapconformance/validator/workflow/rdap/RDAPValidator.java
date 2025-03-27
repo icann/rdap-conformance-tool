@@ -1,10 +1,13 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static java.net.HttpURLConnection.HTTP_OK;
+
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,8 +69,6 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation6Dot1;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
-
-
 
 public class RDAPValidator implements ValidatorWorkflow {
 
@@ -131,6 +132,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             return dumpErrorInfo(RDAPValidationStatus.CONFIG_INVALID.getValue(), config, query);
         }
 
+        // set up the results file so we can write to it
         final RDAPValidationResultFile rdapValidationResultFile = new RDAPValidationResultFile(results, config,
             configurationFile, fileSystem);
 
@@ -138,11 +140,12 @@ public class RDAPValidator implements ValidatorWorkflow {
         // download the dataset not found in the filesystem, and persist them in the filesystem.
         // If the parameter (--use-local-dataset) is not set, download all the dataset, and
         // overwrite the dataset in the filesystem.
-        // If one or more dataset cannot be downloaded, exit with a return code of 2.
         if (!datasetService.download(this.config.useLocalDatasets())) {
-            return dumpErrorInfo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue(), config, query);
+          // If one or more dataset cannot be downloaded, exit with a return code of 2.
+          return dumpErrorInfo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue(), config, query);
         }
 
+        // this checks if the query is valid query for the HttpQueryType or the FileQueryType
         if (!queryTypeProcessor.check(datasetService)) {
             return dumpErrorInfo(queryTypeProcessor.getErrorStatus().getValue(), config, query);
         }
@@ -152,7 +155,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             query.getStatusCode().ifPresent(rdapValidationResultFile::build);
 
             if (query.getErrorStatus() == null) {
-                // it means it is 13001 or 13002, the status will be null and we should exit with code 0
+                // it means it is 13001 or 13002, the status will be null, and we should exit with code 0
                 return RDAPValidationStatus.SUCCESS.getValue();
             }
 
@@ -162,6 +165,11 @@ public class RDAPValidator implements ValidatorWorkflow {
         if (!query.checkWithQueryType(queryTypeProcessor.getQueryType())) {
             query.getStatusCode().ifPresent(rdapValidationResultFile::build);
             return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
+        }
+
+        // Check if they are doing a domain query  for test.invalid and the response code was 200, that is bad
+        if(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
+            return dumpErrorInfo(HTTP_OK, config, query);
         }
 
         // Schema validation

@@ -25,7 +25,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
-
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.http.HttpTimeoutException;
@@ -37,7 +36,6 @@ import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.util.Optional;
 
-
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -46,9 +44,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 
-
 public class RDAPHttpQueryTest extends HttpTestingUtils {
-
   private RDAPHttpQuery rdapHttpQuery;
 
   @DataProvider(name = "fault")
@@ -566,12 +562,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     // Mock the static method
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-      System.out.println("set it up.....");
       // Simulate a ConnectException
       mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create("http://test.example"), 1000))
                   .thenThrow(new ConnectException("Connection failed"));
-      System.out.println("when is set........");
-
       query.makeRequest();
       assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
     }
@@ -632,5 +625,27 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       query.makeRequest();
       assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.REVOKED_CERTIFICATE);
     }
+  }
+
+  @Test
+  public void test_RedirectsToTestInvalid() {
+    String path = "/domain/test.invalid";
+
+    givenUri("http", path);
+    stubFor(get(urlEqualTo(path))
+        .withScheme("http")
+        .willReturn(temporaryRedirect(path)));
+
+    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    rdapHttpQuery.setResults(results);
+    rdapHttpQuery.makeRequest();
+
+    assertThat(results.getAll()).contains(
+        RDAPValidationResult.builder()
+                            .code(-13005)
+                            .value("<location header value>")
+                            .message("Server responded with a redirect to itself for domain 'test.invalid'.")
+                            .build()
+    );
   }
 }

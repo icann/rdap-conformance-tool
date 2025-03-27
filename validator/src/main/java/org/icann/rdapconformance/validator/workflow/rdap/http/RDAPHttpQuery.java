@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
+import static java.net.HttpURLConnection.HTTP_OK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -16,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,22 +27,21 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     private static final int HTTP_NOT_FOUND = 404;
     private static final int ZERO = 0;
-    private static final int HTTP_OK = 200;
 
     private static final String SEMI_COLON = ";";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String LOCATION = "Location";
-    public static final String NAMESERVER_SEARCH_RESULTS = "nameserverSearchResults";
-    public static final String APPLICATION_RDAP_JSON = "application/rdap+JSON";
+    private static final String NAMESERVER_SEARCH_RESULTS = "nameserverSearchResults";
+    private static final String APPLICATION_RDAP_JSON = "application/rdap+JSON";
 
-   private List<URI> redirects = new ArrayList<>();
+    private List<URI> redirects = new ArrayList<>();
     private String acceptHeader;
     private final RDAPValidatorConfiguration config;
     private RDAPValidatorResults results = null;
     private HttpResponse<String> httpResponse = null;
     private RDAPValidationStatus status = null;
     private JsonData jsonResponse = null;
-  private boolean isQuerySuccessful = true;
+    private boolean isQuerySuccessful = true;
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
@@ -156,14 +158,13 @@ public class RDAPHttpQuery implements RDAPQuery {
   }
 
     public void makeRequest() {
-      try {
+        try {
             URI currentUri = this.config.getUri();
             int remainingRedirects = this.config.getMaxRedirects();
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
                 response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
-
                 int status = response.statusCode();
 
                 if (isRedirectStatus(status)) {
@@ -173,6 +174,11 @@ public class RDAPHttpQuery implements RDAPQuery {
                     }
 
                     URI redirectUri = URI.create(location.get());
+                    if(ResponseValidationTestInvalidDomain.isRedirectingTestDotInvalidToItself(results, currentUri, redirectUri)) {
+                        logger.info("Server responded with a redirect to itself for domain '{}'.", currentUri);
+                        return;
+                    }
+
                     if (!redirectUri.isAbsolute()) {
                         redirectUri = currentUri.resolve(redirectUri);
                     }
@@ -200,7 +206,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             httpResponse = response;
         } catch (Exception e) {
-          handleRequestException(e); // catch for all subclasses of these exceptions
+            handleRequestException(e); // catch for all subclasses of these exceptions
         }
     }
 
