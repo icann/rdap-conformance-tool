@@ -3,8 +3,10 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import static java.net.HttpURLConnection.HTTP_OK;
 
 import java.net.URI;
+import java.util.Optional;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
@@ -39,9 +41,18 @@ public class ResponseValidationTestInvalidDomain {
     /**
      * Check if the server is responding with a 200 OK for TEST_INVALID
      */
-    public static boolean isHttpOKAndTestDotInvalid(RDAPQuery query, RDAPQueryTypeProcessor queryTypeProcessor) {
+    public static boolean isHttpOKAndTestDotInvalid(RDAPQuery query, RDAPQueryTypeProcessor queryTypeProcessor, RDAPValidatorResults results, RDAPValidationResultFile rdapValidationResultFile) {
         if (queryTypeProcessor.getQueryType().equals(RDAPQueryType.DOMAIN) && query.getData().contains(TEST_INVALID)) {
-            return query.getStatusCode().map(statusCode -> statusCode == HTTP_OK).orElse(false);
+            Optional<Integer> statusCode = query.getStatusCode();
+            if (statusCode.isPresent() && statusCode.get() == HTTP_OK) {
+                rdapValidationResultFile.build(statusCode.get());
+                results.add(RDAPValidationResult.builder()
+                                                .code(-13006)
+                                                .value(query.getData())
+                                                .message("Server responded with a 200 Ok for 'test.invalid'.")
+                                                .build());
+                return true;
+            }
         }
         return false;
     }

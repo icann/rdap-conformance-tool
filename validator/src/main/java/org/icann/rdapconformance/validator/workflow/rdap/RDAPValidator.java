@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static java.net.HttpURLConnection.HTTP_OK;
+
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.List;
@@ -165,10 +167,9 @@ public class RDAPValidator implements ValidatorWorkflow {
             return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
         }
 
-        // Check if they are doing a domain query  for test.invalid and the response code was 200
-        if(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor)) {
-            query.getStatusCode().ifPresent(rdapValidationResultFile::build);
-            return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
+        // Check if they are doing a domain query  for test.invalid and the response code was 200, that is bad
+        if(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
+            return dumpErrorInfo(HTTP_OK, config, query);
         }
 
         // Schema validation

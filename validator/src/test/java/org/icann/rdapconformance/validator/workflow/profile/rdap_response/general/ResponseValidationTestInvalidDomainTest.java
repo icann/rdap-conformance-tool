@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
@@ -79,65 +80,59 @@ public class ResponseValidationTestInvalidDomainTest {
         assertThat(result).isFalse();
         assertThat(results.getAll()).isEmpty();
     }
-
     @Test
     public void testIsHttpOKAndTestDotInvalid() {
-         RDAPQuery query;
-         RDAPQueryTypeProcessor queryTypeProcessor;
-        query = mock(RDAPQuery.class);
-        queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
+        RDAPQuery query = mock(RDAPQuery.class);
+        RDAPQueryTypeProcessor queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidationResultFile rdapValidationResultFile = mock(RDAPValidationResultFile.class);
 
         when(queryTypeProcessor.getQueryType()).thenReturn(RDAPQueryType.DOMAIN);
         when(query.getData()).thenReturn(TEST_INVALID);
         when(query.getStatusCode()).thenReturn(Optional.of(HTTP_OK));
 
-        assertThat(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor)).isTrue();
-        ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor);
+        assertThat(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)).isTrue();
     }
 
     @Test
     public void testIsHttp404AndTestDotInvalid() {
-        RDAPQuery query;
-        RDAPQueryTypeProcessor queryTypeProcessor;
-        query = mock(RDAPQuery.class);
-        queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
+        RDAPQuery query = mock(RDAPQuery.class);
+        RDAPQueryTypeProcessor queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidationResultFile rdapValidationResultFile = mock(RDAPValidationResultFile.class);
 
         when(queryTypeProcessor.getQueryType()).thenReturn(RDAPQueryType.DOMAIN);
         when(query.getData()).thenReturn(TEST_INVALID);
         when(query.getStatusCode()).thenReturn(Optional.of(HTTP_NOT_FOUND));
 
-        assertThat(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor)).isFalse();
-        ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor);
+        assertThat(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)).isFalse();
     }
 
     @Test
     public void testIsHttp404WithEntityTestDotInvalid() {
-        RDAPQuery query;
-        RDAPQueryTypeProcessor queryTypeProcessor;
-        query = mock(RDAPQuery.class);
-        queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
+        RDAPQuery query = mock(RDAPQuery.class);
+        RDAPQueryTypeProcessor queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidationResultFile rdapValidationResultFile = mock(RDAPValidationResultFile.class);
 
         when(queryTypeProcessor.getQueryType()).thenReturn(RDAPQueryType.ENTITY);
         when(query.getData()).thenReturn(TEST_INVALID);
         when(query.getStatusCode()).thenReturn(Optional.of(HTTP_NOT_FOUND));
 
-        assertThat(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor)).isFalse();
-        ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor);
+        assertThat(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)).isFalse();
     }
 
     @Test
     public void testIsHttp404WithEntityAndFooTestDotInvalid() {
-        RDAPQuery query;
-        RDAPQueryTypeProcessor queryTypeProcessor;
-        query = mock(RDAPQuery.class);
-        queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
+        RDAPQuery query = mock(RDAPQuery.class);
+        RDAPQueryTypeProcessor queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidationResultFile rdapValidationResultFile = mock(RDAPValidationResultFile.class);
 
         when(queryTypeProcessor.getQueryType()).thenReturn(RDAPQueryType.ENTITY);
         when(query.getData()).thenReturn("foo");
         when(query.getStatusCode()).thenReturn(Optional.of(HTTP_NOT_FOUND));
 
-        assertThat(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor)).isFalse();
-        ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor);
+        assertThat(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)).isFalse();
     }
-
 }
