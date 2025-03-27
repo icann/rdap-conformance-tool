@@ -7,7 +7,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpResponse;
-import java.util.Arrays;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -36,33 +35,58 @@ public class TigValidation1Dot5_2024Test {
         validation = new TigValidation1Dot5_2024(httpResponse, config, results);
     }
 
-    public boolean doValidate() {
-        try {
-            SSLSocketFactory factory = (SSLSocketFactory) SSLContext.getDefault().getSocketFactory();
-            SSLSocket socket = (SSLSocket) factory.createSocket(config.getUri().getHost(), 443);
-            socket.startHandshake();
-            String[] enabledProtocols = socket.getEnabledProtocols();
-            String cipherSuite = socket.getSession().getCipherSuite();
+    @Test
+    public void testDoValidate_ValidTLSProtocols() throws Exception {
+        SSLContext sslContext = mock(SSLContext.class);
+        SSLSocketFactory sslSocketFactory = mock(SSLSocketFactory.class);
+        SSLSocket sslSocket = mock(SSLSocket.class);
+        SSLSession sslSession = mock(SSLSession.class);
 
-            System.out.println("Enabled protocols: " + Arrays.toString(enabledProtocols));
-            System.out.println("Cipher suite: " + cipherSuite);
+        when(sslContext.getSocketFactory()).thenReturn(sslSocketFactory);
+        when(sslSocketFactory.createSocket(anyString(), anyInt())).thenReturn(sslSocket);
+        when(sslSocket.getEnabledProtocols()).thenReturn(new String[]{"TLSv1.2", "TLSv1.3"});
+        when(sslSocket.getSession()).thenReturn(sslSession);
+        when(sslSession.getCipherSuite()).thenReturn("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+        when(sslSession.getProtocol()).thenReturn("TLSv1.2");
 
-            if (Arrays.asList(enabledProtocols).contains("TLSv1.2") || Arrays.asList(enabledProtocols).contains("TLSv1.3")) {
-                return true;
-            } else {
-                results.add("Invalid TLS protocol");
-                return false;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            results.add("Exception during validation: " + e.getMessage());
-            return false;
+        try (MockedStatic<SSLContext> mockedStatic = mockStatic(SSLContext.class)) {
+            mockedStatic.when(SSLContext::getDefault).thenReturn(sslContext);
+
+
+            doNothing().when(sslSocket).startHandshake();
+            when(httpResponse.uri()).thenReturn(URI.create("https://example.com"));
+            boolean isValid = validation.doValidate();
+            assertTrue("Validation should be successful for valid TLS protocols", isValid);
+        }
+    }
+
+    @Test
+    public void testDoValidate_ValidTLSProtocolButBadCipher() throws Exception {
+        SSLContext sslContext = mock(SSLContext.class);
+        SSLSocketFactory sslSocketFactory = mock(SSLSocketFactory.class);
+        SSLSocket sslSocket = mock(SSLSocket.class);
+        SSLSession sslSession = mock(SSLSession.class);
+
+        when(sslContext.getSocketFactory()).thenReturn(sslSocketFactory);
+        when(sslSocketFactory.createSocket(anyString(), anyInt())).thenReturn(sslSocket);
+        when(sslSocket.getEnabledProtocols()).thenReturn(new String[]{"TLSv1.2", "TLSv1.3"});
+        when(sslSocket.getSession()).thenReturn(sslSession);
+        when(sslSession.getCipherSuite()).thenReturn("TLS_AES_128_GCM_SHA256");
+        when(sslSession.getProtocol()).thenReturn("TLSv1.2");
+
+        try (MockedStatic<SSLContext> mockedStatic = mockStatic(SSLContext.class)) {
+            mockedStatic.when(SSLContext::getDefault).thenReturn(sslContext);
+
+            doNothing().when(sslSocket).startHandshake();
+            when(httpResponse.uri()).thenReturn(URI.create("https://example.com"));
+
+            boolean isValid = validation.doValidate();
+            assertFalse("Validation should not be successful for valid TLS protocol but a cipher", isValid);
         }
     }
 
     @Test
     public void testDoValidate_InvalidTLSProtocol() throws Exception {
-        // Mocking SSLContext and SSLSocket
         SSLContext sslContext = mock(SSLContext.class);
         SSLSocketFactory sslSocketFactory = mock(SSLSocketFactory.class);
         SSLSocket sslSocket = mock(SSLSocket.class);
@@ -72,20 +96,14 @@ public class TigValidation1Dot5_2024Test {
         when(sslSocket.getEnabledProtocols()).thenReturn(new String[]{"TLSv1.1"});
         when(sslSocket.getSession()).thenReturn(mock(SSLSession.class));
 
-        // Mocking the SSLContext.getDefault() method
         try (MockedStatic<SSLContext> mockedStatic = mockStatic(SSLContext.class)) {
             mockedStatic.when(SSLContext::getDefault).thenReturn(sslContext);
 
-            // Mocking the SSL handshake
             doNothing().when(sslSocket).startHandshake();
 
-            // Mocking the response URI
             when(httpResponse.uri()).thenReturn(URI.create("https://example.com"));
-
-            // Running the validation
             boolean isValid = validation.doValidate();
 
-            // Asserting the validation result
             assertFalse(isValid);
             verify(results).add(any());
         }
