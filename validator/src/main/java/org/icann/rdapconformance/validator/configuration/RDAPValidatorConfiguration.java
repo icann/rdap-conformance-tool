@@ -32,6 +32,8 @@ public interface RDAPValidatorConfiguration {
 
   boolean isThin();
 
+  String getResultsFile();
+
   RDAPQueryType getQueryType();
 
   default boolean check() {
