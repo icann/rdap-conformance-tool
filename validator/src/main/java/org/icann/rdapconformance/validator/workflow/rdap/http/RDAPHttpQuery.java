@@ -33,6 +33,9 @@ public class RDAPHttpQuery implements RDAPQuery {
     private static final String LOCATION = "Location";
     private static final String NAMESERVER_SEARCH_RESULTS = "nameserverSearchResults";
     private static final String APPLICATION_RDAP_JSON = "application/rdap+JSON";
+    public static final String OBJECT_CLASS_NAME = "objectClassName";
+    public static final String ENTITIES = "entities";
+    public static final String NAMESERVERS = "nameservers";
 
     private List<URI> redirects = new ArrayList<>();
     private String acceptHeader;
@@ -339,21 +342,25 @@ public class RDAPHttpQuery implements RDAPQuery {
    * Check if the RDAP json response contains a specific key.
    */
 
-  private boolean jsonResponseValid() {
+  public boolean jsonResponseValid() {
+      if (jsonResponse == null) {
+          return false;
+      }
+
       boolean objectClassExists = true;
       if(!jsonResponse.hasKey("objectClassName")) {
           logger.info("Validating objectClass property in top level");
           objectClassExists = false;
       }
 
-      List entities = (List) jsonResponse.getValue("entities");
-      if(objectClassExists && entities != null) {
+      Object entitiesObj = jsonResponse.getValue(ENTITIES);
+      if(objectClassExists && entitiesObj instanceof List<?> entities) {
           logger.info("Validating objectClass property in entities");
           objectClassExists = verifyIfObjectClassPropExits(entities, "entities");
       }
 
-      List nameservers = (List) jsonResponse.getValue("nameservers");
-      if(objectClassExists && nameservers != null) {
+      Object nameserversObj = jsonResponse.getValue(NAMESERVERS);
+      if(objectClassExists && nameserversObj instanceof List<?> nameservers) {
           logger.info("Validating objectClass property in nameservers");
           objectClassExists = verifyIfObjectClassPropExits(nameservers, "nameservers");
       }
@@ -423,19 +430,24 @@ public class RDAPHttpQuery implements RDAPQuery {
     }
   }
 
-    private boolean verifyIfObjectClassPropExits(List a, String containedKey) {
-        boolean objectClassNameExists = true;
-        for (var x: a) {
-            var value = ((Map) x).get("objectClassName");
+    public boolean verifyIfObjectClassPropExits(List<?> propertyCollection, String containedKey) {
+        for (var x: propertyCollection) {
+            if (!(x instanceof Map<?, ?> map)) {
+                return false;
+            }
+            var value = map.get(OBJECT_CLASS_NAME);
             if(value == null) {
-                objectClassNameExists = false;
-                return objectClassNameExists;
-            } else {
-                if(((Map<?, ?>) x).containsKey(containedKey)) {
-                   return verifyIfObjectClassPropExits((List) ((Map<?, ?>) x).get(containedKey), containedKey);
+                return false;
+            }
+            if (map.containsKey(containedKey)) {
+                var nestedList = map.get(containedKey);
+                if (nestedList instanceof List<?> nestedListCast) {
+                    if (!verifyIfObjectClassPropExits(nestedListCast, containedKey)) {
+                        return false;
+                    }
                 }
             }
-        };
-        return objectClassNameExists;
+        }
+        return true;
     }
 }
