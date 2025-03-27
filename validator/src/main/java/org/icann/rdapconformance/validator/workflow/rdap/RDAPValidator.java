@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -215,7 +216,8 @@ public class RDAPValidator implements ValidatorWorkflow {
         // query.isErrorContent() added as condition in cases where they have 404 as status code
         if (config.useRdapProfileFeb2024() && !query.isErrorContent()) {
             logger.info("Validations for 2024 profile");
-            RDAPProfile rdapProfile = new RDAPProfile(List.of(new TigValidation1Dot3_2024(query.getData(), results)));
+            RDAPProfile rdapProfile = new RDAPProfile(List.of(new TigValidation1Dot3_2024(query.getData(), results),
+                new TigValidation1Dot5_2024(rdapResponse, config, results)));
             rdapProfile.validate();
         }
 
