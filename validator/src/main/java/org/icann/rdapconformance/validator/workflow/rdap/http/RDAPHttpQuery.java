@@ -340,7 +340,25 @@ public class RDAPHttpQuery implements RDAPQuery {
    */
 
   private boolean jsonResponseValid() {
-    return null != jsonResponse && jsonResponse.hasKey("objectClassName");
+      boolean objectClassExists = true;
+      if(!jsonResponse.hasKey("objectClassName")) {
+          logger.info("Validating objectClass property in top level");
+          objectClassExists = false;
+      }
+
+      if(objectClassExists) {
+          logger.info("Validating objectClass property in entities");
+          List a = (List) jsonResponse.getValue("entities");
+          objectClassExists = verifyIfObjectClassPropExits(a, "entities");
+      }
+
+      if(objectClassExists) {
+          logger.info("Validating objectClass property in nameservers");
+          List b = (List) jsonResponse.getValue("nameservers");
+          objectClassExists = verifyIfObjectClassPropExits(b, "nameservers");
+      }
+
+    return null != jsonResponse && objectClassExists;
   }
 
   /**
@@ -404,4 +422,20 @@ public class RDAPHttpQuery implements RDAPQuery {
       return rawRdapMap.get(key);
     }
   }
+
+    private boolean verifyIfObjectClassPropExits(List a, String containedKey) {
+        boolean objectClassNameExists = true;
+        for (var x: a) {
+            var value = ((Map) x).get("objectClassName");
+            if(value == null) {
+                objectClassNameExists = false;
+                return objectClassNameExists;
+            } else {
+                if(((Map<?, ?>) x).containsKey(containedKey)) {
+                   return verifyIfObjectClassPropExits((List) ((Map<?, ?>) x).get(containedKey), containedKey);
+                }
+            }
+        };
+        return objectClassNameExists;
+    }
 }
