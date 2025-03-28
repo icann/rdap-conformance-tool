@@ -25,23 +25,33 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
+
   private FileSystem fileSystem = new LocalFileSystem();
+
   @Option(names = {"-c", "--config"}, description = "Definition file", required = true)
   String configurationFile;
+
   @Option(names = {"--timeout"},
       description = "Timeout for connecting to the server", defaultValue = "20")
   private int timeout = 20;
+
   @Option(names = {"--maximum-redirects"},
       description = "Maximum number of redirects to follow", defaultValue = "3")
   private int maxRedirects = 3;
+
   @Option(names = {"--use-local-datasets"},
       description = "Use locally-persisted datasets", defaultValue = "false")
   private boolean useLocalDatasets = false;
 
+  @Option(names = {"--results-file"}, description = "File to store the validation results",  hidden = true)
+  private String resultsFile;
+
   @ArgGroup(exclusive = false)
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
+
   @Option(names = {"--query-type"}, hidden = true)
   private RDAPQueryType queryType;
+
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
 
@@ -73,6 +83,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
       throw ex;
     }
+  }
+
+  @Override
+  public String getResultsFile() {
+    return this.resultsFile;
   }
 
   @Override

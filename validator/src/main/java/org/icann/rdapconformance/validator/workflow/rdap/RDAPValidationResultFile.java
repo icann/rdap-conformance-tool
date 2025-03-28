@@ -63,9 +63,19 @@ public class RDAPValidationResultFile {
     fileMap.put("results", this.createResultsMap());
 
     JSONObject object = new JSONObject(fileMap);
-    Path path = Paths.get("results", getFilename());
+    String resultsFilePath = config.getResultsFile();
+    Path path;
+
+    if (resultsFilePath != null && !resultsFilePath.isEmpty()) {
+      path = Paths.get(resultsFilePath);
+    } else {
+      path = Paths.get("results", getFilename());
+    }
+
     try {
-      fileSystem.mkdir("results");
+      if (resultsFilePath == null || resultsFilePath.isEmpty()) {
+        fileSystem.mkdir("results");
+      }
       this.resultPath = path.toString();
       fileSystem.write(path.toString(), object.toString(4));
     } catch (IOException e) {
