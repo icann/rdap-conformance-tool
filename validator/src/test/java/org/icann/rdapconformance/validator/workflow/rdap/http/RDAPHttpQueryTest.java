@@ -507,6 +507,22 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   @Test
+  public void jsonResponseValid_ReturnsFalseUsingNoObjectClassName() {
+    String path = "/nameservers?ip=.*";
+    String response = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";
+
+
+    givenUri("http", path);
+    stubFor(get(urlEqualTo(path))
+            .withScheme("http")
+            .willReturn(aResponse()
+                    .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+                    .withBody(response)));
+
+    assertThat(rdapHttpQuery.jsonResponseValid()).isFalse();
+  }
+
+  @Test
   public void testGetRedirects_NoRedirects() {
     doReturn(URI.create("http://example.com")).when(config).getUri();
     stubFor(get(urlEqualTo("/"))
