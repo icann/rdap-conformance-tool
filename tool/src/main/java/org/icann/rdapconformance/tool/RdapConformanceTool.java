@@ -43,7 +43,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       description = "Use locally-persisted datasets", defaultValue = "false")
   private boolean useLocalDatasets = false;
 
-  @Option(names = {"--results-file"}, description = "File to store the validation results")
+  @Option(names = {"--results-file"}, description = "File to store the validation results",  hidden = true)
   private String resultsFile;
 
   @ArgGroup(exclusive = false)
