@@ -324,10 +324,10 @@ public class RDAPHttpQuery implements RDAPQuery {
     } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
       return RDAPValidationStatus.REVOKED_CERTIFICATE;
     } else if (hasCause(e, "java.security.cert.CertificateException")) {
-      if (e.getMessage().startsWith("No name matching") ||
-          e.getMessage().startsWith("No subject alternative DNS name matching")) {
-        return RDAPValidationStatus.INVALID_CERTIFICATE;
-      }
+        if (e.getMessage().contains("No name matching") ||
+            e.getMessage().contains("No subject alternative DNS name matching")) {
+            return RDAPValidationStatus.INVALID_CERTIFICATE;
+        }
       return RDAPValidationStatus.CERTIFICATE_ERROR;
     } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException")) {
       return RDAPValidationStatus.HANDSHAKE_FAILED;
