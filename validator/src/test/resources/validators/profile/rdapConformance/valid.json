@@ -3,5 +3,18 @@
     "rdap_level_0",
     "icann_rdap_technical_implementation_guide_0",
     "icann_rdap_response_profile_0"
+  ],
+  "redacted": [
+    {
+      "name": {
+        "description": "Registry Domain ID"
+      },
+      "prePath": "$.handle",
+      "pathLang": "jsonpath",
+      "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    }
   ]
 }
