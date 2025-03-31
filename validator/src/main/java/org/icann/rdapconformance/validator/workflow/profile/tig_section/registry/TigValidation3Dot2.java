@@ -44,15 +44,17 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
       }
     }
 
-    if (!isValid && !isGtldRegistryAndNotRegistrarId9999()) {
-      String linksStr = links == null ? "" : links.toString();
-      results.add(RDAPValidationResult.builder()
-          .code(-23200)
-          .value(linksStr)
-          .message("A links data structure in the topmost object exists, and the links object "
-              + "shall contain the elements rel:related and href, but they were not found. "
-              + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.")
-          .build());
+    if(!isValid) {
+      if(!isGtldRegistryAndNotRegistrarId9999()) {
+        String linksStr = links == null ? "" : links.toString();
+        results.add(RDAPValidationResult.builder()
+            .code(-23200)
+            .value(linksStr)
+            .message("A links data structure in the topmost object exists, and the links object "
+                + "shall contain the elements rel:related and href, but they were not found. "
+                + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.")
+            .build());
+      }
     }
     return isValid;
   }
