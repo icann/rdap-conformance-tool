@@ -56,7 +56,7 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
 
   // RCT-104 only apply if the query is for a gtld registry and the value is not 9999
   public boolean isGtldRegistryAndRegistrarId9999() {
-    boolean isValid = false;
+    boolean is9999 = false;
     JSONArray entities = jsonObject.optJSONArray("entities");
     if (entities != null) {
       for (Object entitiesEntryObj : entities) {
@@ -66,13 +66,13 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
           for (Object publicIdsEntryObj : publicIds) {
             JSONObject publicIdsEntry = (JSONObject) publicIdsEntryObj;
             if (publicIdsEntry.get("identifier").equals("9999")) {
-              isValid = true;
+              is9999 = true;
             }
           }
         }
       }
     }
-    return isValid;
+    return config.isGtldRegistry() && is9999;
   }
 
   @Override
