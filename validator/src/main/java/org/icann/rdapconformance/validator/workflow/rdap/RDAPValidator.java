@@ -1,7 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
-import static java.net.HttpURLConnection.HTTP_OK;
-
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.List;
@@ -161,7 +159,6 @@ public class RDAPValidator implements ValidatorWorkflow {
                 // it means it is 13001 or 13002, the status will be null, and we should exit with code 0
                 return RDAPValidationStatus.SUCCESS.getValue();
             }
-
             return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
         }
 
@@ -170,9 +167,9 @@ public class RDAPValidator implements ValidatorWorkflow {
             return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
         }
 
-        // Check if they are doing a domain query  for test.invalid and the response code was 200, that is bad
-        if(ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
-            return dumpErrorInfo(HTTP_OK, config, query);
+        // Check if they are doing a domain query for test.invalid and the response code was 200, that is bad but continue on
+        if (ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
+            logger.info("Detected a test.invalid domain query with HTTP 200 response code.");
         }
 
         // Schema validation
