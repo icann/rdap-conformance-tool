@@ -1,7 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
-import static java.net.HttpURLConnection.HTTP_OK;
-
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.List;
