@@ -65,8 +65,17 @@ public abstract class SchemaValidatorTest {
 
   @Test
   public void testValidate_ok() {
-    assertThat(schemaValidator.validate(rdapContent)).isTrue();
-    assertThat(results.getGroupOk()).contains(validationName);
+    System.out.println("Running testValidate_ok for schema: " + schemaName);
+    boolean validationResult = schemaValidator.validate(rdapContent);
+    System.out.println("Validation result: " + validationResult);
+    System.out.println("Validation results: " + results.getAll());
+    try {
+      assertThat(validationResult).isTrue();
+      assertThat(results.getGroupOk()).contains(validationName);
+    } catch (AssertionError e) {
+      System.out.println("Validation failed. RDAP content: " + rdapContent);
+      throw e;
+    }
   }
 
   protected void invalid(int error) {

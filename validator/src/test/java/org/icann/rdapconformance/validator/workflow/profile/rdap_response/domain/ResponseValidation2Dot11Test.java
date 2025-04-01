@@ -8,14 +8,16 @@ public class ResponseValidation2Dot11Test extends
   private static final String NOTICE_VALUE = "#/notices:["
       + "{\"description\":[\"Service subject to Terms of Use.\"],"
       + "\"links\":[{"
+      + "\"rel\":\"terms-of-service\","
       + "\"href\":\"https://www.example.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml\","
-      + "\"type\":\"text/html\"}],"
+      + "\"type\":\"text/html\","
+      + "\"value\":\"https://www.example.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml\"}],"
       + "\"title\":\"Terms of Use\"},"
       + "{\"description\":[\"For more information on domain status codes, please visit https://icann.org/epp\"],"
-      + "\"links\":[{\"href\":\"https://icann.org/epp\",\"type\":\"text/html\"}],"
+      + "\"links\":[{\"rel\":\"self\",\"href\":\"https://icann.org/epp\",\"type\":\"text/html\",\"value\":\"https://icann.org/epp\"}],"
       + "\"title\":\"Status Codes\"},"
       + "{\"description\":[\"%s\"],"
-      + "\"links\":[{\"href\":\"%s\",\"type\":\"text/html\"}],"
+      + "\"links\":[{\"rel\":\"self\",\"href\":\"%s\",\"type\":\"text/html\",\"value\":\"%s\"}],"
       + "\"title\":\"%s\"}]";
 
   public ResponseValidation2Dot11Test() throws Throwable {

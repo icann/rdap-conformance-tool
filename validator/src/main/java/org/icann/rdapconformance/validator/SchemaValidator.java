@@ -128,33 +128,45 @@ public class SchemaValidator {
     results.addGroups(schemaRootNode.findAllValuesOf("validationName"));
     JSONObject jsonObject;
     try {
+      System.out.println("XXX -> creating JSON object from content");
       jsonObject = new JSONObject(content);
     } catch (JSONException e) {
+      System.out.println("XXX -> we had a parser exception....");
       RDAPValidationResult result = parseJsonException(e, content);
       results.add(result);
       return false;
     }
 
     try {
+      System.out.println("XXX -> validating JSON object against schema");
       schema.validate(jsonObject);
     } catch (ValidationException e) {
       parseException(e, jsonObject);
     }
 
     try {
+      System.out.println("XXX -> validating JSON object against custom validators");
       // customs validations...
       verifyUnicityOfEventAction("events", -10912, jsonObject);
       verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
+      // New link check
+      System.out.println("XXL -> validating against custom validators for links");
+      validateLinkProperties(jsonObject);
+      System.out.println("XXL -> done validating link properties");
+
+      System.out.println("XXX -> validating against custom validators for vcardArray");
       // vcard
       if (content.contains("\"vcardArray\"")) {
         new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
       }
 
+      System.out.println("XXX -> validating against custom validators for notices");
       if (content.contains("\"notices\"")) {
         new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode).validate();
       }
     } catch (Exception e) {
+      System.out.println("XXX -> exception during custom validation");
       logger.error("Exception during schema validation. This is likely caused by a schema deeply "
           + "non-compliant \n details", e);
     }
@@ -234,6 +246,43 @@ public class SchemaValidator {
           .noneMatch(exceptionParser -> exceptionParser.matches(validationException))) {
         logger.error(
             "We found this error with no exception parser {}", validationException.getMessage());
+      }
+    }
+  }
+
+  private void validateLinkProperties(JSONObject jsonObject) {
+    System.out.println("LXXXL -> inside validateLinkProperties!");
+    Set<String> linksJsonPointers = jpathUtil.getPointerFromJPath(jsonObject, "$..links");
+    System.out.println("XXX -> linksJsonPointers: " + linksJsonPointers);
+    for (String jsonPointer : linksJsonPointers) {
+      try {
+        JSONArray links = (JSONArray) jsonObject.query(jsonPointer);
+        for (int i = 0; i < links.length(); i++) {
+          JSONObject link = links.getJSONObject(i);
+          System.out.println("XXX -> link: " + link);
+          if (!link.has("value")) {
+            System.out.println("XXX -> link does not have value");
+//            results.add(RDAPValidationResult.builder()
+//                                            .code(-10612)
+//                                            .value(jsonPointer + "/" + i + "/value")
+//                                            .message("The value element does not exist.")
+//                                            .build());
+          } else {
+            System.out.println("\tGOOD value");
+          }
+          if (!link.has("rel")) {
+            System.out.println("XXX -> link does not have rel");
+//            results.add(RDAPValidationResult.builder()
+//                                            .code(-10613)
+//                                            .value(jsonPointer + "/" + i + "/rel")
+//                                            .message("The rel element does not exist.")
+//                                            .build());
+          } else {
+            System.out.println("\tGOOD rel");
+          }
+        }
+      } catch (Exception e) {
+        logger.error("Exception during evaluation of link properties: {} \n\n details: {}", jsonObject.query(jsonPointer), e);
       }
     }
   }

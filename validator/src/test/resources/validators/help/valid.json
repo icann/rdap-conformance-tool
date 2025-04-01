@@ -13,6 +13,8 @@
       "links": [
         {
           "href": "https://www.example.com/terms",
+          "value": "https://www.example.com/terms",
+          "rel": "help",
           "type": "text/html"
         }
       ]
@@ -25,6 +27,8 @@
       "links": [
         {
           "href": "https://www.example.com/help",
+          "value": "https://www.example.com/help",
+          "rel": "help",
           "type": "text/html"
         }
       ]

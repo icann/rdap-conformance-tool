@@ -177,6 +177,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             validator = new SchemaValidator("rdap_error.json", results, datasetService);
         } else {
             String schemaFile = schemaMap.get(queryTypeProcessor.getQueryType());
+            System.out.println("XXX -> schemaFile: " + schemaFile);
             if (schemaFile != null) {
                 if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
