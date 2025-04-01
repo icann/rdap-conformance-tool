@@ -11,6 +11,7 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidatio
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -41,7 +42,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
 
   @Override
   public ProfileJsonValidation getProfileValidation() {
-    return new TigValidation3Dot2(jsonObject.toString(), results, config, datasetService, queryType);
+    return new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
   }
 
   @Test
@@ -99,16 +100,40 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   // RCT-104 only apply if the query is for a gtld registry and the value is not 9999
   @Test
   public void testValidate_NoLinksInTopmostObjectWithRegistrar9999_AddResults23200() {
-    doReturn(true).when(registrarId).containsId(9999);
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, datasetService, queryType);
-    assertThat(tigValidation3Dot2.isGtldRegistryAndNotRegistrarId9999()).isTrue();
+    JSONObject identifier = new JSONObject();
+    identifier.put("identifier", "9999");
+
+    JSONArray publicIdArray = new JSONArray();
+    publicIdArray.put(identifier);
+
+    JSONObject publicIds = new JSONObject();
+    publicIds.put("publicIds", publicIdArray);
+
+    JSONArray entities = new JSONArray();
+    entities.put(publicIds);
+    jsonObject.put("entities", entities);
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    assertThat(tigValidation3Dot2.isGtldRegistryAndRegistrarId9999()).isTrue();
   }
 
   // RCT-104 only apply if the query is for a gtld registry and the value is not 9999
   @Test
   public void testValidate_NoLinksInTopmostObjectWithRegistrar9998_AddResults23200() {
-    doReturn(true).when(registrarId).containsId(9998);
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, datasetService, queryType);
-    assertThat(tigValidation3Dot2.isGtldRegistryAndNotRegistrarId9999()).isFalse();
+    JSONObject identifier = new JSONObject();
+    identifier.put("identifier", "9998");
+
+    JSONArray publicIdArray = new JSONArray();
+    publicIdArray.put(identifier);
+
+    JSONObject publicIds = new JSONObject();
+    publicIds.put("publicIds", publicIdArray);
+
+    JSONArray entities = new JSONArray();
+    entities.put(publicIds);
+    jsonObject.put("entities", entities);
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    assertThat(tigValidation3Dot2.isGtldRegistryAndRegistrarId9999()).isFalse();
   }
 }
