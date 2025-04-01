@@ -225,14 +225,10 @@
         }
       },
       "additionalProperties": false,
-      "required": [
-        "href",
-        "value",
-        "rel"
-      ],
       "hrefMissing": -10610,
-      "valueMissing": -10612,
-      "relMissing": -10613,
+      "required": [
+        "href"
+      ],
       "unknownKeys": -10601
     },
     "links": {

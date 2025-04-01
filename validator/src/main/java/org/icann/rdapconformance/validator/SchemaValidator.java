@@ -262,21 +262,21 @@ public class SchemaValidator {
           System.out.println("XXX -> link: " + link);
           if (!link.has("value")) {
             System.out.println("XXX -> link does not have value");
-//            results.add(RDAPValidationResult.builder()
-//                                            .code(-10612)
-//                                            .value(jsonPointer + "/" + i + "/value")
-//                                            .message("The value element does not exist.")
-//                                            .build());
+            results.add(RDAPValidationResult.builder()
+                                            .code(-10612)
+                                            .value(jsonPointer + "/" + i + "/value:" + link)
+                                            .message("The value element does not exist.")
+                                            .build());
           } else {
             System.out.println("\tGOOD value");
           }
           if (!link.has("rel")) {
             System.out.println("XXX -> link does not have rel");
-//            results.add(RDAPValidationResult.builder()
-//                                            .code(-10613)
-//                                            .value(jsonPointer + "/" + i + "/rel")
-//                                            .message("The rel element does not exist.")
-//                                            .build());
+            results.add(RDAPValidationResult.builder()
+                                            .code(-10613)
+                                            .value(jsonPointer + "/" + i + "/rel:" + link)
+                                            .message("The rel element does not exist.")
+                                            .build());
           } else {
             System.out.println("\tGOOD rel");
           }
