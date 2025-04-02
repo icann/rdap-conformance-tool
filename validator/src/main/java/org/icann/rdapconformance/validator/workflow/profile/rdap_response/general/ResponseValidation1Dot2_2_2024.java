@@ -7,8 +7,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 public class ResponseValidation1Dot2_2_2024 extends RDAPConformanceValidation {
     public ResponseValidation1Dot2_2_2024(String rdapResponse, RDAPValidatorResults results) {
         super(rdapResponse, results, "redacted", -62001,
-            "The RDAP Conformance data structure does not include redacted but\n"
-                + "RFC 9537 is being used.");
+            "The RDAP Conformance data structure does not include redacted but RFC 9537 is being used.");
     }
 
     @Override
