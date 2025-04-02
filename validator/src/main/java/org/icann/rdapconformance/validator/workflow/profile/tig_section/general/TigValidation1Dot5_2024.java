@@ -97,10 +97,9 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                                 results.add(RDAPValidationResult.builder()
                                     .code(-61101)
                                     .value(response.uri().toString())
-                                    .message("The RDAP server must use one of the following cipher suites when \n"
-                                        + "using TLS 1.2: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, \n"
-                                        + "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_12 \n"
-                                        + "8_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384.")
+                                    .message("The RDAP server must use one of the following cipher suites when using TLS 1.2: "
+                                        + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, "
+                                        + "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384.")
                                     .build());
                                 isValid = false;
                             }
