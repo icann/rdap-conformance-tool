@@ -240,6 +240,7 @@ public abstract class SchemaValidatorTest {
     return value.split(":")[0];
   }
 
+
   @AfterMethod
   public void tearDown(ITestResult testResult) throws IOException {
     FixturesGenerator.generate(testResult, jsonObject);

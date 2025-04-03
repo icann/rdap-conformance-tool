@@ -6,11 +6,18 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaClient;
 import org.everit.json.schema.loader.SchemaLoader;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.icann.rdapconformance.validator.customvalidator.DatasetValidator;
 import org.icann.rdapconformance.validator.customvalidator.HostNameInUriFormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.IdnHostNameFormatValidator;
@@ -38,12 +45,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIP
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SchemaValidator {
 
@@ -128,45 +129,36 @@ public class SchemaValidator {
     results.addGroups(schemaRootNode.findAllValuesOf("validationName"));
     JSONObject jsonObject;
     try {
-      System.out.println("XXX -> creating JSON object from content");
       jsonObject = new JSONObject(content);
     } catch (JSONException e) {
-      System.out.println("XXX -> we had a parser exception....");
       RDAPValidationResult result = parseJsonException(e, content);
       results.add(result);
       return false;
     }
 
     try {
-      System.out.println("XXX -> validating JSON object against schema");
       schema.validate(jsonObject);
     } catch (ValidationException e) {
       parseException(e, jsonObject);
     }
 
     try {
-      System.out.println("XXX -> validating JSON object against custom validators");
       // customs validations...
       verifyUnicityOfEventAction("events", -10912, jsonObject);
       verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
       // New link check
-      System.out.println("XXL -> validating against custom validators for links");
       validateLinkProperties(jsonObject);
-      System.out.println("XXL -> done validating link properties");
 
-      System.out.println("XXX -> validating against custom validators for vcardArray");
       // vcard
       if (content.contains("\"vcardArray\"")) {
         new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
       }
 
-      System.out.println("XXX -> validating against custom validators for notices");
       if (content.contains("\"notices\"")) {
         new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode).validate();
       }
     } catch (Exception e) {
-      System.out.println("XXX -> exception during custom validation");
       logger.error("Exception during schema validation. This is likely caused by a schema deeply "
           + "non-compliant \n details", e);
     }
@@ -250,35 +242,28 @@ public class SchemaValidator {
     }
   }
 
+  // This is here and NOT on the schema file itself so that we can format the errored link properties correctly
+  // Otherwise we get the ENTIRE link object as the error message which is not user-friendly.
   private void validateLinkProperties(JSONObject jsonObject) {
-    System.out.println("LXXXL -> inside validateLinkProperties!");
     Set<String> linksJsonPointers = jpathUtil.getPointerFromJPath(jsonObject, "$..links");
-    System.out.println("XXX -> linksJsonPointers: " + linksJsonPointers);
     for (String jsonPointer : linksJsonPointers) {
       try {
         JSONArray links = (JSONArray) jsonObject.query(jsonPointer);
         for (int i = 0; i < links.length(); i++) {
           JSONObject link = links.getJSONObject(i);
-          System.out.println("XXX -> link: " + link);
           if (!link.has("value")) {
-            System.out.println("XXX -> link does not have value");
             results.add(RDAPValidationResult.builder()
                                             .code(-10612)
                                             .value(jsonPointer + "/" + i + "/value:" + link)
                                             .message("The value element does not exist.")
                                             .build());
-          } else {
-            System.out.println("\tGOOD value");
           }
           if (!link.has("rel")) {
-            System.out.println("XXX -> link does not have rel");
             results.add(RDAPValidationResult.builder()
                                             .code(-10613)
                                             .value(jsonPointer + "/" + i + "/rel:" + link)
                                             .message("The rel element does not exist.")
                                             .build());
-          } else {
-            System.out.println("\tGOOD rel");
           }
         }
       } catch (Exception e) {
