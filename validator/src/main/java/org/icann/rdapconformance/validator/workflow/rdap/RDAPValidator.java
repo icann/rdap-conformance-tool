@@ -189,7 +189,217 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         assert null != validator;
-        validator.validate(query.getData());
+        validator.validate("{\n" +
+                "\t\"objectClassName\": \"domain\",\n" +
+                "\t\"handle\": \"2138514_DOMAIN_COM-VRSN\",\n" +
+                "\t\"ldhName\": \"GOOGLE.COM\",\n" +
+                "\t\"links\": [{\n" +
+                "\t\t\t\"value\": \"https://rdap.verisign.com/com/v1/domain/GOOGLE.COM\",\n" +
+                "\t\t\t\"rel\": \"self\",\n" +
+                "\t\t\t\"href\": \"https://rdap.verisign.com/com/v1/domain/GOOGLE.COM\",\n" +
+                "\t\t\t\"type\": \"application/rdap+json\"\n" +
+                "\t\t},\n" +
+                "\t\t{\n" +
+                "\t\t\t\"value\": \"https://rdap.markmonitor.com/rdap/domain/GOOGLE.COM\",\n" +
+                "\t\t\t\"rel\": \"related\",\n" +
+                "\t\t\t\"href\": \"https://rdap.markmonitor.com/rdap/domain/GOOGLE.COM\",\n" +
+                "\t\t\t\"type\": \"application/rdap+json\"\n" +
+                "\t\t}\n" +
+                "\t],\n" +
+                "\t\"status\": [\n" +
+                "\t\t\"client delete prohibited\",\n" +
+                "\t\t\"client transfer prohibited\",\n" +
+                "\t\t\"client update prohibited\",\n" +
+                "\t\t\"server delete prohibited\",\n" +
+                "\t\t\"server transfer prohibited\",\n" +
+                "\t\t\"server update prohibited\"\n" +
+                "\t],\n" +
+                "\t\"entities\": [{\n" +
+                "\t\t\"objectClassName\": \"entity\",\n" +
+                "\t\t\"handle\": \"292\",\n" +
+                "\t\t\"roles\": [\n" +
+                "\t\t\t\"registrar\"\n" +
+                "\t\t],\n" +
+                "\t\t\"publicIds\": [{\n" +
+                "\t\t\t\"type\": \"IANA Registrar ID\",\n" +
+                "\t\t\t\"identifier\": \"292\"\n" +
+                "\t\t}],\n" +
+                "        \"autnums\": [{\n" +
+                "          \"objectClassName\": \"autnum\",\n" +
+                "          \"handle\": \"6543210_AUTNUM\",\n" +
+                "          \"startAutnum\" : \"64297\",\n" +
+                "        \"endAutnum\" : \"64297\",\n" +
+                "        \"status\" : [\n" +
+                "      \"active\"\n" +
+                "   ],\n" +
+                "          \"name\": \"AS12345\",\n" +
+                "          \"country\": \"US\",\n" +
+                "          \"links\": [\n" +
+                "            {\n" +
+                "              \"value\": \"https://rdap.example.com/autnum/6543210\",\n" +
+                "              \"rel\": \"self\",\n" +
+                "              \"href\": \"https://rdap.example.com/autnum/6543210\",\n" +
+                "              \"type\": \"application/rdap+json\"\n" +
+                "            }\n" +
+                "          ],\n" +
+                "          \"entities\": [{\n" +
+                "            \"objectClassName\": \"entity\",\n" +
+                "            \"handle\": \"292\",\n" +
+                "            \"roles\": [\n" +
+                "                \"registrar\"\n" +
+                "            ],\n" +
+                "            \"publicIds\": [{\n" +
+                "                \"type\": \"IANA Registrar ID\",\n" +
+                "                \"identifier\": \"292\"\n" +
+                "            }],\n" +
+                "            \"vcardArray\": [\n" +
+                "                \"vcard\",\n" +
+                "                [\n" +
+                "                    [\n" +
+                "                        \"version\",\n" +
+                "                        {},\n" +
+                "                        \"text\",\n" +
+                "                        \"4.0\"\n" +
+                "                    ],\n" +
+                "                    [\n" +
+                "                        \"fn\",\n" +
+                "                        {},\n" +
+                "                        \"text\",\n" +
+                "                        \"MarkMonitor Inc.\"\n" +
+                "                    ]\n" +
+                "                ]\n" +
+                "\t\t    ]\n" +
+                "        }]\n" +
+                "        }],\n" +
+                "\t\t\"vcardArray\": [\n" +
+                "\t\t\t\"vcard\",\n" +
+                "\t\t\t[\n" +
+                "\t\t\t\t[\n" +
+                "\t\t\t\t\t\"version\",\n" +
+                "\t\t\t\t\t{},\n" +
+                "\t\t\t\t\t\"text\",\n" +
+                "\t\t\t\t\t\"4.0\"\n" +
+                "\t\t\t\t],\n" +
+                "\t\t\t\t[\n" +
+                "\t\t\t\t\t\"fn\",\n" +
+                "\t\t\t\t\t{},\n" +
+                "\t\t\t\t\t\"text\",\n" +
+                "\t\t\t\t\t\"MarkMonitor Inc.\"\n" +
+                "\t\t\t\t]\n" +
+                "\t\t\t]\n" +
+                "\t\t],\n" +
+                "\t\t\"entities\": [{\n" +
+                "\t\t\t\"objectClassName\": \"entity\",\n" +
+                "\t\t\t\"roles\": [\n" +
+                "\t\t\t\t\"abuse\"\n" +
+                "\t\t\t],\n" +
+                "\t\t\t\"vcardArray\": [\n" +
+                "\t\t\t\t\"vcard\",\n" +
+                "\t\t\t\t[\n" +
+                "\t\t\t\t\t[\n" +
+                "\t\t\t\t\t\t\"version\",\n" +
+                "\t\t\t\t\t\t{},\n" +
+                "\t\t\t\t\t\t\"text\",\n" +
+                "\t\t\t\t\t\t\"4.0\"\n" +
+                "\t\t\t\t\t],\n" +
+                "\t\t\t\t\t[\n" +
+                "\t\t\t\t\t\t\"fn\",\n" +
+                "\t\t\t\t\t\t{},\n" +
+                "\t\t\t\t\t\t\"text\",\n" +
+                "\t\t\t\t\t\t\"\"\n" +
+                "\t\t\t\t\t],\n" +
+                "\t\t\t\t\t[\n" +
+                "\t\t\t\t\t\t\"tel\",\n" +
+                "\t\t\t\t\t\t{\n" +
+                "\t\t\t\t\t\t\t\"type\": \"voice\"\n" +
+                "\t\t\t\t\t\t},\n" +
+                "\t\t\t\t\t\t\"uri\",\n" +
+                "\t\t\t\t\t\t\"tel:+1.2086851750\"\n" +
+                "\t\t\t\t\t],\n" +
+                "\t\t\t\t\t[\n" +
+                "\t\t\t\t\t\t\"email\",\n" +
+                "\t\t\t\t\t\t{},\n" +
+                "\t\t\t\t\t\t\"text\",\n" +
+                "\t\t\t\t\t\t\"abusecomplaints@markmonitor.com\"\n" +
+                "\t\t\t\t\t]\n" +
+                "\t\t\t\t]\n" +
+                "\t\t\t]\n" +
+                "\t\t}]\n" +
+                "\t}],\n" +
+                "\t\"events\": [{\n" +
+                "\t\t\t\"eventAction\": \"registration\",\n" +
+                "\t\t\t\"eventDate\": \"1997-09-15T04:00:00Z\"\n" +
+                "\t\t},\n" +
+                "\t\t{\n" +
+                "\t\t\t\"eventAction\": \"expiration\",\n" +
+                "\t\t\t\"eventDate\": \"2028-09-14T04:00:00Z\"\n" +
+                "\t\t},\n" +
+                "\t\t{\n" +
+                "\t\t\t\"eventAction\": \"last changed\",\n" +
+                "\t\t\t\"eventDate\": \"2019-09-09T15:39:04Z\"\n" +
+                "\t\t},\n" +
+                "\t\t{\n" +
+                "\t\t\t\"eventAction\": \"last update of RDAP database\",\n" +
+                "\t\t\t\"eventDate\": \"2025-04-02T21:39:49Z\"\n" +
+                "\t\t}\n" +
+                "\t],\n" +
+                "\t\"secureDNS\": {\n" +
+                "\t\t\"delegationSigned\": false\n" +
+                "\t},\n" +
+                "\t\"nameservers\": [{\n" +
+                "\t\t\t\"objectClassName\": \"nameserver\",\n" +
+                "\t\t\t\"ldhName\": \"NS1.GOOGLE.COM\"\n" +
+                "\t\t},\n" +
+                "\t\t{\n" +
+                "\t\t\t\"objectClassName\": \"nameserver\",\n" +
+                "\t\t\t\"ldhName\": \"NS2.GOOGLE.COM\"\n" +
+                "\t\t},\n" +
+                "\t\t{\n" +
+                "\t\t\t\"objectClassName\": \"nameserver\",\n" +
+                "\t\t\t\"ldhName\": \"NS3.GOOGLE.COM\"\n" +
+                "\t\t},\n" +
+                "\t\t{\n" +
+                "\t\t\t\"objectClassName\": \"nameserver\",\n" +
+                "\t\t\t\"ldhName\": \"NS4.GOOGLE.COM\"\n" +
+                "\t\t}\n" +
+                "\t],\n" +
+                "\t\"rdapConformance\": [\n" +
+                "\t\t\"rdap_level_0\",\n" +
+                "\t\t\"icann_rdap_technical_implementation_guide_0\",\n" +
+                "\t\t\"icann_rdap_response_profile_0\"\n" +
+                "\t],\n" +
+                "\t\"notices\": [{\n" +
+                "\t\t\t\"title\": \"Terms of Use\",\n" +
+                "\t\t\t\"description\": [\n" +
+                "\t\t\t\t\"Service subject to Terms of Use.\"\n" +
+                "\t\t\t],\n" +
+                "\t\t\t\"links\": [{\n" +
+                "\t\t\t\t\"href\": \"https://www.verisign.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml\",\n" +
+                "\t\t\t\t\"type\": \"text/html\"\n" +
+                "\t\t\t}]\n" +
+                "\t\t},\n" +
+                "\t\t{\n" +
+                "\t\t\t\"title\": \"Status Codes\",\n" +
+                "\t\t\t\"description\": [\n" +
+                "\t\t\t\t\"For more information on domain status codes, please visit https://icann.org/epp\"\n" +
+                "\t\t\t],\n" +
+                "\t\t\t\"links\": [{\n" +
+                "\t\t\t\t\"href\": \"https://icann.org/epp\",\n" +
+                "\t\t\t\t\"type\": \"text/html\"\n" +
+                "\t\t\t}]\n" +
+                "\t\t},\n" +
+                "\t\t{\n" +
+                "\t\t\t\"title\": \"RDDS Inaccuracy Complaint Form\",\n" +
+                "\t\t\t\"description\": [\n" +
+                "\t\t\t\t\"URL of the ICANN RDDS Inaccuracy Complaint Form: https://icann.org/wicf\"\n" +
+                "\t\t\t],\n" +
+                "\t\t\t\"links\": [{\n" +
+                "\t\t\t\t\"href\": \"https://icann.org/wicf\",\n" +
+                "\t\t\t\t\"type\": \"text/html\"\n" +
+                "\t\t\t}]\n" +
+                "\t\t}\n" +
+                "\t]\n" +
+                "}");
         HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
 
         // extra validations not categorized (change request):

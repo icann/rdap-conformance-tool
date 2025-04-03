@@ -16,20 +16,7 @@
   "definitionIgnore": [
     -10601,
     -10701,
-    -10901,
-    -11201,
-    -11302,
-    -11501,
-    -11508,
-    -12001,
-    -12009,
-    -12019,
-    -12101,
-    -12201,
-    -12301,
-    -12401,
-    -12501,
-    -12601
+    -10901
   ],
   "definitionNotes": [
     "This conformance configuration is typical of gTLD RDAP server needs."
