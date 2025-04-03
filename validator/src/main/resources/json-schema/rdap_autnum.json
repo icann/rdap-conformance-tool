@@ -20,10 +20,10 @@
       "$ref": "#/definitions/handle"
     },
     "startAutnum": {
-      "type": "string"
+      "type": "integer"
     },
     "endAutnum": {
-      "type": "string"
+      "type": "integer"
     },
     "name": {
       "type": "string"
@@ -55,6 +55,10 @@
   },
   "additionalProperties": false,
   "structureInvalid": -12300,
+  "stdRdapEntitiesValidation": -12308,
+  "stdRdapRemarksValidation": -12309,
+  "stdRdapEventsValidation": -12311,
+  "stdRdapStatusValidation": -12313,
   "unknownKeys": -12301,
   "duplicateKeys": -12302,
   "stdRdapPort43WhoisServerValidation": -12314,
