@@ -1,24 +1,23 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.icann.rdapconformance.validator.SchemaValidator;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.util.FixturesGenerator;
-import org.icann.rdapconformance.validator.workflow.rdap.*;
-import org.json.JSONObject;
+
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.util.FixturesGenerator;
+import org.icann.rdapconformance.validator.workflow.rdap.*;
+import org.json.JSONObject;
 
 public abstract class SchemaValidatorTest {
 
@@ -240,6 +239,7 @@ public abstract class SchemaValidatorTest {
   protected String getKey(String value) {
     return value.split(":")[0];
   }
+
 
   @AfterMethod
   public void tearDown(ITestResult testResult) throws IOException {

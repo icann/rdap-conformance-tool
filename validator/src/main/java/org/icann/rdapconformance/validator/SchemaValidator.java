@@ -6,11 +6,18 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaClient;
 import org.everit.json.schema.loader.SchemaLoader;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.icann.rdapconformance.validator.customvalidator.DatasetValidator;
 import org.icann.rdapconformance.validator.customvalidator.HostNameInUriFormatValidator;
 import org.icann.rdapconformance.validator.customvalidator.IdnHostNameFormatValidator;
@@ -38,12 +45,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIP
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SchemaValidator {
 
@@ -146,6 +147,9 @@ public class SchemaValidator {
       verifyUnicityOfEventAction("events", -10912, jsonObject);
       verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
+      // New link check
+      validateLinkProperties(jsonObject);
+
       // vcard
       if (content.contains("\"vcardArray\"")) {
         new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
@@ -234,6 +238,36 @@ public class SchemaValidator {
           .noneMatch(exceptionParser -> exceptionParser.matches(validationException))) {
         logger.error(
             "We found this error with no exception parser {}", validationException.getMessage());
+      }
+    }
+  }
+
+  // This is here and NOT on the schema file itself so that we can format the errored link properties correctly
+  // Otherwise we get the ENTIRE link object as the error message which is not user-friendly.
+  private void validateLinkProperties(JSONObject jsonObject) {
+    Set<String> linksJsonPointers = jpathUtil.getPointerFromJPath(jsonObject, "$..links");
+    for (String jsonPointer : linksJsonPointers) {
+      try {
+        JSONArray links = (JSONArray) jsonObject.query(jsonPointer);
+        for (int i = 0; i < links.length(); i++) {
+          JSONObject link = links.getJSONObject(i);
+          if (!link.has("value")) {
+            results.add(RDAPValidationResult.builder()
+                                            .code(-10612)
+                                            .value(jsonPointer + "/" + i + "/value:" + link)
+                                            .message("The value element does not exist.")
+                                            .build());
+          }
+          if (!link.has("rel")) {
+            results.add(RDAPValidationResult.builder()
+                                            .code(-10613)
+                                            .value(jsonPointer + "/" + i + "/rel:" + link)
+                                            .message("The rel element does not exist.")
+                                            .build());
+          }
+        }
+      } catch (Exception e) {
+        logger.error("Exception during evaluation of link properties: {} \n\n details: {}", jsonObject.query(jsonPointer), e);
       }
     }
   }
