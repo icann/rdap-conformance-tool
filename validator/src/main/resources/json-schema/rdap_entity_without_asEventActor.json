@@ -30,6 +30,9 @@
     "publicIds": {
       "$ref": "rdap_publicIds.json#"
     },
+    "autnums": {
+      "$ref": "rdap_autnums.json#"
+    },
     "events": {
       "$ref": "rdap_events.json#"
     },
