@@ -59,6 +59,7 @@
   "stdRdapRemarksValidation": -12309,
   "stdRdapEventsValidation": -12311,
   "stdRdapStatusValidation": -12313,
+  "stdRdapLinksValidation": -12310,
   "unknownKeys": -12301,
   "duplicateKeys": -12302,
   "stdRdapPort43WhoisServerValidation": -12314,
