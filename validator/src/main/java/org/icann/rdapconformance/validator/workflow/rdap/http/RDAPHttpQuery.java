@@ -36,6 +36,7 @@ public class RDAPHttpQuery implements RDAPQuery {
     public static final String OBJECT_CLASS_NAME = "objectClassName";
     public static final String ENTITIES = "entities";
     public static final String NAMESERVERS = "nameservers";
+    public static final String AUTNUMS = "AUTNUMS";
 
     private List<URI> redirects = new ArrayList<>();
     private String acceptHeader;
@@ -357,6 +358,9 @@ public class RDAPHttpQuery implements RDAPQuery {
       if(objectClassExists && entitiesObj instanceof List<?> entities) {
           logger.info("Validating objectClass property in entities");
           objectClassExists = verifyIfObjectClassPropExits(entities, "entities");
+          if(objectClassExists) {
+              objectClassExists = verifyIfObjectClassPropExits(entities, "autnums");
+          }
       }
 
       Object nameserversObj = jsonResponse.getValue(NAMESERVERS);

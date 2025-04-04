@@ -1,0 +1,47 @@
+{
+  "objectClassName": "autnum",
+  "handle": "6543210_AUTNUM",
+  "startAutnum" : 64297,
+  "endAutnum" : 64297,
+  "status" : [
+    "active"
+  ],
+  "name": "AS12345",
+  "country": "US",
+  "links": [
+    {
+      "value": "https://rdap.example.com/autnum/6543210",
+      "rel": "self",
+      "href": "https://rdap.example.com/autnum/6543210",
+      "type": "application/rdap+json"
+    }
+  ],
+  "entities": [{
+    "objectClassName": "entity",
+    "handle": "292",
+    "roles": [
+      "registrar"
+    ],
+    "publicIds": [{
+      "type": "IANA Registrar ID",
+      "identifier": "292"
+    }],
+    "vcardArray": [
+      "vcard",
+      [
+        [
+          "version",
+          {},
+          "text",
+          "4.0"
+        ],
+        [
+          "fn",
+          {},
+          "text",
+          "MarkMonitor Inc."
+        ]
+      ]
+    ]
+  }]
+}

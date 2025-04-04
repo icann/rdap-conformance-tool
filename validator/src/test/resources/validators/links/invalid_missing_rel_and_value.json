@@ -1,0 +1,18 @@
+{
+  "links": [
+    {
+      "rel": "self",
+      "href": "https://rdap.example.com/com/v1/domain/EXAMPLE.COM",
+      "type": "application/rdap+json"
+    },
+    {
+      "value": "https://rdap.markmonitor.com/rdap/domain/EXAMPLE.COM",
+      "href": "https://rdap.markmonitor.com/rdap/domain/EXAMPLE.COM",
+      "type": "application/rdap+json"
+    },
+    {
+      "href": "https://rdap.markmonitor.com/rdap/domain/EXAMPLE.COM",
+      "type": "application/rdap+json"
+    }
+  ]
+}

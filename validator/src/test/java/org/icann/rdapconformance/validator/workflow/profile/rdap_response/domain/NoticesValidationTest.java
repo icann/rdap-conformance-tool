@@ -1,7 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -36,24 +34,27 @@ public abstract class NoticesValidationTest extends ResponseDomainValidationTest
   public void testValidate_NoNoticeMatchingWithTitle_AddErrorCode() {
     String title = "TEST";
     replaceValue(String.format("$['notices'][%d]['title']", noticeIndex), title);
-    validate(((NoticesValidation)getProfileValidation()).code, String.format(noticeValue,
-      DESCRIPTION, HREF, title),
-        message);
+    String expectedValue = String.format(noticeValue, DESCRIPTION, HREF, HREF, title);
+    validate(((NoticesValidation)getProfileValidation()).code, expectedValue, message);
   }
 
-  @Test
-  public void testValidate_NoNoticeMatchingWithDescription_AddErrorCode() {
-    String description = "TEST";
-    replaceValue(String.format("$['notices'][%d]['description'][0]", noticeIndex), description);
-    validate(((NoticesValidation)getProfileValidation()).code, String.format(noticeValue, description, HREF, TITLE),
-        message);
-  }
+@Test
+public void testValidate_NoNoticeMatchingWithDescription_AddErrorCode() {
+  String description = "TEST";
+  replaceValue(String.format("$['notices'][%d]['description'][0]", noticeIndex), description);
+  String expectedValue = String.format(noticeValue, description, HREF, HREF, TITLE);
+  validate(((NoticesValidation)getProfileValidation()).code, expectedValue, message);
+}
 
   @Test
   public void testValidate_NoNoticeMatchingWithLinksHref_AddErrorCode() {
     String href = "http://test.example";
+    System.out.println("Replacing href in the notice at index: " + noticeIndex);
+    System.out.println("href: " + href);
     replaceValue(String.format("$['notices'][%d]['links'][0]['href']", noticeIndex), href);
-    validate(((NoticesValidation)getProfileValidation()).code, String.format(noticeValue, DESCRIPTION, href, TITLE),
-        message);
+    replaceValue(String.format("$['notices'][%d]['links'][0]['value']", noticeIndex), href); // get the value as well
+    String expectedValue = String.format(noticeValue, DESCRIPTION, href, href, TITLE);
+    System.out.println("expected value:" + expectedValue);
+    validate(((NoticesValidation)getProfileValidation()).code, expectedValue, message);
   }
 }

@@ -1,0 +1,64 @@
+package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
+
+import java.util.Set;
+import org.icann.rdapconformance.validator.JpathUtil;
+import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class ResponseValidationLinkElements_2024 extends ProfileValidation {
+
+    private static final Logger logger = LoggerFactory.getLogger(ResponseValidationLinkElements_2024.class);
+    private final JpathUtil jpathUtil;
+    private JSONObject jsonObject = null;
+    private RDAPValidatorResults results = null;
+
+    public ResponseValidationLinkElements_2024(String  rdapResponse, RDAPValidatorResults results) {
+        super(results);
+        this.jpathUtil = new JpathUtil();
+        this.jsonObject =   new JSONObject(rdapResponse);
+        this.results = results;
+    }
+
+    @Override
+    public String getGroupName() {
+        return "stdRdapLinksValidation";
+    }
+
+    @Override
+    public boolean doValidate() {
+        boolean isOK  = true;
+        Set<String> linksJsonPointers = jpathUtil.getPointerFromJPath(jsonObject, "$..links");
+        for (String jsonPointer : linksJsonPointers) {
+            try {
+                JSONArray links = (JSONArray) jsonObject.query(jsonPointer);
+                for (int i = 0; i < links.length(); i++) {
+                    JSONObject link = links.getJSONObject(i);
+                    if (!link.has("value")) {
+                        results.add(RDAPValidationResult.builder()
+                                                        .code(-10612)
+                                                        .value(jsonPointer + "/" + i + "/value:" + link)
+                                                        .message("The value element does not exist.")
+                                                        .build());
+                        isOK = false;
+                    }
+                    if (!link.has("rel")) {
+                        results.add(RDAPValidationResult.builder()
+                                                        .code(-10613)
+                                                        .value(jsonPointer + "/" + i + "/rel:" + link)
+                                                        .message("The rel element does not exist.")
+                                                        .build());
+                        isOK = false;
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Exception during evaluation of link properties: {} \n\n details: {}", jsonObject.query(jsonPointer), e);
+            }
+        }
+        return isOK;
+    }
+}

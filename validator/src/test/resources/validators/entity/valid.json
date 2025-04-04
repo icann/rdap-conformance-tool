@@ -104,6 +104,8 @@
       "links": [
         {
           "href": "https://www.example.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml",
+          "value": "https://www.example.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml",
+          "rel": "self",
           "type": "text/html"
         }
       ]
@@ -116,6 +118,8 @@
       "links": [
         {
           "href": "https://icann.org/epp",
+          "value": "https://icann.org/epp",
+          "rel": "self",
           "type": "text/html"
         }
       ]
@@ -128,6 +132,8 @@
       "links": [
         {
           "href": "https://icann.org/wicf",
+          "value": "https://icann.org/wicf",
+          "rel": "self",
           "type": "text/html"
         }
       ]
