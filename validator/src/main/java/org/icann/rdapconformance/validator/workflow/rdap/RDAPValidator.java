@@ -8,6 +8,7 @@ import java.util.Map;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationLinkElements_2024;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationStatusDuplication_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.slf4j.Logger;
@@ -223,7 +224,8 @@ public class RDAPValidator implements ValidatorWorkflow {
                     new TigValidation1Dot5_2024(rdapResponse, config, results),
                     new ResponseValidation1Dot2_1_2024(query.getData(), results),
                     new ResponseValidation1Dot2_2_2024(query.getData(), results),
-                    new ResponseValidationLinkElements_2024(query.getData(), results) // TODO: not a ProfileValidation, we need a new inheritance structure
+                    new ResponseValidationLinkElements_2024(query.getData(), results), // TODO: not a ProfileValidation, we need a new inheritance structure
+                    new ResponseValidationStatusDuplication_2024(query.getData(), results)
                 )
             );
             rdapProfile.validate();
