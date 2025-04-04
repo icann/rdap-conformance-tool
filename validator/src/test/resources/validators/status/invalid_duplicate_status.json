@@ -1,0 +1,11 @@
+{
+  "status": [
+    "client delete prohibited",
+    "client transfer prohibited",
+    "client update prohibited",
+    "server delete prohibited",
+    "server transfer prohibited",
+    "server transfer prohibited",
+    "server update prohibited"
+  ]
+}

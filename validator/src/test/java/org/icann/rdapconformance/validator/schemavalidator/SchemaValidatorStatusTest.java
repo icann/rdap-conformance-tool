@@ -44,6 +44,16 @@ public class SchemaValidatorStatusTest extends SchemaValidatorForArrayOfStringTe
         "The JSON string is not included as a Value with \nType=\"status\".");
   }
 
+//  @Test
+//  public void statusShallAppearOnce() {
+//    // Duplicate the first status in the status array
+//    String firstStatus = jsonObject.getJSONArray("status").getString(0);
+//    jsonObject.getJSONArray("status").put(firstStatus);
+//
+//    // Validate and check for the duplication error
+//    validate(-11003, "#/status/1/status:" + firstStatus, "The status value exists more than once within the status array.");
+//  }
+//
   @Override
   protected void validate(int errorCode, String value, String msg) {
     super.validate(errorCode, value, msg);
