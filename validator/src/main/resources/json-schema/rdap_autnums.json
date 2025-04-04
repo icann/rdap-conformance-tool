@@ -6,5 +6,6 @@
     "$ref": "rdap_autnum.json#"
   },
   "validationName": "stdRdapAutnumsValidation",
+  "stdRdapAutnumLookupValidation": -11901,
   "structureInvalid": -11900
 }

@@ -124,7 +124,8 @@ public class RDAPValidator implements ValidatorWorkflow {
             RDAPQueryType.NAMESERVER, "rdap_nameserver.json",
             RDAPQueryType.NAMESERVERS, "rdap_nameservers.json",
             RDAPQueryType.ENTITY, "rdap_entity_without_asEventActor.json",
-            RDAPQueryType.AUTNUM, "rdap_autnum.json"
+            RDAPQueryType.AUTNUM, "rdap_autnum.json",
+            RDAPQueryType.IP_NETWORK, "rdap_ip_network.json"
         );
 
         // Parse the configuration definition file, and if the file is not parsable, exit with a return code of 1.
