@@ -127,22 +127,4 @@ public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
   public void hrefViolatesWebUriValidation() {
     arrayItemKeySubValidation("href", "webUriValidation", -10611);
   }
-
-  /*
-   * 7.2.2 Links validation [stdRdapLinksValidation]
-   */
-  @Test
-  public void validateLinkProperties_valueDoesNotExist() {
-    replaceArrayProperty("value", null);
-    keyDoesNotExistInArray("value", -10612);
-  }
-
-  /*
-   * 7.2.2 Links validation [stdRdapLinksValidation]
-   */
-  @Test
-  public void validateLinkProperties_relDoesNotExist() {
-    replaceArrayProperty("rel", null);
-    keyDoesNotExistInArray("rel", -10613);
-  }
 }

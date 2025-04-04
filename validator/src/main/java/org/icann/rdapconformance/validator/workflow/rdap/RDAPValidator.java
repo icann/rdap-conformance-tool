@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationLinkElements_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.slf4j.Logger;
@@ -216,10 +217,15 @@ public class RDAPValidator implements ValidatorWorkflow {
         // query.isErrorContent() added as condition in cases where they have 404 as status code
         if (config.useRdapProfileFeb2024() && !query.isErrorContent()) {
             logger.info("Validations for 2024 profile");
-            RDAPProfile rdapProfile = new RDAPProfile(List.of(new TigValidation1Dot3_2024(query.getData(), results),
-                new TigValidation1Dot5_2024(rdapResponse, config, results),
-                new ResponseValidation1Dot2_1_2024(query.getData(), results),
-                new ResponseValidation1Dot2_2_2024(query.getData(), results)));
+            RDAPProfile rdapProfile = new RDAPProfile(
+                List.of(
+                    new TigValidation1Dot3_2024(query.getData(), results),
+                    new TigValidation1Dot5_2024(rdapResponse, config, results),
+                    new ResponseValidation1Dot2_1_2024(query.getData(), results),
+                    new ResponseValidation1Dot2_2_2024(query.getData(), results),
+                    new ResponseValidationLinkElements_2024(query.getData(), results) // TODO: not a ProfileValidation, we need a new inheritance structure
+                )
+            );
             rdapProfile.validate();
         }
 
