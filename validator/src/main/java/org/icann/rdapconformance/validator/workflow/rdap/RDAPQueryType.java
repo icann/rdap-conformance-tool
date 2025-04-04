@@ -8,11 +8,12 @@ public enum RDAPQueryType {
   NAMESERVER,
   ENTITY,
   AUTNUM,
+  IP_NETWORK,
   NAMESERVERS,
   ERROR;
 
   public boolean isLookupQuery() {
-    return Set.of(RDAPQueryType.DOMAIN, RDAPQueryType.NAMESERVER, RDAPQueryType.ENTITY, RDAPQueryType.AUTNUM)
+    return Set.of(RDAPQueryType.DOMAIN, RDAPQueryType.NAMESERVER, RDAPQueryType.ENTITY, RDAPQueryType.AUTNUM, RDAPQueryType.IP_NETWORK)
         .contains(this);
   }
 }

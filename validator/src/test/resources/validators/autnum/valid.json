@@ -43,5 +43,23 @@
         ]
       ]
     ]
-  }]
+  }],
+  "rdapConformance" : [ "rdap_level_0" ],
+  "notices" : [
+    {
+      "description" : [
+        "This is the APNIC WHOIS Database query service. The objects are in RDAP format.",
+        "This information has been partially mirrored by APNIC from IDNIC."
+      ],
+      "links" : [
+        {
+          "href" : "http://www.apnic.net/db/dbcopyright.html",
+          "rel" : "terms-of-service",
+          "type" : "text/html",
+          "value" : "https://idnic.rdap.apnic.net/autnum/64297"
+        }
+      ],
+      "title" : "Terms and Conditions"
+    }
+  ]
 }

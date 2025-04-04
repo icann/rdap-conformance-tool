@@ -71,6 +71,9 @@
     "autnums": {
       "$ref": "rdap_autnums.json#"
     },
+    "networks": {
+      "$ref": "rdap_ip_networks.json#"
+    },
     "events": {
       "$ref": "rdap_events.json#"
     },
@@ -119,6 +122,8 @@
   "stdRdapPort43WhoisServerValidation": -12314,
   "stdRdapNoticesRemarksValidation": -12315,
   "stdRdapConformanceValidation": -12317,
+  "stdRdapAutnumsValidation": -12318,
+  "stdRdapIpNetworksValidation": -12319,
   "validationName": "stdRdapEntityLookupValidation",
   "noticesTopMost": -12316
 }

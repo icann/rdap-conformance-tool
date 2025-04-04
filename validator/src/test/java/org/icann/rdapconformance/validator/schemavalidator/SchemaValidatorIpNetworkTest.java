@@ -4,23 +4,25 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 
-public class SchemaValidatorAutnumTest extends SchemaValidatorObjectTest {
+public class SchemaValidatorIpNetworkTest extends SchemaValidatorObjectTest {
 
-  public SchemaValidatorAutnumTest() {
-    super("autnum",
-        "rdap_autnum.json",
-        "/validators/autnum/valid.json",
+  public SchemaValidatorIpNetworkTest() {
+    super("ipNetwork",
+        "rdap_ip_network.json",
+        "/validators/ipNetwork/valid.json",
         -12300,
         -12301,
         -12302,
         List.of(
-            "objectClassName",
+  "objectClassName",
             "handle",
-            "startAutnum",
-            "endAutnum",
+            "startAddress",
+            "endAddress",
+            "ipVersion",
             "name",
             "type",
             "country",
+            "parentHandle",
             "entities",
             "remarks",
             "links",
@@ -31,12 +33,12 @@ public class SchemaValidatorAutnumTest extends SchemaValidatorObjectTest {
             "notices"
         )
     );
-    validationName = "stdRdapAutnumLookupValidation";
+    validationName = "stdRdapIpNetworkLookupValidation";
   }
 
   @Test
   public void validateObjectClassName() {
-    testWrongConstant(-12303, "objectClassName", "autnum");
+    testWrongConstant(-12303, "objectClassName", "ip network");
   }
 
   @Test

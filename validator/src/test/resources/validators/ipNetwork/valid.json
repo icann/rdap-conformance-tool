@@ -1,0 +1,99 @@
+{
+  "rdapConformance" : [ "rdap_level_0" ],
+  "notices" : [
+    {
+      "title" : "Whois Inaccuracy Reporting",
+      "description" : [ "If you see inaccuracies in the results, please visit: " ],
+      "links" : [
+        {
+          "href" : "https://www.apnic.net/manage-ip/using-whois/abuse-and-spamming/invalid-contact-form",
+          "rel" : "inaccuracy-report",
+          "type" : "text/html",
+          "value" : "https://rdap.apnic.net/ip/101.1.1.1"
+        }
+      ]
+    }
+  ],
+  "objectClassName" : "ip network",
+  "handle" : "101.1.0.0 - 101.1.3.255",
+  "ipVersion" : "v4",
+  "startAddress" : "101.1.0.0",
+  "endAddress" : "101.1.3.255",
+  "country" : "CN",
+  "name" : "CHINANET-FJ",
+  "status" : [ "active" ],
+  "type" : "ALLOCATED PORTABLE",
+  "entities" : [
+    {
+      "objectClassName" : "entity",
+      "handle" : "IRT-CHINANET-CN",
+      "roles" : [
+        "abuse"
+      ],
+      "remarks" : [
+        {
+          "title" : "remarks",
+          "description" : [ "anti-spam@chinatelecom.cn was validated on 2024-04-15" ]
+        }
+      ],
+      "vcardArray" : [
+        "vcard",
+        [
+          [ "version", {}, "text", "4.0" ],
+          [ "fn", {}, "text", "IRT-CHINANET-CN" ],
+          [ "kind", {}, "text", "group" ],
+          [
+            "adr",
+            {
+              "label" : "No.31 ,jingrong street,beijing\n100032"
+            },
+            "text",
+            [ "", "", "", "", "", "", "" ]
+          ],
+          [ "email", {}, "text", "anti-spam@chinatelecom.cn" ]
+        ]
+      ],
+      "events" : [
+        { "eventAction" : "registration", "eventDate" : "2010-11-15T00:31:55Z" },
+        { "eventAction" : "last changed", "eventDate" : "2024-04-15T01:54:23Z" }
+      ],
+      "links" : [
+        {
+          "href" : "https://rdap.apnic.net/entity/IRT-CHINANET-CN",
+          "rel" : "self",
+          "type" : "application/rdap+json",
+          "value" : "https://rdap.apnic.net/ip/101.1.1.1"
+        }
+      ]
+    }
+  ],
+  "events" : [
+    { "eventAction" : "registration", "eventDate" : "2011-04-14T02:07:48Z" },
+    { "eventAction" : "last changed", "eventDate" : "2021-06-15T08:05:33Z" }
+  ],
+  "links" : [
+    {
+      "href" : "https://rdap.apnic.net/ip/101.1.0.0/22",
+      "rel" : "self",
+      "type" : "application/rdap+json",
+      "value" : "https://rdap.apnic.net/ip/101.1.1.1"
+    },
+    {
+      "href" : "https://netox.apnic.net/search/101.1.0.0%2F22?utm_source=rdap&utm_medium=result&utm_campaign=rdap_result",
+      "rel" : "related",
+      "type" : "text/html",
+      "value" : "https://rdap.apnic.net/ip/101.1.1.1"
+    }
+  ],
+  "remarks" : [
+    {
+      "title" : "description",
+      "description" : [
+        "CHINANET FUJIAN PROVINCE NETWORK",
+        "China Telecom",
+        "No.31,jingrong street",
+        "Beijing 100032"
+      ]
+    }
+  ]
+}
