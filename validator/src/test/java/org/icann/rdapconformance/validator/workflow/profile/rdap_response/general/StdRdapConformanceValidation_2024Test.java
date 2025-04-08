@@ -20,14 +20,14 @@ public class StdRdapConformanceValidation_2024Test  extends ProfileJsonValidatio
     @Test
     public void testValidate_ContainsRdapConformance_AddResults10612() {
         removeKey("rdapConformance");
-        validate(-10612, jsonObject.toString(),
+        validate(-10504, jsonObject.toString(),
             "RFC 9083 requires all RDAP responses to have an rdapConformance array.");
     }
 
     @Test
     public void testValidate_ContainsRdapConformanceInChild_AddResults10613() {
         putValue("$.secureDNS", "rdapConformance", List.of("dummy"));
-        validate(-10613, "#/secureDNS/rdapConformance",
+        validate(-10505, "#/secureDNS/rdapConformance",
             "The rdapConformance array must appear only in the top-most of the RDAP response.");
     }
 }
