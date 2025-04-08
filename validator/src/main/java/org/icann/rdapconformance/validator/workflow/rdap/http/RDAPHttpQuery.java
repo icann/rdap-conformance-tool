@@ -221,21 +221,17 @@ public class RDAPHttpQuery implements RDAPQuery {
     private void validate() {
         // If it wasn't successful, we don't need to validate
         if (!isQuerySuccessful()) {
-            System.out.println( "Query was not successful due to previous errors.");
             return;
         }
 
         // else continue on
         int httpStatusCode = httpResponse.statusCode();
-        System.out.println( "HTTP Status Code: " + httpStatusCode);
         HttpHeaders headers = httpResponse.headers();
         String rdapResponse = httpResponse.body();
 
         if(config.useRdapProfileFeb2024()) {
-            System.out.println( "Using RDAP Profile February 2024 for validation.");
-            if(!verifyErrorResponseBody(httpStatusCode, rdapResponse)) {
-                System.out.println( "Error response body is not valid according to the RDAP Profile February 2024.");
-                addErrorToResultsFile(-12107, "<error structure>","The errorCode value is required in an error response.");
+            if(!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
+                addErrorToResultsFile(-12107, rdapResponse,"The errorCode value is required in an error response.");
             }
         }
 
@@ -251,8 +247,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         jsonResponse = new JsonData(rdapResponse);
         if (!jsonResponse.isValid()) {
             addErrorToResultsFile(-13001, "response body not given","The response was not valid JSON.");
-          isQuerySuccessful = false;
-            System.out.println("We are returning but we did not write out a results file because the response was not valid JSON.???");
+            isQuerySuccessful = false;
           return;
         }
 
@@ -399,7 +394,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         try {
           rawRdapList = mapper.readValue(data, List.class);
         } catch (Exception e2) {
-          logger.error("Invalid JSON in RDAP response");
+          logger.info("Invalid JSON in RDAP response");
         }
       }
     }
@@ -448,45 +443,27 @@ public class RDAPHttpQuery implements RDAPQuery {
         return true;
     }
 
-    public boolean verifyErrorResponseBody(int httpStatusCode, String rdapResponse) {
-        System.out.println( "inside: verifyErrorResponseBody Verifying error response body for HTTP status code: " + httpStatusCode);
+    public boolean validateIfContainsErrorCode(int httpStatusCode, String rdapResponse) {
         if (httpStatusCode == HTTP_OK) {
-            System.out.println( "return true: HTTP status code is 200 OK, no need to verify error response body.");
-            return true;
-        } // No need to verify error response body
+            return true; // obviously we don't have to check then, pass
+        }
+
         if (rdapResponse == null || rdapResponse.isBlank()) {
-            System.out.println( "return false: Empty response body for HTTP status code: " + httpStatusCode);
-            logger.error("Empty response body for HTTP status code: " + httpStatusCode);
+            logger.info("Empty response body for HTTP status code: {}", httpStatusCode);
             return false;
         }
-        System.out.println(
-            "Verifying error response body for HTTP status code: " + httpStatusCode + " response: " + rdapResponse);
-        if (!rdapResponse.isBlank()) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                Map<String, Object> responseMap = mapper.readValue(rdapResponse,
-                    new TypeReference<Map<String, Object>>() {
-                    });
-                if(responseMap.containsKey(ERROR_CODE)) {
-                    System.out.println( "Error code found in response: " + responseMap.get(ERROR_CODE));
-                } else {
-                    System.out.println( "Error code not found in response.");
-                }
-                if(responseMap.containsKey(RDAP_CONFORMANCE)) {
-                    System.out.println( "RDAP conformance found in response: " + responseMap.get(RDAP_CONFORMANCE));
-                } else {
-                    System.out.println( "RDAP conformance not found in response.");
-                }
-                return responseMap.containsKey(ERROR_CODE) && responseMap.containsKey(RDAP_CONFORMANCE);
-            } catch (Exception e) {
-                logger.error("Error parsing JSON response for error code check", e);
-            }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> responseMap = mapper.readValue(rdapResponse, new TypeReference<Map<String, Object>>() {
+            });
+            return responseMap.containsKey(ERROR_CODE) && responseMap.containsKey(RDAP_CONFORMANCE);
+        } catch (Exception e) {
+            logger.info("Error parsing JSON response for error code check", e);
+            return false;
         }
-        System.out.println( "return true: Error response body is  valid JSON or does contain required fields.");
-        return true;
     }
 
-    //
+    // Utility method, we may want to move this to a common place
     public void addErrorToResultsFile(int code, String value, String message) {
       results.add(RDAPValidationResult.builder()
                                         .code(code)
