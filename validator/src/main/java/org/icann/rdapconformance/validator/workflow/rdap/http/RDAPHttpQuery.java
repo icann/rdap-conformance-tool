@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -38,6 +39,8 @@ public class RDAPHttpQuery implements RDAPQuery {
     public static final String NAMESERVERS = "nameservers";
     public static final String AUTNUMS = "autnums";
     public static final String NETWORKS = "networks";
+    public static final String ERROR_CODE = "errorCode";
+    public static final String RDAP_CONFORMANCE = "rdapConformance";
 
     private List<URI> redirects = new ArrayList<>();
     private String acceptHeader;
@@ -111,18 +114,10 @@ public class RDAPHttpQuery implements RDAPQuery {
     if (httpResponse.statusCode() == HTTP_OK) {
       if (queryType.isLookupQuery() && !jsonResponseValid()) {
         logger.error("objectClassName was not found in the topmost object");
-        results.add(RDAPValidationResult.builder()
-                .code(-13003)
-                .value(httpResponse.body())
-                .message("The response does not have an objectClassName string.")
-                .build());
+          addErrorToResultsFile(-13003, httpResponse.body(), "The response does not have an objectClassName string.");
       } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
         logger.error("No JSON array in answer");
-        results.add(RDAPValidationResult.builder()
-                .code(-13003)
-                .value(httpResponse.body())
-                .message("The response does not have an objectClassName string.")
-                .build());
+        addErrorToResultsFile(-13003, httpResponse.body(),"The response does not have an objectClassName string.");
       }
     }
     return true;
@@ -209,6 +204,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                 status = RDAPValidationStatus.TOO_MANY_REDIRECTS;
             }
 
+            // if we exit the loop without a redirect, we have a final response
             httpResponse = response;
         } catch (Exception e) {
             handleRequestException(e); // catch for all subclasses of these exceptions
@@ -233,39 +229,32 @@ public class RDAPHttpQuery implements RDAPQuery {
         HttpHeaders headers = httpResponse.headers();
         String rdapResponse = httpResponse.body();
 
+        if(config.useRdapProfileFeb2024()) {
+            if(!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
+                addErrorToResultsFile(-12107, rdapResponse,"The errorCode value is required in an error response.");
+            }
+        }
+
         // If a response is available to the tool, and the header Content-Type is not
         //  application/rdap+JSON, error code -13000 added in results file.
         if (Arrays.stream(String.join(SEMI_COLON, headers.allValues(CONTENT_TYPE)).split(SEMI_COLON))
                   .noneMatch(s -> s.equalsIgnoreCase(APPLICATION_RDAP_JSON))) {
-            results.add(RDAPValidationResult.builder()
-                                            .code(-13000)
-                                            .value(headers.firstValue(CONTENT_TYPE).orElse("missing"))
-                                            .message(
-                                                "The content-type header does not contain the application/rdap+json media type.")
-                                            .build());
+            addErrorToResultsFile(-13000,
+                                  headers.firstValue(CONTENT_TYPE).orElse("missing"), "The content-type header does not contain the application/rdap+json media type.");
         }
 
         // If a response is available to the tool, but it's not syntactically valid JSON object, error code -13001 added in results file.
         jsonResponse = new JsonData(rdapResponse);
         if (!jsonResponse.isValid()) {
-            results.add(RDAPValidationResult.builder()
-                                            .code(-13001)
-                                            .value("response body not given")
-                                            .message("The response was not valid JSON.")
-                                            .build());
-
-          isQuerySuccessful = false;
+            addErrorToResultsFile(-13001, "response body not given","The response was not valid JSON.");
+            isQuerySuccessful = false;
           return;
         }
 
         // If a response is available to the tool, but the HTTP status code is not 200 nor 404, error code -13002 added in results file
         if (!List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpStatusCode)) {
             logger.error("Invalid HTTP status {}", httpStatusCode);
-            results.add(RDAPValidationResult.builder()
-                                            .code(-13002)
-                                            .value(String.valueOf(httpStatusCode))
-                                            .message("The HTTP status code was neither 200 nor 404.")
-                                            .build());
+            addErrorToResultsFile(-13002, String.valueOf(httpStatusCode), "The HTTP status code was neither 200 nor 404.");
             isQuerySuccessful = false;
         }
     }
@@ -285,12 +274,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             // They copied the query over, this is bad
             if (originalQuery != null && originalQuery.equals(locationQuery)) {
-                results.add(RDAPValidationResult.builder()
-                                                .code(-13004)
-                                                .value("<location header value>")
-                                                .message(
-                                                    "Response redirect contained query parameters copied from the request.")
-                                                .build());
+                addErrorToResultsFile(-13004, "<location header value>", "Response redirect contained query parameters copied from the request.");
                 return true;
             }
         }
@@ -343,7 +327,6 @@ public class RDAPHttpQuery implements RDAPQuery {
   /**
    * Check if the RDAP json response contains a specific key.
    */
-
   public boolean jsonResponseValid() {
       if (jsonResponse == null) {
           return false;
@@ -411,7 +394,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         try {
           rawRdapList = mapper.readValue(data, List.class);
         } catch (Exception e2) {
-          logger.error("Invalid JSON in RDAP response");
+          logger.info("Invalid JSON in RDAP response");
         }
       }
     }
@@ -458,5 +441,34 @@ public class RDAPHttpQuery implements RDAPQuery {
             }
         }
         return true;
+    }
+
+    public boolean validateIfContainsErrorCode(int httpStatusCode, String rdapResponse) {
+        if (httpStatusCode == HTTP_OK) {
+            return true; // obviously we don't have to check then, pass
+        }
+
+        if (rdapResponse == null || rdapResponse.isBlank()) {
+            logger.info("Empty response body for HTTP status code: {}", httpStatusCode);
+            return false;
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> responseMap = mapper.readValue(rdapResponse, new TypeReference<Map<String, Object>>() {
+            });
+            return responseMap.containsKey(ERROR_CODE) && responseMap.containsKey(RDAP_CONFORMANCE);
+        } catch (Exception e) {
+            logger.info("Error parsing JSON response for error code check", e);
+            return false;
+        }
+    }
+
+    // Utility method, we may want to move this to a common place
+    public void addErrorToResultsFile(int code, String value, String message) {
+      results.add(RDAPValidationResult.builder()
+                                        .code(code)
+                                        .value(value)
+                                        .message(message)
+                                        .build());
     }
 }

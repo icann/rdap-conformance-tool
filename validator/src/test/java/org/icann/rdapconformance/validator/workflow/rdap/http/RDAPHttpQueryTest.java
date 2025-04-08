@@ -538,6 +538,76 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   @Test
+  public void jsonResponseValid_TopLevelObjectClassNameMissing_ReturnsFalse() {
+    String response = "{\"entities\": [{\"objectClassName\": \"entity\"}]}";
+    givenUri("http");
+    stubFor(get(urlEqualTo(REQUEST_PATH))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withBody(response)));
+
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.jsonResponseValid()).isFalse();
+  }
+
+  @Test
+  public void jsonResponseValid_EntitiesListInvalid_ReturnsFalse() {
+    String response = "{\"objectClassName\": \"domain\", \"entities\": [\"invalidElement\"]}";
+    givenUri("http");
+    stubFor(get(urlEqualTo(REQUEST_PATH))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withBody(response)));
+
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.jsonResponseValid()).isFalse();
+  }
+
+  @Test
+  public void jsonResponseValid_NameserversListInvalid_ReturnsFalse() {
+    String response = "{\"objectClassName\": \"domain\", \"nameservers\": [\"invalidElement\"]}";
+    givenUri("http");
+    stubFor(get(urlEqualTo(REQUEST_PATH))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withBody(response)));
+
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.jsonResponseValid()).isFalse();
+  }
+
+  @Test
+  public void jsonResponseValid_ValidTopLevelAndNestedEntities_ReturnsTrue() {
+    String response = "{\"objectClassName\": \"domain\", \"entities\": [{\"objectClassName\": \"entity\"}]}";
+    givenUri("http");
+    stubFor(get(urlEqualTo(REQUEST_PATH))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withBody(response)));
+
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.jsonResponseValid()).isTrue();
+  }
+
+  @Test
+  public void jsonResponseValid_ValidTopLevelAndNestedNameservers_ReturnsTrue() {
+    String response = "{\"objectClassName\": \"domain\", \"nameservers\": [{\"objectClassName\": \"nameserver\"}]}";
+    givenUri("http");
+    stubFor(get(urlEqualTo(REQUEST_PATH))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withBody(response)));
+
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.jsonResponseValid()).isTrue();
+  }
+
+  @Test
   public void testGetRedirects_NoRedirects() {
     doReturn(URI.create("http://example.com")).when(config).getUri();
     stubFor(get(urlEqualTo("/"))
@@ -738,5 +808,90 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       // Stop all HTTPS servers
       MultiCertHttpsTestServer.stopAll();
     }
+  }
+
+  @Test
+  public void testValidateIfContainsErrorCode_HttpStatus200_ReturnsTrue() {
+    String response = "{\"errorCode\":404,\"rdapConformance\":[\"rdap_level_0\"]}";
+    assertThat(rdapHttpQuery.validateIfContainsErrorCode(200, response)).isTrue();
+  }
+
+  @Test
+  public void testValidateIfContainsErrorCode_NullResponse_ReturnsFalse() {
+    assertThat(rdapHttpQuery.validateIfContainsErrorCode(404, null)).isFalse();
+  }
+
+  @Test
+  public void testValidateIfContainsErrorCode_BlankResponse_ReturnsFalse() {
+    assertThat(rdapHttpQuery.validateIfContainsErrorCode(404, " ")).isFalse();
+  }
+
+  @Test
+  public void testValidateIfContainsErrorCode_ValidJsonWithoutRequiredKeys_ReturnsFalse() {
+    String response = "{\"lang\":\"en-US\",\"title\":\"Error processing request\"}";
+    assertThat(rdapHttpQuery.validateIfContainsErrorCode(404, response)).isFalse();
+  }
+
+  @Test
+  public void testValidateIfContainsErrorCode_ValidJsonWithRequiredKeys_ReturnsTrue() {
+    String response = "{\"errorCode\":404,\"rdapConformance\":[\"rdap_level_0\"]}";
+    assertThat(rdapHttpQuery.validateIfContainsErrorCode(404, response)).isTrue();
+  }
+
+  @Test
+  public void testValidateIfContainsErrorCode_InvalidJson_ReturnsFalse() {
+    String response = "{\"errorCode\":404,\"rdapConformance\":";
+    assertThat(rdapHttpQuery.validateIfContainsErrorCode(404, response)).isFalse();
+  }
+
+  @Test
+  public void testValidateIfContainsErrorCode500_InvalidJson_ReturnsFalse() {
+    String response = "{\"errorCode\":500,\"rdapConformance\":";
+    assertThat(rdapHttpQuery.validateIfContainsErrorCode(500, response)).isFalse();
+  }
+
+
+
+  // More code coverage for verifyIfObjectClassPropExits
+  @Test
+  public void testVerifyIfObjectClassPropExits_EmptyList_ReturnsTrue() {
+    List<?> propertyCollection = List.of();
+    assertThat(rdapHttpQuery.verifyIfObjectClassPropExits(propertyCollection, "entities")).isTrue();
+  }
+
+  @Test
+  public void testVerifyIfObjectClassPropExits_ValidObjects_ReturnsTrue() {
+    List<Map<String, Object>> propertyCollection = List.of(
+        Map.of("objectClassName", "domain", "entities", List.of(Map.of("objectClassName", "entity"))),
+        Map.of("objectClassName", "nameserver")
+    );
+    assertThat(rdapHttpQuery.verifyIfObjectClassPropExits(propertyCollection, "entities")).isTrue();
+  }
+
+  @Test
+  public void testVerifyIfObjectClassPropExits_MissingObjectClassName_ReturnsFalse() {
+    List<Map<String, Object>> propertyCollection = List.of(
+        Map.of("entities", List.of(Map.of("objectClassName", "entity"))),
+        Map.of("objectClassName", "nameserver")
+    );
+    assertThat(rdapHttpQuery.verifyIfObjectClassPropExits(propertyCollection, "entities")).isFalse();
+  }
+
+  @Test
+  public void testVerifyIfObjectClassPropExits_InvalidNestedStructure_ReturnsFalse() {
+    List<Map<String, Object>> propertyCollection = List.of(
+        Map.of("objectClassName", "domain", "entities", List.of(Map.of("invalidKey", "value"))),
+        Map.of("objectClassName", "nameserver")
+    );
+    assertThat(rdapHttpQuery.verifyIfObjectClassPropExits(propertyCollection, "entities")).isFalse();
+  }
+
+  @Test
+  public void testVerifyIfObjectClassPropExits_NonMapElement_ReturnsFalse() {
+    List<?> propertyCollection = List.of(
+        Map.of("objectClassName", "domain"),
+        "invalidElement"
+    );
+    assertThat(rdapHttpQuery.verifyIfObjectClassPropExits(propertyCollection, "entities")).isFalse();
   }
 }
