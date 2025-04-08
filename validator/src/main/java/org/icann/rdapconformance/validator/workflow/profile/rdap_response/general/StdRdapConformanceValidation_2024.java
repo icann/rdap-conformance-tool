@@ -24,7 +24,7 @@ public class StdRdapConformanceValidation_2024 extends ProfileJsonValidation {
 
         if (pointers.isEmpty()) {
             results.add(RDAPValidationResult.builder()
-                .code(-10612)
+                .code(-10504)
                 .value(jsonObject.toString())
                 .message("RFC 9083 requires all RDAP responses to have an rdapConformance array.")
                 .build());
@@ -34,7 +34,7 @@ public class StdRdapConformanceValidation_2024 extends ProfileJsonValidation {
         for (String pointer : pointers) {
             if (!pointer.equalsIgnoreCase("#/rdapConformance") && !pointer.equalsIgnoreCase("/rdapConformance")) {
                 results.add(RDAPValidationResult.builder()
-                    .code(-10613)
+                    .code(-10505)
                     .value(pointer)
                     .message("The rdapConformance array must appear only in the top-most of the RDAP response.")
                     .build());
