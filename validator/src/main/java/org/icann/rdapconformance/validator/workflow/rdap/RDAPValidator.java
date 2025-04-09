@@ -10,6 +10,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.genera
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationLinkElements_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationStatusDuplication_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidRedirect_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.StdRdapConformanceValidation_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.slf4j.Logger;
@@ -228,7 +229,8 @@ public class RDAPValidator implements ValidatorWorkflow {
                     new ResponseValidation1Dot2_2_2024(query.getData(), results),
                     new ResponseValidationLinkElements_2024(query.getData(), results), // TODO: not a ProfileValidation, we need a new inheritance structure
                     new ResponseValidationStatusDuplication_2024(query.getData(), results),
-                    new StdRdapConformanceValidation_2024(query.getData(), results)
+                    new StdRdapConformanceValidation_2024(query.getData(), results),
+                    new ResponseValidationTestInvalidRedirect_2024(config, results)
                 )
             );
             rdapProfile.validate();

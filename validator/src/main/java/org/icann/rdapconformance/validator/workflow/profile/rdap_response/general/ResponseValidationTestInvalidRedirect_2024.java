@@ -5,7 +5,6 @@ import java.net.http.HttpResponse;
 import java.util.Arrays;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot6;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
@@ -13,20 +12,20 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ResponseValidationTestInvalidRedirect extends ProfileValidation {
+public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidation {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResponseValidationTestInvalidRedirect.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResponseValidationTestInvalidRedirect_2024.class);
     public static final String SLASH = "/";
     public static final int PARTS = 2;
-    private final int rdapResponseStatusCode;
+    public static final String EMPTY_STRING = "";
+    public static final String LOCATION = "Location";
     private final RDAPValidatorConfiguration config;
     public static final String DOMAIN_TEST_INVALID_WITH_SLASH = "/domain/test.invalid"; // with the slash
     public static final String SEP = "://";
 
-    public ResponseValidationTestInvalidRedirect(int rdapResponseStatusCode, RDAPValidatorConfiguration config,
-        RDAPValidatorResults results) {
+    public ResponseValidationTestInvalidRedirect_2024( RDAPValidatorConfiguration config,
+                                                      RDAPValidatorResults results) {
         super(results);
-        this.rdapResponseStatusCode = rdapResponseStatusCode; // we do nothing with this, it's a throwaway, but we have to have it for the interface
         this.config = config;
     }
 
@@ -56,7 +55,7 @@ public class ResponseValidationTestInvalidRedirect extends ProfileValidation {
     }
 
     public boolean handleRedirect(HttpResponse<String> response) {
-        String locationHeader = response.headers().firstValue("Location").orElse("");
+        String locationHeader = response.headers().firstValue(LOCATION).orElse(EMPTY_STRING);
         if (locationHeader.equals(createTestInvalidURI().toString())) {
             results.add(RDAPValidationResult.builder()
                                             .code(-13005)

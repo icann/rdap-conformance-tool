@@ -734,36 +734,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   @Test
-  public void test_RedirectsToTestInvalid() {
-    String path = "/domain/test.invalid";
-    String redirectLocation = (HTTP_LOCALHOST_8080 + path);
-
-    // Configure the URI and stub the redirect response
-    givenUri(HTTP, path);
-    stubFor(get(urlEqualTo(path))
-        .willReturn(temporaryRedirect(redirectLocation)
-            .withHeader("Location", redirectLocation)));
-
-    // Mock the configuration - super important to get into the spot we are testing!
-    when(config.isGtldRegistry()).thenReturn(true);
-    when(config.useRdapProfileFeb2024()).thenReturn(true);
-
-
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
-    rdapHttpQuery.setResults(results);
-    rdapHttpQuery.makeRequest(URI.create(HTTP_LOCALHOST_8080 + path));
-
-    assertThat(results.getAll()).contains(
-        RDAPValidationResult.builder()
-                            .code(-13005)
-                            .value("<location header value>")
-                            .message("Server responded with a redirect to itself for domain 'test.invalid'.")
-                            .build()
-    );
-  }
-
-
-  @Test
   public void test_WithLocalHttpsCertificateError_ReturnsAppropriateErrorStatus() throws Exception {
     // 🔥 Disable OCSP checking for test certs
     System.setProperty("com.sun.net.ssl.checkRevocation", "false");

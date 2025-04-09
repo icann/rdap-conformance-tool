@@ -1,9 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
-import static java.net.HttpURLConnection.HTTP_OK;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
@@ -19,10 +18,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.net.HttpURLConnection.HTTP_OK;
 
 public class RDAPHttpQuery implements RDAPQuery {
 
@@ -72,10 +73,6 @@ public class RDAPHttpQuery implements RDAPQuery {
    */
   @Override
   public boolean run() {
-      // this is here to make the conformance check to test loops for test.invalid
-//      if(canTestForInvalid()) {
-//          this.makeRequest(createTestInvalidURI());
-//      }
       this.makeRequest(this.config.getUri());
       this.validate();
       return this.isQuerySuccessful();
@@ -171,11 +168,6 @@ public class RDAPHttpQuery implements RDAPQuery {
                 response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
                 int status = response.statusCode();
 
-//                // checks if we are getting a 200 OK for test.invalid
-//               if( ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(results, currentUri,  status)) {
-//                   logger.info("Server responded with a 200 Ok for 'domain/test.invalid'");
-//               }
-
                 if (isRedirectStatus(status)) {
                     Optional<String> location = response.headers().firstValue(LOCATION);
                     if (location.isEmpty()) {
@@ -183,13 +175,6 @@ public class RDAPHttpQuery implements RDAPQuery {
                     }
 
                     URI redirectUri = URI.create(location.get());
-//                    if(canTestForInvalid() && currentUri.toString().contains(DOMAIN_TEST_INVALID)) { // we are currently hitting  /domain/test.invalid
-//                        if (ResponseValidationTestInvalidDomain.isRedirectingTestDotInvalidToItself(results, currentUri,
-//                            redirectUri)) {
-//                            logger.info("Server responded with a redirect to itself for domain '{}'.", redirectUri);
-//                            return;
-//                        }
-//                    }
 
                     if (!redirectUri.isAbsolute()) {
                         redirectUri = currentUri.resolve(redirectUri);
@@ -227,6 +212,7 @@ public class RDAPHttpQuery implements RDAPQuery {
     private void validate() {
         // If it wasn't successful, we don't need to validate
         if (!isQuerySuccessful()) {
+            logger.info("Querying wasn't successful .. don't validate ");
             return;
         }
 
