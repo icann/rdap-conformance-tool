@@ -1,9 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
-import static java.net.HttpURLConnection.HTTP_OK;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
@@ -19,10 +18,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.net.HttpURLConnection.HTTP_OK;
 
 public class RDAPHttpQuery implements RDAPQuery {
 
@@ -32,7 +33,6 @@ public class RDAPHttpQuery implements RDAPQuery {
     private static final String SEMI_COLON = ";";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String LOCATION = "Location";
-    private static final String NAMESERVER_SEARCH_RESULTS = "nameserverSearchResults";
     private static final String APPLICATION_RDAP_JSON = "application/rdap+JSON";
     public static final String OBJECT_CLASS_NAME = "objectClassName";
     public static final String ENTITIES = "entities";
@@ -73,9 +73,9 @@ public class RDAPHttpQuery implements RDAPQuery {
    */
   @Override
   public boolean run() {
-    this.makeRequest();
-    this.validate();
-    return this.isQuerySuccessful();
+      this.makeRequest(this.config.getUri());
+      this.validate();
+      return this.isQuerySuccessful();
   }
 
   /**
@@ -157,9 +157,10 @@ public class RDAPHttpQuery implements RDAPQuery {
     return status;
   }
 
-    public void makeRequest() {
+
+    public void makeRequest(URI currentUri ) {
         try {
-            URI currentUri = this.config.getUri();
+            logger.info("Making request to: {}", currentUri); // ensure we log each request
             int remainingRedirects = this.config.getMaxRedirects();
             HttpResponse<String> response = null;
 
@@ -174,10 +175,6 @@ public class RDAPHttpQuery implements RDAPQuery {
                     }
 
                     URI redirectUri = URI.create(location.get());
-                    if(ResponseValidationTestInvalidDomain.isRedirectingTestDotInvalidToItself(results, currentUri, redirectUri)) {
-                        logger.info("Server responded with a redirect to itself for domain '{}'.", currentUri);
-                        return;
-                    }
 
                     if (!redirectUri.isAbsolute()) {
                         redirectUri = currentUri.resolve(redirectUri);
@@ -211,16 +208,11 @@ public class RDAPHttpQuery implements RDAPQuery {
         }
     }
 
-    private boolean isRedirectStatus(int status) {
-        return switch (status) {
-            case 301, 302, 303, 307, 308 -> true;
-            default -> false;
-        };
-    }
 
     private void validate() {
         // If it wasn't successful, we don't need to validate
         if (!isQuerySuccessful()) {
+            logger.info("Querying wasn't successful .. don't validate ");
             return;
         }
 
@@ -236,7 +228,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         }
 
         // If a response is available to the tool, and the header Content-Type is not
-        //  application/rdap+JSON, error code -13000 added in results file.
+        // application/rdap+JSON, error code -13000 added in results file.
         if (Arrays.stream(String.join(SEMI_COLON, headers.allValues(CONTENT_TYPE)).split(SEMI_COLON))
                   .noneMatch(s -> s.equalsIgnoreCase(APPLICATION_RDAP_JSON))) {
             addErrorToResultsFile(-13000,
@@ -463,7 +455,13 @@ public class RDAPHttpQuery implements RDAPQuery {
         }
     }
 
-    // Utility method, we may want to move this to a common place
+    public static boolean isRedirectStatus(int status) {
+        return switch (status) {
+            case 301, 302, 303, 307, 308 -> true;
+            default -> false;
+        };
+    }
+
     public void addErrorToResultsFile(int code, String value, String message) {
       results.add(RDAPValidationResult.builder()
                                         .code(code)

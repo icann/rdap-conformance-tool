@@ -58,6 +58,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImp
 public class RDAPHttpQueryTest extends HttpTestingUtils {
   public static final int PAUSE = 1000;
   public static final String HTTPS_LOCALHOST = "https://localhost:";
+  public static final String HTTP_TEST_EXAMPLE = "http://test.example";
+  public static final String HTTP_LOCALHOST_8080 = "http://localhost:8080";
+  public static final String HTTP = "http";
   private RDAPHttpQuery rdapHttpQuery;
 
   @DataProvider(name = "fault")
@@ -128,9 +131,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_WithHttp() {
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
@@ -146,9 +149,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     String path = "/nameservers?ip=.*";
     String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
 
-    givenUri("http", path);
+    givenUri(HTTP, path);
     stubFor(get(urlEqualTo(path))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
@@ -161,9 +164,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test(dataProvider = "fault")
   public void test_ServerFault_ReturnsErrorStatus20(Fault fault) {
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withFault(fault)));
@@ -175,7 +178,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_NetworkSendFail_ReturnsErrorStatus19() {
-    doReturn(URI.create("http://test.example")).when(config).getUri();
+    doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
 
     assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.NETWORK_SEND_FAIL);
@@ -183,10 +186,10 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_ConnectionTimeout_ReturnsErrorStatus10() {
-    givenUri("http");
+    givenUri(HTTP);
     doReturn(1).when(config).getTimeout();
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withFixedDelay(2000)
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
@@ -202,15 +205,15 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     String path2 = "/domain/test2.example";
     String path3 = "/domain/test3.example";
 
-    givenUri("http", path1);
+    givenUri(HTTP, path1);
     stubFor(get(urlEqualTo(path1))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(temporaryRedirect(path2)));
     stubFor(get(urlEqualTo(path2))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(temporaryRedirect(path3)));
     stubFor(get(urlEqualTo(path3))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
@@ -232,18 +235,18 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     String path3 = "/domain/test3.example";
     String path4 = "/domain/test4.example";
 
-    givenUri("http", path1);
+    givenUri(HTTP, path1);
     stubFor(get(urlEqualTo(path1))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(temporaryRedirect(path2)));
     stubFor(get(urlEqualTo(path2))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(temporaryRedirect(path3)));
     stubFor(get(urlEqualTo(path3))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(temporaryRedirect(path4)));
     stubFor(get(urlEqualTo(path4))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
@@ -311,12 +314,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     String path1 = "/domain/test1.example";
     String path2 = "/domain/test2.example?param=value";
 
-    givenUri("http", path1 + "?param=value");
+    givenUri(HTTP, path1 + "?param=value");
     stubFor(get(urlEqualTo(path1 + "?param=value"))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(temporaryRedirect(path2)));
     stubFor(get(urlEqualTo(path2))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "text/plain")
             .withBody("Redirected successfully"))); // No JSON needed
@@ -337,9 +340,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   public void test_RedirectWithoutLocationHeader_BreaksLoop() {
     String path1 = "/domain/test1.example";
 
-    givenUri("http", path1);
+    givenUri(HTTP, path1);
     stubFor(get(urlEqualTo(path1))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withStatus(302))); // Redirect status without Location header
 
@@ -358,9 +361,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     RDAPValidatorResults results = new RDAPValidatorResultsImpl();
     rdapHttpQuery.setResults(results);
 
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/json;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
@@ -380,9 +383,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     rdapHttpQuery.setResults(results);
     String response = "{\"objectClassName\"}";
 
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
@@ -403,9 +406,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     String path = "/nameservers?ip=.*";
     String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse().withStatus(403)
                                .withBody(response)));
 
@@ -433,9 +436,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void checkWithQueryType_StatusNot200_IsOk() {
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(notFound()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody("{}")));
@@ -446,9 +449,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void checkWithQueryType_ObjectClassNameInJsonResponse_IsOk() {
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
@@ -460,13 +463,13 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void checkWithQueryType_NoObjectClassNameInJsonResponse_ReturnsErrorCode13003InResults() {
-    givenUri("http");
+    givenUri(HTTP);
     String response = "{\"NoObjectClassName\": \"domain\"}";
     RDAPValidatorResults results = new RDAPValidatorResultsImpl();
     rdapHttpQuery.setResults(results);
 
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
@@ -486,9 +489,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     String path = "/nameservers?ip=.*";
     String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
 
-    givenUri("http", path);
+    givenUri(HTTP, path);
     stubFor(get(urlEqualTo(path))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
@@ -504,9 +507,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     RDAPValidatorResults results = new RDAPValidatorResultsImpl();
     rdapHttpQuery.setResults(results);
 
-    givenUri("http", path);
+    givenUri(HTTP, path);
     stubFor(get(urlEqualTo(path))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
@@ -527,9 +530,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     String response = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";
 
 
-    givenUri("http", path);
+    givenUri(HTTP, path);
     stubFor(get(urlEqualTo(path))
-            .withScheme("http")
+            .withScheme(HTTP)
             .willReturn(aResponse()
                     .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
                     .withBody(response)));
@@ -540,9 +543,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Test
   public void jsonResponseValid_TopLevelObjectClassNameMissing_ReturnsFalse() {
     String response = "{\"entities\": [{\"objectClassName\": \"entity\"}]}";
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
@@ -554,9 +557,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Test
   public void jsonResponseValid_EntitiesListInvalid_ReturnsFalse() {
     String response = "{\"objectClassName\": \"domain\", \"entities\": [\"invalidElement\"]}";
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
@@ -568,9 +571,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Test
   public void jsonResponseValid_NameserversListInvalid_ReturnsFalse() {
     String response = "{\"objectClassName\": \"domain\", \"nameservers\": [\"invalidElement\"]}";
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
@@ -582,9 +585,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Test
   public void jsonResponseValid_ValidTopLevelAndNestedEntities_ReturnsTrue() {
     String response = "{\"objectClassName\": \"domain\", \"entities\": [{\"objectClassName\": \"entity\"}]}";
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
@@ -596,9 +599,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Test
   public void jsonResponseValid_ValidTopLevelAndNestedNameservers_ReturnsTrue() {
     String response = "{\"objectClassName\": \"domain\", \"nameservers\": [{\"objectClassName\": \"nameserver\"}]}";
-    givenUri("http");
+    givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
@@ -629,15 +632,15 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     String path2 = "/domain/test2.example";
     String path3 = "/domain/test3.example";
 
-    givenUri("http", path1);
+    givenUri(HTTP, path1);
     stubFor(get(urlEqualTo(path1))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(temporaryRedirect(path2)));
     stubFor(get(urlEqualTo(path2))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(temporaryRedirect(path3)));
     stubFor(get(urlEqualTo(path3))
-        .withScheme("http")
+        .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(RDAP_RESPONSE)));
@@ -647,6 +650,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
 
     List<URI> redirects = rdapHttpQuery.getRedirects();
+    when(config.isGtldRegistry()).thenReturn(false);
+    when(config.isGtldRegistrar()).thenReturn(false);
 
     assertThat(redirects).containsExactly(
         URI.create("http://localhost:8080/domain/test2.example"),
@@ -656,7 +661,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_HandleRequestException_ConnectionFailed() throws IOException, InterruptedException {
-    doReturn(URI.create("http://test.example")).when(config).getUri();
+    doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
     doReturn(PAUSE).when(config).getTimeout();
 
     RDAPHttpQuery query = new RDAPHttpQuery(config);
@@ -664,43 +669,43 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     // Mock the static method
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
       // Simulate a ConnectException
-      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create("http://test.example"), PAUSE))
+      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create(HTTP_TEST_EXAMPLE), PAUSE))
                   .thenThrow(new ConnectException("Connection failed"));
-      query.makeRequest();
+      query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
       assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
     }
   }
 
   @Test
   public void test_HandleRequestException_Timeout() throws IOException, InterruptedException {
-    doReturn(URI.create("http://test.example")).when(config).getUri();
+    doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
     doReturn(1).when(config).getTimeout();
 
     RDAPHttpQuery query = new RDAPHttpQuery(config);
 
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
       // Simulate a HttpTimeoutException
-      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create("http://test.example"), 1))
+      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create(HTTP_TEST_EXAMPLE), 1))
                   .thenThrow(new HttpTimeoutException("Timeout"));
 
-      query.makeRequest();
+      query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
       assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
     }
   }
 
   @Test
   public void test_AnalyzeIOException_ExpiredCertificate() throws IOException, InterruptedException {
-    doReturn(URI.create("http://test.example")).when(config).getUri();
+    doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
     doReturn(1).when(config).getTimeout();
 
     RDAPHttpQuery query = new RDAPHttpQuery(config);
 
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
       // Simulate a CertificateExpiredException
-      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create("http://test.example"), 1))
+      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create(HTTP_TEST_EXAMPLE), 1))
                   .thenThrow(new IOException(new java.security.cert.CertificateExpiredException("Expired certificate")));
 
-      query.makeRequest();
+      query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
       assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.EXPIRED_CERTIFICATE);
     }
   }
@@ -709,7 +714,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Ignore
   @Test
   public void test_AnalyzeIOException_RevokedCertificate() throws IOException, InterruptedException {
-    doReturn(URI.create("http://test.example")).when(config).getUri();
+    doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
     doReturn(1).when(config).getTimeout();
     RDAPHttpQuery query = new RDAPHttpQuery(config);
 
@@ -719,37 +724,14 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
       // Simulate a CertificateRevokedException with non-null parameters
-      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create("http://test.example"), 1))
+      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create(HTTP_TEST_EXAMPLE), 1))
                   .thenThrow(new IOException(new java.security.cert.CertificateRevokedException(
                       new Date(), null, null, Map.of())));
 
-      query.makeRequest();
+      query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
       assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.REVOKED_CERTIFICATE);
     }
   }
-
-  @Test
-  public void test_RedirectsToTestInvalid() {
-    String path = "/domain/test.invalid";
-
-    givenUri("http", path);
-    stubFor(get(urlEqualTo(path))
-        .withScheme("http")
-        .willReturn(temporaryRedirect(path)));
-
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
-    rdapHttpQuery.setResults(results);
-    rdapHttpQuery.makeRequest();
-
-    assertThat(results.getAll()).contains(
-        RDAPValidationResult.builder()
-                            .code(-13005)
-                            .value("<location header value>")
-                            .message("Server responded with a redirect to itself for domain 'test.invalid'.")
-                            .build()
-    );
-  }
-
 
   @Test
   public void test_WithLocalHttpsCertificateError_ReturnsAppropriateErrorStatus() throws Exception {
