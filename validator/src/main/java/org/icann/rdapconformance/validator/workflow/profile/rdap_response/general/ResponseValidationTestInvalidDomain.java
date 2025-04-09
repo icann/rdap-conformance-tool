@@ -38,8 +38,22 @@ public class ResponseValidationTestInvalidDomain {
         return false;
     }
 
+    public static boolean isHttpOKAndTestDotInvalid(RDAPValidatorResults results, URI currentUri, int statusCode) {
+        String currentUriStr = currentUri.toString();
+        if (currentUriStr.contains(TEST_INVALID) && statusCode == HTTP_OK) {
+            results.add(RDAPValidationResult.builder()
+                                            .code(-13006)
+                                            .value(currentUriStr)
+                                            .message("Server responded with a 200 Ok for 'test.invalid'.")
+                                            .build());
+            return true;
+        }
+        return false;
+    }
+
+
     /**
-     * Check if the server is responding with a 200 OK for TEST_INVALID
+     * Check if the user is sending the query and the server is responding with a 200 OK for TEST_INVALID
      */
     public static boolean isHttpOKAndTestDotInvalid(RDAPQuery query, RDAPQueryTypeProcessor queryTypeProcessor, RDAPValidatorResults results, RDAPValidationResultFile rdapValidationResultFile) {
         if (queryTypeProcessor.getQueryType().equals(RDAPQueryType.DOMAIN) && query.getData().contains(TEST_INVALID)) {

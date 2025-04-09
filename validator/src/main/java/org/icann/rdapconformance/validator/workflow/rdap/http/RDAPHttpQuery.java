@@ -32,7 +32,6 @@ public class RDAPHttpQuery implements RDAPQuery {
     private static final String SEMI_COLON = ";";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String LOCATION = "Location";
-    private static final String NAMESERVER_SEARCH_RESULTS = "nameserverSearchResults";
     private static final String APPLICATION_RDAP_JSON = "application/rdap+JSON";
     public static final String OBJECT_CLASS_NAME = "objectClassName";
     public static final String ENTITIES = "entities";
@@ -41,6 +40,9 @@ public class RDAPHttpQuery implements RDAPQuery {
     public static final String NETWORKS = "networks";
     public static final String ERROR_CODE = "errorCode";
     public static final String RDAP_CONFORMANCE = "rdapConformance";
+    public static final String DOMAIN_TEST_INVALID = "domain/test.invalid"; // without the slash
+    public static final String DOMAIN_TEST_INVALID_WITH_SLASH = "/domain/test.invalid"; // with the slash
+    public static final String SEP = "://";
 
     private List<URI> redirects = new ArrayList<>();
     private String acceptHeader;
@@ -73,9 +75,13 @@ public class RDAPHttpQuery implements RDAPQuery {
    */
   @Override
   public boolean run() {
-    this.makeRequest();
-    this.validate();
-    return this.isQuerySuccessful();
+      // this is here to make the conformance check to test loops for test.invalid
+      if(canTestForInvalid()) {
+          this.makeRequest(createTestInvalidURI());
+      }
+      this.makeRequest(this.config.getUri());
+      this.validate();
+      return this.isQuerySuccessful();
   }
 
   /**
@@ -157,15 +163,28 @@ public class RDAPHttpQuery implements RDAPQuery {
     return status;
   }
 
-    public void makeRequest() {
+    public URI createTestInvalidURI() {
+        URI baseURI = extractBaseUri(config.getUri());
+        String newPath = baseURI.getPath() + DOMAIN_TEST_INVALID_WITH_SLASH;
+
+        // Construct the new URI with the appended path
+        return URI.create(baseURI.getScheme() + SEP + baseURI.getAuthority() + newPath);
+    }
+
+    public void makeRequest(URI currentUri ) {
         try {
-            URI currentUri = this.config.getUri();
+            logger.info("Making request to: {}", currentUri); // ensure we log each request
             int remainingRedirects = this.config.getMaxRedirects();
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
                 response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
                 int status = response.statusCode();
+
+                // checks if we are getting a 200 OK for test.invalid
+               if( ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(results, currentUri,  status)) {
+                   logger.info("Server responded with a 200 Ok for 'domain/test.invalid'");
+               }
 
                 if (isRedirectStatus(status)) {
                     Optional<String> location = response.headers().firstValue(LOCATION);
@@ -174,9 +193,12 @@ public class RDAPHttpQuery implements RDAPQuery {
                     }
 
                     URI redirectUri = URI.create(location.get());
-                    if(ResponseValidationTestInvalidDomain.isRedirectingTestDotInvalidToItself(results, currentUri, redirectUri)) {
-                        logger.info("Server responded with a redirect to itself for domain '{}'.", currentUri);
-                        return;
+                    if(canTestForInvalid() && currentUri.toString().contains(DOMAIN_TEST_INVALID)) { // we are currently hitting  /domain/test.invalid
+                        if (ResponseValidationTestInvalidDomain.isRedirectingTestDotInvalidToItself(results, currentUri,
+                            redirectUri)) {
+                            logger.info("Server responded with a redirect to itself for domain '{}'.", redirectUri);
+                            return;
+                        }
                     }
 
                     if (!redirectUri.isAbsolute()) {
@@ -209,6 +231,10 @@ public class RDAPHttpQuery implements RDAPQuery {
         } catch (Exception e) {
             handleRequestException(e); // catch for all subclasses of these exceptions
         }
+    }
+
+    private boolean canTestForInvalid() {
+        return (this.config.isGtldRegistry() || this.config.isGtldRegistrar()) && this.config.useRdapProfileFeb2024();
     }
 
     private boolean isRedirectStatus(int status) {
@@ -464,6 +490,27 @@ public class RDAPHttpQuery implements RDAPQuery {
     }
 
     // Utility method, we may want to move this to a common place
+    public static URI extractBaseUri(URI uri) {
+        try {
+            String path = uri.getPath();
+            String[] parts = path.split("/");
+
+            // Ensure there are enough parts to remove
+            if (parts.length <= 2) {
+                throw new IllegalArgumentException("URI path does not have enough parts to extract base: " + uri);
+            }
+
+            // Reconstruct the path without the last two parts
+            String basePath = String.join("/", Arrays.copyOf(parts, parts.length - 2));
+
+            // Reconstruct and return the base URI
+            return new URI(uri.getScheme(), uri.getAuthority(), basePath.startsWith("/") ? basePath : "/" + basePath, null, null);
+        } catch (Exception e) {
+            // we can't do it, just return the original URI
+            return uri;
+        }
+    }
+
     public void addErrorToResultsFile(int code, String value, String message) {
       results.add(RDAPValidationResult.builder()
                                         .code(code)

@@ -172,7 +172,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
         }
 
-        // Check if they are doing a domain query for test.invalid and the response code was 200, that is bad but continue on
+        // Check if we are doing a domain query for test.invalid and the response code was 200, that is bad but continue on
         if (ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
             logger.info("Detected a test.invalid domain query with HTTP 200 response code.");
         }
