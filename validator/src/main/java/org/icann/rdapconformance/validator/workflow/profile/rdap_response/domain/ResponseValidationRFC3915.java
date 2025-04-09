@@ -42,7 +42,7 @@ public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
 
       if (status.contains("pending restore")) {
         results.add(RDAPValidationResult.builder()
-                .code(-47102)
+                .code(-47002)
                 .value(getResultValue("#/status"))
                 .message("'pending restore' is only valid with a status of 'pending delete'")
                 .build());
