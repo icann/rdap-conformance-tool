@@ -78,10 +78,8 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
     results.add(RDAPValidationResult.builder()
         .code(-52101)
         .value(getResultValue(jsonPointer))
-        .message("An entity with the registrant, administrative, technical or "
-            + "billing role with a remarks members with the title \"REDACTED FOR PRIVACY\" was "
-            + "not found, but the description and type does not contain the value in 2.7.4.3 of the "
-            + "RDAP_Response_Profile_2_1.")
+        .message("An entity without a remark titled “REDACTED FOR PRIVACY” " +
+                "does not have all the necessary information of handle, fn, adr, tel, street and city.")
         .build());
     return false;
   }
