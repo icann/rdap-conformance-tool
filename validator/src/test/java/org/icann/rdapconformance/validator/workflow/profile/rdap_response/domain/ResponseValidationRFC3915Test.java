@@ -51,9 +51,9 @@ public class ResponseValidationRFC3915Test extends ResponseDomainValidationTestB
   }
 
   @Test(dataProvider = "invalidStatusPendingRestore")
-  public void testValidate_InvalidStatusCombination_AddResults47102(Set<String> status) {
+  public void testValidate_InvalidStatusCombination_AddResults47002(Set<String> status) {
     replaceValue("status", status);
-    validate(-47102, "#/status:[\"" + String.join("\",\"", status) + "\"]",
+    validate(-47002, "#/status:[\"" + String.join("\",\"", status) + "\"]",
             "'pending restore' is only valid with a status of 'pending delete'");
   }
 }
