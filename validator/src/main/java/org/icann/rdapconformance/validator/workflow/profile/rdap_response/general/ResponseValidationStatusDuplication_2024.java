@@ -14,8 +14,10 @@ import java.util.Set;
 public class ResponseValidationStatusDuplication_2024 extends ProfileValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationStatusDuplication_2024.class);
-    public static final String STATUS_PATH = "$.status"; // top-level structure only
-    public static final String STATUS = "status";
+    private static final String STATUS_PATH = "$.status"; // top-level structure only
+    private static final String STATUS = "status";
+    private static final int ZERO = 0;
+    private static final int ONE = 1;
     private final JpathUtil jpathUtil;
     private JSONObject jsonObject = null;
     private RDAPValidatorResults results = null;
@@ -38,11 +40,11 @@ public class ResponseValidationStatusDuplication_2024 extends ProfileValidation 
         try {
             // Check for duplicate status values within the status array
             Set<String> statusPaths = jpathUtil.getPointerFromJPath(jsonObject, STATUS_PATH);
-            if (statusPaths.size() == 1) {
+            if (statusPaths.size() == ONE) {
                 var statusList = jsonObject.getJSONArray(STATUS);
                 var seenStatuses = new HashSet<String>();
                 var duplicateStatuses = new HashSet<String>();
-                for (int i = 0; i < statusList.length(); i++) {
+                for (int i = ZERO; i < statusList.length(); i++) {
                     String statusValue = statusList.getString(i);
                     if (!seenStatuses.add(statusValue)) {
                         duplicateStatuses.add(statusValue);
