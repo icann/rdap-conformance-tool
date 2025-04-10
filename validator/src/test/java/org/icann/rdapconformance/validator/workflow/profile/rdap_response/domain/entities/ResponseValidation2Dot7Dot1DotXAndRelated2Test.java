@@ -68,7 +68,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2Test extends
     entitiesWithRole("registrant");
     remarkMemberIs("title", "NOT REDACTED FOR PRIVACY");
     validate(-52101, "#/entities/0:" + jsonObject.query("#/entities/0"),
-            "An entity without a remark titled \"REDACTED FOR PRIVACY\"\\" +
-                "does not have all the necessary information of handle, fn, adr, tel, street and city.");
+            "An entity without a remark titled \"REDACTED FOR PRIVACY\" " +
+                    "does not have all the necessary information of handle, fn, adr, tel, street and city.");
   }
 }
