@@ -1,6 +1,7 @@
 {
   "status": [
     "client delete prohibited",
+    "client delete prohibited",
     "client transfer prohibited",
     "client update prohibited",
     "server delete prohibited",

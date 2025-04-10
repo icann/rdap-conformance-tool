@@ -41,16 +41,20 @@ public class ResponseValidationStatusDuplication_2024 extends ProfileValidation 
             if (statusPaths.size() == 1) {
                 var statusList = jsonObject.getJSONArray(STATUS);
                 var seenStatuses = new HashSet<String>();
+                var duplicateStatuses = new HashSet<String>();
                 for (int i = 0; i < statusList.length(); i++) {
                     String statusValue = statusList.getString(i);
                     if (!seenStatuses.add(statusValue)) {
-                        results.add(RDAPValidationResult.builder()
-                                                        .code(-11003)
-                                                        .value(STATUS_PATH + "[" + i + "]: " + statusValue)
-                                                        .message("A status value exists more than once in the status array")
-                                                        .build());
-                        isOK = false;
+                        duplicateStatuses.add(statusValue);
                     }
+                }
+                for (String duplicateStatus : duplicateStatuses) {
+                    results.add(RDAPValidationResult.builder()
+                                                    .code(-11003)
+                                                    .value(STATUS_PATH + ": " + duplicateStatus)
+                                                    .message("A status value exists more than once in the status array")
+                                                    .build());
+                    isOK = false;
                 }
             }
         } catch (Exception e) {

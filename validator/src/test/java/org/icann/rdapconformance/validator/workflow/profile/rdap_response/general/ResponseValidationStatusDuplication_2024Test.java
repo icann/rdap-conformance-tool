@@ -57,12 +57,21 @@ public class ResponseValidationStatusDuplication_2024Test {
         verify(results, atLeastOnce()).add(resultCaptor.capture());
 
         List<RDAPValidationResult> capturedResults = resultCaptor.getAllValues();
-        assertThat(capturedResults).hasSize(1);
+        assertThat(capturedResults).hasSize(2); // One for "server transfer prohibited" and one for "client delete prohibited"
 
-        RDAPValidationResult result = capturedResults.getFirst();
-        assertThat(result.getCode()).isEqualTo(-11003);
-        assertThat(result.getValue().contains("server transfer prohibited")).isTrue();
-        assertThat(result.getMessage()).isEqualTo("A status value exists more than once in the status array");
+        // Verify that the results contain the expected error messages, regardless of order
+        assertThat(capturedResults).anySatisfy(result -> {
+            assertThat(result.getCode()).isEqualTo(-11003);
+            assertThat(result.getValue()).contains("server transfer prohibited");
+            assertThat(result.getMessage()).isEqualTo("A status value exists more than once in the status array");
+        });
+
+        assertThat(capturedResults).anySatisfy(result -> {
+            assertThat(result.getCode()).isEqualTo(-11003);
+            assertThat(result.getValue()).contains("client delete prohibited");
+            assertThat(result.getMessage()).isEqualTo("A status value exists more than once in the status array");
+        });
+
         verify(results).addGroupErrorWarning(validation.getGroupName());
     }
 }
