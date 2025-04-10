@@ -36,6 +36,8 @@ public interface RDAPValidatorConfiguration {
 
   RDAPQueryType getQueryType();
 
+  boolean isNetworkEnabled();
+
   default boolean check() {
     if (getUri().getScheme() != null && getUri().getScheme().startsWith("http")) {
       if (getQueryType() != null) {

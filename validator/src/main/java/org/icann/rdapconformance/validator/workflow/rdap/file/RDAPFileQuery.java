@@ -35,7 +35,6 @@ public class RDAPFileQuery implements RDAPQuery {
   @Override
   public boolean run() {
     final URI uri = this.config.getUri();
-
     try {
       data = fileSystem.readFile(uri);
     } catch (IOException e) {
