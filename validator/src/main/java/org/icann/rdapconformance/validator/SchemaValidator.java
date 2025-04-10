@@ -148,7 +148,7 @@ public class SchemaValidator {
       verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
       // validate status property
-      validateStatusStringDuplication(jsonObject);
+//      validateStatusStringDuplication(jsonObject);
 
       // vcard
       if (content.contains("\"vcardArray\"")) {
@@ -166,27 +166,27 @@ public class SchemaValidator {
     return results.isEmpty();
   }
 
-  private void validateStatusStringDuplication(JSONObject jsonObject) {
-    Set<String> statusJsonPointers = jpathUtil.getPointerFromJPath(jsonObject, "$..status");
-    for (String jsonPointer : statusJsonPointers) {
-      try {
-        JSONArray statusArray = (JSONArray) jsonObject.query(jsonPointer);
-        Set<String> statusSet = new HashSet<>();
-        for (int i = 0; i < statusArray.length(); i++) {
-          String status = statusArray.getString(i);
-          if (!statusSet.add(status)) {
-            results.add(RDAPValidationResult.builder()
-                                            .code(-11003)
-                                            .value(jsonPointer + "/" + i + "/status:" + status)
-                                            .message("The status value exists more than once within the status array.")
-                                            .build());
-          }
-        }
-      } catch (Exception e) {
-        logger.error("Exception during evaluation of status string duplication: {} \n\n details: {}", jsonObject.query(jsonPointer), e);
-      }
-    }
-  }
+//  private void validateStatusStringDuplication(JSONObject jsonObject) {
+//    Set<String> statusJsonPointers = jpathUtil.getPointerFromJPath(jsonObject, "$..status");
+//    for (String jsonPointer : statusJsonPointers) {
+//      try {
+//        JSONArray statusArray = (JSONArray) jsonObject.query(jsonPointer);
+//        Set<String> statusSet = new HashSet<>();
+//        for (int i = 0; i < statusArray.length(); i++) {
+//          String status = statusArray.getString(i);
+//          if (!statusSet.add(status)) {
+//            results.add(RDAPValidationResult.builder()
+//                                            .code(-11003)
+//                                            .value(jsonPointer + "/" + i + "/status:" + status)
+//                                            .message("The status value exists more than once within the status array.")
+//                                            .build());
+//          }
+//        }
+//      } catch (Exception e) {
+//        logger.error("Exception during evaluation of status string duplication: {} \n\n details: {}", jsonObject.query(jsonPointer), e);
+//      }
+//    }
+//  }
 
   private void verifyUnicityOfEventAction(String schemaId, int errorCode, JSONObject jsonObject) {
     Set<String> eventsJsonPointers = jpathUtil.getPointerFromJPath(jsonObject,
