@@ -55,6 +55,8 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
 
+  private boolean networkEnabled  = true;
+
   @Override
   public Integer call() throws Exception {
     if (!isVerbose) {
@@ -66,6 +68,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     if (uri.getScheme() != null && uri.getScheme().startsWith("http")) {
       validator = new RDAPHttpValidator(this, fileSystem);
     } else {
+      networkEnabled = false;
       validator = new RDAPFileValidator(this, fileSystem);
     }
     return validator.validate();
@@ -141,6 +144,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Override
   public void setUri(URI uri) {
     this.uri = uri;
+  }
+
+  @Override
+  public boolean isNetworkEnabled() {
+    return networkEnabled;
   }
 
   private static class DependantRdapProfileGtld {
