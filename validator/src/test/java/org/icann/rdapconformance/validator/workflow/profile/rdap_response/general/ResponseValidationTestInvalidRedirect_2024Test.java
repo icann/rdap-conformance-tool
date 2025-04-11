@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 
 public class ResponseValidationTestInvalidRedirect_2024Test {
 
+    public static final String LOCATION = "Location";
     private RDAPValidatorResults results;
     private RDAPValidatorConfiguration config;
     private ResponseValidationTestInvalidRedirect_2024 validation;
@@ -45,7 +46,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         HttpHeaders headers = mock(HttpHeaders.class);
         when(response.statusCode()).thenReturn(302);
         when(response.headers()).thenReturn(headers);
-        when(headers.firstValue("Location")).thenReturn(Optional.of("http://example.com/rdap/domain/test.invalid"));
+        when(headers.firstValue(LOCATION)).thenReturn(Optional.of("http://example.com/rdap/domain/test.invalid"));
 
         MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
         mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
@@ -80,7 +81,21 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         HttpResponse<String> response = mock(HttpResponse.class);
         HttpHeaders headers = mock(HttpHeaders.class);
         when(response.headers()).thenReturn(headers);
-        when(headers.firstValue("Location")).thenReturn(Optional.of("http://example.com/rdap/domain/test.invalid"));
+        when(headers.firstValue(LOCATION)).thenReturn(Optional.of("http://example.com/rdap/domain/test.invalid"));
+
+        assertThat(validation.handleRedirect(response)).isFalse();
+        assertThat(results.getAll().stream().anyMatch(result ->
+            result.getCode() == -13005 &&
+                result.getMessage().equals("Server responded with a redirect to itself for domain 'test.invalid'.")
+        )).isTrue();
+    }
+
+    @Test
+    public void testHandleRedirect_RedirectsToItselfWithPartialLocation() {
+        HttpResponse<String> response = mock(HttpResponse.class);
+        HttpHeaders headers = mock(HttpHeaders.class);
+        when(response.headers()).thenReturn(headers);
+        when(headers.firstValue(LOCATION)).thenReturn(Optional.of("rdap/domain/test.invalid"));
 
         assertThat(validation.handleRedirect(response)).isFalse();
         assertThat(results.getAll().stream().anyMatch(result ->
@@ -94,7 +109,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         HttpResponse<String> response = mock(HttpResponse.class);
         HttpHeaders headers = mock(HttpHeaders.class);
         when(response.headers()).thenReturn(headers);
-        when(headers.firstValue("Location")).thenReturn(Optional.of("http://example.com/other"));
+        when(headers.firstValue(LOCATION)).thenReturn(Optional.of("http://example.com/other"));
 
         assertThat(validation.handleRedirect(response)).isTrue();
         assertThat(results.getAll()).isEmpty();
