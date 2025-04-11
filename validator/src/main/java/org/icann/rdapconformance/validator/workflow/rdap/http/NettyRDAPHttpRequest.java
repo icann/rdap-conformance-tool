@@ -33,17 +33,17 @@ public class NettyRDAPHttpRequest {
     private static final String HEAD = "HEAD";
     private static final String ACCEPT = "Accept";
 
-    public static CompletableFuture<HttpResponse<String>> makeHttpGetRequest(URI uri, int timeout)
+    public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeout)
         throws Exception {
         return makeRequest(uri.toString(), timeout, GET);
     }
 
-    public static CompletableFuture<HttpResponse<String>> makeHttpHeadRequest(URI uri, int timeout)
+    public static HttpResponse<String> makeHttpHeadRequest(URI uri, int timeout)
         throws Exception {
         return makeRequest(uri.toString(), timeout, HEAD);
     }
 
-    public static CompletableFuture<HttpResponse<String>> makeRequest(String urlString, int timeoutSeconds, String method) throws Exception {
+    public static HttpResponse<String> makeRequest(String urlString, int timeoutSeconds, String method) throws Exception {
         URI uri = URI.create(urlString);
         String host = uri.getHost();
         String path = uri.getRawPath().isEmpty() ? SLASH : uri.getRawPath();
@@ -123,7 +123,7 @@ public class NettyRDAPHttpRequest {
                  });
 
         responseFuture.whenComplete((resp, err) -> group.shutdownGracefully());
-        return responseFuture;
+        return responseFuture.get();
     }
 
     public static class NettyHttpResponse implements HttpResponse<String> {

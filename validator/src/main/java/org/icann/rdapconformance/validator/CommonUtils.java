@@ -18,6 +18,7 @@ public class CommonUtils {
     public static final String APPLICATION_JSON_CONTENT_TYPE = "application/json; charset=utf-8";
     public static final String APPLICATION_JSON_CONTENT_TYPE_RDAP = "application/rdap+json; charset=utf-8";
 
+    public static final int PAUSE = 1000;
     public static final int HTTPS_PORT = 443;
     public static final int HTTP_PORT = 80;
 

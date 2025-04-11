@@ -15,6 +15,7 @@ import com.github.tomakehurst.wiremock.http.Fault;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
+import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.EXPIRED;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.EXPIRED_CERT_PORT;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.INVALID_CERT_PORT;
@@ -57,7 +58,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 
 public class RDAPHttpQueryTest extends HttpTestingUtils {
-  public static final int PAUSE = 1000;
   public static final String HTTPS_LOCALHOST = "https://localhost:";
   public static final String HTTP_TEST_EXAMPLE = "http://test.example";
   public static final String HTTP_LOCALHOST_8080 = "http://localhost:8080";
