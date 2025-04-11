@@ -319,7 +319,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
             validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryTypeProcessor.getQueryType())); // assume you passed in a URL on the cli
+            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryTypeProcessor.getQueryType())); // assumes you passed in a URL on the cli
         }
 
         return validations;

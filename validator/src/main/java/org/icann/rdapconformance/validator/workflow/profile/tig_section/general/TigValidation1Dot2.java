@@ -1,5 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PREFIX;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PREFIX;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +51,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
   @Override
   public boolean doValidate() throws Exception {
     boolean isValid = true;
-    if (rdapResponse.uri().getScheme().equals("http")) {
+    if (rdapResponse.uri().getScheme().equals(HTTP)) {
       results.add(RDAPValidationResult.builder()
           .code(-20100)
           .value(rdapResponse.uri().toString())
@@ -56,14 +61,14 @@ public final class TigValidation1Dot2 extends ProfileValidation {
           .build());
       isValid = false;
     }
-    if (rdapResponse.uri().getScheme().equals("https")) {
+    if (rdapResponse.uri().getScheme().equals(HTTPS)) {
       try {
-        URI uri = URI.create(rdapResponse.uri().toString().replaceFirst("https://", "http://"));
+        URI uri = URI.create(rdapResponse.uri().toString().replaceFirst(HTTPS_PREFIX, HTTP_PREFIX));
         HttpResponse<String> httpResponse = RDAPHttpRequest
             .makeHttpGetRequest(uri, config.getTimeout());
         JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
         JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
-        if (!httpResponse.uri().getScheme().equals("https") // if redirect to https, do not validate
+        if (!httpResponse.uri().getScheme().equals(HTTPS) // if redirect to https, do not validate
         && jsonComparator.compare(httpResponseJson,
             httpsResponseJson) == 0) {
           results.add(RDAPValidationResult.builder()

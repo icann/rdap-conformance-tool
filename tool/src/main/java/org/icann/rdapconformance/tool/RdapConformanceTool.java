@@ -1,11 +1,14 @@
 package org.icann.rdapconformance.tool;
 
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import java.io.File;
 import java.net.URI;
 import java.util.concurrent.Callable;
 import org.apache.commons.lang3.SystemUtils;
+import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
@@ -65,11 +68,19 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     }
 
     ValidatorWorkflow validator;
-    if (uri.getScheme() != null && uri.getScheme().startsWith("http")) {
+    if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
       validator = new RDAPHttpValidator(this, fileSystem);
     } else {
       networkEnabled = false;
       validator = new RDAPFileValidator(this, fileSystem);
+    }
+
+    if(networkEnabled) {
+      NetworkInfo.setStackToV6();
+      int v6ret = validator.validate();
+      NetworkInfo.setStackToV4();
+      int v4ret = validator.validate();
+      return Math.min(v6ret, v4ret);
     }
     return validator.validate();
   }

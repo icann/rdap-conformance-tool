@@ -1,17 +1,24 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.util.Objects;
+import org.icann.rdapconformance.validator.NetworkInfo;
 
 public class RDAPValidationResult {
 
   private final int code;
   private final String value;
   private final String message;
+  private final String acceptHeader;
+  private final String httpMethod;
+  private final String serverIpAddress;
 
-  public RDAPValidationResult(int code, String value, String message) {
+  public RDAPValidationResult(int code, String value, String message, String acceptHeader, String httpMethod, String serverIpAddress) {
     this.code = code;
     this.value = value;
     this.message = message;
+    this.acceptHeader = acceptHeader;
+    this.httpMethod = httpMethod;
+    this.serverIpAddress = serverIpAddress;
   }
 
   public static Builder builder() {
@@ -30,6 +37,18 @@ public class RDAPValidationResult {
     return message;
   }
 
+  public String getAcceptHeader() {
+    return acceptHeader;
+  }
+
+  public String getHttpMethod() {
+    return httpMethod;
+  }
+
+  public String getServerIpAddress() {
+    return serverIpAddress;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -40,21 +59,27 @@ public class RDAPValidationResult {
     }
     RDAPValidationResult result = (RDAPValidationResult) o;
     return code == result.code &&
-        value.equals(result.value) &&
-        message.equals(result.message);
+        Objects.equals(value, result.value) &&
+        Objects.equals(message, result.message) &&
+        Objects.equals(acceptHeader, result.acceptHeader) &&
+        Objects.equals(httpMethod, result.httpMethod) &&
+        Objects.equals(serverIpAddress, result.serverIpAddress);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(code, value, message);
+    return Objects.hash(code, value, message, acceptHeader, httpMethod, serverIpAddress);
   }
 
   @Override
   public String toString() {
     return "RDAPValidationResult{" +
         "code=" + code +
-        ", message='" + message + '\'' +
         ", value='" + value + '\'' +
+        ", message='" + message + '\'' +
+        ", acceptHeader='" + acceptHeader + '\'' +
+        ", httpMethod='" + httpMethod + '\'' +
+        ", serverIpAddress='" + serverIpAddress + '\'' +
         '}';
   }
 
@@ -80,7 +105,14 @@ public class RDAPValidationResult {
     }
 
     public RDAPValidationResult build() {
-      return new RDAPValidationResult(this.code, this.value, this.message);
+      return new RDAPValidationResult(
+          this.code,
+          this.value,
+          this.message,
+          NetworkInfo.getAcceptHeader(),
+          NetworkInfo.getHttpMethod(),
+          NetworkInfo.getServerIpAddress()
+      );
     }
   }
 }

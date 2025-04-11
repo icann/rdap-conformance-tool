@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -53,6 +54,7 @@ public class RDAPValidationResultFile {
    * Fill and save the result file.
    */
   public void build(int statusCode) {
+    System.out.println("----> we are building a result file....");
     Map<String, Object> fileMap = new HashMap<>();
     fileMap.put("definitionIdentifier", configurationFile.getDefinitionIdentifier());
     fileMap.put("testedURI", config.getUri());
@@ -100,6 +102,9 @@ public class RDAPValidationResultFile {
       resultMap.put("code", result.getCode());
       resultMap.put("value", result.getValue());
       resultMap.put("message", result.getMessage());
+      resultMap.put("HTTP accept header", NetworkInfo.getAcceptHeader());
+      resultMap.put("HTTP method", NetworkInfo.getHttpMethod());
+      resultMap.put("Server IP Address", NetworkInfo.getServerIpAddress());
       resultMap.put("notes", configurationFile.getAlertNotes(result.getCode()));
       if (configurationFile.isError(result.getCode())) {
         errors.add(resultMap);
