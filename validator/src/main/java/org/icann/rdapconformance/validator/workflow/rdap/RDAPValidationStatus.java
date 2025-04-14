@@ -20,7 +20,8 @@ public enum RDAPValidationStatus {
   HTTP_ERROR(17, "HTTP errors."),
   HTTP2_ERROR(18, "HTTP/2 errors."),
   NETWORK_SEND_FAIL(19, "Failure sending network data."),
-  NETWORK_RECEIVE_FAIL(20, "Failure in receiving network data.");
+  NETWORK_RECEIVE_FAIL(20, "Failure in receiving network data."),
+  UNKNOWN_HOST_NAME(21, "Unknown host name.");
 
   private final int value;
   private final String description;

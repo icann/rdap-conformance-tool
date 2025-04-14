@@ -1,5 +1,11 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
+import static org.icann.rdapconformance.validator.CommonUtils.RDAP_JSON_APPLICATION_JSON;
+
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
@@ -37,6 +43,8 @@ import java.net.URI;
 import java.net.InetAddress;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
+import org.icann.rdapconformance.validator.NetworkInfo;
+import org.icann.rdapconformance.validator.NetworkProtocol;
 
 
 public class RDAPHttpRequest {
@@ -52,24 +60,68 @@ public class RDAPHttpRequest {
         return makeRequest(uri, timeoutSeconds, HEAD);
     }
 
-    private static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method) throws Exception {
-        String host = originalUri.getHost();
+    public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method) throws Exception {
+        if (originalUri == null) {
+            throw new IllegalArgumentException("The provided URI is null. Ensure the URI is properly set before making the request.");
+        }
+        String host;
+
+       // Check if the host is "localhost" and replace it with "127.0.0.1"
+        host = originalUri.getHost();
+        if ("localhost".equalsIgnoreCase(host)) {
+            host = "127.0.0.1";
+        } else {
+            host = originalUri.getHost();
+        }
+
         int port = originalUri.getPort() == -1
-            ? (originalUri.getScheme().equalsIgnoreCase("https") ? 443 : 80)
+            ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT)
             : originalUri.getPort();
 
-        InetAddress resolvedAddress = InetAddress.getByName(host);
+        InetAddress remoteAddress = null;
+        InetAddress[] addresses = InetAddress.getAllByName(host);
+
+        for (InetAddress addr : addresses) {
+            if ((NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) && addr instanceof Inet6Address) {
+                remoteAddress = addr;
+                break;
+            } else if ((NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv4) && addr instanceof Inet4Address) {
+                remoteAddress = addr;
+                break;
+            }
+        }
+        // If we didn't find a match for the preferred protocol, use any available address
+        if (remoteAddress == null && addresses.length > 0) {
+            remoteAddress = addresses[0];
+            System.out.println("Warning: No " + NetworkInfo.getNetworkProtocol() +
+                " address found for host: " + host +
+                ". Using " + remoteAddress.getClass().getSimpleName());
+        }
+        // Check if we have a valid address before proceeding
+        if (remoteAddress == null) {
+            throw new RuntimeException("No IP address found for host: " + host);
+        }
+
+
+        NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
+        System.out.println("Connecting to: " + remoteAddress.getHostAddress() + " using " + NetworkInfo.getNetworkProtocol());
 
         URI ipUri = new URI(
             originalUri.getScheme(),
             null,
-            resolvedAddress.getHostAddress(),
+            remoteAddress.getHostAddress(),
             port,
             originalUri.getRawPath(),
             originalUri.getRawQuery(),
             originalUri.getRawFragment()
         );
 
+        NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
+        NetworkInfo.setHttpMethod(method);
+        NetworkInfo.setAcceptHeader(RDAP_JSON_APPLICATION_JSON);
+        System.out.println("Connecting to: " + remoteAddress.getHostAddress() + " using " + NetworkInfo.getNetworkProtocol());
+
+        System.out.println("Resolved URI: " + ipUri);
         HttpUriRequestBase request = method.equals(GET)
             ? new HttpGet(ipUri)
             : new HttpHead(ipUri);
@@ -119,7 +171,7 @@ public class RDAPHttpRequest {
         }
     }
 
-    private static class SimpleHttpResponse implements HttpResponse<String> {
+    public static class SimpleHttpResponse implements HttpResponse<String> {
         private final int statusCode;
         private final String body;
         private final URI uri;
