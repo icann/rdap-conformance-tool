@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
@@ -335,9 +337,21 @@ public class RDAPValidator implements ValidatorWorkflow {
             System.out.println("Redirects followed: N/A (query is not an RDAPHttpQuery)");
             System.out.println("Accept header used for the query: N/A (query is not an RDAPHttpQuery)");
         }
+
         if (config.getUri() != null && config.getUri().getHost() != null) {
-            System.out.println(
-                "IP protocol used for the query: " + (config.getUri().getHost().contains(":") ? "IPv6" : "IPv4"));
+            String host = config.getUri().getHost();
+            try {
+                InetAddress address = InetAddress.getByName(host);
+                if (address instanceof java.net.Inet6Address) {
+                    System.out.println("IP protocol used for the query: IPv6");
+                } else if (address instanceof java.net.Inet4Address) {
+                    System.out.println("IP protocol used for the query: IPv4");
+                } else {
+                    System.out.println("IP protocol used for the query: Unknown");
+                }
+            } catch (UnknownHostException e) {
+                System.out.println("Invalid host: " + host);
+            }
         } else {
             System.out.println("IP protocol used for the query: unknown (URI or host is null)");
         }
