@@ -34,27 +34,34 @@ public class RDAPHttpRequest {
 
     public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeout)
         throws Exception {
+        System.out.println("Inside makeHttpGetRequest");
         return makeRequest(uri.toString(), timeout, GET);
     }
 
     public static HttpResponse<String> makeHttpHeadRequest(URI uri, int timeout)
         throws Exception {
+        System.out.println("Inside makeHttpHeadRequest");
         return makeRequest(uri.toString(), timeout, HEAD);
     }
 
     public static HttpResponse<String> makeRequest(String urlString, int timeoutSeconds, String method) throws Exception {
+        System.out.println("[3]Making request to: " + urlString);
         URI uri = URI.create(urlString);
         String host;
         // careful setting this, has to be in this conditional otherwise you'll get into a setting final trap
         if (uri.getHost() == null || uri.getHost().equalsIgnoreCase("localhost")) {
+            System.out.println("host is localhost ... set to 127.0.0.1");
             host = "127.0.0.1";
         } else {
+            System.out.println("host is " + uri.getHost());
             host = uri.getHost();
         }
 
         String path = uri.getRawPath().isEmpty() ? SLASH : uri.getRawPath();
         boolean isHttps = uri.getScheme().equalsIgnoreCase(HTTPS);
         int port = uri.getPort() == -1 ? (isHttps ? HTTPS_PORT : HTTP_PORT) : uri.getPort();
+
+        System.out.println("[1]Connecting to: " + host + ":" + port + " using " + NetworkInfo.getNetworkProtocol());
 
         InetAddress remoteAddress = null;
         for (InetAddress addr : InetAddress.getAllByName(host)) {
@@ -90,7 +97,7 @@ public class RDAPHttpRequest {
 
                          if (isHttps) {
                              SslContext sslCtx = SslContextBuilder.forClient()
-                                                                  .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                                                                  .trustManager(InsecureTrustManagerFactory.INSTANCE) // we are setting to nothing here b/c we use the ip address and set the host header
                                                                   .build();
                              p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
                          }

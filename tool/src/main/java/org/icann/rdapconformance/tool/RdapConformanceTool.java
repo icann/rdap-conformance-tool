@@ -56,7 +56,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private RDAPQueryType queryType;
 
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
-  private boolean isVerbose = true;
+  private boolean isVerbose = false;
 
   private boolean networkEnabled  = true;
 

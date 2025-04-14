@@ -162,11 +162,13 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     public void makeRequest(URI currentUri ) {
         try {
-            logger.info("Making request to: {}", currentUri); // ensure we log each request
+            logger.info("[2] Making request to: {}", currentUri); // ensure we log each request
             int remainingRedirects = this.config.getMaxRedirects();
+            System.out.println("[2] Remaining redirects: " + remainingRedirects);
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
+                System.out.println("[2a] Call makeHttpGetRequest with: " + currentUri + " and timeout: " + this.config.getTimeout());
                 response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
                 int status = response.statusCode();
 
@@ -194,6 +196,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                     currentUri = redirectUri;
                     remainingRedirects--;
                 } else {
+                    System.out.println("[2b] Not a redirect, break");
                     break; // Not a redirect
                 }
             }
