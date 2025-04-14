@@ -1,153 +1,130 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
-import static org.icann.rdapconformance.validator.CommonUtils.*;
-
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.*;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import io.netty.util.CharsetUtil;
-
-import java.net.http.HttpClient.Version;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSession;
-import java.net.*;
+import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import javax.net.ssl.SSLSession;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpHead;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 
-import org.icann.rdapconformance.validator.NetworkInfo;
-import org.icann.rdapconformance.validator.NetworkProtocol;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+
+import org.apache.hc.core5.ssl.TrustStrategy;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+
+import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.http.io.SocketConfig;
+
+
+import javax.net.ssl.SSLContext;
+import java.net.URI;
+import java.net.InetAddress;
+import java.security.cert.X509Certificate;
+import java.util.concurrent.TimeUnit;
+
 
 public class RDAPHttpRequest {
+
     private static final String GET = "GET";
     private static final String HEAD = "HEAD";
-    private static final String ACCEPT = "Accept";
 
-    public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeout)
-        throws Exception {
-        System.out.println("Inside makeHttpGetRequest");
-        return makeRequest(uri.toString(), timeout, GET);
+    public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeoutSeconds) throws Exception {
+        return makeRequest(uri, timeoutSeconds, GET);
     }
 
-    public static HttpResponse<String> makeHttpHeadRequest(URI uri, int timeout)
-        throws Exception {
-        System.out.println("Inside makeHttpHeadRequest");
-        return makeRequest(uri.toString(), timeout, HEAD);
+    public static HttpResponse<String> makeHttpHeadRequest(URI uri, int timeoutSeconds) throws Exception {
+        return makeRequest(uri, timeoutSeconds, HEAD);
     }
 
-    public static HttpResponse<String> makeRequest(String urlString, int timeoutSeconds, String method) throws Exception {
-        System.out.println("[3]Making request to: " + urlString);
-        URI uri = URI.create(urlString);
-        String host;
-        // careful setting this, has to be in this conditional otherwise you'll get into a setting final trap
-        if (uri.getHost() == null || uri.getHost().equalsIgnoreCase("localhost")) {
-            System.out.println("host is localhost ... set to 127.0.0.1");
-            host = "127.0.0.1";
-        } else {
-            System.out.println("host is " + uri.getHost());
-            host = uri.getHost();
+    private static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method) throws Exception {
+        String host = originalUri.getHost();
+        int port = originalUri.getPort() == -1
+            ? (originalUri.getScheme().equalsIgnoreCase("https") ? 443 : 80)
+            : originalUri.getPort();
+
+        InetAddress resolvedAddress = InetAddress.getByName(host);
+
+        URI ipUri = new URI(
+            originalUri.getScheme(),
+            null,
+            resolvedAddress.getHostAddress(),
+            port,
+            originalUri.getRawPath(),
+            originalUri.getRawQuery(),
+            originalUri.getRawFragment()
+        );
+
+        HttpUriRequestBase request = method.equals(GET)
+            ? new HttpGet(ipUri)
+            : new HttpHead(ipUri);
+
+        request.setHeader("Host", host);
+        request.setHeader("Accept", "application/rdap+json, application/json");
+        request.setHeader("Connection", "close");
+
+        RequestConfig config = RequestConfig.custom()
+                                            .setConnectTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
+                                            .setResponseTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
+                                            .build();
+
+        request.setConfig(config);
+
+        TrustStrategy acceptAll = (X509Certificate[] chain, String authType) -> true;
+        SSLContext sslContext = SSLContextBuilder.create()
+                                                 .loadTrustMaterial(null, acceptAll)
+                                                 .build();
+
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                                                                                                        .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+                                                                                                                                                              .setSslContext(sslContext)
+                                                                                                                                                              .setTlsVersions(TLS.V_1_3)
+                                                                                                                                                              .setHostnameVerifier((hostname, session) -> true)
+                                                                                                                                                              .build())
+                                                                                                        .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
+                                                                                                        .setConnPoolPolicy(PoolReusePolicy.LIFO)
+                                                                                                        .setDefaultConnectionConfig(org.apache.hc.client5.http.config.ConnectionConfig.custom()
+                                                                                                                                                                                      .setSocketTimeout(Timeout.ofMinutes(1))
+                                                                                                                                                                                      .setConnectTimeout(Timeout.ofMinutes(1))
+                                                                                                                                                                                      .setTimeToLive(TimeValue.ofMinutes(10))
+                                                                                                                                                                                      .build())
+                                                                                                        .build();
+
+        CloseableHttpClient client = HttpClientBuilder.create()
+                                                      .setConnectionManager(connectionManager)
+                                                      .build();
+
+        try (ClassicHttpResponse response = (ClassicHttpResponse) client.execute(request)) {
+            String body = response.getEntity() != null
+                ? EntityUtils.toString(response.getEntity())
+                : "";
+            int statusCode = response.getCode();
+
+            return new SimpleHttpResponse(statusCode, body, originalUri);
         }
-
-        String path = uri.getRawPath().isEmpty() ? SLASH : uri.getRawPath();
-        boolean isHttps = uri.getScheme().equalsIgnoreCase(HTTPS);
-        int port = uri.getPort() == -1 ? (isHttps ? HTTPS_PORT : HTTP_PORT) : uri.getPort();
-
-        System.out.println("[1]Connecting to: " + host + ":" + port + " using " + NetworkInfo.getNetworkProtocol());
-
-        InetAddress remoteAddress = null;
-        for (InetAddress addr : InetAddress.getAllByName(host)) {
-            if ((NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) && addr instanceof Inet6Address) {
-                remoteAddress = addr;
-                break;
-            } else if ((NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv4) && addr instanceof Inet4Address) {
-                remoteAddress = addr;
-                break;
-            }
-        }
-
-        if (remoteAddress == null) {
-            throw new RuntimeException("No matching " + NetworkInfo.getNetworkProtocol() + " address found for host: " + host);
-        }
-
-        NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
-        NetworkInfo.setHttpMethod(method);
-        NetworkInfo.setAcceptHeader(RDAP_JSON_APPLICATION_JSON);
-        System.out.println("Connecting to: " + remoteAddress.getHostAddress() + " using " + NetworkInfo.getNetworkProtocol());
-
-        EventLoopGroup group = new NioEventLoopGroup();
-        CompletableFuture<HttpResponse<String>> responseFuture = new CompletableFuture<>();
-
-        Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(group)
-                 .channel(NioSocketChannel.class)
-                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSeconds * 1000)
-                 .handler(new ChannelInitializer<SocketChannel>() {
-                     @Override
-                     protected void initChannel(SocketChannel ch) throws SSLException {
-                         ChannelPipeline p = ch.pipeline();
-
-                         if (isHttps) {
-                             SslContext sslCtx = SslContextBuilder.forClient()
-                                                                  .trustManager(InsecureTrustManagerFactory.INSTANCE) // we are setting to nothing here b/c we use the ip address and set the host header
-                                                                  .build();
-                             p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
-                         }
-
-                         p.addLast(new HttpClientCodec());
-                         p.addLast(new HttpObjectAggregator(Integer.MAX_VALUE));
-                         p.addLast(new SimpleChannelInboundHandler<FullHttpResponse>() {
-                             @Override
-                             protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) {
-                                 String body = msg.content().toString(CharsetUtil.UTF_8);
-                                 responseFuture.complete(new NettyHttpResponse(msg.status().code(), body, uri));
-                                 ctx.close();
-                             }
-
-                             @Override
-                             public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-                                 responseFuture.completeExceptionally(cause);
-                                 ctx.close();
-                             }
-
-                             @Override
-                             public void channelActive(ChannelHandlerContext ctx) {
-                                 FullHttpRequest request = new DefaultFullHttpRequest(
-                                     HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), path);
-                                 request.headers().set(HttpHeaderNames.HOST, host);
-                                 request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-                                 request.headers().set(ACCEPT, RDAP_JSON_APPLICATION_JSON);
-                                 ctx.writeAndFlush(request);
-                             }
-                         });
-                     }
-                 });
-
-        bootstrap.connect(new InetSocketAddress(remoteAddress, port))
-                 .addListener((ChannelFutureListener) future -> {
-                     if (!future.isSuccess()) {
-                         responseFuture.completeExceptionally(future.cause());
-                     }
-                 });
-
-        responseFuture.whenComplete((resp, err) -> group.shutdownGracefully());
-        return responseFuture.get();
     }
 
-    public static class NettyHttpResponse implements HttpResponse<String> {
+    private static class SimpleHttpResponse implements HttpResponse<String> {
         private final int statusCode;
         private final String body;
         private final URI uri;
 
-        public NettyHttpResponse(int statusCode, String body, URI uri) {
+        public SimpleHttpResponse(int statusCode, String body, URI uri) {
             this.statusCode = statusCode;
             this.body = body;
             this.uri = uri;
@@ -164,8 +141,8 @@ public class RDAPHttpRequest {
         }
 
         @Override
-        public HttpHeaders headers() {
-            return HttpHeaders.of(Map.of(), (k, v) -> true);
+        public HttpRequest request() {
+            return null; // Not implemented
         }
 
         @Override
@@ -174,23 +151,23 @@ public class RDAPHttpRequest {
         }
 
         @Override
+        public HttpHeaders headers() {
+            return HttpHeaders.of(java.util.Map.of(), (k, v) -> true); // Empty headers
+        }
+
+        @Override
         public URI uri() {
             return uri;
         }
 
         @Override
-        public HttpRequest request() {
-            return null;
-        }
-
-        @Override
         public Optional<SSLSession> sslSession() {
-            return Optional.empty();
+            return Optional.empty(); // Not implemented
         }
 
         @Override
-        public Version version() {
-            return Version.HTTP_1_1;
+        public HttpClient.Version version() {
+            return HttpClient.Version.HTTP_1_1; // Default version
         }
     }
 }

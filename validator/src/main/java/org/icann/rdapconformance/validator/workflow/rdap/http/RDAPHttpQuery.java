@@ -209,6 +209,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             // if we exit the loop without a redirect, we have a final response
             httpResponse = response;
         } catch (Exception e) {
+            System.out.println("Exception in makeRequest: " + e.getMessage());
             handleRequestException(e); // catch for all subclasses of these exceptions
         }
     }
