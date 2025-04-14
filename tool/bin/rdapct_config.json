@@ -29,7 +29,8 @@
     -12301,
     -12401,
     -12501,
-    -12601
+    -12601,
+    -47000
   ],
   "definitionNotes": [
     "This conformance configuration is typical of gTLD RDAP server needs."
