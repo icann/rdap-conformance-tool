@@ -7,12 +7,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.net.URI;
 import java.net.http.HttpResponse;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
+
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -147,7 +144,13 @@ public final class TigValidation1Dot2 extends ProfileValidation {
         if (n1 instanceof ObjectNode && n2 instanceof ObjectNode) {
           return compareObjectNodes((ObjectNode) n1, (ObjectNode) n2);
         } else {
-          return n1.equals(n2) ? 0 : 1;
+          try {
+            var string1 = String.valueOf(n1);
+            var string2 = String.valueOf(n2);
+            return string1.equalsIgnoreCase(string2) ? 0 : 1;
+          } catch (Exception e) {
+            return n1.equals(n2) ? 0 : 1;
+          }
         }
       }
 
