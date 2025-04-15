@@ -95,7 +95,7 @@ public class RDAPValidator implements ValidatorWorkflow {
                          RDAPQueryTypeProcessor queryTypeProcessor,
                          RDAPQuery query) {
         this(config, fileSystem, queryTypeProcessor, query, new ConfigurationFileParserImpl(),
-            new RDAPValidatorResultsImpl(), new RDAPDatasetServiceImpl(fileSystem));
+            RDAPValidatorResultsImpl.getInstance(), new RDAPDatasetServiceImpl(fileSystem));
     }
 
     public RDAPValidator(RDAPValidatorConfiguration config,

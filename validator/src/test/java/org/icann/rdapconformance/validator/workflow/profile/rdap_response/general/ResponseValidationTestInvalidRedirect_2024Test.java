@@ -29,7 +29,8 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
 
     @BeforeMethod
     public void setUp() {
-        results = new RDAPValidatorResultsImpl();
+        results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
         config = mock(RDAPValidatorConfiguration.class);
         when(config.getTimeout()).thenReturn(5000);
         when(config.getUri()).thenReturn(URI.create("http://example.com/rdap"));

@@ -52,7 +52,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
       String domainName = queryType.getValue(this.config.getUri().toString());
       String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
-      RDAPValidatorResults testDomainResults = new RDAPValidatorResultsImpl();
+      RDAPValidatorResults testDomainResults = RDAPValidatorResultsImpl.getInstance();
       SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults,
           datasetService);
       if (!validator.validate(domainNameJson)) {

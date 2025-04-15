@@ -137,7 +137,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_WithHttp() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     givenUri(HTTP);
@@ -157,7 +158,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   public void test_WithJsonArray() {
     String path = "/nameservers?ip=.*";
     String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     givenUri(HTTP, path);
@@ -212,7 +214,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_ServerRedirectLessThanRetries_Returns200() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results =RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     String path1 = "/domain/test1.example";
@@ -244,7 +247,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_ServerRedirectMoreThanRetries_ReturnsErrorStatus16() throws Exception {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     String path1 = "/domain/test1.example";
@@ -311,7 +315,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   public void testIsBlindlyCopyingParams() {
     RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
     RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     HttpHeaders headers = mock(HttpHeaders.class);
@@ -336,7 +341,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   public void testIsBlindlyCopyingParams_NotCopied() {
     RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
     RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     HttpHeaders headers = mock(HttpHeaders.class);
     URI originalUri = URI.create("http://example.com?param=value");
 
@@ -357,7 +363,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void testIsBlindlyCopyingParams_WithMockedResponses() throws Exception {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     String path1 = "/domain/test1.example";
@@ -412,7 +419,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         .willReturn(aResponse()
             .withStatus(REDIRECT))); // Redirect status without Location header
 
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     assertThat(rdapHttpQuery.run()).isFalse();
@@ -424,7 +432,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_NoContentType_ErrorCode13000AddedInResults() throws Exception {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     URI uri = URI.create(LOCAL_8080 + REQUEST_PATH);
@@ -462,7 +471,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_InvalidJson_ErrorCode13001AddedInResults() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
     String response = "{\"objectClassName\"}";
 
@@ -484,7 +494,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_InvalidHttpStatus_ErrorCode13002AddedInResults() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     String path = "/nameservers?ip=.*";
@@ -519,7 +530,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void checkWithQueryType_StatusNot200_IsOk() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     givenUri(HTTP);
@@ -535,7 +547,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void checkWithQueryType_ObjectClassNameInJsonResponse_IsOk() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     givenUri(HTTP);
@@ -554,7 +567,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   public void checkWithQueryType_NoObjectClassNameInJsonResponse_ReturnsErrorCode13003InResults() {
     givenUri(HTTP);
     String response = "{\"NoObjectClassName\": \"domain\"}";
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     stubFor(get(urlEqualTo(REQUEST_PATH))
@@ -577,7 +591,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   public void checkWithQueryType_JsonResponseIsAnArray_IsOk() {
     String path = "/nameservers?ip=.*";
     String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     givenUri(HTTP, path);
@@ -596,7 +611,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   public void checkWithQueryType_JsonResponseIsNotAnArray_ReturnsErrorCode13003InResults() {
     String path = "/nameservers?ip=.*";
     String response = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     givenUri(HTTP, path);
@@ -634,7 +650,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void jsonResponseValid_TopLevelObjectClassNameMissing_ReturnsFalse() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     String response = "{\"entities\": [{\"objectClassName\": \"entity\"}]}";
@@ -651,7 +668,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void jsonResponseValid_EntitiesListInvalid_ReturnsFalse() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     String response = "{\"objectClassName\": \"domain\", \"entities\": [\"invalidElement\"]}";
@@ -668,7 +686,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void jsonResponseValid_NameserversListInvalid_ReturnsFalse() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+
     rdapHttpQuery.setResults(results);
 
     String response = "{\"objectClassName\": \"domain\", \"nameservers\": [\"invalidElement\"]}";
@@ -685,7 +705,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void jsonResponseValid_ValidTopLevelAndNestedEntities_ReturnsTrue() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results =RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     String response = "{\"objectClassName\": \"domain\", \"entities\": [{\"objectClassName\": \"entity\"}]}";
@@ -702,7 +723,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void jsonResponseValid_ValidTopLevelAndNestedNameservers_ReturnsTrue() {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     String response = "{\"objectClassName\": \"domain\", \"nameservers\": [{\"objectClassName\": \"nameserver\"}]}";
@@ -724,7 +746,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody("{}")));
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     rdapHttpQuery.run();
@@ -735,7 +758,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void testGetRedirects_WithRedirects() throws Exception {
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapHttpQuery.setResults(results);
 
     String path1 = "/domain/test1.example";
@@ -857,7 +881,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     RDAPHttpQuery query = new RDAPHttpQuery(config);
 
     // Initialize the results field
-    RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     query.setResults(results);
 
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
@@ -900,7 +925,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     Thread.sleep(PAUSE);
 
     try {
-      RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+      RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+      results.clear();
       rdapHttpQuery.setResults(results);
 
       // Test expired certificate

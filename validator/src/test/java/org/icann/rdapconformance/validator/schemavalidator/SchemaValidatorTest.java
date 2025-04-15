@@ -55,7 +55,8 @@ public abstract class SchemaValidatorTest {
   public void setUp() throws IOException {
     datasets = new RDAPDatasetServiceMock();
     datasets.download(true);
-    results = new RDAPValidatorResultsImpl();
+    results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
     rdapContent = getResource(validJsonResourcePath);
     jsonObject = new JSONObject(rdapContent);
     schemaValidator = new SchemaValidator(schemaName, results, datasets);
