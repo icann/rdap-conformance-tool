@@ -52,7 +52,7 @@ public class RDAPValidationResultFile {
   /**
    * Fill and save the result file.
    */
-  public void build(int statusCode) {
+  public boolean build(int statusCode) {
     Map<String, Object> fileMap = new HashMap<>();
     fileMap.put("definitionIdentifier", configurationFile.getDefinitionIdentifier());
     fileMap.put("testedURI", config.getUri());
@@ -78,8 +78,10 @@ public class RDAPValidationResultFile {
       }
       this.resultPath = path.toString();
       fileSystem.write(path.toString(), object.toString(4));
+      return true;
     } catch (IOException e) {
       logger.error("Failed to write results into {}", path, e);
+      return false;
     }
   }
 

@@ -120,7 +120,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         addErrorToResultsFile(-13003, httpResponse.body(),"The response does not have an objectClassName string.");
       }
     }
-    return true;
+    return true; // this always returns true
   }
 
     @Override
