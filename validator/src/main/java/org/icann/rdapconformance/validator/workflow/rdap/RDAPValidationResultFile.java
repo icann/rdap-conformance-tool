@@ -54,7 +54,7 @@ public class RDAPValidationResultFile {
    * Fill and save the result file.
    */
   public void build(int statusCode) {
-    System.out.println("----> we are building a result file....");
+    System.out.println("[ADEBUG] ----> we are building a result file....");
     Map<String, Object> fileMap = new HashMap<>();
     fileMap.put("definitionIdentifier", configurationFile.getDefinitionIdentifier());
     fileMap.put("testedURI", config.getUri());

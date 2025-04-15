@@ -163,16 +163,16 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     public void makeRequest(URI currentUri ) {
         try {
-            logger.info("[2] Making request to: {}", currentUri); // ensure we log each request
+            logger.info("[ADEBUG] Making request to: {}", currentUri); // ensure we log each request
             int remainingRedirects = this.config.getMaxRedirects();
-            System.out.println("[2] Remaining redirects: " + remainingRedirects);
+            System.out.println("[ADEBUG] Remaining redirects: " + remainingRedirects);
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
-                System.out.println("[2a] Call makeHttpGetRequest with: " + currentUri + " and timeout: " + this.config.getTimeout());
+                System.out.println("[ADEBUG] Call makeHttpGetRequest with: " + currentUri + " and timeout: " + this.config.getTimeout());
                 response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
                 int status = response.statusCode();
-                System.out.println("[2a] Response status: " + status);
+                System.out.println("[ADEBUG] Response status: " + status);
 
                 if (isRedirectStatus(status)) {
                     Optional<String> location = response.headers().firstValue(LOCATION);
@@ -210,7 +210,6 @@ public class RDAPHttpQuery implements RDAPQuery {
             // if we exit the loop without a redirect, we have a final response
             httpResponse = response;
         } catch (Exception e) {
-            System.out.println("Exception in makeRequest: " + e.getMessage());
             handleRequestException(e); // catch for all subclasses of these exceptions
         }
     }
