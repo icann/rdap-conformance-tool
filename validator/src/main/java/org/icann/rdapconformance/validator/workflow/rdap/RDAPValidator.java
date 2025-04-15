@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import java.util.Optional;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationLinkElements_2024;
@@ -81,7 +82,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 public class RDAPValidator implements ValidatorWorkflow {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
-
     private final RDAPValidatorConfiguration config;
     private final RDAPQueryTypeProcessor queryTypeProcessor;
     private final RDAPQuery query;
@@ -162,7 +162,9 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         query.setResults(results);
         if (!query.run()) {
-            query.getStatusCode().ifPresent(rdapValidationResultFile::build);
+            if (!buildResultFile(rdapValidationResultFile, query)) {
+                return dumpErrorInfo(RDAPValidationStatus.FILE_WRITE_ERROR.getValue(), config, query);
+            }
 
             if (query.getErrorStatus() == null) {
                 // it means it is 13001 or 13002, the status will be null, and we should exit with code 0
@@ -171,10 +173,8 @@ public class RDAPValidator implements ValidatorWorkflow {
             return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
         }
 
-        if (!query.checkWithQueryType(queryTypeProcessor.getQueryType())) {
-            query.getStatusCode().ifPresent(rdapValidationResultFile::build);
-            return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
-        }
+        // this NEVER returns false, continue on
+        query.checkWithQueryType(queryTypeProcessor.getQueryType());
 
         // Check if we are doing a domain query for test.invalid and the response code was 200, that is bad but continue on
         if (ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
@@ -189,7 +189,9 @@ public class RDAPValidator implements ValidatorWorkflow {
             if (schemaFile != null) {
                 if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
-                    query.getStatusCode().ifPresent(rdapValidationResultFile::build);
+                    if (!buildResultFile(rdapValidationResultFile, query)) {
+                        return dumpErrorInfo(RDAPValidationStatus.FILE_WRITE_ERROR.getValue(), config, query);
+                    }
                     return dumpErrorInfo(RDAPValidationStatus.USES_THIN_MODEL.getValue(), config, query);
                 }
                 // asEventActor property is not allow in topMost entity object, see spec 7.2.9.2
@@ -230,7 +232,9 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         // finally we set the statusCode and results path
-        query.getStatusCode().ifPresent(rdapValidationResultFile::build);
+        if (!buildResultFile(rdapValidationResultFile, query)) {
+            return dumpErrorInfo(RDAPValidationStatus.FILE_WRITE_ERROR.getValue(), config, query);
+        }
         this.resultsPath = rdapValidationResultFile.resultPath;
 
         // we do not dumpInfo here, everything is fine
@@ -325,6 +329,15 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         return validations;
+    }
+
+    private boolean buildResultFile(RDAPValidationResultFile resultFile, RDAPQuery query) {
+        Optional<Integer> statusCodeOptional = query.getStatusCode();
+        if (statusCodeOptional.isPresent()) {
+            Integer statusCode = statusCodeOptional.get();
+            return resultFile.build(statusCode);
+        }
+        return true; // If no status code is present, we consider it a success
     }
 
     public int dumpErrorInfo(int exitCode, RDAPValidatorConfiguration config, RDAPQuery query) {
