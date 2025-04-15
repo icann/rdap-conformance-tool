@@ -14,10 +14,6 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   private final Set<String> groups = new HashSet<>();
   private final Set<String> groupErrorWarning = new HashSet<>();
 
-  public RDAPValidatorResultsImpl() {
-    System.out.println("You just created a new instance of RDAPValidatorResultsImpl");
-  }
-
   public void add(RDAPValidationResult result) {
     if (this.results.add(result)) {
       logger.debug("adding error result {}", result);
