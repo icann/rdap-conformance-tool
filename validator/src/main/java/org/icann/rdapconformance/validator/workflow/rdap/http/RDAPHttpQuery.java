@@ -71,94 +71,94 @@ public class RDAPHttpQuery implements RDAPQuery {
     }
 
 
-  /**
-   * Launch the HTTP request and validate it.
-   */
-  @Override
-  public boolean run() {
-      this.makeRequest(this.config.getUri());
-      this.validate();
-      return this.isQuerySuccessful();
-  }
-
-  /**
-   * Get the HTTP response status code
-   */
-  @Override
-  public Optional<Integer> getStatusCode() {
-    return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
-  }
-
-  // These two (getRedirects and getAcceptHeader) are specific to HTTP queries
-  /**
-   * Get the list of redirects
-   */
-  public List<URI> getRedirects() {
-    return redirects;
-  }
-
-  /**
-   * Get the Accept header
-   */
-  public String getAcceptHeader() {
-    return acceptHeader;
-  }
-
-
-  @Override
-  public boolean checkWithQueryType(RDAPQueryType queryType) {
-    /*
-     * If a response is available to the tool, but the expected objectClassName in the topmost
-     * object was not found for a lookup query (i.e. domain/<domain name>,
-     * nameserver/<nameserver name> and entity/<handle>) nor the expected JSON array
-     * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
-     * not validation on the contents) for a search query, code error -13003 added in results file.
-     */
-    if (httpResponse.statusCode() == HTTP_OK) {
-      if (queryType.isLookupQuery() && !jsonResponseValid()) {
-        logger.error("objectClassName was not found in the topmost object");
-          addErrorToResultsFile(results, -13003, httpResponse.body(), "The response does not have an objectClassName string.");
-      } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
-        logger.error("No JSON array in answer");
-        addErrorToResultsFile(results,-13003, httpResponse.body(),"The response does not have an objectClassName string.");
+      /**
+       * Launch the HTTP request and validate it.
+       */
+      @Override
+      public boolean run() {
+          this.makeRequest(this.config.getUri());
+          this.validate();
+          return this.isQuerySuccessful();
       }
-    }
-    return true;
-  }
 
-    @Override
-    public boolean isErrorContent() {
-        return httpResponse.statusCode() == HTTP_NOT_FOUND;
-    }
+      /**
+       * Get the HTTP response status code
+       */
+      @Override
+      public Optional<Integer> getStatusCode() {
+        return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
+      }
 
-  @Override
-  public String getData() {
-    return httpResponse.body();
-  }
+      // These two (getRedirects and getAcceptHeader) are specific to HTTP queries
+      /**
+       * Get the list of redirects
+       */
+      public List<URI> getRedirects() {
+        return redirects;
+      }
 
-  @Override
-  public Object getRawResponse() {
-    return httpResponse;
-  }
+      /**
+       * Get the Accept header
+       */
+      public String getAcceptHeader() {
+        return acceptHeader;
+      }
 
-  @Override
-  public void setResults(RDAPValidatorResults results) {
-    this.results = results;
-  }
 
-  /**
-   * Check if we got errors with the RDAP HTTP request.
-   */
-  private boolean isQuerySuccessful() {
-    return status == null && isQuerySuccessful;
-  }
+      @Override
+      public boolean checkWithQueryType(RDAPQueryType queryType) {
+        /*
+         * If a response is available to the tool, but the expected objectClassName in the topmost
+         * object was not found for a lookup query (i.e. domain/<domain name>,
+         * nameserver/<nameserver name> and entity/<handle>) nor the expected JSON array
+         * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
+         * not validation on the contents) for a search query, code error -13003 added in results file.
+         */
+        if (httpResponse.statusCode() == HTTP_OK) {
+          if (queryType.isLookupQuery() && !jsonResponseValid()) {
+            logger.error("objectClassName was not found in the topmost object");
+              addErrorToResultsFile(results, -13003, httpResponse.body(), "The response does not have an objectClassName string.");
+          } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
+            logger.error("No JSON array in answer");
+            addErrorToResultsFile(results,-13003, httpResponse.body(),"The response does not have an objectClassName string.");
+          }
+        }
+        return true;
+      }
 
-  /**
-   * Get the RDAP status in case of error
-   */
-  public RDAPValidationStatus getErrorStatus() {
-    return status;
-  }
+        @Override
+        public boolean isErrorContent() {
+            return httpResponse.statusCode() == HTTP_NOT_FOUND;
+        }
+
+      @Override
+      public String getData() {
+        return httpResponse.body();
+      }
+
+      @Override
+      public Object getRawResponse() {
+        return httpResponse;
+      }
+
+      @Override
+      public void setResults(RDAPValidatorResults results) {
+        this.results = results;
+      }
+
+      /**
+       * Check if we got errors with the RDAP HTTP request.
+       */
+      private boolean isQuerySuccessful() {
+        return status == null && isQuerySuccessful;
+      }
+
+      /**
+       * Get the RDAP status in case of error
+       */
+      public RDAPValidationStatus getErrorStatus() {
+        return status;
+      }
 
 
     public void makeRequest(URI currentUri ) {

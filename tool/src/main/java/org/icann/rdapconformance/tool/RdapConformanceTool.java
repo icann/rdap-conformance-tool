@@ -80,8 +80,12 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       int v6ret = validator.validate();
       NetworkInfo.setStackToV4();
       int v4ret = validator.validate();
+      // write out the results file
+//      validator.writeResultsFile();
       return Math.min(v6ret, v4ret);
     }
+
+    // if network is not enabled, we can only validate the file
     return validator.validate();
   }
 
