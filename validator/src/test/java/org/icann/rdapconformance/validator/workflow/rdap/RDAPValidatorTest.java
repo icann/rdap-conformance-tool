@@ -169,36 +169,6 @@ public class RDAPValidatorTest {
   }
 
   @Test
-  public void testValidate_QueryCheckWithQueryTypeReturnsFalse_ReturnsError() throws IOException {
-    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-    FileSystem fileSystem = mock(FileSystem.class);
-    RDAPQueryTypeProcessor queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
-    RDAPQuery query = mock(RDAPQuery.class);
-    ConfigurationFileParser configParser = mock(ConfigurationFileParser.class);
-    RDAPValidatorResults results = mock(RDAPValidatorResults.class);
-    RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
-    RDAPValidationResultFile rdapValidationResultFile = mock(RDAPValidationResultFile.class);
-
-    doReturn(true).when(config).check();
-    doReturn(true).when(queryTypeProcessor).check(datasetService);
-    doReturn(true).when(datasetService).download(anyBoolean());
-    doReturn(new ConfigurationFile("Test", null, null, null, null)).when(configParser).parse(any());
-    RDAPQueryType queryType = RDAPQueryType.DOMAIN;
-    doReturn(queryType).when(queryTypeProcessor).getQueryType();
-    doReturn(true).when(query).run(); // Ensure query.run() returns true
-    doReturn(false).when(query).checkWithQueryType(queryType); // Ensure checkWithQueryType returns false
-    doReturn(Optional.of(123)).when(query).getStatusCode();
-    doReturn(RDAPValidationStatus.UNSUPPORTED_QUERY).when(query).getErrorStatus();
-
-    RDAPValidator validator = new RDAPValidator(config, fileSystem, queryTypeProcessor, query, configParser, results, datasetService);
-
-    int result = validator.validate();
-
-    assertThat(result).isEqualTo(RDAPValidationStatus.UNSUPPORTED_QUERY.getValue());
-    verify(query).getStatusCode();
-  }
-
-  @Test
   public void testValidate_DomainQueryForTestInvalidWithHttpOK_LogsInfo() throws IOException {
     RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
     FileSystem fileSystem = mock(FileSystem.class);
@@ -227,6 +197,6 @@ public class RDAPValidatorTest {
     verify(results).add(argThat(validationResult -> validationResult.getCode() == -13006));
 
     assertThat(result).isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
-    verify(query, times(2)).getStatusCode();
+    verify(query, times(1)).getStatusCode();
   }
 }

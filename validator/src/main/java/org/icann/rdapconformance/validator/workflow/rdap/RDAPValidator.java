@@ -172,9 +172,8 @@ public class RDAPValidator implements ValidatorWorkflow {
             return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
         }
 
-        if (!query.checkWithQueryType(queryTypeProcessor.getQueryType())) {
-            return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
-        }
+        // this always returns true - don't bother checking the return
+        query.checkWithQueryType(queryTypeProcessor.getQueryType());
 
         // Check if we are doing a domain query for test.invalid and the response code was 200, that is bad but continue on
         if (ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
