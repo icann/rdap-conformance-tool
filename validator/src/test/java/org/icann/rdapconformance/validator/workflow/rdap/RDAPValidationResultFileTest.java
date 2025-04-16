@@ -51,6 +51,35 @@ public class RDAPValidationResultFileTest {
   }
 
   @Test
+  public void testGtldRegistrar() throws IOException {
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"gtldRegistrar\": false"));
+  }
+  @Test
+  public void testGtldRegistry() throws IOException {
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"gtldRegistry\": false"));
+  }
+
+  @Test
+  public void testThinRegistry() throws IOException {
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"thinRegistry\": false"));
+  }
+
+  @Test
+  public void testProfileFebruary2019() throws IOException {
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"rdapProfileFebruary2019\": false"));
+  }
+
+  @Test
+  public void testProfileFebruary2024() throws IOException {
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"rdapProfileFebruary2024\": false"));
+  }
+
+  @Test
   public void testIgnore() throws IOException {
     int ignoredCode = -1000;
     results.add(RDAPValidationResult.builder()

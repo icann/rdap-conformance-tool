@@ -44,7 +44,8 @@ public class RDAPValidatorTest {
     };
     doReturn(true).when(processor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
-    doReturn(new ConfigurationFile("Test", null, null, null, null)).when(configParser).parse(any());
+    doReturn(new ConfigurationFile("Test", null, null, null, null, false, false, false, false, false))
+            .when(configParser).parse(any());
   }
 
   @Test
@@ -159,7 +160,9 @@ public class RDAPValidatorTest {
     doReturn(true).when(config).check();
     doReturn(true).when(queryTypeProcessor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
-    doReturn(new ConfigurationFile("Test", null, null, null, null)).when(configParser).parse(any());
+    doReturn(new ConfigurationFile(
+            "Test", null, null, null, null, false, false, false, false, false))
+            .when(configParser).parse(any());
     doReturn(false).when(query).run();
     doReturn(null).when(query).getErrorStatus();
 
@@ -182,7 +185,8 @@ public class RDAPValidatorTest {
     doReturn(true).when(config).check();
     doReturn(true).when(queryTypeProcessor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
-    doReturn(new ConfigurationFile("Test", null, null, null, null)).when(configParser).parse(any());
+    doReturn(new ConfigurationFile("Test", null, null, null, null, false, false, false, false, false))
+            .when(configParser).parse(any());
     RDAPQueryType queryType = RDAPQueryType.DOMAIN;
     doReturn(queryType).when(queryTypeProcessor).getQueryType();
     doReturn(true).when(query).run();
