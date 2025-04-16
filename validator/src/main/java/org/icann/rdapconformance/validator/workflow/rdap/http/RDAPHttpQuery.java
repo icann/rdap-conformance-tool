@@ -163,16 +163,13 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     public void makeRequest(URI currentUri ) {
         try {
-            logger.info("[ADEBUG] Making request to: {}", currentUri); // ensure we log each request
+            logger.info("Making request to: {}", currentUri); // ensure we log each request
             int remainingRedirects = this.config.getMaxRedirects();
-            System.out.println("[ADEBUG] Remaining redirects: " + remainingRedirects);
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
-                System.out.println("[ADEBUG] Call makeHttpGetRequest with: " + currentUri + " and timeout: " + this.config.getTimeout());
                 response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
                 int status = response.statusCode();
-                System.out.println("[ADEBUG] Response status: " + status);
 
                 if (isRedirectStatus(status)) {
                     Optional<String> location = response.headers().firstValue(LOCATION);
@@ -235,7 +232,6 @@ public class RDAPHttpQuery implements RDAPQuery {
 
         // If a response is available to the tool, and the header Content-Type is not
         // application/rdap+JSON, error code -13000 added in results file.
-        System.out.println("[DEBUG] Content-Type header: " + headers.allValues(CONTENT_TYPE));
         if (Arrays.stream(String.join(SEMI_COLON, headers.allValues(CONTENT_TYPE)).split(SEMI_COLON))
                   .noneMatch(s -> s.equalsIgnoreCase(APPLICATION_RDAP_JSON))) {
             addErrorToResultsFile(results,-13000,
@@ -284,34 +280,27 @@ public class RDAPHttpQuery implements RDAPQuery {
      * Handle exceptions that occur during the HTTP request.
      */
   private void handleRequestException(Exception e) {
-      System.out.println("[DEBUG] Exception in handleRequestException: " + e.getCause());
+
 //    logger.info("Exception during RDAP query", e);
     if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
-        System.out.println("Checking cause.....");
+
       status = hasCause(e, "java.nio.channels.UnresolvedAddressException")
           ? RDAPValidationStatus.NETWORK_SEND_FAIL
           : RDAPValidationStatus.CONNECTION_FAILED;
-        System.out.println("Connection exception: " + status);
       return;
     }
-
-      System.out.println("[DEBUG] keeping on ");
 
     if(e instanceof UnknownHostException) {
       status = RDAPValidationStatus.UNKNOWN_HOST_NAME;
       return;
     }
 
-      System.out.println("[DEBUG] keeping on 2");
     if (e instanceof IOException) {
-        System.out.println("It's an IOException: " + e.getMessage());
       status = analyzeIOException((IOException) e);
       return;
     }
 
-      System.out.println("[DEBUG] keeping on 3");
     status = RDAPValidationStatus.CONNECTION_FAILED;
-    System.out.println("[DEBUG] status us set return: " + status);
   }
 
   /* *

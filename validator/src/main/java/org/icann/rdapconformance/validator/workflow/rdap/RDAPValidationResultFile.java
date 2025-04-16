@@ -24,25 +24,46 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RDAPValidationResultFile {
-
   private static final Logger logger = LoggerFactory.getLogger(RDAPValidationResultFile.class);
 
-  private final RDAPValidatorResults results;
-  private final RDAPValidatorConfiguration config;
-  private final ConfigurationFile configurationFile;
-  private final FileSystem fileSystem;
-  public String resultPath;
+  // Singleton instance
+  private static RDAPValidationResultFile instance;
 
-  public RDAPValidationResultFile(RDAPValidatorResults results,
-      RDAPValidatorConfiguration config,
-      ConfigurationFile configurationFile,
-      FileSystem fileSystem) {
+  private RDAPValidatorResults results;
+  private RDAPValidatorConfiguration config;
+  private ConfigurationFile configurationFile;
+  private FileSystem fileSystem;
+  public String resultPath;
+  // Track if already initialized
+  private boolean isInitialized = false;
+  // Private constructor
+  private RDAPValidationResultFile() {}
+
+  public static synchronized RDAPValidationResultFile getInstance() {
+    if (instance == null) {
+      instance = new RDAPValidationResultFile();
+    }
+    return instance;
+  }
+
+  public void initialize(RDAPValidatorResults results,
+                         RDAPValidatorConfiguration config,
+                         ConfigurationFile configurationFile,
+                         FileSystem fileSystem) {
+    if(isInitialized) {
+      return;
+    }
+    this.isInitialized = true;
     this.results = results;
     this.config = config;
     this.configurationFile = configurationFile;
     this.fileSystem = fileSystem;
   }
 
+  // For testing purposes
+  public static void reset() {
+    instance = null;
+  }
   private static String getFilename() {
     String datetimePattern = "yyyyMMddHHmmss";
     String dateTime = OffsetDateTime.now(ZoneOffset.UTC)
@@ -54,7 +75,6 @@ public class RDAPValidationResultFile {
    * Fill and save the result file.
    */
   public void build(int statusCode) {
-    System.out.println("[ADEBUG] ----> we are building a result file....");
     Map<String, Object> fileMap = new HashMap<>();
     fileMap.put("definitionIdentifier", configurationFile.getDefinitionIdentifier());
     fileMap.put("testedURI", config.getUri());
@@ -102,9 +122,9 @@ public class RDAPValidationResultFile {
       resultMap.put("code", result.getCode());
       resultMap.put("value", result.getValue());
       resultMap.put("message", result.getMessage());
-      resultMap.put("HTTP accept header", NetworkInfo.getAcceptHeader());
-      resultMap.put("HTTP method", NetworkInfo.getHttpMethod());
-      resultMap.put("Server IP Address", NetworkInfo.getServerIpAddress());
+      resultMap.put("HTTP accept header", result.getAcceptHeader());
+      resultMap.put("HTTP method", result.getHttpMethod());
+      resultMap.put("Server IP Address", result.getServerIpAddress());
       resultMap.put("notes", configurationFile.getAlertNotes(result.getCode()));
       if (configurationFile.isError(result.getCode())) {
         errors.add(resultMap);
@@ -121,5 +141,13 @@ public class RDAPValidationResultFile {
     resultsMap.put("ignore", configurationFile.getDefinitionIgnore());
     resultsMap.put("notes", configurationFile.getDefinitionNotes());
     return resultsMap;
+  }
+
+  public void mergeResults(RDAPValidatorResults newResults) {
+    if (this.results == null) {
+      this.results = newResults;
+    } else {
+      this.results.getAll().addAll(newResults.getAll());
+    }
   }
 }

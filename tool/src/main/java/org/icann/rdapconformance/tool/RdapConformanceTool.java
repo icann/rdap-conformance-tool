@@ -14,6 +14,9 @@ import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 import org.slf4j.LoggerFactory;
@@ -75,17 +78,25 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       validator = new RDAPFileValidator(this, fileSystem);
     }
 
-    if(networkEnabled) {
+
+    if (networkEnabled) {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      // do v6
       NetworkInfo.setStackToV6();
       int v6ret = validator.validate();
+
+      // do v4
       NetworkInfo.setStackToV4();
       int v4ret = validator.validate();
-      // write out the results file
-//      validator.writeResultsFile();
+
+      // Write out the results file
+      resultFile.build(Math.min(v6ret, v4ret));
+
+      // done, just return
       return Math.min(v6ret, v4ret);
     }
 
-    // if network is not enabled, we can only validate the file
+    // If network is not enabled, validate and return
     return validator.validate();
   }
 

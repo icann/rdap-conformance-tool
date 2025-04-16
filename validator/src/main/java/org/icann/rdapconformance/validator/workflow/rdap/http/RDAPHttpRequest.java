@@ -49,6 +49,7 @@ import org.icann.rdapconformance.validator.NetworkProtocol;
 
 public class RDAPHttpRequest {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
     private static final String GET = "GET";
     private static final String HEAD = "HEAD";
 
@@ -93,9 +94,6 @@ public class RDAPHttpRequest {
         // If we didn't find a match for the preferred protocol, use any available address
         if (remoteAddress == null && addresses.length > 0) {
             remoteAddress = addresses[0];
-            System.out.println("Warning: No " + NetworkInfo.getNetworkProtocol() +
-                " address found for host: " + host +
-                ". Using " + remoteAddress.getClass().getSimpleName());
         }
         // Check if we have a valid address before proceeding
         if (remoteAddress == null) {
@@ -103,8 +101,7 @@ public class RDAPHttpRequest {
         }
 
 
-        NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
-        System.out.println("Connecting to: " + remoteAddress.getHostAddress() + " using " + NetworkInfo.getNetworkProtocol());
+//        NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
 
         URI ipUri = new URI(
             originalUri.getScheme(),
@@ -119,9 +116,8 @@ public class RDAPHttpRequest {
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
         NetworkInfo.setHttpMethod(method);
         NetworkInfo.setAcceptHeader(RDAP_JSON_APPLICATION_JSON);
-        System.out.println("Connecting to: " + remoteAddress.getHostAddress() + " using " + NetworkInfo.getNetworkProtocol());
+        logger.info("Connecting to: {} using {}" , remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
 
-        System.out.println("Resolved URI: " + ipUri);
         HttpUriRequestBase request = method.equals(GET)
             ? new HttpGet(ipUri)
             : new HttpHead(ipUri);

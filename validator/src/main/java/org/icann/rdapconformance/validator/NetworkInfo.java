@@ -1,12 +1,5 @@
 package org.icann.rdapconformance.validator;
 
-import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
-
-import java.net.DatagramSocket;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-
 public class NetworkInfo {
     private static final NetworkInfo instance = new NetworkInfo();
     private String acceptHeader;
@@ -78,25 +71,26 @@ public class NetworkInfo {
 
 
     // unused for the moment and see above. It would be nice if the JVM actually could switch.
-    public static void checkNetworkLayer()  {
-        try {
-            // Create a dummy outbound connection to a remote host
-            // (this triggers real routing so we can see what the OS picks)
-            try (DatagramSocket socket = new DatagramSocket()) {
-                socket.connect(InetAddress.getByName("google.com"), HTTP_PORT);
-                InetAddress localAddress = socket.getLocalAddress();
-                System.out.println("Local outbound IP address: " + localAddress.getHostAddress());
-
-                if (localAddress instanceof Inet6Address) {
-                    System.out.println("Using IPv6 for outbound traffic.");
-                } else if( localAddress instanceof Inet4Address) {
-                    System.out.println("Using IPv4 for outbound traffic.");
-                } else {
-                    System.out.println("Unknown network layer.");
-                }
-            }
-        } catch (Exception e) {
-            System.out.println(" Not using IPv6.");
-        }
-    }
+    // TODO: find somewhere this is useful ?
+//    public static void checkNetworkLayer()  {
+//        try {
+//            // Create a dummy outbound connection to a remote host
+//            // (this triggers real routing so we can see what the OS picks)
+//            try (DatagramSocket socket = new DatagramSocket()) {
+//                socket.connect(InetAddress.getByName("google.com"), HTTP_PORT);
+//                InetAddress localAddress = socket.getLocalAddress();
+//                System.out.println("Local outbound IP address: " + localAddress.getHostAddress());
+//
+//                if (localAddress instanceof Inet6Address) {
+//                    System.out.println("Using IPv6 for outbound traffic.");
+//                } else if( localAddress instanceof Inet4Address) {
+//                    System.out.println("Using IPv4 for outbound traffic.");
+//                } else {
+//                    System.out.println("Unknown network layer.");
+//                }
+//            }
+//        } catch (Exception e) {
+//            System.out.println(" Not using IPv6.");
+//        }
+//    }
 }

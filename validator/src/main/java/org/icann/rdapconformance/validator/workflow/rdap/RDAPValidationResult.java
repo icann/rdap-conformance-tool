@@ -109,6 +109,7 @@ public class RDAPValidationResult {
           this.code,
           this.value,
           this.message,
+          // these are set here so that at the moment of building the result, we have the current settings
           NetworkInfo.getAcceptHeader(),
           NetworkInfo.getHttpMethod(),
           NetworkInfo.getServerIpAddress()

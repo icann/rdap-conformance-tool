@@ -119,6 +119,11 @@ public class RDAPValidator implements ValidatorWorkflow {
     }
 
     @Override
+    public RDAPValidatorResults getResults() {
+        return results;
+    }
+
+    @Override
     public int validate() {
         ConfigurationFile configurationFile;
         SchemaValidator validator = null;
@@ -141,8 +146,8 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         // set up the results file so we can write to it
-        final RDAPValidationResultFile rdapValidationResultFile = new RDAPValidationResultFile(results, config,
-            configurationFile, fileSystem);
+        RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
+        rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
 
         // If the parameter (--use-local-dataset) is set, use the dataset found in the filesystem,
         // download the dataset not found in the filesystem, and persist them in the filesystem.
@@ -160,8 +165,6 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         query.setResults(results);
         if (!query.run()) {
-            query.getStatusCode().ifPresent(rdapValidationResultFile::build);
-
             if (query.getErrorStatus() == null) {
                 // it means it is 13001 or 13002, the status will be null, and we should exit with code 0
                 return RDAPValidationStatus.SUCCESS.getValue();
@@ -170,7 +173,6 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         if (!query.checkWithQueryType(queryTypeProcessor.getQueryType())) {
-            query.getStatusCode().ifPresent(rdapValidationResultFile::build);
             return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
         }
 
@@ -187,7 +189,6 @@ public class RDAPValidator implements ValidatorWorkflow {
             if (schemaFile != null) {
                 if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
-                    query.getStatusCode().ifPresent(rdapValidationResultFile::build);
                     return dumpErrorInfo(RDAPValidationStatus.USES_THIN_MODEL.getValue(), config, query);
                 }
                 // asEventActor property is not allow in topMost entity object, see spec 7.2.9.2
@@ -228,8 +229,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         // finally we set the statusCode and results path
-        query.getStatusCode().ifPresent(rdapValidationResultFile::build);
-        this.resultsPath = rdapValidationResultFile.resultPath;
+//        this.resultsPath = rdapValidationResultFile.resultPath;
 
         // we do not dumpInfo here, everything is fine
         return RDAPValidationStatus.SUCCESS.getValue();
