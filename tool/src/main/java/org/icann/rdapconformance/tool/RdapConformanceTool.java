@@ -15,8 +15,7 @@ import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 import org.slf4j.LoggerFactory;
@@ -28,6 +27,8 @@ import picocli.CommandLine.IVersionProvider;
 
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
+  // Create a logger
+  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RdapConformanceTool.class);
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
@@ -102,8 +103,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       // Determine the minimum of all four exit values
       int minExitCode = Math.min(Math.min(v6ret, v6ret2), Math.min(v4ret, v4ret2));
 
-      // Build the result file with the minimum exit code
+      // Build the result file with the minimum exit code and set the results path
       resultFile.build(minExitCode);
+      // now the results file is set
+      logger.info("Results file: {}",  validator.getResultsPath());
 
       // Return the minimum exit code
       return minExitCode;

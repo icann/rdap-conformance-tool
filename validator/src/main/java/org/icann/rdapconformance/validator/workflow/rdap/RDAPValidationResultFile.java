@@ -155,11 +155,7 @@ public class RDAPValidationResultFile {
     return resultsMap;
   }
 
-  public void mergeResults(RDAPValidatorResults newResults) {
-    if (this.results == null) {
-      this.results = newResults;
-    } else {
-      this.results.getAll().addAll(newResults.getAll());
-    }
+  public String getResultsPath() {
+    return resultPath;
   }
 }

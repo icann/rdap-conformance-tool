@@ -239,7 +239,7 @@ public class RDAPValidator implements ValidatorWorkflow {
 
     @Override
     public String getResultsPath() {
-        return this.resultsPath;
+        return RDAPValidationResultFile.getInstance().getResultsPath();
     }
 
     private List<ProfileValidation> get2024ProfileValidations(HttpResponse<String> rdapResponse,
