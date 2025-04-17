@@ -191,10 +191,10 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_NetworkSendFail_ReturnsErrorStatus19() {
-    doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
+    doReturn(URI.create(HTTP_TEST_EXAMPLE )).when(config).getUri();
 
     assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.UNKNOWN_HOST_NAME);
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
   }
 
   @Test
@@ -209,7 +209,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .withBody(RDAP_RESPONSE)));
 
     assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
   }
 
   @Test

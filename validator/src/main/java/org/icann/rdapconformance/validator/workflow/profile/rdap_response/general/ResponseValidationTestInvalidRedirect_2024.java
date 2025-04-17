@@ -1,8 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
-import static org.icann.rdapconformance.validator.CommonUtils.SEP;
-import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
-
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
@@ -18,13 +15,13 @@ import org.slf4j.LoggerFactory;
 public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationTestInvalidRedirect_2024.class);
-
     public static final int PARTS = 2;
     public static final String EMPTY_STRING = "";
     public static final String LOCATION = "Location";
+    public static final String SEP = "://";
+    public static final String SLASH = "/";
     private final RDAPValidatorConfiguration config;
     public static final String DOMAIN_TEST_INVALID_WITH_SLASH = "/domain/test.invalid"; // with the slash
-
 
     public ResponseValidationTestInvalidRedirect_2024( RDAPValidatorConfiguration config,
                                                       RDAPValidatorResults results) {
@@ -60,15 +57,41 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
 
     public boolean handleRedirect(HttpResponse<String> response) {
         String locationHeader = response.headers().firstValue(LOCATION).orElse(EMPTY_STRING);
-        if (locationHeader.equals(createTestInvalidURI().toString())) {
-            results.add(RDAPValidationResult.builder()
-                                            .code(-13005)
-                                            .value(locationHeader)
-                                            .message("Server responded with a redirect to itself for domain 'test.invalid'.")
-                                            .build());
+        logger.info("Received redirect -> Location header: {}", locationHeader);
+
+        try {
+            // Normalize the Location header to a full URL
+            URI locationUri = normalizeLocationUri(locationHeader, createTestInvalidURI());
+            logger.info("Normalized Location URI: {}", locationUri);
+
+            // Check if the redirect points to itself
+            if (locationUri.equals(createTestInvalidURI())) {
+                results.add(RDAPValidationResult.builder()
+                                                .code(-13005)
+                                                .value(locationHeader)
+                                                .message("Server responded with a redirect to itself for domain 'test.invalid'.")
+                                                .build());
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error("Error normalizing Location header: {}", locationHeader, e);
             return false;
         }
+
         return true;
+    }
+
+    private URI normalizeLocationUri(String locationHeader, URI baseUri) {
+        // Strip the base URI's path to its root
+        URI strippedBaseUri = URI.create(baseUri.getScheme() + SEP + baseUri.getAuthority() + SLASH);
+
+        // Check if the Location header is a full URL or a relative path
+        URI locationUri = URI.create(locationHeader);
+        if (!locationUri.isAbsolute()) {
+            // Resolve relative URI against the stripped base URI
+            locationUri = strippedBaseUri.resolve(locationUri);
+        }
+        return locationUri;
     }
 
     public boolean canTestForInvalid() {

@@ -78,7 +78,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
     results.add(RDAPValidationResult.builder()
         .code(-52101)
         .value(getResultValue(jsonPointer))
-        .message("An entity without a remark titled \"REDACTED FOR PRIVACY\"\\" +
+        .message("An entity without a remark titled \"REDACTED FOR PRIVACY\" " +
                 "does not have all the necessary information of handle, fn, adr, tel, street and city.")
         .build());
     return false;

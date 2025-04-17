@@ -1,11 +1,14 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import java.util.Optional;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationLinkElements_2024;
@@ -116,11 +119,6 @@ public class RDAPValidator implements ValidatorWorkflow {
         this.configParser = configParser;
         this.results = results;
         this.datasetService = datasetService;
-    }
-
-    @Override
-    public RDAPValidatorResults getResults() {
-        return results;
     }
 
     @Override
@@ -235,6 +233,11 @@ public class RDAPValidator implements ValidatorWorkflow {
     }
 
     @Override
+    public RDAPValidatorResults getResults() {
+        return null;
+    }
+
+    @Override
     public String getResultsPath() {
         return this.resultsPath;
     }
@@ -318,7 +321,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
             validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryTypeProcessor.getQueryType())); // assumes you passed in a URL on the cli
+            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryTypeProcessor.getQueryType())); // assume you passed in a URL on the cli
         }
 
         return validations;
@@ -334,9 +337,21 @@ public class RDAPValidator implements ValidatorWorkflow {
             System.out.println("Redirects followed: N/A (query is not an RDAPHttpQuery)");
             System.out.println("Accept header used for the query: N/A (query is not an RDAPHttpQuery)");
         }
+
         if (config.getUri() != null && config.getUri().getHost() != null) {
-            System.out.println(
-                "IP protocol used for the query: " + (config.getUri().getHost().contains(":") ? "IPv6" : "IPv4"));
+            String host = config.getUri().getHost();
+            try {
+                InetAddress address = InetAddress.getByName(host);
+                if (address instanceof java.net.Inet6Address) {
+                    System.out.println("IP protocol used for the query: IPv6");
+                } else if (address instanceof java.net.Inet4Address) {
+                    System.out.println("IP protocol used for the query: IPv4");
+                } else {
+                    System.out.println("IP protocol used for the query: Unknown");
+                }
+            } catch (UnknownHostException e) {
+                System.out.println("Invalid host: " + host);
+            }
         } else {
             System.out.println("IP protocol used for the query: unknown (URI or host is null)");
         }

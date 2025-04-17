@@ -280,18 +280,11 @@ public class RDAPHttpQuery implements RDAPQuery {
      * Handle exceptions that occur during the HTTP request.
      */
   private void handleRequestException(Exception e) {
-
-//    logger.info("Exception during RDAP query", e);
+      //    logger.info("Exception during RDAP query", e);
     if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
-
       status = hasCause(e, "java.nio.channels.UnresolvedAddressException")
           ? RDAPValidationStatus.NETWORK_SEND_FAIL
           : RDAPValidationStatus.CONNECTION_FAILED;
-      return;
-    }
-
-    if(e instanceof UnknownHostException) {
-      status = RDAPValidationStatus.UNKNOWN_HOST_NAME;
       return;
     }
 
@@ -321,8 +314,6 @@ public class RDAPHttpQuery implements RDAPQuery {
       return RDAPValidationStatus.HANDSHAKE_FAILED;
     } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
       return RDAPValidationStatus.CERTIFICATE_ERROR;
-    } else if(e.getMessage().contains("Read timed out")) {
-        return RDAPValidationStatus.CONNECTION_FAILED;
     }
 
     return RDAPValidationStatus.NETWORK_RECEIVE_FAIL;
