@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import java.util.Optional;
+import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationLinkElements_2024;
@@ -332,26 +333,15 @@ public class RDAPValidator implements ValidatorWorkflow {
         System.out.println("URI used for the query: " + config.getUri());
         if (query instanceof RDAPHttpQuery httpQuery) {
             System.out.println("Redirects followed: " + httpQuery.getRedirects());
-            System.out.println("Accept header used for the query: " + httpQuery.getAcceptHeader());
+            System.out.println("Accept header used for the query: " + NetworkInfo.getAcceptHeader());
         } else {
             System.out.println("Redirects followed: N/A (query is not an RDAPHttpQuery)");
             System.out.println("Accept header used for the query: N/A (query is not an RDAPHttpQuery)");
         }
 
         if (config.getUri() != null && config.getUri().getHost() != null) {
-            String host = config.getUri().getHost();
-            try {
-                InetAddress address = InetAddress.getByName(host);
-                if (address instanceof java.net.Inet6Address) {
-                    System.out.println("IP protocol used for the query: IPv6");
-                } else if (address instanceof java.net.Inet4Address) {
-                    System.out.println("IP protocol used for the query: IPv4");
-                } else {
-                    System.out.println("IP protocol used for the query: Unknown");
-                }
-            } catch (UnknownHostException e) {
-                System.out.println("Invalid host: " + host);
-            }
+            System.out.println("IP protocol used for the query: " + NetworkInfo.getNetworkProtocol());
+
         } else {
             System.out.println("IP protocol used for the query: unknown (URI or host is null)");
         }

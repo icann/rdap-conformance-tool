@@ -97,13 +97,10 @@ public class RDAPHttpRequest {
                 break; // same here
             }
         }
+
         // If we didn't find a match for the preferred protocol, use any available address
         if (remoteAddress == null && addresses.length > ZERO) {
-            remoteAddress = addresses[ZERO];
-        }
-        // Check if we have a valid address before proceeding
-        if (remoteAddress == null) {
-            throw new RuntimeException("No IP address found for host: " + host);
+            throw new RuntimeException("No IP address found for host: " + host + " with IP Protocol: " + NetworkInfo.getNetworkProtocol());
         }
 
         // set the url to the ip address

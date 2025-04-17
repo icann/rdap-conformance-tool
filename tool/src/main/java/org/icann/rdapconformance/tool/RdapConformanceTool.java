@@ -82,6 +82,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     if (networkEnabled) {
       RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
 
+
       // do v6
       NetworkInfo.setStackToV6();
       NetworkInfo.setAcceptHeaderToApplicationJson();

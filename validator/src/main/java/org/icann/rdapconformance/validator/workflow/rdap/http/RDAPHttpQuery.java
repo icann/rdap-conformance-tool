@@ -75,6 +75,11 @@ public class RDAPHttpQuery implements RDAPQuery {
        */
       @Override
       public boolean run() {
+          //TODO ok, this needs to be abstracted into a state holding instance
+          // without this we error out forever after a single failure
+          this.isQuerySuccessful = true; // reset to the default state
+          this.status = null; // same
+          // continue on
           this.makeRequest(this.config.getUri());
           this.validate();
           return this.isQuerySuccessful();
@@ -149,7 +154,7 @@ public class RDAPHttpQuery implements RDAPQuery {
        * Check if we got errors with the RDAP HTTP request.
        */
       private boolean isQuerySuccessful() {
-        return status == null && isQuerySuccessful;
+          return status == null && isQuerySuccessful;
       }
 
       /**
@@ -222,6 +227,8 @@ public class RDAPHttpQuery implements RDAPQuery {
         int httpStatusCode = httpResponse.statusCode();
         HttpHeaders headers = httpResponse.headers();
         String rdapResponse = httpResponse.body();
+
+        logger.info("http Status code: {}", httpStatusCode);
 
         if(config.useRdapProfileFeb2024()) {
             if(!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
