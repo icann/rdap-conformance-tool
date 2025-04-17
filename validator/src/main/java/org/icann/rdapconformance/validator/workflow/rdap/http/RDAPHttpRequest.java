@@ -1,8 +1,12 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
+import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
-import static org.icann.rdapconformance.validator.CommonUtils.RDAP_JSON_APPLICATION_JSON;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -23,7 +27,6 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.http.ssl.TLS;
-import org.apache.hc.client5.http.config.ConnectionConfig;
 
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -35,8 +38,6 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 
 import org.apache.hc.core5.util.Timeout;
 import org.apache.hc.core5.util.TimeValue;
-import org.apache.hc.core5.http.io.SocketConfig;
-
 
 import javax.net.ssl.SSLContext;
 import java.net.URI;
@@ -50,8 +51,7 @@ import org.icann.rdapconformance.validator.NetworkProtocol;
 public class RDAPHttpRequest {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
-    private static final String GET = "GET";
-    private static final String HEAD = "HEAD";
+
 
     public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeoutSeconds) throws Exception {
         return makeRequest(uri, timeoutSeconds, GET);
@@ -69,8 +69,8 @@ public class RDAPHttpRequest {
 
        // Check if the host is "localhost" and replace it with "127.0.0.1"
         host = originalUri.getHost();
-        if ("localhost".equalsIgnoreCase(host)) {
-            host = "127.0.0.1";
+        if (LOCALHOST.equalsIgnoreCase(host)) {
+            host = LOCAL_IPv4;
         } else {
             host = originalUri.getHost();
         }
@@ -92,8 +92,8 @@ public class RDAPHttpRequest {
             }
         }
         // If we didn't find a match for the preferred protocol, use any available address
-        if (remoteAddress == null && addresses.length > 0) {
-            remoteAddress = addresses[0];
+        if (remoteAddress == null && addresses.length > ZERO) {
+            remoteAddress = addresses[ZERO];
         }
         // Check if we have a valid address before proceeding
         if (remoteAddress == null) {
@@ -115,7 +115,6 @@ public class RDAPHttpRequest {
 
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
         NetworkInfo.setHttpMethod(method);
-        NetworkInfo.setAcceptHeader(RDAP_JSON_APPLICATION_JSON);
         logger.info("Connecting to: {} using {}" , remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
 
         HttpUriRequestBase request = method.equals(GET)
@@ -123,7 +122,7 @@ public class RDAPHttpRequest {
             : new HttpHead(ipUri);
 
         request.setHeader("Host", host);
-        request.setHeader("Accept", "application/rdap+json, application/json");
+        request.setHeader("Accept", NetworkInfo.getAcceptHeader());
         request.setHeader("Connection", "close");
 
         RequestConfig config = RequestConfig.custom()

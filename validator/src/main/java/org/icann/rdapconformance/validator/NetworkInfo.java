@@ -2,7 +2,8 @@ package org.icann.rdapconformance.validator;
 
 public class NetworkInfo {
     private static final NetworkInfo instance = new NetworkInfo();
-    private String acceptHeader;
+
+    private AcceptHeader acceptHeader = AcceptHeader.APPLICATION_JSON;
     private String httpMethod;
     private String serverIpAddress;
     private NetworkProtocol networkProtocol = NetworkProtocol.IPv4;
@@ -13,9 +14,25 @@ public class NetworkInfo {
         return instance;
     }
 
+    // Enum for AcceptHeader
+    private enum AcceptHeader {
+        APPLICATION_JSON("application/json"),
+        APPLICATION_RDAP_JSON("application/rdap+json");
+
+        private final String value;
+
+        AcceptHeader(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
     // Static Getters
     public static String getAcceptHeader() {
-        return (instance.acceptHeader == null || instance.acceptHeader.isEmpty()) ? "-" : instance.acceptHeader;
+        return instance.acceptHeader.getValue();
     }
 
     public static String getHttpMethod() {
@@ -35,8 +52,12 @@ public class NetworkInfo {
     }
 
     // Static Setters
-    public static void setAcceptHeader(String acceptHeader) {
-        instance.acceptHeader = acceptHeader;
+    public static void setAcceptHeaderToApplicationJson() {
+        instance.acceptHeader = AcceptHeader.APPLICATION_JSON;
+    }
+
+    public static void setAcceptHeaderToApplicationRdapJson() {
+        instance.acceptHeader = AcceptHeader.APPLICATION_RDAP_JSON;
     }
 
     public static void setHttpMethod(String httpMethod) {
@@ -53,7 +74,6 @@ public class NetworkInfo {
 
     public static void setStackToV6() {
         setNetworkProtocol(NetworkProtocol.IPv6);
-        // these actually only work when first set ... after that changing them does nothing
         System.setProperty("java.net.preferIPv4Addresses", "false");
         System.setProperty("java.net.preferIPv4Stack", "false");
         System.setProperty("java.net.preferIPv6Addresses", "true");
@@ -62,35 +82,9 @@ public class NetworkInfo {
 
     public static void setStackToV4() {
         setNetworkProtocol(NetworkProtocol.IPv4);
-        // these actually only work when first set ... after that changing them does nothing
         System.setProperty("java.net.preferIPv6Addresses", "false");
         System.setProperty("java.net.preferIPv6Stack", "false");
         System.setProperty("java.net.preferIPv4Addresses", "true");
         System.setProperty("java.net.preferIPv4Stack", "true");
     }
-
-
-    // unused for the moment and see above. It would be nice if the JVM actually could switch.
-    // TODO: find somewhere this is useful ?
-//    public static void checkNetworkLayer()  {
-//        try {
-//            // Create a dummy outbound connection to a remote host
-//            // (this triggers real routing so we can see what the OS picks)
-//            try (DatagramSocket socket = new DatagramSocket()) {
-//                socket.connect(InetAddress.getByName("google.com"), HTTP_PORT);
-//                InetAddress localAddress = socket.getLocalAddress();
-//                System.out.println("Local outbound IP address: " + localAddress.getHostAddress());
-//
-//                if (localAddress instanceof Inet6Address) {
-//                    System.out.println("Using IPv6 for outbound traffic.");
-//                } else if( localAddress instanceof Inet4Address) {
-//                    System.out.println("Using IPv4 for outbound traffic.");
-//                } else {
-//                    System.out.println("Unknown network layer.");
-//                }
-//            }
-//        } catch (Exception e) {
-//            System.out.println(" Not using IPv6.");
-//        }
-//    }
 }
