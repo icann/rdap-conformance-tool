@@ -23,6 +23,7 @@ public class RDAPValidationResultFileTest {
     private FileSystem fileSystem;
     private RDAPValidatorResults results;
     private ConfigurationFile configurationFile;
+  private RDAPValidationResultFile file;
 
     @BeforeMethod
     public void setUp() {
@@ -42,6 +43,9 @@ public class RDAPValidationResultFileTest {
             configurationFile,
             fileSystem
         );
+
+        // Assign the singleton instance to the file variable for convenience
+        file = RDAPValidationResultFile.getInstance();
     }
 
     @Test
@@ -57,24 +61,53 @@ public class RDAPValidationResultFileTest {
         verify(fileSystem).write(any(), contains("\"groupErrorWarning\": [\"secondGroup\"]"));
     }
 
-    @Test
-    public void testIgnore() throws IOException {
-        int ignoredCode = -1000;
-        results.add(RDAPValidationResult.builder()
-                                        .code(ignoredCode)
-                                        .value("ignoreCode")
-                                        .message("this is a code to ignore")
-                                        .build());
-        results.add(RDAPValidationResult.builder()
-                                        .code(UNKNOWN_ERROR_CODE)
-                                        .value("unknown_code")
-                                        .message("We log unknown error code, but they aren't part of the result file")
-                                        .build());
-        doReturn(List.of(ignoredCode)).when(configurationFile).getDefinitionIgnore();
-        RDAPValidationResultFile.getInstance().build(HTTP_OK);
-        // error should be an empty list since the only result code must be ignored:
-        verify(fileSystem).write(any(), contains("\"error\": []"));
-    }
+  @Test
+  public void testGtldRegistrar() throws IOException {
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"gtldRegistrar\": false"));
+  }
+  @Test
+  public void testGtldRegistry() throws IOException {
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"gtldRegistry\": false"));
+  }
+
+  @Test
+  public void testThinRegistry() throws IOException {
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"thinRegistry\": false"));
+  }
+
+  @Test
+  public void testProfileFebruary2019() throws IOException {
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"rdapProfileFebruary2019\": false"));
+  }
+
+  @Test
+  public void testProfileFebruary2024() throws IOException {
+    file.build(200);
+    verify(fileSystem).write(any(), contains("\"rdapProfileFebruary2024\": false"));
+  }
+
+  @Test
+  public void testIgnore() throws IOException {
+    int ignoredCode = -1000;
+    results.add(RDAPValidationResult.builder()
+        .code(ignoredCode)
+        .value("ignoreCode")
+        .message("this is a code to ignore")
+        .build());
+    results.add(RDAPValidationResult.builder()
+        .code(UNKNOWN_ERROR_CODE)
+        .value("unknown_code")
+        .message("We log unknown error code, but they aren't part of the result file")
+        .build());
+    doReturn(List.of(ignoredCode)).when(configurationFile).getDefinitionIgnore();
+    file.build(200);
+    // error should be an empty list since the only result code must be ignored:
+    verify(fileSystem).write(any(), contains("\"error\": []"));
+  }
 
     @Test
     public void testResultsFilePath() throws IOException {
@@ -109,8 +142,8 @@ public class RDAPValidationResultFileTest {
         );
         RDAPValidationResultFile.getInstance().build(HTTP_OK);
 
-        // Verify that the results are written to the default file path
-        verify(fileSystem).mkdir("results");
-        verify(fileSystem).write(contains("results/results-"), any(String.class));
-    }
+    // Verify that the results are written to the default file path
+    verify(fileSystem).mkdir("results");
+    verify(fileSystem).write(contains("results/results-"), any(String.class));
+  }
 }

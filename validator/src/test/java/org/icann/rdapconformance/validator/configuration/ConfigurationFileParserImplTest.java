@@ -37,7 +37,8 @@ public class ConfigurationFileParserImplTest {
                 + "review by a person is required.")),
         List.of(new DefinitionWarning(-2186, "This only applies for a few gTLDs.")),
         List.of(-2323, -2345, -2346),
-        List.of("This is a configuration definition for a legacy gTLD.", "Developed by ICANN."));
+        List.of("This is a configuration definition for a legacy gTLD.", "Developed by ICANN."),
+            false, false, false, false, false);
 
     ConfigurationFile config = configParser.parse(new ByteArrayInputStream(configStr.getBytes()));
 
@@ -92,7 +93,8 @@ public class ConfigurationFileParserImplTest {
     String configStr = "{\"definitionIdentifier\": \"gTLD Profile Version 1.0\"}";
 
     ConfigurationFile expectedConfig = new ConfigurationFile("gTLD Profile Version 1.0",
-        null, null, null, null);
+        null, null, null, null, false,
+            false, false, false, false);
 
     ConfigurationFile config = configParser.parse(new ByteArrayInputStream(configStr.getBytes()));
 
