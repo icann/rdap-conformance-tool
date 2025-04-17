@@ -1,7 +1,9 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
+import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
@@ -51,6 +53,10 @@ import org.icann.rdapconformance.validator.NetworkProtocol;
 public class RDAPHttpRequest {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
+    public static final String HOST = "Host";
+    public static final String ACCEPT = "Accept";
+    public static final String CONNECTION = "Connection";
+    public static final String CLOSE = "close";
 
 
     public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeoutSeconds) throws Exception {
@@ -76,7 +82,7 @@ public class RDAPHttpRequest {
         }
 
         int port = originalUri.getPort() == -1
-            ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT)
+            ? (originalUri.getScheme().equalsIgnoreCase(HTTPS) ? HTTPS_PORT : HTTP_PORT)
             : originalUri.getPort();
 
         InetAddress remoteAddress = null;
@@ -85,10 +91,10 @@ public class RDAPHttpRequest {
         for (InetAddress addr : addresses) {
             if ((NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) && addr instanceof Inet6Address) {
                 remoteAddress = addr;
-                break;
+                break; // we are only grabbing the first one
             } else if ((NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv4) && addr instanceof Inet4Address) {
                 remoteAddress = addr;
-                break;
+                break; // same here
             }
         }
         // If we didn't find a match for the preferred protocol, use any available address
@@ -100,9 +106,7 @@ public class RDAPHttpRequest {
             throw new RuntimeException("No IP address found for host: " + host);
         }
 
-
-//        NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
-
+        // set the url to the ip address
         URI ipUri = new URI(
             originalUri.getScheme(),
             null,
@@ -113,17 +117,20 @@ public class RDAPHttpRequest {
             originalUri.getRawFragment()
         );
 
+        // Ensure we update NetworkInfo on what we are doing
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
         NetworkInfo.setHttpMethod(method);
         logger.info("Connecting to: {} using {}" , remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
 
+        // determine which of the two methods to use
         HttpUriRequestBase request = method.equals(GET)
             ? new HttpGet(ipUri)
             : new HttpHead(ipUri);
 
-        request.setHeader("Host", host);
-        request.setHeader("Accept", NetworkInfo.getAcceptHeader());
-        request.setHeader("Connection", "close");
+        // set what we need on the request
+        request.setHeader(HOST, host); // Super important, breaks without it
+        request.setHeader(ACCEPT, NetworkInfo.getAcceptHeader());
+        request.setHeader(CONNECTION, CLOSE);
 
         RequestConfig config = RequestConfig.custom()
                                             .setConnectTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
@@ -134,7 +141,7 @@ public class RDAPHttpRequest {
 
         TrustStrategy acceptAll = (X509Certificate[] chain, String authType) -> true;
         SSLContext sslContext = SSLContextBuilder.create()
-                                                 .loadTrustMaterial(null, acceptAll)
+                                                 .loadTrustMaterial(null, acceptAll) // yes, we have to trust everyone b/c we are using the IP adder and this will break otherwise
                                                  .build();
 
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
@@ -156,10 +163,10 @@ public class RDAPHttpRequest {
                                                       .setConnectionManager(connectionManager)
                                                       .build();
 
-        try (ClassicHttpResponse response = (ClassicHttpResponse) client.execute(request)) {
+        try (ClassicHttpResponse response = client.execute(request)) {
             String body = response.getEntity() != null
                 ? EntityUtils.toString(response.getEntity())
-                : "";
+                : EMPTY_STRING;
             int statusCode = response.getCode();
 
             return new SimpleHttpResponse(statusCode, body, originalUri);
