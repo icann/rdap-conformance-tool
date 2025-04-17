@@ -25,16 +25,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.icann.rdapconformance.validator.CommonUtils.CONTENT_TYPE;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
+import static org.icann.rdapconformance.validator.CommonUtils.SEMI_COLON;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
 public class RDAPHttpQuery implements RDAPQuery {
 
-    private static final int HTTP_NOT_FOUND = 404;
-    private static final int ZERO = 0;
-
-    private static final String SEMI_COLON = ";";
-    private static final String CONTENT_TYPE = "Content-Type";
-    private static final String LOCATION = "Location";
     private static final String APPLICATION_RDAP_JSON = "application/rdap+JSON";
     public static final String OBJECT_CLASS_NAME = "objectClassName";
     public static final String ENTITIES = "entities";
@@ -117,10 +116,10 @@ public class RDAPHttpQuery implements RDAPQuery {
         if (httpResponse.statusCode() == HTTP_OK) {
           if (queryType.isLookupQuery() && !jsonResponseValid()) {
             logger.error("objectClassName was not found in the topmost object");
-              addErrorToResultsFile(results, -13003, httpResponse.body(), "The response does not have an objectClassName string.");
+              addErrorToResultsFile(-13003, httpResponse.body(), "The response does not have an objectClassName string.");
           } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
             logger.error("No JSON array in answer");
-            addErrorToResultsFile(results,-13003, httpResponse.body(),"The response does not have an objectClassName string.");
+            addErrorToResultsFile(-13003, httpResponse.body(),"The response does not have an objectClassName string.");
           }
         }
         return true; // this always returns true
@@ -226,7 +225,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
         if(config.useRdapProfileFeb2024()) {
             if(!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
-                addErrorToResultsFile(results,-12107, rdapResponse,"The errorCode value is required in an error response.");
+                addErrorToResultsFile(-12107, rdapResponse,"The errorCode value is required in an error response.");
             }
         }
 
@@ -234,14 +233,14 @@ public class RDAPHttpQuery implements RDAPQuery {
         // application/rdap+JSON, error code -13000 added in results file.
         if (Arrays.stream(String.join(SEMI_COLON, headers.allValues(CONTENT_TYPE)).split(SEMI_COLON))
                   .noneMatch(s -> s.equalsIgnoreCase(APPLICATION_RDAP_JSON))) {
-            addErrorToResultsFile(results,-13000,
+            addErrorToResultsFile(-13000,
                                   headers.firstValue(CONTENT_TYPE).orElse("missing"), "The content-type header does not contain the application/rdap+json media type.");
         }
 
         // If a response is available to the tool, but it's not syntactically valid JSON object, error code -13001 added in results file.
         jsonResponse = new JsonData(rdapResponse);
         if (!jsonResponse.isValid()) {
-            addErrorToResultsFile(results,-13001, "response body not given","The response was not valid JSON.");
+            addErrorToResultsFile(-13001, "response body not given","The response was not valid JSON.");
             isQuerySuccessful = false;
           return;
         }
@@ -249,7 +248,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         // If a response is available to the tool, but the HTTP status code is not 200 nor 404, error code -13002 added in results file
         if (!List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpStatusCode)) {
             logger.error("Invalid HTTP status {}", httpStatusCode);
-            addErrorToResultsFile(results,-13002, String.valueOf(httpStatusCode), "The HTTP status code was neither 200 nor 404.");
+            addErrorToResultsFile(-13002, String.valueOf(httpStatusCode), "The HTTP status code was neither 200 nor 404.");
             isQuerySuccessful = false;
         }
     }
@@ -269,7 +268,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             // They copied the query over, this is bad
             if (originalQuery != null && originalQuery.equals(locationQuery)) {
-                addErrorToResultsFile(results,-13004, "<location header value>", "Response redirect contained query parameters copied from the request.");
+                addErrorToResultsFile(-13004, "<location header value>", "Response redirect contained query parameters copied from the request.");
                 return true;
             }
         }

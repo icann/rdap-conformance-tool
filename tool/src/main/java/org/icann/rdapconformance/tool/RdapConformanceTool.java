@@ -80,21 +80,22 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
     if (networkEnabled) {
       RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+
       // do v6
       NetworkInfo.setStackToV6();
       NetworkInfo.setAcceptHeaderToApplicationJson();
       int v6ret = validator.validate();
 
+      // set the header to RDAP+JSON
       NetworkInfo.setAcceptHeaderToApplicationRdapJson();
       int v6ret2 = validator.validate();
-
 
       // do v4
       NetworkInfo.setStackToV4();
       NetworkInfo.setAcceptHeaderToApplicationJson();
       int v4ret = validator.validate();
 
-      // do v4
+      // set the header to RDAP+JSON
       NetworkInfo.setAcceptHeaderToApplicationRdapJson();
       int v4ret2 = validator.validate();
 
@@ -103,9 +104,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
       // Build the result file with the minimum exit code
       resultFile.build(minExitCode);
-      
-      // done, just return
-      return Math.min(v6ret, v4ret);
+
+      // Return the minimum exit code
+      return minExitCode;
     }
 
     // If network is not enabled, validate and return

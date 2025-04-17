@@ -1,5 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
+import static org.icann.rdapconformance.validator.CommonUtils.SEP;
+import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
+
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
@@ -16,10 +21,6 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationTestInvalidRedirect_2024.class);
     public static final int PARTS = 2;
-    public static final String EMPTY_STRING = "";
-    public static final String LOCATION = "Location";
-    public static final String SEP = "://";
-    public static final String SLASH = "/";
     private final RDAPValidatorConfiguration config;
     public static final String DOMAIN_TEST_INVALID_WITH_SLASH = "/domain/test.invalid"; // with the slash
 
