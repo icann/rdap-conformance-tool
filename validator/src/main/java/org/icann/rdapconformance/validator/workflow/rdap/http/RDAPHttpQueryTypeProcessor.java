@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
+import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
+
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,7 +54,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
       String domainName = queryType.getValue(this.config.getUri().toString());
       String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
-      RDAPValidatorResults testDomainResults = new RDAPValidatorResultsImpl();
+      RDAPValidatorResults testDomainResults = RDAPValidatorResultsImpl.getInstance();
       SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults,
           datasetService);
       if (!validator.validate(domainNameJson)) {
@@ -115,7 +117,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
       if (matcher.find()) {
         return matcher.group(1);
       }
-      return "";
+      return EMPTY_STRING;
     }
   }
 }

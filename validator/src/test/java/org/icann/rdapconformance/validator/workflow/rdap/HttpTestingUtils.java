@@ -23,7 +23,7 @@ public abstract class HttpTestingUtils {
   protected final static String REQUEST_PATH = "/domain/test.example";
   protected final static String RDAP_RESPONSE = "{\"objectClassName\": \"domain\"}";
 
-  protected final static String WIREMOCK_HOST = "localhost";
+  protected final static String WIREMOCK_HOST = "127.0.0.1";
   protected final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
   protected final RDAPValidatorResults results = mock(RDAPValidatorResults.class);
   protected WireMockServer wireMockServer;

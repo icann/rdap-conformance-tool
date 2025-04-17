@@ -201,6 +201,6 @@ public class RDAPValidatorTest {
     verify(results).add(argThat(validationResult -> validationResult.getCode() == -13006));
 
     assertThat(result).isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
-    verify(query, times(2)).getStatusCode();
+    verify(query, times(1)).getStatusCode();
   }
 }

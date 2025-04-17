@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
@@ -19,36 +20,46 @@ import org.testng.annotations.Test;
 
 public class RDAPValidationResultFileTest {
 
-  private FileSystem fileSystem;
+    private FileSystem fileSystem;
+    private RDAPValidatorResults results;
+    private ConfigurationFile configurationFile;
   private RDAPValidationResultFile file;
-  private RDAPValidatorResults results;
-  private ConfigurationFile configurationFile;
 
-  @BeforeMethod
-  public void setUp() {
-    results = new RDAPValidatorResultsImpl();
-    fileSystem = mock(FileSystem.class);
-    results.addGroups(Set.of("firstGroup"));
-    configurationFile = mock(ConfigurationFile.class);
-    file = new RDAPValidationResultFile(
-        results,
-        mock(RDAPValidatorConfiguration.class),
-        configurationFile,
-        fileSystem);
-  }
+    @BeforeMethod
+    public void setUp() {
+        // Reset the singleton instance before each test
+        RDAPValidationResultFile.reset();
 
-  @Test
-  public void testGroupOkAssigned() throws IOException {
-    file.build(200);
-    verify(fileSystem).write(any(), contains("\"groupOK\": [\"firstGroup\"]"));
-  }
+        results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+        fileSystem = mock(FileSystem.class);
+        results.addGroups(Set.of("firstGroup"));
+        configurationFile = mock(ConfigurationFile.class);
 
-  @Test
-  public void testGroupErrorWarningAssigned() throws IOException {
-    results.addGroupErrorWarning("secondGroup");
-    file.build(200);
-    verify(fileSystem).write(any(), contains("\"groupErrorWarning\": [\"secondGroup\"]"));
-  }
+        // Initialize the singleton instance
+        RDAPValidationResultFile.getInstance().initialize(
+            results,
+            mock(RDAPValidatorConfiguration.class),
+            configurationFile,
+            fileSystem
+        );
+
+        // Assign the singleton instance to the file variable for convenience
+        file = RDAPValidationResultFile.getInstance();
+    }
+
+    @Test
+    public void testGroupOkAssigned() throws IOException {
+        RDAPValidationResultFile.getInstance().build(HTTP_OK);
+        verify(fileSystem).write(any(), contains("\"groupOK\": [\"firstGroup\"]"));
+    }
+
+    @Test
+    public void testGroupErrorWarningAssigned() throws IOException {
+        results.addGroupErrorWarning("secondGroup");
+        RDAPValidationResultFile.getInstance().build(HTTP_OK);
+        verify(fileSystem).write(any(), contains("\"groupErrorWarning\": [\"secondGroup\"]"));
+    }
 
   @Test
   public void testGtldRegistrar() throws IOException {
@@ -98,26 +109,38 @@ public class RDAPValidationResultFileTest {
     verify(fileSystem).write(any(), contains("\"error\": []"));
   }
 
-  @Test
-  public void testResultsFilePath() throws IOException {
-    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-    String customResultsFilePath = "custom_results.json";
-    doReturn(customResultsFilePath).when(config).getResultsFile();
+    @Test
+    public void testResultsFilePath() throws IOException {
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        String customResultsFilePath = "custom_results.json";
+        doReturn(customResultsFilePath).when(config).getResultsFile();
 
-    file = new RDAPValidationResultFile(results, config, configurationFile, fileSystem);
-    file.build(200);
+        RDAPValidationResultFile.reset();
+        RDAPValidationResultFile.getInstance().initialize(
+            results,
+            config,
+            configurationFile,
+            fileSystem
+        );
+        RDAPValidationResultFile.getInstance().build(HTTP_OK);
 
-    // Verify that the results are written to the custom file path
-    verify(fileSystem).write(eq(customResultsFilePath), any(String.class));
-  }
+        // Verify that the results are written to the custom file path
+        verify(fileSystem).write(eq(customResultsFilePath), any(String.class));
+    }
 
-  @Test
-  public void testDefaultResultsFilePath() throws IOException {
-    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-    doReturn(null).when(config).getResultsFile();
+    @Test
+    public void testDefaultResultsFilePath() throws IOException {
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        doReturn(null).when(config).getResultsFile();
 
-    file = new RDAPValidationResultFile(results, config, configurationFile, fileSystem);
-    file.build(200);
+        RDAPValidationResultFile.reset();
+        RDAPValidationResultFile.getInstance().initialize(
+            results,
+            config,
+            configurationFile,
+            fileSystem
+        );
+        RDAPValidationResultFile.getInstance().build(HTTP_OK);
 
     // Verify that the results are written to the default file path
     verify(fileSystem).mkdir("results");

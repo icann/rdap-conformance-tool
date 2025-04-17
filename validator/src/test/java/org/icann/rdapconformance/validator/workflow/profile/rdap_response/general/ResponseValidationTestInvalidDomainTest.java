@@ -16,6 +16,7 @@ import java.util.Optional;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.setRemoveAssertJRelatedElementsFromStackTrace;
 import static org.mockito.Mockito.*;
 
 public class ResponseValidationTestInvalidDomainTest {
@@ -25,7 +26,8 @@ public class ResponseValidationTestInvalidDomainTest {
 
     @Test
     public void testIsRedirectingTestDotInvalidToItself_RedirectsToItself() {
-        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
         URI currentUri = URI.create("http://example.com/test.invalid");
         URI redirectUri = URI.create("http://example.com/test.invalid");
 
@@ -42,7 +44,8 @@ public class ResponseValidationTestInvalidDomainTest {
 
     @Test
     public void testIsRedirectingTestDotInvalidToItself_RedirectsToItselfWithSlash() {
-        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
         URI currentUri = URI.create("http://example.com/test.invalid");
         URI redirectUri = URI.create("/test.invalid");
 
@@ -59,7 +62,8 @@ public class ResponseValidationTestInvalidDomainTest {
 
     @Test
     public void testIsRedirectingTestDotInvalidToItself_DoesNotRedirectToItself() {
-        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
         URI currentUri = URI.create("http://example.com/test.invalid");
         URI redirectUri = URI.create("http://example.com/other");
 
@@ -71,7 +75,8 @@ public class ResponseValidationTestInvalidDomainTest {
 
     @Test
     public void testIsRedirectingTestDotInvalidToItself_DoesNotContainTestInvalid() {
-        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
         URI currentUri = URI.create("http://example.com/other");
         URI redirectUri = URI.create("http://example.com/test.invalid");
 
@@ -84,7 +89,8 @@ public class ResponseValidationTestInvalidDomainTest {
     public void testIsHttpOKAndTestDotInvalid() {
         RDAPQuery query = mock(RDAPQuery.class);
         RDAPQueryTypeProcessor queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
-        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
         RDAPValidationResultFile rdapValidationResultFile = mock(RDAPValidationResultFile.class);
 
         when(queryTypeProcessor.getQueryType()).thenReturn(RDAPQueryType.DOMAIN);
@@ -98,7 +104,8 @@ public class ResponseValidationTestInvalidDomainTest {
     public void testIsHttp404AndTestDotInvalid() {
         RDAPQuery query = mock(RDAPQuery.class);
         RDAPQueryTypeProcessor queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
-        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidatorResults results =RDAPValidatorResultsImpl.getInstance();
+        results.clear();
         RDAPValidationResultFile rdapValidationResultFile = mock(RDAPValidationResultFile.class);
 
         when(queryTypeProcessor.getQueryType()).thenReturn(RDAPQueryType.DOMAIN);
@@ -112,7 +119,8 @@ public class ResponseValidationTestInvalidDomainTest {
     public void testIsHttp404WithEntityTestDotInvalid() {
         RDAPQuery query = mock(RDAPQuery.class);
         RDAPQueryTypeProcessor queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
-        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
         RDAPValidationResultFile rdapValidationResultFile = mock(RDAPValidationResultFile.class);
 
         when(queryTypeProcessor.getQueryType()).thenReturn(RDAPQueryType.ENTITY);
@@ -126,7 +134,8 @@ public class ResponseValidationTestInvalidDomainTest {
     public void testIsHttp404WithEntityAndFooTestDotInvalid() {
         RDAPQuery query = mock(RDAPQuery.class);
         RDAPQueryTypeProcessor queryTypeProcessor = mock(RDAPQueryTypeProcessor.class);
-        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
         RDAPValidationResultFile rdapValidationResultFile = mock(RDAPValidationResultFile.class);
 
         when(queryTypeProcessor.getQueryType()).thenReturn(RDAPQueryType.ENTITY);

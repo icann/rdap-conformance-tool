@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow;
 
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+
 public interface ValidatorWorkflow {
 
   /**
@@ -8,6 +10,7 @@ public interface ValidatorWorkflow {
    * @return The error status
    */
   int validate();
+  RDAPValidatorResults getResults();
 
   /**
    * Get the results path.

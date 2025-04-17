@@ -1,16 +1,21 @@
 package org.icann.rdapconformance.tool;
 
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import java.io.File;
 import java.net.URI;
 import java.util.concurrent.Callable;
 import org.apache.commons.lang3.SystemUtils;
+import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
+
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 import org.slf4j.LoggerFactory;
@@ -22,6 +27,8 @@ import picocli.CommandLine.IVersionProvider;
 
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
+  // Create a logger
+  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RdapConformanceTool.class);
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
@@ -65,12 +72,48 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     }
 
     ValidatorWorkflow validator;
-    if (uri.getScheme() != null && uri.getScheme().startsWith("http")) {
+    if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
       validator = new RDAPHttpValidator(this, fileSystem);
     } else {
       networkEnabled = false;
       validator = new RDAPFileValidator(this, fileSystem);
     }
+
+    if (networkEnabled) {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+
+
+      // do v6
+      NetworkInfo.setStackToV6();
+      NetworkInfo.setAcceptHeaderToApplicationJson();
+      int v6ret = validator.validate();
+
+      // set the header to RDAP+JSON
+      NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+      int v6ret2 = validator.validate();
+
+      // do v4
+      NetworkInfo.setStackToV4();
+      NetworkInfo.setAcceptHeaderToApplicationJson();
+      int v4ret = validator.validate();
+
+      // set the header to RDAP+JSON
+      NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+      int v4ret2 = validator.validate();
+
+      // Determine the minimum of all four exit values
+      int minExitCode = Math.min(Math.min(v6ret, v6ret2), Math.min(v4ret, v4ret2));
+
+      // Build the result file with the minimum exit code and set the results path
+      resultFile.build(minExitCode);
+      // now the results file is set
+      logger.info("Results file: {}",  validator.getResultsPath());
+
+      // Return the minimum exit code
+      return minExitCode;
+    }
+
+    // If network is not enabled, validate and return
     return validator.validate();
   }
 

@@ -76,7 +76,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
     givenUriWithDifferentResponse("/domain/tEsT.ExAmPlE");
 
     validateNotOk(results,
-        -10403, "http://localhost:8080/domain/tEsT.ExAmPlE",
+        -10403, "http://127.0.0.1:8080/domain/tEsT.ExAmPlE",
         "RDAP responses do not match when handling domain label case folding.");
   }
 

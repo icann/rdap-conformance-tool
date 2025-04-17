@@ -22,4 +22,6 @@ public interface RDAPValidatorResults {
   void addGroupErrorWarning(String group);
 
   Set<String> getGroups();
+
+  void clear();
 }
