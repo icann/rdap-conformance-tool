@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator;
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 
 public class CommonUtils {
@@ -21,6 +20,7 @@ public class CommonUtils {
     public static final String CONTENT_TYPE = "Content-Type";
 
     public static final int PAUSE = 1000;
+    public static final int TIMEOUT_IN_5SECS = 5000;
     public static final int HTTPS_PORT = 443;
     public static final int HTTP_PORT = 80;
     public static final int ZERO = 0;

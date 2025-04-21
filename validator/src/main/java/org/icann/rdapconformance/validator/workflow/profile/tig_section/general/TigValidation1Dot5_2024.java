@@ -1,6 +1,13 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
+import static org.icann.rdapconformance.validator.CommonUtils.TIMEOUT_IN_5SECS;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.http.HttpResponse;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -15,6 +22,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xbill.DNS.HTTPSRecord;
 
 public class TigValidation1Dot5_2024 extends ProfileValidation {
 
@@ -41,7 +49,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
         Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
         while (responseOpt.isPresent()) {
             HttpResponse<String> response = responseOpt.get();
-            if (response.uri().getScheme().equals("https")) {
+            if (response.uri().getScheme().equals(HTTPS)) {
                 SSLContext sslContext;
 
                 try {
@@ -52,19 +60,21 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                 }
 
                 int port = config.getUri().getPort();
-                if (port < 0) {
-                    port = 443;
+                if (port < ZERO) {
+                    port = HTTPS_PORT;
                 }
 
                 List<String> enabledProtocols;
-                try (SSLSocket sslSocket = (SSLSocket) sslContext.getSocketFactory()
-                    .createSocket(config.getUri().getHost(), port)) {
-                    sslSocket.startHandshake();
-                    enabledProtocols = Arrays.asList(sslSocket.getEnabledProtocols());
-
-                    logger.info("enabledProtocols = {}", enabledProtocols);
+                try (Socket socket = new Socket()) {
+                    socket.connect(new InetSocketAddress(config.getUri().getHost(), port), TIMEOUT_IN_5SECS);
+                    try (SSLSocket sslSocket = (SSLSocket) sslContext.getSocketFactory().createSocket(socket,
+                        config.getUri().getHost(), port, true)) {
+                        sslSocket.startHandshake();
+                        enabledProtocols = Arrays.asList(sslSocket.getEnabledProtocols());
+                        logger.debug("Enabled protocols: {}", enabledProtocols);
+                    }
                 } catch (IOException e) {
-                    logger.error("Cannot create SSL connection", e);
+                    logger.error("Error during SSL connection setup", e);
                     return false;
                 }
 
