@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.icann.rdapconformance.validator.NetworkInfo;
+import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -79,7 +80,7 @@ public class RDAPValidationResultFile {
     fileMap.put("definitionIdentifier", configurationFile.getDefinitionIdentifier());
     fileMap.put("testedURI", config.getUri());
     fileMap.put("testedDate", Instant.now().toString());
-    fileMap.put("receivedHttpStatusCode", statusCode);
+    fileMap.put("receivedHttpStatusCodes", StatusCodes.getAll());
     fileMap.put("groupOK", this.results.getGroupOk());
     fileMap.put("groupErrorWarning", this.results.getGroupErrorWarning());
     fileMap.put("results", this.createResultsMap());

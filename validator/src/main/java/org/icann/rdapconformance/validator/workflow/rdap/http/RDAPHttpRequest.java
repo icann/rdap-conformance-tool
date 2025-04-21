@@ -48,6 +48,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
+import org.icann.rdapconformance.validator.StatusCodes;
 
 
 public class RDAPHttpRequest {
