@@ -110,7 +110,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       // now the results file is set
       logger.info("Results file: {}",  validator.getResultsPath());
 
-      System.out.println("Error States:" + ErrorState.getInstance().toString());
+      if (ErrorState.getInstance().hasErrors()) {
+        System.out.println("Error States:\n" + ErrorState.getInstance().toString());
+      }
       // Return the minimum exit code
       return minExitCode;
     }

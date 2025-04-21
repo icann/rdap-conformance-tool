@@ -20,6 +20,10 @@ public class ErrorState {
 
     // Add error information for a specific state
     public synchronized void addErrorInfo(int errorCode, String uri, int redirects) {
+        if (errorCode == 0) {
+            return; // Skip success states
+        }
+
         String stack = NetworkInfo.getNetworkProtocolAsString();
         String header = NetworkInfo.getAcceptHeader();
         String ipAddress = NetworkInfo.getServerIpAddress();
@@ -35,17 +39,22 @@ public class ErrorState {
         }
     }
 
+    // Check if there are any errors (excluding success states)
+    public synchronized boolean hasErrors() {
+        return errorInfo.keySet().stream().anyMatch(key -> !key.contains("ErrorCode: 0 (SUCCESS)"));
+    }
+
+    // Convert all collected statuses to a readable string
     @Override
     public synchronized String toString() {
-        if (errorInfo.isEmpty()) {
-            return "No errors collected.";
+        if (!hasErrors()) {
+            return ""; // Return an empty string if there are no errors
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Collected Error States:\n");
         for (Map.Entry<String, ErrorDetails> entry : errorInfo.entrySet()) {
             if (entry.getKey().contains("ErrorCode: 0 (SUCCESS)")) {
-                continue; // Skip success states if not needed
+                continue; // Skip success states
             }
             ErrorDetails details = entry.getValue();
             sb.append(entry.getKey()).append("\n")
