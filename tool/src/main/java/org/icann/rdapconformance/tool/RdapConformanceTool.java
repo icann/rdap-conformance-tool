@@ -8,6 +8,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.concurrent.Callable;
 import org.apache.commons.lang3.SystemUtils;
+import org.icann.rdapconformance.validator.ErrorState;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -109,6 +110,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       // now the results file is set
       logger.info("Results file: {}",  validator.getResultsPath());
 
+      System.out.println("Error States:" + ErrorState.getInstance().toString());
       // Return the minimum exit code
       return minExitCode;
     }

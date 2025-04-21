@@ -117,7 +117,7 @@ public class RDAPHttpRequest {
         // Ensure we update NetworkInfo on what we are doing
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
         NetworkInfo.setHttpMethod(method);
-        logger.info("Connecting to: {} using {}" , remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
+        logger.info("Connecting to: {} using {} with header `{}`" , remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol(), NetworkInfo.getAcceptHeader());
 
         // determine which of the two methods to use
         HttpUriRequestBase request = method.equals(GET)

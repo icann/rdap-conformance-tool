@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import java.util.Optional;
+import org.icann.rdapconformance.validator.ErrorState;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
@@ -136,50 +138,46 @@ public class RDAPValidator implements ValidatorWorkflow {
             RDAPQueryType.IP_NETWORK, "rdap_ip_network.json"
         );
 
-        // Parse the configuration definition file, and if the file is not parsable, exit with a return code of 1.
+        ErrorState errorState = ErrorState.getInstance();
+
         try (InputStream is = fileSystem.uriToStream(this.config.getConfigurationFile())) {
             configurationFile = configParser.parse(is);
         } catch (Exception e) {
             logger.error("Configuration is invalid", e);
-            return dumpErrorInfo(RDAPValidationStatus.CONFIG_INVALID.getValue(), config, query);
+            errorState.addErrorInfo(RDAPValidationStatus.CONFIG_INVALID.getValue(), config.getUri().toString(), 0);
+            return RDAPValidationStatus.CONFIG_INVALID.getValue();
         }
 
-        // set up the results file so we can write to it
         RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
         rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
 
-        // If the parameter (--use-local-dataset) is set, use the dataset found in the filesystem,
-        // download the dataset not found in the filesystem, and persist them in the filesystem.
-        // If the parameter (--use-local-dataset) is not set, download all the dataset, and
-        // overwrite the dataset in the filesystem.
         if (!datasetService.download(this.config.useLocalDatasets())) {
-          // If one or more dataset cannot be downloaded, exit with a return code of 2.
-          return dumpErrorInfo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue(), config, query);
+            errorState.addErrorInfo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue(), config.getUri().toString(), 0);
+            return RDAPValidationStatus.DATASET_UNAVAILABLE.getValue();
         }
 
-        // this checks if the query is valid query for the HttpQueryType or the FileQueryType
         if (!queryTypeProcessor.check(datasetService)) {
-            return dumpErrorInfo(queryTypeProcessor.getErrorStatus().getValue(), config, query);
+            int errorCode = queryTypeProcessor.getErrorStatus().getValue();
+            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
+            return errorCode;
         }
 
         query.setResults(results);
         if (!query.run()) {
             if (query.getErrorStatus() == null) {
-                // it means it is 13001 or 13002, the status will be null, and we should exit with code 0
                 return RDAPValidationStatus.SUCCESS.getValue();
             }
-            return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
+            int errorCode = query.getErrorStatus().getValue();
+            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
+            return errorCode;
         }
 
-        // this always returns true - don't bother checking the return
         query.checkWithQueryType(queryTypeProcessor.getQueryType());
 
-        // Check if we are doing a domain query for test.invalid and the response code was 200, that is bad but continue on
         if (ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
             logger.info("Detected a test.invalid domain query with HTTP 200 response code.");
         }
 
-        // Schema validation
         if (query.isErrorContent()) {
             validator = new SchemaValidator("rdap_error.json", results, datasetService);
         } else {
@@ -187,9 +185,9 @@ public class RDAPValidator implements ValidatorWorkflow {
             if (schemaFile != null) {
                 if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
-                    return dumpErrorInfo(RDAPValidationStatus.USES_THIN_MODEL.getValue(), config, query);
+                    errorState.addErrorInfo(RDAPValidationStatus.USES_THIN_MODEL.getValue(), config.getUri().toString(), 0);
+                    return RDAPValidationStatus.USES_THIN_MODEL.getValue();
                 }
-                // asEventActor property is not allow in topMost entity object, see spec 7.2.9.2
                 validator = new SchemaValidator(schemaFile, results, datasetService);
             }
         }
@@ -198,27 +196,17 @@ public class RDAPValidator implements ValidatorWorkflow {
         validator.validate(query.getData());
         HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
 
-        // extra validations not categorized (change request):
-        // query.isErrorContent() added as condition in cases where they have 404 as status code
         if (rdapResponse != null && !query.isErrorContent()) {
-            new DomainCaseFoldingValidation(rdapResponse, config, results,
-                queryTypeProcessor.getQueryType()).validate();
+            new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate();
         }
 
-        // Additionally, apply the relevant collection tests when the option
-        // --use-rdap-profile-february-2019 or --use-rdap-profile-february-2024 is set
-        // query.isErrorContent() added as condition in cases where they have 404 as status code
         if ((config.useRdapProfileFeb2019() || config.useRdapProfileFeb2024()) && !query.isErrorContent()) {
             logger.info("Validations for 2019 profile");
             RDAPProfile rdapProfile = new RDAPProfile(
-                getRdapValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, validator,
-                    query));
+                getRdapValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, validator, query));
             rdapProfile.validate();
         }
 
-        // Additionally, apply the relevant collection tests when the option
-        // --use-rdap-profile-february-2024 is set
-        // query.isErrorContent() added as condition in cases where they have 404 as status code
         if (config.useRdapProfileFeb2024() && !query.isErrorContent()) {
             logger.info("Validations for 2024 profile");
             List<ProfileValidation> validations = get2024ProfileValidations(rdapResponse, config, results, query);
@@ -226,10 +214,16 @@ public class RDAPValidator implements ValidatorWorkflow {
             rdapProfile.validate();
         }
 
-        // finally we set the statusCode and results path
-//        this.resultsPath = rdapValidationResultFile.resultPath;
+        // Log URI, IP address, and redirects
+        String ipAddress = NetworkInfo.getServerIpAddress();
+        List<URI> redirects = (query instanceof RDAPHttpQuery httpQuery) ? httpQuery.getRedirects() : List.of();
+        errorState.addErrorInfo(RDAPValidationStatus.SUCCESS.getValue(), config.getUri().toString(), redirects.size());
 
-        // we do not dumpInfo here, everything is fine
+
+        logger.info("URI used for the query: {}", config.getUri());
+        logger.info("IP Address used: {}", ipAddress);
+        logger.info("Redirects followed: {}", redirects);
+
         return RDAPValidationStatus.SUCCESS.getValue();
     }
 
