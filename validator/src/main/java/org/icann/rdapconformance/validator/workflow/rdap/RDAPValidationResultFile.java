@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.rdap;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -15,6 +16,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -30,6 +33,9 @@ public class RDAPValidationResultFile {
   private final RDAPValidatorConfiguration config;
   private final ConfigurationFile configurationFile;
   private final FileSystem fileSystem;
+
+  private URI uri;
+
   public String resultPath;
 
   public RDAPValidationResultFile(RDAPValidatorResults results,
@@ -113,6 +119,9 @@ public class RDAPValidationResultFile {
       resultMap.put("value", result.getValue());
       resultMap.put("message", result.getMessage());
       resultMap.put("notes", configurationFile.getAlertNotes(result.getCode()));
+      resultMap.put("queridURI", uri != null ? uri.toString() : StringUtils.EMPTY);
+      resultMap.put("acceptMediaType", "application/json or application/rdap+json");
+      resultMap.put("ipProtocol", "IPv4 or IPv6");
       if (configurationFile.isError(result.getCode())) {
         errors.add(resultMap);
       } else if (configurationFile.isWarning(result.getCode())) {
@@ -128,5 +137,13 @@ public class RDAPValidationResultFile {
     resultsMap.put("ignore", configurationFile.getDefinitionIgnore());
     resultsMap.put("notes", configurationFile.getDefinitionNotes());
     return resultsMap;
+  }
+
+  public URI getUri() {
+    return uri;
+  }
+
+  public void setUri(URI uri) {
+    this.uri = uri;
   }
 }
