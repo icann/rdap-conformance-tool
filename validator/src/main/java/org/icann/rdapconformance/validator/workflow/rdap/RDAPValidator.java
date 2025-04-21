@@ -333,7 +333,6 @@ public class RDAPValidator implements ValidatorWorkflow {
 
     private boolean buildResultFile(RDAPValidationResultFile resultFile, RDAPQuery query) {
         Optional<Integer> statusCodeOptional = query.getStatusCode();
-        resultFile.setUri(config.getUri());
         if (statusCodeOptional.isPresent()) {
             Integer statusCode = statusCodeOptional.get();
             return resultFile.build(statusCode);
