@@ -74,7 +74,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                         logger.debug("Enabled protocols: {}", enabledProtocols);
                     }
                 } catch (IOException e) {
-                    logger.error("Error during SSL connection setup", e);
+                    logger.info("Error during SSL connection setup", e);
                     return false;
                 }
 
@@ -114,7 +114,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                                 isValid = false;
                             }
                         } catch (IOException e) {
-                            logger.error("Cannot create SSL connection", e);
+                            logger.info("Cannot create SSL connection", e);
                             return false;
                         }
                     } // end of TLSv1.2 protocol

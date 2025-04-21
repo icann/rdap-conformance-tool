@@ -41,7 +41,6 @@ public final class TigValidation1Dot3 extends ProfileValidation {
   public String getGroupName() {
     return "tigSection_1_3_Validation";
   }
-
   @Override
   public boolean doValidate() {
     boolean isValid = true;
@@ -69,17 +68,17 @@ public final class TigValidation1Dot3 extends ProfileValidation {
               logger.debug("Enabled protocols: {}", enabledProtocols);
             }
           }
-          if (enabledProtocols.contains("SSLv2") || enabledProtocols.contains("SSLv3")) {
+          if (enabledProtocols.contains(SS_LV_2) || enabledProtocols.contains(SS_LV_3)) {
             results.add(RDAPValidationResult.builder()
-                .code(-20200)
-                .value(response.uri().toString())
-                .message("The RDAP server is offering SSLv2 and/or SSLv3.")
-                .build());
+                                            .code(-20200)
+                                            .value(response.uri().toString())
+                                            .message("The RDAP server is offering SSLv2 and/or SSLv3.")
+                                            .build());
             isValid = false;
           }
         } catch (NoSuchAlgorithmException | IOException e) {
-          logger.error("Cannot create SSL context", e);
-          return false;
+          logger.info("Cannot create SSL context or connect to the server", e);
+          return false; // Return false if an exception occurs
         }
       }
       responseOpt = response.previousResponse();
