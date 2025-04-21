@@ -144,7 +144,7 @@ public class RDAPHttpRequest {
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                                                                                                         .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
                                                                                                                                                               .setSslContext(sslContext)
-                                                                                                                                                              .setTlsVersions(TLS.V_1_3)
+                                                                                                                                                              .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
                                                                                                                                                               .setHostnameVerifier((hostname, session) -> true)
                                                                                                                                                               .build())
                                                                                                         .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
@@ -165,7 +165,7 @@ public class RDAPHttpRequest {
                 ? EntityUtils.toString(response.getEntity())
                 : EMPTY_STRING;
             int statusCode = response.getCode();
-
+            logger.info("Response status code: {}", statusCode);
             return new SimpleHttpResponse(statusCode, body, originalUri);
         }
     }

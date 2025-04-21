@@ -2,8 +2,10 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 
 import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.SEP;
 import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.net.URI;
 import java.net.http.HttpResponse;
@@ -41,8 +43,8 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
         }
 
         try {
-            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(), config.getTimeout());
             logger.info("Sending a GET request to: {}", createTestInvalidURI());
+            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(), config.getTimeout());
             int status = response.statusCode();
             logger.info("Status code for test.invalid: {}" , status);
             if (RDAPHttpQuery.isRedirectStatus(status)) {
@@ -99,11 +101,17 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
         return (this.config.isGtldRegistry() || this.config.isGtldRegistrar()) && this.config.useRdapProfileFeb2024();
     }
 
-    public URI createTestInvalidURI() {
+    private URI createTestInvalidURI() {
         URI baseURI = extractBaseUri(config.getUri());
-        String newPath = baseURI.getPath() + DOMAIN_TEST_INVALID_WITH_SLASH;
+        String basePath = baseURI.getPath();
+
+        // Ensure the base path does not end with a slash
+        if (basePath.endsWith(SLASH)) {
+            basePath = basePath.substring(ZERO, basePath.length() - ONE);
+        }
 
         // Construct the new URI with the appended path
+        String newPath = basePath + DOMAIN_TEST_INVALID_WITH_SLASH;
         return URI.create(baseURI.getScheme() + SEP + baseURI.getAuthority() + newPath);
     }
 

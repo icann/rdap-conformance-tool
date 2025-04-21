@@ -24,6 +24,7 @@ public class CommonUtils {
     public static final int HTTPS_PORT = 443;
     public static final int HTTP_PORT = 80;
     public static final int ZERO = 0;
+    public static final int ONE = 1;
     public static final int HTTP_NOT_FOUND = 404;
 
 

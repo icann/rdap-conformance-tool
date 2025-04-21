@@ -286,14 +286,12 @@ public class RDAPHttpQuery implements RDAPQuery {
      * Handle exceptions that occur during the HTTP request.
      */
   private void handleRequestException(Exception e) {
-      //    logger.info("Exception during RDAP query", e);
     if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
       status = hasCause(e, "java.nio.channels.UnresolvedAddressException")
           ? RDAPValidationStatus.NETWORK_SEND_FAIL
           : RDAPValidationStatus.CONNECTION_FAILED;
       return;
     }
-
     if (e instanceof IOException) {
       status = analyzeIOException((IOException) e);
       return;
@@ -316,7 +314,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             return RDAPValidationStatus.INVALID_CERTIFICATE;
         }
       return RDAPValidationStatus.CERTIFICATE_ERROR;
-    } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException")) {
+    } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
       return RDAPValidationStatus.HANDSHAKE_FAILED;
     } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
       return RDAPValidationStatus.CERTIFICATE_ERROR;
