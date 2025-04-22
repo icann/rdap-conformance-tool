@@ -9,13 +9,9 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.icann.rdapconformance.validator.NetworkInfo;
+import java.util.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -35,6 +31,7 @@ public class RDAPValidationResultFile {
   private ConfigurationFile configurationFile;
   private FileSystem fileSystem;
   public String resultPath;
+
   // Track if already initialized
   private boolean isInitialized = false;
   // Private constructor
@@ -135,9 +132,10 @@ public class RDAPValidationResultFile {
       resultMap.put("code", result.getCode());
       resultMap.put("value", result.getValue());
       resultMap.put("message", result.getMessage());
-      resultMap.put("HTTP accept header", result.getAcceptHeader());
-      resultMap.put("HTTP method", result.getHttpMethod());
-      resultMap.put("Server IP Address", result.getServerIpAddress());
+      resultMap.put("queriedURI", Objects.nonNull(config.getUri()) ? config.getUri().toString() : StringUtils.EMPTY);
+      resultMap.put("acceptMediaType", result.getAcceptHeader());
+      resultMap.put("httpMethod", result.getHttpMethod());
+      resultMap.put("serverIpAddress", result.getServerIpAddress());
       resultMap.put("notes", configurationFile.getAlertNotes(result.getCode()));
       if (configurationFile.isError(result.getCode())) {
         errors.add(resultMap);
