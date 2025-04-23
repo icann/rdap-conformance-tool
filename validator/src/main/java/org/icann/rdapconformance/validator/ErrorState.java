@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 import java.util.HashMap;
 import java.util.Map;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
@@ -7,6 +9,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 public class ErrorState {
     private static final ErrorState INSTANCE = new ErrorState();
     private final Map<String, ErrorDetails> errorInfo;
+    private int lastNonZeroErrorCode = ZERO; // Track the last non-zero error code
 
     // Private constructor for Singleton
     private ErrorState() {
@@ -20,9 +23,12 @@ public class ErrorState {
 
     // Add error information for a specific state
     public synchronized void addErrorInfo(int errorCode, String uri, int redirects) {
-        if (errorCode == 0) {
+        if (errorCode == ZERO) {
             return; // Skip success states
         }
+
+        // Update the last non-zero error code
+        lastNonZeroErrorCode = errorCode;
 
         String stack = NetworkInfo.getNetworkProtocolAsString();
         String header = NetworkInfo.getAcceptHeader();
@@ -42,6 +48,11 @@ public class ErrorState {
     // Check if there are any errors (excluding success states)
     public synchronized boolean hasErrors() {
         return errorInfo.keySet().stream().anyMatch(key -> !key.contains("ErrorCode: 0 (SUCCESS)"));
+    }
+
+    // Get the last non-zero error code
+    public synchronized int getLastNonZeroErrorCode() {
+        return lastNonZeroErrorCode;
     }
 
     // Convert all collected statuses to a readable string

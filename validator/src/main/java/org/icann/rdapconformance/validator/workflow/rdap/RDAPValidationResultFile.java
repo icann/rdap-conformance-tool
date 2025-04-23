@@ -72,7 +72,8 @@ public class RDAPValidationResultFile {
   /**
    * Fill and save the result file.
    */
-  public boolean build(int statusCode) {
+  public boolean build(int exitCode) {
+    // TODO: for the moment we do nothing with the exitCode
     Map<String, Object> fileMap = new HashMap<>();
     fileMap.put("definitionIdentifier", configurationFile.getDefinitionIdentifier());
     fileMap.put("testedURI", config.getUri());

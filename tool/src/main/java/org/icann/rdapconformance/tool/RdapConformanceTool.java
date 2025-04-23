@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.tool;
 
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -102,19 +103,19 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       NetworkInfo.setAcceptHeaderToApplicationRdapJson();
       int v4ret2 = validator.validate();
 
-      // Determine the minimum of all four exit values
-      int minExitCode = Math.min(Math.min(v6ret, v6ret2), Math.min(v4ret, v4ret2));
-
-      // Build the result file with the minimum exit code and set the results path
-      resultFile.build(minExitCode);
-      // now the results file is set
+      // Build the result file with a legacy zero exit code
+      resultFile.build(ZERO);
+      // now the results file is set, print the path
       logger.info("Results file: {}",  validator.getResultsPath());
 
+      int exitCode = 0;
       if (ErrorState.getInstance().hasErrors()) {
         System.out.println("Error States:\n" + ErrorState.getInstance().toString());
+        exitCode = ErrorState.getInstance().getLastNonZeroErrorCode();
       }
-      // Return the minimum exit code
-      return minExitCode;
+
+      // Return the exit code
+      return exitCode;
     }
 
     // If network is not enabled, validate and return
