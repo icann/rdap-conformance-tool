@@ -23,7 +23,7 @@ public abstract class ProfileValidation {
         return true;
       }
     } catch (Exception e) {
-      logger.error("Exception during validation of : {} \n details: {}",
+      logger.info("Exception during validation of : {} \n details: {}",
           this.getClass().getSimpleName(), e);
     }
     results.addGroupErrorWarning(getGroupName());
