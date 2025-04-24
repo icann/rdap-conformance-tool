@@ -16,6 +16,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.genera
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidRedirect_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.StdRdapConformanceValidation_2024;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.StdRdapNameserversSearchValidation_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -257,6 +258,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidationLinkElements_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidationStatusDuplication_2024(query.getData(), results)); // clean
         validations.add(new StdRdapConformanceValidation_2024(query.getData(), results)); // clean
+        validations.add(new StdRdapNameserversSearchValidation_2024(query.getData(), results)); // clean
 
         // Conditionally add validations that require network connections
         if (config.isNetworkEnabled()) {
