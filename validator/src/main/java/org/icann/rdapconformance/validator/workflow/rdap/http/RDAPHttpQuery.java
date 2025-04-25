@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
@@ -207,7 +206,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             // check for the redirects
             if (remainingRedirects == ZERO) {
-                status = RDAPValidationStatus.TOO_MANY_REDIRECTS;
+                addErrorToResultsFile(-13013, "no response available", "Too many HTTP redirects");
             }
 
             // if we exit the loop without a redirect, we have a final response
@@ -287,42 +286,55 @@ public class RDAPHttpQuery implements RDAPQuery {
     /**
      * Handle exceptions that occur during the HTTP request.
      */
-  private void handleRequestException(Exception e) {
+  public void handleRequestException(Exception e) {
     if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
-      status = hasCause(e, "java.nio.channels.UnresolvedAddressException")
-          ? RDAPValidationStatus.NETWORK_SEND_FAIL
-          : RDAPValidationStatus.CONNECTION_FAILED;
-      return;
-    }
-    if (e instanceof IOException) {
-      status = analyzeIOException((IOException) e);
-      return;
+        if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
+            addErrorToResultsFile(-13016, "no response available", "Network send fail");
+        } else {
+            addErrorToResultsFile(-13007, "no response available", "Failed to connect to server");
+        }
+        return;
     }
 
-    status = RDAPValidationStatus.CONNECTION_FAILED;
+    if (e instanceof IOException) {
+      analyzeIOException((IOException) e);
+      return;
+    }
+    // fall through
+    addErrorToResultsFile(-13007, "no response available", "Failed to connect to server");
   }
 
   /* *
    * Analyze the IOException to determine the RDAP validation status.
    */
-  private RDAPValidationStatus analyzeIOException(IOException e) {
+  private void analyzeIOException(IOException e) {
     if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
-      return RDAPValidationStatus.EXPIRED_CERTIFICATE;
+        addErrorToResultsFile(-13011, "no response available", "Expired certificate");
+        return;
     } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
-      return RDAPValidationStatus.REVOKED_CERTIFICATE;
+      addErrorToResultsFile(-13010, "no response available", "Revoked TLS certificate");
+      return;
     } else if (hasCause(e, "java.security.cert.CertificateException")) {
         if (e.getMessage().contains("No name matching") ||
-            e.getMessage().contains("No subject alternative DNS name matching")) {
-            return RDAPValidationStatus.INVALID_CERTIFICATE;
+            e.getMessage().contains("No subject alternative DNS name matching") ||
+            e.getMessage().contains("hostname in certificate didn't match") ||
+            e.getMessage().contains("Certificate not trusted") ||
+            e.getMessage().contains("unable to find valid certification path")) {
+            addErrorToResultsFile(-13009, "no response available", "Invalid TLS certificate");
+            return;
         }
-      return RDAPValidationStatus.CERTIFICATE_ERROR;
+        addErrorToResultsFile(-13012, "no response available", "TLS Certificate error");
+      return;
     } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
-      return RDAPValidationStatus.HANDSHAKE_FAILED;
+        addErrorToResultsFile(-13008, "no response available", "TLS handshake failed");
+      return;
     } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
-      return RDAPValidationStatus.CERTIFICATE_ERROR;
+        addErrorToResultsFile(-13012, "no response available", "TLS Certificate error");
+      return;
     }
 
-    return RDAPValidationStatus.NETWORK_RECEIVE_FAIL;
+    addErrorToResultsFile(-13017, "no response available", "Network receive fail");
+    return;
   }
 
   /**

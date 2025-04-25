@@ -10,17 +10,7 @@ public enum RDAPValidationStatus {
   MIXED_LABEL_FORMAT(4, "The RDAP query is domain/<domain name> or nameserver/<nameserver>, "
       + "but A-labels and U-labels are mixed."),
   USES_THIN_MODEL(9, "The RDAP query is invalid because the TLD uses the thin model."),
-  CONNECTION_FAILED(10, "Failed to connect to host."),
-  HANDSHAKE_FAILED(11, "The TLS handshake failed."),
-  INVALID_CERTIFICATE(12, "TLS server certificate - common name invalid."),
-  REVOKED_CERTIFICATE(13, "TLS server certificate - revoked."),
-  EXPIRED_CERTIFICATE(14, "TLS server certificate - expired."),
-  CERTIFICATE_ERROR(15, "Other errors with the TLS server certificate."),
-  TOO_MANY_REDIRECTS(16, "Too many redirects."),
-  HTTP_ERROR(17, "HTTP errors."),
-  HTTP2_ERROR(18, "HTTP/2 errors."),
-  NETWORK_SEND_FAIL(19, "Failure sending network data."),
-  NETWORK_RECEIVE_FAIL(20, "Failure in receiving network data."),
+// TODO: these are our legacy connection issues - which don't apply anymore and the ones that do are now moved to result errors
   FILE_WRITE_ERROR(21, "Failure in writing to results file");
 
   private final int value;

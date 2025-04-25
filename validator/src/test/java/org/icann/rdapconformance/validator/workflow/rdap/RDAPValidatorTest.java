@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.util.Optional;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
@@ -16,11 +17,13 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfile;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class RDAPValidatorTest {
 
+  public static final String EXAMPLE_COM = "https://example.com";
   private final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
   private final FileSystem fs = mock(FileSystem.class);
   private final RDAPQueryTypeProcessor processor = mock(RDAPQueryTypeProcessor.class);
@@ -35,7 +38,7 @@ public class RDAPValidatorTest {
   @BeforeMethod
   public void setUp() throws IOException {
     doReturn(true).when(config).check();
-    doReturn(URI.create("https://example.com")).when(config).getUri(); // Mock getUri to return a valid URI
+    doReturn(URI.create(EXAMPLE_COM)).when(config).getUri(); // Mock getUri to return a valid URI
     validator = new RDAPValidator(config, fs, processor, query, configParser, results, datasetService);
     doReturn(true).when(processor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
@@ -66,11 +69,29 @@ public class RDAPValidatorTest {
   }
 
   @Test
-  public void testValidate_QueryError_ReturnsError() {
-    doReturn(false).when(query).run();
-    doReturn(RDAPValidationStatus.CONNECTION_FAILED).when(query).getErrorStatus();
+  public void testValidate_QueryError_HandlesException() {
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+    RDAPHttpQuery httpQuery = spy(new RDAPHttpQuery(config));
+    httpQuery.setResults(results);
 
-    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED.getValue());
+    // Easiest way to do this is to call handleRequestException directly
+    doAnswer(invocation -> {
+      httpQuery.handleRequestException(new ConnectException("Connection failed"));
+      return false;
+    }).when(httpQuery).run();
+
+    RDAPValidator validator = new RDAPValidator(config, fs, processor, httpQuery, configParser, results, datasetService);
+
+    validator.validate();
+
+    assertThat(results.getAll()).contains(
+        RDAPValidationResult.builder()
+                            .code(-13007)
+                            .value("no response available")
+                            .message("Failed to connect to server")
+                            .build()
+    );
   }
 
   @Test
@@ -97,6 +118,10 @@ public class RDAPValidatorTest {
     doReturn(false).when(query).checkWithQueryType(RDAPQueryType.DOMAIN);
     doReturn(RDAPValidationStatus.SUCCESS).when(query).getErrorStatus();
 
+    // fix the null pointer exception when `mvn clean install` is run
+    doReturn("").when(query).getData();
+
+    // TODO: this test is misnamed? Why is it success?
     assertThat(validator.validate())
         .isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
   }
@@ -154,7 +179,7 @@ public class RDAPValidatorTest {
     RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
 
     doReturn(true).when(config).check();
-    doReturn(URI.create("https://example.com")).when(config).getUri(); // Mock getUri to return a valid URI
+    doReturn(URI.create(EXAMPLE_COM)).when(config).getUri(); // Mock getUri to return a valid URI
     doReturn(true).when(queryTypeProcessor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile(

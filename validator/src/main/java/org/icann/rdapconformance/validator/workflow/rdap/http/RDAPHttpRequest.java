@@ -5,10 +5,14 @@ import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP_BAD_REQUEST;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP_END_OF_ERRORS;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -169,6 +173,14 @@ public class RDAPHttpRequest {
             logger.info("Response status code: {}", statusCode);
             return new SimpleHttpResponse(statusCode, body, originalUri);
         }
+    }
+
+    public static boolean checkForHttpError(int statusCode) {
+        if (statusCode >= HTTP_BAD_REQUEST && statusCode <= HTTP_END_OF_ERRORS && statusCode != HTTP_NOT_FOUND) {
+            addErrorToResultsFile(-13014, "no response available", "HTTP error.");
+            return true;
+        }
+        return false;
     }
 
     public static class SimpleHttpResponse implements HttpResponse<String> {

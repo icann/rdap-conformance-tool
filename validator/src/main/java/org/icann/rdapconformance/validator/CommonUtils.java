@@ -26,7 +26,8 @@ public class CommonUtils {
     public static final int ZERO = 0;
     public static final int ONE = 1;
     public static final int HTTP_NOT_FOUND = 404;
-
+    public static final int HTTP_BAD_REQUEST = 400;
+    public static final int HTTP_END_OF_ERRORS = 599;
 
     public static void addErrorToResultsFile(int code, String value, String message) {
         RDAPValidatorResultsImpl.getInstance().add(RDAPValidationResult.builder()
