@@ -633,6 +633,37 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   @Test
+  public void checkWithQueryType_JsonResponseIsNotAnArray_ReturnsErrorCode12610InResults() {
+    String path = "/nameservers?ip=.*";
+    String response = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+    rdapHttpQuery.setResults(results);
+
+    // enable 2024 profile
+    doReturn(true).when(config).useRdapProfileFeb2024();
+
+    givenUri(HTTP, path);
+    stubFor(get(urlEqualTo(path))
+        .withScheme(HTTP)
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withBody(response)));
+
+    assertThat(rdapHttpQuery.run()).isTrue();
+    assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.NAMESERVERS)).isTrue();
+    assertThat(results.getAll()).contains(
+        RDAPValidationResult.builder()
+            .code(-12610)
+            .value(response)
+            .message("The nameserverSearchResults structure is required.")
+            .build());
+
+    // disable 2024 profile after testing
+    doReturn(false).when(config).useRdapProfileFeb2024();
+  }
+
+  @Test
   public void jsonResponseValid_ReturnsFalseUsingNoObjectClassName() {
     String path = "/nameservers?ip=.*";
     String response = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";

@@ -125,7 +125,11 @@ public class RDAPHttpQuery implements RDAPQuery {
               addErrorToResultsFile(-13003, httpResponse.body(), "The response does not have an objectClassName string.");
           } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
             logger.error("No JSON array in answer");
-            addErrorToResultsFile(-13003, httpResponse.body(),"The response does not have an objectClassName string.");
+            if (config.useRdapProfileFeb2024()) {
+                addErrorToResultsFile(-12610, httpResponse.body(), "The nameserverSearchResults structure is required.");
+            } else {
+                addErrorToResultsFile(-13003, httpResponse.body(),"The response does not have an objectClassName string.");
+            }
           }
         }
         return true; // this always returns true
