@@ -90,7 +90,7 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
     try {
       uri = new URI(uri.getScheme(), uri.getHost(), uri.getPath(), uri.getFragment());
     } catch (URISyntaxException e) {
-      logger.error("URI has a syntax issue: ", e);
+      logger.info("URI has a syntax issue: ", e);
       return StringUtils.EMPTY;
     }
     return uri.toString();

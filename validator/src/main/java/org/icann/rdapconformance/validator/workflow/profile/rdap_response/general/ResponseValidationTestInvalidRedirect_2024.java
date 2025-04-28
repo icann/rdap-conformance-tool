@@ -51,7 +51,7 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
                 return handleRedirect(response);
             }
         } catch (Exception e) {
-            logger.error("Exception when making HTTP GET request in [generalResponseValidation]", e);
+            logger.info("Exception when making HTTP GET request in [generalResponseValidation]", e);
             return false;
         }
 
@@ -77,7 +77,7 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
                 return false;
             }
         } catch (Exception e) {
-            logger.error("Error normalizing Location header: {}", locationHeader, e);
+            logger.info("Error normalizing Location header: {}", locationHeader, e);
             return false;
         }
 
