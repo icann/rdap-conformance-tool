@@ -112,18 +112,24 @@ public class RDAPHttpQuery implements RDAPQuery {
 
       @Override
       public boolean checkWithQueryType(RDAPQueryType queryType) {
-        /*
-         * If a response is available to the tool, but the expected objectClassName in the topmost
-         * object was not found for a lookup query (i.e. domain/<domain name>,
-         * nameserver/<nameserver name> and entity/<handle>) nor the expected JSON array
-         * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
-         * not validation on the contents) for a search query, code error -13003 added in results file.
-         */
+          /**
+           * Validates if the RDAP response matches the expected format for the given query type.
+           *
+           * For lookup queries: checks if the response contains a valid objectClassName.
+           * For nameserver search queries: checks if the response contains a nameserverSearchResults collection.
+           *
+           * Adds appropriate error codes to results file if validation fails:
+           * - Error -13003: Missing objectClassName in lookup query response
+           * - Error -12610: Missing nameserverSearchResults in nameserver search query (RDAP Profile Feb 2024)
+           *
+           * @param queryType The type of RDAP query performed
+           * @return Always returns true to continue processing regardless of validation results
+           */
         if (httpResponse.statusCode() == HTTP_OK) {
-          if (queryType.isLookupQuery() && !jsonResponseValid()) {
+          if (queryType.isLookupQuery() && !hasNameserverSearchResults()) {
             logger.error("objectClassName was not found in the topmost object");
               addErrorToResultsFile(-13003, httpResponse.body(), "The response does not have an objectClassName string.");
-          } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
+          } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !hasNameserverSearchResults()) {
             logger.error("No JSON array in answer");
             if (config.useRdapProfileFeb2024()) {
                 addErrorToResultsFile(-12610, httpResponse.body(), "The nameserverSearchResults structure is required.");
@@ -365,13 +371,15 @@ public class RDAPHttpQuery implements RDAPQuery {
     return null != jsonResponse && objectClassExists;
   }
 
-  /**
-   * Check if the RDAP is a JSON array results response
-   */
-  boolean jsonIsSearchResponse() {
-    return null != jsonResponse && jsonResponse.hasKey("nameserverSearchResults")
-        && jsonResponse.getValue("nameserverSearchResults") instanceof Collection<?>;
-  }
+    /**
+     * Checks if the JSON response contains a nameserver search results collection.
+     *
+     * @return true if the response contains a valid nameserverSearchResults collection
+     */
+    boolean hasNameserverSearchResults() {
+        return null != jsonResponse && jsonResponse.hasKey("nameserverSearchResults")
+            && jsonResponse.getValue("nameserverSearchResults") instanceof Collection<?>;
+    }
 
   private boolean hasCause(Throwable e, String causeClassName) {
     while (e.getCause() != null) {

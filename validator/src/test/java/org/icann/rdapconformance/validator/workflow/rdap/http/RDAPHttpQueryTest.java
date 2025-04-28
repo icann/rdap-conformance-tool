@@ -117,7 +117,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(rdapHttpQuery.run()).isTrue();
     assertThat(rdapHttpQuery.getData()).isEqualTo(RDAP_RESPONSE);
     assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
-    assertThat(rdapHttpQuery.jsonIsSearchResponse()).isFalse();
+    assertThat(rdapHttpQuery.hasNameserverSearchResults()).isFalse();
   }
 
   @Test(dataProvider = "fault")
@@ -151,7 +151,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(rdapHttpQuery.run()).isTrue();
     assertThat(rdapHttpQuery.getData()).isEqualTo(RDAP_RESPONSE);
     assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
-    assertThat(rdapHttpQuery.jsonIsSearchResponse()).isFalse();
+    assertThat(rdapHttpQuery.hasNameserverSearchResults()).isFalse();
   }
 
   @Test
@@ -172,7 +172,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(rdapHttpQuery.run()).isTrue();
     assertThat(rdapHttpQuery.getData()).isEqualTo(response);
     assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
-    assertThat(rdapHttpQuery.jsonIsSearchResponse()).isTrue();
+    assertThat(rdapHttpQuery.hasNameserverSearchResults()).isTrue();
   }
 
   @Test(dataProvider = "fault")
