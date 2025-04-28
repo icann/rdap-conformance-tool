@@ -3,6 +3,8 @@ package org.icann.rdapconformance.validator.workflow.rdap.file;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
+import org.icann.rdapconformance.validator.ConformanceError;
+import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
@@ -27,9 +29,9 @@ public class RDAPFileQuery implements RDAPQuery {
     this.fileSystem = fileSystem;
   }
 
-  @Override
-  public RDAPValidationStatus getErrorStatus() {
-    return RDAPValidationStatus.CONFIG_INVALID;
+
+  public ConformanceError getErrorStatus() {
+    return ToolResult.CONFIG_INVALID;
   }
 
   @Override

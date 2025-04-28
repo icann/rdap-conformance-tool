@@ -16,7 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Instant;
+
 import java.util.Optional;
 import javax.net.ssl.SSLSession;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -47,6 +47,7 @@ import java.net.URI;
 import java.net.InetAddress;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
+import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
@@ -173,7 +174,7 @@ public class RDAPHttpRequest {
                 : EMPTY_STRING;
             int statusCode = response.getCode();
             logger.info("Response status code: {}", statusCode);
-            tracker.completeCurrentConnection(statusCode, RDAPValidationStatus.SUCCESS);
+            tracker.completeCurrentConnection(statusCode, ConnectionStatus.SUCCESS);
             return new SimpleHttpResponse(statusCode, body, originalUri);
         }
     }

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ToolResult;
@@ -151,7 +152,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         if (!queryTypeProcessor.check(datasetService)) {
-            int errorCode = queryTypeProcessor.getErrorStatus().getValue();
+            int errorCode = queryTypeProcessor.getErrorStatus().getCode();
 //            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
             return errorCode;
         }
@@ -161,9 +162,9 @@ public class RDAPValidator implements ValidatorWorkflow {
             if (query.getErrorStatus() == null) {
                 return RDAPValidationStatus.SUCCESS.getValue();
             }
-            int errorCode = query.getErrorStatus().getValue();
+           ConformanceError errorCode =  query.getErrorStatus();
 //            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
-            return errorCode;
+            return errorCode.getCode();
         }
 
         query.checkWithQueryType(queryTypeProcessor.getQueryType());

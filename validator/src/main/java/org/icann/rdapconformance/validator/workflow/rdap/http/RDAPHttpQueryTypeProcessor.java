@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -21,7 +22,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQueryTypeProcessor.class);
   private final RDAPValidatorConfiguration config;
-  private RDAPValidationStatus status = null;
+  private ToolResult status = null;
   private RDAPHttpQueryType queryType = null;
 
   public RDAPHttpQueryTypeProcessor(RDAPValidatorConfiguration config) {
@@ -48,7 +49,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     queryType = RDAPHttpQueryType.getType(this.config.getUri().toString());
     if (queryType == null) {
       logger.error("Unknown RDAP query type for URI {}", this.config.getUri());
-      status = RDAPValidationStatus.UNSUPPORTED_QUERY;
+      status = ToolResult.UNSUPPORTED_QUERY;
       return false;
     }
     if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
@@ -62,7 +63,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         if (testDomainResults.getAll().stream()
             .map(RDAPValidationResult::getCode)
             .anyMatch(c -> c == -10303)) {
-          status =  RDAPValidationStatus.MIXED_LABEL_FORMAT;
+          status =  ToolResult.MIXED_LABEL_FORMAT;
           return false;
         }
       }
@@ -71,7 +72,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
   }
 
   @Override
-  public RDAPValidationStatus getErrorStatus() {
+  public ToolResult getErrorStatus() {
     return this.status;
   }
 

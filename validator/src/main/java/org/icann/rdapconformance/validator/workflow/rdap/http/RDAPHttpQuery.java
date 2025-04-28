@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.StatusCodes;
@@ -175,7 +176,7 @@ public class RDAPHttpQuery implements RDAPQuery {
     /**
      * Get the connection status in case of error
      */
-    public ConnectionStatus getErrorStatus() {
+    public ConformanceError getErrorStatus() {
         return status;
     }
 

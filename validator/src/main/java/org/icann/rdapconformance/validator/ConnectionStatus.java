@@ -4,7 +4,7 @@ package org.icann.rdapconformance.validator;
 /**
  * Represents the status of a network connection or connection attempt.
  */
-public enum ConnectionStatus {
+public enum ConnectionStatus implements ConformanceError {
     SUCCESS(0, "Connection succeeded"),
     CONNECTION_FAILED(10, "Failed to connect to host"),
     HANDSHAKE_FAILED(11, "The TLS handshake failed"),

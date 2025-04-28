@@ -30,6 +30,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.net.http.HttpResponse;
+import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Ignore;
@@ -927,66 +928,66 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     }
   }
 
-  @Ignore
-  @Test
-  public void test_WithLocalHttpsCertificateError_ReturnsAppropriateErrorStatus() throws Exception {
-    // 🔥 Disable OCSP checking for test certs
-    System.setProperty("com.sun.net.ssl.checkRevocation", "false");
-
-    KeyStore trustStore = KeyStore.getInstance("JKS");
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream("keystores/truststore.jks")) {
-      trustStore.load(is, "password".toCharArray());
-    }
-
-    // this stuff is essential
-    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-    tmf.init(trustStore);
-
-    // Again, painful, but we have to set this just to get the errors
-    SSLContext sslContext = SSLContext.getInstance("TLS");
-    sslContext.init(null, tmf.getTrustManagers(), null);
-    SSLContext.setDefault(sslContext);
-    HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-
-    // Start HTTPS servers with different certificates
-    MultiCertHttpsTestServer.startHttpsServer(EXPIRED_CERT_PORT, EXPIRED);
-    MultiCertHttpsTestServer.startHttpsServer(INVALID_CERT_PORT, INVALID_HOST);
-    MultiCertHttpsTestServer.startHttpsServer(UNTRUSTED_ROOT_CERT_PORT, UNTRUSTED);
-    // we need to sleep before we can start testing it
-    Thread.sleep(PAUSE);
-
-    try {
-      RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
-      results.clear();
-      rdapHttpQuery.setResults(results);
-
-      // Test expired certificate
-      doReturn(URI.create(HTTPS_LOCALHOST + EXPIRED_CERT_PORT)).when(config).getUri();
-      assertThat(rdapHttpQuery.run()).isFalse();
-      RDAPValidationStatus errorStatus = rdapHttpQuery.getErrorStatus();
-      assertThat(errorStatus).isEqualTo(RDAPValidationStatus.EXPIRED_CERTIFICATE);
-
-      // Test invalid host certificate
-      doReturn(URI.create(HTTPS_LOCALHOST + INVALID_CERT_PORT)).when(config).getUri();
-      assertThat(rdapHttpQuery.run()).isFalse();
-      assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.INVALID_CERTIFICATE);
-
-      // Test untrusted certificate
-      doReturn(URI.create(HTTPS_LOCALHOST + UNTRUSTED_ROOT_CERT_PORT)).when(config).getUri();
-      assertThat(rdapHttpQuery.run()).isFalse();
-      assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.HANDSHAKE_FAILED);
-
-      // Revoked
-      // Note: we can't do this b/c of how we are hosting our own revoked certs, and we modified the trust manager to do that.
-      // doReturn(URI.create("https://revoked.badssl.com")).when(config).getUri();
-      //  assertThat(rdapHttpQuery.run()).isFalse();
-      //  assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.REVOKED_CERTIFICATE);
-
-    } finally {
-      // Stop all HTTPS servers
-      MultiCertHttpsTestServer.stopAll();
-    }
-  }
+//  @Ignore
+//  @Test
+//  public void test_WithLocalHttpsCertificateError_ReturnsAppropriateErrorStatus() throws Exception {
+//    // 🔥 Disable OCSP checking for test certs
+//    System.setProperty("com.sun.net.ssl.checkRevocation", "false");
+//
+//    KeyStore trustStore = KeyStore.getInstance("JKS");
+//    try (InputStream is = getClass().getClassLoader().getResourceAsStream("keystores/truststore.jks")) {
+//      trustStore.load(is, "password".toCharArray());
+//    }
+//
+//    // this stuff is essential
+//    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+//    tmf.init(trustStore);
+//
+//    // Again, painful, but we have to set this just to get the errors
+//    SSLContext sslContext = SSLContext.getInstance("TLS");
+//    sslContext.init(null, tmf.getTrustManagers(), null);
+//    SSLContext.setDefault(sslContext);
+//    HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+//
+//    // Start HTTPS servers with different certificates
+//    MultiCertHttpsTestServer.startHttpsServer(EXPIRED_CERT_PORT, EXPIRED);
+//    MultiCertHttpsTestServer.startHttpsServer(INVALID_CERT_PORT, INVALID_HOST);
+//    MultiCertHttpsTestServer.startHttpsServer(UNTRUSTED_ROOT_CERT_PORT, UNTRUSTED);
+//    // we need to sleep before we can start testing it
+//    Thread.sleep(PAUSE);
+//
+//    try {
+//      RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+//      results.clear();
+//      rdapHttpQuery.setResults(results);
+//
+//      // Test expired certificate
+//      doReturn(URI.create(HTTPS_LOCALHOST + EXPIRED_CERT_PORT)).when(config).getUri();
+//      assertThat(rdapHttpQuery.run()).isFalse();
+//      ConnectionStatus errorStatus = rdapHttpQuery.getErrorStatus();
+//      assertThat(errorStatus).isEqualTo(RDAPValidationStatus.EXPIRED_CERTIFICATE);
+//
+//      // Test invalid host certificate
+//      doReturn(URI.create(HTTPS_LOCALHOST + INVALID_CERT_PORT)).when(config).getUri();
+//      assertThat(rdapHttpQuery.run()).isFalse();
+//      assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.INVALID_CERTIFICATE);
+//
+//      // Test untrusted certificate
+//      doReturn(URI.create(HTTPS_LOCALHOST + UNTRUSTED_ROOT_CERT_PORT)).when(config).getUri();
+//      assertThat(rdapHttpQuery.run()).isFalse();
+//      assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.HANDSHAKE_FAILED);
+//
+//      // Revoked
+//      // Note: we can't do this b/c of how we are hosting our own revoked certs, and we modified the trust manager to do that.
+//      // doReturn(URI.create("https://revoked.badssl.com")).when(config).getUri();
+//      //  assertThat(rdapHttpQuery.run()).isFalse();
+//      //  assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.REVOKED_CERTIFICATE);
+//
+//    } finally {
+//      // Stop all HTTPS servers
+//      MultiCertHttpsTestServer.stopAll();
+//    }
+//  }
 
   @Test
   public void testValidateIfContainsErrorCode_HttpStatus200_ReturnsTrue() {

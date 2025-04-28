@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator;
 /**
  * Represents the result of RDAP validation tests.
  */
-public enum ToolResult {
+public enum ToolResult implements ConformanceError {
     SUCCESS(0, "A response was available to the tool, the Content-Type is application/rdap+JSON "
         + "in the response, a HTTP Status of 200 or 404 was received, the RDAP response was "
         + "successfully parsed and the results file was generated"),
