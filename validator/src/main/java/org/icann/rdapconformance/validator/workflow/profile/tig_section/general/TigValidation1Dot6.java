@@ -41,7 +41,7 @@ public final class TigValidation1Dot6 extends ProfileValidation {
         return false;
       }
     } catch (Exception e) {
-      logger.error(
+      logger.info(
           "Exception when making HTTP HEAD request in order to check [tigSection_1_6_Validation]",
           e);
       return false;

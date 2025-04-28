@@ -55,7 +55,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                 try {
                     sslContext = SSLContext.getDefault();
                 } catch (NoSuchAlgorithmException e) {
-                    logger.error("Cannot create SSL context", e);
+                    logger.info("Cannot create SSL context", e);
                     return false;
                 }
 

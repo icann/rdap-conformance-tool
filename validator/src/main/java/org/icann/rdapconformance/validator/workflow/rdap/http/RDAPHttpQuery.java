@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
-import java.net.UnknownHostException;
+
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
@@ -43,6 +43,7 @@ public class RDAPHttpQuery implements RDAPQuery {
     public static final String NETWORKS = "networks";
     public static final String ERROR_CODE = "errorCode";
     public static final String RDAP_CONFORMANCE = "rdapConformance";
+    public static final String NAMESERVER_SEARCH_RESULTS = "nameserverSearchResults";
 
     private List<URI> redirects = new ArrayList<>();
     private String acceptHeader;
@@ -127,10 +128,10 @@ public class RDAPHttpQuery implements RDAPQuery {
            */
         if (httpResponse.statusCode() == HTTP_OK) {
           if (queryType.isLookupQuery() && !hasNameserverSearchResults()) {
-            logger.error("objectClassName was not found in the topmost object");
+            logger.info("objectClassName was not found in the topmost object");
               addErrorToResultsFile(-13003, httpResponse.body(), "The response does not have an objectClassName string.");
           } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !hasNameserverSearchResults()) {
-            logger.error("No JSON array in answer");
+            logger.info("No JSON array in answer");
             if (config.useRdapProfileFeb2024()) {
                 addErrorToResultsFile(-12610, httpResponse.body(), "The nameserverSearchResults structure is required.");
             } else {
@@ -266,7 +267,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
         // If a response is available to the tool, but the HTTP status code is not 200 nor 404, error code -13002 added in results file
         if (!List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpStatusCode)) {
-            logger.error("Invalid HTTP status {}", httpStatusCode);
+            logger.info("Invalid HTTP status {}", httpStatusCode);
             addErrorToResultsFile(-13002, String.valueOf(httpStatusCode), "The HTTP status code was neither 200 nor 404.");
             isQuerySuccessful = false;
         }
@@ -377,8 +378,8 @@ public class RDAPHttpQuery implements RDAPQuery {
      * @return true if the response contains a valid nameserverSearchResults collection
      */
     boolean hasNameserverSearchResults() {
-        return null != jsonResponse && jsonResponse.hasKey("nameserverSearchResults")
-            && jsonResponse.getValue("nameserverSearchResults") instanceof Collection<?>;
+        return null != jsonResponse && jsonResponse.hasKey(NAMESERVER_SEARCH_RESULTS)
+            && jsonResponse.getValue(NAMESERVER_SEARCH_RESULTS) instanceof Collection<?>;
     }
 
   private boolean hasCause(Throwable e, String causeClassName) {

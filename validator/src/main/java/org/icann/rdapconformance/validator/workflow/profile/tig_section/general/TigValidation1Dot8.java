@@ -68,7 +68,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     try {
       host = Name.fromString(uri.getHost());
     } catch (TextParseException e) {
-      logger.error("Error when retrieving RDAP server hostname in order to check "
+      logger.info("Error when retrieving RDAP server hostname in order to check "
           + "[tigSection_1_8_Validation]", e);
       return true;
     }
