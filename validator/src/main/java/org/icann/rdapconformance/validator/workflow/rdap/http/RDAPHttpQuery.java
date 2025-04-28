@@ -127,7 +127,7 @@ public class RDAPHttpQuery implements RDAPQuery {
            * @return Always returns true to continue processing regardless of validation results
            */
         if (httpResponse.statusCode() == HTTP_OK) {
-          if (queryType.isLookupQuery() && !hasNameserverSearchResults()) {
+          if (queryType.isLookupQuery() && !jsonResponseValid()) {
             logger.info("objectClassName was not found in the topmost object");
               addErrorToResultsFile(-13003, httpResponse.body(), "The response does not have an objectClassName string.");
           } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !hasNameserverSearchResults()) {
@@ -237,6 +237,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         }
 
         // else continue on
+
         int httpStatusCode = httpResponse.statusCode();
         HttpHeaders headers = httpResponse.headers();
         String rdapResponse = httpResponse.body();

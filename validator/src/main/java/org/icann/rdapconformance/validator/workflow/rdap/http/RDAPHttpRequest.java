@@ -16,6 +16,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.net.ssl.SSLSession;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -26,6 +30,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.http.ssl.TLS;
@@ -48,7 +53,6 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
-import org.icann.rdapconformance.validator.StatusCodes;
 
 
 public class RDAPHttpRequest {
@@ -167,7 +171,7 @@ public class RDAPHttpRequest {
                 : EMPTY_STRING;
             int statusCode = response.getCode();
             logger.info("Response status code: {}", statusCode);
-            return new SimpleHttpResponse(statusCode, body, originalUri);
+            return new SimpleHttpResponse(statusCode, body, originalUri, response.getHeaders());
         }
     }
 
@@ -175,11 +179,21 @@ public class RDAPHttpRequest {
         private final int statusCode;
         private final String body;
         private final URI uri;
+        private final Map<String, List<String>> headers;
 
-        public SimpleHttpResponse(int statusCode, String body, URI uri) {
+        public SimpleHttpResponse(int statusCode, String body, URI uri, Header[] headers) {
             this.statusCode = statusCode;
             this.body = body;
             this.uri = uri;
+
+            Map<String, List<String>> headersMap = new HashMap<>();
+            if (headers != null) {
+                for (Header header : headers) {
+                    headersMap.computeIfAbsent(header.getName(), k -> new ArrayList<>())
+                              .add(header.getValue());
+                }
+            }
+            this.headers = headersMap;
         }
 
         @Override
@@ -204,9 +218,8 @@ public class RDAPHttpRequest {
 
         @Override
         public HttpHeaders headers() {
-            return HttpHeaders.of(java.util.Map.of(), (k, v) -> true); // Empty headers
+            return HttpHeaders.of(headers, (k, v) -> true);
         }
-
         @Override
         public URI uri() {
             return uri;
