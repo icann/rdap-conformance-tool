@@ -80,10 +80,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       validator = new RDAPFileValidator(this, fileSystem);
     }
 
+    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+
     if (networkEnabled) {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-
-
       // do v6
       NetworkInfo.setStackToV6();
       NetworkInfo.setAcceptHeaderToApplicationJson();
@@ -114,7 +113,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     }
 
     // If network is not enabled, validate and return
-    return validator.validate();
+    int file_exit_code =  validator.validate();
+    resultFile.build(ZERO);
+    logger.info("Results file: {}",  validator.getResultsPath());
+    return file_exit_code;
   }
 
   @Override

@@ -185,7 +185,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validator.validate(query.getData()); // validates the JSON
         System.out.println("initial validationg is done....");
         HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
-        System.out.println("rdapResponse: "  + rdapResponse.toString());
+//        System.out.println("rdapResponse: "  + rdapResponse.toString());
 
         if (rdapResponse != null && !query.isErrorContent() && config.isNetworkEnabled()) {
             new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate(); // Network calls
