@@ -139,37 +139,32 @@ public class RDAPValidator implements ValidatorWorkflow {
             configurationFile = configParser.parse(is);
         } catch (Exception e) {
             logger.error("Configuration is invalid", e);
-//            errorState.addErrorInfo(RDAPValidationStatus.CONFIG_INVALID.getValue(), config.getUri().toString(), 0);
-            return RDAPValidationStatus.CONFIG_INVALID.getValue();
+            return ToolResult.CONFIG_INVALID.getCode();
         }
 
         RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
         rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
 
         if (!datasetService.download(this.config.useLocalDatasets())) {
-//            errorState.addErrorInfo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue(), config.getUri().toString(), 0);
-            return RDAPValidationStatus.DATASET_UNAVAILABLE.getValue();
+            return ToolResult.DATASET_UNAVAILABLE.getCode();
         }
 
         if (!queryTypeProcessor.check(datasetService)) {
-            int errorCode = queryTypeProcessor.getErrorStatus().getCode();
-//            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
-            return errorCode;
+            return  queryTypeProcessor.getErrorStatus().getCode();
         }
 
         query.setResults(results);
         if (!query.run()) {
             if (query.getErrorStatus() == null) {
-                return RDAPValidationStatus.SUCCESS.getValue();
+                return ToolResult.SUCCESS.getCode();
             }
            ConformanceError errorCode =  query.getErrorStatus();
-//            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
             return errorCode.getCode();
         }
 
         query.checkWithQueryType(queryTypeProcessor.getQueryType());
 
-        if (ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
+        if (config.isNetworkEnabled() && ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
             logger.info("Detected a test.invalid domain query with HTTP 200 response code.");
         }
 
@@ -180,19 +175,20 @@ public class RDAPValidator implements ValidatorWorkflow {
             if (schemaFile != null) {
                 if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
-//                    errorState.addErrorInfo(RDAPValidationStatus.USES_THIN_MODEL.getValue(), config.getUri().toString(), 0);
-                    return RDAPValidationStatus.USES_THIN_MODEL.getValue();
+                    return ToolResult.USES_THIN_MODEL.getCode();
                 }
                 validator = new SchemaValidator(schemaFile, results, datasetService);
             }
         }
 
         assert null != validator;
-        validator.validate(query.getData());
+        validator.validate(query.getData()); // validates the JSON
+        System.out.println("initial validationg is done....");
         HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
+        System.out.println("rdapResponse: "  + rdapResponse.toString());
 
-        if (rdapResponse != null && !query.isErrorContent()) {
-            new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate();
+        if (rdapResponse != null && !query.isErrorContent() && config.isNetworkEnabled()) {
+            new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate(); // Network calls
         }
 
         if ((config.useRdapProfileFeb2019() || config.useRdapProfileFeb2024()) && !query.isErrorContent()) {
@@ -317,24 +313,24 @@ public class RDAPValidator implements ValidatorWorkflow {
         return validations;
     }
 
-    public int dumpErrorInfo(int exitCode, RDAPValidatorConfiguration config, RDAPQuery query) {
-        System.out.println("Exit code: " + exitCode + " - " + RDAPValidationStatus.fromValue(exitCode).name());
-        System.out.println("URI used for the query: " + config.getUri());
-        if (query instanceof RDAPHttpQuery httpQuery) {
-            System.out.println("Redirects followed: " + httpQuery.getRedirects());
-            System.out.println("Accept header used for the query: " + NetworkInfo.getAcceptHeader());
-        } else {
-            System.out.println("Redirects followed: N/A (query is not an RDAPHttpQuery)");
-            System.out.println("Accept header used for the query: N/A (query is not an RDAPHttpQuery)");
-        }
-
-        if (config.getUri() != null && config.getUri().getHost() != null) {
-            System.out.println("IP protocol used for the query: " + NetworkInfo.getNetworkProtocol());
-
-        } else {
-            System.out.println("IP protocol used for the query: unknown (URI or host is null)");
-        }
-
-        return exitCode;
-    }
+//    public int dumpErrorInfo(int exitCode, RDAPValidatorConfiguration config, RDAPQuery query) {
+//        System.out.println("Exit code: " + exitCode + " - " + RDAPValidationStatus.fromValue(exitCode).name());
+//        System.out.println("URI used for the query: " + config.getUri());
+//        if (query instanceof RDAPHttpQuery httpQuery) {
+//            System.out.println("Redirects followed: " + httpQuery.getRedirects());
+//            System.out.println("Accept header used for the query: " + NetworkInfo.getAcceptHeader());
+//        } else {
+//            System.out.println("Redirects followed: N/A (query is not an RDAPHttpQuery)");
+//            System.out.println("Accept header used for the query: N/A (query is not an RDAPHttpQuery)");
+//        }
+//
+//        if (config.getUri() != null && config.getUri().getHost() != null) {
+//            System.out.println("IP protocol used for the query: " + NetworkInfo.getNetworkProtocol());
+//
+//        } else {
+//            System.out.println("IP protocol used for the query: unknown (URI or host is null)");
+//        }
+//
+//        return exitCode;
+//    }
 }
