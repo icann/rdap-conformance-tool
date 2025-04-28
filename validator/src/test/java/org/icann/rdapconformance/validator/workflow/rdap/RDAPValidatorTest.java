@@ -10,6 +10,8 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
+import org.icann.rdapconformance.validator.ConnectionStatus;
+import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -47,30 +49,30 @@ public class RDAPValidatorTest {
   public void testValidate_InvalidConfiguration_ReturnsErrorStatus1() throws IOException {
     doThrow(IOException.class).when(configParser).parse(any());
 
-    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.CONFIG_INVALID.getValue());
+    assertThat(validator.validate()).isEqualTo(ToolResult.CONFIG_INVALID.getCode());
   }
 
   @Test
   public void testValidate_DatasetsError_ReturnsErrorStatus2() {
     doReturn(false).when(datasetService).download(anyBoolean());
 
-    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue());
+    assertThat(validator.validate()).isEqualTo(ToolResult.DATASET_UNAVAILABLE.getCode());
   }
 
   @Test
   public void testValidate_QueryTypeProcessorError_ReturnsError() {
     doReturn(false).when(processor).check(datasetService);
-    doReturn(RDAPValidationStatus.UNSUPPORTED_QUERY).when(processor).getErrorStatus();
+    doReturn(ToolResult.UNSUPPORTED_QUERY).when(processor).getErrorStatus();
 
-    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.UNSUPPORTED_QUERY.getValue());
+    assertThat(validator.validate()).isEqualTo(ToolResult.UNSUPPORTED_QUERY.getCode());
   }
 
   @Test
   public void testValidate_QueryError_ReturnsError() {
     doReturn(false).when(query).run();
-    doReturn(RDAPValidationStatus.CONNECTION_FAILED).when(query).getErrorStatus();
+    doReturn(ConnectionStatus.CONNECTION_FAILED).when(query).getErrorStatus();
 
-    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED.getValue());
+    assertThat(validator.validate()).isEqualTo(ConnectionStatus.CONNECTION_FAILED.getCode());
   }
 
   @Test
@@ -95,10 +97,10 @@ public class RDAPValidatorTest {
   public void testValidate_QuerycheckWithQueryTypeError_ReturnsError() {
     doReturn(RDAPQueryType.DOMAIN).when(processor).getQueryType();
     doReturn(false).when(query).checkWithQueryType(RDAPQueryType.DOMAIN);
-    doReturn(RDAPValidationStatus.SUCCESS).when(query).getErrorStatus();
+    doReturn(ToolResult.SUCCESS).when(query).getErrorStatus();
 
     assertThat(validator.validate())
-        .isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
+        .isEqualTo(ToolResult.SUCCESS.getCode());
   }
 
 
@@ -140,7 +142,7 @@ public class RDAPValidatorTest {
 
     RDAPValidator validator = new RDAPValidator(config, fileSystem, queryTypeProcessor, query, configParser, results, datasetService);
 
-    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
+    assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
   }
 
   @Test
@@ -167,6 +169,6 @@ public class RDAPValidatorTest {
 
     RDAPValidator validator = new RDAPValidator(config, fileSystem, queryTypeProcessor, query, configParser, results, datasetService);
 
-    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
+    assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
   }
 }

@@ -83,10 +83,10 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     // TODO the following data rely on web resources that may change without notice, should create our own certificates, CRL, etc.
     // Note: we have our own certs now, the only issue is the revoked cert. This is kept in case we need to rollback to the original test cases.
     return new Object[][]{
-        {"https://expired.badssl.com", RDAPValidationStatus.EXPIRED_CERTIFICATE},
-        {"https://revoked.badssl.com", RDAPValidationStatus.REVOKED_CERTIFICATE},
-        {"https://wrong.host.badssl.com", RDAPValidationStatus.INVALID_CERTIFICATE},
-        {"https://untrusted-root.badssl.com", RDAPValidationStatus.HANDSHAKE_FAILED}
+        {"https://expired.badssl.com", ConnectionStatus.EXPIRED_CERTIFICATE},
+        {"https://revoked.badssl.com", ConnectionStatus.REVOKED_CERTIFICATE},
+        {"https://wrong.host.badssl.com", ConnectionStatus.INVALID_CERTIFICATE},
+        {"https://untrusted-root.badssl.com", ConnectionStatus.HANDSHAKE_FAILED}
         };
   }
 
@@ -133,7 +133,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(rdapHttpQuery.getErrorStatus())
-        .isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
+        .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
   }
 
   @Test
@@ -187,7 +187,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(rdapHttpQuery.getErrorStatus())
-        .isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
+        .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
   }
 
   @Test
@@ -195,7 +195,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     doReturn(URI.create(HTTP_TEST_EXAMPLE )).when(config).getUri();
 
     assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
   }
 
   @Test
@@ -210,7 +210,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .withBody(RDAP_RESPONSE)));
 
     assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
   }
 
   @Test
@@ -303,7 +303,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       // Run the query - it should fail due to too many redirects
       assertThat(rdapHttpQuery.run()).isFalse();
       assertThat(rdapHttpQuery.getErrorStatus())
-          .isEqualTo(RDAPValidationStatus.TOO_MANY_REDIRECTS);
+          .isEqualTo(ConnectionStatus.TOO_MANY_REDIRECTS);
 
       // The redirects list should contain the first two redirects
       List<URI> redirects = rdapHttpQuery.getRedirects();
@@ -520,8 +520,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Ignore
   @Test(dataProvider = "tlsErrors")
   public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,
-      RDAPValidationStatus expectedStatus) {
-    System.out.println("checking url: " + url  + " for expected status of: " + expectedStatus.getDescription());
+      ConnectionStatus expectedStatus) {
     doReturn(URI.create(url)).when(config).getUri();
 
     assertThat(rdapHttpQuery.run()).isFalse();
@@ -866,7 +865,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create(HTTP_TEST_EXAMPLE), PAUSE))
                   .thenThrow(new ConnectException("Connection failed"));
       query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
-      assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
+      assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.CONNECTION_FAILED);
     }
   }
 
@@ -883,7 +882,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                   .thenThrow(new HttpTimeoutException("Timeout"));
 
       query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
-      assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
+      assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.CONNECTION_FAILED);
     }
   }
 
@@ -900,7 +899,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                   .thenThrow(new IOException(new java.security.cert.CertificateExpiredException("Expired certificate")));
 
       query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
-      assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.EXPIRED_CERTIFICATE);
+      assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
     }
   }
 
@@ -924,7 +923,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                       new Date(), null, null, Map.of())));
 
       query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
-      assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.REVOKED_CERTIFICATE);
+      assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.REVOKED_CERTIFICATE);
     }
   }
 
