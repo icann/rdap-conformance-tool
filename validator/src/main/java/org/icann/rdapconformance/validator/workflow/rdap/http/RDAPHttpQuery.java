@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.icann.rdapconformance.validator.ConnectionStatus;
+import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
@@ -50,9 +52,10 @@ public class RDAPHttpQuery implements RDAPQuery {
     private final RDAPValidatorConfiguration config;
     private RDAPValidatorResults results = null;
     private HttpResponse<String> httpResponse = null;
-    private RDAPValidationStatus status = null;
+
     private JsonData jsonResponse = null;
     private boolean isQuerySuccessful = true;
+    private ConnectionStatus status = null;
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
@@ -169,13 +172,12 @@ public class RDAPHttpQuery implements RDAPQuery {
           return status == null && isQuerySuccessful;
       }
 
-      /**
-       * Get the RDAP status in case of error
-       */
-      public RDAPValidationStatus getErrorStatus() {
+    /**
+     * Get the connection status in case of error
+     */
+    public ConnectionStatus getErrorStatus() {
         return status;
-      }
-
+    }
 
     public void makeRequest(URI currentUri ) {
         try {
@@ -218,7 +220,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             // check for the redirects
             if (remainingRedirects == ZERO) {
-                status = RDAPValidationStatus.TOO_MANY_REDIRECTS;
+                status = ConnectionStatus.TOO_MANY_REDIRECTS;
             }
 
             // if we exit the loop without a redirect, we have a final response
@@ -298,44 +300,48 @@ public class RDAPHttpQuery implements RDAPQuery {
     /**
      * Handle exceptions that occur during the HTTP request.
      */
-  private void handleRequestException(Exception e) {
-    if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
-      status = hasCause(e, "java.nio.channels.UnresolvedAddressException")
-          ? RDAPValidationStatus.NETWORK_SEND_FAIL
-          : RDAPValidationStatus.CONNECTION_FAILED;
-      return;
-    }
-    if (e instanceof IOException) {
-      status = analyzeIOException((IOException) e);
-      return;
+    private void handleRequestException(Exception e) {
+        if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
+            status = hasCause(e, "java.nio.channels.UnresolvedAddressException")
+                ? ConnectionStatus.NETWORK_SEND_FAIL
+                : ConnectionStatus.CONNECTION_FAILED;
+            ConnectionTracker.getInstance().updateCurrentConnection(status);
+            return;
+        }
+        if (e instanceof IOException) {
+            status = analyzeIOException((IOException) e);
+            ConnectionTracker.getInstance().updateCurrentConnection(status);
+            return;
+        }
+
+        status = ConnectionStatus.CONNECTION_FAILED;
+        ConnectionTracker.getInstance().updateCurrentConnection(status);
     }
 
-    status = RDAPValidationStatus.CONNECTION_FAILED;
-  }
+    /**
+     * Analyze the IOException to determine the connection status.
+     */
+    private ConnectionStatus analyzeIOException(IOException e) {
+        if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
+            return ConnectionStatus.EXPIRED_CERTIFICATE;
+        } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
+            return ConnectionStatus.REVOKED_CERTIFICATE;
+        } else if (hasCause(e, "java.security.cert.CertificateException")) {
+            if (e.getMessage().contains("No name matching") ||
+                e.getMessage().contains("No subject alternative DNS name matching")) {
+                return ConnectionStatus.INVALID_CERTIFICATE;
+            }
+            return ConnectionStatus.CERTIFICATE_ERROR;
+        } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
+            return ConnectionStatus.HANDSHAKE_FAILED;
+        } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
+            return ConnectionStatus.CERTIFICATE_ERROR;
+        }
+
+        return ConnectionStatus.NETWORK_RECEIVE_FAIL;
+    }
 
   /* *
-   * Analyze the IOException to determine the RDAP validation status.
-   */
-  private RDAPValidationStatus analyzeIOException(IOException e) {
-    if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
-      return RDAPValidationStatus.EXPIRED_CERTIFICATE;
-    } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
-      return RDAPValidationStatus.REVOKED_CERTIFICATE;
-    } else if (hasCause(e, "java.security.cert.CertificateException")) {
-        if (e.getMessage().contains("No name matching") ||
-            e.getMessage().contains("No subject alternative DNS name matching")) {
-            return RDAPValidationStatus.INVALID_CERTIFICATE;
-        }
-      return RDAPValidationStatus.CERTIFICATE_ERROR;
-    } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
-      return RDAPValidationStatus.HANDSHAKE_FAILED;
-    } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
-      return RDAPValidationStatus.CERTIFICATE_ERROR;
-    }
-
-    return RDAPValidationStatus.NETWORK_RECEIVE_FAIL;
-  }
-
   /**
    * Check if the RDAP json response contains a specific key.
    */

@@ -1,17 +1,15 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import java.util.Optional;
-import org.icann.rdapconformance.validator.ErrorState;
+import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.NetworkInfo;
+import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationLinkElements_2024;
@@ -76,10 +74,8 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation4Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation7Dot1And7Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registrar.TigValidation1Dot12Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation6Dot1;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 
 public class RDAPValidator implements ValidatorWorkflow {
@@ -138,13 +134,11 @@ public class RDAPValidator implements ValidatorWorkflow {
             RDAPQueryType.IP_NETWORK, "rdap_ip_network.json"
         );
 
-        ErrorState errorState = ErrorState.getInstance();
-
         try (InputStream is = fileSystem.uriToStream(this.config.getConfigurationFile())) {
             configurationFile = configParser.parse(is);
         } catch (Exception e) {
             logger.error("Configuration is invalid", e);
-            errorState.addErrorInfo(RDAPValidationStatus.CONFIG_INVALID.getValue(), config.getUri().toString(), 0);
+//            errorState.addErrorInfo(RDAPValidationStatus.CONFIG_INVALID.getValue(), config.getUri().toString(), 0);
             return RDAPValidationStatus.CONFIG_INVALID.getValue();
         }
 
@@ -152,13 +146,13 @@ public class RDAPValidator implements ValidatorWorkflow {
         rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
 
         if (!datasetService.download(this.config.useLocalDatasets())) {
-            errorState.addErrorInfo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue(), config.getUri().toString(), 0);
+//            errorState.addErrorInfo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue(), config.getUri().toString(), 0);
             return RDAPValidationStatus.DATASET_UNAVAILABLE.getValue();
         }
 
         if (!queryTypeProcessor.check(datasetService)) {
             int errorCode = queryTypeProcessor.getErrorStatus().getValue();
-            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
+//            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
             return errorCode;
         }
 
@@ -168,7 +162,7 @@ public class RDAPValidator implements ValidatorWorkflow {
                 return RDAPValidationStatus.SUCCESS.getValue();
             }
             int errorCode = query.getErrorStatus().getValue();
-            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
+//            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
             return errorCode;
         }
 
@@ -185,7 +179,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             if (schemaFile != null) {
                 if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
-                    errorState.addErrorInfo(RDAPValidationStatus.USES_THIN_MODEL.getValue(), config.getUri().toString(), 0);
+//                    errorState.addErrorInfo(RDAPValidationStatus.USES_THIN_MODEL.getValue(), config.getUri().toString(), 0);
                     return RDAPValidationStatus.USES_THIN_MODEL.getValue();
                 }
                 validator = new SchemaValidator(schemaFile, results, datasetService);
@@ -217,14 +211,14 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Log URI, IP address, and redirects
         String ipAddress = NetworkInfo.getServerIpAddress();
         List<URI> redirects = (query instanceof RDAPHttpQuery httpQuery) ? httpQuery.getRedirects() : List.of();
-        errorState.addErrorInfo(RDAPValidationStatus.SUCCESS.getValue(), config.getUri().toString(), redirects.size());
+//        errorState.addErrorInfo(RDAPValidationStatus.SUCCESS.getValue(), config.getUri().toString(), redirects.size());
 
 
         logger.info("URI used for the query: {}", config.getUri());
         logger.info("IP Address used: {}", ipAddress);
         logger.info("Redirects followed: {}", redirects);
 
-        return RDAPValidationStatus.SUCCESS.getValue();
+        return ToolResult.SUCCESS.getCode();
     }
 
     @Override

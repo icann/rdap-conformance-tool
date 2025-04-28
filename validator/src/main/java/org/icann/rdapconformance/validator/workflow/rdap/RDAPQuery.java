@@ -1,10 +1,11 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.util.Optional;
+import org.icann.rdapconformance.validator.ConnectionStatus;
 
 public interface RDAPQuery {
 
-  RDAPValidationStatus getErrorStatus();
+  ConnectionStatus getErrorStatus();
 
   boolean run();
 
