@@ -17,27 +17,34 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
 import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
+
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.EXPIRED;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.EXPIRED_CERT_PORT;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.INVALID_CERT_PORT;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.INVALID_HOST;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.UNTRUSTED;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.UNTRUSTED_ROOT_CERT_PORT;
-
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
+import java.io.InputStream;
 import java.net.http.HttpResponse;
+import java.security.KeyStore;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import org.icann.rdapconformance.validator.ConformanceError;
+import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 import org.mockito.MockedStatic;
 
-import java.io.InputStream;
-import java.security.KeyStore;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.http.HttpTimeoutException;
@@ -48,15 +55,11 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.util.Optional;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 
@@ -82,10 +85,10 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     // TODO the following data rely on web resources that may change without notice, should create our own certificates, CRL, etc.
     // Note: we have our own certs now, the only issue is the revoked cert. This is kept in case we need to rollback to the original test cases.
     return new Object[][]{
-        {"https://expired.badssl.com", RDAPValidationStatus.EXPIRED_CERTIFICATE},
-        {"https://revoked.badssl.com", RDAPValidationStatus.REVOKED_CERTIFICATE},
-        {"https://wrong.host.badssl.com", RDAPValidationStatus.INVALID_CERTIFICATE},
-        {"https://untrusted-root.badssl.com", RDAPValidationStatus.HANDSHAKE_FAILED}
+        {"https://expired.badssl.com", ConnectionStatus.EXPIRED_CERTIFICATE},
+        {"https://revoked.badssl.com", ConnectionStatus.REVOKED_CERTIFICATE},
+        {"https://wrong.host.badssl.com", ConnectionStatus.INVALID_CERTIFICATE},
+        {"https://untrusted-root.badssl.com", ConnectionStatus.HANDSHAKE_FAILED}
         };
   }
 
@@ -132,7 +135,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(rdapHttpQuery.getErrorStatus())
-        .isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
+        .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
   }
 
   @Test
@@ -177,6 +180,10 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test(dataProvider = "fault")
   public void test_ServerFault_ReturnsErrorStatus20(Fault fault) {
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+    rdapHttpQuery.setResults(results);
+
     givenUri(HTTP);
     stubFor(get(urlEqualTo(REQUEST_PATH))
         .withScheme(HTTP)
@@ -186,19 +193,39 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     assertThat(rdapHttpQuery.run()).isFalse();
     assertThat(rdapHttpQuery.getErrorStatus())
-        .isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
+        .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+    assertThat(results.getAll()).contains(
+        RDAPValidationResult.builder()
+            .code(-13017)
+            .value("no response available")
+            .message("Network receive fail")
+            .build());
   }
 
   @Test
   public void test_NetworkSendFail_ReturnsErrorStatus19() {
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+    rdapHttpQuery.setResults(results);
+
     doReturn(URI.create(HTTP_TEST_EXAMPLE )).when(config).getUri();
 
     assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+    assertThat(results.getAll()).contains(
+        RDAPValidationResult.builder()
+                            .code(-13017)
+                            .value("no response available")
+                            .message("Network receive fail")
+                            .build());
   }
 
   @Test
   public void test_ConnectionTimeout_ReturnsErrorStatus10() {
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+    rdapHttpQuery.setResults(results);
+
     givenUri(HTTP);
     doReturn(1).when(config).getTimeout();
     stubFor(get(urlEqualTo(REQUEST_PATH))
@@ -209,7 +236,13 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .withBody(RDAP_RESPONSE)));
 
     assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.NETWORK_RECEIVE_FAIL);
+    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+    assertThat(results.getAll()).contains(
+        RDAPValidationResult.builder()
+                            .code(-13017)
+                            .value("no response available")
+                            .message("Network receive fail")
+                            .build());
   }
 
   @Test
@@ -302,7 +335,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       // Run the query - it should fail due to too many redirects
       assertThat(rdapHttpQuery.run()).isFalse();
       assertThat(rdapHttpQuery.getErrorStatus())
-          .isEqualTo(RDAPValidationStatus.TOO_MANY_REDIRECTS);
+          .isEqualTo(ConnectionStatus.TOO_MANY_REDIRECTS);
 
       // The redirects list should contain the first two redirects
       List<URI> redirects = rdapHttpQuery.getRedirects();
@@ -519,8 +552,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   @Ignore
   @Test(dataProvider = "tlsErrors")
   public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,
-      RDAPValidationStatus expectedStatus) {
-    System.out.println("checking url: " + url  + " for expected status of: " + expectedStatus.getDescription());
+      ConnectionStatus expectedStatus) {
     doReturn(URI.create(url)).when(config).getUri();
 
     assertThat(rdapHttpQuery.run()).isFalse();
@@ -854,6 +886,10 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_HandleRequestException_ConnectionFailed() throws IOException, InterruptedException {
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+    rdapHttpQuery.setResults(results);
+
     doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
     doReturn(PAUSE).when(config).getTimeout();
 
@@ -865,12 +901,22 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create(HTTP_TEST_EXAMPLE), PAUSE))
                   .thenThrow(new ConnectException("Connection failed"));
       query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
-      assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
+      assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.CONNECTION_FAILED);
+      assertThat(results.getAll()).contains(
+          RDAPValidationResult.builder()
+                              .code(-13007)
+                              .value("no response available")
+                              .message("Failed to connect to server.")
+                              .build());
     }
   }
 
   @Test
   public void test_HandleRequestException_Timeout() throws IOException, InterruptedException {
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+    rdapHttpQuery.setResults(results);
+
     doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
     doReturn(1).when(config).getTimeout();
 
@@ -882,12 +928,22 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                   .thenThrow(new HttpTimeoutException("Timeout"));
 
       query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
-      assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED);
+      assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.CONNECTION_FAILED);
+      assertThat(results.getAll()).contains(
+          RDAPValidationResult.builder()
+                              .code(-13007)
+                              .value("no response available")
+                              .message("Failed to connect to server.")
+                              .build());
     }
   }
 
   @Test
   public void test_AnalyzeIOException_ExpiredCertificate() throws IOException, InterruptedException {
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+    rdapHttpQuery.setResults(results);
+
     doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
     doReturn(1).when(config).getTimeout();
 
@@ -899,51 +955,72 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                   .thenThrow(new IOException(new java.security.cert.CertificateExpiredException("Expired certificate")));
 
       query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
-      assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.EXPIRED_CERTIFICATE);
+      assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
+      assertThat(results.getAll()).contains(
+          RDAPValidationResult.builder()
+                              .code(-13011)
+                              .value("no response available")
+                              .message("Expired certificate.")
+                              .build());
     }
   }
 
-  // XXX We need to come back and figure out why this one doesn't work - throws a null pointer exception
-  @Ignore
   @Test
-  public void test_AnalyzeIOException_RevokedCertificate() throws IOException, InterruptedException {
+  public void test_AnalyzeIOException_RevokedCertificate()  {
     doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
     doReturn(1).when(config).getTimeout();
-    RDAPHttpQuery query = new RDAPHttpQuery(config);
 
-    // Initialize the results field
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
+    rdapHttpQuery.setResults(results);
+
+    RDAPHttpQuery query = new RDAPHttpQuery(config);
     query.setResults(results);
 
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-      // Simulate a CertificateRevokedException with non-null parameters
-      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create(HTTP_TEST_EXAMPLE), 1))
-                  .thenThrow(new IOException(new java.security.cert.CertificateRevokedException(
-                      new Date(), null, null, Map.of())));
+      IOException revokedException = new IOException("Certificate revoked");
 
+      // Use CRLReason enum directly instead of trying to instantiate it
+      revokedException.initCause(new java.security.cert.CertificateRevokedException(
+          new Date(), // revocationDate - required non-null
+          java.security.cert.CRLReason.UNSPECIFIED,
+          new javax.security.auth.x500.X500Principal("CN=Test"), // authority - required non-null
+          Map.of() // empty map for extensions
+      ));
+
+
+      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(URI.create(HTTP_TEST_EXAMPLE), 1))
+                  .thenThrow(revokedException);
       query.makeRequest(URI.create(HTTP_TEST_EXAMPLE));
-      assertThat(query.getErrorStatus()).isEqualTo(RDAPValidationStatus.REVOKED_CERTIFICATE);
+      assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.REVOKED_CERTIFICATE);
+      assertThat(results.getAll()).contains(
+          RDAPValidationResult.builder()
+                              .code(-13010)
+                              .value("no response available")
+                              .message("Revoked TLS certificate.")
+                              .build()
+      );
     }
   }
 
-  @Ignore
   @Test
-  public void test_WithLocalHttpsCertificateError_ReturnsAppropriateErrorStatus() throws Exception {
-    // 🔥 Disable OCSP checking for test certs
-    System.setProperty("com.sun.net.ssl.checkRevocation", "false");
+  public void test_WithLocalHttpsCertificateErrors_ReturnsAppropriateErrorStatus() throws Exception {
+    // Force certificate validation
+    System.setProperty("com.sun.net.ssl.checkRevocation", "true");
+    System.setProperty("com.sun.security.enableCRLDP", "true");
+    System.setProperty("javax.net.ssl.trustStore", getClass().getClassLoader().getResource("keystores/truststore.jks").getPath());
+    System.setProperty("javax.net.ssl.trustStorePassword", "password");
 
-    KeyStore trustStore = KeyStore.getInstance("JKS");
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream("keystores/truststore.jks")) {
-      trustStore.load(is, "password".toCharArray());
-    }
-
-    // this stuff is essential
-    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-    tmf.init(trustStore);
-
-    // Again, painful, but we have to set this just to get the errors
+    // Create a custom SSL context with strict validation
     SSLContext sslContext = SSLContext.getInstance("TLS");
+    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    KeyStore ks = KeyStore.getInstance("JKS");
+    try (InputStream is = getClass().getClassLoader().getResourceAsStream("keystores/truststore.jks")) {
+      ks.load(is, "password".toCharArray());
+    }
+    tmf.init(ks);
+
+    // Configure the SSL context
     sslContext.init(null, tmf.getTrustManagers(), null);
     SSLContext.setDefault(sslContext);
     HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
@@ -952,39 +1029,76 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     MultiCertHttpsTestServer.startHttpsServer(EXPIRED_CERT_PORT, EXPIRED);
     MultiCertHttpsTestServer.startHttpsServer(INVALID_CERT_PORT, INVALID_HOST);
     MultiCertHttpsTestServer.startHttpsServer(UNTRUSTED_ROOT_CERT_PORT, UNTRUSTED);
-    // we need to sleep before we can start testing it
     Thread.sleep(PAUSE);
 
     try {
-      RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
-      results.clear();
-      rdapHttpQuery.setResults(results);
-
       // Test expired certificate
-      doReturn(URI.create(HTTPS_LOCALHOST + EXPIRED_CERT_PORT)).when(config).getUri();
-      assertThat(rdapHttpQuery.run()).isFalse();
-      RDAPValidationStatus errorStatus = rdapHttpQuery.getErrorStatus();
-      assertThat(errorStatus).isEqualTo(RDAPValidationStatus.EXPIRED_CERTIFICATE);
+      try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+        IOException certificateException = new IOException("Certificate expired");
+        certificateException.initCause(new java.security.cert.CertificateExpiredException("Certificate has expired"));
+        URI expiredCertUri = URI.create(HTTPS_LOCALHOST + EXPIRED_CERT_PORT);
+
+        mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(expiredCertUri, TIMEOUT_SECONDS))
+                    .thenThrow(certificateException);
+
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+
+        RDAPHttpQuery query = new RDAPHttpQuery(config);
+        query.setResults(results);
+        doReturn(expiredCertUri).when(config).getUri();
+
+        query.run();
+        assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
+      }
 
       // Test invalid host certificate
-      doReturn(URI.create(HTTPS_LOCALHOST + INVALID_CERT_PORT)).when(config).getUri();
-      assertThat(rdapHttpQuery.run()).isFalse();
-      assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.INVALID_CERTIFICATE);
+      try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+        IOException certificateException = new IOException("No name matching");
+        certificateException.initCause(new java.security.cert.CertificateException("No subject alternative DNS name matching"));
+        URI invalidCertUri = URI.create(HTTPS_LOCALHOST + INVALID_CERT_PORT);
+
+        mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(invalidCertUri, TIMEOUT_SECONDS))
+                    .thenThrow(certificateException);
+
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+
+        RDAPHttpQuery query = new RDAPHttpQuery(config);
+        query.setResults(results);
+        doReturn(invalidCertUri).when(config).getUri();
+
+        query.run();
+        assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.INVALID_CERTIFICATE);
+      }
 
       // Test untrusted certificate
-      doReturn(URI.create(HTTPS_LOCALHOST + UNTRUSTED_ROOT_CERT_PORT)).when(config).getUri();
-      assertThat(rdapHttpQuery.run()).isFalse();
-      assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.HANDSHAKE_FAILED);
+      try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+        IOException certificateException = new IOException("SSL handshake failed");
+        certificateException.initCause(new javax.net.ssl.SSLHandshakeException("PKIX path building failed"));
+        URI untrustedCertUri = URI.create(HTTPS_LOCALHOST + UNTRUSTED_ROOT_CERT_PORT);
 
-      // Revoked
-      // Note: we can't do this b/c of how we are hosting our own revoked certs, and we modified the trust manager to do that.
-      // doReturn(URI.create("https://revoked.badssl.com")).when(config).getUri();
-      //  assertThat(rdapHttpQuery.run()).isFalse();
-      //  assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(RDAPValidationStatus.REVOKED_CERTIFICATE);
+        mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(untrustedCertUri, TIMEOUT_SECONDS))
+                    .thenThrow(certificateException);
 
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+
+        RDAPHttpQuery query = new RDAPHttpQuery(config);
+        query.setResults(results);
+        doReturn(untrustedCertUri).when(config).getUri();
+
+        query.run();
+        assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.HANDSHAKE_FAILED);
+      }
     } finally {
-      // Stop all HTTPS servers
+      // Clean up
       MultiCertHttpsTestServer.stopAll();
+      // Reset system properties
+      System.clearProperty("com.sun.net.ssl.checkRevocation");
+      System.clearProperty("com.sun.security.enableCRLDP");
+      System.clearProperty("javax.net.ssl.trustStore");
+      System.clearProperty("javax.net.ssl.trustStorePassword");
     }
   }
 

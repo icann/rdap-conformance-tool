@@ -9,7 +9,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.concurrent.Callable;
 import org.apache.commons.lang3.SystemUtils;
-import org.icann.rdapconformance.validator.ErrorState;
+import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -25,7 +25,6 @@ import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import picocli.CommandLine.IVersionProvider;
 
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
@@ -81,10 +80,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       validator = new RDAPFileValidator(this, fileSystem);
     }
 
+    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+
     if (networkEnabled) {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-
-
       // do v6
       NetworkInfo.setStackToV6();
       NetworkInfo.setAcceptHeaderToApplicationJson();
@@ -109,17 +107,16 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       logger.info("Results file: {}",  validator.getResultsPath());
 
       int exitCode = 0;
-      if (ErrorState.getInstance().hasErrors()) {
-        System.out.println("Error States:\n" + ErrorState.getInstance().toString());
-        exitCode = ErrorState.getInstance().getLastNonZeroErrorCode();
-      }
-
+      logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
       // Return the exit code
       return exitCode;
     }
 
     // If network is not enabled, validate and return
-    return validator.validate();
+    int file_exit_code =  validator.validate();
+    resultFile.build(ZERO);
+    logger.info("Results file: {}",  validator.getResultsPath());
+    return file_exit_code;
   }
 
   @Override

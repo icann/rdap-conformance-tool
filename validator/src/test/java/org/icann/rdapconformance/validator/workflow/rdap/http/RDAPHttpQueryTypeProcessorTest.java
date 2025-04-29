@@ -5,12 +5,12 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import java.net.URI;
+import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
@@ -71,7 +71,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     doReturn(uri).when(config).getUri();
 
     assertThat(processor.check(datasetService)).isFalse();
-    assertThat(processor.getErrorStatus()).isEqualTo(RDAPValidationStatus.UNSUPPORTED_QUERY);
+    assertThat(processor.getErrorStatus()).isEqualTo(ToolResult.UNSUPPORTED_QUERY);
   }
 
   @Test
@@ -81,7 +81,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     doReturn(uri).when(config).getUri();
 
     assertThat(processor.check(datasetService)).isFalse();
-    assertThat(processor.getErrorStatus()).isEqualTo(RDAPValidationStatus.MIXED_LABEL_FORMAT);
+    assertThat(processor.getErrorStatus()).isEqualTo(ToolResult.MIXED_LABEL_FORMAT);
   }
 
   @Test
@@ -91,7 +91,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     doReturn(uri).when(config).getUri();
 
     assertThat(processor.check(datasetService)).isFalse();
-    assertThat(processor.getErrorStatus()).isEqualTo(RDAPValidationStatus.MIXED_LABEL_FORMAT);
+    assertThat(processor.getErrorStatus()).isEqualTo(ToolResult.MIXED_LABEL_FORMAT);
   }
 
 }

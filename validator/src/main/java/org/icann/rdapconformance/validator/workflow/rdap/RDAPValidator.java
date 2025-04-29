@@ -1,17 +1,16 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import java.util.Optional;
-import org.icann.rdapconformance.validator.ErrorState;
+import org.icann.rdapconformance.validator.ConformanceError;
+import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.NetworkInfo;
+import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationLinkElements_2024;
@@ -76,10 +75,8 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation4Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation7Dot1And7Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registrar.TigValidation1Dot12Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation6Dot1;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 
 public class RDAPValidator implements ValidatorWorkflow {
@@ -138,43 +135,36 @@ public class RDAPValidator implements ValidatorWorkflow {
             RDAPQueryType.IP_NETWORK, "rdap_ip_network.json"
         );
 
-        ErrorState errorState = ErrorState.getInstance();
-
         try (InputStream is = fileSystem.uriToStream(this.config.getConfigurationFile())) {
             configurationFile = configParser.parse(is);
         } catch (Exception e) {
             logger.error("Configuration is invalid", e);
-            errorState.addErrorInfo(RDAPValidationStatus.CONFIG_INVALID.getValue(), config.getUri().toString(), 0);
-            return RDAPValidationStatus.CONFIG_INVALID.getValue();
+            return ToolResult.CONFIG_INVALID.getCode();
         }
 
         RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
         rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
 
         if (!datasetService.download(this.config.useLocalDatasets())) {
-            errorState.addErrorInfo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue(), config.getUri().toString(), 0);
-            return RDAPValidationStatus.DATASET_UNAVAILABLE.getValue();
+            return ToolResult.DATASET_UNAVAILABLE.getCode();
         }
 
         if (!queryTypeProcessor.check(datasetService)) {
-            int errorCode = queryTypeProcessor.getErrorStatus().getValue();
-            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
-            return errorCode;
+            return  queryTypeProcessor.getErrorStatus().getCode();
         }
 
         query.setResults(results);
         if (!query.run()) {
             if (query.getErrorStatus() == null) {
-                return RDAPValidationStatus.SUCCESS.getValue();
+                return ToolResult.SUCCESS.getCode();
             }
-            int errorCode = query.getErrorStatus().getValue();
-            errorState.addErrorInfo(errorCode, config.getUri().toString(), 0);
-            return errorCode;
+           ConformanceError errorCode =  query.getErrorStatus();
+            return errorCode.getCode();
         }
 
         query.checkWithQueryType(queryTypeProcessor.getQueryType());
 
-        if (ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
+        if (config.isNetworkEnabled() && ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
             logger.info("Detected a test.invalid domain query with HTTP 200 response code.");
         }
 
@@ -185,19 +175,18 @@ public class RDAPValidator implements ValidatorWorkflow {
             if (schemaFile != null) {
                 if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
-                    errorState.addErrorInfo(RDAPValidationStatus.USES_THIN_MODEL.getValue(), config.getUri().toString(), 0);
-                    return RDAPValidationStatus.USES_THIN_MODEL.getValue();
+                    return ToolResult.USES_THIN_MODEL.getCode();
                 }
                 validator = new SchemaValidator(schemaFile, results, datasetService);
             }
         }
 
         assert null != validator;
-        validator.validate(query.getData());
+        validator.validate(query.getData()); // validates the JSON
         HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
 
-        if (rdapResponse != null && !query.isErrorContent()) {
-            new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate();
+        if (rdapResponse != null && !query.isErrorContent() && config.isNetworkEnabled()) {
+            new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate(); // Network calls
         }
 
         if ((config.useRdapProfileFeb2019() || config.useRdapProfileFeb2024()) && !query.isErrorContent()) {
@@ -217,14 +206,14 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Log URI, IP address, and redirects
         String ipAddress = NetworkInfo.getServerIpAddress();
         List<URI> redirects = (query instanceof RDAPHttpQuery httpQuery) ? httpQuery.getRedirects() : List.of();
-        errorState.addErrorInfo(RDAPValidationStatus.SUCCESS.getValue(), config.getUri().toString(), redirects.size());
+//        errorState.addErrorInfo(RDAPValidationStatus.SUCCESS.getValue(), config.getUri().toString(), redirects.size());
 
 
         logger.info("URI used for the query: {}", config.getUri());
         logger.info("IP Address used: {}", ipAddress);
         logger.info("Redirects followed: {}", redirects);
 
-        return RDAPValidationStatus.SUCCESS.getValue();
+        return ToolResult.SUCCESS.getCode();
     }
 
     @Override
@@ -322,24 +311,24 @@ public class RDAPValidator implements ValidatorWorkflow {
         return validations;
     }
 
-    public int dumpErrorInfo(int exitCode, RDAPValidatorConfiguration config, RDAPQuery query) {
-        System.out.println("Exit code: " + exitCode + " - " + RDAPValidationStatus.fromValue(exitCode).name());
-        System.out.println("URI used for the query: " + config.getUri());
-        if (query instanceof RDAPHttpQuery httpQuery) {
-            System.out.println("Redirects followed: " + httpQuery.getRedirects());
-            System.out.println("Accept header used for the query: " + NetworkInfo.getAcceptHeader());
-        } else {
-            System.out.println("Redirects followed: N/A (query is not an RDAPHttpQuery)");
-            System.out.println("Accept header used for the query: N/A (query is not an RDAPHttpQuery)");
-        }
-
-        if (config.getUri() != null && config.getUri().getHost() != null) {
-            System.out.println("IP protocol used for the query: " + NetworkInfo.getNetworkProtocol());
-
-        } else {
-            System.out.println("IP protocol used for the query: unknown (URI or host is null)");
-        }
-
-        return exitCode;
-    }
+//    public int dumpErrorInfo(int exitCode, RDAPValidatorConfiguration config, RDAPQuery query) {
+//        System.out.println("Exit code: " + exitCode + " - " + RDAPValidationStatus.fromValue(exitCode).name());
+//        System.out.println("URI used for the query: " + config.getUri());
+//        if (query instanceof RDAPHttpQuery httpQuery) {
+//            System.out.println("Redirects followed: " + httpQuery.getRedirects());
+//            System.out.println("Accept header used for the query: " + NetworkInfo.getAcceptHeader());
+//        } else {
+//            System.out.println("Redirects followed: N/A (query is not an RDAPHttpQuery)");
+//            System.out.println("Accept header used for the query: N/A (query is not an RDAPHttpQuery)");
+//        }
+//
+//        if (config.getUri() != null && config.getUri().getHost() != null) {
+//            System.out.println("IP protocol used for the query: " + NetworkInfo.getNetworkProtocol());
+//
+//        } else {
+//            System.out.println("IP protocol used for the query: unknown (URI or host is null)");
+//        }
+//
+//        return exitCode;
+//    }
 }
