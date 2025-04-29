@@ -107,7 +107,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       logger.info("Results file: {}",  validator.getResultsPath());
 
       int exitCode = 0;
-      System.out.println("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+      logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
       // Return the exit code
       return exitCode;
     }
