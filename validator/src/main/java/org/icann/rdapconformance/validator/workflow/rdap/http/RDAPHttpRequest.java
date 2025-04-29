@@ -9,6 +9,10 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+import org.icann.rdapconformance.validator.ConnectionStatus;
+import org.icann.rdapconformance.validator.ConnectionTracker;
+import org.icann.rdapconformance.validator.NetworkInfo;
+import org.icann.rdapconformance.validator.NetworkProtocol;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -16,9 +20,18 @@ import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLContext;
+import java.net.URI;
+import java.net.InetAddress;
+import java.security.cert.X509Certificate;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
@@ -27,30 +40,19 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.http.ssl.TLS;
-
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-
 import org.apache.hc.core5.ssl.SSLContextBuilder;
-
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
-
 import org.apache.hc.core5.util.Timeout;
 import org.apache.hc.core5.util.TimeValue;
 
-import javax.net.ssl.SSLContext;
-import java.net.URI;
-import java.net.InetAddress;
-import java.security.cert.X509Certificate;
-import java.util.concurrent.TimeUnit;
-import org.icann.rdapconformance.validator.ConnectionStatus;
-import org.icann.rdapconformance.validator.ConnectionTracker;
-import org.icann.rdapconformance.validator.NetworkInfo;
-import org.icann.rdapconformance.validator.NetworkProtocol;
+
 
 
 public class RDAPHttpRequest {
@@ -173,7 +175,7 @@ public class RDAPHttpRequest {
             int statusCode = response.getCode();
             logger.info("Response status code: {}", statusCode);
             tracker.completeCurrentConnection(statusCode, ConnectionStatus.SUCCESS);
-            return new SimpleHttpResponse(statusCode, body, originalUri);
+            return new SimpleHttpResponse(statusCode, body, originalUri, response.getHeaders());
         }
     }
 
@@ -181,11 +183,21 @@ public class RDAPHttpRequest {
         private final int statusCode;
         private final String body;
         private final URI uri;
+        private final Map<String, List<String>> headers;
 
-        public SimpleHttpResponse(int statusCode, String body, URI uri) {
+        public SimpleHttpResponse(int statusCode, String body, URI uri, Header[] headers) {
             this.statusCode = statusCode;
             this.body = body;
             this.uri = uri;
+
+            Map<String, List<String>> headersMap = new HashMap<>();
+            if (headers != null) {
+                for (Header header : headers) {
+                    headersMap.computeIfAbsent(header.getName(), k -> new ArrayList<>())
+                              .add(header.getValue());
+                }
+            }
+            this.headers = headersMap;
         }
 
         @Override
@@ -210,7 +222,7 @@ public class RDAPHttpRequest {
 
         @Override
         public HttpHeaders headers() {
-            return HttpHeaders.of(java.util.Map.of(), (k, v) -> true); // Empty headers
+            return HttpHeaders.of(headers, (k, v) -> true);
         }
 
         @Override
