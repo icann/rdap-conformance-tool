@@ -11,7 +11,6 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 

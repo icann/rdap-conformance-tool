@@ -303,12 +303,17 @@ public class RDAPHttpQuery implements RDAPQuery {
      */
     private void handleRequestException(Exception e) {
         if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
-            status = hasCause(e, "java.nio.channels.UnresolvedAddressException")
-                ? ConnectionStatus.NETWORK_SEND_FAIL
-                : ConnectionStatus.CONNECTION_FAILED;
+            if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
+                status = ConnectionStatus.NETWORK_SEND_FAIL;
+                addErrorToResultsFile(-13016, "no response available", "Network send fail");
+            } else {
+                status = ConnectionStatus.CONNECTION_FAILED;
+                addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
+            }
             ConnectionTracker.getInstance().updateCurrentConnection(status);
             return;
         }
+
         if (e instanceof IOException) {
             status = analyzeIOException((IOException) e);
             ConnectionTracker.getInstance().updateCurrentConnection(status);
@@ -316,6 +321,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         }
 
         status = ConnectionStatus.CONNECTION_FAILED;
+        addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
         ConnectionTracker.getInstance().updateCurrentConnection(status);
     }
 
@@ -324,21 +330,28 @@ public class RDAPHttpQuery implements RDAPQuery {
      */
     private ConnectionStatus analyzeIOException(IOException e) {
         if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
+            addErrorToResultsFile(-13011, "no response available", "Expired certificate.");
             return ConnectionStatus.EXPIRED_CERTIFICATE;
         } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
+            addErrorToResultsFile(-13010, "no response available", "Revoked TLS certificate.");
             return ConnectionStatus.REVOKED_CERTIFICATE;
         } else if (hasCause(e, "java.security.cert.CertificateException")) {
             if (e.getMessage().contains("No name matching") ||
                 e.getMessage().contains("No subject alternative DNS name matching")) {
+                addErrorToResultsFile(-13009, "no response available", "Invalid TLS certificate.");
                 return ConnectionStatus.INVALID_CERTIFICATE;
             }
+            addErrorToResultsFile(-13012, "no response available", "TLS certificate error.");
             return ConnectionStatus.CERTIFICATE_ERROR;
         } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
+            addErrorToResultsFile(-13008, "no response available", "TLS handshake failed.");
             return ConnectionStatus.HANDSHAKE_FAILED;
         } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
+            addErrorToResultsFile(-13012, "no response available", "TLS certificate error.");
             return ConnectionStatus.CERTIFICATE_ERROR;
         }
 
+        addErrorToResultsFile(-13017, "no response available", "Network receive fail");
         return ConnectionStatus.NETWORK_RECEIVE_FAIL;
     }
 

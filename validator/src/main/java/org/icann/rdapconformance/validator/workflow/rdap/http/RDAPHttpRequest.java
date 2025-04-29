@@ -51,8 +51,6 @@ import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
-import org.icann.rdapconformance.validator.StatusCodes;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 
 
 public class RDAPHttpRequest {
