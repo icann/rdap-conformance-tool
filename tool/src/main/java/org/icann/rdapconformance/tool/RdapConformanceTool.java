@@ -55,7 +55,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private String resultsFile;
 
   @Option(names = {"--no-ipv4-queries"}, description = "No queries over IPv4 are to be issued",  hidden = true)
-  private boolean noIpv4Queries = false;
+  private boolean executeIPv4Queries = true;
 
   @ArgGroup(exclusive = false)
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
@@ -86,6 +86,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
 
     if (networkEnabled) {
+
       // do v6
       NetworkInfo.setStackToV6();
       NetworkInfo.setAcceptHeaderToApplicationJson();
@@ -96,7 +97,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       int v6ret2 = validator.validate();
 
       // do v4 if noIpv4Queries is set to false
-      if(!noIpv4Queries) {
+      if(executeIPv4Queries) {
         NetworkInfo.setStackToV4();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v4ret = validator.validate();
@@ -203,7 +204,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Override
   public boolean isNoIpv4Queries() {
-    return noIpv4Queries;
+    return !executeIPv4Queries;
   }
 
   private static class DependantRdapProfileGtld {
