@@ -73,10 +73,8 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation4Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation7Dot1And7Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registrar.TigValidation1Dot12Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation6Dot1;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 
 public class RDAPValidator implements ValidatorWorkflow {
@@ -213,11 +211,10 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Additionally, apply the relevant collection tests when the option
         // --use-rdap-profile-february-2019 or --use-rdap-profile-february-2024 is set
         // query.isErrorContent() added as condition in cases where they have 404 as status code
-        if ((config.useRdapProfileFeb2019() || config.useRdapProfileFeb2024()) && !query.isErrorContent()) {
+        if (config.useRdapProfileFeb2019() && !query.isErrorContent()) {
             logger.info("Validations for 2019 profile");
             RDAPProfile rdapProfile = new RDAPProfile(
-                getRdapValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, validator,
-                    query));
+                get2019RdapValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, validator, query));
             rdapProfile.validate();
         }
 
@@ -226,8 +223,8 @@ public class RDAPValidator implements ValidatorWorkflow {
         // query.isErrorContent() added as condition in cases where they have 404 as status code
         if (config.useRdapProfileFeb2024() && !query.isErrorContent()) {
             logger.info("Validations for 2024 profile");
-            List<ProfileValidation> validations = get2024ProfileValidations(rdapResponse, config, results, query);
-            RDAPProfile rdapProfile = new RDAPProfile(validations);
+            RDAPProfile rdapProfile = new RDAPProfile(
+                get2024ProfileValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, query));
             rdapProfile.validate();
         }
 
@@ -249,8 +246,47 @@ public class RDAPValidator implements ValidatorWorkflow {
     private List<ProfileValidation> get2024ProfileValidations(HttpResponse<String> rdapResponse,
                                                               RDAPValidatorConfiguration config,
                                                               RDAPValidatorResults results,
+                                                              RDAPDatasetService datasetService,
+                                                              RDAPQueryTypeProcessor queryTypeProcessor,
                                                               RDAPQuery query) {
         List<ProfileValidation> validations = new ArrayList<>();
+
+        // below are from 2019 profile validations
+        // Add validations that do not require network connections
+        validations.add(new TigValidation3Dot2(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new TigValidation4Dot1(query.getData(), results)); // clean
+        validations.add(new TigValidation7Dot1And7Dot2(query.getData(), results)); // clean
+        validations.add(new ResponseValidation1Dot2Dot2(query.getData(), results)); // clean
+        validations.add(new ResponseValidation1Dot4(query.getData(), results)); // clean
+        validations.add(new ResponseValidationLastUpdateEvent(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot1(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot3Dot1Dot1(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot3Dot1Dot2(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot10(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidationRFC5731(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidationRFC3915(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot6Dot1(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot4Dot1(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot4Dot5(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseNameserverStatusValidation(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation4Dot1Handle(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation4Dot1Query(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation4Dot3(query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
+
+        // Add validations that require network connections if the flag is enabled
+        if (config.isNetworkEnabled()) {
+            logger.info("Network enabled tests");
+            validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), config, results)); // http head request
+            validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
+            validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
+            validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService)); // DNS queries
+            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryTypeProcessor.getQueryType())); // assume you passed in a URL on the cli
+        }
+        // above are from 2019 validations
+
+        // 2024 validations
         validations.add(new TigValidation1Dot3_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot2_1_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot2_2_2024(query.getData(), results)); // clean
@@ -268,7 +304,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         return validations;
     }
 
-    private List<ProfileValidation> getRdapValidations(HttpResponse<String> rdapResponse,
+    private List<ProfileValidation> get2019RdapValidations(HttpResponse<String> rdapResponse,
                                                        RDAPValidatorConfiguration config,
                                                        RDAPValidatorResults results,
                                                        RDAPDatasetService datasetService,
