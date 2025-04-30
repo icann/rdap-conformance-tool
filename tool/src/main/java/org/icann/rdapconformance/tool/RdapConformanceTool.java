@@ -60,6 +60,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"--query-type"}, hidden = true)
   private RDAPQueryType queryType;
 
+  @Option(names = {"--no-ipv6-queries"}, description = "No queries over IPv6 are to be issued",  hidden = true)
+  private boolean noIpv6Queries = false;
+
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
 
@@ -84,13 +87,15 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
     if (networkEnabled) {
       // do v6
-      NetworkInfo.setStackToV6();
-      NetworkInfo.setAcceptHeaderToApplicationJson();
-      int v6ret = validator.validate();
+      if(!noIpv6Queries) {
+        NetworkInfo.setStackToV6();
+        NetworkInfo.setAcceptHeaderToApplicationJson();
+        int v6ret = validator.validate();
 
-      // set the header to RDAP+JSON
-      NetworkInfo.setAcceptHeaderToApplicationRdapJson();
-      int v6ret2 = validator.validate();
+        // set the header to RDAP+JSON
+        NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+        int v6ret2 = validator.validate();
+      }
 
       // do v4
       NetworkInfo.setStackToV4();
@@ -194,6 +199,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Override
   public boolean isNetworkEnabled() {
     return networkEnabled;
+  }
+
+  @Override
+  public boolean isNoIpv6Queries() {
+    return noIpv6Queries;
   }
 
   private static class DependantRdapProfileGtld {
