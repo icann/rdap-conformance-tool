@@ -54,7 +54,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"--results-file"}, description = "File to store the validation results",  hidden = true)
   private String resultsFile;
 
-  @Option(names = {"--no-ipv4-queries"}, description = "No queries over IPv4 are to be issued",  hidden = true)
+  @Option(names = {"--no-ipv4-queries"}, description = "No queries over IPv4 are to be issued")
   private boolean executeIPv4Queries = true;
 
   @ArgGroup(exclusive = false)
