@@ -54,6 +54,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"--results-file"}, description = "File to store the validation results",  hidden = true)
   private String resultsFile;
 
+  @Option(names = {"--no-ipv4-queries"}, description = "No queries over IPv4 are to be issued")
+  private boolean executeIPv4Queries = true;
+
   @ArgGroup(exclusive = false)
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
 
@@ -83,6 +86,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
 
     if (networkEnabled) {
+
       // do v6
       NetworkInfo.setStackToV6();
       NetworkInfo.setAcceptHeaderToApplicationJson();
@@ -93,13 +97,15 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       int v6ret2 = validator.validate();
 
       // do v4
-      NetworkInfo.setStackToV4();
-      NetworkInfo.setAcceptHeaderToApplicationJson();
-      int v4ret = validator.validate();
+      if(executeIPv4Queries) {
+        NetworkInfo.setStackToV4();
+        NetworkInfo.setAcceptHeaderToApplicationJson();
+        int v4ret = validator.validate();
 
-      // set the header to RDAP+JSON
-      NetworkInfo.setAcceptHeaderToApplicationRdapJson();
-      int v4ret2 = validator.validate();
+        // set the header to RDAP+JSON
+        NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+        int v4ret2 = validator.validate();
+      }
 
       // Build the result file with a legacy zero exit code
       resultFile.build(ZERO);
@@ -194,6 +200,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Override
   public boolean isNetworkEnabled() {
     return networkEnabled;
+  }
+
+  @Override
+  public boolean isNoIpv4Queries() {
+    return !executeIPv4Queries;
   }
 
   private static class DependantRdapProfileGtld {

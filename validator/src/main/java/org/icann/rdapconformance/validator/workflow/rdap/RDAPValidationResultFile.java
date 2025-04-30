@@ -91,7 +91,7 @@ public class RDAPValidationResultFile {
 
     //Change: They need to get value from config when they are implemented
     fileMap.put("additionalConformanceQueries", false);
-    fileMap.put("noIpv4", false);
+    fileMap.put("noIpv4", config.isNoIpv4Queries());
     fileMap.put("noIpv6", false);
 
     if (config.useRdapProfileFeb2024()) {
