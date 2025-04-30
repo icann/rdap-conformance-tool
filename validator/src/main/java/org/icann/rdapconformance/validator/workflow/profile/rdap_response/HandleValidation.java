@@ -58,9 +58,9 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .build());
       return false;
     }
-    // if the handle is valid but the string followed by a hyphen contains ICANNRST then it is not valid
+    // if the query is a DOMAIN and the handle is valid but the string followed by a hyphen contains ICANNRST then it is not valid
     // and should record the error -46202
-    if (roid.contains(ICANNRST)) {
+    if (roid.contains(ICANNRST) && this.queryType.equals(RDAPQueryType.DOMAIN)) {
       results.add(RDAPValidationResult.builder()
                                       .code(-46202)
                                       .value(getResultValue(handleJsonPointer))
