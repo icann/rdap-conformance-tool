@@ -32,6 +32,11 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
     return "#/handle:null";
   }
 
+  protected String givenReservedICANNHandle() {
+    replaceValue("handle", "12345678-ICANNRST");
+    return "#/handle:12345678-ICANNRST";
+  }
+
   @Test
   public void testValidate_HandleIsNull_AddErrorCode() {
     String value = givenNullHandle();
@@ -48,5 +53,13 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
     validate(-46200, value,
         "The handle in the entity object does not comply with the format "
             + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
+  }
+
+  @Test
+  public void testValidate_HandleIsInvalid_AddErrorCode() {
+    String value = givenReservedICANNHandle();
+    getProfileValidation();
+    validate(-46202, value,
+        "The globally unique identifier in the domain object handle is using an EPPROID reserved for testing by ICANN.");
   }
 }
