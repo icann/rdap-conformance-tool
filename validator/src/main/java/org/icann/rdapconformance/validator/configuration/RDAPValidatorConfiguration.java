@@ -38,6 +38,8 @@ public interface RDAPValidatorConfiguration {
 
   RDAPQueryType getQueryType();
 
+  boolean isNoIpv6Queries();
+
   boolean isNetworkEnabled();
 
   default boolean check() {

@@ -57,6 +57,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"--no-ipv4-queries"}, description = "No queries over IPv4 are to be issued")
   private boolean executeIPv4Queries = true;
 
+  @Option(names = {"--no-ipv6-queries"}, description = "No queries over IPv6 are to be issued")
+  private boolean executeIPv6Queries = true;
+
   @ArgGroup(exclusive = false)
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
 
@@ -87,14 +90,20 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
     if (networkEnabled) {
 
-      // do v6
-      NetworkInfo.setStackToV6();
-      NetworkInfo.setAcceptHeaderToApplicationJson();
-      int v6ret = validator.validate();
+      if(!executeIPv4Queries && !executeIPv6Queries) {
+        return validateWithoutNetwork(resultFile, validator);
+      }
 
-      // set the header to RDAP+JSON
-      NetworkInfo.setAcceptHeaderToApplicationRdapJson();
-      int v6ret2 = validator.validate();
+      // do v6
+      if(executeIPv6Queries) {
+        NetworkInfo.setStackToV6();
+        NetworkInfo.setAcceptHeaderToApplicationJson();
+        int v6ret = validator.validate();
+
+        // set the header to RDAP+JSON
+        NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+        int v6ret2 = validator.validate();
+      }
 
       // do v4
       if(executeIPv4Queries) {
@@ -118,7 +127,12 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       return exitCode;
     }
 
-    // If network is not enabled, validate and return
+    return validateWithoutNetwork(resultFile, validator);
+
+  }
+
+  private int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
+    // If network is not enabled or ipv4/ipv6 flags are off, validate and return
     int file_exit_code =  validator.validate();
     resultFile.build(ZERO);
     logger.info("Results file: {}",  validator.getResultsPath());
@@ -205,6 +219,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Override
   public boolean isNoIpv4Queries() {
     return !executeIPv4Queries;
+  }
+
+  @Override
+  public boolean isNoIpv6Queries() {
+    return !executeIPv6Queries;
   }
 
   private static class DependantRdapProfileGtld {
