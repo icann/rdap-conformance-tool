@@ -54,14 +54,17 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"--results-file"}, description = "File to store the validation results",  hidden = true)
   private String resultsFile;
 
+  @Option(names = {"--no-ipv4-queries"}, description = "No queries over IPv4 are to be issued")
+  private boolean executeIPv4Queries = true;
+
+  @Option(names = {"--no-ipv6-queries"}, description = "No queries over IPv6 are to be issued")
+  private boolean executeIPv6Queries = true;
+
   @ArgGroup(exclusive = false)
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
 
   @Option(names = {"--query-type"}, hidden = true)
   private RDAPQueryType queryType;
-
-  @Option(names = {"--no-ipv6-queries"}, description = "No queries over IPv6 are to be issued")
-  private boolean executeIPv6Queries = true;
 
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
@@ -86,6 +89,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
 
     if (networkEnabled) {
+
+      if(!executeIPv4Queries && !executeIPv6Queries) {
+        return validateWithoutNetwork(resultFile, validator);
+      }
+
       // do v6
       if(executeIPv6Queries) {
         NetworkInfo.setStackToV6();
@@ -98,13 +106,15 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       }
 
       // do v4
-      NetworkInfo.setStackToV4();
-      NetworkInfo.setAcceptHeaderToApplicationJson();
-      int v4ret = validator.validate();
+      if(executeIPv4Queries) {
+        NetworkInfo.setStackToV4();
+        NetworkInfo.setAcceptHeaderToApplicationJson();
+        int v4ret = validator.validate();
 
-      // set the header to RDAP+JSON
-      NetworkInfo.setAcceptHeaderToApplicationRdapJson();
-      int v4ret2 = validator.validate();
+        // set the header to RDAP+JSON
+        NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+        int v4ret2 = validator.validate();
+      }
 
       // Build the result file with a legacy zero exit code
       resultFile.build(ZERO);
@@ -117,7 +127,12 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       return exitCode;
     }
 
-    // If network is not enabled, validate and return
+    return validateWithoutNetwork(resultFile, validator);
+
+  }
+
+  private int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
+    // If network is not enabled or ipv4/ipv6 flags are off, validate and return
     int file_exit_code =  validator.validate();
     resultFile.build(ZERO);
     logger.info("Results file: {}",  validator.getResultsPath());
@@ -199,6 +214,11 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Override
   public boolean isNetworkEnabled() {
     return networkEnabled;
+  }
+
+  @Override
+  public boolean isNoIpv4Queries() {
+    return !executeIPv4Queries;
   }
 
   @Override
