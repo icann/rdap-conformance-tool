@@ -1,10 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 
 import static org.icann.rdapconformance.validator.CommonUtils.HYPHEN;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
-
-import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
