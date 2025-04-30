@@ -9,6 +9,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 
 public abstract class HandleValidation extends ProfileJsonValidation {
 
+  public static final String ICANNRST = "ICANNRST";
   private final RDAPDatasetService datasetService;
   protected final RDAPQueryType queryType;
   final int code;
@@ -52,6 +53,17 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .build());
       return false;
     }
+
+    if (roid.contains(ICANNRST) && this.queryType.equals(RDAPQueryType.NAMESERVER)) {
+      results.add(RDAPValidationResult.builder()
+                                      .code(-49104)
+                                      .value(getResultValue(handleJsonPointer))
+                                      .message(
+                                          "The globally unique identifier in the nameserver object handle is using an EPPROID reserved for testing by ICANN.")
+                                      .build());
+      return false;
+    }
+
     return true;
   }
 }
