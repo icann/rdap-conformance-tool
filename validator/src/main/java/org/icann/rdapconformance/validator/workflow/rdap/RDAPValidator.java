@@ -209,7 +209,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         // Additionally, apply the relevant collection tests when the option
-        // --use-rdap-profile-february-2019 or --use-rdap-profile-february-2024 is set
+        // --use-rdap-profile-february-2019 is set
         // query.isErrorContent() added as condition in cases where they have 404 as status code
         if (config.useRdapProfileFeb2019() && !query.isErrorContent()) {
             logger.info("Validations for 2019 profile");
