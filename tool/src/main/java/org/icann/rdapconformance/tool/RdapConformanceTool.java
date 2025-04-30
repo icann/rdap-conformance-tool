@@ -96,7 +96,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       NetworkInfo.setAcceptHeaderToApplicationRdapJson();
       int v6ret2 = validator.validate();
 
-      // do v4 if noIpv4Queries is set to false
+      // do v4
       if(executeIPv4Queries) {
         NetworkInfo.setStackToV4();
         NetworkInfo.setAcceptHeaderToApplicationJson();
