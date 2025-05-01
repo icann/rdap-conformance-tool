@@ -48,7 +48,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
       return false;
     }
 
-    String roid = handle.substring(handle.indexOf("-") + 1);
+    String roid = handle.substring(handle.indexOf(HYPHEN) + 1);
     EPPRoid eppRoid = datasetService.get(EPPRoid.class);
     if (eppRoid.isInvalid(roid)) {
       results.add(RDAPValidationResult.builder()
