@@ -34,7 +34,11 @@ public interface RDAPValidatorConfiguration {
 
   String getResultsFile();
 
+  boolean isNoIpv4Queries();
+
   RDAPQueryType getQueryType();
+
+  boolean isNoIpv6Queries();
 
   boolean isNetworkEnabled();
 

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import org.icann.rdapconformance.validator.BuildInfo;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -77,6 +78,42 @@ public class RDAPValidationResultFileTest {
     file.build(200);
     verify(fileSystem).write(any(), contains("\"thinRegistry\": false"));
   }
+
+    @Test
+    public void testConformanceToolVersion() throws IOException {
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        doReturn(true).when(config).useRdapProfileFeb2024();
+
+        RDAPValidationResultFile.reset();
+        RDAPValidationResultFile.getInstance().initialize(
+            results,
+            config,
+            configurationFile,
+            fileSystem
+        );
+        RDAPValidationResultFile.getInstance().build(HTTP_OK);
+
+        verify(fileSystem).write(any(), contains("\"conformanceToolVersion\": \"" + BuildInfo.getVersion() + "\""));
+    }
+
+    @Test
+    public void testBuildDate() throws IOException {
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        doReturn(true).when(config).useRdapProfileFeb2024();
+
+        RDAPValidationResultFile.reset();
+        RDAPValidationResultFile.getInstance().initialize(
+            results,
+            config,
+            configurationFile,
+            fileSystem
+        );
+        RDAPValidationResultFile.getInstance().build(HTTP_OK);
+
+        verify(fileSystem).write(any(), contains("\"buildDate\": \"" + BuildInfo.getBuildDate() + "\""));
+    }
+
+
 
   @Test
   public void testProfileFebruary2019() throws IOException {

@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.icann.rdapconformance.validator.BuildInfo;
 import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -90,8 +91,13 @@ public class RDAPValidationResultFile {
 
     //Change: They need to get value from config when they are implemented
     fileMap.put("additionalConformanceQueries", false);
-    fileMap.put("noIpv4", false);
-    fileMap.put("noIpv6", false);
+    fileMap.put("noIpv4", config.isNoIpv4Queries());
+    fileMap.put("noIpv6", config.isNoIpv6Queries());
+
+    if (config.useRdapProfileFeb2024()) {
+      fileMap.put("conformanceToolVersion", BuildInfo.getVersion());
+      fileMap.put("buildDate", BuildInfo.getBuildDate());
+    }
 
     JSONObject object = new JSONObject(fileMap);
     String resultsFilePath = config.getResultsFile();
