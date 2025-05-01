@@ -15,6 +15,7 @@ public class CommonUtils {
     public static final String GET = "GET";
     public static final String HEAD = "HEAD";
     public static final String SEMI_COLON = ";";
+    public static final String HYPHEN = "-";
     public static final String EMPTY_STRING = "";
     public static final String LOCATION = "Location";
     public static final String CONTENT_TYPE = "Content-Type";
