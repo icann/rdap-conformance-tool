@@ -1,10 +1,16 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import static org.mockito.Mockito.when;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
+
 public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseValidation2Dot2> {
+  private boolean mockedForFeb2024 = false;
 
   public ResponseValidation2Dot2Test() {
     super("/validators/domain/valid.json", "rdapResponseProfile_2_1_Validation",
@@ -55,11 +61,30 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
             + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
   }
 
+  // this is a problem, you cannot run it like the others above
   @Test
   public void testValidate_HandleIsInvalid_AddErrorCode() {
-    String value = givenReservedICANNHandle();
-    getProfileValidation();
-    validate(-46202, value,
-        "The globally unique identifier in the domain object handle is using an EPPROID reserved for testing by ICANN.");
+    // Store the original configuration
+    RDAPValidatorConfiguration originalConfig = config;
+
+    try {
+      // Create a mock configuration using SPY instead of mock
+      RDAPValidatorConfiguration mockConfig = Mockito.spy(originalConfig);
+
+      // SUPER important ->  override this method
+      when(mockConfig.useRdapProfileFeb2024()).thenReturn(true);
+
+      // Replace the config with our mock
+      this.config = mockConfig;
+
+      // Run the test with our mocked configuration
+      String value = givenReservedICANNHandle();
+      getProfileValidation();
+      validate(-46202, value,
+          "The globally unique identifier in the domain object handle is using an EPPROID reserved for testing by ICANN.");
+    } finally {
+      // Restore the original configuration
+      this.config = originalConfig;
+    }
   }
 }

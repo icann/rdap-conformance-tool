@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 
 import static org.icann.rdapconformance.validator.CommonUtils.HYPHEN;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -13,14 +15,16 @@ public abstract class HandleValidation extends ProfileJsonValidation {
   public static final String ICANNRST = "ICANNRST";
   private final RDAPDatasetService datasetService;
   protected final RDAPQueryType queryType;
+  private RDAPValidatorConfiguration config;
   final int code;
 
-  public HandleValidation(String rdapResponse, RDAPValidatorResults results,
-      RDAPDatasetService datasetService, RDAPQueryType queryType, int code) {
+  public HandleValidation(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
+                          RDAPDatasetService datasetService, RDAPQueryType queryType, int code) {
     super(rdapResponse, results);
     this.datasetService = datasetService;
     this.queryType = queryType;
     this.code = code;
+    this.config = config;
   }
 
   protected boolean validateHandle(String handleJsonPointer) {
@@ -54,9 +58,11 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .build());
       return false;
     }
-    // if the query is a DOMAIN and the handle is valid but the string followed by a hyphen contains ICANNRST then it is not valid
-    // and should record the error -46202
-    if (roid.contains(ICANNRST) && this.queryType.equals(RDAPQueryType.DOMAIN)) {
+    
+    // if the query is a DOMAIN and the handle is valid AND we are using the 2024 config flag - but the string followed by a hyphen contains ICANNRST
+    // then it is NOT valid
+    // Record the error -46202
+    if (roid.endsWith(ICANNRST) && this.queryType.equals(RDAPQueryType.DOMAIN) && this.config.useRdapProfileFeb2024()) {
       results.add(RDAPValidationResult.builder()
                                       .code(-46202)
                                       .value(getResultValue(handleJsonPointer))

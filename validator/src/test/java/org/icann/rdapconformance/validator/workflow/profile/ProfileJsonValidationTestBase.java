@@ -80,6 +80,9 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
 
   @AfterMethod
   public void tearDown(ITestResult testResult) throws IOException {
-    FixturesGenerator.generate(testResult, jsonObject);
+    // Only call generate if jsonObject is not null
+    if (jsonObject != null) {
+      FixturesGenerator.generate(testResult, jsonObject);
+    }
   }
 }
