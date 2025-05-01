@@ -62,7 +62,7 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
     JSONObject nameserver = (JSONObject) jsonObject.query(nameserverJsonPointer);
     Set<String> jsonPointers = getPointerFromJPath(nameserver, HANDLE_PATH);
     for (String jsonPointer : jsonPointers) {
-      isValid &= validateHandle292(nameserverJsonPointer.concat(jsonPointer.substring(1)));
+      isValid &= validateHandle292(nameserverJsonPointer.concat(jsonPointer.substring(ONE)));
     }
     return isValid;
   }
@@ -78,7 +78,7 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
       return false;
     }
 
-    String endOfNameServerHandle = handle.substring(handle.indexOf(HYPHEN) + 1);
+    String endOfNameServerHandle = handle.substring(handle.indexOf(HYPHEN) + ONE);
     if (endOfNameServerHandle.endsWith(ICANNRST) && this.queryType.equals(RDAPQueryType.DOMAIN) && this.config.useRdapProfileFeb2024()) {
       addErrorToResultsFile(-47205, getResultValue(handleJsonPointer),
           "The globally unique identifier in the nameserver object handle is using an EPPROID reserved for testing by ICANN.");
