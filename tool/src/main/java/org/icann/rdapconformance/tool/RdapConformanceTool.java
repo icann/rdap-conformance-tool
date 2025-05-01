@@ -171,7 +171,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
             description = "Use RDAP Profile February 2019", defaultValue = "false")
     boolean useRdapProfileFeb2019 = false;
     @Option(names = {"--use-rdap-profile-february-2024"},
-            description = "Use RDAP Profile February 2024", required = true, hidden = true)
+            description = "Use RDAP Profile February 2024", defaultValue = "false", required = true)
     private boolean useRdapProfileFeb2024 = false;
   }
 
