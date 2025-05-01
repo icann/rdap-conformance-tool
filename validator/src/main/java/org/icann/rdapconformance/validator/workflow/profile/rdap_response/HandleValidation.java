@@ -47,7 +47,8 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .build());
       return false;
     }
-    String roid = handle.substring(handle.indexOf(HYPHEN) + 1);
+
+    String roid = handle.substring(handle.indexOf("-") + 1);
     EPPRoid eppRoid = datasetService.get(EPPRoid.class);
     if (eppRoid.isInvalid(roid)) {
       results.add(RDAPValidationResult.builder()
@@ -58,10 +59,18 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .build());
       return false;
     }
-    
-    // if the query is a DOMAIN and the handle is valid AND we are using the 2024 config flag - but the string followed by a hyphen contains ICANNRST
-    // then it is NOT valid
-    // Record the error -46202
+
+    if (roid.contains(ICANNRST) && this.queryType.equals(RDAPQueryType.NAMESERVER) && this.config.useRdapProfileFeb2024()) {
+      results.add(RDAPValidationResult.builder()
+                                      .code(-49104)
+                                      .value(getResultValue(handleJsonPointer))
+                                      .message(
+                                          "The globally unique identifier in the nameserver object handle is using an EPPROID reserved for testing by ICANN.")
+                                      .build());
+      return false;
+    }
+
+
     if (roid.endsWith(ICANNRST) && this.queryType.equals(RDAPQueryType.DOMAIN) && this.config.useRdapProfileFeb2024()) {
       results.add(RDAPValidationResult.builder()
                                       .code(-46202)
