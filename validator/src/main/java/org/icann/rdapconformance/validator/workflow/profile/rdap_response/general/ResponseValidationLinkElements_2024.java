@@ -50,7 +50,7 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
                         results.add(RDAPValidationResult.builder()
                                                         .code(-10613)
                                                         .value(jsonPointer + "/" + i + "/rel:" + link)
-                                                        .message("The rel element does not exist.")
+                                                        .message("A 'rel' property does not exist in the link object.")
                                                         .build());
                         isOK = false;
                     }
