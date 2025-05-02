@@ -97,7 +97,7 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
   }
 
   @Test
-  public void testCheckNameServerHandles_ValidHandles_ReturnsTrue() throws Exception {
+  public void testDoValidationFor292_ReturnsTrue() throws Exception {
     // Setup
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
@@ -114,13 +114,13 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
     ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
         config, validJson, results, null, RDAPQueryType.DOMAIN);
 
-    boolean result = validation.checkNameServerHandles();
+    boolean result = validation.doValidationFor292();
     assertThat(result).isTrue();
     assertThat(results.getAll()).isEmpty();
   }
 
   @Test
-  public void testCheckNameServerHandles_InvalidHandleFormat_ReturnsFalse() throws Exception {
+  public void testDoValidationFor292_InvalidHandleFormat_ReturnsFalse() throws Exception {
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
 
@@ -136,12 +136,12 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
     ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
         config, invalidJson, results, null, RDAPQueryType.DOMAIN);
 
-    boolean result = validation.checkNameServerHandles();
+    boolean result = validation.doValidationFor292();
     assertThat(result).isFalse();
   }
 
   @Test
-  public void testCheckNameServerHandles_IcannRstHandle_ReturnsFalse() throws Exception {
+  public void testDoValidationFor292_IcannRstHandle_ReturnsFalse() throws Exception {
     // Setup
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
@@ -158,7 +158,7 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
     ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
         config, invalidJson, results, null, RDAPQueryType.DOMAIN);
 
-    boolean result = validation.checkNameServerHandles();
+    boolean result = validation.doValidationFor292();
     assertThat(result).isFalse();
     assertThat(results.getAll()).contains(
         RDAPValidationResult.builder()
@@ -169,7 +169,7 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
   }
 
   @Test
-  public void testCheckNameServerHandles_MissingHandle_ReturnsFalse() throws Exception {
+  public void testDoValidationFor292_MissingHandle_ReturnsFalse() throws Exception {
     // Setup
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
@@ -186,12 +186,12 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
     ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
         config, invalidJson, results, null, RDAPQueryType.DOMAIN);
 
-    boolean result = validation.checkNameServerHandles();
+    boolean result = validation.doValidationFor292();
     assertThat(result).isTrue(); // No validation result for missing handle in this code path
   }
 
   @Test
-  public void testCheckNameServerHandles_IcannRstHandleWithFeb2024ProfileDisabled_ReturnsTrue() throws Exception {
+  public void testDoValidationFor292_IcannRstHandleWithFeb2024ProfileDisabled_ReturnsTrue() throws Exception {
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
 
@@ -207,13 +207,13 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
     ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
         config, invalidJson, results, null, RDAPQueryType.DOMAIN);
 
-    boolean result = validation.checkNameServerHandles();
+    boolean result = validation.doValidationFor292();
     assertThat(result).isTrue();
     assertThat(results.getAll()).isEmpty();
   }
 
   @Test
-  public void testCheckNameServerHandles_MultipleInvalidHandles_ReturnsFalse() throws Exception {
+  public void testDoValidationFor292_ReturnsFalse() throws Exception {
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
 
@@ -228,7 +228,7 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
 
     ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
         config, invalidJson, results, null, RDAPQueryType.DOMAIN);
-    boolean result = validation.checkNameServerHandles();
+    boolean result = validation.doValidationFor292();
 
     assertThat(result).isFalse();
   }

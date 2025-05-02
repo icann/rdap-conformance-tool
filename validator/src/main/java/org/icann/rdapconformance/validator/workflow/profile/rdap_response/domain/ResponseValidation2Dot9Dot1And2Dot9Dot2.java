@@ -41,13 +41,18 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
   @Override
   protected boolean doValidate() {
     if (config.isGtldRegistrar()) {
-      return doGtlDValidation();
+      return doValidationFor291();
     } else {
-      return checkNameServerHandles(); // everyone else goes through this validation - which is in this file
+      // Only if the 2024 flag is checked
+      if(this.config.useRdapProfileFeb2024()) {
+        return doValidationFor292();
+      } else {
+        return false;
+      }
     }
   }
 
-  public boolean checkNameServerHandles() {
+  public boolean doValidationFor292() {
     boolean isValid = true;
     Set<String> jsonPointers = getPointerFromJPath(NAMESERVERS_PATH);
     for (String jsonPointer : jsonPointers) {
@@ -87,7 +92,7 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
     return true;
   }
 
-  private boolean doGtlDValidation() {
+  private boolean doValidationFor291() {
       boolean isValid = true;
       Set<String> nsWithoutStatus = new HashSet<>();
       boolean oneWithStatus = false;
