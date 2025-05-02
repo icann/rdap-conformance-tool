@@ -53,13 +53,13 @@ public class ResponseValidationLinkElements_2024Test {
     @Test
     public void testValidate_LinkWithoutValue_AddErrorCode() {
         loadJson(BAD_DATA);
-        validateNotOk(-10612, "$['links'][0]/value:" + jsonObject.getJSONArray(LINKS).getJSONObject(0), "The value element does not exist.");
+        validateNotOk(-10612, "$['links'][0]/value:" + jsonObject.getJSONArray(LINKS).getJSONObject(0), "A 'value' property does not exist in the link object.");
     }
 
     @Test
     public void testValidate_LinkWithoutRel_AddErrorCode() {
         loadJson(BAD_DATA);
-        validateNotOk(-10613, "$['links'][1]/rel:" + jsonObject.getJSONArray(LINKS).getJSONObject(0), "The rel element does not exist.");
+        validateNotOk(-10613, "$['links'][1]/rel:" + jsonObject.getJSONArray(LINKS).getJSONObject(0), "A 'rel' property does not exist in the link object.");
     }
     @Test
     public void testValidate_MultipleErrors() {
@@ -75,12 +75,12 @@ public class ResponseValidationLinkElements_2024Test {
 
         long count10612 = capturedResults.stream().filter(result ->
             result.getCode() == -10612 &&
-                result.getMessage().equals("The value element does not exist.")
+                result.getMessage().equals("A 'value' property does not exist in the link object.")
         ).count();
 
         long count10613 = capturedResults.stream().filter(result ->
             result.getCode() == -10613 &&
-                result.getMessage().equals("The rel element does not exist.")
+                result.getMessage().equals("A 'rel' property does not exist in the link object.")
         ).count();
 
         assertThat(count10612).isEqualTo(EXPECTED);
