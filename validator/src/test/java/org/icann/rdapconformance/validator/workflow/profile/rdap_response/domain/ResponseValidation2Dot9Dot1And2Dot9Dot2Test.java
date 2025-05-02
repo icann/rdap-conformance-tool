@@ -6,10 +6,14 @@ import java.util.Set;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -90,5 +94,142 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
     validate(-47204,
         "#/nameservers/0/status:[\"" + String.join("\",\"", status) + "\"]",
         "The values of the status data structure does not comply with RFC5732.");
+  }
+
+  @Test
+  public void testDoValidationFor292_ReturnsTrue() throws Exception {
+    // Setup
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+
+    String validJson = "{\"nameservers\":[" +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"ABC123-EXAMPLE\",\"ldhName\":\"ns1.example.com\"}," +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"DEF456-EXAMPLE\",\"ldhName\":\"ns2.example.com\"}" +
+        "]}";
+
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    doReturn(false).when(config).isGtldRegistrar();
+    doReturn(true).when(config).useRdapProfileFeb2024();
+
+    ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
+        config, validJson, results, null, RDAPQueryType.DOMAIN);
+
+    boolean result = validation.doValidationFor292();
+    assertThat(result).isTrue();
+    assertThat(results.getAll()).isEmpty();
+  }
+
+  @Test
+  public void testDoValidationFor292_InvalidHandleFormat_ReturnsFalse() throws Exception {
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+
+    String invalidJson = "{\"nameservers\":[" +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"INVALID-HANDLE-WITH-NO-PROPER-FORMAT\",\"ldhName\":\"ns1.example.com\"}," +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"DEF456-EXAMPLE\",\"ldhName\":\"ns2.example.com\"}" +
+        "]}";
+
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    doReturn(false).when(config).isGtldRegistrar();
+    doReturn(true).when(config).useRdapProfileFeb2024();
+
+    ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
+        config, invalidJson, results, null, RDAPQueryType.DOMAIN);
+
+    boolean result = validation.doValidationFor292();
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void testDoValidationFor292_IcannRstHandle_ReturnsFalse() throws Exception {
+    // Setup
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+
+    String invalidJson = "{\"nameservers\":[" +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"ABC123-ICANNRST\",\"ldhName\":\"ns1.example.com\"}," +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"DEF456-EXAMPLE\",\"ldhName\":\"ns2.example.com\"}" +
+        "]}";
+
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    doReturn(false).when(config).isGtldRegistrar();
+    doReturn(true).when(config).useRdapProfileFeb2024();
+
+    ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
+        config, invalidJson, results, null, RDAPQueryType.DOMAIN);
+
+    boolean result = validation.doValidationFor292();
+    assertThat(result).isFalse();
+    assertThat(results.getAll()).contains(
+        RDAPValidationResult.builder()
+                            .code(-47205)
+                            .value("#/nameservers/0/handle:ABC123-ICANNRST")
+                            .message("The globally unique identifier in the nameserver object handle is using an EPPROID reserved for testing by ICANN.")
+                            .build());
+  }
+
+  @Test
+  public void testDoValidationFor292_MissingHandle_ReturnsFalse() throws Exception {
+    // Setup
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+
+    String invalidJson = "{\"nameservers\":[" +
+        "{\"objectClassName\":\"nameserver\",\"ldhName\":\"ns1.example.com\"}," +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"DEF456-EXAMPLE\",\"ldhName\":\"ns2.example.com\"}" +
+        "]}";
+
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    doReturn(false).when(config).isGtldRegistrar();
+    doReturn(true).when(config).useRdapProfileFeb2024();
+
+    ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
+        config, invalidJson, results, null, RDAPQueryType.DOMAIN);
+
+    boolean result = validation.doValidationFor292();
+    assertThat(result).isTrue(); // No validation result for missing handle in this code path
+  }
+
+  @Test
+  public void testDoValidationFor292_IcannRstHandleWithFeb2024ProfileDisabled_ReturnsTrue() throws Exception {
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+
+    String invalidJson = "{\"nameservers\":[" +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"ABC123-ICANNRST\",\"ldhName\":\"ns1.example.com\"}," +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"DEF456-EXAMPLE\",\"ldhName\":\"ns2.example.com\"}" +
+        "]}";
+
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    doReturn(false).when(config).isGtldRegistrar();
+    doReturn(false).when(config).useRdapProfileFeb2024(); // Feb 2024 profile disabled
+
+    ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
+        config, invalidJson, results, null, RDAPQueryType.DOMAIN);
+
+    boolean result = validation.doValidationFor292();
+    assertThat(result).isTrue();
+    assertThat(results.getAll()).isEmpty();
+  }
+
+  @Test
+  public void testDoValidationFor292_ReturnsFalse() throws Exception {
+    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+    results.clear();
+
+    String invalidJson = "{\"nameservers\":[" +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"INVALID-HANDLE!\",\"ldhName\":\"ns1.example.com\"}," +
+        "{\"objectClassName\":\"nameserver\",\"handle\":\"ALSO@INVALID\",\"ldhName\":\"ns2.example.com\"}" +
+        "]}";
+
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    doReturn(false).when(config).isGtldRegistrar();
+    doReturn(true).when(config).useRdapProfileFeb2024();
+
+    ResponseValidation2Dot9Dot1And2Dot9Dot2 validation = new ResponseValidation2Dot9Dot1And2Dot9Dot2(
+        config, invalidJson, results, null, RDAPQueryType.DOMAIN);
+    boolean result = validation.doValidationFor292();
+
+    assertThat(result).isFalse();
   }
 }
