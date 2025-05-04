@@ -35,11 +35,14 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   private final HttpResponse<String> rdapResponse;
   private final RDAPDatasetService datasetService;
 
+  private final RDAPValidatorConfiguration config;
+
   public TigValidation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
-      RDAPDatasetService datasetService) {
+      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
     super(results);
     this.rdapResponse = rdapResponse;
     this.datasetService = datasetService;
+    this.config = config;
   }
 
   @Override
@@ -53,7 +56,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
-      if (!validateHost(response.uri(), results, datasetService)) {
+      if (!validateHost(response.uri(), results, datasetService, config)) {
         isValid = false;
       }
       responseOpt = response.previousResponse();
@@ -62,7 +65,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   }
 
   private static boolean validateHost(URI uri, RDAPValidatorResults results,
-      RDAPDatasetService datasetService) {
+      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
     boolean isValid = true;
     Name host;
     try {
@@ -74,33 +77,39 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     }
 
     DNSQueryResult queryResult = dnsQuery.makeRequest(host, Type.A);
-    if (queryResult.hasError() || containsInvalidIPAddress(queryResult.getIPAddresses(),
-        datasetService)) {
-      results.add(RDAPValidationResult.builder()
-          .code(-20400)
-          .value(queryResult.getIPAddresses().stream()
-              .map(InetAddress::getHostAddress)
-              .sorted()
-              .collect(Collectors.joining(", ")))
-          .message("The RDAP service is not provided over IPv4. See section 1.8 of the "
-              + "RDAP_Technical_Implementation_Guide_2_1.")
-          .build());
-      isValid = false;
+    // Execute validation If noIpv4 flag is false
+    if(!config.isNoIpv4Queries()) {
+      if (queryResult.hasError() || containsInvalidIPAddress(queryResult.getIPAddresses(),
+              datasetService)) {
+        results.add(RDAPValidationResult.builder()
+                .code(-20400)
+                .value(queryResult.getIPAddresses().stream()
+                        .map(InetAddress::getHostAddress)
+                        .sorted()
+                        .collect(Collectors.joining(", ")))
+                .message("The RDAP service is not provided over IPv4. See section 1.8 of the "
+                        + "RDAP_Technical_Implementation_Guide_2_1.")
+                .build());
+        isValid = false;
+      }
     }
 
     queryResult = dnsQuery.makeRequest(host, Type.AAAA);
-    if (queryResult.hasError() || containsInvalidIPAddress(queryResult.getIPAddresses(),
-        datasetService)) {
-      results.add(RDAPValidationResult.builder()
-          .code(-20401)
-          .value(queryResult.getIPAddresses().stream()
-              .map(InetAddress::getHostAddress)
-              .sorted()
-              .collect(Collectors.joining(", ")))
-          .message("The RDAP service is not provided over IPv6. See section 1.8 of the "
-              + "RDAP_Technical_Implementation_Guide_2_1.")
-          .build());
-      isValid = false;
+    // Execute validation If noIpv6 flag is false
+    if(!config.isNoIpv6Queries()) {
+      if (queryResult.hasError() || containsInvalidIPAddress(queryResult.getIPAddresses(),
+              datasetService)) {
+        results.add(RDAPValidationResult.builder()
+                .code(-20401)
+                .value(queryResult.getIPAddresses().stream()
+                        .map(InetAddress::getHostAddress)
+                        .sorted()
+                        .collect(Collectors.joining(", ")))
+                .message("The RDAP service is not provided over IPv6. See section 1.8 of the "
+                        + "RDAP_Technical_Implementation_Guide_2_1.")
+                .build());
+        isValid = false;
+      }
     }
 
     return isValid;

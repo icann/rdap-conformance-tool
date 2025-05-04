@@ -37,6 +37,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
   private final DNSQuery dnsQuery = mock(DNSQuery.class);
   private final IPValidator ipValidator = mock(IPValidator.class);
   private final RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
+  private final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
   private HttpResponse<String> httpResponse;
 
   private void givenV6Ok() throws UnknownHostException {
@@ -109,7 +110,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new TigValidation1Dot8(httpResponse, results, datasetService);
+    return new TigValidation1Dot8(httpResponse, results, datasetService, config);
   }
 
   @BeforeMethod
