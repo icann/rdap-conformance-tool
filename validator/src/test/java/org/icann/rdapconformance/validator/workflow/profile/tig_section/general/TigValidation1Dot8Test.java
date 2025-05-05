@@ -11,6 +11,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.icann.rdapconformance.validator.DNSCacheResolver;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.testng.annotations.BeforeMethod;
@@ -19,6 +20,7 @@ import org.testng.annotations.Test;
 public class TigValidation1Dot8Test extends ProfileValidationTestBase {
 
   private RDAPDatasetService datasetService;
+  private final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
 
   @BeforeMethod
   public void setUp() throws IOException {
@@ -28,7 +30,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
 
   @Override
   public TigValidation1Dot8 getProfileValidation() {
-    return new TigValidation1Dot8(null, results, datasetService);
+    return new TigValidation1Dot8(null, results, datasetService, config);
   }
 
   @Test
@@ -40,7 +42,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
     mockDNSCacheResolver(host, List.of(ipv4Address), List.of(ipv6Address));
 
     URI uri = new URI("http://" + host);
-    boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService);
+    boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService, config);
 
     assertThat(isValid).isTrue();
     verifyNoInteractions(results);
@@ -56,7 +58,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
       mockedStatic.when(() -> DNSCacheResolver.getAllV6Addresses(host)).thenReturn(List.of(ipv6Address));
 
       URI uri = new URI("http://" + host);
-      boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService);
+      boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService, config);
 
       assertThat(isValid).isFalse();
       verify(results).add(argThat(result ->
@@ -76,7 +78,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
       mockedStatic.when(() -> DNSCacheResolver.getAllV6Addresses(host)).thenReturn(List.of());
 
       URI uri = new URI("http://" + host);
-      boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService);
+      boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService, config);
 
       assertThat(isValid).isFalse();
       verify(results).add(argThat(result ->
@@ -95,7 +97,7 @@ public class TigValidation1Dot8Test extends ProfileValidationTestBase {
       mockedStatic.when(() -> DNSCacheResolver.getAllV6Addresses(host)).thenReturn(List.of());
 
       URI uri = new URI("http://" + host);
-      boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService);
+      boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService, config);
 
       assertThat(isValid).isFalse();
       verify(results).add(argThat(result ->

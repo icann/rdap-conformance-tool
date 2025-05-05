@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -25,11 +26,14 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   private final HttpResponse<String> rdapResponse;
   private final RDAPDatasetService datasetService;
 
+  private final RDAPValidatorConfiguration config;
+
   public TigValidation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
-      RDAPDatasetService datasetService) {
+      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
     super(results);
     this.rdapResponse = rdapResponse;
     this.datasetService = datasetService;
+    this.config = config;
   }
 
   @Override
@@ -48,7 +52,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
-      if (!validateHost(response.uri(), results, datasetService)) {
+      if (!validateHost(response.uri(), results, datasetService, config)) {
         isValid = false;
       }
       responseOpt = response.previousResponse();
@@ -57,7 +61,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   }
 
   public static boolean validateHost(URI uri, RDAPValidatorResults results,
-                                      RDAPDatasetService datasetService) {
+      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
     boolean isValid = true;
     String host = uri.getHost();
     if (host == null || host.isEmpty()) {
@@ -68,32 +72,40 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
     // Use DNSCacheResolver for IPv4
     Set<InetAddress> ipv4Addresses = new HashSet<>(DNSCacheResolver.getAllV4Addresses(host));
-    if (ipv4Addresses.isEmpty()) {
-      results.add(RDAPValidationResult.builder()
-                                      .code(-20400)
-                                      .value(ipv4Addresses.stream()
-                                                          .map(InetAddress::getHostAddress) // gets the String representation of the IP
-                                                          .sorted()
-                                                          .collect(Collectors.joining(", ")))
-                                      .message("The RDAP service is not provided over IPv4. See section 1.8 of the "
-                                          + "RDAP_Technical_Implementation_Guide_2_1.")
-                                      .build());
-      isValid = false;
+    // If we are validating over v4
+    if(!config.isNoIpv4Queries()) {
+      if (ipv4Addresses.isEmpty()) {
+        results.add(RDAPValidationResult.builder()
+                                        .code(-20400)
+                                        .value(ipv4Addresses.stream()
+                                                            .map(
+                                                                InetAddress::getHostAddress) // gets the String representation of the IP
+                                                            .sorted()
+                                                            .collect(Collectors.joining(", ")))
+                                        .message("The RDAP service is not provided over IPv4. See section 1.8 of the "
+                                            + "RDAP_Technical_Implementation_Guide_2_1.")
+                                        .build());
+        isValid = false;
+      }
     }
 
     // Use DNSCacheResolver for IPv6
     Set<InetAddress> ipv6Addresses = new HashSet<>(DNSCacheResolver.getAllV6Addresses(host));
-    if (ipv6Addresses.isEmpty()) {
-      results.add(RDAPValidationResult.builder()
-                                      .code(-20401)
-                                      .value(ipv6Addresses.stream()
-                                                          .map(InetAddress::getHostAddress) // gets the String representation of the IP
-                                                          .sorted()
-                                                          .collect(Collectors.joining(", ")))
-                                      .message("The RDAP service is not provided over IPv6. See section 1.8 of the "
-                                          + "RDAP_Technical_Implementation_Guide_2_1.")
-                                      .build());
-      isValid = false;
+    // If we are validating over v6
+    if(!config.isNoIpv6Queries()) {
+      if (ipv6Addresses.isEmpty()) {
+        results.add(RDAPValidationResult.builder()
+                                        .code(-20401)
+                                        .value(ipv6Addresses.stream()
+                                                            .map(
+                                                                InetAddress::getHostAddress) // gets the String representation of the IP
+                                                            .sorted()
+                                                            .collect(Collectors.joining(", ")))
+                                        .message("The RDAP service is not provided over IPv6. See section 1.8 of the "
+                                            + "RDAP_Technical_Implementation_Guide_2_1.")
+                                        .build());
+        isValid = false;
+      }
     }
 
     return isValid;

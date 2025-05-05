@@ -42,7 +42,7 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
                         results.add(RDAPValidationResult.builder()
                                                         .code(-10612)
                                                         .value(jsonPointer + "/" + i + "/value:" + link)
-                                                        .message("The value element does not exist.")
+                                                        .message("A 'value' property does not exist in the link object.")
                                                         .build());
                         isOK = false;
                     }
@@ -50,7 +50,7 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
                         results.add(RDAPValidationResult.builder()
                                                         .code(-10613)
                                                         .value(jsonPointer + "/" + i + "/rel:" + link)
-                                                        .message("The rel element does not exist.")
+                                                        .message("A 'rel' property does not exist in the link object.")
                                                         .build());
                         isOK = false;
                     }
