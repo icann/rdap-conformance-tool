@@ -90,11 +90,6 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
 
     if (networkEnabled) {
-
-      if(!executeIPv4Queries && !executeIPv6Queries) {
-        return validateWithoutNetwork(resultFile, validator);
-      }
-
       // Initialize our DNS lookups with this.
       DNSCacheResolver.initFromUrl(uri.toString());
 
