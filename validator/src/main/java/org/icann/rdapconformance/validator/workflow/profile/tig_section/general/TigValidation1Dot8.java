@@ -77,7 +77,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     }
 
     DNSQueryResult queryResult = dnsQuery.makeRequest(host, Type.A);
-    // Execute validation If noIpv4 flag is false
+    // If we are validating over v4
     if(!config.isNoIpv4Queries()) {
       if (queryResult.hasError() || containsInvalidIPAddress(queryResult.getIPAddresses(),
               datasetService)) {
@@ -95,7 +95,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     }
 
     queryResult = dnsQuery.makeRequest(host, Type.AAAA);
-    // Execute validation If noIpv6 flag is false
+    // If we are validating over v6
     if(!config.isNoIpv6Queries()) {
       if (queryResult.hasError() || containsInvalidIPAddress(queryResult.getIPAddresses(),
               datasetService)) {
