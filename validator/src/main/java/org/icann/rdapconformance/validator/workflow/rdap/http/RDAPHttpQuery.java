@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
 
+import java.net.UnknownHostException;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
@@ -21,6 +22,7 @@ import java.util.Optional;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
+import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
@@ -303,12 +305,23 @@ public class RDAPHttpQuery implements RDAPQuery {
      * Handle exceptions that occur during the HTTP request.
      */
     private void handleRequestException(Exception e) {
+        if( e instanceof UnknownHostException) {
+            addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IP address endpoint using DNS.");
+            status = ConnectionStatus.UNKNOWN_HOST;
+            ConnectionTracker.getInstance().updateCurrentConnection(status);
+        }
+
         if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
             if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
                 status = ConnectionStatus.NETWORK_SEND_FAIL;
+                ConnectionTracker.getInstance().updateCurrentConnection(status);
+                System.out.println("Network Send Fail Proto: " + NetworkInfo.getNetworkProtocol());
+                System.out.println("Network Send Fail Address: " + NetworkInfo.getServerIpAddress());
                 addErrorToResultsFile(-13016, "no response available", "Network send fail");
             } else {
                 status = ConnectionStatus.CONNECTION_FAILED;
+                System.out.println("Network Connection Failed  Proto: " + NetworkInfo.getNetworkProtocol());
+                System.out.println("Network Connection Failed Address: " + NetworkInfo.getServerIpAddress());
                 addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
             }
             ConnectionTracker.getInstance().updateCurrentConnection(status);
@@ -323,6 +336,8 @@ public class RDAPHttpQuery implements RDAPQuery {
 
         status = ConnectionStatus.CONNECTION_FAILED;
         addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
+        System.out.println("Network Connection Failed  Proto: " + NetworkInfo.getNetworkProtocol());
+        System.out.println("Network Connection Failed Address: " + NetworkInfo.getServerIpAddress());
         ConnectionTracker.getInstance().updateCurrentConnection(status);
     }
 

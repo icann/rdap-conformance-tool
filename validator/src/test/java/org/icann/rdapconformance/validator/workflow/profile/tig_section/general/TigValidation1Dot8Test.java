@@ -1,213 +1,118 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.givenChainedHttpRedirects;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
-import java.net.http.HttpResponse;
-import java.util.Set;
+import java.util.List;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTestBase;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.DNSQuery;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.DNSQuery.DNSQueryResult;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8.IPValidator;
-import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.RedirectData;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.xbill.DNS.Lookup;
-import org.xbill.DNS.Name;
-import org.xbill.DNS.TextParseException;
-import org.xbill.DNS.Type;
 
 public class TigValidation1Dot8Test extends ProfileValidationTestBase {
 
-  private final DNSQuery dnsQuery = mock(DNSQuery.class);
-  private final IPValidator ipValidator = mock(IPValidator.class);
-  private final RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
-  private HttpResponse<String> httpResponse;
-
-  private void givenV6Ok() throws UnknownHostException {
-    InetAddress ipv6AddressValid = Inet6Address
-        .getByAddress(new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1});
-    DNSQueryResult resultV6 = mock(DNSQueryResult.class);
-    doReturn(false).when(resultV6).hasError();
-    doReturn(resultV6).when(dnsQuery).makeRequest(any(Name.class), eq(Type.AAAA));
-    doReturn(Set.of(ipv6AddressValid)).when(resultV6).getIPAddresses();
-  }
-
-  private void givenV4Ok() throws UnknownHostException {
-    InetAddress ipv4AddressValid = Inet4Address.getByAddress(new byte[]{127, 0, 0, 1});
-    DNSQueryResult resultV4 = mock(DNSQueryResult.class);
-    doReturn(false).when(resultV4).hasError();
-    doReturn(resultV4).when(dnsQuery).makeRequest(any(Name.class), eq(Type.A));
-    doReturn(Set.of(ipv4AddressValid)).when(resultV4).getIPAddresses();
-  }
-
-  private void givenV4AddressError(URI uri) throws UnknownHostException, TextParseException {
-    InetAddress ipv4AddressValid = Inet4Address.getByAddress(new byte[]{127, 0, 0, 1});
-    InetAddress ipv4AddressInvalid = Inet4Address.getByAddress(new byte[]{127, 0, 0, 2});
-    DNSQueryResult resultV4 = mock(DNSQueryResult.class);
-    doReturn(resultV4).when(dnsQuery).makeRequest(Name.fromString(uri.getHost()), Type.A);
-    doReturn(false).when(resultV4).hasError();
-    doReturn(Set.of(ipv4AddressInvalid, ipv4AddressValid)).when(resultV4).getIPAddresses();
-    doReturn(true).when(ipValidator).isInvalid(ipv4AddressInvalid, datasetService);
-  }
-
-  private void givenV4QueryError() throws UnknownHostException {
-    InetAddress ipv4AddressValid = Inet4Address.getByAddress(new byte[]{127, 0, 0, 1});
-    DNSQueryResult resultV4 = mock(DNSQueryResult.class);
-    doReturn(resultV4).when(dnsQuery).makeRequest(any(Name.class), eq(Type.A));
-    doReturn(true).when(resultV4).hasError();
-
-    doReturn(Set.of(ipv4AddressValid)).when(resultV4).getIPAddresses();
-  }
-
-  private void givenV6AddressError(URI uri) throws UnknownHostException, TextParseException {
-    InetAddress ipv6AddressValid = Inet6Address
-        .getByAddress(new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1});
-
-    InetAddress ipv6AddressInvalid = Inet6Address
-        .getByAddress(new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2});
-
-    DNSQueryResult resultV6 = mock(DNSQueryResult.class);
-    doReturn(resultV6).when(dnsQuery).makeRequest(Name.fromString(uri.getHost()), Type.AAAA);
-    doReturn(false).when(resultV6).hasError();
-    doReturn(Set.of(ipv6AddressInvalid, ipv6AddressValid)).when(resultV6).getIPAddresses();
-    doReturn(true).when(ipValidator).isInvalid(ipv6AddressInvalid, datasetService);
-  }
-
-  private void givenV6QueryError() throws UnknownHostException {
-    InetAddress ipv6AddressValid = Inet6Address
-        .getByAddress(new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1});
-    DNSQueryResult resultV6 = mock(DNSQueryResult.class);
-    doReturn(resultV6).when(dnsQuery).makeRequest(any(Name.class), eq(Type.AAAA));
-    doReturn(true).when(resultV6).hasError();
-
-    doReturn(Set.of(ipv6AddressValid)).when(resultV6).getIPAddresses();
-  }
-
-  private HttpResponse<String> givenHttpResponse() {
-    HttpResponse<String> httpsResponse = mock(HttpResponse.class);
-    URI uri = URI.create("http://domain/test.example");
-
-    doReturn(uri).when(httpsResponse).uri();
-    return httpsResponse;
-  }
-
-  @Override
-  public ProfileValidation getProfileValidation() {
-    return new TigValidation1Dot8(httpResponse, results, datasetService);
-  }
+  private RDAPDatasetService datasetService;
 
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
-    TigValidation1Dot8.dnsQuery = dnsQuery;
-    TigValidation1Dot8.ipValidator = ipValidator;
-    doReturn(false).when(ipValidator).isInvalid(any(InetAddress.class), eq(datasetService));
-    httpResponse = givenHttpResponse();
-    givenV4Ok();
-    givenV6Ok();
+    datasetService = mock(RDAPDatasetService.class);
   }
 
-  /**
-   * Dns java returns null when no answer is returned.
-   */
-  @Test
-  public void testDnsJavaReturningNullAnswer() {
-    Lookup lookup = mock(Lookup.class);
-    when(lookup.getAnswers()).thenReturn(null);
-    DNSQuery dnsQuery = new DNSQuery();
-    assertThat(dnsQuery.getIPRecords(lookup)).isEmpty();
+  @Override
+  public TigValidation1Dot8 getProfileValidation() {
+    return new TigValidation1Dot8(null, results, datasetService);
   }
 
   @Test
-  public void testValidate_InvalidIPv4_AddResult20400()
-      throws UnknownHostException, TextParseException {
-    httpResponse = givenHttpResponse();
-    givenV4AddressError(httpResponse.uri());
-    givenV6Ok();
+  public void testValidateHost_ValidIPv4AndIPv6() throws Exception {
+    String host = "example.com";
+    InetAddress ipv4Address = Inet4Address.getByName("192.0.2.1");
+    InetAddress ipv6Address = Inet6Address.getByName("2001:db8::1");
 
-    validate(-20400,
-        "127.0.0.1, 127.0.0.2",
-        "The RDAP service is not provided over IPv4. See section 1.8 of the "
-            + "RDAP_Technical_Implementation_Guide_2_1.");
+    mockDNSCacheResolver(host, List.of(ipv4Address), List.of(ipv6Address));
+
+    URI uri = new URI("http://" + host);
+    boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService);
+
+    assertThat(isValid).isTrue();
+    verifyNoInteractions(results);
   }
 
   @Test
-  public void testValidate_InvalidIPv4DnsResponse_AddResult20400()
-      throws UnknownHostException {
-    httpResponse = givenHttpResponse();
-    givenV4QueryError();
-    givenV6Ok();
+  public void testValidateHost_InvalidIPv4() throws Exception {
+    String host = "example.com";
+    InetAddress ipv6Address = Inet6Address.getByName("2001:db8::1");
 
-    validate(-20400, "127.0.0.1",
-        "The RDAP service is not provided over IPv4. See section 1.8 of the "
-            + "RDAP_Technical_Implementation_Guide_2_1.");
+    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
+      mockedStatic.when(() -> DNSCacheResolver.getAllV4Addresses(host)).thenReturn(List.of());
+      mockedStatic.when(() -> DNSCacheResolver.getAllV6Addresses(host)).thenReturn(List.of(ipv6Address));
+
+      URI uri = new URI("http://" + host);
+      boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService);
+
+      assertThat(isValid).isFalse();
+      verify(results).add(argThat(result ->
+          result.getCode() == -20400 &&
+              result.getMessage().contains("The RDAP service is not provided over IPv4")
+      ));
+    }
   }
 
   @Test
-  public void testValidate_InvalidIPv4InRedirect_AddResult20400()
-      throws UnknownHostException, TextParseException {
-    RedirectData redirectData = givenChainedHttpRedirects();
-    givenV4Ok();
-    givenV4AddressError(redirectData.endingResponse.uri());
-    givenV6Ok();
-    httpResponse = redirectData.startingResponse;
-    validate(-20400, "127.0.0.1, 127.0.0.2",
-        "The RDAP service is not provided over IPv4. See section 1.8 of the "
-            + "RDAP_Technical_Implementation_Guide_2_1.");
+  public void testValidateHost_InvalidIPv6() throws Exception {
+    String host = "example.com";
+    InetAddress ipv4Address = Inet4Address.getByName("192.0.2.1");
+
+    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
+      mockedStatic.when(() -> DNSCacheResolver.getAllV4Addresses(host)).thenReturn(List.of(ipv4Address));
+      mockedStatic.when(() -> DNSCacheResolver.getAllV6Addresses(host)).thenReturn(List.of());
+
+      URI uri = new URI("http://" + host);
+      boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService);
+
+      assertThat(isValid).isFalse();
+      verify(results).add(argThat(result ->
+          result.getCode() == -20401 &&
+              result.getMessage().contains("The RDAP service is not provided over IPv6")
+      ));
+    }
   }
 
   @Test
-  public void testValidate_InvalidIPv6_AddResult20401()
-      throws UnknownHostException, TextParseException {
-    httpResponse = givenHttpResponse();
-    givenV4Ok();
-    givenV6AddressError(httpResponse.uri());
+  public void testValidateHost_InvalidIPv4AndIPv6() throws Exception {
+    String host = "example.com";
 
-    validate(-20401,
-        "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2",
-        "The RDAP service is not provided over IPv6. See section 1.8 of the "
-            + "RDAP_Technical_Implementation_Guide_2_1.");
+    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
+      mockedStatic.when(() -> DNSCacheResolver.getAllV4Addresses(host)).thenReturn(List.of());
+      mockedStatic.when(() -> DNSCacheResolver.getAllV6Addresses(host)).thenReturn(List.of());
+
+      URI uri = new URI("http://" + host);
+      boolean isValid = TigValidation1Dot8.validateHost(uri, results, datasetService);
+
+      assertThat(isValid).isFalse();
+      verify(results).add(argThat(result ->
+          result.getCode() == -20400 &&
+              result.getMessage().contains("The RDAP service is not provided over IPv4")
+      ));
+      verify(results).add(argThat(result ->
+          result.getCode() == -20401 &&
+              result.getMessage().contains("The RDAP service is not provided over IPv6")
+      ));
+    }
   }
 
-
-  @Test
-  public void testValidate_InvalidIPv6DnsResponse_AddResult20401() throws UnknownHostException {
-    httpResponse = givenHttpResponse();
-    givenV4Ok();
-    givenV6QueryError();
-
-    validate(-20401,
-        "0:0:0:0:0:0:0:1",
-        "The RDAP service is not provided over IPv6. See section 1.8 of the "
-            + "RDAP_Technical_Implementation_Guide_2_1.");
-  }
-
-  @Test
-  public void testValidate_InvalidIPv6InRedirect_AddResult20401()
-      throws TextParseException, UnknownHostException {
-    RedirectData redirectData = givenChainedHttpRedirects();
-    givenV4Ok();
-    givenV6Ok();
-    givenV6AddressError(redirectData.endingResponse.uri());
-    httpResponse = redirectData.startingResponse;
-    validate(-20401, "0:0:0:0:0:0:0:1, 0:0:0:0:0:0:0:2",
-        "The RDAP service is not provided over IPv6. See section 1.8 of the "
-            + "RDAP_Technical_Implementation_Guide_2_1.");
+  private void mockDNSCacheResolver(String host, List<InetAddress> ipv4Addresses, List<InetAddress> ipv6Addresses) {
+    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
+      mockedStatic.when(() -> DNSCacheResolver.getAllV4Addresses(host)).thenReturn(ipv4Addresses);
+      mockedStatic.when(() -> DNSCacheResolver.getAllV6Addresses(host)).thenReturn(ipv6Addresses);
+    }
   }
 }

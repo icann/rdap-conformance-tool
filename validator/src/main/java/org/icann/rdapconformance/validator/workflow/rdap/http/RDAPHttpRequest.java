@@ -8,14 +8,14 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
+import java.net.UnknownHostException;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
+import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
 
-import java.net.Inet4Address;
-import java.net.Inet6Address;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
@@ -53,8 +53,6 @@ import org.apache.hc.core5.util.Timeout;
 import org.apache.hc.core5.util.TimeValue;
 
 
-
-
 public class RDAPHttpRequest {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
@@ -86,27 +84,24 @@ public class RDAPHttpRequest {
             host = originalUri.getHost();
         }
 
+        // if host is not 127.0.0.1 or localhost, we need to resolve the host
+        if(DNSCacheResolver.hasNoAddresses(host)) {
+            logger.info("No IP address found for host: " + host);
+            throw new UnknownHostException("No IP address found for host: " + host);
+        }
+
         int port = originalUri.getPort() == -1
             ? (originalUri.getScheme().equalsIgnoreCase(HTTPS) ? HTTPS_PORT : HTTP_PORT)
             : originalUri.getPort();
 
         InetAddress remoteAddress = null;
-        InetAddress[] addresses = InetAddress.getAllByName(host);
-
-        for (InetAddress addr : addresses) {
-            if ((NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) && addr instanceof Inet6Address) {
-                remoteAddress = addr;
-                break; // we are only grabbing the first one
-            } else if ((NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv4) && addr instanceof Inet4Address) {
-                remoteAddress = addr;
-                break; // same here
-            }
+        // remoteAddress won't end up null, we did the check above
+        if (NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) {
+            remoteAddress = DNSCacheResolver.getFirstV6Address(host);
+        } else if (NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv4) {
+            remoteAddress = DNSCacheResolver.getFirstV4Address(host);
         }
 
-        // If we didn't find a match for the preferred protocol, use any available address
-        if (remoteAddress == null && addresses.length > ZERO) {
-            throw new RuntimeException("No IP address found for host: " + host + " with IP Protocol: " + NetworkInfo.getNetworkProtocol());
-        }
 
         // set the url to the ip address
         URI ipUri = new URI(

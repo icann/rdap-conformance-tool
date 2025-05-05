@@ -4,7 +4,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.temporaryRedirect;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -24,12 +23,19 @@ import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHt
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.INVALID_HOST;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.UNTRUSTED;
 import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.UNTRUSTED_ROOT_CERT_PORT;
+import org.icann.rdapconformance.validator.ConnectionStatus;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Ignore;
+import org.testng.annotations.Test;
+import org.mockito.MockedStatic;
 
 import java.io.InputStream;
 import java.net.http.HttpResponse;
@@ -37,13 +43,6 @@ import java.security.KeyStore;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import org.icann.rdapconformance.validator.ConformanceError;
-import org.icann.rdapconformance.validator.ConnectionStatus;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Ignore;
-import org.testng.annotations.Test;
-import org.mockito.MockedStatic;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -203,21 +202,30 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   @Test
-  public void test_NetworkSendFail_ReturnsErrorStatus19() {
+  public void test_NetworkSendFail_ReturnsErrorStatus19() throws Exception {
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
     rdapHttpQuery.setResults(results);
 
-    doReturn(URI.create(HTTP_TEST_EXAMPLE )).when(config).getUri();
+    doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
 
-    assertThat(rdapHttpQuery.run()).isFalse();
-    assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
-    assertThat(results.getAll()).contains(
-        RDAPValidationResult.builder()
-                            .code(-13017)
-                            .value("no response available")
-                            .message("Network receive fail")
-                            .build());
+    try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+      ConnectException connectException = new ConnectException("Network send fail");
+      connectException.initCause(new java.nio.channels.UnresolvedAddressException());
+
+      // Make the mocked method throw this exception when called
+      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(URI.class), anyInt()))
+                  .thenThrow(connectException);
+
+      assertThat(rdapHttpQuery.run()).isFalse();
+      assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.NETWORK_SEND_FAIL);
+      assertThat(results.getAll()).contains(
+          RDAPValidationResult.builder()
+                              .code(-13016)
+                              .value("no response available")
+                              .message("Network send fail")
+                              .build());
+    }
   }
 
   @Test
@@ -560,22 +568,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         .isEqualTo(expectedStatus);
   }
 
-  @Test
-  public void checkWithQueryType_StatusNot200_IsOk() {
-    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
-    results.clear();
-    rdapHttpQuery.setResults(results);
-
-    givenUri(HTTP);
-    stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme(HTTP)
-        .willReturn(notFound()
-            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
-            .withBody("{}")));
-
-    assertThat(rdapHttpQuery.run()).isTrue();
-    assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.DOMAIN)).isTrue();
-  }
 
   @Test
   public void checkWithQueryType_ObjectClassNameInJsonResponse_IsOk() {

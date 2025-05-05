@@ -10,6 +10,7 @@ import java.net.URI;
 import java.util.concurrent.Callable;
 import org.apache.commons.lang3.SystemUtils;
 import org.icann.rdapconformance.validator.ConnectionTracker;
+import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -93,6 +94,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       if(!executeIPv4Queries && !executeIPv6Queries) {
         return validateWithoutNetwork(resultFile, validator);
       }
+
+      // Initialize our DNS lookups with this.
+      DNSCacheResolver.initFromUrl(uri.toString());
 
       // do v6
       if(executeIPv6Queries) {

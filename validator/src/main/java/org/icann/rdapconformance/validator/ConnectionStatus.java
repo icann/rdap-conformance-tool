@@ -16,7 +16,8 @@ public enum ConnectionStatus implements ConformanceError {
     HTTP_ERROR(17, "HTTP errors"),
     HTTP2_ERROR(18, "HTTP/2 errors"),
     NETWORK_SEND_FAIL(19, "Failure sending network data"),
-    NETWORK_RECEIVE_FAIL(20, "Failure in receiving network data");
+    NETWORK_RECEIVE_FAIL(20, "Failure in receiving network data"),
+    UNKNOWN_HOST(21, "Unknown host");
 
     private final int code;
     private final String description;

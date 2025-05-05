@@ -1,0 +1,176 @@
+package org.icann.rdapconformance.validator;
+
+import org.xbill.DNS.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import org.xbill.DNS.Record;
+
+public class DNSCacheResolver {
+
+    private static final Logger logger = LoggerFactory.getLogger(DNSCacheResolver.class);
+
+    private static final Map<String, List<InetAddress>> CACHE_V4 = new ConcurrentHashMap<>();
+    private static final Map<String, List<InetAddress>> CACHE_V6 = new ConcurrentHashMap<>();
+
+    public static final Resolver resolver;
+
+    static {
+        Resolver r = null;
+        try {
+            r = new ExtendedResolver(); // Uses system-configured resolvers
+            logger.info("DNS Resolver initialized using system DNS settings.");
+        } catch (Exception e) {
+            logger.error("Failed to initialize DNS resolver.", e);
+        }
+        resolver = r;
+    }
+
+    private DNSCacheResolver() {}
+
+    public static void initFromUrl(String url) {
+        logger.info("Trying to lookup FQDN for URL: {}", url);
+        try {
+            URI uri = new URI(url);
+            String host = uri.getHost();
+            if (host == null || host.isEmpty()) {
+                logger.warn("No host found in URL: {}", url);
+                return;
+            }
+            String fqdn = ensureFQDN(host);
+            resolveIfNeeded(fqdn);
+        } catch (URISyntaxException e) {
+            logger.error("Invalid URL: {}", url, e);
+        }
+    }
+
+    public static InetAddress getFirstV4Address(String fqdn) {
+        String name = ensureFQDN(fqdn);
+        resolveIfNeeded(name);
+        return getFirst(CACHE_V4, name);
+    }
+
+    public static InetAddress getFirstV6Address(String fqdn) {
+        String name = ensureFQDN(fqdn);
+        resolveIfNeeded(name);
+        return getFirst(CACHE_V6, name);
+    }
+
+    public static List<InetAddress> getAllV4Addresses(String fqdn) {
+        String name = ensureFQDN(fqdn);
+        resolveIfNeeded(name);
+        return Collections.unmodifiableList(CACHE_V4.getOrDefault(name, Collections.emptyList()));
+    }
+
+    public static List<InetAddress> getAllV6Addresses(String fqdn) {
+        String name = ensureFQDN(fqdn);
+        resolveIfNeeded(name);
+        return Collections.unmodifiableList(CACHE_V6.getOrDefault(name, Collections.emptyList()));
+    }
+
+    /**
+     * Checks if the given hostname has any IP addresses (either IPv4 or IPv6).
+     *
+     * @param fqdn the fully qualified domain name to check
+     * @return true if the hostname has no IP addresses at all, false otherwise
+     */
+    public static boolean hasNoAddresses(String fqdn) {
+        String name = ensureFQDN(fqdn);
+        resolveIfNeeded(name);
+
+        List<InetAddress> v4Addresses = CACHE_V4.getOrDefault(name, Collections.emptyList());
+        List<InetAddress> v6Addresses = CACHE_V6.getOrDefault(name, Collections.emptyList());
+
+        return v4Addresses.isEmpty() && v6Addresses.isEmpty();
+    }
+
+    public static void resolveIfNeeded(String fqdn) {
+        if (CACHE_V4.containsKey(fqdn) && CACHE_V6.containsKey(fqdn)) {
+            logger.info("Cache hit for {}", fqdn);
+            return;
+        }
+
+        if (fqdn.equals("127.0.0.1.") || fqdn.equals("localhost.")) {
+            logger.info("Handling special-case loopback (IPv4) for {}", fqdn);
+            try {
+                CACHE_V4.put(fqdn, List.of(InetAddress.getByName("127.0.0.1")));
+            } catch (Exception e) {
+                logger.info("Failed to handle 127.0.0.1", e);
+                CACHE_V4.put(fqdn, List.of());
+            }
+        } else {
+            CACHE_V4.put(fqdn, resolveWithCNAMEChain(fqdn, Type.A));
+        }
+
+        if (fqdn.equals("::1.") || fqdn.equals("localhost.")) {
+            logger.info("Handling special-case loopback (IPv6) for {}", fqdn);
+            try {
+                CACHE_V6.put(fqdn, List.of(InetAddress.getByName("::1")));
+            } catch (Exception e) {
+                logger.info("Failed to handle ::1", e);
+                CACHE_V6.put(fqdn, List.of());
+            }
+        } else {
+            CACHE_V6.put(fqdn, resolveWithCNAMEChain(fqdn, Type.AAAA));
+        }
+    }
+
+    public static List<InetAddress> resolveWithCNAMEChain(String fqdn, int type) {
+        List<InetAddress> results = new ArrayList<>();
+        Set<String> visited = new HashSet<>();
+        String currentName = fqdn;
+
+        while (true) {
+            if (!visited.add(currentName)) {
+                logger.info("Detected CNAME loop involving: {}", currentName);
+                break;
+            }
+
+            try {
+                Name name = Name.fromString(currentName, Name.root);
+                Record question = Record.newRecord(name, type, DClass.IN);
+                Message query = Message.newQuery(question);
+                Message response = resolver.send(query);
+
+                boolean foundCname = false;
+
+                for (Record answer : response.getSectionArray(Section.ANSWER)) {
+                    if (type == Type.A && answer instanceof ARecord) {
+                        results.add(((ARecord) answer).getAddress());
+                    } else if (type == Type.AAAA && answer instanceof AAAARecord) {
+                        results.add(((AAAARecord) answer).getAddress());
+                    } else if (answer instanceof CNAMERecord) {
+                        CNAMERecord cname = (CNAMERecord) answer;
+                        currentName = cname.getTarget().toString();
+                        foundCname = true;
+                        logger.info("Following CNAME: {} → {}", cname.getName(), currentName);
+                        break; // loop with new name
+                    }
+                }
+
+                if (!foundCname) break;
+
+            } catch (Exception e) {
+                logger.error("Error resolving {} [{}]", currentName, Type.string(type), e);
+                break;
+            }
+        }
+
+        logger.info("Final resolved {} [{}] → {} record(s)", fqdn, Type.string(type), results.size());
+        return results;
+    }
+
+    public static InetAddress getFirst(Map<String, List<InetAddress>> cache, String fqdn) {
+        List<InetAddress> list = cache.get(fqdn);
+        return (list != null && !list.isEmpty()) ? list.get(0) : null;
+    }
+
+    public static String ensureFQDN(String host) {
+        return host.endsWith(".") ? host : host + ".";
+    }
+}
