@@ -44,7 +44,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   @Override
   public boolean doValidate() {
     if (rdapResponse == null) {
-      logger.warn("rdapResponse is null. Skipping validation.");
+      logger.info("rdapResponse is null. Skipping validation.");
       return true; // Skip validation if rdapResponse is null
     }
 
