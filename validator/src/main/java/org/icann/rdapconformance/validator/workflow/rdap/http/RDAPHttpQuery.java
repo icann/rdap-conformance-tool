@@ -22,6 +22,7 @@ import java.util.Optional;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
+import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -224,6 +225,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             // check for the redirects
             if (remainingRedirects == ZERO) {
                 status = ConnectionStatus.TOO_MANY_REDIRECTS;
+                ConnectionTracker.getInstance().updateCurrentConnection(status);
             }
 
             // if we exit the loop without a redirect, we have a final response
@@ -301,27 +303,24 @@ public class RDAPHttpQuery implements RDAPQuery {
         return false; // not copying them, so don't worry
     }
 
+
     /**
      * Handle exceptions that occur during the HTTP request.
      */
     private void handleRequestException(Exception e) {
         if( e instanceof UnknownHostException) {
-            addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IP address endpoint using DNS.");
+            // we eat this one - it is checked all the way in the beginning and registered in the results file - do not double up.
             status = ConnectionStatus.UNKNOWN_HOST;
             ConnectionTracker.getInstance().updateCurrentConnection(status);
+            return;
         }
 
         if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
             if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
                 status = ConnectionStatus.NETWORK_SEND_FAIL;
-                ConnectionTracker.getInstance().updateCurrentConnection(status);
-                System.out.println("Network Send Fail Proto: " + NetworkInfo.getNetworkProtocol());
-                System.out.println("Network Send Fail Address: " + NetworkInfo.getServerIpAddress());
                 addErrorToResultsFile(-13016, "no response available", "Network send fail");
             } else {
                 status = ConnectionStatus.CONNECTION_FAILED;
-                System.out.println("Network Connection Failed  Proto: " + NetworkInfo.getNetworkProtocol());
-                System.out.println("Network Connection Failed Address: " + NetworkInfo.getServerIpAddress());
                 addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
             }
             ConnectionTracker.getInstance().updateCurrentConnection(status);
@@ -334,10 +333,9 @@ public class RDAPHttpQuery implements RDAPQuery {
             return;
         }
 
+        // Fall through
         status = ConnectionStatus.CONNECTION_FAILED;
         addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
-        System.out.println("Network Connection Failed  Proto: " + NetworkInfo.getNetworkProtocol());
-        System.out.println("Network Connection Failed Address: " + NetworkInfo.getServerIpAddress());
         ConnectionTracker.getInstance().updateCurrentConnection(status);
     }
 

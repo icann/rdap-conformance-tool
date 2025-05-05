@@ -71,6 +71,8 @@ public class RDAPHttpRequest {
     }
 
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method) throws Exception {
+        NetworkInfo.setHttpMethod(method); // set this first before anything
+
         if (originalUri == null) {
             throw new IllegalArgumentException("The provided URI is null. Ensure the URI is properly set before making the request.");
         }
@@ -95,13 +97,15 @@ public class RDAPHttpRequest {
             : originalUri.getPort();
 
         InetAddress remoteAddress = null;
-        // remoteAddress won't end up null, we did the check above
         if (NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) {
             remoteAddress = DNSCacheResolver.getFirstV6Address(host);
         } else if (NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv4) {
             remoteAddress = DNSCacheResolver.getFirstV4Address(host);
         }
 
+        if(remoteAddress == null) {
+            throw new UnknownHostException("IP address lookup failed for host: " + host);
+        }
 
         // set the url to the ip address
         URI ipUri = new URI(
@@ -116,7 +120,6 @@ public class RDAPHttpRequest {
 
         // Ensure we update NetworkInfo on what we are doing
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
-        NetworkInfo.setHttpMethod(method);
         logger.info("Connecting to: {} using {} with header `{}`" , remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol(), NetworkInfo.getAcceptHeader());
 
         // determine which of the two methods to use

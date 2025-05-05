@@ -1,5 +1,10 @@
 package org.icann.rdapconformance.validator;
 
+import static org.icann.rdapconformance.validator.CommonUtils.DOT;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv6;
+
 import org.xbill.DNS.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +44,7 @@ public class DNSCacheResolver {
             URI uri = new URI(url);
             String host = uri.getHost();
             if (host == null || host.isEmpty()) {
-                logger.warn("No host found in URL: {}", url);
+                logger.info("No host found in URL: {}", url);
                 return;
             }
             String fqdn = ensureFQDN(host);
@@ -73,12 +78,6 @@ public class DNSCacheResolver {
         return Collections.unmodifiableList(CACHE_V6.getOrDefault(name, Collections.emptyList()));
     }
 
-    /**
-     * Checks if the given hostname has any IP addresses (either IPv4 or IPv6).
-     *
-     * @param fqdn the fully qualified domain name to check
-     * @return true if the hostname has no IP addresses at all, false otherwise
-     */
     public static boolean hasNoAddresses(String fqdn) {
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
@@ -95,10 +94,10 @@ public class DNSCacheResolver {
             return;
         }
 
-        if (fqdn.equals("127.0.0.1.") || fqdn.equals("localhost.")) {
+        if (fqdn.equals(LOCAL_IPv4 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
             logger.info("Handling special-case loopback (IPv4) for {}", fqdn);
             try {
-                CACHE_V4.put(fqdn, List.of(InetAddress.getByName("127.0.0.1")));
+                CACHE_V4.put(fqdn, List.of(InetAddress.getByName(LOCAL_IPv4)));
             } catch (Exception e) {
                 logger.info("Failed to handle 127.0.0.1", e);
                 CACHE_V4.put(fqdn, List.of());
@@ -107,10 +106,10 @@ public class DNSCacheResolver {
             CACHE_V4.put(fqdn, resolveWithCNAMEChain(fqdn, Type.A));
         }
 
-        if (fqdn.equals("::1.") || fqdn.equals("localhost.")) {
+        if (fqdn.equals(LOCAL_IPv6 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
             logger.info("Handling special-case loopback (IPv6) for {}", fqdn);
             try {
-                CACHE_V6.put(fqdn, List.of(InetAddress.getByName("::1")));
+                CACHE_V6.put(fqdn, List.of(InetAddress.getByName(LOCAL_IPv6)));
             } catch (Exception e) {
                 logger.info("Failed to handle ::1", e);
                 CACHE_V6.put(fqdn, List.of());
@@ -139,7 +138,7 @@ public class DNSCacheResolver {
 
                 boolean foundCname = false;
 
-                for (Record answer : response.getSectionArray(Section.ANSWER)) {
+                for (Record answer : response.getSection(Section.ANSWER)) {
                     if (type == Type.A && answer instanceof ARecord) {
                         results.add(((ARecord) answer).getAddress());
                     } else if (type == Type.AAAA && answer instanceof AAAARecord) {
@@ -167,10 +166,10 @@ public class DNSCacheResolver {
 
     public static InetAddress getFirst(Map<String, List<InetAddress>> cache, String fqdn) {
         List<InetAddress> list = cache.get(fqdn);
-        return (list != null && !list.isEmpty()) ? list.get(0) : null;
+        return (list != null && !list.isEmpty()) ? list.getFirst() : null;
     }
 
     public static String ensureFQDN(String host) {
-        return host.endsWith(".") ? host : host + ".";
+        return host.endsWith(DOT) ? host : host + DOT;
     }
 }
