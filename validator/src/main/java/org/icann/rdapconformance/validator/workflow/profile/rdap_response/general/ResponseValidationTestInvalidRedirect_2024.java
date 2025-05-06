@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
@@ -7,17 +8,19 @@ import static org.icann.rdapconformance.validator.CommonUtils.SEP;
 import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
-import java.net.URI;
-import java.net.http.HttpResponse;
-import java.util.Arrays;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.net.http.HttpResponse;
+import java.util.Arrays;
 
 public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidation {
 
@@ -37,24 +40,26 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
         return "generalResponseValidation";
     }
 
-    public boolean doValidate() {
+    public boolean doValidate() throws Exception {
         if (!canTestForInvalid()) { // if the flags aren't set, we can't test, it's good
             return true;
         }
 
-        try {
             logger.info("Sending a GET request to: {}", createTestInvalidURI());
-            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(), config.getTimeout());
+            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(),
+                config.getTimeout());
             int status = response.statusCode();
-            logger.info("Status code for test.invalid: {}" , status);
-            if (RDAPHttpQuery.isRedirectStatus(status)) {
+            logger.info("Status code for test.invalid: {}", status);
+            if (status == HTTP_OK) { // if it returns a 200 - that is an error
+                results.add(RDAPValidationResult.builder()
+                                                .code(-13006)
+                                                .value(createTestInvalidURI().toString())
+                                                .message("Server responded with a 200 OK for 'test.invalid'.")
+                                                .build());
+                return false;
+            } else if (RDAPHttpQuery.isRedirectStatus(status)) {
                 return handleRedirect(response);
             }
-        } catch (Exception e) {
-            logger.info("Exception when making HTTP GET request in [generalResponseValidation]", e);
-            return false;
-        }
-
         return true;
     }
 

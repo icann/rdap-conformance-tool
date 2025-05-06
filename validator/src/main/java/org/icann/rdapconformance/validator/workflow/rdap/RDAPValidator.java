@@ -14,7 +14,6 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.genera
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationLinkElements_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationStatusDuplication_2024;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidRedirect_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.StdRdapConformanceValidation_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
@@ -163,10 +162,6 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         query.checkWithQueryType(queryTypeProcessor.getQueryType());
 
-        if (config.isNetworkEnabled() && ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
-            logger.info("Detected a test.invalid domain query with HTTP 200 response code.");
-        }
-
         if (query.isErrorContent()) {
             validator = new SchemaValidator("rdap_error.json", results, datasetService);
         } else {
@@ -205,7 +200,6 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Log URI, IP address, and redirects
         String ipAddress = NetworkInfo.getServerIpAddress();
         List<URI> redirects = (query instanceof RDAPHttpQuery httpQuery) ? httpQuery.getRedirects() : List.of();
-//        errorState.addErrorInfo(RDAPValidationStatus.SUCCESS.getValue(), config.getUri().toString(), redirects.size());
 
 
         logger.info("URI used for the query: {}", config.getUri());
