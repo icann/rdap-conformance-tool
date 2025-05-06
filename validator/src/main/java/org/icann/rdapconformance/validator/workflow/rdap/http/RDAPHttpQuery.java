@@ -14,7 +14,7 @@ import java.security.Security;
 import java.util.*;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionStatus;
-import org.icann.rdapconformance.validator.ConnectionTracker; 
+import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
@@ -48,10 +48,8 @@ public class RDAPHttpQuery implements RDAPQuery {
     private final RDAPValidatorConfiguration config;
     private RDAPValidatorResults results = null;
     private HttpResponse<String> httpResponse = null;
-    private HttpResponse<String> httpHelpResponse = null;
 
     private JsonData jsonResponse = null;
-    private JsonData jsonHelpResponse = null;
     private boolean isQuerySuccessful = true;
     private ConnectionStatus status = null;
 
@@ -87,12 +85,6 @@ public class RDAPHttpQuery implements RDAPQuery {
           this.validate();
           return this.isQuerySuccessful();
       }
-
-    @Override
-    public void runHelpQuery() {
-        this.makeHelpQuery();
-        this.validateHelpQuery();
-    }
 
     /**
        * Get the HTTP response status code
@@ -235,40 +227,6 @@ public class RDAPHttpQuery implements RDAPQuery {
         }
     }
 
-    public void makeHelpQuery() {
-            logger.debug("Creating help query for host {}", config.getUri().getHost());
-            try {
-                var queryType = RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.getType(this.config.getUri().toString());
-                String helpUri = null;
-                if(Objects.nonNull(queryType)) {
-                    helpUri = RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.replaceToHelpQuery(queryType, this.config.getUri().toString());
-                    int index = helpUri.indexOf("help");
-                    if (index != -1) {
-                        helpUri = helpUri.substring(0, index + "help".length());
-                    } else {
-                        logger.debug("Help word was not found, using original url");
-                        helpUri = this.config.getUri().getHost().concat(HELP);
-                    }
-                    logger.debug("Help URI built {}", helpUri);
-                } else {
-                    helpUri = this.config.getUri().getHost().concat(HELP);
-                }
-
-                logger.info("Making request to: {}", helpUri);
-                HttpResponse<String> response = null;
-
-                response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUri), this.config.getTimeout());
-                int status = response.statusCode();
-                StatusCodes.add(status);
-
-                // final response
-                httpHelpResponse = response;
-            } catch (Exception e) {
-                logger.debug("Help query was not able to be called"); // catch for all subclasses of these exceptions
-            }
-    }
-
-
     private void validate() {
         // If it wasn't successful, we don't need to validate
         if (!isQuerySuccessful()) {
@@ -312,37 +270,6 @@ public class RDAPHttpQuery implements RDAPQuery {
             addErrorToResultsFile(-13002, String.valueOf(httpStatusCode), "The HTTP status code was neither 200 nor 404.");
             isQuerySuccessful = false;
         }
-    }
-
-    private void validateHelpQuery() {
-        // If it wasn't successful, we don't need to validate
-        if (!isQuerySuccessful()) {
-            logger.info("Querying wasn't successful .. don't validate ");
-            return;
-        }
-
-        int httpHelpStatusCode = httpHelpResponse.statusCode();
-        String rdapHelpResponse = httpHelpResponse.body();
-
-        jsonHelpResponse = new JsonData(rdapHelpResponse);
-        if (jsonHelpResponse.isValid()) {
-            if(!isHelpJsonValid(jsonHelpResponse ) || HTTP_OK != httpHelpStatusCode) {
-            addErrorToResultsFile(-20701, rdapHelpResponse,"Response to a /help query did not yield a proper status code or RDAP response.");
-            isQuerySuccessful = false;
-            }
-        } else {
-            isQuerySuccessful = false;
-        }
-    }
-
-    private boolean isHelpJsonValid(JsonData jsonHelpResponse) {
-        boolean propertyExists = true;
-        if(!jsonHelpResponse.hasKey("rdapConformance") || !jsonHelpResponse.hasKey("notices")) {
-            logger.info("Validating rdapConformance and notices property in top level");
-            propertyExists = false;
-        }
-
-        return propertyExists;
     }
 
     /**
@@ -490,13 +417,13 @@ public class RDAPHttpQuery implements RDAPQuery {
     return false;
   }
 
-  static class JsonData {
+  public static class JsonData {
 
     private Map<String, Object> rawRdapMap = null;
     private List<Object> rawRdapList = null;
 
 
-    private JsonData(String data) {
+    public JsonData(String data) {
       ObjectMapper mapper = new ObjectMapper();
 
       try {

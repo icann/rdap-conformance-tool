@@ -47,9 +47,6 @@ public class RDAPFileQuery implements RDAPQuery {
   }
 
   @Override
-  public void runHelpQuery() {}
-
-  @Override
   public Optional<Integer> getStatusCode() {
     return Optional.of(200);
   }

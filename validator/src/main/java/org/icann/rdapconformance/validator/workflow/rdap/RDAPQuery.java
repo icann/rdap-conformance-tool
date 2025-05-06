@@ -9,7 +9,6 @@ public interface RDAPQuery {
 ConformanceError getErrorStatus();
 
   boolean run();
-  void runHelpQuery();
 
   Optional<Integer> getStatusCode();
 
