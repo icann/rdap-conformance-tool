@@ -6,8 +6,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import java.net.InetAddress;
+import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -36,30 +39,43 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
   }
 
   @Test
-  public void testValidate_HttpHeadStatusSameAsGet_IsOk() {
-    // configure wiremock for HTTP as we will make an HTTP request
-    givenUri("http");
-    stubFor(head(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
-        .willReturn(aResponse()
-            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")));
+  public void testValidate_HttpHeadStatusSameAsGet_IsOk() throws Exception {
+    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
+      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
+                  .thenReturn(InetAddress.getByName("127.0.0.1"));
+      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
+                  .thenReturn(null);
 
-    validateOk(results);
+      givenUri("http");
+      stubFor(head(urlEqualTo(REQUEST_PATH))
+          .withScheme("http")
+          .willReturn(aResponse()
+              .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+              .withStatus(200)));
+
+      validateOk(results);
+    }
   }
 
   @Test
-  public void testValidate_HttpHeadStatusDifferentThanGet_AddResults20300() {
-    // configure wiremock for HTTP as we will make an HTTP request
-    givenUri("http");
-    stubFor(head(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
-        .willReturn(aResponse()
-            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
-            .withStatus(404)));
+  public void testValidate_HttpHeadStatusDifferentThanGet_AddResults20300() throws Exception {
+    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
+      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
+                  .thenReturn(InetAddress.getByName("127.0.0.1"));
+      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
+                  .thenReturn(null);
 
-    validateNotOk(results, -20300,
-        200 + "\n/\n" + 404,
-        "The HTTP Status code obtained when using the HEAD method is different from the "
-            + "GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.");
+      givenUri("http");
+      stubFor(head(urlEqualTo(REQUEST_PATH))
+          .withScheme("http")
+          .willReturn(aResponse()
+              .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+              .withStatus(404)));
+
+      validateNotOk(results, -20300,
+          200 + "\n/\n" + 404,
+          "The HTTP Status code obtained when using the HEAD method is different from the "
+              + "GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.");
+    }
   }
 }
