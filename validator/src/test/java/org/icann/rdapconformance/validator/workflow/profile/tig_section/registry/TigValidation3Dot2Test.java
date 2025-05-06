@@ -114,7 +114,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     jsonObject.put("entities", entities);
 
     TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
-    assertThat(tigValidation3Dot2.isGtldRegistryAndRegistrarId9999()).isTrue();
+    assertThat(tigValidation3Dot2.isRegistrarId9999()).isTrue();
   }
 
   // RCT-104 only apply if the query is for a gtld registry and the value is not 9999
@@ -134,6 +134,6 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     jsonObject.put("entities", entities);
 
     TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
-    assertThat(tigValidation3Dot2.isGtldRegistryAndRegistrarId9999()).isFalse();
+    assertThat(tigValidation3Dot2.isRegistrarId9999()).isFalse();
   }
 }
