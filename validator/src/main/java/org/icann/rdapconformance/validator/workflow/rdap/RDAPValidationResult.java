@@ -85,7 +85,6 @@ public class RDAPValidationResult {
         ", message='" + message + '\'' +
         ", acceptHeader='" + acceptHeader + '\'' +
         ", httpMethod='" + httpMethod + '\'' +
-        ", receivedHttpStatusCode='" + + '\'' +
         ", serverIpAddress='" + serverIpAddress + '\'' +
         ", httpStatusCode='" + httpStatusCode + '\'' +
         '}';
