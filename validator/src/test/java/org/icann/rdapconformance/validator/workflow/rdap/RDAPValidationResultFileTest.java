@@ -28,7 +28,6 @@ public class RDAPValidationResultFileTest {
 
     @BeforeMethod
     public void setUp() {
-        // Reset the singleton instance before each test
         RDAPValidationResultFile.reset();
 
         results = RDAPValidatorResultsImpl.getInstance();
@@ -37,7 +36,6 @@ public class RDAPValidationResultFileTest {
         results.addGroups(Set.of("firstGroup"));
         configurationFile = mock(ConfigurationFile.class);
 
-        // Initialize the singleton instance
         RDAPValidationResultFile.getInstance().initialize(
             results,
             mock(RDAPValidatorConfiguration.class),
@@ -45,7 +43,6 @@ public class RDAPValidationResultFileTest {
             fileSystem
         );
 
-        // Assign the singleton instance to the file variable for convenience
         file = RDAPValidationResultFile.getInstance();
     }
 
