@@ -183,7 +183,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Issue additional queries (/help and /not-a-domain.invalid) when flag is true
         if(config.isAdditionalConformanceQueries()) {
             logger.info("Validations for additional conformance queries");
-            new ResponseValidationHelp_2024(config, results);
+            new ResponseValidationHelp_2024(config, results).validate();
         }
 
         if (config.useRdapProfileFeb2019() && !query.isErrorContent()) {
