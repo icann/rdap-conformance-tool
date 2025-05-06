@@ -62,6 +62,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"--no-ipv6-queries"}, description = "No queries over IPv6 are to be issued")
   private boolean executeIPv6Queries = true;
 
+  @Option(names = {"--additional-conformance-queries"}, description = "Additional queries '/help' and 'not-a-domain.invalid' to be issued")
+  private boolean additionalConformanceQueries = false;
+
   @ArgGroup(exclusive = false)
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
 
@@ -256,6 +259,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Override
   public boolean isNoIpv6Queries() {
     return !executeIPv6Queries;
+  }
+  @Override
+  public boolean isAdditionalConformanceQueries() {
+    return additionalConformanceQueries;
   }
 
   private static class DependantRdapProfileGtld {
