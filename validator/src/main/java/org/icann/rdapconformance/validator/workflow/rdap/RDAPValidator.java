@@ -163,6 +163,13 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         query.checkWithQueryType(queryTypeProcessor.getQueryType());
 
+        /* Validate help query when additional queries or 2024 profile flags are activated
+            --additional-conformance-queries will be implemented in RCT-30
+        */
+        if(config.useRdapProfileFeb2024()) {
+            query.runHelpQuery();
+        }
+
         if (config.isNetworkEnabled() && ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
             logger.info("Detected a test.invalid domain query with HTTP 200 response code.");
         }

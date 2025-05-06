@@ -7,6 +7,7 @@ import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -44,6 +45,9 @@ public class RDAPFileQuery implements RDAPQuery {
     }
     return true;
   }
+
+  @Override
+  public void runHelpQuery() {}
 
   @Override
   public Optional<Integer> getStatusCode() {

@@ -81,7 +81,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
   }
 
 
-  private enum RDAPHttpQueryType {
+  enum RDAPHttpQueryType {
     DOMAIN(RDAPQueryType.DOMAIN, Pattern.compile("/domain/([^/]+)$")),
     NAMESERVER(RDAPQueryType.NAMESERVER, Pattern.compile("/nameserver/([^/]+)$")),
     ENTITY(RDAPQueryType.ENTITY, Pattern.compile("/entity/([^/]+)$")),
@@ -96,6 +96,18 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     RDAPHttpQueryType(RDAPQueryType queryType, Pattern pattern) {
       this.queryType = queryType;
       this.pattern = pattern;
+    }
+
+    static String replaceToHelpQuery(RDAPHttpQueryType httpQueryType, String originalString) {
+      return switch (httpQueryType) {
+        case RDAPHttpQueryType.DOMAIN -> originalString.replace("domain", "help");
+        case RDAPHttpQueryType.NAMESERVER -> originalString.replace("nameserver", "help");
+        case RDAPHttpQueryType.AUTNUM -> originalString.replace("autnum", "help");
+        case RDAPHttpQueryType.ENTITY -> originalString.replace("entity", "help");
+        case RDAPHttpQueryType.IP -> originalString.replace("ip", "help");
+        case RDAPHttpQueryType.NAMESERVERS -> originalString.replace("nameservers", "help");
+        default -> originalString;
+      };
     }
 
     static RDAPHttpQueryType getType(String query) {
