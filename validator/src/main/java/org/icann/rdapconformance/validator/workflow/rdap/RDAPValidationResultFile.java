@@ -85,9 +85,7 @@ public class RDAPValidationResultFile {
     fileMap.put("thinRegistry", config.isThin());
     fileMap.put("rdapProfileFebruary2019", config.useRdapProfileFeb2019());
     fileMap.put("rdapProfileFebruary2024", config.useRdapProfileFeb2024());
-
-    //Change: They need to get value from config when they are implemented
-    fileMap.put("additionalConformanceQueries", false);
+    fileMap.put("additionalConformanceQueries", config.isAdditionalConformanceQueries());
     fileMap.put("noIpv4", config.isNoIpv4Queries());
     fileMap.put("noIpv6", config.isNoIpv6Queries());
 

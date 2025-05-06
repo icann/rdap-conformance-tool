@@ -41,6 +41,7 @@ public interface RDAPValidatorConfiguration {
   boolean isNoIpv6Queries();
 
   boolean isNetworkEnabled();
+  boolean isAdditionalConformanceQueries();
 
   default boolean check() {
     if (getUri().getScheme() != null && getUri().getScheme().startsWith("http")) {
