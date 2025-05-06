@@ -4,6 +4,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 
 public class CommonUtils {
+    public static final String DOT = ".";
     public static final String HTTP = "http";
     public static final String HTTPS = "https";
     public static final String HTTP_PREFIX = "http://";
@@ -12,6 +13,7 @@ public class CommonUtils {
     public static final String SEP = "://";
     public static final String LOCALHOST = "localhost";
     public static final String LOCAL_IPv4 = "127.0.0.1";
+    public static final String LOCAL_IPv6 = "::1";
     public static final String GET = "GET";
     public static final String HEAD = "HEAD";
     public static final String SEMI_COLON = ";";

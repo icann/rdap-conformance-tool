@@ -13,7 +13,6 @@ import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.BuildInfo;
-import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -35,7 +34,6 @@ public class RDAPValidationResultFile {
 
   // Track if already initialized
   private boolean isInitialized = false;
-  // Private constructor
   private RDAPValidationResultFile() {}
 
   public static synchronized RDAPValidationResultFile getInstance() {
@@ -79,7 +77,6 @@ public class RDAPValidationResultFile {
     fileMap.put("definitionIdentifier", configurationFile.getDefinitionIdentifier());
     fileMap.put("testedURI", config.getUri());
     fileMap.put("testedDate", Instant.now().toString());
-    fileMap.put("receivedHttpStatusCodes", StatusCodes.getAll());
     fileMap.put("groupOK", this.results.getGroupOk());
     fileMap.put("groupErrorWarning", this.results.getGroupErrorWarning());
     fileMap.put("results", this.createResultsMap());
@@ -88,9 +85,7 @@ public class RDAPValidationResultFile {
     fileMap.put("thinRegistry", config.isThin());
     fileMap.put("rdapProfileFebruary2019", config.useRdapProfileFeb2019());
     fileMap.put("rdapProfileFebruary2024", config.useRdapProfileFeb2024());
-
-    //Change: They need to get value from config when they are implemented
-    fileMap.put("additionalConformanceQueries", false);
+    fileMap.put("additionalConformanceQueries", config.isAdditionalConformanceQueries());
     fileMap.put("noIpv4", config.isNoIpv4Queries());
     fileMap.put("noIpv6", config.isNoIpv6Queries());
 
@@ -139,6 +134,7 @@ public class RDAPValidationResultFile {
       resultMap.put("code", result.getCode());
       resultMap.put("value", result.getValue());
       resultMap.put("message", result.getMessage());
+      resultMap.put("receivedHttpStatusCode", result.getHttpStatusCode());
       resultMap.put("queriedURI", Objects.nonNull(config.getUri()) ? config.getUri().toString() : StringUtils.EMPTY);
       resultMap.put("acceptMediaType", result.getAcceptHeader());
       resultMap.put("httpMethod", result.getHttpMethod());

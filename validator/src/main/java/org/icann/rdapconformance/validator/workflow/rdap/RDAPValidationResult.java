@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.util.Objects;
+import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.NetworkInfo;
 
 public class RDAPValidationResult {
@@ -11,14 +12,16 @@ public class RDAPValidationResult {
   private final String acceptHeader;
   private final String httpMethod;
   private final String serverIpAddress;
+  private final String httpStatusCode;
 
-  public RDAPValidationResult(int code, String value, String message, String acceptHeader, String httpMethod, String serverIpAddress) {
+  public RDAPValidationResult(int code, String value, String message, String acceptHeader, String httpMethod, String serverIpAddress, String httpStatusCode) {
     this.code = code;
     this.value = value;
     this.message = message;
     this.acceptHeader = acceptHeader;
     this.httpMethod = httpMethod;
     this.serverIpAddress = serverIpAddress;
+    this.httpStatusCode = httpStatusCode;
   }
 
   public static Builder builder() {
@@ -49,6 +52,8 @@ public class RDAPValidationResult {
     return serverIpAddress;
   }
 
+  public String getHttpStatusCode() { return httpStatusCode; }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -63,12 +68,13 @@ public class RDAPValidationResult {
         Objects.equals(message, result.message) &&
         Objects.equals(acceptHeader, result.acceptHeader) &&
         Objects.equals(httpMethod, result.httpMethod) &&
-        Objects.equals(serverIpAddress, result.serverIpAddress);
+        Objects.equals(serverIpAddress, result.serverIpAddress) &&
+        Objects.equals(httpStatusCode, result.httpStatusCode);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(code, value, message, acceptHeader, httpMethod, serverIpAddress);
+    return Objects.hash(code, value, message, acceptHeader, httpMethod, serverIpAddress, httpStatusCode);
   }
 
   @Override
@@ -80,6 +86,7 @@ public class RDAPValidationResult {
         ", acceptHeader='" + acceptHeader + '\'' +
         ", httpMethod='" + httpMethod + '\'' +
         ", serverIpAddress='" + serverIpAddress + '\'' +
+        ", httpStatusCode='" + httpStatusCode + '\'' +
         '}';
   }
 
@@ -109,10 +116,11 @@ public class RDAPValidationResult {
           this.code,
           this.value,
           this.message,
-          // these are set here so that at the moment of building the result, we have the current settings
+          // these are a snapshot of the current state of the connection
           NetworkInfo.getAcceptHeader(),
           NetworkInfo.getHttpMethod(),
-          NetworkInfo.getServerIpAddress()
+          NetworkInfo.getServerIpAddress(),
+          ConnectionTracker.getCurrentStatusCodeAsString()
       );
     }
   }

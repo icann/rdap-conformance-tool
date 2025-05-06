@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
@@ -32,7 +34,7 @@ public class ConnectionTracker {
             uri,
             NetworkInfo.getServerIpAddress(),
             NetworkInfo.getNetworkProtocol(),
-            0,  // Status code not yet known
+            ZERO,  // Status code not yet known
             null,  // Duration not yet known
             null,  // Status not yet known
             NetworkInfo.getHttpMethod(),
@@ -190,6 +192,23 @@ public class ConnectionTracker {
     public synchronized void reset() {
         connections.clear();
         currentConnection = null;
+    }
+
+    /**
+     * Safely gets the status code of the current connection as a string.
+     * Returns "-" if there is no current connection or if the status code is 0.
+     *
+     * @return The status code as a string, or "-" if unavailable
+     */
+    public static String getCurrentStatusCodeAsString() {
+        ConnectionTracker tracker = getInstance();
+        ConnectionRecord currentConnection = tracker.getLastConnection(); // Given the way it works,  the _last_ connection is the one we want. Current would be set to null.
+
+        if (currentConnection == null || currentConnection.getStatusCode() == 0) {
+            return "-";
+        }
+
+        return String.valueOf(currentConnection.getStatusCode());
     }
 
     @Override

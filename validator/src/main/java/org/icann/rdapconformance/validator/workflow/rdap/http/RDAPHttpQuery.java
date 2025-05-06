@@ -6,17 +6,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
-
-import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.security.Security;
 import java.util.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.hc.core5.http.HttpStatus;
-import org.icann.rdapconformance.validator.*;
+import org.icann.rdapconformance.validator.ConformanceError;
+import org.icann.rdapconformance.validator.ConnectionStatus;
+import org.icann.rdapconformance.validator.ConnectionTracker; 
+import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 
@@ -226,6 +225,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             // check for the redirects
             if (remainingRedirects == ZERO) {
                 status = ConnectionStatus.TOO_MANY_REDIRECTS;
+                ConnectionTracker.getInstance().updateCurrentConnection(status);
             }
 
             // if we exit the loop without a redirect, we have a final response
@@ -367,10 +367,18 @@ public class RDAPHttpQuery implements RDAPQuery {
         return false; // not copying them, so don't worry
     }
 
+
     /**
      * Handle exceptions that occur during the HTTP request.
      */
     private void handleRequestException(Exception e) {
+        if( e instanceof UnknownHostException) {
+            // we eat this one - it is checked all the way in the beginning and registered in the results file - do not double up.
+            status = ConnectionStatus.UNKNOWN_HOST;
+            ConnectionTracker.getInstance().updateCurrentConnection(status);
+            return;
+        }
+
         if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
             if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
                 status = ConnectionStatus.NETWORK_SEND_FAIL;
@@ -389,6 +397,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             return;
         }
 
+        // Fall through
         status = ConnectionStatus.CONNECTION_FAILED;
         addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
         ConnectionTracker.getInstance().updateCurrentConnection(status);
