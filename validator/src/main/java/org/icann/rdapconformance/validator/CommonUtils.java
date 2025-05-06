@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator;
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 
 public class CommonUtils {
     public static final String DOT = ".";
@@ -38,5 +39,19 @@ public class CommonUtils {
                                                                                     .message(message)
                                                                                     .build());
 
+    }
+
+    public static String replaceQueryTypeInStringWith(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType httpQueryType,
+                                              String originalString,
+                                              String replacementWord) {
+        return switch (httpQueryType) {
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.DOMAIN -> originalString.replace("domain", replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVER -> originalString.replace("nameserver", replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.AUTNUM -> originalString.replace("autnum", replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.ENTITY -> originalString.replace("entity", replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP -> originalString.replace("ip", replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS -> originalString.replace("nameservers", replacementWord);
+            default -> originalString;
+        };
     }
 }

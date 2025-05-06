@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
@@ -44,7 +45,7 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
             var queryType = RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.getType(this.config.getUri().toString());
             String helpUri = null;
             if (Objects.nonNull(queryType)) {
-                helpUri = RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.replaceToHelpQuery(queryType, this.config.getUri().toString());
+                helpUri = CommonUtils.replaceQueryTypeInStringWith(queryType, this.config.getUri().toString(), "help");
                 int index = helpUri.indexOf("help");
                 if (index != -1) {
                     helpUri = helpUri.substring(0, index + "help".length());
