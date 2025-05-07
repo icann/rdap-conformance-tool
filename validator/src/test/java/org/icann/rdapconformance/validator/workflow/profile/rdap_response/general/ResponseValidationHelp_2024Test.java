@@ -33,6 +33,20 @@ public class ResponseValidationHelp_2024Test {
   }
 
   @Test
+  public void testDoValidate_HelpTypeUrl_WithHelpInUri() throws Exception {
+    URI uri = new URI("https://apis.cscglobal.com/dbs/rdap-api/v1/domain/CSCGLOBAL.COM");
+    when(mockConfig.getUri()).thenReturn(uri);
+    when(mockConfig.getTimeout()).thenReturn(1000);
+
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+    when(mockResponse.statusCode()).thenReturn(200);
+    when(mockResponse.body()).thenReturn("{\"rdapConformance\":[],\"notices\":[]}");
+
+    boolean result = responseValidator.doValidate();
+    assertTrue(result);
+  }
+
+  @Test
   public void testValidateHelpQuery_ValidJson_OkStatus() {
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(200);
