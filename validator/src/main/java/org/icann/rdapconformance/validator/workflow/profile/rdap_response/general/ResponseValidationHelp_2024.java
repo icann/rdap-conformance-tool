@@ -3,7 +3,6 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
@@ -36,43 +35,37 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
     }
 
     @Override
-    protected boolean doValidate() throws Exception {
+    public boolean doValidate() throws Exception {
         boolean isValid = true;
         HttpResponse<String> httpHelpResponse = null;
 
         logger.debug("Creating help query for host {}", config.getUri().getHost());
-        try {
-            var queryType = RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.getType(this.config.getUri().toString());
-            String helpUri = null;
-            if (Objects.nonNull(queryType)) {
-                helpUri = CommonUtils.replaceQueryTypeInStringWith(queryType, this.config.getUri().toString(), "help");
-                int index = helpUri.indexOf("help");
-                if (index != -1) {
-                    helpUri = helpUri.substring(0, index + "help".length());
-                } else {
-                    logger.debug("Help word was not found, using original url");
-                    helpUri = this.config.getUri().getHost().concat(HELP);
-                }
-                logger.debug("Help URI built {}", helpUri);
+        var queryType = RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.getType(this.config.getUri().toString());
+        String helpUri = null;
+        if (Objects.nonNull(queryType)) {
+            helpUri = CommonUtils.replaceQueryTypeInStringWith(queryType, this.config.getUri().toString(), "help");
+            int index = helpUri.indexOf("help");
+            if (index != -1) {
+                helpUri = helpUri.substring(0, index + "help".length());
             } else {
+                logger.debug("Help word was not found, using original url");
                 helpUri = this.config.getUri().getHost().concat(HELP);
             }
-
-            logger.info("Making request to: {}", helpUri);
-            HttpResponse<String> response = null;
-
-            response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUri), this.config.getTimeout());
-            int status = response.statusCode();
-            StatusCodes.add(status);
-
-            // final response
-            httpHelpResponse = response;
-            return validateHelpQuery(httpHelpResponse, isValid);
-        } catch (Exception e) {
-            logger.debug("Help query was not able to be called"); // catch for all subclasses of these exceptionn
+            logger.debug("Help URI built {}", helpUri);
+        } else {
+            helpUri = this.config.getUri().getHost().concat(HELP);
         }
 
-        return isValid;
+        logger.info("Making request to: {}", helpUri);
+        HttpResponse<String> response = null;
+
+        response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUri), this.config.getTimeout());
+        int status = response.statusCode();
+        StatusCodes.add(status);
+
+        // final response
+        httpHelpResponse = response;
+        return validateHelpQuery(httpHelpResponse, isValid);
     }
 
     private boolean validateHelpQuery(HttpResponse<String> httpHelpResponse, boolean isValid) {

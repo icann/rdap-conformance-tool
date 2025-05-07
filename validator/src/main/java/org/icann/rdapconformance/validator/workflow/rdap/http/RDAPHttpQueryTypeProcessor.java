@@ -98,18 +98,6 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
       this.pattern = pattern;
     }
 
-    public static String replaceToHelpQuery(RDAPHttpQueryType httpQueryType, String originalString) {
-      return switch (httpQueryType) {
-        case RDAPHttpQueryType.DOMAIN -> originalString.replace("domain", "help");
-        case RDAPHttpQueryType.NAMESERVER -> originalString.replace("nameserver", "help");
-        case RDAPHttpQueryType.AUTNUM -> originalString.replace("autnum", "help");
-        case RDAPHttpQueryType.ENTITY -> originalString.replace("entity", "help");
-        case RDAPHttpQueryType.IP -> originalString.replace("ip", "help");
-        case RDAPHttpQueryType.NAMESERVERS -> originalString.replace("nameservers", "help");
-        default -> originalString;
-      };
-    }
-
     public static RDAPHttpQueryType getType(String query) {
       for (RDAPHttpQueryType qt : RDAPHttpQueryType.values()) {
         Matcher matcher = qt.pattern.matcher(query);
