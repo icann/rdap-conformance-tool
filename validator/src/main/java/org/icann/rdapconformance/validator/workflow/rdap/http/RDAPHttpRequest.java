@@ -161,6 +161,7 @@ public class RDAPHttpRequest {
 
         CloseableHttpClient client = HttpClientBuilder.create()
                                                       .setConnectionManager(connectionManager)
+                                                      .disableRedirectHandling()
                                                       .build();
 
         ConnectionTracker tracker = ConnectionTracker.getInstance();

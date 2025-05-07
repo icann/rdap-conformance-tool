@@ -4,6 +4,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PREFIX;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PREFIX;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,6 +16,8 @@ import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.Map.Entry;
 
+import org.icann.rdapconformance.validator.ConnectionStatus;
+import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -77,6 +80,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
         }
       } catch (Exception e) {
         logger.info("Exception when making HTTP request in order to check [tigSection_1_2_Validation]", e);
+        ConnectionTracker.getInstance().completeCurrentConnection(ZERO, ConnectionStatus.CONNECTION_FAILED); // this SHOULD be a failure
         isValid = false; // Mark as failed but do not throw the exception
       }
     }

@@ -22,8 +22,6 @@ import java.util.Optional;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
-import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
