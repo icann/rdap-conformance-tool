@@ -155,10 +155,6 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         query.checkWithQueryType(queryTypeProcessor.getQueryType());
 
-        if (config.isNetworkEnabled() && ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
-            logger.info("Detected a test.invalid domain query with HTTP 200 response code.");
-        }
-
         if (query.isErrorContent()) {
             validator = new SchemaValidator("rdap_error.json", results, datasetService);
         } else {
@@ -203,7 +199,6 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Log URI, IP address, and redirects
         String ipAddress = NetworkInfo.getServerIpAddress();
         List<URI> redirects = (query instanceof RDAPHttpQuery httpQuery) ? httpQuery.getRedirects() : List.of();
-//        errorState.addErrorInfo(RDAPValidationStatus.SUCCESS.getValue(), config.getUri().toString(), redirects.size());
 
 
         logger.info("URI used for the query: {}", config.getUri());
