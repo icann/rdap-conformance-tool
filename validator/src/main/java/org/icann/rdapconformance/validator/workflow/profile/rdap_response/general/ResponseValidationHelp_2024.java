@@ -68,7 +68,7 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
         return validateHelpQuery(httpHelpResponse, isValid);
     }
 
-    private boolean validateHelpQuery(HttpResponse<String> httpHelpResponse, boolean isValid) {
+    boolean validateHelpQuery(HttpResponse<String> httpHelpResponse, boolean isValid) {
         RDAPHttpQuery.JsonData jsonHelpResponse = null;
         int httpHelpStatusCode = httpHelpResponse.statusCode();
         String rdapHelpResponse = httpHelpResponse.body();

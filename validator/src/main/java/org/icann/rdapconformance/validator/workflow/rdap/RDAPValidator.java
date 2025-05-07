@@ -280,7 +280,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             logger.info("Network enabled tests for 2024 profile");
             validations.add(new TigValidation1Dot5_2024(rdapResponse, config, results)); // SSL Network connection
             validations.add(new ResponseValidationTestInvalidRedirect_2024(config, results)); // Network connection
-            validations.add(new ResponseValidationHelp_2024(config, results)); //Help query
+            validations.add(new ResponseValidationHelp_2024(config, results)); // Network connection
         }
 
         return validations;

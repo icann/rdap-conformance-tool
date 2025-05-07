@@ -41,7 +41,6 @@ public class RDAPHttpQuery implements RDAPQuery {
     public static final String ERROR_CODE = "errorCode";
     public static final String RDAP_CONFORMANCE = "rdapConformance";
     public static final String NAMESERVER_SEARCH_RESULTS = "nameserverSearchResults";
-    public static final String HELP = "/help";
 
     private List<URI> redirects = new ArrayList<>();
     private String acceptHeader;
