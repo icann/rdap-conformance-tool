@@ -37,7 +37,6 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
     @Override
     public boolean doValidate() throws Exception {
         boolean isValid = true;
-        HttpResponse<String> httpHelpResponse = null;
 
         logger.debug("Creating help query for host {}", config.getUri().getHost());
         var queryType = RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.getType(this.config.getUri().toString());
@@ -60,12 +59,9 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
         HttpResponse<String> response = null;
 
         response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUri), this.config.getTimeout());
-        int status = response.statusCode();
-        StatusCodes.add(status);
 
         // final response
-        httpHelpResponse = response;
-        return validateHelpQuery(httpHelpResponse, isValid);
+        return validateHelpQuery(response, isValid);
     }
 
     boolean validateHelpQuery(HttpResponse<String> httpHelpResponse, boolean isValid) {
