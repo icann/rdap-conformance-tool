@@ -378,13 +378,13 @@ public class RDAPHttpQuery implements RDAPQuery {
 
       boolean objectClassExists = true;
       if(!jsonResponse.hasKey("objectClassName")) {
-          logger.info("Validating objectClass property in top level");
+          logger.info("Validating: objectClass property in top level");
           objectClassExists = false;
       }
 
       Object entitiesObj = jsonResponse.getValue(ENTITIES);
       if(objectClassExists && entitiesObj instanceof List<?> entities) {
-          logger.info("Validating objectClass property in entities");
+          logger.info("Validating: objectClass property in entities");
           objectClassExists = verifyIfObjectClassPropExits(entities, ENTITIES);
           if(objectClassExists) {
               objectClassExists = verifyIfObjectClassPropExits(entities, AUTNUMS);
@@ -397,7 +397,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
       Object nameserversObj = jsonResponse.getValue(NAMESERVERS);
       if(objectClassExists && nameserversObj instanceof List<?> nameservers) {
-          logger.info("Validating objectClass property in nameservers");
+          logger.info("Validating: objectClass property in nameservers");
           objectClassExists = verifyIfObjectClassPropExits(nameservers, NAMESERVERS);
       }
 

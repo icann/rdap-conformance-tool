@@ -8,6 +8,9 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
+import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
+import static org.icann.rdapconformance.validator.CommonUtils.TOO_MANY_REQUESTS;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.net.UnknownHostException;
 import org.icann.rdapconformance.validator.ConnectionStatus;
@@ -41,8 +44,6 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
-import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -50,7 +51,6 @@ import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.util.Timeout;
-import org.apache.hc.core5.util.TimeValue;
 
 
 public class RDAPHttpRequest {
@@ -62,6 +62,7 @@ public class RDAPHttpRequest {
     public static final String CLOSE = "close";
 
 
+
     public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeoutSeconds) throws Exception {
         return makeRequest(uri, timeoutSeconds, GET);
     }
@@ -70,112 +71,137 @@ public class RDAPHttpRequest {
         return makeRequest(uri, timeoutSeconds, HEAD);
     }
 
+    //   ConnectionTracker tracker = ConnectionTracker.getInstance();
+    //        tracker.startTrackingNewConnection(originalUri);
+
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method) throws Exception {
-        NetworkInfo.setHttpMethod(method); // set this first before anything
-
-        if (originalUri == null) {
-            throw new IllegalArgumentException("The provided URI is null. Ensure the URI is properly set before making the request.");
-        }
-        String host;
-
-       // Check if the host is "localhost" and replace it with "127.0.0.1"
-        host = originalUri.getHost();
-        if (LOCALHOST.equalsIgnoreCase(host)) {
-            host = LOCAL_IPv4;
-        } else {
-            host = originalUri.getHost();
-        }
-
-        // if host is not 127.0.0.1 or localhost, we need to resolve the host
-        if(DNSCacheResolver.hasNoAddresses(host)) {
-            logger.info("No IP address found for host: " + host);
-            throw new UnknownHostException("No IP address found for host: " + host);
-        }
-
-        int port = originalUri.getPort() == -1
-            ? (originalUri.getScheme().equalsIgnoreCase(HTTPS) ? HTTPS_PORT : HTTP_PORT)
-            : originalUri.getPort();
-
-        InetAddress remoteAddress = null;
-        if (NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) {
-            remoteAddress = DNSCacheResolver.getFirstV6Address(host);
-        } else if (NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv4) {
-            remoteAddress = DNSCacheResolver.getFirstV4Address(host);
-        }
-
-        if(remoteAddress == null) {
-            throw new UnknownHostException("IP address lookup failed for host: " + host);
-        }
-
-        // set the url to the ip address
-        URI ipUri = new URI(
-            originalUri.getScheme(),
-            null,
-            remoteAddress.getHostAddress(),
-            port,
-            originalUri.getRawPath(),
-            originalUri.getRawQuery(),
-            originalUri.getRawFragment()
-        );
-
-        // Ensure we update NetworkInfo on what we are doing
-        NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
-        logger.info("Connecting to: {} using {} with header `{}`" , remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol(), NetworkInfo.getAcceptHeader());
-
-        // determine which of the two methods to use
-        HttpUriRequestBase request = method.equals(GET)
-            ? new HttpGet(ipUri)
-            : new HttpHead(ipUri);
-
-        // set what we need on the request
-        request.setHeader(HOST, host); // Super important, breaks without it
-        request.setHeader(ACCEPT, NetworkInfo.getAcceptHeader());
-        request.setHeader(CONNECTION, CLOSE);
-
-        RequestConfig config = RequestConfig.custom()
-                                            .setConnectTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
-                                            .setResponseTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
-                                            .build();
-
-        request.setConfig(config);
-
-        TrustStrategy acceptAll = (X509Certificate[] chain, String authType) -> true;
-        SSLContext sslContext = SSLContextBuilder.create()
-                                                 .loadTrustMaterial(null, acceptAll) // yes, we have to trust everyone b/c we are using the IP adder and this will break otherwise
-                                                 .build();
-
-        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                                                                                                        .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
-                                                                                                                                                              .setSslContext(sslContext)
-                                                                                                                                                              .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
-                                                                                                                                                              .setHostnameVerifier((hostname, session) -> true)
-                                                                                                                                                              .build())
-                                                                                                        .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
-                                                                                                        .setConnPoolPolicy(PoolReusePolicy.LIFO)
-                                                                                                        .setDefaultConnectionConfig(org.apache.hc.client5.http.config.ConnectionConfig.custom()
-                                                                                                                                                                                      .setSocketTimeout(Timeout.ofMinutes(1))
-                                                                                                                                                                                      .setConnectTimeout(Timeout.ofMinutes(1))
-                                                                                                                                                                                      .setTimeToLive(TimeValue.ofMinutes(10))
-                                                                                                                                                                                      .build())
-                                                                                                        .build();
-
-        CloseableHttpClient client = HttpClientBuilder.create()
-                                                      .setConnectionManager(connectionManager)
-                                                      .disableRedirectHandling()
-                                                      .build();
-
+        NetworkInfo.setHttpMethod(method);
         ConnectionTracker tracker = ConnectionTracker.getInstance();
         tracker.startTrackingNewConnection(originalUri);
 
-        try (ClassicHttpResponse response = client.execute(request)) {
-            String body = response.getEntity() != null
-                ? EntityUtils.toString(response.getEntity())
-                : EMPTY_STRING;
-            int statusCode = response.getCode();
-            logger.info("Response status code: {}", statusCode);
-            tracker.completeCurrentConnection(statusCode, ConnectionStatus.SUCCESS);
-            return new SimpleHttpResponse(statusCode, body, originalUri, response.getHeaders());
+        if (originalUri == null) {
+            logger.error("The provided URI is null. Ensure the URI is properly set before making the request.");
+            tracker.completeCurrentConnection(0, ConnectionStatus.CONNECTION_FAILED);
+            return new SimpleHttpResponse(0, EMPTY_STRING, originalUri, new Header[0]);
         }
+
+        int maxRetries = 3;
+        int attempt = 0;
+
+        while (attempt <= maxRetries) {
+
+            String host = originalUri.getHost();
+            if (LOCALHOST.equalsIgnoreCase(host)) {
+                host = LOCAL_IPv4;
+            }
+
+            if (DNSCacheResolver.hasNoAddresses(host)) {
+                logger.info("No IP address found for host: " + host);
+                tracker.completeCurrentConnection(0, ConnectionStatus.UNKNOWN_HOST);
+                return new SimpleHttpResponse(0, EMPTY_STRING, originalUri, new Header[0]);
+            }
+
+            int port = originalUri.getPort() == -1
+                ? (originalUri.getScheme().equalsIgnoreCase(HTTPS) ? HTTPS_PORT : HTTP_PORT)
+                : originalUri.getPort();
+
+            InetAddress remoteAddress = NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
+                ? DNSCacheResolver.getFirstV6Address(host)
+                : DNSCacheResolver.getFirstV4Address(host);
+
+            if (remoteAddress == null) {
+                logger.warn("IP address lookup failed for host: " + host);
+                tracker.completeCurrentConnection(0, ConnectionStatus.UNKNOWN_HOST);
+                return new SimpleHttpResponse(0, EMPTY_STRING, originalUri, new Header[0]);
+            }
+
+            URI ipUri = new URI(
+                originalUri.getScheme(),
+                null,
+                remoteAddress.getHostAddress(),
+                port,
+                originalUri.getRawPath(),
+                originalUri.getRawQuery(),
+                originalUri.getRawFragment()
+            );
+
+            NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
+            logger.info("Connecting to: {} using {} with header `{}`", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol(), NetworkInfo.getAcceptHeader());
+
+            HttpUriRequestBase request = method.equals(GET) ? new HttpGet(ipUri) : new HttpHead(ipUri);
+            request.setHeader(HOST, host);
+            request.setHeader(ACCEPT, NetworkInfo.getAcceptHeader());
+            request.setHeader(CONNECTION, CLOSE);
+
+            RequestConfig config = RequestConfig.custom()
+                                                .setConnectTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
+                                                .setResponseTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
+                                                .build();
+            request.setConfig(config);
+
+            TrustStrategy acceptAll = (chain, authType) -> true;
+            SSLContext sslContext = SSLContextBuilder.create()
+                                                     .loadTrustMaterial(null, acceptAll)
+                                                     .build();
+
+            PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                                                                                                            .setSSLSocketFactory(
+                                                                                                                SSLConnectionSocketFactoryBuilder.create()
+                                                                                                                                                 .setSslContext(sslContext)
+                                                                                                                                                 .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
+                                                                                                                                                 .setHostnameVerifier((hostname, session) -> true)
+                                                                                                                                                 .build()
+                                                                                                            ).build();
+
+            try (CloseableHttpClient client = HttpClientBuilder.create()
+                                                               .setConnectionManager(connectionManager)
+                                                               .disableRedirectHandling()
+                                                               .build();
+                ClassicHttpResponse response = client.execute(request)) {
+
+                int statusCode = response.getCode();
+                String body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
+
+                if (statusCode == 429) {
+                    long backoffSeconds = getBackoffTime(response);
+                    logger.warn("429 Too Many Requests. Backing off {} seconds. Attempt {}/{}", backoffSeconds, attempt + 1, maxRetries);
+                    attempt++;
+
+                    if (attempt > maxRetries) {
+                        tracker.completeCurrentConnection(statusCode, ConnectionStatus.TOO_MANY_REQUESTS);
+                        return new SimpleHttpResponse(statusCode, body, originalUri, response.getHeaders());
+                    }
+
+                    Thread.sleep(backoffSeconds * 1000L);
+                    continue;
+                }
+
+                tracker.completeCurrentConnection(statusCode, ConnectionStatus.SUCCESS);
+                return new SimpleHttpResponse(statusCode, body, originalUri, response.getHeaders());
+            }
+        }
+
+        // This should only be hit if loop exits without a response
+        tracker.completeCurrentConnection(429, ConnectionStatus.TOO_MANY_REQUESTS);
+        return new SimpleHttpResponse(429, EMPTY_STRING, originalUri, new Header[0]);
+    }
+
+    private static long getBackoffTime(ClassicHttpResponse response) {
+        Header retryAfter = response.getFirstHeader("Retry-After");
+        if (retryAfter != null) {
+            try {
+                return Long.parseLong(retryAfter.getValue());
+            } catch (NumberFormatException ignored) {}
+        }
+
+        Header reset = response.getFirstHeader("X-Ratelimit-Reset");
+        if (reset != null) {
+            try {
+                return Long.parseLong(reset.getValue());
+            } catch (NumberFormatException ignored) {}
+        }
+
+        return 5; // default backoff
     }
 
     public static class SimpleHttpResponse implements HttpResponse<String> {
