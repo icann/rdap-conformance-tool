@@ -88,6 +88,7 @@ public class ResponseValidationHelp_2024Test {
     assertTrue(result);
 
     mockRequest.close();
+    queryTypeProcessor.close();
   }
 
   @Test
