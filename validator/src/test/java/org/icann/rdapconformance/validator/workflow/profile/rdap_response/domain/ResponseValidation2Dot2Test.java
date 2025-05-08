@@ -80,7 +80,7 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
       // Run the test with our mocked configuration
       String value = givenReservedICANNHandle();
       getProfileValidation();
-      validate(-46202, value,
+      validate(-46205, value,
           "The globally unique identifier in the domain object handle is using an EPPROID reserved for testing by ICANN.");
     } finally {
       // Restore the original configuration
