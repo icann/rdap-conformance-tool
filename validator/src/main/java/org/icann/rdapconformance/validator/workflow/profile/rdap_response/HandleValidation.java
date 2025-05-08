@@ -73,7 +73,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
 
     if (roid.endsWith(ICANNRST) && this.queryType.equals(RDAPQueryType.DOMAIN) && this.config.useRdapProfileFeb2024()) {
       results.add(RDAPValidationResult.builder()
-                                      .code(-46202)
+                                      .code(-46205)
                                       .value(getResultValue(handleJsonPointer))
                                       .message(
                                           "The globally unique identifier in the domain object handle is using an EPPROID reserved for testing by ICANN.")
