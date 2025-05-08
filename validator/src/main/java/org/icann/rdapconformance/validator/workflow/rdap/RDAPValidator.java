@@ -12,6 +12,7 @@ import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.*;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,8 +82,6 @@ public class RDAPValidator implements ValidatorWorkflow {
     private final ConfigurationFileParser configParser;
     private final RDAPValidatorResults results;
     private final RDAPDatasetService datasetService;
-
-    private String resultsPath;
 
     public RDAPValidator(RDAPValidatorConfiguration config,
                          FileSystem fileSystem,
@@ -269,6 +268,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidationStatusDuplication_2024(query.getData(), results)); // clean
         validations.add(new StdRdapConformanceValidation_2024(query.getData(), results)); // clean
         validations.add(new TigValidation3Dot2_2024(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new TigValidation3Dot3And3Dot4_2024(query.getData(), results, config)); // clean
 
         // Conditionally add validations that require network connections
         if (config.isNetworkEnabled()) {
