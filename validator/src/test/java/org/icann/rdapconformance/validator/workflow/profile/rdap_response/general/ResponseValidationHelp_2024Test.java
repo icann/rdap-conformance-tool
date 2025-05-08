@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
@@ -8,6 +9,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeP
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
@@ -43,6 +45,37 @@ public class ResponseValidationHelp_2024Test {
     URI uri = new URI("http://example.com/rdap");
     when(mockConfig.getUri()).thenReturn(uri);
     when(mockConfig.getTimeout()).thenReturn(1000);
+
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+    when(mockResponse.statusCode()).thenReturn(200);
+    when(mockResponse.body()).thenReturn("{\"rdapConformance\":[],\"notices\":[]}");
+
+    MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
+    mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+
+    boolean result = responseValidator.doValidate();
+    assertTrue(result);
+
+    mockRequest.close();
+  }
+
+  @Test
+  public void testDoValidate_HelpTypeUrl_WithHelpInUri_AndQueryType() throws Exception {
+    URI uri = new URI("http://example.com/rdap");
+    MockedStatic<RDAPHttpQueryTypeProcessor.RDAPHttpQueryType> queryTypeProcessor = Mockito.mockStatic(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.class);
+    queryTypeProcessor.when(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType::values)
+            .thenReturn(new RDAPHttpQueryTypeProcessor.RDAPHttpQueryType[] {
+                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.DOMAIN,
+                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP,
+                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.AUTNUM,
+                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.ENTITY,
+                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVER,
+                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS,
+                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.HELP});
+
+    when(mockConfig.getUri()).thenReturn(uri);
+    when(mockConfig.getTimeout()).thenReturn(1000);
+    when(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.getType(uri.toString())).thenReturn(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.DOMAIN);
 
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(200);
