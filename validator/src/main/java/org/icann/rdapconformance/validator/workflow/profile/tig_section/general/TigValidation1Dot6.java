@@ -45,14 +45,12 @@ public final class TigValidation1Dot6 extends ProfileValidation {
             .message("The HTTP Status code obtained when using the HEAD method is different from "
                 + "the GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.")
             .build());
-        ConnectionTracker.getInstance().completeCurrentConnection(httpResponse.statusCode(), ConnectionStatus.SUCCESS);
         return false;
       }
     } catch (Exception e) {
       logger.info(
           "Exception when making HTTP HEAD request in order to check [tigSection_1_6_Validation]",
           e);
-      ConnectionTracker.getInstance().completeCurrentConnection(ZERO, ConnectionStatus.CONNECTION_FAILED);
       return false;
     }
     return true;

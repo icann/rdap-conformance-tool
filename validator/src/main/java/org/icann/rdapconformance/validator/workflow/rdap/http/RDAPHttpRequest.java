@@ -8,8 +8,15 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
+import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.net.http.HttpTimeoutException;
+import javax.imageio.IIOException;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
@@ -71,6 +78,10 @@ public class RDAPHttpRequest {
     }
 
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method) throws Exception {
+        return makeRequest(originalUri, timeoutSeconds, method, false);
+    }
+
+    public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain) throws Exception {
         NetworkInfo.setHttpMethod(method); // set this first before anything
 
         if (originalUri == null) {
@@ -165,7 +176,7 @@ public class RDAPHttpRequest {
                                                       .build();
 
         ConnectionTracker tracker = ConnectionTracker.getInstance();
-        String trackingId = tracker.startTrackingNewConnection(originalUri);
+        String trackingId = tracker.startTrackingNewConnection(originalUri, isMain);
 
         try (ClassicHttpResponse response = client.execute(request)) {
             String body = response.getEntity() != null
@@ -175,8 +186,98 @@ public class RDAPHttpRequest {
             logger.info("Response status code: {}", statusCode);
             tracker.completeCurrentConnection(statusCode, ConnectionStatus.SUCCESS);
             return new SimpleHttpResponse(trackingId, statusCode, body, originalUri, response.getHeaders());
+        } catch (IOException ioe) {
+            logger.error("Error during HTTP request: {}", ioe.getMessage());
+            System.out.println("[trackingID] " + trackingId + " - Error during HTTP request: " + ioe.getMessage());
+            tracker.completeCurrentConnection(0, ConnectionStatus.CONNECTION_FAILED);
+            handleRequestException(ioe);
+            return new SimpleHttpResponse(trackingId, 0, EMPTY_STRING, originalUri, null);
         }
     }
+
+    /**
+     * Handle exceptions that occur during the HTTP request.
+     */
+    private static void handleRequestException(IOException e) {
+        if (e instanceof UnknownHostException) {
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
+            return;
+        }
+
+        if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
+            if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
+                addErrorToResultsFile(-13016, "no response available", "Network send fail");
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
+            } else {
+                addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
+            }
+            return;
+        }
+
+        if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
+            addErrorToResultsFile(-13011, "no response available", "Expired certificate.");
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
+            return;
+        } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
+            addErrorToResultsFile(-13010, "no response available", "Revoked TLS certificate.");
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
+            return;
+        } else if (hasCause(e, "java.security.cert.CertificateException")) {
+            if (e.getMessage().contains("No name matching") ||
+                e.getMessage().contains("No subject alternative DNS name matching")) {
+                addErrorToResultsFile(-13009, "no response available", "Invalid TLS certificate.");
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
+                return;
+            }
+            addErrorToResultsFile(-13012, "no response available", "TLS certificate error.");
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
+            return;
+        } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
+            addErrorToResultsFile(-13008, "no response available", "TLS handshake failed.");
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
+            return;
+        } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
+            addErrorToResultsFile(-13012, "no response available", "TLS certificate error.");
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
+            return;
+        }
+
+        // Differentiates between  NETWORK_SEND_FAIL and NETWORK_RECEIVE_FAIL
+        if (e instanceof SocketTimeoutException) {
+            if (e.getMessage().contains("Read timed out")) {
+                addErrorToResultsFile(-13017, "no response available", "Network receive fail");
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+            } else {
+                addErrorToResultsFile(-13016, "no response available", "Network send fail");
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
+            }
+            return;
+        } else if (e instanceof EOFException) {
+            addErrorToResultsFile(-13017, "no response available", "Network receive fail");
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+            return;
+        } else if (e.getMessage().contains("Connection reset") || e.getMessage().contains("Connection closed by peer")) {
+            addErrorToResultsFile(-13017, "no response available", "Network receive fail");
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+            return;
+        }
+
+        // Default to CONNECTION_FAILED if no specific cause identified
+        addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
+        ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
+    }
+
+    private static boolean hasCause(Throwable e, String causeClassName) {
+        while (e.getCause() != null) {
+            if (e.getCause().getClass().getName().equals(causeClassName)) {
+                return true;
+            }
+            e = e.getCause();
+        }
+        return false;
+    }
+
 
     public static class SimpleHttpResponse implements HttpResponse<String> {
         private final int statusCode;

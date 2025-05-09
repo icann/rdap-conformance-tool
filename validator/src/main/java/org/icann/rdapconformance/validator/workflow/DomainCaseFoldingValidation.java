@@ -59,10 +59,11 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
     URI uri = URI.create(rdapResponse.uri().toString().replace(domainName, newDomain));
     try {
       HttpResponse<String> httpResponse = RDAPHttpRequest.makeHttpGetRequest(uri, config.getTimeout());
-      JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
-      JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
-      if (jsonComparator.compare(httpResponseJson, httpsResponseJson) != 0) {
+
+      // Check if we got a non-200 response first
+      if (httpResponse.statusCode() != rdapResponse.statusCode()) {
         results.add(RDAPValidationResult.builder()
+                                        .queriedURI(uri.toString())
                                         .httpStatusCode(httpResponse.statusCode())
                                         .httpMethod("GET")
                                         .code(-10403)
@@ -71,17 +72,48 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
                                         .build());
         return false;
       }
-    } catch (JsonParseException e) {
-      System.out.println("Error parsing JSON response: " + e.getMessage());
+
+      // Try to parse as JSON
+      JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
+      JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
+
+      if (jsonComparator.compare(httpResponseJson, httpsResponseJson) != 0) {
+        results.add(RDAPValidationResult.builder()
+                                        .queriedURI(uri.toString())
+                                        .httpStatusCode(httpResponse.statusCode())
+                                        .httpMethod("GET")
+                                        .code(-10403)
+                                        .value(uri.toString())
+                                        .message("RDAP responses do not match when handling domain label case folding.")
+                                        .build());
+        return false;
+      }
+    } catch (JsonParseException | JsonMappingException e) {
       logger.error(
-          "Exception when making HTTP request in order to check [domainCaseFoldingValidation]",
+          "Exception when parsing JSON response in [domainCaseFoldingValidation]",
           e);
+      results.add(RDAPValidationResult.builder()
+                                      .queriedURI(uri.toString())
+                                      .httpMethod("GET")
+                                      .code(-10403)
+                                      .value(uri.toString())
+                                      .message("RDAP responses do not match when handling domain label case folding.")
+                                      .build());
+      return false;
     } catch (JsonProcessingException e) {
       logger.error(
-          "Exception when making HTTP request in order to check [domainCaseFoldingValidation]",
+          "Exception when processing JSON in [domainCaseFoldingValidation]",
           e);
+      results.add(RDAPValidationResult.builder()
+                                      .queriedURI(uri.toString())
+                                      .httpMethod("GET")
+                                      .code(-10403)
+                                      .value(uri.toString())
+                                      .message("RDAP responses do not match when handling domain label case folding.")
+                                      .build());
+      return false;
     }
-      return true;
+    return true;
   }
 
   @Override

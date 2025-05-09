@@ -30,7 +30,6 @@ public final class TigValidation1Dot13 extends ProfileValidation {
       HttpResponse<String> response = responseOpt.get();
       if (!response.headers().allValues("Access-Control-Allow-Origin").contains("*")) {
         results.add(RDAPValidationResult.builder()
-                   .httpStatusCode(response.statusCode())
                    .code(-20500)
                    .value(response.headers().map().entrySet().stream()
                    .map(e -> e.getKey() + "=" + e.getValue().toString())

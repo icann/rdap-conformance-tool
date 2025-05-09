@@ -78,6 +78,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     if(!config.isNoIpv4Queries()) {
       if (ipv4Addresses.isEmpty()) {
         results.add(RDAPValidationResult.builder()
+                                        .queriedURI("-")
                                         .httpMethod("-")
                                         .httpStatusCode(null)
                                         .code(-20400)
@@ -99,6 +100,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     if(!config.isNoIpv6Queries()) {
       if (ipv6Addresses.isEmpty()) {
         results.add(RDAPValidationResult.builder()
+                                        .queriedURI("-")
                                         .httpMethod("-")
                                         .httpStatusCode(null)
                                         .code(-20401)

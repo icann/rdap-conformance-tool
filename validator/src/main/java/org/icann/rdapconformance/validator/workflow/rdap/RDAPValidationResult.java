@@ -13,8 +13,11 @@ public class RDAPValidationResult {
   private final String httpMethod;
   private final String serverIpAddress;
   private final Integer httpStatusCode;
+  private final String queriedURI;
 
-  public RDAPValidationResult(int code, String value, String message, String acceptHeader, String httpMethod, String serverIpAddress, Integer httpStatusCode) {
+  public RDAPValidationResult(int code, String value, String message, String acceptHeader,
+                              String httpMethod, String serverIpAddress,
+                              Integer httpStatusCode, String queriedURI) {
     this.code = code;
     this.value = value;
     this.message = message;
@@ -22,6 +25,7 @@ public class RDAPValidationResult {
     this.httpMethod = httpMethod;
     this.serverIpAddress = serverIpAddress;
     this.httpStatusCode = httpStatusCode;
+    this.queriedURI = queriedURI;
   }
 
   public static Builder builder() {
@@ -54,6 +58,8 @@ public class RDAPValidationResult {
 
   public Integer getHttpStatusCode() { return httpStatusCode; }
 
+  public String getQueriedURI() { return queriedURI; }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -69,12 +75,13 @@ public class RDAPValidationResult {
         Objects.equals(acceptHeader, result.acceptHeader) &&
         Objects.equals(httpMethod, result.httpMethod) &&
         Objects.equals(serverIpAddress, result.serverIpAddress) &&
-        Objects.equals(httpStatusCode, result.httpStatusCode);
+        Objects.equals(httpStatusCode, result.httpStatusCode) &&
+        Objects.equals(queriedURI, result.queriedURI);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(code, value, message, acceptHeader, httpMethod, serverIpAddress, httpStatusCode);
+    return Objects.hash(code, value, message, acceptHeader, httpMethod, serverIpAddress, httpStatusCode, queriedURI);
   }
 
   @Override
@@ -87,6 +94,7 @@ public class RDAPValidationResult {
         ", httpMethod='" + httpMethod + '\'' +
         ", serverIpAddress='" + serverIpAddress + '\'' +
         ", httpStatusCode='" + httpStatusCode + '\'' +
+        ", queriedURI='" + queriedURI + '\'' +
         '}';
   }
 
@@ -97,6 +105,7 @@ public class RDAPValidationResult {
     private String message;
     private String httpMethod;
     private Integer httpStatusCode;
+    private String queriedURI;
 
     public Builder code(int code) {
       this.code = code;
@@ -123,9 +132,14 @@ public class RDAPValidationResult {
       return this;
     }
 
+    public Builder queriedURI(String queriedURI) {
+      this.queriedURI = queriedURI;
+      return this;
+    }
+
 
     public RDAPValidationResult build() {
-      Integer statusCodeFromCurrent = ConnectionTracker.getCurrentStatusCode();
+      Integer statusCodeFromCurrent = ConnectionTracker.getMainStatusCode();
 
       return new RDAPValidationResult(
           this.code,
@@ -135,7 +149,8 @@ public class RDAPValidationResult {
           NetworkInfo.getAcceptHeader(),
           this.httpMethod != null ? this.httpMethod : NetworkInfo.getHttpMethod(),
           NetworkInfo.getServerIpAddress(),
-          this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent
+          this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
+          this.queriedURI
       );
     }
   }

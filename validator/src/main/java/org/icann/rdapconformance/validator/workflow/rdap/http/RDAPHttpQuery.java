@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.icann.rdapconformance.validator.CommonUtils.CONTENT_TYPE;
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
 import static org.icann.rdapconformance.validator.CommonUtils.SEMI_COLON;
@@ -196,10 +197,13 @@ public class RDAPHttpQuery implements RDAPQuery {
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
-                response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
+                response = RDAPHttpRequest.makeRequest(currentUri, this.config.getTimeout(), GET, true);
                 int status = response.statusCode();
                 StatusCodes.add(status);
-                this.connectionTrackingId  = ConnectionTracker.getInstance().getLastConnection().getTrackingId();
+                if(status == 0) { // there was an exception - fail and get out
+                    isQuerySuccessful = false;
+                    return;
+                }
 
                 if (isRedirectStatus(status)) {
                     Optional<String> location = response.headers().firstValue(LOCATION);
@@ -238,7 +242,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             // if we exit the loop without a redirect, we have a final response
             httpResponse = response;
         } catch (Exception e) {
-            handleRequestException(e); // catch for all subclasses of these exceptions
+            logger.info("Exception when making HTTP request", e);
         }
     }
 
@@ -251,7 +255,6 @@ public class RDAPHttpQuery implements RDAPQuery {
         }
 
         // else continue on
-
         int httpStatusCode = httpResponse.statusCode();
         HttpHeaders headers = httpResponse.headers();
         String rdapResponse = httpResponse.body();
@@ -310,74 +313,6 @@ public class RDAPHttpQuery implements RDAPQuery {
         return false; // not copying them, so don't worry
     }
 
-
-    /**
-     * Handle exceptions that occur during the HTTP request.
-     */
-    private void handleRequestException(Exception e) {
-        System.out.println("EXCEPTION--------> " + e.getMessage());
-        e.printStackTrace();
-        if( e instanceof UnknownHostException) {
-            // we eat this one - it is checked all the way in the beginning and registered in the results file - do not double up.
-            status = ConnectionStatus.UNKNOWN_HOST;
-            ConnectionTracker.getInstance().updateCurrentConnection(status);
-            return;
-        }
-
-        if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
-            if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
-                status = ConnectionStatus.NETWORK_SEND_FAIL;
-                addErrorToResultsFile(-13016, "no response available", "Network send fail");
-            } else {
-                status = ConnectionStatus.CONNECTION_FAILED;
-                addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
-            }
-            ConnectionTracker.getInstance().updateCurrentConnection(status);
-            return;
-        }
-
-        if (e instanceof IOException) {
-            status = analyzeIOException((IOException) e);
-            ConnectionTracker.getInstance().updateCurrentConnection(status);
-            return;
-        }
-
-        // Fall through
-        status = ConnectionStatus.CONNECTION_FAILED;
-        addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
-        ConnectionTracker.getInstance().updateCurrentConnection(status);
-    }
-
-    /**
-     * Analyze the IOException to determine the connection status.
-     */
-    private ConnectionStatus analyzeIOException(IOException e) {
-        if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
-            addErrorToResultsFile(-13011, "no response available", "Expired certificate.");
-            return ConnectionStatus.EXPIRED_CERTIFICATE;
-        } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
-            addErrorToResultsFile(-13010, "no response available", "Revoked TLS certificate.");
-            return ConnectionStatus.REVOKED_CERTIFICATE;
-        } else if (hasCause(e, "java.security.cert.CertificateException")) {
-            if (e.getMessage().contains("No name matching") ||
-                e.getMessage().contains("No subject alternative DNS name matching")) {
-                addErrorToResultsFile(-13009, "no response available", "Invalid TLS certificate.");
-                return ConnectionStatus.INVALID_CERTIFICATE;
-            }
-            addErrorToResultsFile(-13012, "no response available", "TLS certificate error.");
-            return ConnectionStatus.CERTIFICATE_ERROR;
-        } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
-            addErrorToResultsFile(-13008, "no response available", "TLS handshake failed.");
-            return ConnectionStatus.HANDSHAKE_FAILED;
-        } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
-            addErrorToResultsFile(-13012, "no response available", "TLS certificate error.");
-            return ConnectionStatus.CERTIFICATE_ERROR;
-        }
-
-        addErrorToResultsFile(-13017, "no response available", "Network receive fail");
-        return ConnectionStatus.NETWORK_RECEIVE_FAIL;
-    }
-
   /* *
   /**
    * Check if the RDAP json response contains a specific key.
@@ -425,15 +360,6 @@ public class RDAPHttpQuery implements RDAPQuery {
             && jsonResponse.getValue(NAMESERVER_SEARCH_RESULTS) instanceof Collection<?>;
     }
 
-  private boolean hasCause(Throwable e, String causeClassName) {
-    while (e.getCause() != null) {
-      if (e.getCause().getClass().getName().equals(causeClassName)) {
-        return true;
-      }
-      e = e.getCause();
-    }
-    return false;
-  }
 
   static class JsonData {
 
