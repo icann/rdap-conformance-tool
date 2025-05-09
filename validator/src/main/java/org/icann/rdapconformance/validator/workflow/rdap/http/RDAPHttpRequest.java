@@ -165,7 +165,7 @@ public class RDAPHttpRequest {
                                                       .build();
 
         ConnectionTracker tracker = ConnectionTracker.getInstance();
-        tracker.startTrackingNewConnection(originalUri);
+        String trackingId = tracker.startTrackingNewConnection(originalUri);
 
         try (ClassicHttpResponse response = client.execute(request)) {
             String body = response.getEntity() != null
@@ -174,7 +174,7 @@ public class RDAPHttpRequest {
             int statusCode = response.getCode();
             logger.info("Response status code: {}", statusCode);
             tracker.completeCurrentConnection(statusCode, ConnectionStatus.SUCCESS);
-            return new SimpleHttpResponse(statusCode, body, originalUri, response.getHeaders());
+            return new SimpleHttpResponse(trackingId, statusCode, body, originalUri, response.getHeaders());
         }
     }
 
@@ -183,11 +183,13 @@ public class RDAPHttpRequest {
         private final String body;
         private final URI uri;
         private final Map<String, List<String>> headers;
+        private final String trackingId;
 
-        public SimpleHttpResponse(int statusCode, String body, URI uri, Header[] headers) {
+        public SimpleHttpResponse(String trackingId, int statusCode, String body, URI uri, Header[] headers) {
             this.statusCode = statusCode;
             this.body = body;
             this.uri = uri;
+            this.trackingId = trackingId;
 
             Map<String, List<String>> headersMap = new HashMap<>();
             if (headers != null) {
@@ -198,6 +200,8 @@ public class RDAPHttpRequest {
             }
             this.headers = headersMap;
         }
+
+        public String getTrackingId() { return trackingId; }
 
         @Override
         public int statusCode() {

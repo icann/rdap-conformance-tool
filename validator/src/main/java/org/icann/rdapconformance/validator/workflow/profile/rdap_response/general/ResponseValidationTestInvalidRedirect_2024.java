@@ -52,6 +52,7 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
             logger.info("Status code for test.invalid: {}", status);
             if (status == HTTP_OK) { // if it returns a 200 - that is an error
                 results.add(RDAPValidationResult.builder()
+                                                .httpStatusCode(status)
                                                 .code(-13006)
                                                 .value(createTestInvalidURI().toString())
                                                 .message("Server responded with a 200 OK for 'test.invalid'.")
@@ -75,6 +76,7 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
             // Check if the redirect points to itself
             if (locationUri.equals(createTestInvalidURI())) {
                 results.add(RDAPValidationResult.builder()
+                                                .httpStatusCode(response.statusCode())
                                                 .code(-13005)
                                                 .value(locationHeader)
                                                 .message("Server responded with a redirect to itself for domain 'test.invalid'.")

@@ -82,6 +82,8 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                     if (!"TLSv1.2".equalsIgnoreCase(enabledProtocol) && !"TLSv1.3".equalsIgnoreCase(enabledProtocol)) {
                         results.add(RDAPValidationResult.builder()
                             .code(-61100)
+                            .httpStatusCode(null)
+                            .httpMethod("-")
                             .value(response.uri().toString())
                             .message("The RDAP server must only use TLS 1.2 or TLS 1.3")
                             .build());
@@ -106,6 +108,8 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
 
                                 results.add(RDAPValidationResult.builder()
                                     .code(-61101)
+                                    .httpStatusCode(null)
+                                    .httpMethod("-")
                                     .value(response.uri().toString())
                                     .message("The RDAP server must use one of the following cipher suites when using TLS 1.2: "
                                         + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, "

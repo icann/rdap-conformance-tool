@@ -1,10 +1,14 @@
 package org.icann.rdapconformance.validator.workflow;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.lang.UCharacter;
 import java.net.URI;
 import java.net.http.HttpResponse;
+import org.icann.rdapconformance.validator.ConnectionStatus;
+import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2.RDAPJsonComparator;
@@ -14,6 +18,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonParseException;
 
 public class DomainCaseFoldingValidation extends ProfileValidation {
 
@@ -43,7 +49,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
   }
 
   @Override
-  protected boolean doValidate() {
+  protected boolean doValidate() throws Exception {
     String newDomain = foldDomain();
     // if it is not foldeable:
     if (domainName.equals(newDomain)) {
@@ -52,25 +58,30 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
 
     URI uri = URI.create(rdapResponse.uri().toString().replace(domainName, newDomain));
     try {
-      HttpResponse<String> httpResponse = RDAPHttpRequest
-          .makeHttpGetRequest(uri, config.getTimeout());
+      HttpResponse<String> httpResponse = RDAPHttpRequest.makeHttpGetRequest(uri, config.getTimeout());
       JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
       JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
       if (jsonComparator.compare(httpResponseJson, httpsResponseJson) != 0) {
         results.add(RDAPValidationResult.builder()
-            .code(-10403)
-            .value(uri.toString())
-            .message("RDAP responses do not match when handling domain label case folding.")
-            .build());
+                                        .httpStatusCode(httpResponse.statusCode())
+                                        .httpMethod("GET")
+                                        .code(-10403)
+                                        .value(uri.toString())
+                                        .message("RDAP responses do not match when handling domain label case folding.")
+                                        .build());
         return false;
       }
-    } catch (Exception e) {
+    } catch (JsonParseException e) {
+      System.out.println("Error parsing JSON response: " + e.getMessage());
+      logger.error(
+          "Exception when making HTTP request in order to check [domainCaseFoldingValidation]",
+          e);
+    } catch (JsonProcessingException e) {
       logger.error(
           "Exception when making HTTP request in order to check [domainCaseFoldingValidation]",
           e);
     }
-
-    return true;
+      return true;
   }
 
   @Override

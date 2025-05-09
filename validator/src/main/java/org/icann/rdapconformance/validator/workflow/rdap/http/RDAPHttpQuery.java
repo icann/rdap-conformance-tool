@@ -54,6 +54,7 @@ public class RDAPHttpQuery implements RDAPQuery {
     private final RDAPValidatorConfiguration config;
     private RDAPValidatorResults results = null;
     private HttpResponse<String> httpResponse = null;
+    private String connectionTrackingId = "";
 
     private JsonData jsonResponse = null;
     private boolean isQuerySuccessful = true;
@@ -106,6 +107,13 @@ public class RDAPHttpQuery implements RDAPQuery {
        */
       public List<URI> getRedirects() {
         return redirects;
+      }
+
+      /**
+       * Get the connection tracking ID
+       */
+      public String getConnectionTrackingId() {
+          return connectionTrackingId;
       }
 
       /**
@@ -191,6 +199,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                 response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
                 int status = response.statusCode();
                 StatusCodes.add(status);
+                this.connectionTrackingId  = ConnectionTracker.getInstance().getLastConnection().getTrackingId();
 
                 if (isRedirectStatus(status)) {
                     Optional<String> location = response.headers().firstValue(LOCATION);
@@ -306,6 +315,8 @@ public class RDAPHttpQuery implements RDAPQuery {
      * Handle exceptions that occur during the HTTP request.
      */
     private void handleRequestException(Exception e) {
+        System.out.println("EXCEPTION--------> " + e.getMessage());
+        e.printStackTrace();
         if( e instanceof UnknownHostException) {
             // we eat this one - it is checked all the way in the beginning and registered in the results file - do not double up.
             status = ConnectionStatus.UNKNOWN_HOST;

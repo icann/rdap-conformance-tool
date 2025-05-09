@@ -12,9 +12,9 @@ public class RDAPValidationResult {
   private final String acceptHeader;
   private final String httpMethod;
   private final String serverIpAddress;
-  private final String httpStatusCode;
+  private final Integer httpStatusCode;
 
-  public RDAPValidationResult(int code, String value, String message, String acceptHeader, String httpMethod, String serverIpAddress, String httpStatusCode) {
+  public RDAPValidationResult(int code, String value, String message, String acceptHeader, String httpMethod, String serverIpAddress, Integer httpStatusCode) {
     this.code = code;
     this.value = value;
     this.message = message;
@@ -52,7 +52,7 @@ public class RDAPValidationResult {
     return serverIpAddress;
   }
 
-  public String getHttpStatusCode() { return httpStatusCode; }
+  public Integer getHttpStatusCode() { return httpStatusCode; }
 
   @Override
   public boolean equals(Object o) {
@@ -95,6 +95,8 @@ public class RDAPValidationResult {
     private int code;
     private String value;
     private String message;
+    private String httpMethod;
+    private Integer httpStatusCode;
 
     public Builder code(int code) {
       this.code = code;
@@ -111,16 +113,29 @@ public class RDAPValidationResult {
       return this;
     }
 
+    public Builder httpMethod(String httpMethod) {
+      this.httpMethod = httpMethod;
+      return this;
+    }
+
+    public Builder httpStatusCode(Integer httpStatusCode) {
+      this.httpStatusCode = httpStatusCode;
+      return this;
+    }
+
+
     public RDAPValidationResult build() {
+      Integer statusCodeFromCurrent = ConnectionTracker.getCurrentStatusCode();
+
       return new RDAPValidationResult(
           this.code,
           this.value,
           this.message,
           // these are a snapshot of the current state of the connection
           NetworkInfo.getAcceptHeader(),
-          NetworkInfo.getHttpMethod(),
+          this.httpMethod != null ? this.httpMethod : NetworkInfo.getHttpMethod(),
           NetworkInfo.getServerIpAddress(),
-          ConnectionTracker.getCurrentStatusCodeAsString()
+          this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent
       );
     }
   }

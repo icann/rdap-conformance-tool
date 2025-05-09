@@ -83,6 +83,7 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
       return false;
     }
 
+    System.out.println("[47205] ------------------------------->>> " + handle);
     String endOfNameServerHandle = handle.substring(handle.indexOf(HYPHEN) + ONE);
     if (endOfNameServerHandle.endsWith(ICANNRST) && this.queryType.equals(RDAPQueryType.DOMAIN) && this.config.useRdapProfileFeb2024()) {
       addErrorToResultsFile(-47205, getResultValue(handleJsonPointer),

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.NetworkInfo;
+import org.icann.rdapconformance.validator.ResponseHolder;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
@@ -18,6 +19,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.genera
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.StdRdapConformanceValidation_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,7 +180,11 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         assert null != validator;
         validator.validate(query.getData()); // validates the JSON
-        HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
+        RDAPHttpRequest.SimpleHttpResponse rdapResponse = (RDAPHttpRequest.SimpleHttpResponse ) query.getRawResponse();
+        // Store response in the ResponseHolder
+        ResponseHolder.getInstance().setCurrentResponse(rdapResponse);
+
+        logger.info("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
 
         if (rdapResponse != null && !query.isErrorContent() && config.isNetworkEnabled()) {
             new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate(); // Network calls
