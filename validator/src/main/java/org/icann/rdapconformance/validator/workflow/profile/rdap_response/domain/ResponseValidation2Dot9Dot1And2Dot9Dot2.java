@@ -1,8 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-import static org.icann.rdapconformance.validator.CommonUtils.HYPHEN;
-import static org.icann.rdapconformance.validator.CommonUtils.ONE;
-import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 import static org.json.JSONObject.NULL;
 
 import java.util.HashSet;
@@ -19,10 +16,7 @@ import org.json.JSONObject;
 
 public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidation {
 
-  public static final String NAMESERVERS_PATH = "$.nameservers[*]";
-  public static final String HANDLE_PATH = "$.handle";
   private final RDAPValidatorConfiguration config;
-  public static final String ICANNRST = "ICANNRST";
 
   public ResponseValidation2Dot9Dot1And2Dot9Dot2(RDAPValidatorConfiguration config,
       String rdapResponse,
@@ -40,95 +34,43 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
 
   @Override
   protected boolean doValidate() {
-    if (config.isGtldRegistrar()) {
-      return doValidationFor291();
-    } else {
-      // Only if the 2024 flag is checked
-      if(this.config.useRdapProfileFeb2024()) {
-        return doValidationFor292();
+    boolean isValid = true;
+    Set<String> nsWithoutStatus = new HashSet<>();
+    boolean oneWithStatus = false;
+    Set<String> nsWithoutHandle = new HashSet<>();
+    boolean oneWithHandle = false;
+    Set<String> jsonPointers = getPointerFromJPath("$.nameservers[*]");
+
+    for (String jsonPointer : jsonPointers) {
+      JSONObject nameserver = (JSONObject) jsonObject.query(jsonPointer);
+      if (NULL.equals(nameserver.opt("handle"))) {
+        nsWithoutHandle.add(jsonPointer);
       } else {
-        return false;
+        oneWithHandle = true;
       }
+      if (NULL.equals(nameserver.opt("status"))) {
+        nsWithoutStatus.add(jsonPointer);
+      } else {
+        oneWithStatus = true;
+      }
+      isValid &= checkLdhName(jsonPointer);
+      isValid &= checkHandles(jsonPointer);
+      isValid &= checkStatuses(jsonPointer);
     }
-  }
 
-  public boolean doValidationFor292() {
-    boolean isValid = true;
-    Set<String> jsonPointers = getPointerFromJPath(NAMESERVERS_PATH);
-    for (String jsonPointer : jsonPointers) {
-      isValid &= checkHandleForNameServers292(jsonPointer);
+    if ((oneWithHandle && !nsWithoutHandle.isEmpty()) || (oneWithStatus && !nsWithoutStatus
+        .isEmpty())) {
+      nsWithoutHandle.addAll(nsWithoutStatus);
+      nsWithoutHandle.forEach(jsonPointer ->
+          results.add(RDAPValidationResult.builder()
+              .code(-47203)
+              .value(getResultValue(jsonPointer))
+              .message("The handle or status in the nameserver object is not included.")
+              .build()));
+      isValid = false;
     }
 
     return isValid;
-  }
-
-  public boolean checkHandleForNameServers292(String nameserverJsonPointer) {
-    boolean isValid = true;
-    JSONObject nameserver = (JSONObject) jsonObject.query(nameserverJsonPointer);
-    Set<String> jsonPointers = getPointerFromJPath(nameserver, HANDLE_PATH);
-    for (String jsonPointer : jsonPointers) {
-      isValid &= validateHandle292(nameserverJsonPointer.concat(jsonPointer.substring(ONE)));
-    }
-    return isValid;
-  }
-
-  public boolean validateHandle292(String handleJsonPointer) {
-    String handle = null;
-    Object obj = jsonObject.query(handleJsonPointer);
-    if (obj != null) {
-      handle = obj.toString();
-    }
-
-    if (handle == null || !handle.matches("(\\w|_){1,80}-\\w{1,8}")) {
-      return false;
-    }
-
-    String endOfNameServerHandle = handle.substring(handle.indexOf(HYPHEN) + ONE);
-    if (endOfNameServerHandle.endsWith(ICANNRST) && this.queryType.equals(RDAPQueryType.DOMAIN) && this.config.useRdapProfileFeb2024()) {
-      addErrorToResultsFile(-47205, getResultValue(handleJsonPointer),
-          "The globally unique identifier in the nameserver object handle is using an EPPROID reserved for testing by ICANN.");
-    return false;
-    }
-    return true;
-  }
-
-  private boolean doValidationFor291() {
-      boolean isValid = true;
-      Set<String> nsWithoutStatus = new HashSet<>();
-      boolean oneWithStatus = false;
-      Set<String> nsWithoutHandle = new HashSet<>();
-      boolean oneWithHandle = false;
-      Set<String> jsonPointers = getPointerFromJPath(NAMESERVERS_PATH);
-
-      for (String jsonPointer : jsonPointers) {
-        JSONObject nameserver = (JSONObject) jsonObject.query(jsonPointer);
-        if (NULL.equals(nameserver.opt("handle"))) {
-          nsWithoutHandle.add(jsonPointer);
-        } else {
-          oneWithHandle = true;
-        }
-        if (NULL.equals(nameserver.opt("status"))) {
-          nsWithoutStatus.add(jsonPointer);
-        } else {
-          oneWithStatus = true;
-        }
-        isValid &= checkLdhName(jsonPointer);
-        isValid &= checkHandles(jsonPointer);
-        isValid &= checkStatuses(jsonPointer);
-      }
-
-      if ((oneWithHandle && !nsWithoutHandle.isEmpty()) || (oneWithStatus && !nsWithoutStatus.isEmpty())) {
-        nsWithoutHandle.addAll(nsWithoutStatus);
-        nsWithoutHandle.forEach(jsonPointer -> results.add(RDAPValidationResult.builder()
-                                                                               .code(-47203)
-                                                                               .value(getResultValue(jsonPointer))
-                                                                               .message(
-                                                                                   "The handle or status in the nameserver object is not included.")
-                                                                               .build()));
-        isValid = false;
-      }
-
-      return isValid;
   }
 
   private boolean checkLdhName(String nameserverJsonPointer) {
@@ -146,10 +88,11 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
 
   private boolean checkHandles(String nameserverJsonPointer) {
     boolean isValid = true;
+
     JSONObject nameserver = (JSONObject) jsonObject.query(nameserverJsonPointer);
-    Set<String> jsonPointers = getPointerFromJPath(nameserver, HANDLE_PATH);
+    Set<String> jsonPointers = getPointerFromJPath(nameserver, "$.handle");
     for (String jsonPointer : jsonPointers) {
-      isValid &= validateHandle(nameserverJsonPointer.concat(jsonPointer.substring(ONE)));
+      isValid &= validateHandle(nameserverJsonPointer.concat(jsonPointer.substring(1)));
     }
     return isValid;
   }
@@ -191,6 +134,6 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
 
   @Override
   public boolean doLaunch() {
-     return  queryType.equals(RDAPQueryType.DOMAIN);
+     return config.isGtldRegistrar() && queryType.equals(RDAPQueryType.DOMAIN);
   }
 }

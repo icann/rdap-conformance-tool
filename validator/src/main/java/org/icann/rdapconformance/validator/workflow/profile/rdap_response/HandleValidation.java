@@ -10,9 +10,16 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 
+
+/**
+ * Used by the following validations:
+ *  ResponseValidation2Dot2
+ *  ResponseValidation2Dot7Dot1DotXAndRelated3And4 (via SimpleHandleValidation)
+ *  ResponseValidation2Dot9Dot1And2Dot9Dot2
+ *  ResponseValidation4Dot1Handle
+ */
 public abstract class HandleValidation extends ProfileJsonValidation {
 
-  public static final String ICANNRST = "ICANNRST";
   private final RDAPDatasetService datasetService;
   protected final RDAPQueryType queryType;
   private RDAPValidatorConfiguration config;
@@ -59,28 +66,6 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .build());
       return false;
     }
-
-    if (roid.contains(ICANNRST) && this.queryType.equals(RDAPQueryType.NAMESERVER) && this.config.useRdapProfileFeb2024()) {
-      results.add(RDAPValidationResult.builder()
-                                      .code(-49104)
-                                      .value(getResultValue(handleJsonPointer))
-                                      .message(
-                                          "The globally unique identifier in the nameserver object handle is using an EPPROID reserved for testing by ICANN.")
-                                      .build());
-      return false;
-    }
-
-
-    if (roid.endsWith(ICANNRST) && this.queryType.equals(RDAPQueryType.DOMAIN) && this.config.useRdapProfileFeb2024()) {
-      results.add(RDAPValidationResult.builder()
-                                      .code(-46205)
-                                      .value(getResultValue(handleJsonPointer))
-                                      .message(
-                                          "The globally unique identifier in the domain object handle is using an EPPROID reserved for testing by ICANN.")
-                                      .build());
-      return false;
-    }
-
     return true;
   }
 }
