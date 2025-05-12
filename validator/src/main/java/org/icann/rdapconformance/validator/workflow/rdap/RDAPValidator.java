@@ -179,6 +179,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         if(config.isAdditionalConformanceQueries()) {
             logger.info("Validations for additional conformance queries");
             new ResponseValidationHelp_2024(config, results).validate();
+            new ResponseValidationDomainInvalid_2024(config, results).validate();
         }
 
         if (config.useRdapProfileFeb2019() && !query.isErrorContent()) {
@@ -276,6 +277,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot5_2024(rdapResponse, config, results)); // SSL Network connection
             validations.add(new ResponseValidationTestInvalidRedirect_2024(config, results)); // Network connection
             validations.add(new ResponseValidationHelp_2024(config, results)); // Network connection
+            validations.add(new ResponseValidationDomainInvalid_2024(config, results)); // Network connection
         }
 
         return validations;
