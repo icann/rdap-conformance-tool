@@ -8,6 +8,8 @@ public interface RDAPQuery {
 
 ConformanceError getErrorStatus();
 
+void setErrorStatus(ConformanceError errorStatus);
+
   boolean run();
 
   Optional<Integer> getStatusCode();

@@ -13,7 +13,8 @@ public enum ToolResult implements ConformanceError {
     MIXED_LABEL_FORMAT(4,
         "The RDAP query is domain/<domain name> or nameserver/<nameserver>, " + "but A-labels and U-labels are mixed"),
     USES_THIN_MODEL(9, "The RDAP query is invalid because the TLD uses the thin model"),
-    FILE_WRITE_ERROR(21, "Failure in writing to results file");
+    FILE_WRITE_ERROR(21, "Failure in writing to results file"),
+    FILE_READ_ERROR(22, "Failure in reading from results file");
 
     private final int code;
     private final String description;

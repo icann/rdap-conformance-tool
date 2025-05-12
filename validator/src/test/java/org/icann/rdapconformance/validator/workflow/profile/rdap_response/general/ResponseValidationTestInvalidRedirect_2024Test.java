@@ -122,6 +122,9 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         HttpResponse<String> response = mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(200);  // 200 OK response
 
+        // Mock the URI in the response to avoid NullPointerException
+        when(response.uri()).thenReturn(URI.create("http://example.com/rdap/domain/test.invalid"));
+
         MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
         mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
 

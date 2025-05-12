@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.NetworkInfo;
-import org.icann.rdapconformance.validator.ResponseHolder;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
@@ -154,9 +153,10 @@ public class RDAPValidator implements ValidatorWorkflow {
             return  queryTypeProcessor.getErrorStatus().getCode();
         }
 
+        // XXX
         query.setResults(results);
         if (!query.run()) {
-            if (query.getErrorStatus() == null) {
+            if (query.getErrorStatus() == null || query.getErrorStatus() == ToolResult.SUCCESS) {
                 return ToolResult.SUCCESS.getCode();
             }
            ConformanceError errorCode =  query.getErrorStatus();
@@ -181,8 +181,6 @@ public class RDAPValidator implements ValidatorWorkflow {
         assert null != validator;
         validator.validate(query.getData()); // validates the JSON
         RDAPHttpRequest.SimpleHttpResponse rdapResponse = (RDAPHttpRequest.SimpleHttpResponse ) query.getRawResponse();
-        // Store response in the ResponseHolder
-        ResponseHolder.getInstance().setCurrentResponse(rdapResponse);
 
         logger.info("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
 
