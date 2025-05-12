@@ -99,7 +99,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
 
       // do v6
-      if(executeIPv6Queries) {
+      if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
         NetworkInfo.setStackToV6();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v6ret = validator.validate();
@@ -110,7 +110,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       }
 
       // do v4
-      if(executeIPv4Queries) {
+      if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
         NetworkInfo.setStackToV4();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v4ret = validator.validate();
@@ -136,9 +136,8 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   }
 
   private void doZeroIPAddressesValidation(String url, boolean executeIPv6Queries, boolean executeIPv4Queries) throws  Exception {
-    URI uri = new URI(url);
-    String hostname = uri.getHost();
-    if (hostname == null || hostname.isEmpty()) {
+    String hostname = DNSCacheResolver.getHostnameFromUrl(url);
+    if (hostname.isEmpty()) {
       addErrorToResultsFile(-13019, "no response available", "Invalid hostname in URL.");
       return;
     }

@@ -82,8 +82,6 @@ public class RDAPHttpRequest {
     }
 
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain) throws Exception {
-        NetworkInfo.setHttpMethod(method); // set this first before anything
-
         if (originalUri == null) {
             throw new IllegalArgumentException("The provided URI is null. Ensure the URI is properly set before making the request.");
         }
@@ -176,7 +174,7 @@ public class RDAPHttpRequest {
                                                       .build();
 
         ConnectionTracker tracker = ConnectionTracker.getInstance();
-        String trackingId = tracker.startTrackingNewConnection(originalUri, isMain);
+        String trackingId = tracker.startTrackingNewConnection(originalUri, method, isMain);
     try {
         ClassicHttpResponse response = executeRequest(client, request);
             String body = response.getEntity() != null

@@ -72,6 +72,22 @@ public class DNSCacheResolver {
         return Collections.unmodifiableList(CACHE_V4.getOrDefault(name, Collections.emptyList()));
     }
 
+    public static boolean hasV4Addresses(String uri) {
+        String fqdn = getHostnameFromUrl(uri);
+        String name = ensureFQDN(fqdn);
+        resolveIfNeeded(name);
+        List<InetAddress> addresses = CACHE_V4.getOrDefault(name, Collections.emptyList());
+        return !addresses.isEmpty();
+    }
+
+    public static boolean hasV6Addresses(String uri) {
+        String fqdn = getHostnameFromUrl(uri);
+        String name = ensureFQDN(fqdn);
+        resolveIfNeeded(name);
+        List<InetAddress> addresses = CACHE_V6.getOrDefault(name, Collections.emptyList());
+        return !addresses.isEmpty();
+    }
+
     public static List<InetAddress> getAllV6Addresses(String fqdn) {
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
@@ -162,6 +178,17 @@ public class DNSCacheResolver {
 
         logger.info("Final resolved {} [{}] → {} record(s)", fqdn, Type.string(type), results.size());
         return results;
+    }
+
+    public static String getHostnameFromUrl(String url) {
+        try {
+            URI uri = new URI(url);
+            String hostname = uri.getHost();
+            return hostname != null ? hostname : "";
+        } catch (URISyntaxException e) {
+            logger.error("Failed to parse URL: {}", url, e);
+            return "";
+        }
     }
 
     public static InetAddress getFirst(Map<String, List<InetAddress>> cache, String fqdn) {

@@ -61,15 +61,7 @@ public class ConnectionTracker {
         ConnectionRecord record = connectionsByTrackingId.get(trackingId);
         return record != null ? record.getStatusCode() : 0;
     }
-
-    /**
-     * Start tracking a new connection using the current NetworkInfo state
-     * @param uri The URI being requested
-     * @return The tracking ID of the new connection
-     */
-    public synchronized String startTrackingNewConnection(URI uri) {
-        return startTrackingNewConnection(uri, false);
-    }
+    
 
     /**
      * Start tracking a new connection using the current NetworkInfo state
@@ -77,7 +69,7 @@ public class ConnectionTracker {
      * @param isMainConnection Whether this is a main connection
      * @return The tracking ID of the new connection
      */
-    public synchronized String startTrackingNewConnection(URI uri, boolean isMainConnection) {
+    public synchronized String startTrackingNewConnection(URI uri, String httpMethod, boolean isMainConnection) {
         String trackingId = generateTrackingId();
         ConnectionRecord record = new ConnectionRecord(
             uri,
@@ -86,7 +78,7 @@ public class ConnectionTracker {
             ZERO,  // Status code not yet known
             null,  // Duration not yet known
             null,  // Status not yet known
-            NetworkInfo.getHttpMethod(),
+            httpMethod,
             Instant.now(),
             trackingId,
             isMainConnection

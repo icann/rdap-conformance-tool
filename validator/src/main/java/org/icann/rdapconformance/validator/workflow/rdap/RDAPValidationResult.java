@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
+
 import java.util.Objects;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.NetworkInfo;
@@ -147,7 +149,7 @@ public class RDAPValidationResult {
           this.message,
           // these are a snapshot of the current state of the connection
           NetworkInfo.getAcceptHeader(),
-          this.httpMethod != null ? this.httpMethod : NetworkInfo.getHttpMethod(),
+          this.httpMethod != null ? this.httpMethod : GET, // the default is GET unless you explicitly set it
           NetworkInfo.getServerIpAddress(),
           this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
           this.queriedURI
