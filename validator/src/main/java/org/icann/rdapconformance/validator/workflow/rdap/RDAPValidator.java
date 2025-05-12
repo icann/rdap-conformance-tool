@@ -153,7 +153,6 @@ public class RDAPValidator implements ValidatorWorkflow {
             return  queryTypeProcessor.getErrorStatus().getCode();
         }
 
-        // XXX
         query.setResults(results);
         if (!query.run()) {
             if (query.getErrorStatus() == null || query.getErrorStatus() == ToolResult.SUCCESS) {

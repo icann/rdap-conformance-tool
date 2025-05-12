@@ -191,10 +191,8 @@ public class RDAPHttpRequest {
         } catch (IOException ioe) {
             logger.info("[trackingID:  {}]  Error during HTTP request:  {}", trackingId, ioe.getMessage());
             ConnectionStatus connStatus = handleRequestException(ioe);
-            System.out.println("connStatus: " + connStatus);
-            // Update the tracker with the determined status
+            // Update the tracker with the  status
             tracker.completeCurrentConnection(0, connStatus);
-
             SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(trackingId, 0, EMPTY_STRING, originalUri, null);
             simpleHttpResponse.setConnectionStatusCode(connStatus);
             return simpleHttpResponse;
@@ -210,7 +208,6 @@ public class RDAPHttpRequest {
      * Handle exceptions that occur during the HTTP request.
      */
     public static ConnectionStatus handleRequestException(IOException e) {
-        System.out.println("--------------------> Exception: " + e.getMessage());
         if (e instanceof UnknownHostException) {
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
@@ -222,14 +219,12 @@ public class RDAPHttpRequest {
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
                 return ConnectionStatus.NETWORK_SEND_FAIL;
             } else {
-                System.out.println("XXXX--------------------> Connection refused: " + e.getMessage());
                 addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
                 return ConnectionStatus.CONNECTION_FAILED;
             }
         }
 
-        System.out.println("Check the causes .....");
         if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
             addErrorToResultsFile(-13011, "no response available", "Expired certificate.");
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
@@ -239,7 +234,6 @@ public class RDAPHttpRequest {
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
             return ConnectionStatus.REVOKED_CERTIFICATE;
         } else if (hasCause(e, "java.security.cert.CertificateException")) {
-            System.out.println("EXEXEXEX--------------------> CertificateException: " + e.getMessage());
             if (e.getMessage().contains("No name matching") ||
                 e.getMessage().contains("No subject alternative DNS name matching")) {
                 addErrorToResultsFile(-13009, "no response available", "Invalid TLS certificate.");
@@ -288,7 +282,6 @@ public class RDAPHttpRequest {
 
     public static boolean hasCause(Throwable e, String causeClassName) {
         while (e.getCause() != null) {
-            System.out.println("CauseName: " + e.getCause().getClass().getName());
             if (e.getCause().getClass().getName().equals(causeClassName)) {
                 return true;
             }

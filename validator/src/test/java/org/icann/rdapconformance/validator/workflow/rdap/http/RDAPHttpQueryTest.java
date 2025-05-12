@@ -17,13 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
 import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 
-import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.EXPIRED;
-import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.EXPIRED_CERT_PORT;
-import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.INVALID_CERT_PORT;
-import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.INVALID_HOST;
-import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.UNTRUSTED;
-import static org.icann.rdapconformance.validator.workflow.rdap.http.MultiCertHttpsTestServer.UNTRUSTED_ROOT_CERT_PORT;
-
 import java.net.InetAddress;
 import java.util.HashMap;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
@@ -48,17 +41,7 @@ import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 import org.mockito.MockedStatic;
 
-import java.io.InputStream;
-import java.net.http.HttpResponse;
-import java.security.KeyStore;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-
-import java.io.IOException;
 import java.net.ConnectException;
-import java.net.http.HttpTimeoutException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.lang.reflect.Method;
@@ -74,7 +57,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 
 public class RDAPHttpQueryTest extends HttpTestingUtils {
-  public static final String HTTPS_LOCALHOST = "https://127.0.0.1:";
   public static final String HTTP_TEST_EXAMPLE = "http://test.example";
   public static final String LOCAL_8080 = "http://127.0.0.1:8080";
   public static final int TIMEOUT_SECONDS = 10;
@@ -238,7 +220,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(expectedStatus);
     assertThat(results.getAll()).contains(expectedResult);
   }
-  
+
   @Test
   public void test_ConnectionTimeout_ReturnsErrorStatus10() {
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
@@ -294,7 +276,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     verify(exactly(1), getRequestedFor(urlEqualTo(path1)));
     verify(exactly(1), getRequestedFor(urlEqualTo(path2)));
     verify(exactly(1), getRequestedFor(urlEqualTo(path3)));
-
   }
 
   @Test
@@ -313,12 +294,10 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     URI uri3 = URI.create(LOCAL_8080 + path3);
     URI uri4 = URI.create(LOCAL_8080 + path4);
 
-    // Set the initial URI and max redirects in the config mock
     doReturn(uri1).when(config).getUri();
     doReturn(2).when(config).getMaxRedirects(); // Only allow 2 redirects
 
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-      // Create SimpleHttpResponse objects with status codes and headers
       RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
       when(response1.statusCode()).thenReturn(REDIRECT);
       when(response1.body()).thenReturn("");
@@ -340,7 +319,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       when(response3.headers()).thenReturn(HttpHeaders.of(Map.of(LOCATION, List.of(uri4.toString())), (k, v) -> true));
       when(response3.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
 
-      // Mock the makeRequest calls
       mockedStatic.when(() -> RDAPHttpRequest.makeRequest(eq(uri1), anyInt(), eq("GET"), eq(true)))
                   .thenReturn(response1);
       mockedStatic.when(() -> RDAPHttpRequest.makeRequest(eq(uri2), anyInt(), eq("GET"), eq(true)))
@@ -348,10 +326,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       mockedStatic.when(() -> RDAPHttpRequest.makeRequest(eq(uri3), anyInt(), eq("GET"), eq(true)))
                   .thenReturn(response3);
 
-      // Run the query
+
       boolean result = rdapHttpQuery.run();
 
-      // Verify expected behavior
       assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.TOO_MANY_REDIRECTS);
       assertThat(result).isFalse();
     }
@@ -421,7 +398,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     doReturn(uri1).when(config).getUri();
 
-    // Create SimpleHttpResponse mocks instead of regular HttpResponse mocks
     RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
 
     HttpHeaders headers1 = mock(HttpHeaders.class);
@@ -470,49 +446,40 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
   @Test
   public void test_NoContentType_ErrorCode13000AddedInResults() throws Exception {
-    // Prepare test configuration
     RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
     URI testUri = URI.create("https://example.com/domain/example.com");
     when(config.getUri()).thenReturn(testUri);
     when(config.getTimeout()).thenReturn(30);
     when(config.getMaxRedirects()).thenReturn(5);
 
-    // Create real results object to capture validation results
     RDAPValidatorResults results =RDAPValidatorResultsImpl.getInstance();
     results.clear();
 
     try (MockedStatic<DNSCacheResolver> dnsResolverMock = Mockito.mockStatic(DNSCacheResolver.class);
         MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class)) {
 
-      // Mock DNS resolution
       dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
       InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
       dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-      // Create a response with incorrect Content-Type
       Map<String, List<String>> headers = new HashMap<>();
       headers.put("Content-Type", List.of("application/json")); // Not application/rdap+JSON
 
-      // Create a valid JSON response
       String responseBody = "{\"objectClassName\": \"domain\"}";
 
-      // Create mock HTTP response
       RDAPHttpRequest.SimpleHttpResponse response = mock(RDAPHttpRequest.SimpleHttpResponse.class);
       when(response.statusCode()).thenReturn(200);
       when(response.body()).thenReturn(responseBody);
       when(response.headers()).thenReturn(HttpHeaders.of(headers, (k, v) -> true));
       when(response.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
 
-      // Setup mock to return our prepared response
       httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean()))
                      .thenReturn(response);
 
-      // Create and run the query
       RDAPHttpQuery query = new RDAPHttpQuery(config);
       query.setResults(results);
       query.run();
 
-      // Verify that error code -13000 was added to the results with the correct message
       assertThat(results.getAll()).contains(
           RDAPValidationResult.builder()
                               .code(-13000)
@@ -521,7 +488,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                               .build()
       );
 
-      // Verify we have exactly one error
       assertThat(results.getAll()).hasSize(1);
     }
   }
@@ -642,7 +608,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody(response)));
 
-    // XXX
     assertThat(rdapHttpQuery.run()).isTrue();
     assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.NAMESERVERS)).isTrue();
   }
@@ -843,7 +808,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     doReturn(uri1).when(config).getUri();
 
-    // Create SimpleHttpResponse mocks instead of regular HttpResponse mocks
     RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
     RDAPHttpRequest.SimpleHttpResponse response2 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
     RDAPHttpRequest.SimpleHttpResponse response3 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
@@ -869,7 +833,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     when(headers3.allValues("Content-Type")).thenReturn(List.of("application/rdap+JSON"));
 
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-      // Use the SimpleHttpResponse mocks
       mockedStatic.when(() -> RDAPHttpRequest.makeRequest(uri1, config.getTimeout(), "GET", true))
                   .thenReturn(response1);
       mockedStatic.when(() -> RDAPHttpRequest.makeRequest(uri2, config.getTimeout(), "GET", true))
@@ -877,10 +840,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       mockedStatic.when(() -> RDAPHttpRequest.makeRequest(uri3, config.getTimeout(), "GET", true))
                   .thenReturn(response3);
 
-      // Call run() which will process the redirects
       rdapHttpQuery.run();
-
-      // Verify the redirects were tracked
       List<URI> redirects = rdapHttpQuery.getRedirects();
       assertThat(redirects).containsExactly(uri2, uri3);
     }
@@ -897,20 +857,17 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class);
         MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class)) {
 
-      // Mock DNS resolver to skip DNS checks
       dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(any(String.class)))
                      .thenReturn(false);
       InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
       dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(any(String.class)))
                      .thenReturn(mockAddress);
 
-      // Important: Don't mock makeRequest - let it call the real method
-      // Instead, mock the executeRequest method which is called by makeRequest
       ConnectException connectException = new ConnectException("Connection refused");
       mockedStatic.when(() -> RDAPHttpRequest.executeRequest(any(CloseableHttpClient.class), any(HttpUriRequestBase.class)))
                   .thenThrow(connectException);
 
-      // Allow the real makeRequest method to be called
+      // Allow the real stuff to be called
       mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), eq("GET"), eq(true)))
                   .thenCallRealMethod();
       mockedStatic.when(() -> RDAPHttpRequest.handleRequestException(any()))
@@ -923,16 +880,11 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(URI.class), anyInt()))
                   .thenCallRealMethod();
 
-      // Run the query - should fail due to connection error
       boolean result = rdapHttpQuery.run();
-
-      // Verify the query failed
       assertThat(result).isFalse();
 
-      // Verify the correct error status was set
       assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.CONNECTION_FAILED);
 
-      // Verify the correct validation result was added
       assertThat(results.getAll()).contains(
           RDAPValidationResult.builder()
                               .code(-13007)
@@ -943,7 +895,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   @Test
-  public void test_HandleRequestException_Timeout() throws IOException, InterruptedException {
+  public void test_HandleRequestException_Timeout()  {
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
     rdapHttpQuery.setResults(results);
@@ -952,25 +904,20 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     doReturn(1).when(config).getTimeout();
 
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-      // Create a SimpleHttpResponse mock that returns CONNECTION_FAILED status
       RDAPHttpRequest.SimpleHttpResponse timeoutResponse = mock(RDAPHttpRequest.SimpleHttpResponse.class);
       when(timeoutResponse.getConnectionStatusCode()).thenReturn(ConnectionStatus.CONNECTION_FAILED);
 
-      // Mock the static method to return our prepared response
       mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
                       any(URI.class), anyInt(), any(String.class), any(Boolean.class)))
                   .thenReturn(timeoutResponse);
 
-      // Run the query
       rdapHttpQuery.run();
-
-      // Verify the error status is CONNECTION_FAILED
       assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.CONNECTION_FAILED);
     }
   }
 
   @Test
-  public void test_AnalyzeIOException_ExpiredCertificate() throws IOException, InterruptedException {
+  public void test_AnalyzeIOException_ExpiredCertificate()  {
     RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
     rdapHttpQuery.setResults(results);
@@ -979,19 +926,14 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     doReturn(PAUSE).when(config).getTimeout();
 
     try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-      // Create a SimpleHttpResponse mock that returns EXPIRED_CERTIFICATE status
       RDAPHttpRequest.SimpleHttpResponse expiredCertResponse = mock(RDAPHttpRequest.SimpleHttpResponse.class);
       when(expiredCertResponse.getConnectionStatusCode()).thenReturn(ConnectionStatus.EXPIRED_CERTIFICATE);
 
-      // Mock the static method to return our prepared response
       mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
                       any(URI.class), anyInt(), any(String.class), any(Boolean.class)))
                   .thenReturn(expiredCertResponse);
 
-      // Run the query
       rdapHttpQuery.run();
-
-      // Verify the error status is EXPIRED_CERTIFICATE
       assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
     }
   }

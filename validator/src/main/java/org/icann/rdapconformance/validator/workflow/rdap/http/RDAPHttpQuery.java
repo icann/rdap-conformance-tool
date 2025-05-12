@@ -207,7 +207,6 @@ public class RDAPHttpQuery implements RDAPQuery {
                 response = RDAPHttpRequest.makeRequest(currentUri, this.config.getTimeout(), GET, true);
                 int httpStatusCode = response.statusCode();
                 ConnectionStatus st = ((SimpleHttpResponse) response).getConnectionStatusCode();
-                System.out.println("-----------------> ConnectionStatus: " + st.getCode());
                 this.setErrorStatus(((SimpleHttpResponse) response).getConnectionStatusCode());   // ensure this is set
                 StatusCodes.add(httpStatusCode); // we need this for future reference
                // TODO: we need to think about why we have this check in here and remove when we refactor the State Error/Success Handling
@@ -259,12 +258,8 @@ public class RDAPHttpQuery implements RDAPQuery {
 
 
     private void validate() {
-        if(httpResponse == null) {
-            System.out.println("The httpResponse is null -- this should not happen");
-        }
         // If it wasn't successful, we don't need to validate
         if (!isQuerySuccessful() || httpResponse == null) {
-            System.out.println("Querying wasn't successful .. don't validate ");
             logger.info("Querying wasn't successful .. don't validate ");
             return;
         }
@@ -282,18 +277,14 @@ public class RDAPHttpQuery implements RDAPQuery {
             }
         }
 
-        System.out.println("About to check the headers....");
         // dump headers
         headers.map().forEach((k, v) -> logger.info("Header: {} = {}", k, v));
         // If a response is available to the tool, and the header Content-Type is not
         // application/rdap+JSON, error code -13000 added in results file.
         if (Arrays.stream(String.join(SEMI_COLON, headers.allValues(CONTENT_TYPE)).split(SEMI_COLON))
                   .noneMatch(s -> s.equalsIgnoreCase(APPLICATION_RDAP_JSON))) {
-            System.out.println("We should be in business now");
             addErrorToResultsFile(-13000,
                                   headers.firstValue(CONTENT_TYPE).orElse("missing"), "The content-type header does not contain the application/rdap+json media type.");
-        } else {
-            System.out.println("Content-Type header is valid");
         }
 
         // If a response is available to the tool, but it's not syntactically valid JSON object, error code -13001 added in results file.
