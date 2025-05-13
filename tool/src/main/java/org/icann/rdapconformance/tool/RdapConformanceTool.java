@@ -96,7 +96,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     if (networkEnabled) {
       // Initialize our DNS lookups with this.
       DNSCacheResolver.initFromUrl(uri.toString());
-      doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
+      DNSCacheResolver.doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
 
       // do v6
       if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
@@ -104,7 +104,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v6ret = validator.validate();
 
-        // set the header to RDAP+JSON
+        // set the header to RDAP+JSON and redo the validations
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v6ret2 = validator.validate();
       }
@@ -115,9 +115,14 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v4ret = validator.validate();
 
-        // set the header to RDAP+JSON
+        // set the header to RDAP+JSON and redo the validations
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v4ret2 = validator.validate();
+      }
+
+      if(DNSCacheResolver.hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
+        System.out.println("Unable to resolve an IP address endpoint using DNS for uri:  "  + DNSCacheResolver.getHostnameFromUrl(uri.toString()));
+        return -1;
       }
 
       // Build the result file with a legacy zero exit code
@@ -135,35 +140,6 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   }
 
-  private void doZeroIPAddressesValidation(String url, boolean executeIPv6Queries, boolean executeIPv4Queries) throws  Exception {
-    String hostname = DNSCacheResolver.getHostnameFromUrl(url);
-    if (hostname.isEmpty()) {
-      addErrorToResultsFile(-13019, "no response available", "Invalid hostname in URL.");
-      return;
-    }
-
-    String fqdn = DNSCacheResolver.ensureFQDN(hostname);
-    boolean hasV4Addresses = !DNSCacheResolver.getAllV4Addresses(fqdn).isEmpty();
-    boolean hasV6Addresses = !DNSCacheResolver.getAllV6Addresses(fqdn).isEmpty();
-
-    // Check if we have no addresses at all when both query types are enabled
-    if (executeIPv4Queries && executeIPv6Queries && !hasV4Addresses && !hasV6Addresses) {
-      addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IP address endpoint using DNS.");
-      return;
-    }
-
-    // Check if we have no v4 addresses when only v4 queries are enabled
-    if (executeIPv4Queries && !executeIPv6Queries && !hasV4Addresses) {
-      addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IPv4 address endpoint using DNS.");
-      return;
-    }
-
-    // Check if we have no v6 addresses when only v6 queries are enabled
-    if (!executeIPv4Queries && executeIPv6Queries && !hasV6Addresses) {
-      addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IPv6 address endpoint using DNS.");
-      return;
-    }
-  }
 
   private int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
     // If network is not enabled or ipv4/ipv6 flags are off, validate and return
