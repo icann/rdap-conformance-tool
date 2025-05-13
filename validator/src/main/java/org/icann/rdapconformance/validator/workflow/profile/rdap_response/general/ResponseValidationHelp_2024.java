@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.CommonUtils;
-import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -72,7 +71,7 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
         jsonHelpResponse = new RDAPHttpQuery.JsonData(rdapHelpResponse);
         if (jsonHelpResponse.isValid()) {
             if(!isHelpJsonValid(jsonHelpResponse ) || HTTP_OK != httpHelpStatusCode) {
-                addErrorToResultsFile(-20701, rdapHelpResponse,"Response to a /help query did not yield a proper status code or RDAP response.");
+                addErrorToResultsFile(httpHelpStatusCode,-20701, rdapHelpResponse,"Response to a /help query did not yield a proper status code or RDAP response.");
                 isValid = false;
             }
         } else {
