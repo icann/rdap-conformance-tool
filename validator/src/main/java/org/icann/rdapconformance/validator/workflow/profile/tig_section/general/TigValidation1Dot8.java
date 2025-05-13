@@ -80,7 +80,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
         results.add(RDAPValidationResult.builder()
                                         .queriedURI("-")
                                         .httpMethod("-")
-                                        .httpStatusCode(null)
+                                        .httpStatusCode(0)
                                         .code(-20400)
                                         .value(ipv4Addresses.stream()
                                                             .map(
@@ -102,7 +102,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
         results.add(RDAPValidationResult.builder()
                                         .queriedURI("-")
                                         .httpMethod("-")
-                                        .httpStatusCode(null)
+                                        .httpStatusCode(0)
                                         .code(-20401)
                                         .value(ipv6Addresses.stream()
                                                             .map(
