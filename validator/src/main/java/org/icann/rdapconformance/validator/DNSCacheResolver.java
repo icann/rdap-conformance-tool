@@ -6,6 +6,9 @@ import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv6;
 import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.xbill.DNS.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -208,20 +211,40 @@ public class DNSCacheResolver {
             return;
         }
 
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
         boolean hasV4 = hasV4Addresses(url);
         boolean hasV6 = hasV6Addresses(url);
 
         if (executeIPv4Queries && executeIPv6Queries && !hasV4 && !hasV6) {
-            addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IP address endpoint using DNS.");
+            results.add(RDAPValidationResult.builder()
+                                            .queriedURI("-")
+                                            .httpMethod("-")
+                                            .httpStatusCode(0)
+                                            .code(-13019)
+                                            .value("no response available")
+                                            .message("Unable to resolve an IP address endpoint using DNS.").build());
             return;
         }
 
         if (executeIPv4Queries && !executeIPv6Queries && !hasV4) {
-            addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IPv4 address endpoint using DNS.");
+            results.add(RDAPValidationResult.builder()
+                                            .queriedURI("-")
+                                            .httpMethod("-")
+                                            .httpStatusCode(0)
+                                            .code(-13019)
+                                            .value("no response available")
+                                            .message("Unable to resolve an IPv4 address endpoint using DNS.").build());
             return;
         }
 
         if (!executeIPv4Queries && executeIPv6Queries && !hasV6) {
+            results.add(RDAPValidationResult.builder()
+                                            .queriedURI("-")
+                                            .httpMethod("-")
+                                            .httpStatusCode(0)
+                                            .code(-13019)
+                                            .value("no response available")
+                                            .message("Unable to resolve an IPv6 address endpoint using DNS.").build());;
             addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IPv6 address endpoint using DNS.");
         }
     }
