@@ -6,19 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
-
 import java.net.UnknownHostException;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.security.Security;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import java.util.*;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
@@ -95,7 +88,7 @@ public class RDAPHttpQuery implements RDAPQuery {
           return this.isQuerySuccessful();
       }
 
-      /**
+    /**
        * Get the HTTP response status code
        */
       @Override
@@ -256,7 +249,6 @@ public class RDAPHttpQuery implements RDAPQuery {
         }
     }
 
-
     private void validate() {
         // If it wasn't successful, we don't need to validate
         if (!isQuerySuccessful() || httpResponse == null) {
@@ -373,13 +365,13 @@ public class RDAPHttpQuery implements RDAPQuery {
     }
 
 
-  static class JsonData {
+  public static class JsonData {
 
     private Map<String, Object> rawRdapMap = null;
     private List<Object> rawRdapList = null;
 
 
-    private JsonData(String data) {
+    public JsonData(String data) {
       ObjectMapper mapper = new ObjectMapper();
 
       try {

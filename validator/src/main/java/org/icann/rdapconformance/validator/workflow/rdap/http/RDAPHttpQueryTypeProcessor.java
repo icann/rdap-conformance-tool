@@ -81,7 +81,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
   }
 
 
-  private enum RDAPHttpQueryType {
+  public enum RDAPHttpQueryType {
     DOMAIN(RDAPQueryType.DOMAIN, Pattern.compile("/domain/([^/]+)$")),
     NAMESERVER(RDAPQueryType.NAMESERVER, Pattern.compile("/nameserver/([^/]+)$")),
     ENTITY(RDAPQueryType.ENTITY, Pattern.compile("/entity/([^/]+)$")),
@@ -98,7 +98,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
       this.pattern = pattern;
     }
 
-    static RDAPHttpQueryType getType(String query) {
+    public static RDAPHttpQueryType getType(String query) {
       for (RDAPHttpQueryType qt : RDAPHttpQueryType.values()) {
         Matcher matcher = qt.pattern.matcher(query);
         if (matcher.find()) {
