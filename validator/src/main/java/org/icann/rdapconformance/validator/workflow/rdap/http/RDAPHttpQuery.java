@@ -19,11 +19,13 @@ import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.SimpleHttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.icann.rdapconformance.validator.CommonUtils.CONTENT_TYPE;
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
 import static org.icann.rdapconformance.validator.CommonUtils.SEMI_COLON;
@@ -47,6 +49,7 @@ public class RDAPHttpQuery implements RDAPQuery {
     private final RDAPValidatorConfiguration config;
     private RDAPValidatorResults results = null;
     private HttpResponse<String> httpResponse = null;
+    private String connectionTrackingId = "";
 
     private JsonData jsonResponse = null;
     private boolean isQuerySuccessful = true;
@@ -99,6 +102,13 @@ public class RDAPHttpQuery implements RDAPQuery {
        */
       public List<URI> getRedirects() {
         return redirects;
+      }
+
+      /**
+       * Get the connection tracking ID
+       */
+      public String getConnectionTrackingId() {
+          return connectionTrackingId;
       }
 
       /**
@@ -164,14 +174,20 @@ public class RDAPHttpQuery implements RDAPQuery {
        * Check if we got errors with the RDAP HTTP request.
        */
       private boolean isQuerySuccessful() {
-          return status == null && isQuerySuccessful;
+          return (status == null || status.getCode() == 0) && isQuerySuccessful;
       }
 
     /**
      * Get the connection status in case of error
      */
+    @Override
     public ConformanceError getErrorStatus() {
         return status;
+    }
+
+    @Override
+    public void setErrorStatus(ConformanceError status) {
+        this.status = (ConnectionStatus) status; // remember, 0 is ok - SUCCESS
     }
 
     public void makeRequest(URI currentUri ) {
@@ -181,11 +197,18 @@ public class RDAPHttpQuery implements RDAPQuery {
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
-                response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
-                int status = response.statusCode();
-                StatusCodes.add(status);
+                response = RDAPHttpRequest.makeRequest(currentUri, this.config.getTimeout(), GET, true);
+                int httpStatusCode = response.statusCode();
+                ConnectionStatus st = ((SimpleHttpResponse) response).getConnectionStatusCode();
+                this.setErrorStatus(((SimpleHttpResponse) response).getConnectionStatusCode());   // ensure this is set
+                StatusCodes.add(httpStatusCode); // we need this for future reference
+               // TODO: we need to think about why we have this check in here and remove when we refactor the State Error/Success Handling
+                if(httpStatusCode == 0) { // if our fake status code is 0, we have a problem
+                    isQuerySuccessful = false;
+                    return;
+                }
 
-                if (isRedirectStatus(status)) {
+                if (isRedirectStatus(httpStatusCode)) {
                     Optional<String> location = response.headers().firstValue(LOCATION);
                     if (location.isEmpty()) {
                         break; // can't follow if no location header
@@ -222,19 +245,18 @@ public class RDAPHttpQuery implements RDAPQuery {
             // if we exit the loop without a redirect, we have a final response
             httpResponse = response;
         } catch (Exception e) {
-            handleRequestException(e); // catch for all subclasses of these exceptions
+            logger.info("Exception when making HTTP request", e);
         }
     }
 
     private void validate() {
         // If it wasn't successful, we don't need to validate
-        if (!isQuerySuccessful()) {
+        if (!isQuerySuccessful() || httpResponse == null) {
             logger.info("Querying wasn't successful .. don't validate ");
             return;
         }
 
         // else continue on
-
         int httpStatusCode = httpResponse.statusCode();
         HttpHeaders headers = httpResponse.headers();
         String rdapResponse = httpResponse.body();
@@ -247,6 +269,8 @@ public class RDAPHttpQuery implements RDAPQuery {
             }
         }
 
+        // dump headers
+        headers.map().forEach((k, v) -> logger.info("Header: {} = {}", k, v));
         // If a response is available to the tool, and the header Content-Type is not
         // application/rdap+JSON, error code -13000 added in results file.
         if (Arrays.stream(String.join(SEMI_COLON, headers.allValues(CONTENT_TYPE)).split(SEMI_COLON))
@@ -291,72 +315,6 @@ public class RDAPHttpQuery implements RDAPQuery {
             }
         }
         return false; // not copying them, so don't worry
-    }
-
-
-    /**
-     * Handle exceptions that occur during the HTTP request.
-     */
-    private void handleRequestException(Exception e) {
-        if( e instanceof UnknownHostException) {
-            // we eat this one - it is checked all the way in the beginning and registered in the results file - do not double up.
-            status = ConnectionStatus.UNKNOWN_HOST;
-            ConnectionTracker.getInstance().updateCurrentConnection(status);
-            return;
-        }
-
-        if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
-            if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
-                status = ConnectionStatus.NETWORK_SEND_FAIL;
-                addErrorToResultsFile(-13016, "no response available", "Network send fail");
-            } else {
-                status = ConnectionStatus.CONNECTION_FAILED;
-                addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
-            }
-            ConnectionTracker.getInstance().updateCurrentConnection(status);
-            return;
-        }
-
-        if (e instanceof IOException) {
-            status = analyzeIOException((IOException) e);
-            ConnectionTracker.getInstance().updateCurrentConnection(status);
-            return;
-        }
-
-        // Fall through
-        status = ConnectionStatus.CONNECTION_FAILED;
-        addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
-        ConnectionTracker.getInstance().updateCurrentConnection(status);
-    }
-
-    /**
-     * Analyze the IOException to determine the connection status.
-     */
-    private ConnectionStatus analyzeIOException(IOException e) {
-        if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
-            addErrorToResultsFile(-13011, "no response available", "Expired certificate.");
-            return ConnectionStatus.EXPIRED_CERTIFICATE;
-        } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
-            addErrorToResultsFile(-13010, "no response available", "Revoked TLS certificate.");
-            return ConnectionStatus.REVOKED_CERTIFICATE;
-        } else if (hasCause(e, "java.security.cert.CertificateException")) {
-            if (e.getMessage().contains("No name matching") ||
-                e.getMessage().contains("No subject alternative DNS name matching")) {
-                addErrorToResultsFile(-13009, "no response available", "Invalid TLS certificate.");
-                return ConnectionStatus.INVALID_CERTIFICATE;
-            }
-            addErrorToResultsFile(-13012, "no response available", "TLS certificate error.");
-            return ConnectionStatus.CERTIFICATE_ERROR;
-        } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
-            addErrorToResultsFile(-13008, "no response available", "TLS handshake failed.");
-            return ConnectionStatus.HANDSHAKE_FAILED;
-        } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
-            addErrorToResultsFile(-13012, "no response available", "TLS certificate error.");
-            return ConnectionStatus.CERTIFICATE_ERROR;
-        }
-
-        addErrorToResultsFile(-13017, "no response available", "Network receive fail");
-        return ConnectionStatus.NETWORK_RECEIVE_FAIL;
     }
 
   /* *
@@ -406,15 +364,6 @@ public class RDAPHttpQuery implements RDAPQuery {
             && jsonResponse.getValue(NAMESERVER_SEARCH_RESULTS) instanceof Collection<?>;
     }
 
-  private boolean hasCause(Throwable e, String causeClassName) {
-    while (e.getCause() != null) {
-      if (e.getCause().getClass().getName().equals(causeClassName)) {
-        return true;
-      }
-      e = e.getCause();
-    }
-    return false;
-  }
 
   public static class JsonData {
 

@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
+
 import java.util.Set;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
@@ -30,19 +32,17 @@ public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
         boolean is61202Valid = true;
 
         Set<String> linksInTopMostNotices = getPointerFromJPath("$.notices[*].links");
-        System.out.println(linksInTopMostNotices);
 
         for (String jsonPointer : linksInTopMostNotices) {
             JSONArray links = (JSONArray) jsonObject.query(jsonPointer);
 
             for (Object link : links) {
                 JSONObject l = (JSONObject) link;
-                System.out.println(l);
 
                 if (l.optString("rel").equals("terms-of-service")) {
                     is61200Valid = true;
 
-                    if (!l.optString("href").startsWith("http")) {
+                    if (!l.optString("href").startsWith(HTTP)) {
                         is61201Valid = false;
 
                         results.add(RDAPValidationResult.builder()
@@ -54,10 +54,6 @@ public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
 
 
                     if (!l.optString("value").equals(this.config.getUri().toString())) {
-                        System.out.println("not equal");
-                        System.out.println("[" + this.config.getUri() + "]");
-                        System.out.println("[" + l.optString("value") + "]");
-
                         is61202Valid = false;
 
                         results.add(RDAPValidationResult.builder()
@@ -77,10 +73,6 @@ public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
                 .message("The response must have one notice to the terms of service.")
                 .build());
         }
-
-        System.out.println(is61200Valid);
-        System.out.println(is61201Valid);
-        System.out.println(is61202Valid);
 
         return is61200Valid && is61201Valid && is61202Valid;
     }

@@ -7,7 +7,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +18,14 @@ public class ConnectionTracker {
     private static final ConnectionTracker INSTANCE = new ConnectionTracker();
     private static final Logger logger = LoggerFactory.getLogger(ConnectionTracker.class);
     private final List<ConnectionRecord> connections;
+    private final Map<String, ConnectionRecord> connectionsByTrackingId;
     private ConnectionRecord currentConnection;
+    private ConnectionRecord lastMainConnection;
 
     private ConnectionTracker() {
         this.connections = Collections.synchronizedList(new ArrayList<>());
+        this.connectionsByTrackingId = Collections.synchronizedMap(new HashMap<>());
+        this.lastMainConnection = null;
     }
 
     public static ConnectionTracker getInstance() {
@@ -26,10 +33,44 @@ public class ConnectionTracker {
     }
 
     /**
+     * Generates a unique tracking ID
+     *
+     * @return A new unique tracking ID
+     */
+    private String generateTrackingId() {
+        return UUID.randomUUID().toString();
+    }
+
+    /**
+     * Find a connection by its tracking ID
+     *
+     * @param trackingId The tracking ID to look up
+     * @return The connection record, or null if not found
+     */
+    public synchronized ConnectionRecord getConnectionByTrackingId(String trackingId) {
+        return connectionsByTrackingId.get(trackingId);
+    }
+
+    /**
+     * Get the status code of a connection by its tracking ID
+     *
+     * @param trackingId The tracking ID to look up
+     * @return The status code, or 0 if the connection is not found
+     */
+    public synchronized int getStatusCodeByTrackingId(String trackingId) {
+        ConnectionRecord record = connectionsByTrackingId.get(trackingId);
+        return record != null ? record.getStatusCode() : 0;
+    }
+    
+
+    /**
      * Start tracking a new connection using the current NetworkInfo state
      * @param uri The URI being requested
+     * @param isMainConnection Whether this is a main connection
+     * @return The tracking ID of the new connection
      */
-    public synchronized void startTrackingNewConnection(URI uri) {
+    public synchronized String startTrackingNewConnection(URI uri, String httpMethod, boolean isMainConnection) {
+        String trackingId = generateTrackingId();
         ConnectionRecord record = new ConnectionRecord(
             uri,
             NetworkInfo.getServerIpAddress(),
@@ -37,13 +78,24 @@ public class ConnectionTracker {
             ZERO,  // Status code not yet known
             null,  // Duration not yet known
             null,  // Status not yet known
-            NetworkInfo.getHttpMethod(),
-            Instant.now()
+            httpMethod,
+            Instant.now(),
+            trackingId,
+            isMainConnection
         );
         record.setStartTime(Instant.now());
         connections.add(record);
+        connectionsByTrackingId.put(trackingId, record);
         currentConnection = record;
-        logger.debug("Started tracking connection: {}", record);
+
+        if (isMainConnection) {
+            lastMainConnection = record;
+            logger.debug("Started tracking main connection: {}", record);
+        } else {
+            logger.debug("Started tracking connection: {}", record);
+        }
+
+        return trackingId;
     }
 
     /**
@@ -70,7 +122,13 @@ public class ConnectionTracker {
             currentConnection.setStatusCode(statusCode);
             currentConnection.setDuration(duration);
             currentConnection.setStatus(status);
-            logger.info("Completed current connection: {}", currentConnection);
+
+            // If this was a main connection that's being completed, keep track of it
+            if (currentConnection.isMainConnection()) {
+                lastMainConnection = currentConnection;
+            }
+
+            logger.info("Completed current connection: {} with tracking id: {}", currentConnection, currentConnection.trackingId);
             currentConnection = null;
         } else {
             logger.warn("Attempted to complete current connection, but no current connection exists");
@@ -83,8 +141,12 @@ public class ConnectionTracker {
      * @param ipAddress The server IP address
      * @param protocol The network protocol used
      * @param httpMethod The HTTP method used
+     * @param isMainConnection Whether this is a main connection
+     * @return The tracking ID of the new connection
      */
-    public synchronized void startTracking(URI uri, String ipAddress, NetworkProtocol protocol, String httpMethod) {
+    public synchronized String startTracking(URI uri, String ipAddress, NetworkProtocol protocol,
+                                             String httpMethod, boolean isMainConnection) {
+        String trackingId = generateTrackingId();
         ConnectionRecord record = new ConnectionRecord(
             uri,
             ipAddress,
@@ -93,12 +155,35 @@ public class ConnectionTracker {
             null,
             null,
             httpMethod,
-            Instant.now()
+            Instant.now(),
+            trackingId,
+            isMainConnection
         );
         record.setStartTime(Instant.now());
         connections.add(record);
+        connectionsByTrackingId.put(trackingId, record);
         currentConnection = record;
-        logger.debug("Started tracking connection: {}", record);
+
+        if (isMainConnection) {
+            lastMainConnection = record;
+            logger.debug("Started tracking main connection: {}", record);
+        } else {
+            logger.debug("Started tracking connection: {}", record);
+        }
+
+        return trackingId;
+    }
+
+    /**
+     * Start tracking a connection with explicit parameters (default non-main)
+     * @param uri The URI being requested
+     * @param ipAddress The server IP address
+     * @param protocol The network protocol used
+     * @param httpMethod The HTTP method used
+     * @return The tracking ID of the new connection
+     */
+    public synchronized String startTracking(URI uri, String ipAddress, NetworkProtocol protocol, String httpMethod) {
+        return startTracking(uri, ipAddress, protocol, httpMethod, false);
     }
 
     /**
@@ -120,6 +205,11 @@ public class ConnectionTracker {
                 record.setDuration(duration);
                 record.setStatus(status);
 
+                // If this was a main connection that's being completed, keep track of it
+                if (record.isMainConnection()) {
+                    lastMainConnection = record;
+                }
+
                 // If this was the current connection, clear it
                 if (currentConnection == record) {
                     currentConnection = null;
@@ -129,6 +219,37 @@ public class ConnectionTracker {
                 return;
             }
         }
+    }
+
+    /**
+     * Complete tracking a connection by its tracking ID
+     * @param trackingId The tracking ID of the connection
+     * @param statusCode The HTTP status code
+     * @param status The connection status
+     * @return true if the connection was found and completed, false otherwise
+     */
+    public synchronized boolean completeTrackingById(String trackingId, int statusCode, ConnectionStatus status) {
+        ConnectionRecord record = connectionsByTrackingId.get(trackingId);
+        if (record != null && record.getDuration() == null) {
+            Duration duration = Duration.between(record.getStartTime(), Instant.now());
+            record.setStatusCode(statusCode);
+            record.setDuration(duration);
+            record.setStatus(status);
+
+            // If this was a main connection that's being completed, keep track of it
+            if (record.isMainConnection()) {
+                lastMainConnection = record;
+            }
+
+            // If this was the current connection, clear it
+            if (currentConnection == record) {
+                currentConnection = null;
+            }
+
+            logger.info("Completed tracking connection by ID: {}", record);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -156,6 +277,14 @@ public class ConnectionTracker {
             return null;
         }
         return connections.get(connections.size() - 1);
+    }
+
+    /**
+     * Get the most recent main connection
+     * @return The last main connection record
+     */
+    public synchronized ConnectionRecord getLastMainConnection() {
+        return lastMainConnection;
     }
 
     /**
@@ -191,24 +320,43 @@ public class ConnectionTracker {
      */
     public synchronized void reset() {
         connections.clear();
+        connectionsByTrackingId.clear();
         currentConnection = null;
+        lastMainConnection = null;
     }
 
     /**
-     * Safely gets the status code of the current connection as a string.
-     * Returns "-" if there is no current connection or if the status code is 0.
-     *
-     * @return The status code as a string, or "-" if unavailable
+     * Get the current status code of the last connection
+     * @return The status code, or null if not available
      */
-    public static String getCurrentStatusCodeAsString() {
+    public static Integer getCurrentStatusCode() {
         ConnectionTracker tracker = getInstance();
-        ConnectionRecord currentConnection = tracker.getLastConnection(); // Given the way it works,  the _last_ connection is the one we want. Current would be set to null.
+        if(tracker.getCurrentConnection() != null) {
+            return tracker.getCurrentConnection().getStatusCode();
+        }
+        // else
+        ConnectionRecord currentConnection = tracker.getLastConnection(); // Given the way it works, the _last_ connection is the one we want. Current would be set to null.
 
-        if (currentConnection == null || currentConnection.getStatusCode() == 0) {
-            return "-";
+        if (currentConnection == null || currentConnection.getStatusCode() == 0 || currentConnection.getStatus() == null) {
+            return null;
         }
 
-        return String.valueOf(currentConnection.getStatusCode());
+        return currentConnection.getStatusCode();
+    }
+
+    /**
+     * Get the status code of the last main connection
+     * @return The status code, or null if not available
+     */
+    public static Integer getMainStatusCode() {
+        ConnectionTracker tracker = getInstance();
+        ConnectionRecord mainConnection = tracker.getLastMainConnection();
+
+        if (mainConnection == null || mainConnection.getStatusCode() == 0 || mainConnection.getStatus() == null) {
+            return null;
+        }
+
+        return mainConnection.getStatusCode();
     }
 
     @Override
@@ -244,10 +392,13 @@ public class ConnectionTracker {
         private final String httpMethod;
         private final Instant timestamp;
         private Instant startTime;
+        private final String trackingId;
+        private final boolean mainConnection;
 
         public ConnectionRecord(URI uri, String ipAddress, NetworkProtocol protocol,
                                 int statusCode, Duration duration,
-                                ConnectionStatus status, String httpMethod, Instant timestamp) {
+                                ConnectionStatus status, String httpMethod, Instant timestamp,
+                                String trackingId, boolean mainConnection) {
             this.uri = uri;
             this.ipAddress = ipAddress;
             this.protocol = protocol;
@@ -256,6 +407,19 @@ public class ConnectionTracker {
             this.status = status;
             this.httpMethod = httpMethod;
             this.timestamp = timestamp;
+            this.trackingId = trackingId;
+            this.mainConnection = mainConnection;
+        }
+
+        public ConnectionRecord(URI uri, String ipAddress, NetworkProtocol protocol,
+                                int statusCode, Duration duration,
+                                ConnectionStatus status, String httpMethod, Instant timestamp,
+                                String trackingId) {
+            this(uri, ipAddress, protocol, statusCode, duration, status, httpMethod, timestamp, trackingId, false);
+        }
+
+        public String getTrackingId() {
+            return trackingId;
         }
 
         public URI getUri() {
@@ -310,15 +474,21 @@ public class ConnectionTracker {
             this.startTime = startTime;
         }
 
+        public boolean isMainConnection() {
+            return mainConnection;
+        }
+
         @Override
         public String toString() {
             return String.format(
-                "[%s] %s to %s (%s) over %s - Status: %d, Duration: %s, Result: %s",
+                "[%s] %s %s to %s (%s) over %s with ID %s - Status: %d, Duration: %s, Result: %s",
                 timestamp,
+                mainConnection ? "[MAIN]" : "",
                 httpMethod,
                 uri,
                 ipAddress,
                 protocol,
+                trackingId,
                 statusCode,
                 duration != null ? duration.toMillis() + "ms" : "unknown",
                 status != null ? status.name() : "in progress"

@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PREFIX;
@@ -52,12 +53,14 @@ public final class TigValidation1Dot2 extends ProfileValidation {
     boolean isValid = true;
     if (rdapResponse.uri().getScheme().equals(HTTP)) {
       results.add(RDAPValidationResult.builder()
-                                      .code(-20100)
-                                      .value(rdapResponse.uri().toString())
-                                      .message(
-                                          "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 "
-                                              + "shall be HTTPS only.")
-                                      .build());
+                  .httpMethod("-")
+                  .httpStatusCode(ZERO)
+                  .code(-20100)
+                  .value(rdapResponse.uri().toString())
+                  .message(
+                      "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 "
+                          + "shall be HTTPS only.")
+                  .build());
       isValid = false;
     }
     if (rdapResponse.uri().getScheme().equals(HTTPS)) {
@@ -71,6 +74,9 @@ public final class TigValidation1Dot2 extends ProfileValidation {
             && jsonComparator.compare(httpResponseJson,
             httpsResponseJson) == 0) {
           results.add(RDAPValidationResult.builder()
+                                          .queriedURI(httpResponse.uri().toString())
+                                          .httpMethod(GET)
+                                          .httpStatusCode(httpResponse.statusCode())
                                           .code(-20101)
                                           .value(httpResponse.body() + "\n/\n" + rdapResponse.body())
                                           .message("The RDAP response was provided over HTTP, per section 1.2 of the "
@@ -80,7 +86,6 @@ public final class TigValidation1Dot2 extends ProfileValidation {
         }
       } catch (Exception e) {
         logger.info("Exception when making HTTP request in order to check [tigSection_1_2_Validation]", e);
-        ConnectionTracker.getInstance().completeCurrentConnection(ZERO, ConnectionStatus.CONNECTION_FAILED); // this SHOULD be a failure
         isValid = false; // Mark as failed but do not throw the exception
       }
     }

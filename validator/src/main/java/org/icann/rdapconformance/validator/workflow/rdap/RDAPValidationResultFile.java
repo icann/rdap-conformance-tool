@@ -117,6 +117,10 @@ public class RDAPValidationResultFile {
     }
   }
 
+  private Object formatStatusCode(Integer statusCode) {
+    return statusCode != null && statusCode == 0 ? JSONObject.NULL : statusCode;
+  }
+
   private Map<String, Object> createResultsMap() {
     Map<String, Object> resultsMap = new HashMap<>();
     List<Map<String, Object>> errors = new ArrayList<>();
@@ -134,8 +138,10 @@ public class RDAPValidationResultFile {
       resultMap.put("code", result.getCode());
       resultMap.put("value", result.getValue());
       resultMap.put("message", result.getMessage());
-      resultMap.put("receivedHttpStatusCode", result.getHttpStatusCode());
-      resultMap.put("queriedURI", Objects.nonNull(config.getUri()) ? config.getUri().toString() : StringUtils.EMPTY);
+      resultMap.put("receivedHttpStatusCode", formatStatusCode(result.getHttpStatusCode()));
+      resultMap.put("queriedURI",
+          Objects.nonNull(result.getQueriedURI()) ? result.getQueriedURI() :
+              (Objects.nonNull(config.getUri()) ? config.getUri().toString() : StringUtils.EMPTY));
       resultMap.put("acceptMediaType", result.getAcceptHeader());
       resultMap.put("httpMethod", result.getHttpMethod());
       resultMap.put("serverIpAddress", result.getServerIpAddress());

@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.SEP;
@@ -52,6 +53,9 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
             logger.info("Status code for test.invalid: {}", status);
             if (status == HTTP_OK) { // if it returns a 200 - that is an error
                 results.add(RDAPValidationResult.builder()
+                                                .queriedURI(response.uri().toString())
+                                                .httpMethod(GET)
+                                                .httpStatusCode(status)
                                                 .code(-13006)
                                                 .value(createTestInvalidURI().toString())
                                                 .message("Server responded with a 200 OK for 'test.invalid'.")
@@ -75,6 +79,9 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
             // Check if the redirect points to itself
             if (locationUri.equals(createTestInvalidURI())) {
                 results.add(RDAPValidationResult.builder()
+                                                .queriedURI(locationUri.toString())
+                                                .httpStatusCode(response.statusCode())
+                                                .httpMethod(GET)
                                                 .code(-13005)
                                                 .value(locationHeader)
                                                 .message("Server responded with a redirect to itself for domain 'test.invalid'.")

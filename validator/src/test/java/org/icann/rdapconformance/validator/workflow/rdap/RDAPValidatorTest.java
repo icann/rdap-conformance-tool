@@ -18,6 +18,7 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfile;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -145,6 +146,7 @@ public class RDAPValidatorTest {
     assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
   }
 
+  // fails
   @Test
   public void testValidate_DomainQueryForTestInvalidWithHttpOK_LogsInfo() throws IOException {
     RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
@@ -155,17 +157,26 @@ public class RDAPValidatorTest {
     RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
 
+    // Mock the HTTP response that the validator will use
+    RDAPHttpRequest.SimpleHttpResponse mockResponse = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+    when(mockResponse.statusCode()).thenReturn(HTTP_OK);
+    when(mockResponse.body()).thenReturn("{}"); // Simple JSON object
+    when(mockResponse.uri()).thenReturn(URI.create("https://example.com/rdap/domain/test.invalid"));
+
     doReturn(true).when(config).check();
-    doReturn(URI.create("https://example.com")).when(config).getUri(); // Mock getUri to return a valid URI
+    doReturn(URI.create("https://example.com")).when(config).getUri();
     doReturn(true).when(queryTypeProcessor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile(
         "definitionIdentifier", null, null, null, null, false, false, false, false, false))
         .when(configParser).parse(any());
     doReturn(true).when(query).run();
-    doReturn(Optional.of(HTTP_OK)).when(query).getStatusCode(); // Return Optional<Integer>
+    doReturn(Optional.of(HTTP_OK)).when(query).getStatusCode();
     doReturn("test.invalid").when(query).getData();
     doReturn(RDAPQueryType.DOMAIN).when(queryTypeProcessor).getQueryType();
+
+    // Use getRawResponse() instead of getRdapResponse()
+    doReturn(mockResponse).when(query).getRawResponse();
 
     RDAPValidator validator = new RDAPValidator(config, fileSystem, queryTypeProcessor, query, configParser, results, datasetService);
 

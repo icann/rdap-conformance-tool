@@ -4,6 +4,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.DOT;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv6;
+import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
 import org.xbill.DNS.*;
 import org.slf4j.Logger;
@@ -70,6 +71,22 @@ public class DNSCacheResolver {
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
         return Collections.unmodifiableList(CACHE_V4.getOrDefault(name, Collections.emptyList()));
+    }
+
+    public static boolean hasV4Addresses(String uri) {
+        String fqdn = getHostnameFromUrl(uri);
+        String name = ensureFQDN(fqdn);
+        resolveIfNeeded(name);
+        List<InetAddress> addresses = CACHE_V4.getOrDefault(name, Collections.emptyList());
+        return !addresses.isEmpty();
+    }
+
+    public static boolean hasV6Addresses(String uri) {
+        String fqdn = getHostnameFromUrl(uri);
+        String name = ensureFQDN(fqdn);
+        resolveIfNeeded(name);
+        List<InetAddress> addresses = CACHE_V6.getOrDefault(name, Collections.emptyList());
+        return !addresses.isEmpty();
     }
 
     public static List<InetAddress> getAllV6Addresses(String fqdn) {
@@ -164,6 +181,17 @@ public class DNSCacheResolver {
         return results;
     }
 
+    public static String getHostnameFromUrl(String url) {
+        try {
+            URI uri = new URI(url);
+            String hostname = uri.getHost();
+            return hostname != null ? hostname : "";
+        } catch (URISyntaxException e) {
+            logger.error("Failed to parse URL: {}", url, e);
+            return "";
+        }
+    }
+
     public static InetAddress getFirst(Map<String, List<InetAddress>> cache, String fqdn) {
         List<InetAddress> list = cache.get(fqdn);
         return (list != null && !list.isEmpty()) ? list.getFirst() : null;
@@ -171,5 +199,30 @@ public class DNSCacheResolver {
 
     public static String ensureFQDN(String host) {
         return host.endsWith(DOT) ? host : host + DOT;
+    }
+
+    public static void doZeroIPAddressesValidation(String url, boolean executeIPv6Queries, boolean executeIPv4Queries) throws Exception {
+        String hostname = getHostnameFromUrl(url);
+        if (hostname.isEmpty()) {
+            addErrorToResultsFile(-13019, "no response available", "Invalid hostname in URL.");
+            return;
+        }
+
+        boolean hasV4 = hasV4Addresses(url);
+        boolean hasV6 = hasV6Addresses(url);
+
+        if (executeIPv4Queries && executeIPv6Queries && !hasV4 && !hasV6) {
+            addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IP address endpoint using DNS.");
+            return;
+        }
+
+        if (executeIPv4Queries && !executeIPv6Queries && !hasV4) {
+            addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IPv4 address endpoint using DNS.");
+            return;
+        }
+
+        if (!executeIPv4Queries && executeIPv6Queries && !hasV6) {
+            addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IPv6 address endpoint using DNS.");
+        }
     }
 }

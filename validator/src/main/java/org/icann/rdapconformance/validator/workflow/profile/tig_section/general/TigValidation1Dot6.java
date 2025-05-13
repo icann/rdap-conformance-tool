@@ -1,6 +1,11 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 import java.net.http.HttpResponse;
+import org.icann.rdapconformance.validator.ConnectionStatus;
+import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -33,7 +38,9 @@ public final class TigValidation1Dot6 extends ProfileValidation {
           .makeHttpHeadRequest(config.getUri(), config.getTimeout());
       if (httpResponse.statusCode() != rdapResponseStatusCode) {
         results.add(RDAPValidationResult.builder()
+            .httpStatusCode(httpResponse.statusCode())
             .code(-20300)
+            .httpMethod(HEAD)
             .value(rdapResponseStatusCode + "\n/\n" + httpResponse.statusCode())
             .message("The HTTP Status code obtained when using the HEAD method is different from "
                 + "the GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.")

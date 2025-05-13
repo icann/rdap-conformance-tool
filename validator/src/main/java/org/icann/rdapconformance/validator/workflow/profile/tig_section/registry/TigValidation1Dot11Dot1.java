@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
@@ -48,31 +50,40 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
 
     if (!dataset.tldExists(tld)) {
       results.add(RDAPValidationResult.builder()
-          .code(-23100)
-          .value(
-              tld + "\n/\n" + dataset.getTlds().stream().sorted().collect(Collectors.joining(", ")))
-          .message("The TLD is not included in the bootstrapDomainNameSpace. "
-              + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
-          .build());
+                 .queriedURI("-")
+                 .httpMethod("-")
+                 .httpStatusCode(ZERO)
+                 .code(-23100)
+                 .value(
+                    tld + "\n/\n" + dataset.getTlds().stream().sorted().collect(Collectors.joining(", ")))
+                 .message("The TLD is not included in the bootstrapDomainNameSpace. "
+                    + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
+                 .build());
       isValid = false;
     } else {
       Set<String> urls = dataset.getUrlsForTld(tld);
       if (StringUtils.isNoneBlank(urlWithoutPort) && urls.stream().noneMatch(urlWithoutPort::startsWith)) {
         results.add(RDAPValidationResult.builder()
-            .code(-23101)
-            .value(urls.stream().sorted().collect(Collectors.joining(", ")))
-            .message("The TLD entry in bootstrapDomainNameSpace does not contain a base URL. "
-                + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
-            .build());
+                    .queriedURI("-")
+                    .httpMethod("-")
+                    .httpStatusCode(ZERO)
+                    .code(-23101)
+                    .value(urls.stream().sorted().collect(Collectors.joining(", ")))
+                    .message("The TLD entry in bootstrapDomainNameSpace does not contain a base URL. "
+                        + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
+                    .build());
         isValid = false;
       }
       if (urls.stream().anyMatch(u -> !URI.create(u).getScheme().equals("https"))) {
         results.add(RDAPValidationResult.builder()
-            .code(-23102)
-            .value(urls.stream().sorted().collect(Collectors.joining(", ")))
-            .message("One or more of the base URLs for the TLD contain a schema different from "
-                + "https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.")
-            .build());
+                    .queriedURI("-")
+                    .httpMethod("-")
+                    .httpStatusCode(ZERO)
+                    .code(-23102)
+                    .value(urls.stream().sorted().collect(Collectors.joining(", ")))
+                    .message("One or more of the base URLs for the TLD contain a schema different from "
+                        + "https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.")
+                    .build());
         isValid = false;
       }
     }

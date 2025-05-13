@@ -41,6 +41,16 @@ public class CommonUtils {
 
     }
 
+    public static void addErrorToResultsFile(int httpStatusCode, int code, String value, String message) {
+        RDAPValidatorResultsImpl.getInstance().add(RDAPValidationResult.builder()
+                                   .httpStatusCode(httpStatusCode)
+                                   .code(code)
+                                   .value(value)
+                                   .message(message)
+                                   .build());
+
+    }
+
     public static String replaceQueryTypeInStringWith(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType httpQueryType,
                                               String originalString,
                                               String replacementWord) {

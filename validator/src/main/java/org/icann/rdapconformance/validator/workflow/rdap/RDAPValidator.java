@@ -18,6 +18,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.namese
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,7 +150,7 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         query.setResults(results);
         if (!query.run()) {
-            if (query.getErrorStatus() == null) {
+            if (query.getErrorStatus() == null || query.getErrorStatus() == ToolResult.SUCCESS) {
                 return ToolResult.SUCCESS.getCode();
             }
            ConformanceError errorCode =  query.getErrorStatus();
@@ -173,7 +174,9 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         assert null != validator;
         validator.validate(query.getData()); // validates the JSON
-        HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
+        RDAPHttpRequest.SimpleHttpResponse rdapResponse = (RDAPHttpRequest.SimpleHttpResponse ) query.getRawResponse();
+
+        logger.info("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
 
         if (rdapResponse != null && !query.isErrorContent() && config.isNetworkEnabled()) {
             new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate(); // Network calls

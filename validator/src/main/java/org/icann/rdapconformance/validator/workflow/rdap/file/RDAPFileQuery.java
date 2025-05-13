@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 public class RDAPFileQuery implements RDAPQuery {
 
-  private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
+  private static final Logger logger = LoggerFactory.getLogger(RDAPFileQuery.class);
 
   private final RDAPValidatorConfiguration config;
   private final FileSystem fileSystem;
@@ -41,6 +41,7 @@ public class RDAPFileQuery implements RDAPQuery {
       data = fileSystem.readFile(uri);
     } catch (IOException e) {
       logger.error("Cannot read from uri {}", uri, e);
+      this.setErrorStatus(ToolResult.FILE_READ_ERROR);
       return false;
     }
     return true;
@@ -49,6 +50,11 @@ public class RDAPFileQuery implements RDAPQuery {
   @Override
   public Optional<Integer> getStatusCode() {
     return Optional.of(200);
+  }
+
+  @Override
+  public void setErrorStatus(ConformanceError errorStatus) {
+    // TODO: would be nice to have something here for this.
   }
 
   @Override
