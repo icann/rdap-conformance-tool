@@ -222,7 +222,7 @@ public class DNSCacheResolver {
                                             .httpStatusCode(0)
                                             .code(-13019)
                                             .value("no response available")
-                                            .message("Unable to resolve an IP address endpoint using DNS.").build());;
+                                            .message("Unable to resolve an IP address endpoint using DNS.").build());
             return;
         }
 
@@ -233,7 +233,7 @@ public class DNSCacheResolver {
                                             .httpStatusCode(0)
                                             .code(-13019)
                                             .value("no response available")
-                                            .message("Unable to resolve an IPv4 address endpoint using DNS.").build());;
+                                            .message("Unable to resolve an IPv4 address endpoint using DNS.").build());
             return;
         }
 
@@ -244,7 +244,7 @@ public class DNSCacheResolver {
                                             .httpStatusCode(0)
                                             .code(-13019)
                                             .value("no response available")
-                                            .message("Unable to resolve an IPv4 address endpoint using DNS.").build());;
+                                            .message("Unable to resolve an IPv6 address endpoint using DNS.").build());;
             addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IPv6 address endpoint using DNS.");
         }
     }
