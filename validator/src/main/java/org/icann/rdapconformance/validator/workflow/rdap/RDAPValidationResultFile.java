@@ -1,7 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
-import static org.icann.rdapconformance.validator.CommonUtils.DASH;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 
 import java.io.IOException;
@@ -120,15 +118,7 @@ public class RDAPValidationResultFile {
   }
 
   private Object formatStatusCode(Integer statusCode) {
-    return statusCode != null && statusCode == ZERO ? JSONObject.NULL : statusCode;
-  }
-
-  private Object formatStringToNull(String maybeDash) {
-    if (maybeDash == null || maybeDash.equals(DASH)) {
-      return JSONObject.NULL;
-    } else {
-      return maybeDash;
-    }
+    return statusCode != null && statusCode == 0 ? JSONObject.NULL : statusCode;
   }
 
   private Map<String, Object> createResultsMap() {
@@ -150,11 +140,11 @@ public class RDAPValidationResultFile {
       resultMap.put("message", result.getMessage());
       resultMap.put("receivedHttpStatusCode", formatStatusCode(result.getHttpStatusCode()));
       resultMap.put("queriedURI",
-          Objects.nonNull(result.getQueriedURI()) ? formatStringToNull(result.getQueriedURI()) :
+          Objects.nonNull(result.getQueriedURI()) ? result.getQueriedURI() :
               (Objects.nonNull(config.getUri()) ? config.getUri().toString() : StringUtils.EMPTY));
-      resultMap.put("acceptMediaType", formatStringToNull(result.getAcceptHeader()));
-      resultMap.put("httpMethod", formatStringToNull(result.getHttpMethod()));
-      resultMap.put("serverIpAddress", formatStringToNull(result.getServerIpAddress()));
+      resultMap.put("acceptMediaType", result.getAcceptHeader());
+      resultMap.put("httpMethod", result.getHttpMethod());
+      resultMap.put("serverIpAddress", result.getServerIpAddress());
       resultMap.put("notes", configurationFile.getAlertNotes(result.getCode()));
       if (configurationFile.isError(result.getCode())) {
         errors.add(resultMap);
