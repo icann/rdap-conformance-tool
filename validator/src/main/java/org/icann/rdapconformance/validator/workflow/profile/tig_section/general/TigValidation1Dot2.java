@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
@@ -53,7 +54,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
     boolean isValid = true;
     if (rdapResponse.uri().getScheme().equals(HTTP)) {
       results.add(RDAPValidationResult.builder()
-                  .httpMethod("-")
+                  .httpMethod(DASH)
                   .httpStatusCode(ZERO)
                   .code(-20100)
                   .value(rdapResponse.uri().toString())
