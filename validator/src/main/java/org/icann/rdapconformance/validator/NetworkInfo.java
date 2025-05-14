@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator;
 
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
+
 public class NetworkInfo {
     private static final NetworkInfo instance = new NetworkInfo();
 
@@ -36,11 +38,11 @@ public class NetworkInfo {
     }
 
     public static String getHttpMethod() {
-        return (instance.httpMethod == null || instance.httpMethod.isEmpty()) ? "-" : instance.httpMethod;
+        return (instance.httpMethod == null || instance.httpMethod.isEmpty()) ? DASH : instance.httpMethod;
     }
 
     public static String getServerIpAddress() {
-        return (instance.serverIpAddress == null || instance.serverIpAddress.isEmpty()) ? "-" : instance.serverIpAddress;
+        return (instance.serverIpAddress == null || instance.serverIpAddress.isEmpty()) ? DASH : instance.serverIpAddress;
     }
 
     public static NetworkProtocol getNetworkProtocol() {
@@ -48,7 +50,7 @@ public class NetworkInfo {
     }
 
     public static String getNetworkProtocolAsString() {
-        return (instance.networkProtocol == null) ? "-" : instance.networkProtocol.name();
+        return (instance.networkProtocol == null) ? DASH : instance.networkProtocol.name();
     }
 
     // Static Setters

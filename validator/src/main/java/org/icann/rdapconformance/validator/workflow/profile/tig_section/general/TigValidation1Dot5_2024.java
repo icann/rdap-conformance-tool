@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.TIMEOUT_IN_5SECS;
@@ -107,7 +108,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                         results.add(RDAPValidationResult.builder()
                             .code(-61100)
                             .httpStatusCode(ZERO)
-                            .httpMethod("-")
+                            .httpMethod(DASH)
                             .value(response.uri().toString())
                             .message("The RDAP server must only use TLS 1.2 or TLS 1.3")
                             .build());
@@ -133,7 +134,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                                 results.add(RDAPValidationResult.builder()
                                     .code(-61101)
                                     .httpStatusCode(ZERO)
-                                    .httpMethod("-")
+                                    .httpMethod(DASH)
                                     .value(response.uri().toString())
                                     .message("The RDAP server must use one of the following cipher suites when using TLS 1.2: "
                                         + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, "

@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.net.InetAddress;
@@ -78,9 +79,9 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     if(!config.isNoIpv4Queries()) {
       if (ipv4Addresses.isEmpty()) {
         results.add(RDAPValidationResult.builder()
-                                        .queriedURI("-")
-                                        .httpMethod("-")
-                                        .httpStatusCode(0)
+                                        .queriedURI(DASH)
+                                        .httpMethod(DASH)
+                                        .httpStatusCode(ZERO)
                                         .code(-20400)
                                         .value(ipv4Addresses.stream()
                                                             .map(
@@ -100,9 +101,9 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     if(!config.isNoIpv6Queries()) {
       if (ipv6Addresses.isEmpty()) {
         results.add(RDAPValidationResult.builder()
-                                        .queriedURI("-")
-                                        .httpMethod("-")
-                                        .httpStatusCode(0)
+                                        .queriedURI(DASH)
+                                        .httpMethod(DASH)
+                                        .httpStatusCode(ZERO)
                                         .code(-20401)
                                         .value(ipv6Addresses.stream()
                                                             .map(

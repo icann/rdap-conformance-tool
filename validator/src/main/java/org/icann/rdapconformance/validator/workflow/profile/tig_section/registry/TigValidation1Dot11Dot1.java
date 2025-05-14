@@ -1,5 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.net.URI;
@@ -46,12 +49,12 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
 
     BootstrapDomainNameSpace dataset = datasetService.get(BootstrapDomainNameSpace.class);
     String urlWithoutPort = removePortInURL();
-    String tld = urlWithoutPort.substring(urlWithoutPort.lastIndexOf(".") + 1).toLowerCase(Locale.ROOT);
+    String tld = urlWithoutPort.substring(urlWithoutPort.lastIndexOf(".") + ONE).toLowerCase(Locale.ROOT);
 
     if (!dataset.tldExists(tld)) {
       results.add(RDAPValidationResult.builder()
-                 .queriedURI("-")
-                 .httpMethod("-")
+                 .queriedURI(DASH)
+                 .httpMethod(DASH)
                  .httpStatusCode(ZERO)
                  .code(-23100)
                  .value(
@@ -64,8 +67,8 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
       Set<String> urls = dataset.getUrlsForTld(tld);
       if (StringUtils.isNoneBlank(urlWithoutPort) && urls.stream().noneMatch(urlWithoutPort::startsWith)) {
         results.add(RDAPValidationResult.builder()
-                    .queriedURI("-")
-                    .httpMethod("-")
+                    .queriedURI(DASH)
+                    .httpMethod(DASH)
                     .httpStatusCode(ZERO)
                     .code(-23101)
                     .value(urls.stream().sorted().collect(Collectors.joining(", ")))
@@ -74,10 +77,10 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
                     .build());
         isValid = false;
       }
-      if (urls.stream().anyMatch(u -> !URI.create(u).getScheme().equals("https"))) {
+      if (urls.stream().anyMatch(u -> !URI.create(u).getScheme().equals(HTTPS))) {
         results.add(RDAPValidationResult.builder()
-                    .queriedURI("-")
-                    .httpMethod("-")
+                    .queriedURI(DASH)
+                    .httpMethod(DASH)
                     .httpStatusCode(ZERO)
                     .code(-23102)
                     .value(urls.stream().sorted().collect(Collectors.joining(", ")))

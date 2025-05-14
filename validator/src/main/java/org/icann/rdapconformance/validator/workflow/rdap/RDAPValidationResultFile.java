@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 
 import java.io.IOException;
@@ -118,11 +120,11 @@ public class RDAPValidationResultFile {
   }
 
   private Object formatStatusCode(Integer statusCode) {
-    return statusCode != null && statusCode == 0 ? JSONObject.NULL : statusCode;
+    return statusCode != null && statusCode == ZERO ? JSONObject.NULL : statusCode;
   }
 
   private Object formatStringToNull(String maybeDash) {
-    if (maybeDash == null || maybeDash.equals("-")) {
+    if (maybeDash == null || maybeDash.equals(DASH)) {
       return JSONObject.NULL;
     } else {
       return maybeDash;

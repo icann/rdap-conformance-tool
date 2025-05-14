@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 
-import static org.icann.rdapconformance.validator.CommonUtils.HYPHEN;
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
@@ -55,7 +55,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
       return false;
     }
 
-    String roid = handle.substring(handle.indexOf(HYPHEN) + 1);
+    String roid = handle.substring(handle.indexOf(DASH) + 1);
     EPPRoid eppRoid = datasetService.get(EPPRoid.class);
     if (eppRoid.isInvalid(roid)) {
       results.add(RDAPValidationResult.builder()
