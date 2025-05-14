@@ -11,6 +11,7 @@ import java.net.http.HttpResponse;
 import java.security.cert.CertificateExpiredException;
 import javax.net.ssl.SSLHandshakeException;
 
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 
 import org.icann.rdapconformance.validator.ConnectionStatus;
@@ -21,7 +22,12 @@ import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP_TOO_MANY_REQUESTS;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -319,39 +325,47 @@ public class RDAPHttpRequestTest {
                 .isEqualTo(ConnectionStatus.HANDSHAKE_FAILED);
         }
     }
-    
+
     @Test
     public void testMakeRequest_HttpTooManyRequests_RetriesAndSucceeds() throws Exception {
         try (MockedStatic<DNSCacheResolver> dnsResolverMock = Mockito.mockStatic(DNSCacheResolver.class);
             MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class, Mockito.CALLS_REAL_METHODS)) {
 
             dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
-            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-            // First two attempts: 429, third attempt: 200
-            RDAPHttpRequest.SimpleHttpResponse retryResponse = new RDAPHttpRequest.SimpleHttpResponse(
-                "track-1", 429, "", testUri, new Header[] { new TestHeader("Retry-After", "1") });
-            RDAPHttpRequest.SimpleHttpResponse successResponse = new RDAPHttpRequest.SimpleHttpResponse(
-                "track-2", 200, "{\"ok\":true}", testUri, new Header[0]);
+            // Mock for 429
+            ClassicHttpResponse retryResponse = mock(ClassicHttpResponse.class);
+            when(retryResponse.getCode()).thenReturn(HTTP_TOO_MANY_REQUESTS);
+            when(retryResponse.getEntity()).thenReturn(null);
+            Header retryAfterHeader = new TestHeader("Retry-After", "1");
+            when(retryResponse.getFirstHeader("Retry-After")).thenReturn(retryAfterHeader);
+            when(retryResponse.getHeaders()).thenReturn(new Header[] { retryAfterHeader });
 
-            // Use an array to simulate call count
-            final int[] callCount = {0};
+            // Mock for 200
+            ClassicHttpResponse successResponse = mock(ClassicHttpResponse.class);
+            when(successResponse.getCode()).thenReturn(HTTP_OK);
+            when(successResponse.getEntity()).thenReturn(null);
+            when(successResponse.getHeaders()).thenReturn(new Header[ZERO]);
+
+            // Simulate two 429s, then a 200
+            final int[] callCount = {ZERO};
             httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenAnswer(invocation -> {
-                if (callCount[0] < 2) {
-                    callCount[0]++;
+                if (callCount[ZERO] < 2) {
+                    callCount[ZERO]++;
                     return retryResponse;
                 } else {
                     return successResponse;
                 }
             });
 
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, "GET");
-            assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.body()).isEqualTo("{\"ok\":true}");
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+            assertThat(response.statusCode()).isEqualTo(HTTP_OK);
+            assertThat(response.body()).isEqualTo("");
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                 .isEqualTo(ConnectionStatus.SUCCESS);
-            assertThat(callCount[0]).isEqualTo(2); // Two retries before success
+            assertThat(callCount[ZERO]).isEqualTo(2); // Two retries before success
         }
     }
 
@@ -361,17 +375,22 @@ public class RDAPHttpRequestTest {
             MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class, Mockito.CALLS_REAL_METHODS)) {
 
             dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
-            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-            RDAPHttpRequest.SimpleHttpResponse retryResponse = new RDAPHttpRequest.SimpleHttpResponse(
-                "track-1", 429, "", testUri, new Header[] { new TestHeader("Retry-After", "1") });
+            // Mock for 429
+            ClassicHttpResponse retryResponse = mock(ClassicHttpResponse.class);
+            when(retryResponse.getCode()).thenReturn(HTTP_TOO_MANY_REQUESTS);
+            when(retryResponse.getEntity()).thenReturn(null);
+            Header retryAfterHeader = new TestHeader("Retry-After", "1");
+            when(retryResponse.getFirstHeader("Retry-After")).thenReturn(retryAfterHeader);
+            when(retryResponse.getHeaders()).thenReturn(new Header[] { retryAfterHeader });
 
-            // Always return 429
+            // No matter what, return a 429
             httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenReturn(retryResponse);
 
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, "GET");
-            assertThat(response.statusCode()).isEqualTo(429);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+            assertThat(response.statusCode()).isEqualTo(HTTP_TOO_MANY_REQUESTS);
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                 .isEqualTo(ConnectionStatus.TOO_MANY_REQUESTS);
         }
