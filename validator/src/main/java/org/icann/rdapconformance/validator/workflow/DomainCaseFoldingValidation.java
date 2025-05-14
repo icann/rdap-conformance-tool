@@ -88,18 +88,6 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
                                         .build());
         return false;
       }
-    } catch (JsonParseException | JsonMappingException e) {
-      logger.error(
-          "Exception when parsing JSON response in [domainCaseFoldingValidation]",
-          e);
-      results.add(RDAPValidationResult.builder()
-                                      .queriedURI(uri.toString())
-                                      .httpMethod("GET")
-                                      .code(-10403)
-                                      .value(uri.toString())
-                                      .message("RDAP responses do not match when handling domain label case folding.")
-                                      .build());
-      return false;
     } catch (JsonProcessingException e) {
       logger.error(
           "Exception when processing JSON in [domainCaseFoldingValidation]",

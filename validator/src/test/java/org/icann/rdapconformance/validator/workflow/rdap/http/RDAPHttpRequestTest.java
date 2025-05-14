@@ -319,8 +319,65 @@ public class RDAPHttpRequestTest {
                 .isEqualTo(ConnectionStatus.HANDSHAKE_FAILED);
         }
     }
+    
+    @Test
+    public void testMakeRequest_HttpTooManyRequests_RetriesAndSucceeds() throws Exception {
+        try (MockedStatic<DNSCacheResolver> dnsResolverMock = Mockito.mockStatic(DNSCacheResolver.class);
+            MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class, Mockito.CALLS_REAL_METHODS)) {
 
-    // TODO - redo this for THIS class useing the MULTI Cert Server
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
+            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
+
+            // First two attempts: 429, third attempt: 200
+            RDAPHttpRequest.SimpleHttpResponse retryResponse = new RDAPHttpRequest.SimpleHttpResponse(
+                "track-1", 429, "", testUri, new Header[] { new TestHeader("Retry-After", "1") });
+            RDAPHttpRequest.SimpleHttpResponse successResponse = new RDAPHttpRequest.SimpleHttpResponse(
+                "track-2", 200, "{\"ok\":true}", testUri, new Header[0]);
+
+            // Use an array to simulate call count
+            final int[] callCount = {0};
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenAnswer(invocation -> {
+                if (callCount[0] < 2) {
+                    callCount[0]++;
+                    return retryResponse;
+                } else {
+                    return successResponse;
+                }
+            });
+
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, "GET");
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.body()).isEqualTo("{\"ok\":true}");
+            assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
+                .isEqualTo(ConnectionStatus.SUCCESS);
+            assertThat(callCount[0]).isEqualTo(2); // Two retries before success
+        }
+    }
+
+    @Test
+    public void testMakeRequest_HttpTooManyRequests_ExceedsMaxRetries() throws Exception {
+        try (MockedStatic<DNSCacheResolver> dnsResolverMock = Mockito.mockStatic(DNSCacheResolver.class);
+            MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class, Mockito.CALLS_REAL_METHODS)) {
+
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
+            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
+
+            RDAPHttpRequest.SimpleHttpResponse retryResponse = new RDAPHttpRequest.SimpleHttpResponse(
+                "track-1", 429, "", testUri, new Header[] { new TestHeader("Retry-After", "1") });
+
+            // Always return 429
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenReturn(retryResponse);
+
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, "GET");
+            assertThat(response.statusCode()).isEqualTo(429);
+            assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
+                .isEqualTo(ConnectionStatus.TOO_MANY_REQUESTS);
+        }
+    }
+
+    // TODO - redo this for THIS class using the MULTI Cert Server
 //    @Test
 //    public void test_WithLocalHttpsCertificateErrors_ReturnsAppropriateErrorStatus() throws Exception {
 //        // Force certificate validation
