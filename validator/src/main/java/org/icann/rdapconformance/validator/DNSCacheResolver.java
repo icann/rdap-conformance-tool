@@ -217,6 +217,7 @@ public class DNSCacheResolver {
 
         if (executeIPv4Queries && executeIPv6Queries && !hasV4 && !hasV6) {
             results.add(RDAPValidationResult.builder()
+                                            .acceptHeader("-")
                                             .queriedURI("-")
                                             .httpMethod("-")
                                             .httpStatusCode(0)
@@ -228,6 +229,7 @@ public class DNSCacheResolver {
 
         if (executeIPv4Queries && !executeIPv6Queries && !hasV4) {
             results.add(RDAPValidationResult.builder()
+                                            .acceptHeader("-")
                                             .queriedURI("-")
                                             .httpMethod("-")
                                             .httpStatusCode(0)
@@ -239,6 +241,7 @@ public class DNSCacheResolver {
 
         if (!executeIPv4Queries && executeIPv6Queries && !hasV6) {
             results.add(RDAPValidationResult.builder()
+                                            .acceptHeader("-")
                                             .queriedURI("-")
                                             .httpMethod("-")
                                             .httpStatusCode(0)

@@ -105,6 +105,7 @@ public class RDAPValidationResult {
     private int code;
     private String value;
     private String message;
+    private String acceptHeader;
     private String httpMethod;
     private Integer httpStatusCode;
     private String queriedURI;
@@ -121,6 +122,11 @@ public class RDAPValidationResult {
 
     public Builder message(String message) {
       this.message = message;
+      return this;
+    }
+
+    public Builder acceptHeader(String acceptHeader) {
+      this.acceptHeader = acceptHeader;
       return this;
     }
 
@@ -148,6 +154,7 @@ public class RDAPValidationResult {
           this.value,
           this.message,
           // these are a snapshot of the current state of the connection
+          this.acceptHeader != null ? this.acceptHeader :  // the default is the current accept header
           NetworkInfo.getAcceptHeader(),
           this.httpMethod != null ? this.httpMethod : GET, // the default is GET unless you explicitly set it
           NetworkInfo.getServerIpAddress(),
