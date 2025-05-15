@@ -14,6 +14,7 @@ public class CommonUtils {
     public static final String SEP = "://";
     public static final String LOCALHOST = "localhost";
     public static final String LOCAL_IPv4 = "127.0.0.1";
+
     public static final String LOCAL_IPv6 = "::1";
     public static final String GET = "GET";
     public static final String HEAD = "HEAD";
@@ -22,6 +23,12 @@ public class CommonUtils {
     public static final String EMPTY_STRING = "";
     public static final String LOCATION = "Location";
     public static final String CONTENT_TYPE = "Content-Type";
+    public static final String DOMAIN = "domain";
+    public static final String NAMESERVER = "nameserver";
+    public static final String AUTNUM = "autnum";
+    public static final String ENTITY = "entity";
+    public static final String IP = "ip";
+    public static final String NAMESERVERS = "nameservers";
 
     public static final int PAUSE = 1000;
     public static final int TIMEOUT_IN_5SECS = 5000;
@@ -30,6 +37,8 @@ public class CommonUtils {
     public static final int ZERO = 0;
     public static final int ONE = 1;
     public static final int HTTP_NOT_FOUND = 404;
+    public static final int HTTP_TOO_MANY_REQUESTS = 429;
+
 
 
     public static void addErrorToResultsFile(int code, String value, String message) {
@@ -55,12 +64,12 @@ public class CommonUtils {
                                               String originalString,
                                               String replacementWord) {
         return switch (httpQueryType) {
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.DOMAIN -> originalString.replace("domain", replacementWord);
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVER -> originalString.replace("nameserver", replacementWord);
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.AUTNUM -> originalString.replace("autnum", replacementWord);
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.ENTITY -> originalString.replace("entity", replacementWord);
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP -> originalString.replace("ip", replacementWord);
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS -> originalString.replace("nameservers", replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.DOMAIN -> originalString.replace(DOMAIN, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVER -> originalString.replace(NAMESERVER, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.AUTNUM -> originalString.replace(AUTNUM, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.ENTITY -> originalString.replace(ENTITY, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP -> originalString.replace(IP, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS -> originalString.replace(NAMESERVERS, replacementWord);
             default -> originalString;
         };
     }

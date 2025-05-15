@@ -357,6 +357,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         return validations;
     }
 
+    // TODO: we need to decide how we want to exit. As the code base currently stands, the below is not possible.
 //    public int dumpErrorInfo(int exitCode, RDAPValidatorConfiguration config, RDAPQuery query) {
 //        System.out.println("Exit code: " + exitCode + " - " + RDAPValidationStatus.fromValue(exitCode).name());
 //        System.out.println("URI used for the query: " + config.getUri());
