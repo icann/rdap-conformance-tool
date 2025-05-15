@@ -141,13 +141,20 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
         logger.info("Unable to resolve an IP address endpoint using DNS for uri:  "  + DNSCacheResolver.getHostnameFromUrl(uri.toString()));
       }
 
+      logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+      String rez = RDAPValidatorResultsImpl.getInstance().analyzeResultsWithStatusCheck();
+      System.out.println(rez);
+
+      System.out.println("RDAP Validation Results Filtered: " + RDAPValidatorResultsImpl.getInstance().analyzeResults());
+      System.out.println("RDAP Validation Results Unfiltered: " + RDAPValidatorResultsImpl.getInstance().prettyPrintCodesAndStatus());
+
       // Build the result file with a legacy zero exit code
       resultFile.build(ZERO);
       // now the results file is set, print the path
       logger.info("Results file: {}",  validator.getResultsPath());
 
       int exitCode = 0;
-      logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+
       // Return the exit code
       return exitCode;
     }
