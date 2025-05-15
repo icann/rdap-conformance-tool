@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
-import static java.net.HttpURLConnection.HTTP_OK;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
@@ -8,6 +7,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,6 +18,7 @@ import org.icann.rdapconformance.validator.BuildInfo;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -46,33 +49,39 @@ public class RDAPValidationResultFileTest {
         file = RDAPValidationResultFile.getInstance();
     }
 
+    @AfterMethod
+    public void tearDown() {
+        results.clear();
+    }
+
+
     @Test
     public void testGroupOkAssigned() throws IOException {
-        RDAPValidationResultFile.getInstance().build(HTTP_OK);
+        RDAPValidationResultFile.getInstance().build();
         verify(fileSystem).write(any(), contains("\"groupOK\": [\"firstGroup\"]"));
     }
 
     @Test
     public void testGroupErrorWarningAssigned() throws IOException {
         results.addGroupErrorWarning("secondGroup");
-        RDAPValidationResultFile.getInstance().build(HTTP_OK);
+        RDAPValidationResultFile.getInstance().build();
         verify(fileSystem).write(any(), contains("\"groupErrorWarning\": [\"secondGroup\"]"));
     }
 
   @Test
   public void testGtldRegistrar() throws IOException {
-    file.build(200);
+    file.build();
     verify(fileSystem).write(any(), contains("\"gtldRegistrar\": false"));
   }
   @Test
   public void testGtldRegistry() throws IOException {
-    file.build(200);
+    file.build();
     verify(fileSystem).write(any(), contains("\"gtldRegistry\": false"));
   }
 
   @Test
   public void testThinRegistry() throws IOException {
-    file.build(200);
+    file.build();
     verify(fileSystem).write(any(), contains("\"thinRegistry\": false"));
   }
 
@@ -88,7 +97,7 @@ public class RDAPValidationResultFileTest {
             configurationFile,
             fileSystem
         );
-        RDAPValidationResultFile.getInstance().build(HTTP_OK);
+        RDAPValidationResultFile.getInstance().build();
 
         verify(fileSystem).write(any(), contains("\"conformanceToolVersion\": \"" + BuildInfo.getVersion() + "\""));
     }
@@ -105,7 +114,7 @@ public class RDAPValidationResultFileTest {
             configurationFile,
             fileSystem
         );
-        RDAPValidationResultFile.getInstance().build(HTTP_OK);
+        RDAPValidationResultFile.getInstance().build();
 
         verify(fileSystem).write(any(), contains("\"buildDate\": \"" + BuildInfo.getBuildDate() + "\""));
     }
@@ -114,13 +123,13 @@ public class RDAPValidationResultFileTest {
 
   @Test
   public void testProfileFebruary2019() throws IOException {
-    file.build(200);
+    file.build();
     verify(fileSystem).write(any(), contains("\"rdapProfileFebruary2019\": false"));
   }
 
   @Test
   public void testProfileFebruary2024() throws IOException {
-    file.build(200);
+    file.build();
     verify(fileSystem).write(any(), contains("\"rdapProfileFebruary2024\": false"));
   }
 
@@ -138,7 +147,7 @@ public class RDAPValidationResultFileTest {
         .message("We log unknown error code, but they aren't part of the result file")
         .build());
     doReturn(List.of(ignoredCode)).when(configurationFile).getDefinitionIgnore();
-    file.build(200);
+    file.build();
     // error should be an empty list since the only result code must be ignored:
     verify(fileSystem).write(any(), contains("\"error\": []"));
   }
@@ -156,7 +165,7 @@ public class RDAPValidationResultFileTest {
             configurationFile,
             fileSystem
         );
-        RDAPValidationResultFile.getInstance().build(HTTP_OK);
+        RDAPValidationResultFile.getInstance().build();
 
         // Verify that the results are written to the custom file path
         verify(fileSystem).write(eq(customResultsFilePath), any(String.class));
@@ -174,10 +183,98 @@ public class RDAPValidationResultFileTest {
             configurationFile,
             fileSystem
         );
-        RDAPValidationResultFile.getInstance().build(HTTP_OK);
+        RDAPValidationResultFile.getInstance().build();
 
     // Verify that the results are written to the default file path
     verify(fileSystem).mkdir("results");
     verify(fileSystem).write(contains("results/results-"), any(String.class));
   }
+
+    @Test
+    public void testAllIgnoredCodes() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+        results.add(RDAPValidationResult.builder().code(-130004).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(-130005).httpStatusCode(404).build());
+
+        String output = results.analyzeResultsWithStatusCheck();
+
+        assertTrue(output.isEmpty());
+        assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+    }
+
+    @Test
+    public void testAllNonIgnoredCodesSameStatus() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(200).build());
+
+        String output = results.analyzeResultsWithStatusCheck();
+
+        assertTrue(output.contains("code=1001, httpStatusCode=200"));
+        assertTrue(output.contains("code=1002, httpStatusCode=200"));
+        assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+    }
+
+    @Test
+    public void testAllNonIgnoredCodesDifferentStatus() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
+
+        String output = results.analyzeResultsWithStatusCheck();
+
+        assertTrue(output.contains("code=1001, httpStatusCode=200"));
+        assertTrue(output.contains("code=1002, httpStatusCode=404"));
+        assertTrue(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+        RDAPValidationResult tupleResult = results.getAll().stream()
+                                                  .filter(r -> r.getCode() == -13018)
+                                                  .findFirst().orElse(null);
+        assertNotNull(tupleResult);
+        assertTrue(tupleResult.getValue().contains("[[1001,200],[1002,404]]") ||
+            tupleResult.getValue().contains("[[1002,404],[1001,200]]"));
+    }
+
+    @Test
+    public void testMixedIgnoredAndNonIgnoredCodes() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+        results.add(RDAPValidationResult.builder().code(-130004).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
+
+        String output = results.analyzeResultsWithStatusCheck();
+
+        assertFalse(output.contains("code=-130004"));
+        assertTrue(output.contains("code=1001, httpStatusCode=200"));
+        assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+    }
+
+    @Test
+    public void testNonIgnoredCodeWithZeroStatus() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(0).build());
+        results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(200).build());
+
+        results.analyzeResultsWithStatusCheck();
+
+        RDAPValidationResult tupleResult = results.getAll().stream()
+                                                  .filter(r -> r.getCode() == -13018)
+                                                  .findFirst().orElse(null);
+        assertNotNull(tupleResult);
+        assertTrue(tupleResult.getValue().contains("[[1001,null],[1002,200]]") ||
+            tupleResult.getValue().contains("[[1002,200],[1001,null]]"));
+    }
+
+    @Test
+    public void testEmptyResults() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+
+        String output = results.analyzeResultsWithStatusCheck();
+        assertTrue(output.isEmpty());
+        assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+    }
 }
