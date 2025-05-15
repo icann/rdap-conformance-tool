@@ -1,5 +1,9 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 import java.util.HashSet;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -15,6 +19,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPValidatorResults.class);
+  public static final String CODE = "code=";
+  public static final String HTTP_STATUS_CODE = ", httpStatusCode=";
+  public static final String BRACKETS = "[]";
 
   // Static instance for the singleton
   private static RDAPValidatorResultsImpl instance;
@@ -107,6 +114,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
   /**
    * Returns a pretty-printed string of all results
+   *  Unused but keep for debugging purposes
    */
   public String prettyPrintResults() {
     StringBuilder sb = new StringBuilder();
@@ -116,38 +124,13 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     return sb.toString();
   }
 
-  public String prettyPrintCodesAndStatus() {
-    StringBuilder sb = new StringBuilder();
-    for (RDAPValidationResult result : results) {
-      sb.append("code=").append(result.getCode())
-        .append(", httpStatusCode=").append(result.getHttpStatusCode())
-        .append(System.lineSeparator());
-    }
-    return sb.toString();
-  }
-
-  public String analyzeResults() {
-    StringBuilder sb = new StringBuilder();
-    for (RDAPValidationResult result : results) {
-      // filter out the codes -130004, -13005, -130006, and -46701
-      if (result.getCode() != -130004 || result.getCode() != -130005 ||
-          result.getCode() != -130006 || result.getCode() != -46701) {
-        // if the httpStatusCode is equal to zero we need to put null
-        sb.append("code=").append(result.getCode())
-          .append(", httpStatusCode=").append(result.getHttpStatusCode())
-          .append(System.lineSeparator());
-      }
-    }
-    return sb.toString();
-  }
-
   public String analyzeResultsWithStatusCheck() {
     StringBuilder sb = new StringBuilder();
-    // Step 1: Filter relevant results
+    // Filter relevant results
     List<RDAPValidationResult> filtered = new ArrayList<>();
     for (RDAPValidationResult result : results) {
       int code = result.getCode();
-      if (code != -130004 || code != -130005 || code != -130006 || code != -46701) {
+      if (code != -130004 && code != -130005 && code != -130006 && code != -46701) {
         filtered.add(result);
       }
     }
@@ -157,59 +140,46 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
       List<Object> tuple = new ArrayList<>();
       tuple.add(result.getCode());
       Integer status = result.getHttpStatusCode();
-      tuple.add((status != null && status == 0) ? null : status);
+      tuple.add((status != null && status == ZERO) ? null : status);
       tupleList.add(tuple);
     }
 
-    String tupleListJson = "[]";
+    String tupleListJson = BRACKETS;
     try {
       ObjectMapper mapper = new ObjectMapper();
       tupleListJson = mapper.writeValueAsString(tupleList);
     } catch (JsonProcessingException e) {
-      logger.error("Error serializing tuple list to JSON", e);
+      logger.info("Error serializing tuple list to JSON", e);
     }
 
-
-    // Step 2: Collect httpStatusCodes
+    //  Collect httpStatusCodes
     Set<Integer> statusCodes = new HashSet<>();
     for (RDAPValidationResult result : filtered) {
       statusCodes.add(result.getHttpStatusCode());
     }
 
-    // Step 3: If not all the same, add a new result
-    if (statusCodes.size() > 1) {
-      // Build the value as a list of tuples: (code, httpStatusCode)
-      StringBuilder tupleListSB = new StringBuilder();
-      for (RDAPValidationResult result : filtered) {
-        tupleListSB.append("{")
-                 .append(result.getCode())
-                 .append(", ")
-                 .append(result.getHttpStatusCode())
-                 .append("}, ");
-      }
-      // Remove trailing comma and space
-      if (tupleListSB.length() > 2) {
-        tupleListSB.setLength(tupleListSB.length() - 2);
-      }
-      System.out.println("tupleList: " + tupleListSB.toString());
+    // If not all the same, add the new error code
+    if (statusCodes.size() > ONE) {
+      logger.info("Not all status codes are the same");
       results.add(
           RDAPValidationResult.builder()
-                              .queriedURI("-")
-                              .httpMethod("-")
-                              .httpStatusCode(0)
+                              .acceptHeader(DASH)
+                              .queriedURI(DASH)
+                              .httpMethod(DASH)
+                              .httpStatusCode(ZERO)
                               .code(-13018)
                               .value(tupleListJson)
                                .message("Queries do not produce the same HTTP status code.")
                               .build()
       );
     } else {
-      System.out.println("All status codes are the same: " + statusCodes);
+      logger.info("All status codes are the same");
     }
 
-    // Step 4: Pretty print filtered results
+    // Return a Pretty Printed and filtered results
     for (RDAPValidationResult result : filtered) {
-      sb.append("code=").append(result.getCode())
-        .append(", httpStatusCode=").append(result.getHttpStatusCode())
+      sb.append(CODE).append(result.getCode())
+        .append(HTTP_STATUS_CODE).append(result.getHttpStatusCode())
         .append(System.lineSeparator());
     }
     return sb.toString();

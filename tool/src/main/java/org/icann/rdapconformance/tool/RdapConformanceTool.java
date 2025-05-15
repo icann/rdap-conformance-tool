@@ -1,8 +1,6 @@
 package org.icann.rdapconformance.tool;
 
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -141,22 +139,21 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
         logger.info("Unable to resolve an IP address endpoint using DNS for uri:  "  + DNSCacheResolver.getHostnameFromUrl(uri.toString()));
       }
 
-      logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
-      String rez = RDAPValidatorResultsImpl.getInstance().analyzeResultsWithStatusCheck();
-      System.out.println(rez);
 
-      System.out.println("RDAP Validation Results Filtered: " + RDAPValidatorResultsImpl.getInstance().analyzeResults());
-      System.out.println("RDAP Validation Results Unfiltered: " + RDAPValidatorResultsImpl.getInstance().prettyPrintCodesAndStatus());
 
-      // Build the result file with a legacy zero exit code
-      resultFile.build(ZERO);
+      // Check the results of the http codes and ensure they are all the same
+      String resultsWithStatus = RDAPValidatorResultsImpl.getInstance().analyzeResultsWithStatusCheck();
+      logger.info("Results with status check:\n{}",resultsWithStatus);
+
+      // Build the result file
+      resultFile.build();
       // now the results file is set, print the path
       logger.info("Results file: {}",  validator.getResultsPath());
 
-      int exitCode = 0;
+      logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
 
-      // Return the exit code
-      return exitCode;
+      // if we made it to here, exit 0
+      return 0;
     }
 
     return validateWithoutNetwork(resultFile, validator);
@@ -165,9 +162,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
 
   private int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
-    // If network is not enabled or ipv4/ipv6 flags are off, validate and return
+    // If network is not enabled or ipv4 AND ipv6 flags are off, validate and return
     int file_exit_code =  validator.validate();
-    resultFile.build(ZERO);
+    resultFile.build();
     logger.info("Results file: {}",  validator.getResultsPath());
     return file_exit_code;
   }

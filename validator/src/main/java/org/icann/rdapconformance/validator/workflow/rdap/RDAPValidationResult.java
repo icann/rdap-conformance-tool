@@ -153,9 +153,7 @@ public class RDAPValidationResult {
           this.code,
           this.value,
           this.message,
-          // these are a snapshot of the current state of the connection
-          this.acceptHeader != null ? this.acceptHeader :  // the default is the current accept header
-          NetworkInfo.getAcceptHeader(),
+          this.acceptHeader != null ? this.acceptHeader : NetworkInfo.getAcceptHeader(),  // the default is the current accept header
           this.httpMethod != null ? this.httpMethod : GET, // the default is GET unless you explicitly set it
           NetworkInfo.getServerIpAddress(),
           this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
