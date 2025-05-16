@@ -7,16 +7,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
-import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 
 public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidation {
     public ResponseValidation2Dot6Dot3_2024(String rdapResponse, RDAPValidatorResults results) {
@@ -156,9 +151,9 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
 
     public static boolean isValidURL(String urlString) {
         try {
-            new URL(urlString).toURI();
+            URI.create(urlString).toURL();
             return true;
-        } catch (MalformedURLException | java.net.URISyntaxException e) {
+        } catch (Exception e) {
             return false;
         }
     }
