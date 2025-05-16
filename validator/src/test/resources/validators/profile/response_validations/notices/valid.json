@@ -1,0 +1,28 @@
+{
+  "rdapConformance": [
+    "rdap_level_0",
+    "icann_rdap_technical_implementation_guide_0",
+    "icann_rdap_response_profile_0"
+  ],
+  "notices" :
+  [
+    {
+      "title" : "Status Codes",
+      "type": "result set truncated due to excessive load",
+      "description" :
+      [
+        "For more information on domain status codes, please visit https://icann.org/epp",
+        "Calm down and come back later."
+      ],
+      "links" :
+      [
+        {
+          "value" : "https://example.net/entity/XXXX",
+          "rel" : "glossary",
+          "type" : "text/html",
+          "href" : "https://icann.org/epp"
+        }
+      ]
+    }
+  ]
+}

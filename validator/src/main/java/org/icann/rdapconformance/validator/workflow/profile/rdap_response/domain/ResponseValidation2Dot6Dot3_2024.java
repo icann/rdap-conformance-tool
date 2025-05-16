@@ -3,6 +3,8 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
@@ -74,21 +76,18 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
             return false;
         }
 
-        if(statusCodeObject.notice().get("description") instanceof ArrayList<?> noticeDescriptions) {
-            if(noticeDescriptions.stream().allMatch(item -> item instanceof String)) {
-                List<String> descriptions = (ArrayList<String>) noticeDescriptions;
-                var statusDescription = descriptions.stream().filter(desc -> desc.trim().equalsIgnoreCase(
-                        "For more information on domain status codes, please visit https://icann.org/epp"))
-                        .findAny();
-                if(statusDescription.isEmpty()) {
-                    results.add(RDAPValidationResult.builder()
-                            .code(-46602)
-                            .value(getResultValue(noticePointersValue))
-                            .message("The notice for Status Codes does not have the proper description.")
-                            .build());
-                    return false;
-                }
-
+        if(statusCodeObject.notice().get("description") instanceof JSONArray descriptions) {
+            var noticeDescriptions = convertJsonArrayToArrayListOfStrings(descriptions);
+            var statusDescription = noticeDescriptions.stream().filter(desc -> desc.trim().equalsIgnoreCase(
+                    "For more information on domain status codes, please visit https://icann.org/epp"))
+                    .findAny();
+            if(statusDescription.isEmpty()) {
+                results.add(RDAPValidationResult.builder()
+                        .code(-46602)
+                        .value(getResultValue(noticePointersValue))
+                        .message("The notice for Status Codes does not have the proper description.")
+                        .build());
+                return false;
             }
         } else {
             results.add(RDAPValidationResult.builder()
@@ -103,43 +102,15 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
     }
 
     private boolean hasStatusCodesLinksArray(StatusCodeObjectToValidate statusCodeObject) {
+        Object linksArray;
         if(statusCodeObject.notice() == null) {
             return false;
         }
 
-        if(statusCodeObject.notice().get("links") instanceof ArrayList<?> noticeLinks) {
-            if(noticeLinks.stream().allMatch(item -> item instanceof LinksObjectToValidate)) {
-                List<LinksObjectToValidate> links = (ArrayList<LinksObjectToValidate>) noticeLinks;
-                var statusLink = links.stream().filter(l -> l.href().trim().equalsIgnoreCase(
-                        "https://icann.org/epp")).findAny();
-                if(statusLink.isEmpty()) {
-                    results.add(RDAPValidationResult.builder()
-                            .code(-46604)
-                            .value(getResultValue(noticePointersValue))
-                            .message("The notice for Status Codes does not have links.")
-                            .build());
-                    return false;
-                }
-
-                if(!statusLink.get().rel().equalsIgnoreCase("glossary")) {
-                    results.add(RDAPValidationResult.builder()
-                            .code(-46605)
-                            .value(getResultValue(noticePointersValue))
-                            .message("The notice for Status Codes does not have a link relation type of glossary")
-                            .build());
-                    return false;
-                }
-
-                if(!isValidURL(statusLink.get().value())) {
-                    results.add(RDAPValidationResult.builder()
-                            .code(-46606)
-                            .value(getResultValue(noticePointersValue))
-                            .message("The notice for Status Codes does not have a link value of the request URL.")
-                            .build());
-                    return false;
-                }
-            }
-        } else {
+        // When links is not found throws an exception
+        try {
+            linksArray = statusCodeObject.notice().get("links");
+        } catch (JSONException e) {
             results.add(RDAPValidationResult.builder()
                     .code(-46603)
                     .value(getResultValue(noticePointersValue))
@@ -148,17 +119,68 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
             return false;
         }
 
+        if(linksArray instanceof JSONArray links) {
+            var noticelinks = convertJsonArrayToArrayListOfObjects(links);
+            var statusLink = noticelinks.stream().filter(l -> l.href().trim().equalsIgnoreCase(
+                    "https://icann.org/epp")).findAny();
+            if(statusLink.isEmpty()) {
+                results.add(RDAPValidationResult.builder()
+                        .code(-46604)
+                        .value(getResultValue(noticePointersValue))
+                        .message("The notice for Status Codes does not have a link to the status codes.")
+                        .build());
+                return false;
+            }
+
+            if(!statusLink.get().rel().equalsIgnoreCase("glossary")) {
+                results.add(RDAPValidationResult.builder()
+                        .code(-46605)
+                        .value(getResultValue(noticePointersValue))
+                        .message("The notice for Status Codes does not have a link relation type of glossary")
+                        .build());
+                return false;
+            }
+
+            if(!isValidURL(statusLink.get().value())) {
+                results.add(RDAPValidationResult.builder()
+                        .code(-46606)
+                        .value(getResultValue(noticePointersValue))
+                        .message("The notice for Status Codes does not have a link value of the request URL.")
+                        .build());
+                return false;
+            }
+        }
+
         return true;
     }
 
     public static boolean isValidURL(String urlString) {
         try {
-            URI uri = Paths.get(urlString).toUri();
-            uri.toURL();
+            new URL(urlString).toURI();
             return true;
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException | java.net.URISyntaxException e) {
             return false;
         }
+    }
+
+    public static List<String> convertJsonArrayToArrayListOfStrings(JSONArray jsonArray) {
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            list.add(jsonArray.getString(i));
+        }
+        return list;
+    }
+
+    public static List<LinksObjectToValidate> convertJsonArrayToArrayListOfObjects(JSONArray jsonArray) {
+        List<LinksObjectToValidate> list = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            list.add(new LinksObjectToValidate(
+                    jsonObject.getString("value"),
+                    jsonObject.getString("rel"),
+                    jsonObject.getString("href")));
+        }
+        return list;
     }
 }
 
