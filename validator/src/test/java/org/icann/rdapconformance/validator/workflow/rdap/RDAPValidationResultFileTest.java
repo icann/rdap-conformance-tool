@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
@@ -276,5 +278,91 @@ public class RDAPValidationResultFileTest {
         String output = results.analyzeResultsWithStatusCheck();
         assertTrue(output.isEmpty());
         assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+    }
+
+    @Test
+    public void testNullAndZeroStatusCodesAreEquivalent() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
+
+        String output = results.analyzeResultsWithStatusCheck();
+
+        // Both results should be in output
+        assertTrue(output.contains("code=1001, httpStatusCode=null"));
+        assertTrue(output.contains("code=1002, httpStatusCode=0"));
+        // Should not generate -13018 error since null and 0 are considered equivalent
+        assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+    }
+
+    @Test
+    public void testMixedNullZeroAndOtherStatusCodes() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
+        results.add(RDAPValidationResult.builder().code(1003).httpStatusCode(200).build());
+
+        results.analyzeResultsWithStatusCheck();
+
+        // Should generate -13018 error since we have different status codes (0/null vs 200)
+        RDAPValidationResult tupleResult = results.getAll().stream()
+                                                  .filter(r -> r.getCode() == -13018)
+                                                  .findFirst().orElse(null);
+
+        assertNotNull(tupleResult);
+        assertTrue(tupleResult.getValue().contains("[1002,null],[1001,null],[1003,200]]") );
+    }
+
+    @Test
+    public void testNoDuplicateTuplesInJson() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+
+        // Add duplicate results deliberately
+        results.add(RDAPValidationResult.builder().code(-52106).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(-52106).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(-13007).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(-13007).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(-61101).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(-61101).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(-23101).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(-23101).httpStatusCode(null).build());
+
+        results.analyzeResultsWithStatusCheck();
+
+        // Grab the -13018 result which contains our tupleListJson
+        RDAPValidationResult tupleResult = results.getAll().stream()
+                                                  .filter(r -> r.getCode() == -13018)
+                                                  .findFirst()
+                                                  .orElse(null);
+
+        assertNotNull(tupleResult);
+        String tupleListJson = tupleResult.getValue();
+
+        // Count occurrences of each code and ensure it's only there ONCE
+        assertTrue(countOccurrences(tupleListJson, "[-52106,200]") == ONE,
+            "[-52106,200] appears multiple times");
+        assertTrue(countOccurrences(tupleListJson, "[-13007,200]") == ONE,
+            "[-13007,200] appears multiple times");
+        assertTrue(countOccurrences(tupleListJson, "[-61101,null]") == ONE,
+            "[-61101,null] appears multiple times");
+        assertTrue(countOccurrences(tupleListJson, "[-23101,null]") == ONE,
+            "[-23101,null] appears multiple times");
+    }
+
+    // Helper method to count occurrences in string
+    private int countOccurrences(String str, String findStr) {
+        int lastIndex = ZERO;
+        int count = ZERO;
+        while (lastIndex != -1) {
+            lastIndex = str.indexOf(findStr, lastIndex);
+            if (lastIndex != -1) {
+                count++;
+                lastIndex += findStr.length();
+            }
+        }
+        return count;
     }
 }

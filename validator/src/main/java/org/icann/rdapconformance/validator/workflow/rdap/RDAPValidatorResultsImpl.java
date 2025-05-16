@@ -135,27 +135,29 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
       }
     }
 
-    List<List<Object>> tupleList = new ArrayList<>();
+    Set<List<Object>> uniqueTuples = new HashSet<>();  // Use Set to ensure uniqueness
     for (RDAPValidationResult result : filtered) {
       List<Object> tuple = new ArrayList<>();
       tuple.add(result.getCode());
       Integer status = result.getHttpStatusCode();
       tuple.add((status != null && status == ZERO) ? null : status);
-      tupleList.add(tuple);
+      uniqueTuples.add(tuple);
     }
 
     String tupleListJson = BRACKETS;
     try {
       ObjectMapper mapper = new ObjectMapper();
-      tupleListJson = mapper.writeValueAsString(tupleList);
+      tupleListJson = mapper.writeValueAsString(new ArrayList<>(uniqueTuples));
     } catch (JsonProcessingException e) {
       logger.info("Error serializing tuple list to JSON", e);
     }
 
-    //  Collect httpStatusCodes
+
+    // Collect httpStatusCodes - normalize null to 0
     Set<Integer> statusCodes = new HashSet<>();
     for (RDAPValidationResult result : filtered) {
-      statusCodes.add(result.getHttpStatusCode());
+      Integer statusCode = result.getHttpStatusCode();
+      statusCodes.add(statusCode == null ? ZERO : statusCode);
     }
 
     // If not all the same, add the new error code
