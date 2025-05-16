@@ -49,7 +49,7 @@ public class RDAPHttpRequestTest {
     public static final int HTTP_HIGH_PORT = 8080;
     private final URI testUri = URI.create("http://example.com/path");
     private final int timeout = 10;
-    
+
     @Test
     public void testMakeRequest_UnknownHost() throws Exception {
         try (MockedStatic<DNSCacheResolver> dnsResolverMock = Mockito.mockStatic(DNSCacheResolver.class);
