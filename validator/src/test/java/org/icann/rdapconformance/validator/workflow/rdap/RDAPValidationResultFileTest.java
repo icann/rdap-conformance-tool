@@ -277,4 +277,40 @@ public class RDAPValidationResultFileTest {
         assertTrue(output.isEmpty());
         assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
     }
+
+    @Test
+    public void testNullAndZeroStatusCodesAreEquivalent() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
+
+        String output = results.analyzeResultsWithStatusCheck();
+
+        // Both results should be in output
+        assertTrue(output.contains("code=1001, httpStatusCode=null"));
+        assertTrue(output.contains("code=1002, httpStatusCode=0"));
+        // Should not generate -13018 error since null and 0 are considered equivalent
+        assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+    }
+
+    @Test
+    public void testMixedNullZeroAndOtherStatusCodes() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
+        results.add(RDAPValidationResult.builder().code(1003).httpStatusCode(200).build());
+
+        results.analyzeResultsWithStatusCheck();
+
+        // Should generate -13018 error since we have different status codes (0/null vs 200)
+        RDAPValidationResult tupleResult = results.getAll().stream()
+                                                  .filter(r -> r.getCode() == -13018)
+                                                  .findFirst().orElse(null);
+        assertNotNull(tupleResult);
+        assertTrue(tupleResult.getValue().contains("[[1001,null],[1002,null],[1003,200]]") ||
+            tupleResult.getValue().contains("[[1003,200],[1001,null],[1002,null]]") ||
+            tupleResult.getValue().contains("[[1001,null],[1003,200],[1002,null]]"));
+    }
 }

@@ -152,10 +152,12 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
       logger.info("Error serializing tuple list to JSON", e);
     }
 
-    //  Collect httpStatusCodes
+
+    // Collect httpStatusCodes - normalize null to 0
     Set<Integer> statusCodes = new HashSet<>();
     for (RDAPValidationResult result : filtered) {
-      statusCodes.add(result.getHttpStatusCode());
+      Integer statusCode = result.getHttpStatusCode();
+      statusCodes.add(statusCode == null ? ZERO : statusCode);
     }
 
     // If not all the same, add the new error code
