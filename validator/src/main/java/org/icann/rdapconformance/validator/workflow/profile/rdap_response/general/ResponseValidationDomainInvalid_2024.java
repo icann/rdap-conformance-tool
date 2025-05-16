@@ -20,7 +20,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsF
 
 public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationDomainInvalid_2024.class);
-    public static final String DOMAIN_INVALID = "domain/not-a-domain.invalid";
+    public static final String DOMAIN_INVALID = "/domain/not-a-domain.invalid";
 
     private final RDAPValidatorConfiguration config;
 
