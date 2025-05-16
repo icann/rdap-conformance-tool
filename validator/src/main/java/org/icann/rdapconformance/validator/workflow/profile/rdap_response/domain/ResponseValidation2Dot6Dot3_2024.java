@@ -1,13 +1,18 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.net.URI;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +23,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
         super(rdapResponse, results);
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot6Dot3_2024.class);
     public static final String NOTICES_PATH = "$.notices[*]";
     private Set<String> noticePointersValue = null;
 
@@ -151,9 +157,11 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
 
     public static boolean isValidURL(String urlString) {
         try {
-            URI.create(urlString).toURL();
+            URL url = new URL(urlString);
+            url.toURI();
             return true;
-        } catch (Exception e) {
+        } catch (MalformedURLException | URISyntaxException e) {
+            logger.info("url is invalid: {}", e.getMessage());
             return false;
         }
     }
