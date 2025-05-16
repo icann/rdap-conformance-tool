@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
@@ -308,9 +310,59 @@ public class RDAPValidationResultFileTest {
         RDAPValidationResult tupleResult = results.getAll().stream()
                                                   .filter(r -> r.getCode() == -13018)
                                                   .findFirst().orElse(null);
+
         assertNotNull(tupleResult);
-        assertTrue(tupleResult.getValue().contains("[[1001,null],[1002,null],[1003,200]]") ||
-            tupleResult.getValue().contains("[[1003,200],[1001,null],[1002,null]]") ||
-            tupleResult.getValue().contains("[[1001,null],[1003,200],[1002,null]]"));
+        assertTrue(tupleResult.getValue().contains("[1002,null],[1001,null],[1003,200]]") );
+    }
+
+    @Test
+    public void testNoDuplicateTuplesInJson() {
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+
+        // Add duplicate results deliberately
+        results.add(RDAPValidationResult.builder().code(-52106).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(-52106).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(-13007).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(-13007).httpStatusCode(200).build());
+        results.add(RDAPValidationResult.builder().code(-61101).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(-61101).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(-23101).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(-23101).httpStatusCode(null).build());
+
+        results.analyzeResultsWithStatusCheck();
+
+        // Grab the -13018 result which contains our tupleListJson
+        RDAPValidationResult tupleResult = results.getAll().stream()
+                                                  .filter(r -> r.getCode() == -13018)
+                                                  .findFirst()
+                                                  .orElse(null);
+
+        assertNotNull(tupleResult);
+        String tupleListJson = tupleResult.getValue();
+
+        // Count occurrences of each code and ensure it's only there ONCE
+        assertTrue(countOccurrences(tupleListJson, "[-52106,200]") == ONE,
+            "[-52106,200] appears multiple times");
+        assertTrue(countOccurrences(tupleListJson, "[-13007,200]") == ONE,
+            "[-13007,200] appears multiple times");
+        assertTrue(countOccurrences(tupleListJson, "[-61101,null]") == ONE,
+            "[-61101,null] appears multiple times");
+        assertTrue(countOccurrences(tupleListJson, "[-23101,null]") == ONE,
+            "[-23101,null] appears multiple times");
+    }
+
+    // Helper method to count occurrences in string
+    private int countOccurrences(String str, String findStr) {
+        int lastIndex = ZERO;
+        int count = ZERO;
+        while (lastIndex != -1) {
+            lastIndex = str.indexOf(findStr, lastIndex);
+            if (lastIndex != -1) {
+                count++;
+                lastIndex += findStr.length();
+            }
+        }
+        return count;
     }
 }
