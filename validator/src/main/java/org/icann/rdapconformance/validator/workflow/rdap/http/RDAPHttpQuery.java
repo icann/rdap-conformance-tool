@@ -3,13 +3,10 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
-import java.net.ConnectException;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
-import java.net.http.HttpTimeoutException;
+
 import java.security.Security;
 import java.util.*;
 import org.icann.rdapconformance.validator.ConformanceError;

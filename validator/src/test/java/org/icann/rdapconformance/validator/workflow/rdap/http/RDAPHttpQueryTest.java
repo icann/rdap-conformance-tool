@@ -23,6 +23,7 @@ import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -196,6 +197,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         expectedStatus = ConnectionStatus.CONNECTION_FAILED;
         expectedResult = RDAPValidationResult.builder()
                                              .code(-13007)
+                                             .httpStatusCode(ZERO)
                                              .value("no response available")
                                              .message("Failed to connect to server.")
                                              .build();
@@ -204,6 +206,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         expectedStatus = ConnectionStatus.NETWORK_RECEIVE_FAIL;
         expectedResult = RDAPValidationResult.builder()
                                              .code(-13017)
+                                             .httpStatusCode(ZERO)
                                              .value("no response available")
                                              .message("Network receive fail")
                                              .build();
@@ -212,6 +215,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         expectedStatus = ConnectionStatus.NETWORK_RECEIVE_FAIL;
         expectedResult = RDAPValidationResult.builder()
                                              .code(-13017)
+                                             .httpStatusCode(ZERO)
                                              .value("no response available")
                                              .message("Network receive fail")
                                              .build();
@@ -241,6 +245,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(results.getAll()).contains(
         RDAPValidationResult.builder()
                             .code(-13017)
+                            .httpStatusCode(ZERO)
                             .value("no response available")
                             .message("Network receive fail")
                             .build());
@@ -843,54 +848,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
       rdapHttpQuery.run();
       List<URI> redirects = rdapHttpQuery.getRedirects();
       assertThat(redirects).containsExactly(uri2, uri3);
-    }
-  }
-
-  @Test
-  public void test_HandleRequestException_ClientExecuteThrowsConnectionException() throws Exception {
-    RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
-    results.clear();
-    rdapHttpQuery.setResults(results);
-
-    doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
-
-    try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class);
-        MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class)) {
-
-      dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(any(String.class)))
-                     .thenReturn(false);
-      InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
-      dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(any(String.class)))
-                     .thenReturn(mockAddress);
-
-      ConnectException connectException = new ConnectException("Connection refused");
-      mockedStatic.when(() -> RDAPHttpRequest.executeRequest(any(CloseableHttpClient.class), any(HttpUriRequestBase.class)))
-                  .thenThrow(connectException);
-
-      // Allow the real stuff to be called
-      mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), eq("GET"), eq(true)))
-                  .thenCallRealMethod();
-      mockedStatic.when(() -> RDAPHttpRequest.handleRequestException(any()))
-                     .thenCallRealMethod();
-      mockedStatic.when(() -> RDAPHttpRequest.hasCause(any(), any()))
-                     .thenCallRealMethod();
-
-
-      // Also allow makeHttpGetRequest to call through to the real method
-      mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(URI.class), anyInt()))
-                  .thenCallRealMethod();
-
-      boolean result = rdapHttpQuery.run();
-      assertThat(result).isFalse();
-
-      assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.CONNECTION_FAILED);
-
-      assertThat(results.getAll()).contains(
-          RDAPValidationResult.builder()
-                              .code(-13007)
-                              .value("no response available")
-                              .message("Failed to connect to server.")
-                              .build());
     }
   }
 

@@ -67,13 +67,14 @@ public final class TigValidation1Dot2 extends ProfileValidation {
     if (rdapResponse.uri().getScheme().equals(HTTPS)) {
       try {
         URI uri = URI.create(rdapResponse.uri().toString().replaceFirst(HTTPS_PREFIX, HTTP_PREFIX));
-        HttpResponse<String> httpResponse = RDAPHttpRequest.makeHttpGetRequest(uri, config.getTimeout());
+        // the two false items are: it is not the main connection and do not record an error if the http connection fails - that's a good thing that it fails!
+        HttpResponse<String> httpResponse = RDAPHttpRequest.makeRequest(uri, config.getTimeout(), GET, false, false);
         JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
         JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
         if (!httpResponse.uri().getScheme().equals(HTTPS) // if redirect to https, do not validate
             && jsonComparator.compare(httpResponseJson,
             httpsResponseJson) == 0) {
-          results.add(RDAPValidationResult.builder()
+            results.add(RDAPValidationResult.builder()
                                           .queriedURI(httpResponse.uri().toString())
                                           .httpMethod(GET)
                                           .httpStatusCode(httpResponse.statusCode())

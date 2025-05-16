@@ -82,6 +82,11 @@ public class RDAPHttpRequest {
     }
 
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain) throws Exception {
+        return makeRequest(originalUri, timeoutSeconds, method, false, true);
+    }
+
+
+    public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
         if (originalUri == null) {
             throw new IllegalArgumentException("The provided URI is null.");
         }
@@ -189,7 +194,7 @@ public class RDAPHttpRequest {
 
             } catch (IOException ioe) {
                 logger.info("[trackingID: {}] Error during HTTP request: {}", trackingId, ioe.getMessage());
-                ConnectionStatus connStatus = handleRequestException(ioe);
+                ConnectionStatus connStatus = handleRequestException(ioe, canRecordError);
                 tracker.completeCurrentConnection(ZERO, connStatus);
 
                 SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, null);
@@ -237,7 +242,7 @@ public class RDAPHttpRequest {
     /**
      * Handle exceptions that occur during the HTTP request.
      */
-    public static ConnectionStatus handleRequestException(IOException e) {
+    public static ConnectionStatus handleRequestException(IOException e, boolean recordError) {
         if (e instanceof UnknownHostException) {
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
@@ -245,40 +250,54 @@ public class RDAPHttpRequest {
 
         if (e instanceof ConnectException || e instanceof HttpTimeoutException || e instanceof org.apache.hc.client5.http.ConnectTimeoutException) {
             if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
-                addErrorToResultsFile(-13016, "no response available", "Network send fail");
+                if(recordError) {
+                    addErrorToResultsFile(ZERO,-13016, "no response available", "Network send fail");
+                }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
                 return ConnectionStatus.NETWORK_SEND_FAIL;
             } else {
-                addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
+                if(recordError) {
+                    addErrorToResultsFile(ZERO, -13007, "no response available", "Failed to connect to server.");
+                }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
                 return ConnectionStatus.CONNECTION_FAILED;
             }
         }
 
         if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
-            addErrorToResultsFile(-13011, "no response available", "Expired certificate.");
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13011, "no response available", "Expired certificate.");
+            }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
             return ConnectionStatus.EXPIRED_CERTIFICATE;
         } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
-            addErrorToResultsFile(-13010, "no response available", "Revoked TLS certificate.");
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13010, "no response available", "Revoked TLS certificate.");
+            }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
             return ConnectionStatus.REVOKED_CERTIFICATE;
         } else if (hasCause(e, "java.security.cert.CertificateException")) {
             if (e.getMessage().contains("No name matching") ||
                 e.getMessage().contains("No subject alternative DNS name matching")) {
-                addErrorToResultsFile(-13009, "no response available", "Invalid TLS certificate.");
+                if(recordError) {
+                    addErrorToResultsFile(0, -13009, "no response available", "Invalid TLS certificate.");
+                }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
                 return ConnectionStatus.INVALID_CERTIFICATE;
             }
-            addErrorToResultsFile(-13012, "no response available", "TLS certificate error.");
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13012, "no response available", "TLS certificate error.");
+            }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
             return ConnectionStatus.CERTIFICATE_ERROR;
         } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
-            addErrorToResultsFile(-13008, "no response available", "TLS handshake failed.");
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13008, "no response available", "TLS handshake failed.");
+            }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
             return ConnectionStatus.HANDSHAKE_FAILED;
         } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
-            addErrorToResultsFile(-13012, "no response available", "TLS certificate error.");
+            addErrorToResultsFile(ZERO,-13012, "no response available", "TLS certificate error.");
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
             return ConnectionStatus.CERTIFICATE_ERROR;
         }
@@ -286,26 +305,36 @@ public class RDAPHttpRequest {
         // Differentiates between  NETWORK_SEND_FAIL and NETWORK_RECEIVE_FAIL
         if (e instanceof SocketTimeoutException) {
             if (e.getMessage().contains("Read timed out")) {
-                addErrorToResultsFile(-13017, "no response available", "Network receive fail");
+                if(recordError) {
+                    addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
+                }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
                 return ConnectionStatus.NETWORK_RECEIVE_FAIL;
             } else {
-                addErrorToResultsFile(-13016, "no response available", "Network send fail");
+                if(recordError) {
+                    addErrorToResultsFile(ZERO, -13016, "no response available", "Network send fail");
+                }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
                 return ConnectionStatus.NETWORK_SEND_FAIL;
             }
         } else if (e instanceof EOFException) {
-            addErrorToResultsFile(-13017, "no response available", "Network receive fail");
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
+            }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
             return ConnectionStatus.NETWORK_RECEIVE_FAIL;
         } else if (e.getMessage().contains("Connection reset") || e.getMessage().contains("Connection closed by peer")) {
-            addErrorToResultsFile(-13017, "no response available", "Network receive fail");
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
+            }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
             return ConnectionStatus.NETWORK_RECEIVE_FAIL;
         }
 
         // Default to CONNECTION_FAILED if no specific cause identified
-        addErrorToResultsFile(-13007, "no response available", "Failed to connect to server.");
+        if(recordError) {
+            addErrorToResultsFile(ZERO,-13007, "no response available", "Failed to connect to server.");
+        }
         ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
         return ConnectionStatus.CONNECTION_FAILED;
     }
