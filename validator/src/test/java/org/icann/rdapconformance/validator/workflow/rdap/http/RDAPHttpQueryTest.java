@@ -245,7 +245,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     assertThat(results.getAll()).contains(
         RDAPValidationResult.builder()
                             .code(-13017)
-                            .httpStatusCode(0)
+                            .httpStatusCode(ZERO)
                             .value("no response available")
                             .message("Network receive fail")
                             .build());
