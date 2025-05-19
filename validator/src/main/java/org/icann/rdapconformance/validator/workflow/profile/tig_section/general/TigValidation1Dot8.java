@@ -161,6 +161,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
       }
 
       String ipAddressJson = String.format("{\"ip\": \"%s\"}", ipAddress.getHostAddress());
+      System.out.println("DNS IP Address JSON: " + ipAddressJson);
       SchemaValidator validator = new SchemaValidator(schema.path(),  RDAPValidatorResultsImpl.getInstance(),
           datasetService);
       boolean isValid = validator.validate(ipAddressJson);
