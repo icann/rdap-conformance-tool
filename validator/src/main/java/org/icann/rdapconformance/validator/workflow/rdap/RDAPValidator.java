@@ -167,21 +167,21 @@ public class RDAPValidator implements ValidatorWorkflow {
             new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate(); // Network calls
         }
 
-        // Issue additional queries (/help and /not-a-domain.invalid) when flag is true
-        if(config.isAdditionalConformanceQueries()) {
+        // Issue additional queries (/help and /not-a-domain.invalid) when flag is true and profile 2024 is false
+        if(config.isAdditionalConformanceQueries() && !config.useRdapProfileFeb2024()) {
             logger.info("Validations for additional conformance queries");
             new ResponseValidationHelp_2024(config, results).validate();
             new ResponseValidationDomainInvalid_2024(config, results).validate();
         }
 
-        if (config.useRdapProfileFeb2019() && !query.isErrorContent()) {
+        if (config.useRdapProfileFeb2019()) {
             logger.info("Validations for 2019 profile");
             RDAPProfile rdapProfile = new RDAPProfile(
                 get2019RdapValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, validator, query));
             rdapProfile.validate();
         }
 
-        if (config.useRdapProfileFeb2024() && !query.isErrorContent()) {
+        if (config.useRdapProfileFeb2024()) {
             logger.info("Validations for 2024 profile");
             RDAPProfile rdapProfile = new RDAPProfile(
                 get2024ProfileValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, query));
@@ -274,8 +274,11 @@ public class RDAPValidator implements ValidatorWorkflow {
             logger.info("Network enabled tests for 2024 profile");
             validations.add(new TigValidation1Dot5_2024(rdapResponse, config, results)); // SSL Network connection
             validations.add(new ResponseValidationTestInvalidRedirect_2024(config, results)); // Network connection
-            validations.add(new ResponseValidationHelp_2024(config, results)); // Network connection
-            validations.add(new ResponseValidationDomainInvalid_2024(config, results)); // Network connection
+
+            if(!config.isAdditionalConformanceQueries()) {
+                validations.add(new ResponseValidationHelp_2024(config, results)); // Network connection
+                validations.add(new ResponseValidationDomainInvalid_2024(config, results)); // Network connection
+            }
         }
 
         return validations;

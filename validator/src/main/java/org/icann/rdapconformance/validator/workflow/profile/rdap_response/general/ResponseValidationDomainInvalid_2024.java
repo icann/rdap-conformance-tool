@@ -54,11 +54,12 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
         } else {
             domainInvalidUri = this.config.getUri().getHost().concat(DOMAIN_INVALID);
         }
+        String domainInvalidUriCleaned = CommonUtils.cleanStringFromExtraSlash(domainInvalidUri);
 
-        logger.info("Making request to: {}", domainInvalidUri);
+        logger.info("Making request to: {}", domainInvalidUriCleaned);
         HttpResponse<String> response = null;
 
-        response = RDAPHttpRequest.makeHttpGetRequest(new URI(domainInvalidUri), this.config.getTimeout());
+        response = RDAPHttpRequest.makeHttpGetRequest(new URI(domainInvalidUriCleaned), this.config.getTimeout());
 
         // final response
         return validateDomainInvalidQuery(response, isValid);
