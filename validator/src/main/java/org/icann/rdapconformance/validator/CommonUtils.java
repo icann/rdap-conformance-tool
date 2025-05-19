@@ -73,4 +73,16 @@ public class CommonUtils {
             default -> originalString;
         };
     }
+
+
+    public static String cleanStringFromExtraSlash(String input) {
+        if(input != null) {
+            String uriCleaned = input.replaceAll("//", "/");
+            if (uriCleaned.endsWith("/")) {
+                return input.substring(0, input.length() - 1);
+            }
+        }
+
+        return input;
+    }
 }
