@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
@@ -350,6 +351,92 @@ public class RDAPValidationResultFileTest {
             "[-61101,null] appears multiple times");
         assertTrue(countOccurrences(tupleListJson, "[-23101,null]") == ONE,
             "[-23101,null] appears multiple times");
+    }
+
+    @Test
+    public void testCullDuplicates_NoIpErrors() {
+        results.add(RDAPValidationResult.builder().code(-10000).build());
+
+        results.cullDuplicateIPAddressErrors();
+
+        assertThat(results.getAll()).hasSize(1);
+        assertThat(results.getAll().stream().map(RDAPValidationResult::getCode))
+            .containsExactly(-10000);
+    }
+
+    @Test
+    public void testCullDuplicates_SingleIpv4() {
+        results.add(RDAPValidationResult.builder().code(-20400).build());
+
+        results.cullDuplicateIPAddressErrors();
+
+        assertThat(results.getAll()).hasSize(1);
+        assertThat(results.getAll().stream().map(RDAPValidationResult::getCode))
+            .containsExactly(-20400);
+    }
+
+    @Test
+    public void testCullDuplicates_SingleIpv6() {
+        results.add(RDAPValidationResult.builder().code(-20401).build());
+
+        results.cullDuplicateIPAddressErrors();
+
+        assertThat(results.getAll()).hasSize(1);
+        assertThat(results.getAll().stream().map(RDAPValidationResult::getCode))
+            .containsExactly(-20401);
+    }
+
+    @Test
+    public void testCullDuplicates_BothIpsOnce() {
+        results.add(RDAPValidationResult.builder().code(-20400).build());
+        results.add(RDAPValidationResult.builder().code(-20401).build());
+
+        results.cullDuplicateIPAddressErrors();
+
+        assertThat(results.getAll()).hasSize(2);
+        assertThat(results.getAll().stream().map(RDAPValidationResult::getCode))
+            .containsExactlyInAnyOrder(-20400, -20401);
+    }
+
+    @Test
+    public void testCullDuplicates_DuplicateIpv4() {
+        results.add(RDAPValidationResult.builder().code(-20400).build());
+        results.add(RDAPValidationResult.builder().code(-20400).build());
+        results.add(RDAPValidationResult.builder().code(-20401).build());
+
+        results.cullDuplicateIPAddressErrors();
+
+        assertThat(results.getAll()).hasSize(2);
+        assertThat(results.getAll().stream().map(RDAPValidationResult::getCode))
+            .containsExactlyInAnyOrder(-20400, -20401);
+    }
+
+    @Test
+    public void testCullDuplicates_DuplicateIpv6() {
+        results.add(RDAPValidationResult.builder().code(-20400).build());
+        results.add(RDAPValidationResult.builder().code(-20401).build());
+        results.add(RDAPValidationResult.builder().code(-20401).build());
+
+        results.cullDuplicateIPAddressErrors();
+
+        assertThat(results.getAll()).hasSize(2);
+        assertThat(results.getAll().stream().map(RDAPValidationResult::getCode))
+            .containsExactlyInAnyOrder(-20400, -20401);
+    }
+
+    @Test
+    public void testCullDuplicates_BothDuplicates() {
+        results.add(RDAPValidationResult.builder().code(-20400).build());
+        results.add(RDAPValidationResult.builder().code(-20400).build());
+        results.add(RDAPValidationResult.builder().code(-20401).build());
+        results.add(RDAPValidationResult.builder().code(-20401).build());
+        results.add(RDAPValidationResult.builder().code(-10000).build());
+
+        results.cullDuplicateIPAddressErrors();
+
+        assertThat(results.getAll()).hasSize(3);
+        assertThat(results.getAll().stream().map(RDAPValidationResult::getCode))
+            .containsExactlyInAnyOrder(-20400, -20401, -10000);
     }
 
     // Helper method to count occurrences in string

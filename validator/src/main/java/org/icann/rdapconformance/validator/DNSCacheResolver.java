@@ -209,7 +209,7 @@ public class DNSCacheResolver {
     public static void doZeroIPAddressesValidation(String url, boolean executeIPv6Queries, boolean executeIPv4Queries) throws Exception {
         String hostname = getHostnameFromUrl(url);
         if (hostname.isEmpty()) {
-            addErrorToResultsFile(-13019, "no response available", "Invalid hostname in URL.");
+            addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IP address endpoint using DNS.");
             return;
         }
 
@@ -229,28 +229,16 @@ public class DNSCacheResolver {
             return;
         }
 
-        if (executeIPv4Queries && !executeIPv6Queries && !hasV4) {
+        // Because there is the possibility of the TIG1_8 not being run b/c we are running just v4 flags and no 2019 and no 2024 and/or the validator cuts out early, we _must_ check for -20400 as well
+        if (executeIPv4Queries && !hasV4) {
             results.add(RDAPValidationResult.builder()
                                             .acceptHeader(DASH)
                                             .queriedURI(DASH)
                                             .httpMethod(DASH)
                                             .httpStatusCode(ZERO)
-                                            .code(-13019)
-                                            .value("no response available")
-                                            .message("Unable to resolve an IPv4 address endpoint using DNS.").build());
-            return;
-        }
-
-        if (!executeIPv4Queries && executeIPv6Queries && !hasV6) {
-            results.add(RDAPValidationResult.builder()
-                                            .acceptHeader(DASH)
-                                            .queriedURI(DASH)
-                                            .httpMethod(DASH)
-                                            .httpStatusCode(ZERO)
-                                            .code(-13019)
-                                            .value("no response available")
-                                            .message("Unable to resolve an IPv6 address endpoint using DNS.").build());;
-            addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IPv6 address endpoint using DNS.");
+                                            .code(-20400)
+                                            .value(hostname)
+                                            .message("No IPv4 address records (A) could be resolved in DNS for this service. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1..").build());
         }
     }
 }

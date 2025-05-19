@@ -26,4 +26,6 @@ public interface RDAPValidatorResults {
   void clear();
 
   String analyzeResultsWithStatusCheck();
+
+  void cullDuplicateIPAddressErrors();
 }

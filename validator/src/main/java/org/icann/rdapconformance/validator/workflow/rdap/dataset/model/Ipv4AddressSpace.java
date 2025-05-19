@@ -19,12 +19,30 @@ public class Ipv4AddressSpace extends XmlObject implements DatasetValidatorModel
     @XmlElement(name = "record", namespace = "http://www.iana.org/assignments")
     private final List<Ipv4AddressSpaceRecord> records = new ArrayList<>();
 
+//    public boolean isInvalid(String ipAddress) {
+//        return records.stream()
+//                      .filter(r -> r.getStatus().equals("ALLOCATED") || r.getStatus().equals("LEGACY"))
+//                      .noneMatch(r -> {
+//                          IPAddressString net = new IPAddressString(r.getPrefix());
+//                          return net.contains(new IPAddressString(ipAddress));
+//                      });
+//    }
+
     public boolean isInvalid(String ipAddress) {
+        System.out.println("DEBUG-DNS: Checking IP address: " + ipAddress);
+        System.out.println("DEBUG-DNS: Number of records to check: " + records.size());
+
         return records.stream()
-                      .filter(r -> r.getStatus().equals("ALLOCATED") || r.getStatus().equals("LEGACY"))
+                      .filter(r -> {
+                          boolean isValidStatus = r.getStatus().equals("ALLOCATED") || r.getStatus().equals("LEGACY");
+                          System.out.println("DEBUG-DNS: Record prefix: " + r.getPrefix() + " status: " + r.getStatus() + " isValidStatus: " + isValidStatus);
+                          return isValidStatus;
+                      })
                       .noneMatch(r -> {
                           IPAddressString net = new IPAddressString(r.getPrefix());
-                          return net.contains(new IPAddressString(ipAddress));
+                          boolean contains = net.contains(new IPAddressString(ipAddress));
+                          System.out.println("DEBUG-DNS: Checking if " + r.getPrefix() + " contains " + ipAddress + ": " + contains);
+                          return contains;
                       });
     }
 
