@@ -15,6 +15,8 @@ public class ResponseValidation2Dot10_2024Test extends ProfileJsonValidationTest
             "#/notices/0:{\"description\":[\"URL of the ICANN RDDS Inaccuracy Complaint Form: https://icann.org/wicf\",\"Calm down and come back later.\"],\"links\":[{\"rel\":\"help\",\"href\":\"https://icann.org/wicf\",\"type\":\"text/html\",\"value\":\"https://rdap.cscglobal.com/dbs/rdap-api/v1/domain/cscglobal.com\"}],\"title\":\"test\",\"type\":\"result\"}";
     static final String descriptionPointer =
             "#/notices/0:{\"description\":[\"Calm down and come back later.\"],\"links\":[{\"rel\":\"help\",\"href\":\"https://icann.org/wicf\",\"type\":\"text/html\",\"value\":\"https://rdap.cscglobal.com/dbs/rdap-api/v1/domain/cscglobal.com\"}],\"title\":\"RDDS Inaccuracy Complaint Form\",\"type\":\"result\"}";
+    static final String descriptionPointerNoArray =
+            "#/notices/0:{\"description\":\"test\",\"links\":[{\"rel\":\"help\",\"href\":\"https://icann.org/wicf\",\"type\":\"text/html\",\"value\":\"https://rdap.cscglobal.com/dbs/rdap-api/v1/domain/cscglobal.com\"}],\"title\":\"RDDS Inaccuracy Complaint Form\",\"type\":\"result\"}";
     static final String linksPointer =
             "#/notices/0:{\"description\":[\"URL of the ICANN RDDS Inaccuracy Complaint Form: https://icann.org/wicf\",\"Calm down and come back later.\"],\"title\":\"RDDS Inaccuracy Complaint Form\",\"type\":\"result\"}";
     static final String hrefPointer =
@@ -56,6 +58,14 @@ public class ResponseValidation2Dot10_2024Test extends ProfileJsonValidationTest
 
         descriptions.remove(0);
         validate(-46702, descriptionPointer, "The notice for RDDS Inaccuracy Complaint Form does not have the proper description.");
+    }
+
+    @Test
+    public void ResponseValidation2Dot10_2024_46702_No_Description() {
+        JSONObject notice = jsonObject.getJSONArray("notices").getJSONObject(0);
+
+        notice.put("description", "test");
+        validate(-46702, descriptionPointerNoArray, "The notice for RDDS Inaccuracy Complaint Form does not have the proper description.");
     }
 
     @Test
