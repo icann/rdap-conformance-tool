@@ -54,10 +54,11 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
             helpUri = this.config.getUri().getHost().concat(HELP);
         }
 
-        logger.info("Making request to: {}", helpUri);
+        String helpUriCleaned =  CommonUtils.cleanStringFromExtraSlash(helpUri);
+
+        logger.info("Making request to: {}", helpUriCleaned);
         HttpResponse<String> response = null;
 
-        String helpUriCleaned =  CommonUtils.cleanStringFromExtraSlash(helpUri);
         response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUriCleaned), this.config.getTimeout());
 
         // final response
