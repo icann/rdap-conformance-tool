@@ -160,6 +160,8 @@ public class SchemaValidator {
           + "non-compliant \n details", e);
     }
 
+    boolean isEmpty = results.isEmpty();
+    System.out.println("Schema validation results: " + isEmpty);
     return results.isEmpty();
   }
 
