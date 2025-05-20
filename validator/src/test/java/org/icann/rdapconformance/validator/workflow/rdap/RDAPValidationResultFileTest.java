@@ -285,7 +285,7 @@ public class RDAPValidationResultFileTest {
         RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
         results.clear();
 
-        // add them going in different -- but the statusCodeFromCurrent wlill never let it be null. It will zero it out
+        // add them going in different -- but the statusCodeFromCurrent will never let it be null. It will zero it out
         results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
 
