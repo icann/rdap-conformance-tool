@@ -347,26 +347,4 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         return validations;
     }
-
-    // TODO: we need to decide how we want to exit. As the code base currently stands, the below is not possible.
-//    public int dumpErrorInfo(int exitCode, RDAPValidatorConfiguration config, RDAPQuery query) {
-//        System.out.println("Exit code: " + exitCode + " - " + RDAPValidationStatus.fromValue(exitCode).name());
-//        System.out.println("URI used for the query: " + config.getUri());
-//        if (query instanceof RDAPHttpQuery httpQuery) {
-//            System.out.println("Redirects followed: " + httpQuery.getRedirects());
-//            System.out.println("Accept header used for the query: " + NetworkInfo.getAcceptHeader());
-//        } else {
-//            System.out.println("Redirects followed: N/A (query is not an RDAPHttpQuery)");
-//            System.out.println("Accept header used for the query: N/A (query is not an RDAPHttpQuery)");
-//        }
-//
-//        if (config.getUri() != null && config.getUri().getHost() != null) {
-//            System.out.println("IP protocol used for the query: " + NetworkInfo.getNetworkProtocol());
-//
-//        } else {
-//            System.out.println("IP protocol used for the query: unknown (URI or host is null)");
-//        }
-//
-//        return exitCode;
-//    }
 }

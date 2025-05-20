@@ -130,6 +130,8 @@ public class RDAPHttpRequest {
 
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
         logger.info("Connecting to: {} using {}", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
+        // update the tracking ID with the IP address
+        tracker.updateServerIpOnConnection(trackingId, remoteAddress.getHostAddress());
 
         HttpUriRequestBase request = method.equals(GET) ? new HttpGet(ipUri) : new HttpHead(ipUri);
         request.setHeader(HOST, host);

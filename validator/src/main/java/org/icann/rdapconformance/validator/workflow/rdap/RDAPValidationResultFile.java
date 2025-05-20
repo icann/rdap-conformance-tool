@@ -119,10 +119,12 @@ public class RDAPValidationResultFile {
     }
   }
 
+  // if you sent us a 0 - that means it gets NULLed out
   private Object formatStatusCode(Integer statusCode) {
     return statusCode != null && statusCode == ZERO ? JSONObject.NULL : statusCode;
   }
 
+  // if you sent us a dash - that means it gets NULLed out
   private Object formatStringToNull(String maybeDash) {
     if (maybeDash == null || maybeDash.equals(DASH)) {
       return JSONObject.NULL;

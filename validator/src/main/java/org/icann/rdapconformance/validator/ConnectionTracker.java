@@ -379,12 +379,22 @@ public class ConnectionTracker {
         return sb.toString();
     }
 
+    public synchronized void updateServerIpOnConnection(String trackingId, String hostAddress) {
+        ConnectionRecord record = connectionsByTrackingId.get(trackingId);
+        if (record != null) {
+            logger.info("Updating server IP address {} for tracking ID: {}", hostAddress, trackingId);
+            record.setIpAddress(hostAddress);
+        } else {
+            logger.info("No connection found for tracking ID: {}", trackingId);
+        }
+    }
+
     /**
      * Represents a tracked network connection
      */
     public static class ConnectionRecord {
         private final URI uri;
-        private final String ipAddress;
+        private String ipAddress;
         private final NetworkProtocol protocol;
         private int statusCode;
         private Duration duration;
@@ -428,6 +438,10 @@ public class ConnectionTracker {
 
         public String getIpAddress() {
             return ipAddress;
+        }
+
+        public void setIpAddress(String ipAddress) {
+            this.ipAddress = ipAddress;
         }
 
         public NetworkProtocol getProtocol() {

@@ -52,6 +52,10 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     instance = null;
   }
 
+  public int getResultCount() {
+    return results.size();
+  }
+
   @Override
   public void add(RDAPValidationResult result) {
     if (this.results.add(result)) {
@@ -185,5 +189,30 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
         .append(System.lineSeparator());
     }
     return sb.toString();
+  }
+
+  // New culling function
+  public void cullDuplicateIPAddressErrors() {
+    int ipv4Count = ZERO;
+    int ipv6Count = ZERO;
+    Set<RDAPValidationResult> toRemove = new HashSet<>();
+
+    // First pass - count occurrences
+    for (RDAPValidationResult result : results) {
+      if (result.getCode() == -20400) {
+        ipv4Count++;
+        if (ipv4Count > ONE) {
+          toRemove.add(result);
+        }
+      } else if (result.getCode() == -20401) {
+        ipv6Count++;
+        if (ipv6Count > ONE) {
+          toRemove.add(result);
+        }
+      }
+    }
+
+    // Remove duplicates
+    results.removeAll(toRemove);
   }
 }

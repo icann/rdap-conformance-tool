@@ -109,6 +109,7 @@ public class RDAPValidationResult {
     private String httpMethod;
     private Integer httpStatusCode;
     private String queriedURI;
+    private String serverIpAddress;
 
     public Builder code(int code) {
       this.code = code;
@@ -145,6 +146,10 @@ public class RDAPValidationResult {
       return this;
     }
 
+    public Builder serverIpAddress(String serverIpAddress) {
+      this.serverIpAddress = serverIpAddress;
+      return this;
+    }
 
     public RDAPValidationResult build() {
       Integer statusCodeFromCurrent = ConnectionTracker.getMainStatusCode();
@@ -155,7 +160,7 @@ public class RDAPValidationResult {
           this.message,
           this.acceptHeader != null ? this.acceptHeader : NetworkInfo.getAcceptHeader(),  // the default is the current accept header
           this.httpMethod != null ? this.httpMethod : GET, // the default is GET unless you explicitly set it
-          NetworkInfo.getServerIpAddress(),
+          this.serverIpAddress != null ? this.serverIpAddress :  NetworkInfo.getServerIpAddress(), // the default is the current server IP address
           this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
           this.queriedURI
       );
