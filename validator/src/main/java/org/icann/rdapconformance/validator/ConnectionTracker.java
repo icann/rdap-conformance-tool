@@ -349,15 +349,16 @@ public class ConnectionTracker {
      * @return The status code, or null if not available
      */
     public static Integer getMainStatusCode() {
-        ConnectionTracker tracker = getInstance();
-        ConnectionRecord mainConnection = tracker.getLastMainConnection();
+        ConnectionRecord mainConnection = getInstance().getLastMainConnection();
 
-        if (mainConnection == null || mainConnection.getStatusCode() == 0 || mainConnection.getStatus() == null) {
-            return null;
+        if (mainConnection == null || mainConnection.getStatusCode() == ZERO || mainConnection.getStatus() == null) {
+            return ZERO; // force to zero
         }
 
+        // otherwise it's good and return it
         return mainConnection.getStatusCode();
     }
+
 
     @Override
     public synchronized String toString() {

@@ -284,15 +284,17 @@ public class RDAPValidationResultFileTest {
     public void testNullAndZeroStatusCodesAreEquivalent() {
         RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
         results.clear();
+
+        // add them going in different -- but the statusCodeFromCurrent wlill never let it be null. It will zero it out
         results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
 
         String output = results.analyzeResultsWithStatusCheck();
 
         // Both results should be in output
-        assertTrue(output.contains("code=1001, httpStatusCode=null"));
+        assertTrue(output.contains("code=1001, httpStatusCode=0"));
         assertTrue(output.contains("code=1002, httpStatusCode=0"));
-        // Should not generate -13018 error since null and 0 are considered equivalent
+        // Should not generate -13018 error since we have same status codes (0 vs 0)
         assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
     }
 
