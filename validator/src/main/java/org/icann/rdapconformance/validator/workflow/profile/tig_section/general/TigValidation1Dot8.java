@@ -79,20 +79,16 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
     // Use DNSCacheResolver for IPv4
     Set<InetAddress> ipv4Addresses = new HashSet<>(DNSCacheResolver.getAllV4Addresses(host));
-    // dump out the addresses
-    logger.debug("DNSDNSDNS---> IPv4 addresses for {}: {}", host, ipv4Addresses.stream()
-        .map(InetAddress::getHostAddress)
-        .collect(Collectors.toList()));
 
     // If we are validating over v4
     if(!config.isNoIpv4Queries()) {
       if (ipv4Addresses.isEmpty() || containsInvalidIPAddress(ipv4Addresses, datasetService)) {
-        System.out.println("DNDDNSDNS something is wrong with the ipv4 addresses");
         results.add(RDAPValidationResult.builder()
                                         .acceptHeader(DASH)
                                         .queriedURI(DASH)
                                         .httpMethod(DASH)
                                         .httpStatusCode(ZERO)
+                                        .serverIpAddress(DASH)
                                         .code(-20400)
                                         .value(host)
                                         .message("The RDAP service is not provided over IPv4 or contains invalid addresses. See section 1.8 of the "
@@ -112,6 +108,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
                                         .queriedURI(DASH)
                                         .httpMethod(DASH)
                                         .httpStatusCode(ZERO)
+                                        .serverIpAddress(DASH)
                                         .code(-20401)
                                         .value(host)
                                         .message("The RDAP service is not provided over IPv6 or contains invalid addresses. See section 1.8 of the "
@@ -161,7 +158,6 @@ public final class TigValidation1Dot8 extends ProfileValidation {
       }
 
       String ipAddressJson = String.format("{\"ip\": \"%s\"}", ipAddress.getHostAddress());
-      System.out.println("DNS IP Address JSON: " + ipAddressJson);
       SchemaValidator validator = new SchemaValidator(schema.path(),  RDAPValidatorResultsImpl.getInstance(),
           datasetService);
       boolean isValid = validator.validate(ipAddressJson);

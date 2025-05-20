@@ -52,6 +52,10 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     instance = null;
   }
 
+  public int getResultCount() {
+    return results.size();
+  }
+
   @Override
   public void add(RDAPValidationResult result) {
     if (this.results.add(result)) {
