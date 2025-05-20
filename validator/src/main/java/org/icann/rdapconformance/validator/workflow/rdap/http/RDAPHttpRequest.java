@@ -82,9 +82,8 @@ public class RDAPHttpRequest {
     }
 
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain) throws Exception {
-        return makeRequest(originalUri, timeoutSeconds, method, false, true);
+        return makeRequest(originalUri, timeoutSeconds, method, isMain, true);
     }
-
 
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
         if (originalUri == null) {
