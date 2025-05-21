@@ -172,9 +172,9 @@ public class RDAPHttpRequest {
                 String body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
 
                 if (statusCode == HTTP_TOO_MANY_REQUESTS) {
-                    long backoffSeconds = getBackoffTime(response);
                     attempt++;
-                    logger.info("Received 429. Waiting {} seconds to re-query. Attempt {}/{}", backoffSeconds, attempt, maxRetries);
+                    long backoffSeconds = getBackoffTimeAndCalcMessaging(response, attempt, maxRetries);
+
                     sleep(backoffSeconds);
                     continue;
                 }
@@ -195,27 +195,34 @@ public class RDAPHttpRequest {
             }
         }
 
+        logger.info("Received 429 - Max retries reached. Returning 429.");
         tracker.completeCurrentConnection(HTTP_TOO_MANY_REQUESTS, ConnectionStatus.TOO_MANY_REQUESTS);
-        return new SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[0]);
+        SimpleHttpResponse simpleHttpResponse = new  SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[0]);
+        simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
+        return simpleHttpResponse;
     }
 
 
-    private static long getBackoffTime(ClassicHttpResponse response) {
+    private static long getBackoffTimeAndCalcMessaging(ClassicHttpResponse response, int attempt, int maxRetries) {
         Header retryAfter = response.getFirstHeader(RETRY_AFTER);
         if (retryAfter != null) {
             try {
-                return Long.parseLong(retryAfter.getValue());
+                long backoffSeconds = Long.parseLong(retryAfter.getValue());
+                logger.info("Received 429 with Retry-After. Waiting {} seconds to re-query. Attempt {}/{}", backoffSeconds, attempt, maxRetries);
+                return backoffSeconds;
             } catch (NumberFormatException ignored) {} // ignore and continue
         }
 
         Header resetHeader = response.getFirstHeader(X_RATELIMIT_RESET);
         if (resetHeader != null) {
             try {
-                return Long.parseLong(resetHeader.getValue());
+                long backoffSeconds = Long.parseLong(resetHeader.getValue());
+                logger.info("Received 429 with X-Ratelimit-Reset. Waiting {} seconds to re-query. Attempt {}/{}", backoffSeconds, attempt, maxRetries);
+                return backoffSeconds;
             } catch (NumberFormatException ignored) {} // ignore and go with default
         }
 
-//        logger.info("Received 429 but no retry-after header was offered. Waiting {} seconds.", DEFAULT_BACKOFF_SECS);
+        logger.info("Received 429 but no retry-after header was offered. Waiting {} seconds to re-query. Attempt {}/{}", DEFAULT_BACKOFF_SECS, attempt, maxRetries);
         return DEFAULT_BACKOFF_SECS;
     }
 
