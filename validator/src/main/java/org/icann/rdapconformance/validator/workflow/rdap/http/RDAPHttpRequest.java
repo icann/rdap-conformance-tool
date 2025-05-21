@@ -18,6 +18,20 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.net.http.HttpTimeoutException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.CertificateRevokedException;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.net.URIAuthority;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
@@ -55,6 +69,10 @@ import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.HttpHost;
+
 
 
 public class RDAPHttpRequest {
@@ -142,31 +160,40 @@ public class RDAPHttpRequest {
                                             .setResponseTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
                                             .build();
         request.setConfig(config);
+        // Step 1: Build the custom TrustManager and SSLContext
+        TrustManager trustManager = buildCustomTrustManager();
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[]{ trustManager }, new SecureRandom());
 
-        TrustStrategy acceptAll = (chain, authType) -> true;
-        SSLContext sslContext = SSLContextBuilder.create()
-                                                 .loadTrustMaterial(null, acceptAll)
-                                                 .build();
+// Step 2: Build the SSLConnectionSocketFactory correctly
+        SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
+                                                                                       .setSslContext(sslContext)
+                                                                                       .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
+                                                                                       .setHostnameVerifier(new DefaultHostnameVerifier()) // Enables CN/SAN matching
+                                                                                       .build();
 
+// Step 3: Use the factory inside the connection manager
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                                                                                                        .setSSLSocketFactory(
-                                                                                                            SSLConnectionSocketFactoryBuilder.create()
-                                                                                                                                             .setSslContext(sslContext)
-                                                                                                                                             .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
-                                                                                                                                             .setHostnameVerifier((hostname, session) -> true)
-                                                                                                                                             .build()
-                                                                                                        ).build();
+                                                                                                        .setSSLSocketFactory(sslSocketFactory)
+                                                                                                        .build();
 
+// Step 4: Build the client with that connection manager
         CloseableHttpClient client = HttpClientBuilder.create()
                                                       .setConnectionManager(connectionManager)
                                                       .disableRedirectHandling()
                                                       .build();
+
+
 
         int maxRetries = MAX_RETRIES;
         int attempt = ZERO;
 
         while (attempt <= maxRetries) {
             try {
+                HttpClientContext context = HttpClientContext.create();
+                HttpHost target = new HttpHost("https", host, 443);
+                request.setAuthority(new URIAuthority(host, 443));
+
                 ClassicHttpResponse response = executeRequest(client, request);
                 int statusCode = response.getCode();
                 String body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
@@ -239,6 +266,82 @@ public class RDAPHttpRequest {
         return client.execute(request);
     }
 
+    public static TrustManager buildCustomTrustManager() {
+        return new X509TrustManager() {
+            private final X509TrustManager defaultTm = getDefaultTrustManager();
+
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                defaultTm.checkClientTrusted(chain, authType);
+            }
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                for (X509Certificate cert : chain) {
+                    System.out.println("== Subject: " + cert.getSubjectX500Principal());
+                    System.out.println("   NotBefore: " + cert.getNotBefore());
+                    System.out.println("   NotAfter:  " + cert.getNotAfter());
+                }
+                for (X509Certificate cert : chain) {
+                    try {
+                        cert.checkValidity(); // will throw if expired or not yet valid
+                    } catch (CertificateExpiredException ex) {
+                        System.out.println("!!! Certificate expired (manual)");
+                        throw new CertificateException("EXPIRED_CERT", ex);
+                    } catch (CertificateNotYetValidException ex) {
+                        System.out.println("!!! Certificate not yet valid (manual)");
+                        throw new CertificateException("NOT_YET_VALID", ex);
+                    }
+                }
+                try {
+                    defaultTm.checkServerTrusted(chain, authType);
+                } catch (CertificateException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof CertificateExpiredException) {
+                        System.out.println("!!! Certificate expired");
+                        throw new CertificateException("EXPIRED_CERT", e);
+                    } else if (cause instanceof CertificateNotYetValidException) {
+                        System.out.println("!!! Certificate not yet valid");
+                        throw new CertificateException("NOT_YET_VALID", e);
+                    } else if (cause instanceof CertificateRevokedException) {
+                        System.out.println("!!! Certificate revoked");
+                        throw new CertificateException("REVOKED_CERT", e);
+                    } else {
+                        System.out.println("!!! Certificate trust path failed");
+                        throw new CertificateException("INVALID_CERT", e);
+                    }
+                }
+            }
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return defaultTm.getAcceptedIssuers();
+            }
+
+            private X509TrustManager getDefaultTrustManager() {
+                try {
+                    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                    tmf.init((KeyStore) null);
+                    for (TrustManager tm : tmf.getTrustManagers()) {
+                        if (tm instanceof X509TrustManager) return (X509TrustManager) tm;
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                throw new RuntimeException("No default trust manager found");
+            }
+        };
+    }
+
+    private static CertificateException findCertificateException(Throwable throwable) {
+        while (throwable != null) {
+            if (throwable instanceof CertificateException) {
+                return (CertificateException) throwable;
+            }
+            throwable = throwable.getCause();
+        }
+        return null;
+    }
 
     /**
      * Handle exceptions that occur during the HTTP request.
@@ -247,6 +350,44 @@ public class RDAPHttpRequest {
         if (e instanceof UnknownHostException) {
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
+        }
+
+        CertificateException certEx = findCertificateException(e);
+        if (certEx != null) {
+            String msg = certEx.getMessage();
+            System.out.println("!!!!Certificate error: " + msg);
+            if ("EXPIRED_CERT".equals(msg)) {
+                if (recordError) {
+                    addErrorToResultsFile(ZERO, -13011, "no response available", "Expired certificate.");
+                }
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
+                return ConnectionStatus.EXPIRED_CERTIFICATE;
+            } else if ("REVOKED_CERT".equals(msg)) {
+                if (recordError) {
+                    addErrorToResultsFile(ZERO, -13010, "no response available", "Revoked TLS certificate.");
+                }
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
+                return ConnectionStatus.REVOKED_CERTIFICATE;
+            } else if ("INVALID_CERT".equals(msg)) {
+                if (recordError) {
+                    addErrorToResultsFile(ZERO, -13009, "no response available", "Invalid TLS certificate.");
+                }
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
+                return ConnectionStatus.INVALID_CERTIFICATE;
+            } else if ("NOT_YET_VALID".equals(msg)) {
+                System.out.println("!!!!Certificate not yet valid");
+                if (recordError) {
+                    addErrorToResultsFile(ZERO, -13012, "no response available", "Certificate not yet valid.");
+                }
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
+                return ConnectionStatus.CERTIFICATE_ERROR;
+            } else {
+                if (recordError) {
+                    addErrorToResultsFile(ZERO, -13012, "no response available", "TLS certificate error.");
+                }
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
+                return ConnectionStatus.CERTIFICATE_ERROR;
+            }
         }
 
         if (e instanceof ConnectException || e instanceof HttpTimeoutException || e instanceof org.apache.hc.client5.http.ConnectTimeoutException) {
@@ -265,33 +406,7 @@ public class RDAPHttpRequest {
             }
         }
 
-        if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
-            if(recordError) {
-                addErrorToResultsFile(ZERO, -13011, "no response available", "Expired certificate.");
-            }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
-            return ConnectionStatus.EXPIRED_CERTIFICATE;
-        } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
-            if(recordError) {
-                addErrorToResultsFile(ZERO, -13010, "no response available", "Revoked TLS certificate.");
-            }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
-            return ConnectionStatus.REVOKED_CERTIFICATE;
-        } else if (hasCause(e, "java.security.cert.CertificateException")) {
-            if (e.getMessage().contains("No name matching") ||
-                e.getMessage().contains("No subject alternative DNS name matching")) {
-                if(recordError) {
-                    addErrorToResultsFile(0, -13009, "no response available", "Invalid TLS certificate.");
-                }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
-                return ConnectionStatus.INVALID_CERTIFICATE;
-            }
-            if(recordError) {
-                addErrorToResultsFile(ZERO, -13012, "no response available", "TLS certificate error.");
-            }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
-            return ConnectionStatus.CERTIFICATE_ERROR;
-        } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
+         if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
             if(recordError) {
                 addErrorToResultsFile(ZERO, -13008, "no response available", "TLS handshake failed.");
             }
