@@ -64,12 +64,12 @@ public class CommonUtils {
                                               String originalString,
                                               String replacementWord) {
         return switch (httpQueryType) {
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.DOMAIN -> originalString.replace(DOMAIN, replacementWord);
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVER -> originalString.replace(NAMESERVER, replacementWord);
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.AUTNUM -> originalString.replace(AUTNUM, replacementWord);
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.ENTITY -> originalString.replace(ENTITY, replacementWord);
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP -> originalString.replace(IP, replacementWord);
-            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS -> originalString.replace(NAMESERVERS, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.DOMAIN -> originalString.replace("/" + DOMAIN, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVER -> originalString.replace("/" + NAMESERVER, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.AUTNUM -> originalString.replace("/" + AUTNUM, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.ENTITY -> originalString.replace("/" + ENTITY, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP -> originalString.replace("/" + IP, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS -> originalString.replace("/" + NAMESERVERS, replacementWord);
             default -> originalString;
         };
     }
