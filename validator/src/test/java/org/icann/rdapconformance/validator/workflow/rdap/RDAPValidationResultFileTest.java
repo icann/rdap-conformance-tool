@@ -303,25 +303,29 @@ public class RDAPValidationResultFileTest {
 
     @Test
     public void testMixedNullZeroAndOtherStatusCodes() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
-        results.clear();
-        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
-        results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
-        results.add(RDAPValidationResult.builder().code(1003).httpStatusCode(200).build());
+        try (MockedStatic<ConnectionTracker> mocked = org.mockito.Mockito.mockStatic(ConnectionTracker.class)) {
+            mocked.when(ConnectionTracker::getMainStatusCode).thenReturn(0);
 
-        results.analyzeResultsWithStatusCheck();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            results.clear();
+            results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
+            results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
+            results.add(RDAPValidationResult.builder().code(1003).httpStatusCode(200).build());
 
-        // Should generate -13018 error since we have different status codes (0/null vs 200)
-        RDAPValidationResult tupleResult = results.getAll().stream()
-                                                  .filter(r -> r.getCode() == -13018)
-                                                  .findFirst().orElse(null);
+            results.analyzeResultsWithStatusCheck();
 
-        System.out.println("Tuple result: " + tupleResult);
-        assertNotNull(tupleResult);
-        String value = tupleResult.getValue();
-        assertTrue(value.contains("[1001,null]"));
-        assertTrue(value.contains("[1002,null]"));
-        assertTrue(value.contains("[1003,200]"));
+            // Should generate -13018 error since we have different status codes (0/null vs 200)
+            RDAPValidationResult tupleResult = results.getAll().stream()
+                                                      .filter(r -> r.getCode() == -13018)
+                                                      .findFirst().orElse(null);
+
+            System.out.println("Tuple result: " + tupleResult);
+            assertNotNull(tupleResult);
+            String value = tupleResult.getValue();
+            assertTrue(value.contains("[1001,null]"));
+            assertTrue(value.contains("[1002,null]"));
+            assertTrue(value.contains("[1003,200]"));
+        }
     }
 
     @Test
