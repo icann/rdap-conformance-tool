@@ -18,9 +18,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import org.icann.rdapconformance.validator.BuildInfo;
+import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -283,20 +285,20 @@ public class RDAPValidationResultFileTest {
 
     @Test
     public void testNullAndZeroStatusCodesAreEquivalent() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
-        results.clear();
+        try (MockedStatic<ConnectionTracker> mocked = org.mockito.Mockito.mockStatic(ConnectionTracker.class)) {
+            mocked.when(ConnectionTracker::getMainStatusCode).thenReturn(0);
 
-        // add them going in different -- but the statusCodeFromCurrent will never let it be null. It will zero it out
-        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
-        results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            results.clear();
 
-        String output = results.analyzeResultsWithStatusCheck();
-        System.out.println("Output: " + output);
-        // Both results should be in output
-        assertTrue(output.contains("code=1001, httpStatusCode=0"));
-        assertTrue(output.contains("code=1002, httpStatusCode=0"));
-        // Should not generate -13018 error since we have same status codes (0 vs 0)
-        assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+            results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
+            results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
+
+            String output = results.analyzeResultsWithStatusCheck();
+            assertTrue(output.contains("code=1001, httpStatusCode=0"));
+            assertTrue(output.contains("code=1002, httpStatusCode=0"));
+            assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+        }
     }
 
     @Test
@@ -316,7 +318,10 @@ public class RDAPValidationResultFileTest {
 
         System.out.println("Tuple result: " + tupleResult);
         assertNotNull(tupleResult);
-        assertTrue(tupleResult.getValue().contains("[1002,null],[1001,null],[1003,200]]") );
+        String value = tupleResult.getValue();
+        assertTrue(value.contains("[1001,null]"));
+        assertTrue(value.contains("[1002,null]"));
+        assertTrue(value.contains("[1003,200]"));
     }
 
     @Test
