@@ -291,7 +291,7 @@ public class RDAPValidationResultFileTest {
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
 
         String output = results.analyzeResultsWithStatusCheck();
-
+        System.out.println("Output: " + output);
         // Both results should be in output
         assertTrue(output.contains("code=1001, httpStatusCode=0"));
         assertTrue(output.contains("code=1002, httpStatusCode=0"));
@@ -314,6 +314,7 @@ public class RDAPValidationResultFileTest {
                                                   .filter(r -> r.getCode() == -13018)
                                                   .findFirst().orElse(null);
 
+        System.out.println("Tuple result: " + tupleResult);
         assertNotNull(tupleResult);
         assertTrue(tupleResult.getValue().contains("[1002,null],[1001,null],[1003,200]]") );
     }
@@ -328,10 +329,10 @@ public class RDAPValidationResultFileTest {
         results.add(RDAPValidationResult.builder().code(-52106).httpStatusCode(200).build());
         results.add(RDAPValidationResult.builder().code(-13007).httpStatusCode(200).build());
         results.add(RDAPValidationResult.builder().code(-13007).httpStatusCode(200).build());
-        results.add(RDAPValidationResult.builder().code(-61101).httpStatusCode(null).build());
-        results.add(RDAPValidationResult.builder().code(-61101).httpStatusCode(null).build());
-        results.add(RDAPValidationResult.builder().code(-23101).httpStatusCode(null).build());
-        results.add(RDAPValidationResult.builder().code(-23101).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(-61101).httpStatusCode(ZERO).build());
+        results.add(RDAPValidationResult.builder().code(-61101).httpStatusCode(ZERO).build());
+        results.add(RDAPValidationResult.builder().code(-23101).httpStatusCode(ZERO).build());
+        results.add(RDAPValidationResult.builder().code(-23101).httpStatusCode(ZERO).build());
 
         results.analyzeResultsWithStatusCheck();
 
