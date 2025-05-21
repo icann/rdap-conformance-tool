@@ -66,7 +66,7 @@ public class RDAPHttpRequest {
     public static final String RETRY_AFTER = "Retry-After";
     public static final String X_RATELIMIT_RESET = "X-Ratelimit-Reset";
 
-    public static final int DEFAULT_BACKOFF_SECS = 5;
+    public static final int DEFAULT_BACKOFF_SECS = 30;
     public static final int MAX_RETRIES = 3;
 
     public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeoutSeconds) throws Exception {
@@ -165,7 +165,7 @@ public class RDAPHttpRequest {
         int maxRetries = MAX_RETRIES;
         int attempt = ZERO;
 
-        while (attempt <= maxRetries) {
+        while (attempt < maxRetries) {
             try {
                 ClassicHttpResponse response = executeRequest(client, request);
                 int statusCode = response.getCode();
@@ -173,16 +173,8 @@ public class RDAPHttpRequest {
 
                 if (statusCode == HTTP_TOO_MANY_REQUESTS) {
                     long backoffSeconds = getBackoffTime(response);
-                    logger.info("[429] Too Many Requests. Backing off for {} seconds. Attempt {}/{}", backoffSeconds, attempt + 1, maxRetries);
                     attempt++;
-
-                    if (attempt > maxRetries) {
-                        tracker.completeCurrentConnection(statusCode, ConnectionStatus.TOO_MANY_REQUESTS);
-                        SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(trackingId, statusCode, body, originalUri, response.getHeaders());
-                        simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
-                        return simpleHttpResponse;
-                    }
-
+                    logger.info("Received 429. Waiting {} seconds to re-query. Attempt {}/{}", backoffSeconds, attempt, maxRetries);
                     sleep(backoffSeconds);
                     continue;
                 }
@@ -192,7 +184,6 @@ public class RDAPHttpRequest {
                 SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(trackingId, statusCode, body, originalUri, response.getHeaders());
                 simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.SUCCESS);
                 return simpleHttpResponse;
-
             } catch (IOException ioe) {
                 logger.info("[trackingID: {}] Error during HTTP request: {}", trackingId, ioe.getMessage());
                 ConnectionStatus connStatus = handleRequestException(ioe, canRecordError);
@@ -224,6 +215,7 @@ public class RDAPHttpRequest {
             } catch (NumberFormatException ignored) {} // ignore and go with default
         }
 
+//        logger.info("Received 429 but no retry-after header was offered. Waiting {} seconds.", DEFAULT_BACKOFF_SECS);
         return DEFAULT_BACKOFF_SECS;
     }
 
