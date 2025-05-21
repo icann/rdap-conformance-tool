@@ -39,7 +39,7 @@ public class CommonUtilsTest {
 
     @Test
     public void testReplaceQueryTypeInStringWith_Domain() {
-        String original = "This is a domain query";
+        String original = "This is a /domain query";
         String replacement = "newDomain";
 
         String result = CommonUtils.replaceQueryTypeInStringWith(
@@ -49,7 +49,7 @@ public class CommonUtilsTest {
 
     @Test
     public void testReplaceQueryTypeInStringWith_Nameserver() {
-        String original = "Resolves the nameserver info";
+        String original = "Resolves the /nameserver info";
         String replacement = "ns1";
 
         String result = CommonUtils.replaceQueryTypeInStringWith(
@@ -59,7 +59,7 @@ public class CommonUtilsTest {
 
     @Test
     public void testReplaceQueryTypeInStringWith_Autnum() {
-        String original = "autnum range check";
+        String original = "/autnum range check";
         String replacement = "AS12345";
 
         String result = CommonUtils.replaceQueryTypeInStringWith(
@@ -69,7 +69,7 @@ public class CommonUtilsTest {
 
     @Test
     public void testReplaceQueryTypeInStringWith_Entity() {
-        String original = "entity info lookup";
+        String original = "/entity info lookup";
         String replacement = "entityX";
 
         String result = CommonUtils.replaceQueryTypeInStringWith(
@@ -79,7 +79,7 @@ public class CommonUtilsTest {
 
     @Test
     public void testReplaceQueryTypeInStringWith_IP() {
-        String original = "ip address check";
+        String original = "/ip address check";
         String replacement = "192.168.1.1";
 
         String result = CommonUtils.replaceQueryTypeInStringWith(
@@ -89,7 +89,7 @@ public class CommonUtilsTest {
 
     @Test
     public void testReplaceQueryTypeInStringWith_Nameservers() {
-        String original = "Multiple nameservers";
+        String original = "Multiple /nameservers";
         String replacement = "ns1, ns2";
 
         String result = CommonUtils.replaceQueryTypeInStringWith(

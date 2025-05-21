@@ -41,7 +41,7 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
         var queryType = RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.getType(this.config.getUri().toString());
         String helpUri = null;
         if (Objects.nonNull(queryType)) {
-            helpUri = CommonUtils.replaceQueryTypeInStringWith(queryType, this.config.getUri().toString(), "help");
+            helpUri = CommonUtils.replaceQueryTypeInStringWith(queryType, this.config.getUri().toString(), HELP);
             int index = helpUri.indexOf("help");
             if (index != -1) {
                 helpUri = helpUri.substring(0, index + "help".length());
