@@ -127,8 +127,7 @@ public class RDAPHttpRequest {
             CompletableFuture<SimpleHttpResponse> futureResponse = new CompletableFuture<>();
 
             try {
-                SslContext sslCtx = isHttps ? SslContextBuilder.forClient()
-                                                               .trustManager(InsecureTrustManagerFactory.INSTANCE).build() : null;
+                SslContext sslCtx = isHttps ? SslContextBuilder.forClient().build() : null;
 
                 Bootstrap bootstrap = new Bootstrap();
                 bootstrap.group(group)
@@ -143,7 +142,7 @@ public class RDAPHttpRequest {
                                      p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
                                  }
                                  p.addLast(new HttpClientCodec());
-                                 p.addLast(new HttpObjectAggregator(1048576));
+//                                 p.addLast(new HttpObjectAggregator(1048576));
                                  p.addLast(new SimpleChannelInboundHandler<FullHttpResponse>() {
                                      @Override
                                      protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) {
@@ -158,6 +157,7 @@ public class RDAPHttpRequest {
                                          if (statusCode == 429) {
                                              long backoff = getBackoffTime(msg.headers());
                                              logger.info("[429] Too Many Requests. Backing off for {} seconds. Attempt {}/{}", backoff, currentAttempt + 1, maxRetries);
+                                             sleep(backoff);
                                              SimpleHttpResponse retryResponse = new SimpleHttpResponse(trackingId, 429, responseBody, originalUri, headersArr);
                                              retryResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
                                              futureResponse.complete(retryResponse);
