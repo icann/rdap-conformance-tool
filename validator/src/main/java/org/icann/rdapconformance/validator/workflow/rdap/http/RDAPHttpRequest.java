@@ -142,7 +142,6 @@ public class RDAPHttpRequest {
                                      p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
                                  }
                                  p.addLast(new HttpClientCodec());
-//                                 p.addLast(new HttpObjectAggregator(1048576));
                                  p.addLast(new SimpleChannelInboundHandler<FullHttpResponse>() {
                                      @Override
                                      protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) {
