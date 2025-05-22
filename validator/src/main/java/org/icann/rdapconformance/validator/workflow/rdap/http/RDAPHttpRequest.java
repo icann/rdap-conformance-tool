@@ -15,9 +15,16 @@ import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsF
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.net.http.HttpTimeoutException;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
@@ -39,23 +46,24 @@ import java.net.URI;
 import java.net.InetAddress;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpHead;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.ssl.TLS;
-import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.ssl.SSLContextBuilder;
-import org.apache.hc.core5.ssl.TrustStrategy;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
-import org.apache.hc.core5.util.Timeout;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.util.CharsetUtil;
 
+
+import java.net.*;
+import java.util.concurrent.CompletableFuture;
+
+
+import java.net.*;
+import java.util.concurrent.TimeUnit;
 
 public class RDAPHttpRequest {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
@@ -86,157 +94,150 @@ public class RDAPHttpRequest {
     }
 
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
-        if (originalUri == null) {
-            throw new IllegalArgumentException("The provided URI is null.");
-        }
+        if (originalUri == null) throw new IllegalArgumentException("The provided URI is null.");
 
         ConnectionTracker tracker = ConnectionTracker.getInstance();
         String trackingId = tracker.startTrackingNewConnection(originalUri, method, isMain);
 
         String host = originalUri.getHost();
-        if (LOCALHOST.equalsIgnoreCase(host)) {
-            host = LOCAL_IPv4;
-        }
+        int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? 443 : 80) : originalUri.getPort();
 
-        if (DNSCacheResolver.hasNoAddresses(host)) {
-            logger.info("No IP address found for host: " + host);
-            tracker.completeCurrentConnection(ZERO, ConnectionStatus.UNKNOWN_HOST);
-            return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
-        }
+        InetAddress localBindIp = NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
+            ? getDefaultIPv6Address()
+            : getDefaultIPv4Address();
 
-        int port = originalUri.getPort() == -1
-            ? (originalUri.getScheme().equalsIgnoreCase(HTTPS) ? HTTPS_PORT : HTTP_PORT)
-            : originalUri.getPort();
-
-        InetAddress remoteAddress = NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
+        InetAddress remoteIp = NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
             ? DNSCacheResolver.getFirstV6Address(host)
             : DNSCacheResolver.getFirstV4Address(host);
 
-        if (remoteAddress == null) {
-            tracker.completeCurrentConnection(ZERO, ConnectionStatus.UNKNOWN_HOST);
-            return new SimpleHttpResponse(trackingId,ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+        if (remoteIp == null || localBindIp == null) {
+            tracker.completeCurrentConnection(0, ConnectionStatus.UNKNOWN_HOST);
+            return new SimpleHttpResponse(trackingId, 0, "", originalUri, new Header[0]);
         }
 
-        URI ipUri = new URI(
-            originalUri.getScheme(),
-            null,
-            remoteAddress.getHostAddress(),
-            port,
-            originalUri.getRawPath(),
-            originalUri.getRawQuery(),
-            originalUri.getRawFragment()
-        );
+        NetworkInfo.setServerIpAddress(remoteIp.getHostAddress());
+        tracker.updateServerIpOnConnection(trackingId, remoteIp.getHostAddress());
 
-        NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
-        logger.info("Connecting to: {} using {}", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
-        // update the tracking ID with the IP address
-        tracker.updateServerIpOnConnection(trackingId, remoteAddress.getHostAddress());
+        boolean isHttps = originalUri.getScheme().equalsIgnoreCase("https");
 
-        HttpUriRequestBase request = method.equals(GET) ? new HttpGet(ipUri) : new HttpHead(ipUri);
-        request.setHeader(HOST, host);
-        request.setHeader(ACCEPT, NetworkInfo.getAcceptHeader());
-        request.setHeader(CONNECTION, CLOSE);
+        int maxRetries = 3;
+        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            final int currentAttempt = attempt;
+            EventLoopGroup group = new NioEventLoopGroup();
+            CompletableFuture<SimpleHttpResponse> futureResponse = new CompletableFuture<>();
 
-        RequestConfig config = RequestConfig.custom()
-                                            .setConnectTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
-                                            .setResponseTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
-                                            .build();
-        request.setConfig(config);
-
-        TrustStrategy acceptAll = (chain, authType) -> true;
-        SSLContext sslContext = SSLContextBuilder.create()
-                                                 .loadTrustMaterial(null, acceptAll)
-                                                 .build();
-
-        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                                                                                                        .setSSLSocketFactory(
-                                                                                                            SSLConnectionSocketFactoryBuilder.create()
-                                                                                                                                             .setSslContext(sslContext)
-                                                                                                                                             .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
-                                                                                                                                             .setHostnameVerifier((hostname, session) -> true)
-                                                                                                                                             .build()
-                                                                                                        ).build();
-
-        CloseableHttpClient client = HttpClientBuilder.create()
-                                                      .setConnectionManager(connectionManager)
-                                                      .disableRedirectHandling()
-                                                      .build();
-
-        int maxRetries = MAX_RETRIES;
-        int attempt = ZERO;
-
-        while (attempt <= maxRetries) {
             try {
-                ClassicHttpResponse response = executeRequest(client, request);
-                int statusCode = response.getCode();
-                String body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
+                SslContext sslCtx = isHttps ? SslContextBuilder.forClient()
+                                                               .trustManager(InsecureTrustManagerFactory.INSTANCE).build() : null;
 
-                if (statusCode == HTTP_TOO_MANY_REQUESTS) {
-                    long backoffSeconds = getBackoffTime(response);
-                    logger.info("[429] Too Many Requests. Backing off for {} seconds. Attempt {}/{}", backoffSeconds, attempt + 1, maxRetries);
-                    attempt++;
+                Bootstrap bootstrap = new Bootstrap();
+                bootstrap.group(group)
+                         .channel(NioSocketChannel.class)
+                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSeconds * 1000)
+                         .localAddress(new InetSocketAddress(localBindIp, 0))
+                         .handler(new ChannelInitializer<io.netty.channel.socket.SocketChannel>() {
+                             @Override
+                             protected void initChannel(io.netty.channel.socket.SocketChannel ch) {
+                                 ChannelPipeline p = ch.pipeline();
+                                 if (sslCtx != null) {
+                                     p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
+                                 }
+                                 p.addLast(new HttpClientCodec());
+                                 p.addLast(new HttpObjectAggregator(1048576));
+                                 p.addLast(new SimpleChannelInboundHandler<FullHttpResponse>() {
+                                     @Override
+                                     protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) {
+                                         int statusCode = msg.status().code();
+                                         String responseBody = msg.content().toString(CharsetUtil.UTF_8);
 
-                    if (attempt > maxRetries) {
-                        tracker.completeCurrentConnection(statusCode, ConnectionStatus.TOO_MANY_REQUESTS);
-                        SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(trackingId, statusCode, body, originalUri, response.getHeaders());
-                        simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
-                        return simpleHttpResponse;
-                    }
+                                         // Convert Netty headers
+                                         Header[] headersArr = msg.headers().entries().stream()
+                                                                  .map(e -> new Header(e.getKey(), e.getValue()))
+                                                                  .toArray(Header[]::new);
 
-                    sleep(backoffSeconds);
+                                         if (statusCode == 429) {
+                                             long backoff = getBackoffTime(msg.headers());
+                                             logger.info("[429] Too Many Requests. Backing off for {} seconds. Attempt {}/{}", backoff, currentAttempt + 1, maxRetries);
+                                             SimpleHttpResponse retryResponse = new SimpleHttpResponse(trackingId, 429, responseBody, originalUri, headersArr);
+                                             retryResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
+                                             futureResponse.complete(retryResponse);
+                                             ctx.close();
+                                             return;
+                                         }
+
+                                         tracker.completeCurrentConnection(statusCode, ConnectionStatus.SUCCESS);
+                                         SimpleHttpResponse response = new SimpleHttpResponse(trackingId, statusCode, responseBody, originalUri, headersArr);
+                                         response.setConnectionStatusCode(ConnectionStatus.SUCCESS);
+                                         futureResponse.complete(response);
+                                         ctx.close();
+                                     }
+
+                                     @Override
+                                     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+                                         futureResponse.completeExceptionally(cause);
+                                         ctx.close();
+                                     }
+                                 });
+                             }
+                         });
+
+                    SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap,
+                    remoteIp, port, host, futureResponse);
+
+                if (result.statusCode() == 429 && currentAttempt < maxRetries) {
+                    TimeUnit.SECONDS.sleep(DEFAULT_BACKOFF_SECS);
                     continue;
                 }
 
-                // Successful response
-                tracker.completeCurrentConnection(statusCode, ConnectionStatus.SUCCESS);
-                SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(trackingId, statusCode, body, originalUri, response.getHeaders());
-                simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.SUCCESS);
-                return simpleHttpResponse;
+                return result;
 
             } catch (IOException ioe) {
                 logger.info("[trackingID: {}] Error during HTTP request: {}", trackingId, ioe.getMessage());
                 ConnectionStatus connStatus = handleRequestException(ioe, canRecordError);
-                tracker.completeCurrentConnection(ZERO, connStatus);
+                tracker.completeCurrentConnection(0, connStatus);
 
-                SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, null);
-                simpleHttpResponse.setConnectionStatusCode(connStatus);
-                return simpleHttpResponse;
+                SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, 0, "", originalUri, null);
+                errorResponse.setConnectionStatusCode(connStatus);
+                return errorResponse;
+            } catch (Exception ex) {
+                logger.info("[trackingID: {}] General error during HTTP request: {}", trackingId, ex.getMessage());
+                ConnectionStatus connStatus = handleRequestException(new IOException(ex), canRecordError);
+                tracker.completeCurrentConnection(0, connStatus);
+
+                SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, 0, "", originalUri, null);
+                errorResponse.setConnectionStatusCode(connStatus);
+                return errorResponse;
+            } finally {
+                group.shutdownGracefully();
             }
         }
 
-        tracker.completeCurrentConnection(HTTP_TOO_MANY_REQUESTS, ConnectionStatus.TOO_MANY_REQUESTS);
-        return new SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[0]);
+        tracker.completeCurrentConnection(429, ConnectionStatus.TOO_MANY_REQUESTS);
+        SimpleHttpResponse tooManyRequests = new SimpleHttpResponse(trackingId, 429, "", originalUri, new Header[0]);
+        tooManyRequests.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
+        return tooManyRequests;
     }
 
+    public static SimpleHttpResponse executeRequest(URI originalUri,
+                                                            int timeoutSeconds,
+                                                            String method,
+                                                            Bootstrap bootstrap,
+                                                            InetAddress remoteIp,
+                                                            int port,
+                                                            String host,
+                                                            CompletableFuture<SimpleHttpResponse> futureResponse)
+        throws InterruptedException, ExecutionException, TimeoutException {
+        ChannelFuture f = bootstrap.connect(new InetSocketAddress(remoteIp, port)).sync();
 
-    private static long getBackoffTime(ClassicHttpResponse response) {
-        Header retryAfter = response.getFirstHeader(RETRY_AFTER);
-        if (retryAfter != null) {
-            try {
-                return Long.parseLong(retryAfter.getValue());
-            } catch (NumberFormatException ignored) {} // ignore and continue
-        }
+        FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
+        request.headers().set(HttpHeaderNames.HOST, host);
+        request.headers().set(HttpHeaderNames.ACCEPT, NetworkInfo.getAcceptHeader());
+        request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
 
-        Header resetHeader = response.getFirstHeader(X_RATELIMIT_RESET);
-        if (resetHeader != null) {
-            try {
-                return Long.parseLong(resetHeader.getValue());
-            } catch (NumberFormatException ignored) {} // ignore and go with default
-        }
+        f.channel().writeAndFlush(request);
+        f.channel().closeFuture().sync();
 
-        return DEFAULT_BACKOFF_SECS;
-    }
-
-    private static void sleep(long seconds) {
-        try {
-            Thread.sleep(seconds * 1000L);
-        } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    public static ClassicHttpResponse executeRequest(CloseableHttpClient client, HttpUriRequestBase request) throws IOException {
-        return client.execute(request);
+        return  futureResponse.get(timeoutSeconds, TimeUnit.SECONDS);
     }
 
 
@@ -249,7 +250,7 @@ public class RDAPHttpRequest {
             return ConnectionStatus.UNKNOWN_HOST;
         }
 
-        if (e instanceof ConnectException || e instanceof HttpTimeoutException || e instanceof org.apache.hc.client5.http.ConnectTimeoutException) {
+        if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
             if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
                 if(recordError) {
                     addErrorToResultsFile(ZERO,-13016, "no response available", "Network send fail");
@@ -350,6 +351,65 @@ public class RDAPHttpRequest {
         return false;
     }
 
+    // Add these two methods to determine the outbound IP address
+    public static InetAddress getDefaultIPv4Address() throws IOException {
+        System.out.println(">> getDefaultIPv4Address");
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.connect(InetAddress.getByName("8.8.8.8"), 53);
+            InetAddress localAddress = socket.getLocalAddress();
+            if (localAddress instanceof Inet4Address) {
+                System.out.println(">> using local IP Address: " + localAddress.getHostAddress());
+                logger.info(">> using local IP Address: " + localAddress.getHostAddress());
+                return localAddress;
+            } else {
+                System.out.println("No IPv4 address found (IPv6 returned instead)");
+                throw new IOException("No IPv4 address found (IPv6 returned instead)");
+            }
+        }
+    }
+
+    public static InetAddress getDefaultIPv6Address() throws IOException {
+        System.out.println(">> getDefaultIPv6Address");
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.connect(InetAddress.getByName("2001:4860:4860::8888"), 53);
+            InetAddress localAddress = socket.getLocalAddress();
+            if (localAddress instanceof Inet6Address) {
+                System.out.println(">> using local IP Address: " + localAddress.getHostAddress());
+                logger.info(">> using local IP Address: " + localAddress.getHostAddress());
+                return localAddress;
+            } else {
+                System.out.println("No IPv6 address found (IPv4 returned instead)");
+                throw new IOException("No IPv6 address found (IPv4 returned instead)");
+            }
+        }
+    }
+
+
+
+    // Helper for Netty HttpHeaders
+    private static long getBackoffTime(io.netty.handler.codec.http.HttpHeaders headers) {
+        String retryAfter = headers.get(RETRY_AFTER);
+        if (retryAfter != null) {
+            try {
+                return Long.parseLong(retryAfter);
+            } catch (NumberFormatException ignored) {}
+        }
+        String resetHeader = headers.get(X_RATELIMIT_RESET);
+        if (resetHeader != null) {
+            try {
+                return Long.parseLong(resetHeader);
+            } catch (NumberFormatException ignored) {}
+        }
+        return DEFAULT_BACKOFF_SECS;
+    }
+
+    private static void sleep(long seconds) {
+        try {
+            Thread.sleep(seconds * 1000L);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
+    }
 
     public static class SimpleHttpResponse implements HttpResponse<String> {
         private final int statusCode;
@@ -423,6 +483,24 @@ public class RDAPHttpRequest {
         @Override
         public HttpClient.Version version() {
             return HttpClient.Version.HTTP_1_1; // Default version
+        }
+    }
+
+    public static class Header {
+        private final String name;
+        private final String value;
+
+        public Header(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getValue() {
+            return value;
         }
     }
 }
