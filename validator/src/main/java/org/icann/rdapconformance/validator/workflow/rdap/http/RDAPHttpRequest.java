@@ -15,6 +15,10 @@ import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsF
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.net.http.HttpTimeoutException;
@@ -28,15 +32,56 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+import org.apache.hc.client5.http.SystemDefaultDnsResolver;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator;
+import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
+import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIAuthority;
+import org.apache.hc.core5.util.TimeValue;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpHead;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.net.URIAuthority;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
+
+
+
+
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import java.net.*;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+import java.util.concurrent.TimeUnit;
 
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
@@ -48,30 +93,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.net.InetAddress;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpHead;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.ssl.TLS;
-import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.ssl.SSLContextBuilder;
-import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
-import org.apache.hc.core5.util.Timeout;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.core5.http.HttpHost;
+
 
 
 
@@ -122,75 +151,66 @@ public class RDAPHttpRequest {
             return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
         }
 
-        int port = originalUri.getPort() == -1
-            ? (originalUri.getScheme().equalsIgnoreCase(HTTPS) ? HTTPS_PORT : HTTP_PORT)
-            : originalUri.getPort();
-
+        // Determine remote IP
         InetAddress remoteAddress = NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
             ? DNSCacheResolver.getFirstV6Address(host)
             : DNSCacheResolver.getFirstV4Address(host);
 
         if (remoteAddress == null) {
             tracker.completeCurrentConnection(ZERO, ConnectionStatus.UNKNOWN_HOST);
-            return new SimpleHttpResponse(trackingId,ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+            return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
         }
 
+        // Determine remote port
+        int port = originalUri.getPort() == -1
+            ? (originalUri.getScheme().equalsIgnoreCase(HTTPS) ? HTTPS_PORT : HTTP_PORT)
+            : originalUri.getPort();
+
+        // Build Host-based URI
         URI ipUri = new URI(
             originalUri.getScheme(),
             null,
-            remoteAddress.getHostAddress(),
+//            remoteAddress.getHostAddress(),
+            host, // now we set the host name
             port,
             originalUri.getRawPath(),
             originalUri.getRawQuery(),
             originalUri.getRawFragment()
         );
 
+        // Log connection info
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
         logger.info("Connecting to: {} using {}", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
-        // update the tracking ID with the IP address
         tracker.updateServerIpOnConnection(trackingId, remoteAddress.getHostAddress());
 
+        // Create request
         HttpUriRequestBase request = method.equals(GET) ? new HttpGet(ipUri) : new HttpHead(ipUri);
-        request.setHeader(HOST, host);
         request.setHeader(ACCEPT, NetworkInfo.getAcceptHeader());
+        request.setHeader(HOST, originalUri.getHost());  // Set original hostname in Host header
         request.setHeader(CONNECTION, CLOSE);
 
+        // Create SSL Context with default trust manager
+        SSLContext sslContext = SSLContextBuilder.create().build();
+
+        // Create request config
         RequestConfig config = RequestConfig.custom()
                                             .setConnectTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
                                             .setResponseTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
                                             .build();
         request.setConfig(config);
 
-        TrustManager trustManager = buildCustomTrustManager();
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[]{ trustManager }, new SecureRandom());
-
-
-        SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
-                                                                                       .setSslContext(sslContext)
-                                                                                       .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
-                                                                                       .setHostnameVerifier(new DefaultHostnameVerifier()) // Enables CN/SAN matching
-                                                                                       .build();
-
-        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                                                                                                        .setSSLSocketFactory(sslSocketFactory)
-                                                                                                        .build();
-
-        CloseableHttpClient client = HttpClientBuilder.create()
-                                                      .setConnectionManager(connectionManager)
-                                                      .disableRedirectHandling()
-                                                      .build();
-
+        // Build the HTTP client before the retry loop
+        CloseableHttpClient client = buildHttpClient(sslContext, request);
 
 
         int maxRetries = MAX_RETRIES;
-        int attempt = ZERO;
+        int attempt = 0;
 
         while (attempt <= maxRetries) {
             try {
-                request.setAuthority(new URIAuthority(host, port));
-
                 ClassicHttpResponse response = executeRequest(client, request);
+                System.out.println("[IPConn] " + request.getUri().getHost());
+
                 int statusCode = response.getCode();
                 String body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
 
@@ -260,73 +280,6 @@ public class RDAPHttpRequest {
 
     public static ClassicHttpResponse executeRequest(CloseableHttpClient client, HttpUriRequestBase request) throws IOException {
         return client.execute(request);
-    }
-
-    public static TrustManager buildCustomTrustManager() {
-        return new X509TrustManager() {
-            private final X509TrustManager defaultTm = getDefaultTrustManager();
-
-            @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                defaultTm.checkClientTrusted(chain, authType);
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                for (X509Certificate cert : chain) {
-                    System.out.println("== Subject: " + cert.getSubjectX500Principal());
-                    System.out.println("   NotBefore: " + cert.getNotBefore());
-                    System.out.println("   NotAfter:  " + cert.getNotAfter());
-                }
-                for (X509Certificate cert : chain) {
-                    try {
-                        cert.checkValidity(); // will throw if expired or not yet valid
-                    } catch (CertificateExpiredException ex) {
-                        System.out.println(">>Certificate expired (manual)");
-                        throw new CertificateException("EXPIRED_CERT", ex);
-                    } catch (CertificateNotYetValidException ex) {
-                        System.out.println(">> Certificate not yet valid (manual)");
-                        throw new CertificateException("NOT_YET_VALID", ex);
-                    }
-                }
-                try {
-                    defaultTm.checkServerTrusted(chain, authType);
-                } catch (CertificateException e) {
-                    Throwable cause = e.getCause();
-                    if (cause instanceof CertificateExpiredException) {
-                        System.out.println(">> Certificate expired");
-                        throw new CertificateException("EXPIRED_CERT", e);
-                    } else if (cause instanceof CertificateNotYetValidException) {
-                        System.out.println(">>Certificate not yet valid");
-                        throw new CertificateException("NOT_YET_VALID", e);
-                    } else if (cause instanceof CertificateRevokedException) {
-                        System.out.println(">> Certificate revoked");
-                        throw new CertificateException("REVOKED_CERT", e);
-                    } else {
-                        System.out.println(">> Certificate trust path failed");
-                        throw new CertificateException("INVALID_CERT", e);
-                    }
-                }
-            }
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return defaultTm.getAcceptedIssuers();
-            }
-
-            private X509TrustManager getDefaultTrustManager() {
-                try {
-                    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                    tmf.init((KeyStore) null);
-                    for (TrustManager tm : tmf.getTrustManagers()) {
-                        if (tm instanceof X509TrustManager) return (X509TrustManager) tm;
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                throw new RuntimeException("No default trust manager found");
-            }
-        };
     }
 
     private static CertificateException findCertificateException(Throwable throwable) {
@@ -461,6 +414,71 @@ public class RDAPHttpRequest {
         return false;
     }
 
+    // Add these two methods to determine the outbound IP address
+    public static InetAddress getDefaultIPv4Address() throws IOException {
+        System.out.println(">> getDefaultIPv4Address");
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.connect(InetAddress.getByName("8.8.8.8"), 53);
+            InetAddress localAddress = socket.getLocalAddress();
+            if (localAddress instanceof Inet4Address) {
+                System.out.println(">> using local IP Address: " + localAddress.getHostAddress());
+                logger.info(">> using local IP Address: " + localAddress.getHostAddress());
+                return localAddress;
+            } else {
+                System.out.println("No IPv4 address found (IPv6 returned instead)");
+                throw new IOException("No IPv4 address found (IPv6 returned instead)");
+            }
+        }
+    }
+
+    public static InetAddress getDefaultIPv6Address() throws IOException {
+        System.out.println(">> getDefaultIPv6Address");
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.connect(InetAddress.getByName("2001:4860:4860::8888"), 53);
+            InetAddress localAddress = socket.getLocalAddress();
+            if (localAddress instanceof Inet6Address) {
+                System.out.println(">> using local IP Address: " + localAddress.getHostAddress());
+                logger.info(">> using local IP Address: " + localAddress.getHostAddress());
+                return localAddress;
+            } else {
+                System.out.println("No IPv6 address found (IPv4 returned instead)");
+                throw new IOException("No IPv6 address found (IPv4 returned instead)");
+            }
+        }
+    }
+
+    public static CloseableHttpClient buildHttpClient(SSLContext sslContext, HttpUriRequestBase request) {
+        System.out.println(">> Inside Building HTTP client");
+        SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
+                                                                                       .setSslContext(sslContext)
+                                                                                       .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
+                                                                                       .build();
+
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                                                                                                        .setSSLSocketFactory(sslSocketFactory)
+                                                                                                        .build();
+
+        return HttpClients.custom()
+                          .setConnectionManager(connectionManager)
+                          .setDefaultRequestConfig(request.getConfig())  // Get config from request
+                          .setRoutePlanner(new DefaultRoutePlanner(DefaultSchemePortResolver.INSTANCE) {
+                              @Override
+                              protected InetAddress determineLocalAddress(final HttpHost firstHop, final HttpContext context) throws HttpException {
+                                  try {
+                                      System.out.println(">> Determining local address");
+                                      return NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
+                                          ? getDefaultIPv6Address()
+                                          : getDefaultIPv4Address();
+                                  } catch (IOException e) {
+                                      System.out.println(">>Failed to determine local address" + e.getMessage());
+                                      logger.info(">>Failed to determine local address {}", e.getMessage());
+                                      throw new HttpException("!!!!Failed to determine local address", e);
+                                  }
+                              }
+                          })
+                          .disableRedirectHandling()
+                          .build();
+    }
 
     public static class SimpleHttpResponse implements HttpResponse<String> {
         private final int statusCode;
