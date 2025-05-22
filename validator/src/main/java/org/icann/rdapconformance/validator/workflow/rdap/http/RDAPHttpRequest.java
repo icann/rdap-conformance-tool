@@ -11,8 +11,10 @@ import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_TOO_MANY_REQUESTS;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
+import static org.icann.rdapconformance.validator.CommonUtils.parseRemoteAddress;
 
 import java.io.EOFException;
+
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.DatagramSocket;
@@ -486,15 +488,25 @@ public class RDAPHttpRequest {
                 return new ManagedHttpClientConnection() {
                     @Override
                     public void bind(final Socket socket) throws IOException {
-                        conn.bind(socket);
+                        try {
+                            conn.bind(socket);
+//                        System.out.println("[XIPConn]  " + socket.getInetAddress().getHostAddress());
 
-                        // Get endpoint details after connection is bound
-                        EndpointDetails details = conn.getEndpointDetails();
-                        if (details != null) {
-                            logger.info("Connected to: ({})",
-                                                                details.getRemoteAddress());
-                            System.out.println("[XIPConn]  (" +
-                                details.getRemoteAddress() + ")");
+                            // Get endpoint details after connection is bound
+                            EndpointDetails details = conn.getEndpointDetails();
+                            if (details != null) {
+                                SocketAddress remoteAddress = details.getRemoteAddress();
+                                System.out.println("[XIPConn details dump]  " + details);
+                                String remoteAddressStr = remoteAddress != null ? remoteAddress.toString() : "(null)";
+                                NetworkInfo.setServerIpAddress(parseRemoteAddress(remoteAddressStr));
+                                logger.info("Connected to: {}", remoteAddressStr);
+                                System.out.println("[XIPConn]  " + remoteAddressStr);
+                            } else {
+                                System.out.println("[XIPConn]  No endpoint details available -> null");
+                            }
+                        } catch (IOException e) {
+                            System.out.println("[XIPConn]  Failed to bind socket: " + e.getMessage());
+                            throw e;
                         }
                     }
 

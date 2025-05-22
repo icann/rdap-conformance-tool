@@ -77,12 +77,43 @@ public class CommonUtils {
 
     public static String cleanStringFromExtraSlash(String input) {
         if(input != null) {
-            String uriCleaned = input.replaceAll("//", "/");
-            if (uriCleaned.endsWith("/")) {
-                return input.substring(0, input.length() - 1);
+            String uriCleaned = input.replaceAll("//", SLASH);
+            if (uriCleaned.endsWith(SLASH)) {
+                return input.substring(ZERO, input.length() - ONE);
             }
         }
 
         return input;
+    }
+    public static String parseRemoteAddress(String remoteAddress) {
+        if (remoteAddress == null || remoteAddress.equals("(null)")) {
+            return DASH;
+        }
+
+        // Remove parentheses if they exist
+        String address = remoteAddress;
+        if (address.startsWith("(") && address.endsWith(")")) {
+            address = address.substring(1, address.length() - 1);
+        }
+
+        // Extract the part after the hostname
+        int slashIndex = address.lastIndexOf('/');
+        if (slashIndex == -1) {
+            return DASH;
+        }
+
+        // Get everything after the slash but before any port number
+        String ipPart = address.substring(slashIndex + 1);
+        int portIndex = ipPart.lastIndexOf(':');
+        if (portIndex != -1) {
+            ipPart = ipPart.substring(0, portIndex);
+        }
+
+        // Remove IPv6 brackets if present
+        if (ipPart.startsWith("[") && ipPart.endsWith("]")) {
+            ipPart = ipPart.substring(1, ipPart.length() - 1);
+        }
+
+        return ipPart;
     }
 }
