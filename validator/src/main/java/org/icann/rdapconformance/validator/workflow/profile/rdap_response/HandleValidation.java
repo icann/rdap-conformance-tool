@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 
 import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 
+import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -45,7 +46,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
       handle = obj.toString();
     }
 
-    if (handle == null || !handle.matches("(\\w|_){1,80}-\\w{1,8}")) {
+    if (handle == null || !handle.matches(CommonUtils.HANDLE_PATTERN)) {
       results.add(RDAPValidationResult.builder()
           .code(code)
           .value(getResultValue(handleJsonPointer))

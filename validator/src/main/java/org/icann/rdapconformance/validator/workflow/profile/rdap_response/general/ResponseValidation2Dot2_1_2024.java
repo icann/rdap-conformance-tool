@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.apache.commons.lang3.StringUtils;
+import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -58,7 +59,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
         try {
            var handleObject = jsonObject.get("handle");
            if(handleObject instanceof String handle) {
-               if (!handle.matches("(\\w|_){1,80}-\\w{1,8}")) {
+               if (!handle.matches(CommonUtils.HANDLE_PATTERN)) {
                    results.add(RDAPValidationResult.builder()
                            .code(-46200)
                            .value(getResultValue(HANDLE_PATH))
