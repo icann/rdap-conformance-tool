@@ -34,6 +34,8 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -53,10 +55,13 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.net.URIAuthority;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
@@ -480,6 +485,12 @@ public class RDAPHttpRequest {
                                                                     .register("http", PlainConnectionSocketFactory.getSocketFactory())
                                                                     .build();
 
+        // Create custom connection operator
+//        CustomHttpClientConnectionOperator connectionOperator = new CustomHttpClientConnectionOperator(
+//            registry,
+//            DefaultSchemePortResolver.INSTANCE,
+//            SystemDefaultDnsResolver.INSTANCE);
+
         // Create connection factory
         ManagedHttpClientConnectionFactory connectionFactory = new ManagedHttpClientConnectionFactory() {
             @Override
@@ -589,14 +600,39 @@ public class RDAPHttpRequest {
                 };
             }
         };
+
+        // Build connection manager with operator and factory
+// Build connection manager with operator and factory
+
         // Build connection manager with registry and factory
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(
             registry,
             connectionFactory);
+
+//        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManagerBuilder()
+//            .setConnectionOperator(connectionOperator)
+//            .setSSLSocketFactory(sslSocketFactory)
+//            .setConnectionFactory(connectionFactory)
+////            .build();
+//        PoolingHttpClientConnectionManager connectionManager =
+//            new PoolingHttpClientConnectionManager(
+//                connectionOperator, // your custom operator
+//                PoolConcurrencyPolicy.STRICT, // or LAX, as needed
+//                PoolReusePolicy.LIFO,         // or FIFO, as needed
+//                TimeValue.ofMinutes(5),       // connection time-to-live
+//                connectionFactory             // your custom factory
+//            );
+
         connectionManager.setDefaultSocketConfig(SocketConfig.custom()
                                                              .setSoTimeout(Timeout.ofSeconds(20))
                                                              .build());
 
+        // Inside buildHttpClient
+
+
+        connectionManager.setDefaultSocketConfig(SocketConfig.custom()
+                                                             .setSoTimeout(Timeout.ofSeconds(20))
+                                                             .build());
         return HttpClients.custom()
                           .setConnectionManager(connectionManager)
                           .setDefaultRequestConfig(request.getConfig())
@@ -615,6 +651,39 @@ public class RDAPHttpRequest {
                           })
                           .disableRedirectHandling()
                           .build();
+    }
+
+    private static class CustomHttpClientConnectionOperator extends DefaultHttpClientConnectionOperator {
+        public CustomHttpClientConnectionOperator(
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver) {
+            super(socketFactoryRegistry, schemePortResolver, dnsResolver);
+        }
+
+        @Override
+        public void connect(
+            final ManagedHttpClientConnection conn,
+            final HttpHost host,
+            final InetSocketAddress localAddress,
+            final Timeout connectTimeout,
+            final SocketConfig socketConfig,
+            final Object attachment,
+            final HttpContext context) throws IOException {
+
+            // Log the connection attempt before it happens
+            String hostAddress = host.getHostName();
+            logger.info("Attempting connection to: {}", hostAddress);
+            System.out.println("[IPConn-Pre] " + hostAddress);
+
+            try {
+                super.connect(conn, host, localAddress, connectTimeout, socketConfig, attachment, context);
+            } catch (IOException e) {
+                // Connection failed but we still know what host we tried
+                logger.info("Connection failed to: {}", hostAddress);
+                throw e;
+            }
+        }
     }
 
 //    public static CloseableHttpClient buildHttpClient(SSLContext sslContext, HttpUriRequestBase request) {
@@ -724,4 +793,41 @@ public class RDAPHttpRequest {
             return HttpClient.Version.HTTP_1_1; // Default version
         }
     }
+//
+//    private static class CustomHttpClientConnectionOperator extends DefaultHttpClientConnectionOperator {
+//        public CustomHttpClientConnectionOperator(
+//            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+//            final SchemePortResolver schemePortResolver,
+//            final DnsResolver dnsResolver) {
+//            super(socketFactoryRegistry, schemePortResolver, dnsResolver);
+//        }
+//
+//        @Override
+//        public void connect(
+//            final ManagedHttpClientConnection conn,
+//            final HttpHost host,
+//            final InetSocketAddress localAddress,
+//            final Timeout connectTimeout,
+//            final SocketConfig socketConfig,
+//            final Object attachment,
+//            final HttpContext context) throws IOException {
+//
+//            // Log the connection attempt with resolved IP
+//            String hostName = host.getHostName();
+//            String remoteIp = "(unknown)";
+//            if (localAddress != null) {
+//                remoteIp = localAddress.getAddress() != null ? localAddress.getAddress().getHostAddress() : localAddress.toString();
+//            }
+//            // The actual remote address is passed as 'host' and 'localAddress'
+//            logger.info("Attempting connection to: {} (resolved IP: {})", hostName, remoteIp);
+//            System.out.println("[IPConn-Pre] " + hostName + " (resolved IP: " + remoteIp + ")");
+//
+//            try {
+//                super.connect(conn, host, localAddress, connectTimeout, socketConfig, attachment, context);
+//            } catch (IOException e) {
+//                logger.info("Connection failed to: {} (resolved IP: {})", hostName, remoteIp);
+//                throw e;
+//            }
+//        }
+//    }
 }
