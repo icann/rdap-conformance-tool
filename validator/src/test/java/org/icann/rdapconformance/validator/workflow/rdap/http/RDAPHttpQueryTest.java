@@ -544,7 +544,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
   // Note: we no longer do this, we now host our own
-//  @Ignore
+  @Ignore
   @Test(dataProvider = "tlsErrors")
   public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,
       ConnectionStatus expectedStatus) {

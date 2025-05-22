@@ -160,24 +160,22 @@ public class RDAPHttpRequest {
                                             .setResponseTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
                                             .build();
         request.setConfig(config);
-        // Step 1: Build the custom TrustManager and SSLContext
+
         TrustManager trustManager = buildCustomTrustManager();
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(null, new TrustManager[]{ trustManager }, new SecureRandom());
 
-// Step 2: Build the SSLConnectionSocketFactory correctly
+
         SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
                                                                                        .setSslContext(sslContext)
                                                                                        .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
                                                                                        .setHostnameVerifier(new DefaultHostnameVerifier()) // Enables CN/SAN matching
                                                                                        .build();
 
-// Step 3: Use the factory inside the connection manager
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                                                                                                         .setSSLSocketFactory(sslSocketFactory)
                                                                                                         .build();
 
-// Step 4: Build the client with that connection manager
         CloseableHttpClient client = HttpClientBuilder.create()
                                                       .setConnectionManager(connectionManager)
                                                       .disableRedirectHandling()
@@ -190,9 +188,7 @@ public class RDAPHttpRequest {
 
         while (attempt <= maxRetries) {
             try {
-                HttpClientContext context = HttpClientContext.create();
-                HttpHost target = new HttpHost("https", host, 443);
-                request.setAuthority(new URIAuthority(host, 443));
+                request.setAuthority(new URIAuthority(host, port));
 
                 ClassicHttpResponse response = executeRequest(client, request);
                 int statusCode = response.getCode();
@@ -286,10 +282,10 @@ public class RDAPHttpRequest {
                     try {
                         cert.checkValidity(); // will throw if expired or not yet valid
                     } catch (CertificateExpiredException ex) {
-                        System.out.println("!!! Certificate expired (manual)");
+                        System.out.println(">>Certificate expired (manual)");
                         throw new CertificateException("EXPIRED_CERT", ex);
                     } catch (CertificateNotYetValidException ex) {
-                        System.out.println("!!! Certificate not yet valid (manual)");
+                        System.out.println(">> Certificate not yet valid (manual)");
                         throw new CertificateException("NOT_YET_VALID", ex);
                     }
                 }
@@ -298,16 +294,16 @@ public class RDAPHttpRequest {
                 } catch (CertificateException e) {
                     Throwable cause = e.getCause();
                     if (cause instanceof CertificateExpiredException) {
-                        System.out.println("!!! Certificate expired");
+                        System.out.println(">> Certificate expired");
                         throw new CertificateException("EXPIRED_CERT", e);
                     } else if (cause instanceof CertificateNotYetValidException) {
-                        System.out.println("!!! Certificate not yet valid");
+                        System.out.println(">>Certificate not yet valid");
                         throw new CertificateException("NOT_YET_VALID", e);
                     } else if (cause instanceof CertificateRevokedException) {
-                        System.out.println("!!! Certificate revoked");
+                        System.out.println(">> Certificate revoked");
                         throw new CertificateException("REVOKED_CERT", e);
                     } else {
-                        System.out.println("!!! Certificate trust path failed");
+                        System.out.println(">> Certificate trust path failed");
                         throw new CertificateException("INVALID_CERT", e);
                     }
                 }
