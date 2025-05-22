@@ -36,6 +36,7 @@ import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator;
+import org.apache.hc.client5.http.impl.io.ManagedHttpClientConnectionFactory;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -43,11 +44,16 @@ import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.TimeValue;
 import org.icann.rdapconformance.validator.ConnectionStatus;
@@ -71,6 +77,14 @@ import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
+import org.apache.hc.client5.http.impl.io.ManagedHttpClientConnectionFactory;
+import org.apache.hc.core5.http.config.Registry;
+
+import org.apache.hc.client5.http.impl.io.ManagedHttpClientConnectionFactory;
+import org.apache.hc.core5.http.config.Registry;
+
+import java.net.Socket;
+import java.net.Socket;
 
 
 
@@ -209,7 +223,7 @@ public class RDAPHttpRequest {
         while (attempt <= maxRetries) {
             try {
                 ClassicHttpResponse response = executeRequest(client, request);
-                System.out.println("[IPConn] " + request.getUri().getHost());
+//                System.out.println("[IPConn] " + request.getUri().getHost());
 
                 int statusCode = response.getCode();
                 String body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
@@ -278,9 +292,14 @@ public class RDAPHttpRequest {
         }
     }
 
-    public static ClassicHttpResponse executeRequest(CloseableHttpClient client, HttpUriRequestBase request) throws IOException {
-        return client.execute(request);
+    public static ClassicHttpResponse executeRequest(CloseableHttpClient client, HttpUriRequestBase request) throws Exception {
+        HttpClientContext context = HttpClientContext.create();
+        ClassicHttpResponse response = client.execute(request, context);
+        return response;
     }
+//    public static ClassicHttpResponse executeRequest(CloseableHttpClient client, HttpUriRequestBase request) throws IOException {
+//        return client.execute(request);
+//    }
 
     private static CertificateException findCertificateException(Throwable throwable) {
         while (throwable != null) {
@@ -448,37 +467,176 @@ public class RDAPHttpRequest {
     }
 
     public static CloseableHttpClient buildHttpClient(SSLContext sslContext, HttpUriRequestBase request) {
-        System.out.println(">> Inside Building HTTP client");
         SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
                                                                                        .setSslContext(sslContext)
                                                                                        .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
                                                                                        .build();
 
-        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                                                                                                        .setSSLSocketFactory(sslSocketFactory)
-                                                                                                        .build();
+        // Create registry with connection socket factories
+        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+                                                                    .register("https", sslSocketFactory)
+                                                                    .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                                                                    .build();
+
+        // Create connection factory
+        ManagedHttpClientConnectionFactory connectionFactory = new ManagedHttpClientConnectionFactory() {
+            @Override
+            public ManagedHttpClientConnection createConnection(final Socket socket) throws IOException {
+                final ManagedHttpClientConnection conn = super.createConnection(socket);
+                return new ManagedHttpClientConnection() {
+                    @Override
+                    public void bind(final Socket socket) throws IOException {
+                        conn.bind(socket);
+
+                        // Get endpoint details after connection is bound
+                        EndpointDetails details = conn.getEndpointDetails();
+                        if (details != null) {
+                            logger.info("Connected to: ({})",
+                                                                details.getRemoteAddress());
+                            System.out.println("[XIPConn]  (" +
+                                details.getRemoteAddress() + ")");
+                        }
+                    }
+
+                    // Delegate all other methods to conn
+                    @Override
+                    public void close(CloseMode closeMode) { conn.close(closeMode); }
+
+                    @Override
+                    public boolean isDataAvailable(Timeout timeout) throws IOException { return conn.isDataAvailable(timeout); }
+
+                    @Override
+                    public boolean isStale() throws IOException { return conn.isStale(); }
+
+                    @Override
+                    public void flush() throws IOException { conn.flush(); }
+
+                    @Override
+                    public boolean isConsistent() { return conn.isConsistent(); }
+
+                    @Override
+                    public void sendRequestHeader(ClassicHttpRequest request) throws HttpException, IOException {
+                        conn.sendRequestHeader(request);
+                    }
+
+                    @Override
+                    public void terminateRequest(ClassicHttpRequest request) throws HttpException, IOException {
+                        conn.terminateRequest(request);
+                    }
+
+                    @Override
+                    public void sendRequestEntity(ClassicHttpRequest request) throws HttpException, IOException {
+                        conn.sendRequestEntity(request);
+                    }
+
+                    @Override
+                    public ClassicHttpResponse receiveResponseHeader() throws HttpException, IOException {
+                        return conn.receiveResponseHeader();
+                    }
+
+                    @Override
+                    public void receiveResponseEntity(ClassicHttpResponse response) throws HttpException, IOException {
+                        conn.receiveResponseEntity(response);
+                    }
+
+                    @Override
+                    public Socket getSocket() { return conn.getSocket(); }
+
+                    @Override
+                    public void close() throws IOException { conn.close(); }
+
+                    @Override
+                    public boolean isOpen() { return conn.isOpen(); }
+
+                    @Override
+                    public Timeout getSocketTimeout() { return conn.getSocketTimeout(); }
+
+                    @Override
+                    public void setSocketTimeout(Timeout timeout) { conn.setSocketTimeout(timeout); }
+
+                    @Override
+                    public EndpointDetails getEndpointDetails() { return conn.getEndpointDetails(); }
+
+                    @Override
+                    public SocketAddress getRemoteAddress() { return conn.getRemoteAddress(); }
+
+                    @Override
+                    public ProtocolVersion getProtocolVersion() { return conn.getProtocolVersion(); }
+
+                    @Override
+                    public SocketAddress getLocalAddress() { return conn.getLocalAddress(); }
+
+                    @Override
+                    public SSLSession getSSLSession() { return conn.getSSLSession(); }
+
+                    @Override
+                    public void passivate() { conn.passivate(); }
+
+                    @Override
+                    public void activate() { conn.activate(); }
+                };
+            }
+        };
+        // Build connection manager with registry and factory
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(
+            registry,
+            connectionFactory);
+        connectionManager.setDefaultSocketConfig(SocketConfig.custom()
+                                                             .setSoTimeout(Timeout.ofSeconds(20))
+                                                             .build());
 
         return HttpClients.custom()
                           .setConnectionManager(connectionManager)
-                          .setDefaultRequestConfig(request.getConfig())  // Get config from request
+                          .setDefaultRequestConfig(request.getConfig())
                           .setRoutePlanner(new DefaultRoutePlanner(DefaultSchemePortResolver.INSTANCE) {
                               @Override
                               protected InetAddress determineLocalAddress(final HttpHost firstHop, final HttpContext context) throws HttpException {
                                   try {
-                                      System.out.println(">> Determining local address");
                                       return NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
                                           ? getDefaultIPv6Address()
                                           : getDefaultIPv4Address();
                                   } catch (IOException e) {
-                                      System.out.println(">>Failed to determine local address" + e.getMessage());
-                                      logger.info(">>Failed to determine local address {}", e.getMessage());
-                                      throw new HttpException("!!!!Failed to determine local address", e);
+                                      logger.info("Failed to determine local address {}", e.getMessage());
+                                      throw new HttpException("Failed to determine local address", e);
                                   }
                               }
                           })
                           .disableRedirectHandling()
                           .build();
     }
+
+//    public static CloseableHttpClient buildHttpClient(SSLContext sslContext, HttpUriRequestBase request) {
+//        System.out.println(">> Inside Building HTTP client");
+//        SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
+//                                                                                       .setSslContext(sslContext)
+//                                                                                       .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
+//                                                                                       .build();
+//
+//        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+//                                                                                                        .setSSLSocketFactory(sslSocketFactory)
+//                                                                                                        .build();
+//
+//        return HttpClients.custom()
+//                          .setConnectionManager(connectionManager)
+//                          .setDefaultRequestConfig(request.getConfig())  // Get config from request
+//                          .setRoutePlanner(new DefaultRoutePlanner(DefaultSchemePortResolver.INSTANCE) {
+//                              @Override
+//                              protected InetAddress determineLocalAddress(final HttpHost firstHop, final HttpContext context) throws HttpException {
+//                                  try {
+//                                      System.out.println(">> Determining local address");
+//                                      return NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
+//                                          ? getDefaultIPv6Address()
+//                                          : getDefaultIPv4Address();
+//                                  } catch (IOException e) {
+//                                      System.out.println(">>Failed to determine local address" + e.getMessage());
+//                                      logger.info(">>Failed to determine local address {}", e.getMessage());
+//                                      throw new HttpException("!!!!Failed to determine local address", e);
+//                                  }
+//                              }
+//                          })
+//                          .disableRedirectHandling()
+//                          .build();
+//    }
 
     public static class SimpleHttpResponse implements HttpResponse<String> {
         private final int statusCode;
