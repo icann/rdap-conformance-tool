@@ -1,0 +1,28 @@
+{
+  "rdapConformance": [
+    "rdap_level_0",
+    "icann_rdap_technical_implementation_guide_0",
+    "icann_rdap_response_profile_0"
+  ],
+  "notices" :
+  [
+    {
+      "title" : "RDDS Inaccuracy Complaint Form",
+      "type": "result",
+      "description" :
+      [
+        "URL of the ICANN RDDS Inaccuracy Complaint Form: https://icann.org/wicf",
+        "Calm down and come back later."
+      ],
+      "links" :
+      [
+        {
+          "value" : "https://rdap.cscglobal.com/dbs/rdap-api/v1/domain/cscglobal.com",
+          "rel" : "help",
+          "type" : "text/html",
+          "href" : "https://icann.org/wicf"
+        }
+      ]
+    }
+  ]
+}

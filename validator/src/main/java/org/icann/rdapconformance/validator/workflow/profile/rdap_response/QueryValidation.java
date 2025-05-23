@@ -47,7 +47,7 @@ public abstract class QueryValidation extends ProfileJsonValidation {
     IDNA.Info info = new IDNA.Info();
     idna.nameToASCII(domainName, ldhNameBuilder, info);
     if (info.hasErrors()) {
-      logger.error("Invalid domain name");
+      logger.info("Invalid domain name");
       return false;
     }
 

@@ -1,22 +1,24 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import java.util.Optional;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_2_2024;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationLinkElements_2024;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationStatusDuplication_2024;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidDomain;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationTestInvalidRedirect_2024;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.StdRdapConformanceValidation_2024;
+import org.icann.rdapconformance.validator.ConformanceError;
+import org.icann.rdapconformance.validator.NetworkInfo;
+import org.icann.rdapconformance.validator.ToolResult;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.*;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot3_2024;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.*;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,21 +32,6 @@ import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfile;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot1;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot10;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot11;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot3Dot1Dot1;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot3Dot1Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot4Dot1;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot4Dot2And2Dot4Dot3;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot4Dot5;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot6Dot1;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot6Dot3;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot9Dot1And2Dot9Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidationNoticesIncluded;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidationRFC3915;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidationRFC5731;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated1;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated3And4;
@@ -55,9 +42,6 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.SimpleHandleValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidation3Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidation3Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot3;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot4;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous.ResponseValidationLastUpdateEvent;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseNameserverStatusValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle;
@@ -80,6 +64,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 public class RDAPValidator implements ValidatorWorkflow {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
+
     private final RDAPValidatorConfiguration config;
     private final RDAPQueryTypeProcessor queryTypeProcessor;
     private final RDAPQuery query;
@@ -88,14 +73,12 @@ public class RDAPValidator implements ValidatorWorkflow {
     private final RDAPValidatorResults results;
     private final RDAPDatasetService datasetService;
 
-    private String resultsPath;
-
     public RDAPValidator(RDAPValidatorConfiguration config,
                          FileSystem fileSystem,
                          RDAPQueryTypeProcessor queryTypeProcessor,
                          RDAPQuery query) {
         this(config, fileSystem, queryTypeProcessor, query, new ConfigurationFileParserImpl(),
-            new RDAPValidatorResultsImpl(), new RDAPDatasetServiceImpl(fileSystem));
+            RDAPValidatorResultsImpl.getInstance(), new RDAPDatasetServiceImpl(fileSystem));
     }
 
     public RDAPValidator(RDAPValidatorConfiguration config,
@@ -132,54 +115,35 @@ public class RDAPValidator implements ValidatorWorkflow {
             RDAPQueryType.IP_NETWORK, "rdap_ip_network.json"
         );
 
-        // Parse the configuration definition file, and if the file is not parsable, exit with a return code of 1.
         try (InputStream is = fileSystem.uriToStream(this.config.getConfigurationFile())) {
             configurationFile = configParser.parse(is);
         } catch (Exception e) {
             logger.error("Configuration is invalid", e);
-            return dumpErrorInfo(RDAPValidationStatus.CONFIG_INVALID.getValue(), config, query);
+            return ToolResult.CONFIG_INVALID.getCode();
         }
 
-        // set up the results file so we can write to it
-        final RDAPValidationResultFile rdapValidationResultFile = new RDAPValidationResultFile(results, config,
-            configurationFile, fileSystem);
+        RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
+        rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
 
-        // If the parameter (--use-local-dataset) is set, use the dataset found in the filesystem,
-        // download the dataset not found in the filesystem, and persist them in the filesystem.
-        // If the parameter (--use-local-dataset) is not set, download all the dataset, and
-        // overwrite the dataset in the filesystem.
         if (!datasetService.download(this.config.useLocalDatasets())) {
-          // If one or more dataset cannot be downloaded, exit with a return code of 2.
-          return dumpErrorInfo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue(), config, query);
+            return ToolResult.DATASET_UNAVAILABLE.getCode();
         }
 
-        // this checks if the query is valid query for the HttpQueryType or the FileQueryType
         if (!queryTypeProcessor.check(datasetService)) {
-            return dumpErrorInfo(queryTypeProcessor.getErrorStatus().getValue(), config, query);
+            return  queryTypeProcessor.getErrorStatus().getCode();
         }
 
         query.setResults(results);
         if (!query.run()) {
-            if (!buildResultFile(rdapValidationResultFile, query)) {
-                return dumpErrorInfo(RDAPValidationStatus.FILE_WRITE_ERROR.getValue(), config, query);
+            if (query.getErrorStatus() == null || query.getErrorStatus() == ToolResult.SUCCESS) {
+                return ToolResult.SUCCESS.getCode();
             }
-
-            if (query.getErrorStatus() == null) {
-                // it means it is 13001 or 13002, the status will be null, and we should exit with code 0
-                return RDAPValidationStatus.SUCCESS.getValue();
-            }
-            return dumpErrorInfo(query.getErrorStatus().getValue(), config, query);
+           ConformanceError errorCode =  query.getErrorStatus();
+            return errorCode.getCode();
         }
 
-        // this NEVER returns false, continue on
         query.checkWithQueryType(queryTypeProcessor.getQueryType());
 
-        // Check if we are doing a domain query for test.invalid and the response code was 200, that is bad but continue on
-        if (ResponseValidationTestInvalidDomain.isHttpOKAndTestDotInvalid(query, queryTypeProcessor, results, rdapValidationResultFile)) {
-            logger.info("Detected a test.invalid domain query with HTTP 200 response code.");
-        }
-
-        // Schema validation
         if (query.isErrorContent()) {
             validator = new SchemaValidator("rdap_error.json", results, datasetService);
         } else {
@@ -187,60 +151,63 @@ public class RDAPValidator implements ValidatorWorkflow {
             if (schemaFile != null) {
                 if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
-                    if (!buildResultFile(rdapValidationResultFile, query)) {
-                        return dumpErrorInfo(RDAPValidationStatus.FILE_WRITE_ERROR.getValue(), config, query);
-                    }
-                    return dumpErrorInfo(RDAPValidationStatus.USES_THIN_MODEL.getValue(), config, query);
+                    return ToolResult.USES_THIN_MODEL.getCode();
                 }
-                // asEventActor property is not allow in topMost entity object, see spec 7.2.9.2
                 validator = new SchemaValidator(schemaFile, results, datasetService);
             }
         }
 
         assert null != validator;
-        validator.validate(query.getData());
-        HttpResponse<String> rdapResponse = (HttpResponse<String>) query.getRawResponse();
+        validator.validate(query.getData()); // validates the JSON
+        RDAPHttpRequest.SimpleHttpResponse rdapResponse = (RDAPHttpRequest.SimpleHttpResponse ) query.getRawResponse();
 
-        // extra validations not categorized (change request):
-        // query.isErrorContent() added as condition in cases where they have 404 as status code
-        if (rdapResponse != null && !query.isErrorContent()) {
-            new DomainCaseFoldingValidation(rdapResponse, config, results,
-                queryTypeProcessor.getQueryType()).validate();
+        logger.info("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
+
+        if (rdapResponse != null && !query.isErrorContent() && config.isNetworkEnabled()) {
+            new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate(); // Network calls
         }
 
-        // Additionally, apply the relevant collection tests when the option
-        // --use-rdap-profile-february-2019 is set
-        // query.isErrorContent() added as condition in cases where they have 404 as status code
-        if (config.useRdapProfileFeb2019() && !query.isErrorContent()) {
+        // Issue additional queries (/help and /not-a-domain.invalid) when flag is true and profile 2024 is false
+        if(config.isAdditionalConformanceQueries() && !config.useRdapProfileFeb2024()) {
+            logger.info("Validations for additional conformance queries");
+            new ResponseValidationHelp_2024(config, results).validate();
+            new ResponseValidationDomainInvalid_2024(config, results).validate();
+        }
+
+        if (config.useRdapProfileFeb2019()) {
             logger.info("Validations for 2019 profile");
             RDAPProfile rdapProfile = new RDAPProfile(
                 get2019RdapValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, validator, query));
             rdapProfile.validate();
         }
 
-        // Additionally, apply the relevant collection tests when the option
-        // --use-rdap-profile-february-2024 is set
-        // query.isErrorContent() added as condition in cases where they have 404 as status code
-        if (config.useRdapProfileFeb2024() && !query.isErrorContent()) {
+        if (config.useRdapProfileFeb2024()) {
             logger.info("Validations for 2024 profile");
             RDAPProfile rdapProfile = new RDAPProfile(
                 get2024ProfileValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, query));
             rdapProfile.validate();
         }
 
-        // finally we set the statusCode and results path
-        if (!buildResultFile(rdapValidationResultFile, query)) {
-            return dumpErrorInfo(RDAPValidationStatus.FILE_WRITE_ERROR.getValue(), config, query);
-        }
-        this.resultsPath = rdapValidationResultFile.resultPath;
+        // Log URI, IP address, and redirects
+        String ipAddress = NetworkInfo.getServerIpAddress();
+        List<URI> redirects = (query instanceof RDAPHttpQuery httpQuery) ? httpQuery.getRedirects() : List.of();
 
-        // we do not dumpInfo here, everything is fine
-        return RDAPValidationStatus.SUCCESS.getValue();
+
+        logger.info("URI used for the query: {}", config.getUri());
+        logger.info("IP Address used: {}", ipAddress);
+        logger.info("Redirects followed: {}", redirects);
+
+        return ToolResult.SUCCESS.getCode();
+    }
+
+    @Override
+    public RDAPValidatorResults getResults() {
+        return null;
     }
 
     @Override
     public String getResultsPath() {
-        return this.resultsPath;
+        return RDAPValidationResultFile.getInstance().getResultsPath();
     }
 
     private List<ProfileValidation> get2024ProfileValidations(HttpResponse<String> rdapResponse,
@@ -281,7 +248,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), config, results)); // http head request
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
-            validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService)); // DNS queries
+            validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService, config)); // DNS queries
             validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryTypeProcessor.getQueryType())); // assume you passed in a URL on the cli
         }
         // above are from 2019 validations
@@ -290,15 +257,30 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new TigValidation1Dot3_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot2_1_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot2_2_2024(query.getData(), results)); // clean
+        validations.add(new ResponseValidation2Dot2_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot2_1_2024(query.getData(), results, datasetService)); // clean
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
+        validations.add(new ResponseValidation2Dot7Dot3_2024(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType()));
+        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation4Dot1Handle_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
         validations.add(new ResponseValidationLinkElements_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidationStatusDuplication_2024(query.getData(), results)); // clean
         validations.add(new StdRdapConformanceValidation_2024(query.getData(), results)); // clean
+        validations.add(new TigValidation3Dot2_2024(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new TigValidation3Dot3And3Dot4_2024(query.getData(), results, config)); // clean
+        validations.add(new ResponseValidation2Dot6Dot3_2024(query.getData(), results)); //clean
+        validations.add(new ResponseValidation2Dot10_2024(query.getData(), results)); // clean
 
         // Conditionally add validations that require network connections
         if (config.isNetworkEnabled()) {
             logger.info("Network enabled tests for 2024 profile");
             validations.add(new TigValidation1Dot5_2024(rdapResponse, config, results)); // SSL Network connection
             validations.add(new ResponseValidationTestInvalidRedirect_2024(config, results)); // Network connection
+
+            if(!config.isAdditionalConformanceQueries()) {
+                validations.add(new ResponseValidationHelp_2024(config, results)); // Network connection
+                validations.add(new ResponseValidationDomainInvalid_2024(config, results)); // Network connection
+            }
         }
 
         return validations;
@@ -341,7 +323,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated1(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
         validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated2(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
         validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4(query.getData(), results, queryTypeProcessor.getQueryType(), config,
-            new SimpleHandleValidation(query.getData(), results, datasetService, queryTypeProcessor.getQueryType(), -52102))); // clean
+            new SimpleHandleValidation(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType(), -52102))); // clean
         validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated5(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
         validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated6(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
         validations.add(new ResponseValidation2Dot7Dot5Dot2(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
@@ -360,51 +342,10 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), config, results)); // http head request
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
-            validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService)); // DNS queries
+            validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService, config)); // DNS queries
             validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryTypeProcessor.getQueryType())); // assume you passed in a URL on the cli
         }
 
         return validations;
-    }
-
-    private boolean buildResultFile(RDAPValidationResultFile resultFile, RDAPQuery query) {
-        Optional<Integer> statusCodeOptional = query.getStatusCode();
-        if (statusCodeOptional.isPresent()) {
-            Integer statusCode = statusCodeOptional.get();
-            return resultFile.build(statusCode);
-        }
-        return true; // If no status code is present, we consider it a success
-    }
-
-    public int dumpErrorInfo(int exitCode, RDAPValidatorConfiguration config, RDAPQuery query) {
-        System.out.println("Exit code: " + exitCode + " - " + RDAPValidationStatus.fromValue(exitCode).name());
-        System.out.println("URI used for the query: " + config.getUri());
-        if (query instanceof RDAPHttpQuery httpQuery) {
-            System.out.println("Redirects followed: " + httpQuery.getRedirects());
-            System.out.println("Accept header used for the query: " + httpQuery.getAcceptHeader());
-        } else {
-            System.out.println("Redirects followed: N/A (query is not an RDAPHttpQuery)");
-            System.out.println("Accept header used for the query: N/A (query is not an RDAPHttpQuery)");
-        }
-
-        if (config.getUri() != null && config.getUri().getHost() != null) {
-            String host = config.getUri().getHost();
-            try {
-                InetAddress address = InetAddress.getByName(host);
-                if (address instanceof java.net.Inet6Address) {
-                    System.out.println("IP protocol used for the query: IPv6");
-                } else if (address instanceof java.net.Inet4Address) {
-                    System.out.println("IP protocol used for the query: IPv4");
-                } else {
-                    System.out.println("IP protocol used for the query: Unknown");
-                }
-            } catch (UnknownHostException e) {
-                System.out.println("Invalid host: " + host);
-            }
-        } else {
-            System.out.println("IP protocol used for the query: unknown (URI or host is null)");
-        }
-
-        return exitCode;
     }
 }
