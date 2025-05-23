@@ -71,12 +71,8 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
         String rdapHelpResponse = httpHelpResponse.body();
 
         jsonHelpResponse = new RDAPHttpQuery.JsonData(rdapHelpResponse);
-        if (jsonHelpResponse.isValid()) {
-            if(!isHelpJsonValid(jsonHelpResponse ) || HTTP_OK != httpHelpStatusCode) {
-                addErrorToResultsFile(httpHelpStatusCode,-20701, rdapHelpResponse,"Response to a /help query did not yield a proper status code or RDAP response.");
-                isValid = false;
-            }
-        } else {
+        if(!isHelpJsonValid(jsonHelpResponse ) || HTTP_OK != httpHelpStatusCode) {
+            addErrorToResultsFile(httpHelpStatusCode,-20701, rdapHelpResponse,"Response to a /help query did not yield a proper status code or RDAP response.");
             isValid = false;
         }
 
