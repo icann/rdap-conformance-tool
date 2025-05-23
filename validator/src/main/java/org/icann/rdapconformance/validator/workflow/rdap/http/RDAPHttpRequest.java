@@ -1,17 +1,11 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
-import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
-import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
-import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTP_TOO_MANY_REQUESTS;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -22,7 +16,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.net.http.HttpTimeoutException;
-import java.nio.channels.SocketChannel;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.icann.rdapconformance.validator.ConnectionStatus;
@@ -41,29 +34,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.net.InetAddress;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.CharsetUtil;
-
-
-import java.net.*;
 import java.util.concurrent.CompletableFuture;
 
-
-import java.net.*;
-import java.util.concurrent.TimeUnit;
 
 public class RDAPHttpRequest {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
@@ -142,6 +126,8 @@ public class RDAPHttpRequest {
                                      p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
                                  }
                                  p.addLast(new HttpClientCodec());
+                                 p.addLast(new ReadTimeoutHandler(timeoutSeconds, TimeUnit.SECONDS));
+                                 p.addLast(new HttpObjectAggregator(10485760)); // Increase to 10MB
                                  p.addLast(new SimpleChannelInboundHandler<FullHttpResponse>() {
                                      @Override
                                      protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) {
@@ -236,6 +222,7 @@ public class RDAPHttpRequest {
         f.channel().writeAndFlush(request);
         f.channel().closeFuture().sync();
 
+        logger.info("Using timeout of {} seconds for future response", timeoutSeconds);
         return  futureResponse.get(timeoutSeconds, TimeUnit.SECONDS);
     }
 
