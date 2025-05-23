@@ -19,6 +19,8 @@
              of mockito, and long story short... updates aren't yet available
              for mockito to use the correct version of ByteBuddy yet.           -->
         <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+        <build.timestamp>${maven.build.timestamp}</build.timestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
     </properties>
 
     <dependencies>
@@ -95,6 +97,16 @@
             <artifactId>commons-text</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5</artifactId>
+        </dependency>
+
         <!-- test dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -124,6 +136,12 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -138,6 +156,9 @@
                 </configuration>
             </plugin>
         </plugins>
+        <filters>
+            <filter>src/main/resources/build.properties</filter>
+        </filters>
     </build>
 
 </project>

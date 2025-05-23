@@ -20,7 +20,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4Test extends
 
   @Override
   public ProfileValidation getProfileValidation() {
-    SimpleHandleValidation simpleHandleValidation = new SimpleHandleValidation(
+    SimpleHandleValidation simpleHandleValidation = new SimpleHandleValidation(config,
         jsonObject.toString(),
         results,
         datasets,

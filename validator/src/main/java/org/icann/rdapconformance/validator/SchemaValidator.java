@@ -126,7 +126,9 @@ public class SchemaValidator {
   }
 
   public boolean validate(String content) {
+    int startingCount = results.getResultCount();
     results.addGroups(schemaRootNode.findAllValuesOf("validationName"));
+
     JSONObject jsonObject;
     try {
       jsonObject = new JSONObject(content);
@@ -143,11 +145,9 @@ public class SchemaValidator {
     }
 
     try {
-      // customs validations...
       verifyUnicityOfEventAction("events", -10912, jsonObject);
       verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
-      // vcard
       if (content.contains("\"vcardArray\"")) {
         new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
       }
@@ -160,8 +160,12 @@ public class SchemaValidator {
           + "non-compliant \n details", e);
     }
 
-    return results.isEmpty();
+    int endingCount = results.getResultCount();
+    // did we accrue any errors on this pass only?
+    boolean isValid = endingCount == startingCount;
+    return isValid;
   }
+
 
   private void verifyUnicityOfEventAction(String schemaId, int errorCode, JSONObject jsonObject) {
     Set<String> eventsJsonPointers = jpathUtil.getPointerFromJPath(jsonObject,

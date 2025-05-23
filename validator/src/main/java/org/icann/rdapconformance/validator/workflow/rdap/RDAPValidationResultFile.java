@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 
 import java.io.IOException;
@@ -9,12 +11,10 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import org.apache.commons.lang3.StringUtils;
+import org.icann.rdapconformance.validator.BuildInfo;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -23,25 +23,46 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RDAPValidationResultFile {
-
   private static final Logger logger = LoggerFactory.getLogger(RDAPValidationResultFile.class);
 
-  private final RDAPValidatorResults results;
-  private final RDAPValidatorConfiguration config;
-  private final ConfigurationFile configurationFile;
-  private final FileSystem fileSystem;
+  // Singleton instance
+  private static RDAPValidationResultFile instance;
+
+  private RDAPValidatorResults results;
+  private RDAPValidatorConfiguration config;
+  private ConfigurationFile configurationFile;
+  private FileSystem fileSystem;
   public String resultPath;
 
-  public RDAPValidationResultFile(RDAPValidatorResults results,
-      RDAPValidatorConfiguration config,
-      ConfigurationFile configurationFile,
-      FileSystem fileSystem) {
+  // Track if already initialized
+  private boolean isInitialized = false;
+  private RDAPValidationResultFile() {}
+
+  public static synchronized RDAPValidationResultFile getInstance() {
+    if (instance == null) {
+      instance = new RDAPValidationResultFile();
+    }
+    return instance;
+  }
+
+  public void initialize(RDAPValidatorResults results,
+                         RDAPValidatorConfiguration config,
+                         ConfigurationFile configurationFile,
+                         FileSystem fileSystem) {
+    if(isInitialized) {
+      return;
+    }
+    this.isInitialized = true;
     this.results = results;
     this.config = config;
     this.configurationFile = configurationFile;
     this.fileSystem = fileSystem;
   }
 
+  // For testing purposes
+  public static void reset() {
+    instance = null;
+  }
   private static String getFilename() {
     String datetimePattern = "yyyyMMddHHmmss";
     String dateTime = OffsetDateTime.now(ZoneOffset.UTC)
@@ -52,12 +73,12 @@ public class RDAPValidationResultFile {
   /**
    * Fill and save the result file.
    */
-  public boolean build(int statusCode) {
+  public boolean build() {
+    // TODO: for the moment we do nothing with the exitCode
     Map<String, Object> fileMap = new HashMap<>();
     fileMap.put("definitionIdentifier", configurationFile.getDefinitionIdentifier());
     fileMap.put("testedURI", config.getUri());
     fileMap.put("testedDate", Instant.now().toString());
-    fileMap.put("receivedHttpStatusCode", statusCode);
     fileMap.put("groupOK", this.results.getGroupOk());
     fileMap.put("groupErrorWarning", this.results.getGroupErrorWarning());
     fileMap.put("results", this.createResultsMap());
@@ -66,11 +87,14 @@ public class RDAPValidationResultFile {
     fileMap.put("thinRegistry", config.isThin());
     fileMap.put("rdapProfileFebruary2019", config.useRdapProfileFeb2019());
     fileMap.put("rdapProfileFebruary2024", config.useRdapProfileFeb2024());
+    fileMap.put("additionalConformanceQueries", config.isAdditionalConformanceQueries());
+    fileMap.put("noIpv4", config.isNoIpv4Queries());
+    fileMap.put("noIpv6", config.isNoIpv6Queries());
 
-    //Change: They need to get value from config when they are implemented
-    fileMap.put("additionalConformanceQueries", false);
-    fileMap.put("noIpv4", false);
-    fileMap.put("noIpv6", false);
+    if (config.useRdapProfileFeb2024()) {
+      fileMap.put("conformanceToolVersion", BuildInfo.getVersion());
+      fileMap.put("buildDate", BuildInfo.getBuildDate());
+    }
 
     JSONObject object = new JSONObject(fileMap);
     String resultsFilePath = config.getResultsFile();
@@ -95,6 +119,20 @@ public class RDAPValidationResultFile {
     }
   }
 
+  // if you sent us a 0 - that means it gets NULLed out
+  private Object formatStatusCode(Integer statusCode) {
+    return statusCode != null && statusCode == ZERO ? JSONObject.NULL : statusCode;
+  }
+
+  // if you sent us a dash - that means it gets NULLed out
+  private Object formatStringToNull(String maybeDash) {
+    if (maybeDash == null || maybeDash.equals(DASH)) {
+      return JSONObject.NULL;
+    } else {
+      return maybeDash;
+    }
+  }
+
   private Map<String, Object> createResultsMap() {
     Map<String, Object> resultsMap = new HashMap<>();
     List<Map<String, Object>> errors = new ArrayList<>();
@@ -112,6 +150,13 @@ public class RDAPValidationResultFile {
       resultMap.put("code", result.getCode());
       resultMap.put("value", result.getValue());
       resultMap.put("message", result.getMessage());
+      resultMap.put("receivedHttpStatusCode", formatStatusCode(result.getHttpStatusCode()));
+      resultMap.put("queriedURI",
+          Objects.nonNull(result.getQueriedURI()) ? formatStringToNull(result.getQueriedURI()) :
+              (Objects.nonNull(config.getUri()) ? config.getUri().toString() : StringUtils.EMPTY));
+      resultMap.put("acceptMediaType", formatStringToNull(result.getAcceptHeader()));
+      resultMap.put("httpMethod", formatStringToNull(result.getHttpMethod()));
+      resultMap.put("serverIpAddress", formatStringToNull(result.getServerIpAddress()));
       resultMap.put("notes", configurationFile.getAlertNotes(result.getCode()));
       if (configurationFile.isError(result.getCode())) {
         errors.add(resultMap);
@@ -128,5 +173,9 @@ public class RDAPValidationResultFile {
     resultsMap.put("ignore", configurationFile.getDefinitionIgnore());
     resultsMap.put("notes", configurationFile.getDefinitionNotes());
     return resultsMap;
+  }
+
+  public String getResultsPath() {
+    return resultPath;
   }
 }

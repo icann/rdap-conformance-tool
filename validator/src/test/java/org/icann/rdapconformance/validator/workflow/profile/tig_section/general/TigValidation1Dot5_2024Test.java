@@ -5,6 +5,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import javax.net.ssl.SSLContext;
@@ -43,7 +44,11 @@ public class TigValidation1Dot5_2024Test {
         SSLSession sslSession = mock(SSLSession.class);
 
         when(sslContext.getSocketFactory()).thenReturn(sslSocketFactory);
+
+        // Mock both createSocket() overloads
+        when(sslSocketFactory.createSocket(any(Socket.class), anyString(), anyInt(), anyBoolean())).thenReturn(sslSocket);
         when(sslSocketFactory.createSocket(anyString(), anyInt())).thenReturn(sslSocket);
+
         when(sslSocket.getEnabledProtocols()).thenReturn(new String[]{"TLSv1.2", "TLSv1.3"});
         when(sslSocket.getSession()).thenReturn(sslSession);
         when(sslSession.getCipherSuite()).thenReturn("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
@@ -52,9 +57,9 @@ public class TigValidation1Dot5_2024Test {
         try (MockedStatic<SSLContext> mockedStatic = mockStatic(SSLContext.class)) {
             mockedStatic.when(SSLContext::getDefault).thenReturn(sslContext);
 
-
             doNothing().when(sslSocket).startHandshake();
             when(httpResponse.uri()).thenReturn(URI.create("https://example.com"));
+
             boolean isValid = validation.doValidate();
             assertTrue("Validation should be successful for valid TLS protocols", isValid);
         }
@@ -68,7 +73,11 @@ public class TigValidation1Dot5_2024Test {
         SSLSession sslSession = mock(SSLSession.class);
 
         when(sslContext.getSocketFactory()).thenReturn(sslSocketFactory);
+
+        // Mock both createSocket() overloads
+        when(sslSocketFactory.createSocket(any(Socket.class), anyString(), anyInt(), anyBoolean())).thenReturn(sslSocket);
         when(sslSocketFactory.createSocket(anyString(), anyInt())).thenReturn(sslSocket);
+
         when(sslSocket.getEnabledProtocols()).thenReturn(new String[]{"TLSv1.2", "TLSv1.3"});
         when(sslSocket.getSession()).thenReturn(sslSession);
         when(sslSession.getCipherSuite()).thenReturn("TLS_AES_128_GCM_SHA256");
@@ -92,7 +101,7 @@ public class TigValidation1Dot5_2024Test {
         SSLSocket sslSocket = mock(SSLSocket.class);
 
         when(sslContext.getSocketFactory()).thenReturn(sslSocketFactory);
-        when(sslSocketFactory.createSocket(anyString(), anyInt())).thenReturn(sslSocket);
+        when(sslSocketFactory.createSocket(any(Socket.class), anyString(), anyInt(), anyBoolean())).thenReturn(sslSocket);
         when(sslSocket.getEnabledProtocols()).thenReturn(new String[]{"TLSv1.1"});
         when(sslSocket.getSession()).thenReturn(mock(SSLSession.class));
 
