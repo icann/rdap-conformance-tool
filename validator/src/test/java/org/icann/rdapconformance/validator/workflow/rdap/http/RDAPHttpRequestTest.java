@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
+import io.netty.bootstrap.Bootstrap;
 import java.net.InetAddress;
 import java.io.EOFException;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.security.cert.CertificateExpiredException;
+import java.util.concurrent.CompletableFuture;
 import javax.net.ssl.SSLHandshakeException;
 
 import org.icann.rdapconformance.validator.CommonUtils;
@@ -54,23 +56,43 @@ public class RDAPHttpRequestTest {
         try (MockedStatic<DNSCacheResolver> dnsResolverMock = Mockito.mockStatic(DNSCacheResolver.class);
             MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class)) {
 
-            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(Mockito.any())).thenReturn(false);
             InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
-            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(Mockito.any())).thenReturn(mockAddress);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
-                           .thenThrow(new UnknownHostException("Unknown host"));
+            // Mock the exception
+            UnknownHostException exception = new UnknownHostException("Unknown host");
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
+                           .thenThrow(exception);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
-                           .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean()))
-                           .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean()))
-                           .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.handleRequestException(any(), anyBoolean()))
+            // Allow the real method implementation for handleRequestException
+            httpRequestMock.when(() -> RDAPHttpRequest.handleRequestException(Mockito.any(), Mockito.anyBoolean()))
                            .thenCallRealMethod();
 
+            // Make sure all real makeRequest implementations are called
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(Mockito.any(URI.class), Mockito.anyInt(), Mockito.any()))
+                           .thenCallRealMethod();
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(Mockito.any(URI.class), Mockito.anyInt(), Mockito.any(), Mockito.anyBoolean()))
+                           .thenCallRealMethod();
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(Mockito.any(URI.class), Mockito.anyInt(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyBoolean()))
+                           .thenCallRealMethod();
+
+            // Also allow hasCause to work properly
+            httpRequestMock.when(() -> RDAPHttpRequest.hasCause(Mockito.any(), Mockito.any()))
+                           .thenCallRealMethod();
+
+            // Execute the test
             HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, "GET", true);
+
+            // Verify the status code is set correctly
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                 .isEqualTo(ConnectionStatus.UNKNOWN_HOST);
         }
@@ -86,8 +108,17 @@ public class RDAPHttpRequestTest {
             InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(new IOException("Connection closed by peer"));
+
 
             // Add all versions of makeRequest
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
@@ -114,7 +145,15 @@ public class RDAPHttpRequestTest {
             InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(new ConnectException("Connection refused"));
 
             // Add mocks for all versions of makeRequest
@@ -144,7 +183,15 @@ public class RDAPHttpRequestTest {
             InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(new SocketTimeoutException("Read timed out"));
 
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
@@ -170,9 +217,17 @@ public class RDAPHttpRequestTest {
 
             dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
             InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
-            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(new SocketTimeoutException("Connect timed out"));
 
 
@@ -202,7 +257,15 @@ public class RDAPHttpRequestTest {
             InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(new EOFException("Unexpected end of file"));
 
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
@@ -231,7 +294,15 @@ public class RDAPHttpRequestTest {
             InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(new IOException("Connection reset"));
 
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
@@ -260,7 +331,15 @@ public class RDAPHttpRequestTest {
             InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(new IOException("Malformed chunk"));
 
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
@@ -294,7 +373,15 @@ public class RDAPHttpRequestTest {
             IOException ioEx = new IOException("SSL Handshake failed");
             ioEx.initCause(sslEx);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(ioEx);
 
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
@@ -329,7 +416,15 @@ public class RDAPHttpRequestTest {
             IOException ioEx = new IOException("SSL handshake failed");
             ioEx.initCause(sslEx);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(ioEx);
 
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
@@ -476,7 +571,7 @@ public class RDAPHttpRequestTest {
             MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class);
             MockedStatic<ConnectionTracker> trackerMock = Mockito.mockStatic(ConnectionTracker.class)) {
 
-            // Mock connection tracker
+            // Mock the onnection tracker
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
             when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
@@ -484,7 +579,6 @@ public class RDAPHttpRequestTest {
             // Set up DNS resolver to return no addresses for the host
             dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("nonexistent.example.com")).thenReturn(true);
 
-            // Only allow real method implementation for makeRequest variants
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString()))
                            .thenCallRealMethod();
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString(), anyBoolean()))
@@ -492,15 +586,7 @@ public class RDAPHttpRequestTest {
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString(), anyBoolean(), anyBoolean()))
                            .thenCallRealMethod();
 
-            // Create a mock SimpleHttpResponse with the correct status
-            RDAPHttpRequest.SimpleHttpResponse mockResponse = new RDAPHttpRequest.SimpleHttpResponse("test-id", ZERO, EMPTY_STRING, noAddressUri, new Header[0]);
-            mockResponse.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
-
-            // Mock the main call to return our prepared response
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(noAddressUri, timeout, GET))
-                           .thenReturn(mockResponse);
-
-            // Execute test
+            // execute it!
             HttpResponse<String> response = RDAPHttpRequest.makeRequest(noAddressUri, timeout, GET);
 
             // Verify response
@@ -511,7 +597,7 @@ public class RDAPHttpRequestTest {
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                 .isEqualTo(ConnectionStatus.UNKNOWN_HOST);
 
-            // Verify the correct interactions occurred
+            // Verify that the tracker picked it up as well
             verify(mockTracker).startTrackingNewConnection(eq(noAddressUri), eq(GET), eq(false));
             verify(mockTracker).completeCurrentConnection(eq(ZERO), eq(ConnectionStatus.UNKNOWN_HOST));
         }
@@ -725,7 +811,15 @@ public class RDAPHttpRequestTest {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
             UnknownHostException ex = new UnknownHostException("Unknown host");
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(ex);
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
                            .thenCallRealMethod();
@@ -759,17 +853,27 @@ public class RDAPHttpRequestTest {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
             ConnectException ex = new ConnectException("Connection refused");
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            // Use doThrow/when pattern which handles matchers better
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(ex);
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
+
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(eq(testUri), eq(timeout), eq(GET)))
                            .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(eq(testUri), eq(timeout), eq(GET), anyBoolean()))
                            .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(eq(testUri), eq(timeout), eq(GET), anyBoolean(), anyBoolean()))
                            .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.handleRequestException(any(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.handleRequestException(any(IOException.class), anyBoolean()))
                            .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.hasCause(any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.hasCause(any(Throwable.class), anyString()))
                            .thenCallRealMethod();
 
             // call makeRequest
@@ -780,10 +884,10 @@ public class RDAPHttpRequestTest {
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                 .isEqualTo(ConnectionStatus.CONNECTION_FAILED);
 
-            // Verify that the error was added
+            // Verify that the error was added - use specific arguments instead of matchers in the lambda
             commonUtilsMock.verify(() ->
-                CommonUtils.addErrorToResultsFile(eq(ZERO), eq(-13007), eq("no response available"),
-                    eq("Failed to connect to server.")), times(ONE));
+                CommonUtils.addErrorToResultsFile(0, -13007, "no response available",
+                    "Failed to connect to server."));
         }
     }
 
@@ -799,7 +903,15 @@ public class RDAPHttpRequestTest {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
             SocketTimeoutException ex = new SocketTimeoutException("Read timed out");
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(ex);
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
                            .thenCallRealMethod();
@@ -838,7 +950,15 @@ public class RDAPHttpRequestTest {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
             SocketTimeoutException ex = new SocketTimeoutException("Connect timed out");
-            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.any(),
+                               Mockito.anyInt(),
+                               Mockito.any(),
+                               Mockito.any()))
                            .thenThrow(ex);
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
                            .thenCallRealMethod();

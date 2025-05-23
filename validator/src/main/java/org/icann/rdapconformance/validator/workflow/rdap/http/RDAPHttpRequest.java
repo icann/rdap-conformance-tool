@@ -1,10 +1,16 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
+import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.io.EOFException;
 import java.io.IOException;
@@ -80,11 +86,22 @@ public class RDAPHttpRequest {
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
         if (originalUri == null) throw new IllegalArgumentException("The provided URI is null.");
 
+        System.out.println(">> makeRequest: " + originalUri);
         ConnectionTracker tracker = ConnectionTracker.getInstance();
         String trackingId = tracker.startTrackingNewConnection(originalUri, method, isMain);
 
+
         String host = originalUri.getHost();
-        int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? 443 : 80) : originalUri.getPort();
+        int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT) : originalUri.getPort();
+
+        if (DNSCacheResolver.hasNoAddresses(host)) {
+            System.out.println(">> No IP address found for host: " + host);
+            logger.info("No IP address found for host: " + host);
+            tracker.completeCurrentConnection(ZERO, ConnectionStatus.UNKNOWN_HOST);
+            SimpleHttpResponse response = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+            response.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
+            return response;
+        }
 
         InetAddress localBindIp = NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
             ? getDefaultIPv6Address()
@@ -94,18 +111,24 @@ public class RDAPHttpRequest {
             ? DNSCacheResolver.getFirstV6Address(host)
             : DNSCacheResolver.getFirstV4Address(host);
 
+        if (remoteIp != null && remoteIp.getHostAddress().equals(LOCAL_IPv4)) {
+            // localBind needs to be 127.0.0.1 as well
+            localBindIp = InetAddress.getByName(LOCAL_IPv4);
+            System.out.println(">> Setting local bind address to 127.0.0.1 for localhost testing");
+        }
+
         if (remoteIp == null || localBindIp == null) {
-            tracker.completeCurrentConnection(0, ConnectionStatus.UNKNOWN_HOST);
-            return new SimpleHttpResponse(trackingId, 0, "", originalUri, new Header[0]);
+            tracker.completeCurrentConnection(ZERO, ConnectionStatus.UNKNOWN_HOST);
+            return new SimpleHttpResponse(trackingId, ZERO, "", originalUri, new Header[ZERO]);
         }
 
         NetworkInfo.setServerIpAddress(remoteIp.getHostAddress());
         tracker.updateServerIpOnConnection(trackingId, remoteIp.getHostAddress());
 
-        boolean isHttps = originalUri.getScheme().equalsIgnoreCase("https");
+        boolean isHttps = originalUri.getScheme().equalsIgnoreCase(HTTPS);
 
         int maxRetries = 3;
-        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+        for (int attempt = ZERO; attempt <= maxRetries; attempt++) {
             final int currentAttempt = attempt;
             EventLoopGroup group = new NioEventLoopGroup();
             CompletableFuture<SimpleHttpResponse> futureResponse = new CompletableFuture<>();
@@ -117,7 +140,7 @@ public class RDAPHttpRequest {
                 bootstrap.group(group)
                          .channel(NioSocketChannel.class)
                          .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSeconds * 1000)
-                         .localAddress(new InetSocketAddress(localBindIp, 0))
+                         .localAddress(new InetSocketAddress(localBindIp, ZERO))
                          .handler(new ChannelInitializer<io.netty.channel.socket.SocketChannel>() {
                              @Override
                              protected void initChannel(io.netty.channel.socket.SocketChannel ch) {
@@ -166,27 +189,31 @@ public class RDAPHttpRequest {
                              }
                          });
 
-                    SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap,
-                    remoteIp, port, host, futureResponse);
+                    System.out.println(">> about to call executeRequest ");
+                    SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
 
                 if (result.statusCode() == 429 && currentAttempt < maxRetries) {
                     TimeUnit.SECONDS.sleep(DEFAULT_BACKOFF_SECS);
                     continue;
                 }
 
+                System.out.println(">> makeRequest result: " + result.statusCode());
                 return result;
-
             } catch (IOException ioe) {
                 logger.info("[trackingID: {}] Error during HTTP request: {}", trackingId, ioe.getMessage());
                 ConnectionStatus connStatus = handleRequestException(ioe, canRecordError);
+                System.out.println(">> we got back from handleRequestException connStatus: " + connStatus);
                 tracker.completeCurrentConnection(0, connStatus);
 
                 SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, 0, "", originalUri, null);
                 errorResponse.setConnectionStatusCode(connStatus);
                 return errorResponse;
             } catch (Exception ex) {
+                System.out.println(">> Exception: " + ex);
                 logger.info("[trackingID: {}] General error during HTTP request: {}", trackingId, ex.getMessage());
-                ConnectionStatus connStatus = handleRequestException(new IOException(ex), canRecordError);
+//                ConnectionStatus connStatus = handleRequestException(new IOException(ex), canRecordError);
+                ConnectionStatus connStatus = handleRequestException(ex, canRecordError);
+                System.out.println(">> we got back from handleRequestException connStatus: " + connStatus);
                 tracker.completeCurrentConnection(0, connStatus);
 
                 SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, 0, "", originalUri, null);
@@ -211,7 +238,8 @@ public class RDAPHttpRequest {
                                                             int port,
                                                             String host,
                                                             CompletableFuture<SimpleHttpResponse> futureResponse)
-        throws InterruptedException, ExecutionException, TimeoutException {
+        throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        System.out.println(">> executeRequest: " + originalUri);
         ChannelFuture f = bootstrap.connect(new InetSocketAddress(remoteIp, port)).sync();
 
         FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
@@ -223,6 +251,7 @@ public class RDAPHttpRequest {
         f.channel().closeFuture().sync();
 
         logger.info("Using timeout of {} seconds for future response", timeoutSeconds);
+        System.out.println(">> ending executeRequest: " + originalUri);
         return  futureResponse.get(timeoutSeconds, TimeUnit.SECONDS);
     }
 
@@ -230,10 +259,47 @@ public class RDAPHttpRequest {
     /**
      * Handle exceptions that occur during the HTTP request.
      */
-    public static ConnectionStatus handleRequestException(IOException e, boolean recordError) {
+    public static ConnectionStatus handleRequestException(Exception e, boolean recordError) {
+        System.out.println(">> handleRequestException: " + e.getMessage());
         if (e instanceof UnknownHostException) {
+            System.out.println(">> UnknownHostException");
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
+        }
+        if( e instanceof java.util.concurrent.TimeoutException) {
+            System.out.println(">> TimeoutException");
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
+            }
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+            return ConnectionStatus.NETWORK_RECEIVE_FAIL;
+        }
+
+        // java.util.concurrent.ExecutionException: java.net.SocketException: Connection reset
+        if (e instanceof java.util.concurrent.ExecutionException) {
+            if (e.getCause() instanceof SocketTimeoutException) {
+                System.out.println(">> SocketTimeoutException");
+                if(recordError) {
+                    addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
+                }
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+                return ConnectionStatus.NETWORK_RECEIVE_FAIL;
+            }
+        }
+
+        if (e instanceof ExecutionException && e.getCause() != null) {
+            if (e.getCause() instanceof ReadTimeoutException ||
+                hasCause(e, "io.netty.handler.timeout.ReadTimeoutException")) {
+               logger.info("ReadTimeout exception");
+            } else {
+                logger.info("ExecutionException: " + e.getCause().getMessage());
+            }
+            if (recordError) {
+                addErrorToResultsFile(ZERO, -13017, "no response available",
+                    "Network receive fail");
+            }
+            // If it's an ExecutionException ... still return NETWORK_RECEIVE_FAIL
+            return ConnectionStatus.NETWORK_RECEIVE_FAIL;
         }
 
         if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
@@ -424,11 +490,13 @@ public class RDAPHttpRequest {
         public String getTrackingId() { return trackingId; }
 
         public void setConnectionStatusCode(ConnectionStatus status) {
+            System.out.println(">> setConnectionStatusCode: " + status);
             this.connectionStatus = status;
         }
 
         public ConnectionStatus getConnectionStatusCode() {
-            return connectionStatus;
+            System.out.println(">> getConnectionStatusCode: " + connectionStatus);
+           return connectionStatus;
         }
 
         @Override
