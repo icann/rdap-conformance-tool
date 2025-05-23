@@ -10,7 +10,6 @@ import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
-import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.io.EOFException;
 import java.io.IOException;
@@ -56,16 +55,16 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class RDAPHttpRequest {
+
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
-    public static final String HOST = "Host";
-    public static final String ACCEPT = "Accept";
-    public static final String CONNECTION = "Connection";
-    public static final String CLOSE = "close";
     public static final String RETRY_AFTER = "Retry-After";
     public static final String X_RATELIMIT_RESET = "X-Ratelimit-Reset";
 
     public static final int DEFAULT_BACKOFF_SECS = 5;
     public static final int MAX_RETRIES = 3;
+    public static final int DNS_PORT = 53;
+    public static final String OUTGOING_IPV4 = "9.9.9.9";
+    public static final String OUTGOING_V6 = "2620:fe::9";
 
     public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeoutSeconds) throws Exception {
         return makeRequest(uri, timeoutSeconds, GET);
@@ -86,7 +85,6 @@ public class RDAPHttpRequest {
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
         if (originalUri == null) throw new IllegalArgumentException("The provided URI is null.");
 
-        System.out.println(">> makeRequest: " + originalUri);
         ConnectionTracker tracker = ConnectionTracker.getInstance();
         String trackingId = tracker.startTrackingNewConnection(originalUri, method, isMain);
 
@@ -95,8 +93,7 @@ public class RDAPHttpRequest {
         int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT) : originalUri.getPort();
 
         if (DNSCacheResolver.hasNoAddresses(host)) {
-            System.out.println(">> No IP address found for host: " + host);
-            logger.info("No IP address found for host: " + host);
+            logger.info("No IP address found for host: {} ", host);
             tracker.completeCurrentConnection(ZERO, ConnectionStatus.UNKNOWN_HOST);
             SimpleHttpResponse response = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
             response.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
@@ -114,7 +111,6 @@ public class RDAPHttpRequest {
         if (remoteIp != null && remoteIp.getHostAddress().equals(LOCAL_IPv4)) {
             // localBind needs to be 127.0.0.1 as well
             localBindIp = InetAddress.getByName(LOCAL_IPv4);
-            System.out.println(">> Setting local bind address to 127.0.0.1 for localhost testing");
         }
 
         if (remoteIp == null || localBindIp == null) {
@@ -189,7 +185,6 @@ public class RDAPHttpRequest {
                              }
                          });
 
-                    System.out.println(">> about to call executeRequest ");
                     SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
 
                 if (result.statusCode() == 429 && currentAttempt < maxRetries) {
@@ -197,23 +192,18 @@ public class RDAPHttpRequest {
                     continue;
                 }
 
-                System.out.println(">> makeRequest result: " + result.statusCode());
                 return result;
             } catch (IOException ioe) {
                 logger.info("[trackingID: {}] Error during HTTP request: {}", trackingId, ioe.getMessage());
                 ConnectionStatus connStatus = handleRequestException(ioe, canRecordError);
-                System.out.println(">> we got back from handleRequestException connStatus: " + connStatus);
                 tracker.completeCurrentConnection(0, connStatus);
 
                 SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, 0, "", originalUri, null);
                 errorResponse.setConnectionStatusCode(connStatus);
                 return errorResponse;
             } catch (Exception ex) {
-                System.out.println(">> Exception: " + ex);
                 logger.info("[trackingID: {}] General error during HTTP request: {}", trackingId, ex.getMessage());
                 ConnectionStatus connStatus = handleRequestException(new IOException(ex), canRecordError);
-//                ConnectionStatus connStatus = handleRequestException(ex, canRecordError);
-                System.out.println(">> we got back from handleRequestException connStatus: " + connStatus);
                 tracker.completeCurrentConnection(0, connStatus);
 
                 SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, 0, "", originalUri, null);
@@ -239,7 +229,6 @@ public class RDAPHttpRequest {
                                                             String host,
                                                             CompletableFuture<SimpleHttpResponse> futureResponse)
         throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        System.out.println(">> executeRequest: " + originalUri);
         ChannelFuture f = bootstrap.connect(new InetSocketAddress(remoteIp, port)).sync();
 
         FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
@@ -251,7 +240,6 @@ public class RDAPHttpRequest {
         f.channel().closeFuture().sync();
 
         logger.info("Using timeout of {} seconds for future response", timeoutSeconds);
-        System.out.println(">> ending executeRequest: " + originalUri);
         return  futureResponse.get(timeoutSeconds, TimeUnit.SECONDS);
     }
 
@@ -260,14 +248,11 @@ public class RDAPHttpRequest {
      * Handle exceptions that occur during the HTTP request.
      */
     public static ConnectionStatus handleRequestException(Exception e, boolean recordError) {
-        System.out.println(">> handleRequestException: " + e.getMessage());
         if (e instanceof UnknownHostException) {
-            System.out.println(">> UnknownHostException");
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
         }
         if( e instanceof java.util.concurrent.TimeoutException) {
-            System.out.println(">> TimeoutException");
             if(recordError) {
                 addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
             }
@@ -278,7 +263,6 @@ public class RDAPHttpRequest {
         // java.util.concurrent.ExecutionException: java.net.SocketException: Connection reset
         if (e instanceof java.util.concurrent.ExecutionException) {
             if (e.getCause() instanceof SocketTimeoutException) {
-                System.out.println(">> SocketTimeoutException");
                 if(recordError) {
                     addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
                 }
@@ -398,33 +382,27 @@ public class RDAPHttpRequest {
 
     // Add these two methods to determine the outbound IP address
     public static InetAddress getDefaultIPv4Address() throws IOException {
-        System.out.println(">> getDefaultIPv4Address");
         try (DatagramSocket socket = new DatagramSocket()) {
-            socket.connect(InetAddress.getByName("8.8.8.8"), 53);
+            socket.connect(InetAddress.getByName(OUTGOING_IPV4), DNS_PORT);
             InetAddress localAddress = socket.getLocalAddress();
             if (localAddress instanceof Inet4Address) {
-                System.out.println(">> using local IP Address: " + localAddress.getHostAddress());
-                logger.info(">> using local IP Address: " + localAddress.getHostAddress());
+                logger.info("using local IPv4 Address: {}", localAddress.getHostAddress());
                 return localAddress;
             } else {
-                System.out.println("No IPv4 address found (IPv6 returned instead)");
-                throw new IOException("No IPv4 address found (IPv6 returned instead)");
+                throw new IOException("No IPv4 address found");
             }
         }
     }
 
     public static InetAddress getDefaultIPv6Address() throws IOException {
-        System.out.println(">> getDefaultIPv6Address");
         try (DatagramSocket socket = new DatagramSocket()) {
-            socket.connect(InetAddress.getByName("2001:4860:4860::8888"), 53);
+            socket.connect(InetAddress.getByName(OUTGOING_V6), DNS_PORT);
             InetAddress localAddress = socket.getLocalAddress();
             if (localAddress instanceof Inet6Address) {
-                System.out.println(">> using local IP Address: " + localAddress.getHostAddress());
-                logger.info(">> using local IP Address: " + localAddress.getHostAddress());
+                logger.info("using local IPv6 Address: {}", localAddress.getHostAddress());
                 return localAddress;
             } else {
-                System.out.println("No IPv6 address found (IPv4 returned instead)");
-                throw new IOException("No IPv6 address found (IPv4 returned instead)");
+                throw new IOException("No IPv6 address found");
             }
         }
     }
@@ -483,12 +461,10 @@ public class RDAPHttpRequest {
         public String getTrackingId() { return trackingId; }
 
         public void setConnectionStatusCode(ConnectionStatus status) {
-            System.out.println(">> setConnectionStatusCode: " + status);
             this.connectionStatus = status;
         }
 
         public ConnectionStatus getConnectionStatusCode() {
-            System.out.println(">> getConnectionStatusCode: " + connectionStatus);
            return connectionStatus;
         }
 
