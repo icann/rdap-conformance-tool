@@ -211,8 +211,8 @@ public class RDAPHttpRequest {
             } catch (Exception ex) {
                 System.out.println(">> Exception: " + ex);
                 logger.info("[trackingID: {}] General error during HTTP request: {}", trackingId, ex.getMessage());
-//                ConnectionStatus connStatus = handleRequestException(new IOException(ex), canRecordError);
-                ConnectionStatus connStatus = handleRequestException(ex, canRecordError);
+                ConnectionStatus connStatus = handleRequestException(new IOException(ex), canRecordError);
+//                ConnectionStatus connStatus = handleRequestException(ex, canRecordError);
                 System.out.println(">> we got back from handleRequestException connStatus: " + connStatus);
                 tracker.completeCurrentConnection(0, connStatus);
 
@@ -287,18 +287,11 @@ public class RDAPHttpRequest {
             }
         }
 
-        if (e instanceof ExecutionException && e.getCause() != null) {
-            if (e.getCause() instanceof ReadTimeoutException ||
-                hasCause(e, "io.netty.handler.timeout.ReadTimeoutException")) {
-               logger.info("ReadTimeout exception");
-            } else {
-                logger.info("ExecutionException: " + e.getCause().getMessage());
-            }
+        if (hasCause(e, "io.netty.handler.timeout.ReadTimeoutException")) {
             if (recordError) {
                 addErrorToResultsFile(ZERO, -13017, "no response available",
                     "Network receive fail");
             }
-            // If it's an ExecutionException ... still return NETWORK_RECEIVE_FAIL
             return ConnectionStatus.NETWORK_RECEIVE_FAIL;
         }
 
