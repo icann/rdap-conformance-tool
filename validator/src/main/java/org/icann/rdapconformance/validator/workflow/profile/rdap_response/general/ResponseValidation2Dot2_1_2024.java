@@ -59,6 +59,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
         try {
            var handleObject = jsonObject.get("handle");
            if(handleObject instanceof String handle) {
+               handleValue = handle;
                if (!handle.matches(CommonUtils.HANDLE_PATTERN)) {
                    results.add(RDAPValidationResult.builder()
                            .code(-46200)
@@ -88,7 +89,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
            return new HandleObjectToValidate(handleValue, true);
        }
 
-         return new HandleObjectToValidate(handleValue, true);
+     return new HandleObjectToValidate(handleValue, true);
  }
 
  private RedactedHandleObjectToValidate validateHandleInRedactedObject() {
