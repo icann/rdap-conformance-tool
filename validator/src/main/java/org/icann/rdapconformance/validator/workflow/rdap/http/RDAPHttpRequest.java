@@ -7,6 +7,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
+import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
@@ -56,13 +57,15 @@ import java.util.concurrent.CompletableFuture;
 
 public class RDAPHttpRequest {
 
+    public static final int RETRY = 429;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
     public static final String RETRY_AFTER = "Retry-After";
     public static final String X_RATELIMIT_RESET = "X-Ratelimit-Reset";
 
     public static final int DEFAULT_BACKOFF_SECS = 5;
-    public static final int MAX_RETRIES = 3;
+    public static final int MAX_RETRIES = 3; // TODO we need to knock this down to 2 and fix the tests
     public static final int DNS_PORT = 53;
+    public static final int MB_LIMIT = 10485760; // TODO: 10MB limit, we have to put some sort of limit on Netty really has issues
     public static final String OUTGOING_IPV4 = "9.9.9.9";
     public static final String OUTGOING_V6 = "2620:fe::9";
 
@@ -123,8 +126,7 @@ public class RDAPHttpRequest {
 
         boolean isHttps = originalUri.getScheme().equalsIgnoreCase(HTTPS);
 
-        int maxRetries = 3;
-        for (int attempt = ZERO; attempt <= maxRetries; attempt++) {
+        for (int attempt = ZERO; attempt <= MAX_RETRIES; attempt++) {
             final int currentAttempt = attempt;
             EventLoopGroup group = new NioEventLoopGroup();
             CompletableFuture<SimpleHttpResponse> futureResponse = new CompletableFuture<>();
@@ -135,7 +137,7 @@ public class RDAPHttpRequest {
                 Bootstrap bootstrap = new Bootstrap();
                 bootstrap.group(group)
                          .channel(NioSocketChannel.class)
-                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSeconds * 1000)
+                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSeconds * PAUSE)
                          .localAddress(new InetSocketAddress(localBindIp, ZERO))
                          .handler(new ChannelInitializer<io.netty.channel.socket.SocketChannel>() {
                              @Override
@@ -146,7 +148,7 @@ public class RDAPHttpRequest {
                                  }
                                  p.addLast(new HttpClientCodec());
                                  p.addLast(new ReadTimeoutHandler(timeoutSeconds, TimeUnit.SECONDS));
-                                 p.addLast(new HttpObjectAggregator(10485760)); // Increase to 10MB
+                                 p.addLast(new HttpObjectAggregator(MB_LIMIT));
                                  p.addLast(new SimpleChannelInboundHandler<FullHttpResponse>() {
                                      @Override
                                      protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) {
@@ -158,11 +160,11 @@ public class RDAPHttpRequest {
                                                                   .map(e -> new Header(e.getKey(), e.getValue()))
                                                                   .toArray(Header[]::new);
 
-                                         if (statusCode == 429) {
+                                         if (statusCode == RETRY){
                                              long backoff = getBackoffTime(msg.headers());
-                                             logger.info("[429] Too Many Requests. Backing off for {} seconds. Attempt {}/{}", backoff, currentAttempt + 1, maxRetries);
+                                             logger.info("[429] Too Many Requests. Backing off for {} seconds. Attempt {}/{}", backoff, currentAttempt + 1, MAX_RETRIES);
                                              sleep(backoff);
-                                             SimpleHttpResponse retryResponse = new SimpleHttpResponse(trackingId, 429, responseBody, originalUri, headersArr);
+                                             SimpleHttpResponse retryResponse = new SimpleHttpResponse(trackingId, RETRY, responseBody, originalUri, headersArr);
                                              retryResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
                                              futureResponse.complete(retryResponse);
                                              ctx.close();
@@ -187,7 +189,7 @@ public class RDAPHttpRequest {
 
                     SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
 
-                if (result.statusCode() == 429 && currentAttempt < maxRetries) {
+                if (result.statusCode() == RETRY && currentAttempt < MAX_RETRIES) {
                     TimeUnit.SECONDS.sleep(DEFAULT_BACKOFF_SECS);
                     continue;
                 }
@@ -196,17 +198,17 @@ public class RDAPHttpRequest {
             } catch (IOException ioe) {
                 logger.info("[trackingID: {}] Error during HTTP request: {}", trackingId, ioe.getMessage());
                 ConnectionStatus connStatus = handleRequestException(ioe, canRecordError);
-                tracker.completeCurrentConnection(0, connStatus);
+                tracker.completeCurrentConnection(ZERO, connStatus);
 
-                SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, 0, "", originalUri, null);
+                SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, ZERO, "", originalUri, null);
                 errorResponse.setConnectionStatusCode(connStatus);
                 return errorResponse;
             } catch (Exception ex) {
                 logger.info("[trackingID: {}] General error during HTTP request: {}", trackingId, ex.getMessage());
                 ConnectionStatus connStatus = handleRequestException(new IOException(ex), canRecordError);
-                tracker.completeCurrentConnection(0, connStatus);
+                tracker.completeCurrentConnection(ZERO, connStatus);
 
-                SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, 0, "", originalUri, null);
+                SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, ZERO, "", originalUri, null);
                 errorResponse.setConnectionStatusCode(connStatus);
                 return errorResponse;
             } finally {
@@ -214,8 +216,8 @@ public class RDAPHttpRequest {
             }
         }
 
-        tracker.completeCurrentConnection(429, ConnectionStatus.TOO_MANY_REQUESTS);
-        SimpleHttpResponse tooManyRequests = new SimpleHttpResponse(trackingId, 429, "", originalUri, new Header[0]);
+        tracker.completeCurrentConnection(RETRY, ConnectionStatus.TOO_MANY_REQUESTS);
+        SimpleHttpResponse tooManyRequests = new SimpleHttpResponse(trackingId, RETRY, "", originalUri, new Header[ZERO]);
         tooManyRequests.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
         return tooManyRequests;
     }
@@ -311,7 +313,7 @@ public class RDAPHttpRequest {
             if (e.getMessage().contains("No name matching") ||
                 e.getMessage().contains("No subject alternative DNS name matching")) {
                 if(recordError) {
-                    addErrorToResultsFile(0, -13009, "no response available", "Invalid TLS certificate.");
+                    addErrorToResultsFile(ZERO, -13009, "no response available", "Invalid TLS certificate.");
                 }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
                 return ConnectionStatus.INVALID_CERTIFICATE;
@@ -428,7 +430,7 @@ public class RDAPHttpRequest {
 
     private static void sleep(long seconds) {
         try {
-            Thread.sleep(seconds * 1000L);
+            Thread.sleep(seconds * PAUSE);
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
         }

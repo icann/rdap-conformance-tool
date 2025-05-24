@@ -59,6 +59,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   public static final String LOCAL_8080 = "http://127.0.0.1:8080";
   public static final int REDIRECT = 302;
   public static final String LOCATION = "Location";
+  public static final String NAMESERVERS = "/nameservers";
   private RDAPHttpQuery rdapHttpQuery;
 
   @DataProvider(name = "fault")
@@ -585,7 +586,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     rdapHttpQuery.setResults(results);
 
     givenUri(HTTP, path);
-    stubFor(get(urlEqualTo("/nameservers"))
+    stubFor(get(urlEqualTo(NAMESERVERS))
         .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
@@ -606,7 +607,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     rdapHttpQuery.setResults(results);
 
     givenUri(HTTP, path);
-    stubFor(get(urlEqualTo("/nameservers"))
+    stubFor(get(urlEqualTo(NAMESERVERS))
         .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
@@ -625,7 +626,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     rdapHttpQuery.setResults(results);
 
     givenUri(HTTP, path);
-    stubFor(get(urlEqualTo("/nameservers"))
+    stubFor(get(urlEqualTo(NAMESERVERS))
         .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
@@ -653,7 +654,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     doReturn(true).when(config).useRdapProfileFeb2024();
 
     givenUri(HTTP, path);
-    stubFor(get(urlEqualTo("/nameservers"))
+    stubFor(get(urlEqualTo(NAMESERVERS))
         .withScheme(HTTP)
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
