@@ -44,14 +44,12 @@ import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
-
 public class RDAPHttpRequestTest {
 
     public static final String RETRY_AFTER = "Retry-After";
     public static final int HTTP_HIGH_PORT = 8080;
     private final URI testUri = URI.create("http://example.com/path");
     private final int timeout = 10;
-
 
     @Test
     public void testMakeRequest_UnknownHost() throws Exception {
@@ -120,7 +118,6 @@ public class RDAPHttpRequestTest {
                                Mockito.any(),
                                Mockito.any()))
                            .thenThrow(new IOException("Connection closed by peer"));
-
 
             // Add all versions of makeRequest
             httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
@@ -615,7 +612,6 @@ public class RDAPHttpRequestTest {
                 .isEqualTo(ConnectionStatus.SUCCESS);
         }
     }
-
 
     @Test
     public void testMakeRequest_HttpsScheme_DefaultPort() throws Exception {
