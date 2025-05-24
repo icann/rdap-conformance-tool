@@ -60,7 +60,6 @@ public class RDAPHttpRequest {
     public static final int RETRY = 429;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
     public static final String RETRY_AFTER = "Retry-After";
-    public static final String X_RATELIMIT_RESET = "X-Ratelimit-Reset";
 
     public static final int DEFAULT_BACKOFF_SECS = 5;
     public static final int MAX_RETRIES = 3; // TODO we need to knock this down to 2 and fix the tests
@@ -410,27 +409,27 @@ public class RDAPHttpRequest {
     }
 
 
-
-    // Helper for Netty HttpHeaders
     private static long getBackoffTime(io.netty.handler.codec.http.HttpHeaders headers) {
         String retryAfter = headers.get(RETRY_AFTER);
         if (retryAfter != null) {
             try {
-                return Long.parseLong(retryAfter);
-            } catch (NumberFormatException ignored) {}
-        }
-        String resetHeader = headers.get(X_RATELIMIT_RESET);
-        if (resetHeader != null) {
-            try {
-                return Long.parseLong(resetHeader);
+                long value = Long.parseLong(retryAfter);
+                if (value > ZERO) return value;
             } catch (NumberFormatException ignored) {}
         }
         return DEFAULT_BACKOFF_SECS;
     }
 
     private static void sleep(long seconds) {
+        if (seconds <= ZERO) return;
+        long millis;
         try {
-            Thread.sleep(seconds * PAUSE);
+            millis = Math.multiplyExact(seconds, PAUSE);
+        } catch (ArithmeticException ex) {
+            millis = Long.MAX_VALUE;
+        }
+        try {
+            Thread.sleep(millis);
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
         }
