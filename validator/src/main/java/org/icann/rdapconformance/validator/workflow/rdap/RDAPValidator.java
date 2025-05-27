@@ -64,7 +64,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 public class RDAPValidator implements ValidatorWorkflow {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
-
     private final RDAPValidatorConfiguration config;
     private final RDAPQueryTypeProcessor queryTypeProcessor;
     private final RDAPQuery query;
@@ -153,6 +152,7 @@ public class RDAPValidator implements ValidatorWorkflow {
                     logger.error("Thin flag is set while validating entity");
                     return ToolResult.USES_THIN_MODEL.getCode();
                 }
+                // asEventActor property is not allow in topMost entity object, see spec 7.2.9.2
                 validator = new SchemaValidator(schemaFile, results, datasetService);
             }
         }
