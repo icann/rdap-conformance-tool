@@ -54,15 +54,14 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.CharsetUtil;
 import java.util.concurrent.CompletableFuture;
 
-
 public class RDAPHttpRequest {
 
-    public static final int RETRY = 429;
+    public static final int RETRY_STATUS_CODE = 429;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
     public static final String RETRY_AFTER = "Retry-After";
 
-    public static final int DEFAULT_BACKOFF_SECS = 5;
-    public static final int MAX_RETRIES = 3; // TODO we need to knock this down to 2 and fix the tests
+    public static int DEFAULT_BACKOFF_SECS = 30;
+    public static final int MAX_RETRIES = 2;
     public static final int DNS_PORT = 53;
     public static final int MB_LIMIT = 10485760; // TODO: 10MB limit, we have to put some sort of limit on Netty really has issues
     public static final String OUTGOING_IPV4 = "9.9.9.9";
@@ -159,11 +158,12 @@ public class RDAPHttpRequest {
                                                                   .map(e -> new Header(e.getKey(), e.getValue()))
                                                                   .toArray(Header[]::new);
 
-                                         if (statusCode == RETRY){
+                                         if (statusCode == RETRY_STATUS_CODE){
                                              long backoff = getBackoffTime(msg.headers());
-                                             logger.info("[429] Too Many Requests. Backing off for {} seconds. Attempt {}/{}", backoff, currentAttempt + 1, MAX_RETRIES);
+
                                              sleep(backoff);
-                                             SimpleHttpResponse retryResponse = new SimpleHttpResponse(trackingId, RETRY, responseBody, originalUri, headersArr);
+                                             SimpleHttpResponse retryResponse = new SimpleHttpResponse(trackingId,
+                                                 RETRY_STATUS_CODE, responseBody, originalUri, headersArr);
                                              retryResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
                                              futureResponse.complete(retryResponse);
                                              ctx.close();
@@ -188,7 +188,7 @@ public class RDAPHttpRequest {
 
                     SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
 
-                if (result.statusCode() == RETRY && currentAttempt < MAX_RETRIES) {
+                if (result.statusCode() == RETRY_STATUS_CODE && currentAttempt < MAX_RETRIES) {
                     TimeUnit.SECONDS.sleep(DEFAULT_BACKOFF_SECS);
                     continue;
                 }
@@ -215,8 +215,9 @@ public class RDAPHttpRequest {
             }
         }
 
-        tracker.completeCurrentConnection(RETRY, ConnectionStatus.TOO_MANY_REQUESTS);
-        SimpleHttpResponse tooManyRequests = new SimpleHttpResponse(trackingId, RETRY, "", originalUri, new Header[ZERO]);
+        logger.info("Requeried using retry-after wait time but result was a 429.");
+        tracker.completeCurrentConnection(RETRY_STATUS_CODE, ConnectionStatus.TOO_MANY_REQUESTS);
+        SimpleHttpResponse tooManyRequests = new SimpleHttpResponse(trackingId, RETRY_STATUS_CODE, "", originalUri, new Header[ZERO]);
         tooManyRequests.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
         return tooManyRequests;
     }
@@ -414,9 +415,13 @@ public class RDAPHttpRequest {
         if (retryAfter != null) {
             try {
                 long value = Long.parseLong(retryAfter);
-                if (value > ZERO) return value;
+                if (value > ZERO) {
+                    logger.info("Received 429 with retry-after header. Waiting {} seconds to requery.", value);
+                    return value;
+                }
             } catch (NumberFormatException ignored) {}
         }
+        logger.info("Received 429 but no retry-after header was offered. Waiting {}} seconds.", DEFAULT_BACKOFF_SECS);
         return DEFAULT_BACKOFF_SECS;
     }
 

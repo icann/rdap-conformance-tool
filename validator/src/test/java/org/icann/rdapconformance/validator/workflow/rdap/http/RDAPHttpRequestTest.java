@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import io.netty.bootstrap.Bootstrap;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.io.EOFException;
 import java.io.IOException;
@@ -34,6 +35,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Field;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
@@ -448,6 +450,9 @@ public class RDAPHttpRequestTest {
 
     @Test
     public void testMakeRequest_HttpTooManyRequests_RetriesAndSucceeds() throws Exception {
+        Field backoffField = RDAPHttpRequest.class.getField("DEFAULT_BACKOFF_SECS");
+        int originalBackoff = backoffField.getInt(null);
+        backoffField.setInt(null, 5);
         try (MockedStatic<DNSCacheResolver> dnsResolverMock = Mockito.mockStatic(DNSCacheResolver.class);
             MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class, Mockito.CALLS_REAL_METHODS)) {
 
@@ -494,6 +499,10 @@ public class RDAPHttpRequestTest {
 
     @Test
     public void testMakeRequest_HttpTooManyRequests_ExceedsMaxRetries() throws Exception {
+        Field backoffField = RDAPHttpRequest.class.getField("DEFAULT_BACKOFF_SECS");
+        int originalBackoff = backoffField.getInt(null);
+        backoffField.setInt(null, 5);
+
         try (MockedStatic<DNSCacheResolver> dnsResolverMock = Mockito.mockStatic(DNSCacheResolver.class);
             MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class, Mockito.CALLS_REAL_METHODS)) {
 
