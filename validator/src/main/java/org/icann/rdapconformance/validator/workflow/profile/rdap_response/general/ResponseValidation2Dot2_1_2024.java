@@ -98,7 +98,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
    for (String redactedJsonPointer : redactedPointersValue) {
      JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
      JSONObject name = (JSONObject) redacted.get("name");
-     if(name.get("description") instanceof String redactedName) {
+     if(name.get("type") instanceof String redactedName) {
        if(redactedName.trim().equalsIgnoreCase("Registry Domain ID")) {
          redactedRegistryDomain = redacted;
        }

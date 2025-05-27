@@ -7,7 +7,7 @@
   "redacted": [
     {
       "name": {
-        "description": "Registry Domain ID"
+        "type": "Registry Domain ID"
       },
       "prePath": "$.handle",
       "pathLang": "jsonpath",
@@ -18,7 +18,7 @@
     },
     {
       "name": {
-        "description": "Registrant Name"
+        "type": "Registrant Name"
       },
       "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
       "pathLang": "jsonpath",
@@ -29,7 +29,7 @@
     },
     {
       "name": {
-      "description": "Registrant Organization"
+      "type": "Registrant Organization"
       },
       "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]",
       "pathLang": "jsonpath",
