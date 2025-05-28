@@ -139,12 +139,6 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
         logger.info("Unable to resolve an IP address endpoint using DNS for uri:  "  + DNSCacheResolver.getHostnameFromUrl(uri.toString()));
       }
 
-
-
-      // Check the results of the http codes and ensure they are all the same
-      String resultsWithStatus = RDAPValidatorResultsImpl.getInstance().analyzeResultsWithStatusCheck();
-      logger.info("Results with status check:\n{}",resultsWithStatus);
-
       // Build the result file
       resultFile.build();
       // now the results file is set, print the path

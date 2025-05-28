@@ -17,6 +17,7 @@ import static org.testng.Assert.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.BuildInfo;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
@@ -202,10 +203,15 @@ public class RDAPValidationResultFileTest {
         results.add(RDAPValidationResult.builder().code(-130004).httpStatusCode(200).build());
         results.add(RDAPValidationResult.builder().code(-130005).httpStatusCode(404).build());
 
-        String output = results.analyzeResultsWithStatusCheck();
+        Set<RDAPValidationResult> checked = RDAPValidationResultFile.getInstance()
+                                                                    .analyzeResultsWithStatusCheck(results.getAll());
+
+        String output = checked.stream()
+                               .map(r -> "code=" + r.getCode() + ", httpStatusCode=" + r.getHttpStatusCode())
+                               .collect(Collectors.joining("; "));
 
         assertTrue(output.isEmpty());
-        assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+        assertFalse(checked.stream().anyMatch(r -> r.getCode() == -13018));
     }
 
     @Test

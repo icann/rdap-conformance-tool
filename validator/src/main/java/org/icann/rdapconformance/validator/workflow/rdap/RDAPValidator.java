@@ -128,6 +128,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             return ToolResult.DATASET_UNAVAILABLE.getCode();
         }
 
+        // TODO: refactor this out to happen only ONE time at Tool startup
         if (!queryTypeProcessor.check(datasetService)) {
             return  queryTypeProcessor.getErrorStatus().getCode();
         }

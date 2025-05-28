@@ -26,8 +26,4 @@ public interface RDAPValidatorResults {
   Set<String> getGroups();
 
   void clear();
-
-  String analyzeResultsWithStatusCheck();
-
-  void cullDuplicateIPAddressErrors();
 }
