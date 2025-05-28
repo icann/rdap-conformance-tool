@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpResponse;
@@ -10,6 +12,7 @@ import java.util.Map;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ToolResult;
+import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.*;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot3_2024;
@@ -70,7 +73,8 @@ public class RDAPValidator implements ValidatorWorkflow {
     private final FileSystem fileSystem;
     private final ConfigurationFileParser configParser;
     private final RDAPValidatorResults results;
-    private final RDAPDatasetService datasetService;
+    private static RDAPDatasetService datasetService;
+    private static boolean datasetInitialized = false;
 
     public RDAPValidator(RDAPValidatorConfiguration config,
                          FileSystem fileSystem,
@@ -78,6 +82,18 @@ public class RDAPValidator implements ValidatorWorkflow {
                          RDAPQuery query) {
         this(config, fileSystem, queryTypeProcessor, query, new ConfigurationFileParserImpl(),
             RDAPValidatorResultsImpl.getInstance(), new RDAPDatasetServiceImpl(fileSystem));
+    }
+
+    // TODO: refactor this out into a common thing
+    public static int initializeDatasetService(RDAPValidatorConfiguration config) {
+        datasetService =  new RDAPDatasetServiceImpl(new LocalFileSystem());
+        if (!datasetService.download(config.useLocalDatasets())) {
+            return ToolResult.DATASET_UNAVAILABLE.getCode();
+        } else {
+            logger.info("RDAP datasets downloaded successfully.");
+            datasetInitialized = true;
+            return ZERO;
+        }
     }
 
     public RDAPValidator(RDAPValidatorConfiguration config,
@@ -124,9 +140,10 @@ public class RDAPValidator implements ValidatorWorkflow {
         RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
         rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
 
-        if (!datasetService.download(this.config.useLocalDatasets())) {
-            return ToolResult.DATASET_UNAVAILABLE.getCode();
-        }
+//        TODO: we need to find a workaround for this.
+//        if(!datasetInitialized) {
+//            return ToolResult.DATASET_UNAVAILABLE.getCode();
+//        }
 
         if (!queryTypeProcessor.check(datasetService)) {
             return  queryTypeProcessor.getErrorStatus().getCode();
