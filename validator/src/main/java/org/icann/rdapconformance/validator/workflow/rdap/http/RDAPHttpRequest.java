@@ -11,7 +11,11 @@ import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.kqueue.KQueueSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -23,6 +27,7 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.net.http.HttpTimeoutException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
@@ -55,9 +60,24 @@ import io.netty.util.CharsetUtil;
 import java.util.concurrent.CompletableFuture;
 
 public class RDAPHttpRequest {
-    private static final EventLoopGroup SHARED_EVENT_LOOP_GROUP = new NioEventLoopGroup();
-    public static final int RETRY_STATUS_CODE = 429;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
+
+    private static final EventLoopGroup SHARED_EVENT_LOOP_GROUP;
+
+    static {
+        ThreadFactory threadFactory = new DefaultThreadFactory("event-loop");
+
+        if (KQueue.isAvailable()) {
+            SHARED_EVENT_LOOP_GROUP = new KQueueEventLoopGroup(ZERO, threadFactory);
+            logger.info("Using KQueueEventLoopGroup");
+        } else {
+            SHARED_EVENT_LOOP_GROUP = new NioEventLoopGroup(ZERO, threadFactory);
+            logger.info("Using NioEventLoopGroup");
+        }
+    }
+
+    public static final int RETRY_STATUS_CODE = 429;
+
     public static final String RETRY_AFTER = "Retry-After";
 
     public static int DEFAULT_BACKOFF_SECS = 30;
@@ -132,8 +152,15 @@ public class RDAPHttpRequest {
                 SslContext sslCtx = isHttps ? SslContextBuilder.forClient().build() : null;
 
                 Bootstrap bootstrap = new Bootstrap();
-                bootstrap.group(SHARED_EVENT_LOOP_GROUP)
-                         .channel(NioSocketChannel.class)
+                if (KQueue.isAvailable()) {
+                    bootstrap.group(SHARED_EVENT_LOOP_GROUP)
+                             .channel(KQueueSocketChannel.class);
+                } else {
+                    bootstrap.group(SHARED_EVENT_LOOP_GROUP)
+                             .channel(NioSocketChannel.class);
+                }
+
+                bootstrap
                          .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSeconds * PAUSE)
                          .localAddress(new InetSocketAddress(localBindIp, ZERO))
                          .handler(new ChannelInitializer<io.netty.channel.socket.SocketChannel>() {
