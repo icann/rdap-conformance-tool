@@ -25,6 +25,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFil
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
@@ -95,6 +96,13 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       validator = new RDAPFileValidator(this, fileSystem);
     }
 
+    // No matter which validator, we need to initialize the dataset service
+    // TODO: move to a common place
+    if(RDAPHttpValidator.initializeDatasetService(this) == ToolResult.DATASET_UNAVAILABLE.getCode()) {
+      logger.error("Unable to initialize the dataset service, exiting.");
+      return ToolResult.DATASET_UNAVAILABLE.getCode();
+    }
+
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
 
     if (networkEnabled) {
@@ -152,12 +160,12 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
       logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
 
+      RDAPHttpRequest.shutdownEventLoopGroup();
       // if we made it to here, exit 0
       return 0;
     }
 
     return validateWithoutNetwork(resultFile, validator);
-
   }
 
 

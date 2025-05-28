@@ -55,7 +55,7 @@ import io.netty.util.CharsetUtil;
 import java.util.concurrent.CompletableFuture;
 
 public class RDAPHttpRequest {
-
+    private static final EventLoopGroup SHARED_EVENT_LOOP_GROUP = new NioEventLoopGroup();
     public static final int RETRY_STATUS_CODE = 429;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
     public static final String RETRY_AFTER = "Retry-After";
@@ -126,14 +126,13 @@ public class RDAPHttpRequest {
 
         for (int attempt = ZERO; attempt <= MAX_RETRIES; attempt++) {
             final int currentAttempt = attempt;
-            EventLoopGroup group = new NioEventLoopGroup();
             CompletableFuture<SimpleHttpResponse> futureResponse = new CompletableFuture<>();
 
             try {
                 SslContext sslCtx = isHttps ? SslContextBuilder.forClient().build() : null;
 
                 Bootstrap bootstrap = new Bootstrap();
-                bootstrap.group(group)
+                bootstrap.group(SHARED_EVENT_LOOP_GROUP)
                          .channel(NioSocketChannel.class)
                          .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSeconds * PAUSE)
                          .localAddress(new InetSocketAddress(localBindIp, ZERO))
@@ -210,8 +209,6 @@ public class RDAPHttpRequest {
                 SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, ZERO, "", originalUri, null);
                 errorResponse.setConnectionStatusCode(connStatus);
                 return errorResponse;
-            } finally {
-                group.shutdownGracefully();
             }
         }
 
@@ -241,7 +238,7 @@ public class RDAPHttpRequest {
         f.channel().writeAndFlush(request);
         f.channel().closeFuture().sync();
 
-        logger.info("Using timeout of {} seconds for future response", timeoutSeconds);
+        logger.info("Setting connection timeout to {} seconds", timeoutSeconds);
         return  futureResponse.get(timeoutSeconds, TimeUnit.SECONDS);
     }
 
@@ -409,6 +406,9 @@ public class RDAPHttpRequest {
         }
     }
 
+    public static void shutdownEventLoopGroup() {
+        SHARED_EVENT_LOOP_GROUP.shutdownGracefully();
+    }
 
     private static long getBackoffTime(io.netty.handler.codec.http.HttpHeaders headers) {
         String retryAfter = headers.get(RETRY_AFTER);
