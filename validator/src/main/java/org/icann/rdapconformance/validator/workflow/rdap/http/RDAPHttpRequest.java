@@ -7,6 +7,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
@@ -73,10 +74,10 @@ public class RDAPHttpRequest {
         ThreadFactory threadFactory = new DefaultThreadFactory("event-loop");
 
         if (KQueue.isAvailable()) {
-            SHARED_EVENT_LOOP_GROUP = new KQueueEventLoopGroup(ZERO, threadFactory);
+            SHARED_EVENT_LOOP_GROUP = new KQueueEventLoopGroup(ONE, threadFactory);
             logger.info("Using KQueueEventLoopGroup");
         } else {
-            SHARED_EVENT_LOOP_GROUP = new NioEventLoopGroup(ZERO, threadFactory);
+            SHARED_EVENT_LOOP_GROUP = new NioEventLoopGroup(ONE, threadFactory);
             logger.info("Using NioEventLoopGroup");
         }
     }
