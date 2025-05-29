@@ -212,7 +212,15 @@ public class RDAPHttpRequest {
                              }
                          });
 
-                    SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
+                ChannelFuture connectFuture = bootstrap.connect(remoteIp, port);
+                connectFuture.addListener((ChannelFutureListener) future -> {
+                    if (!future.isSuccess()) {
+                       logger.info("Connection failed immediately: {}", future.cause());
+                        futureResponse.completeExceptionally(future.cause());
+                    }
+                });
+
+                SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
 
                 if (result.statusCode() == RETRY_STATUS_CODE && currentAttempt < MAX_RETRIES) {
                     TimeUnit.SECONDS.sleep(DEFAULT_BACKOFF_SECS);
