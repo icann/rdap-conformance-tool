@@ -237,6 +237,7 @@ public class RDAPHttpRequest {
 
                                      @Override
                                      public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+                                         logger.error("Exception in Netty pipeline for trackingId: {}, uri: {}", trackingId, originalUri, cause);
                                          futureResponse.completeExceptionally(cause);
                                          ctx.close();
                                      }
@@ -244,15 +245,15 @@ public class RDAPHttpRequest {
                              }
                          });
 
-                ChannelFuture connectFuture = bootstrap.connect(remoteIp, port);
-                connectFuture.addListener((ChannelFutureListener) future -> {
-                    if (!future.isSuccess()) {
-                       logger.info("Connection failed for id: {} ->  {}", trackingId, future.cause().getMessage());
-                        futureResponse.completeExceptionally(future.cause());
-                    }
-                });
+//                ChannelFuture connectFuture = bootstrap.connect(remoteIp, port);
+//                connectFuture.addListener((ChannelFutureListener) future -> {
+//                    if (!future.isSuccess()) {
+//                       logger.info("Connection failed for id: {} ->  {}", trackingId, future.cause().getMessage());
+//                        futureResponse.completeExceptionally(future.cause());
+//                    }
+//                });
 
-                SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
+                SimpleHttpResponse result = executeRequest(trackingId, originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
 
                 if (result.statusCode() == RETRY_STATUS_CODE && currentAttempt < MAX_RETRIES) {
                     TimeUnit.SECONDS.sleep(DEFAULT_BACKOFF_SECS);
@@ -286,29 +287,69 @@ public class RDAPHttpRequest {
         return tooManyRequests;
     }
 
-    public static SimpleHttpResponse executeRequest(URI originalUri,
-                                                            int timeoutSeconds,
-                                                            String method,
-                                                            Bootstrap bootstrap,
-                                                            InetAddress remoteIp,
-                                                            int port,
-                                                            String host,
-                                                            CompletableFuture<SimpleHttpResponse> futureResponse)
-        throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        ChannelFuture f = bootstrap.connect(new InetSocketAddress(remoteIp, port)).sync();
+//    public static SimpleHttpResponse executeRequest(URI originalUri,
+//                                                            int timeoutSeconds,
+//                                                            String method,
+//                                                            Bootstrap bootstrap,
+//                                                            InetAddress remoteIp,
+//                                                            int port,
+//                                                            String host,
+//                                                            CompletableFuture<SimpleHttpResponse> futureResponse)
+//        throws IOException, InterruptedException, ExecutionException, TimeoutException {
+//        ChannelFuture f = bootstrap.connect(new InetSocketAddress(remoteIp, port)).sync();
+//        FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
+//        request.headers().set(HttpHeaderNames.HOST, host);
+//        request.headers().set(HttpHeaderNames.ACCEPT, NetworkInfo.getAcceptHeader());
+//        request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+//
+//        f.channel().writeAndFlush(request);
+//        f.channel().closeFuture().sync();
+//
+//        logger.info("Setting connection timeout to {} seconds", timeoutSeconds);
+//        return  futureResponse.get(timeoutSeconds, TimeUnit.SECONDS);
+//    }
+public static SimpleHttpResponse executeRequest(
+    String trackingId,
+    URI originalUri,
+    int timeoutSeconds,
+    String method,
+    Bootstrap bootstrap,
+    InetAddress remoteIp,
+    int port,
+    String host,
+    CompletableFuture<SimpleHttpResponse> futureResponse
+) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    ChannelFuture connectFuture = bootstrap.connect(new InetSocketAddress(remoteIp, port));
+    connectFuture.addListener((ChannelFutureListener) future -> {
+        if (!future.isSuccess()) {
+            logger.info("Connection failed for id: {} ->  {}", trackingId, future.cause().getMessage());
+            futureResponse.completeExceptionally(future.cause());
+        }
+    });
 
-        FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
-        request.headers().set(HttpHeaderNames.HOST, host);
-        request.headers().set(HttpHeaderNames.ACCEPT, NetworkInfo.getAcceptHeader());
-        request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+    // Wait for connection to complete (success or failure)
+    connectFuture.sync();
 
-        f.channel().writeAndFlush(request);
-        f.channel().closeFuture().sync();
-
-        logger.info("Setting connection timeout to {} seconds", timeoutSeconds);
-        return  futureResponse.get(timeoutSeconds, TimeUnit.SECONDS);
+    if (!connectFuture.isSuccess()) {
+        // Exception already set on futureResponse, just throw
+        try {
+            return futureResponse.get(timeoutSeconds, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            throw new IOException("Connection failed of id: ", e.getCause());
+        }
     }
 
+    FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
+    request.headers().set(HttpHeaderNames.HOST, host);
+    request.headers().set(HttpHeaderNames.ACCEPT, NetworkInfo.getAcceptHeader());
+    request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+
+    connectFuture.channel().writeAndFlush(request);
+    connectFuture.channel().closeFuture().sync();
+
+    logger.info("Setting connection timeout to {} seconds for id {} ", timeoutSeconds, trackingId);
+    return futureResponse.get(timeoutSeconds, TimeUnit.SECONDS);
+}
 
     /**
      * Handle exceptions that occur during the HTTP request.

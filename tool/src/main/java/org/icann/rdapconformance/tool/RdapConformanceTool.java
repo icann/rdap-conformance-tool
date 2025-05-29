@@ -106,6 +106,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
 
     if (networkEnabled) {
+      System.setProperty("io.netty.leakDetection.level", "paranoid"); // Netty leak detection
+      System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug"); // SLF4J simple logger
+      System.setProperty("io.netty.tryReflectionSetAccessible", "true"); // Netty reflection
+
       // Initialize our DNS lookups with this.
       DNSCacheResolver.initFromUrl(uri.toString());
       DNSCacheResolver.doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
