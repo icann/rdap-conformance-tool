@@ -19,6 +19,9 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidation {
+
+    private static final String NOT_FOUND = "not_found";
+
     public ResponseValidation2Dot6Dot3_2024(String rdapResponse, RDAPValidatorResults results) {
         super(rdapResponse, results);
     }
@@ -178,10 +181,15 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
         List<LinksObjectToValidate> list = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
-            list.add(new LinksObjectToValidate(
-                    jsonObject.getString("value"),
-                    jsonObject.getString("rel"),
-                    jsonObject.getString("href")));
+            try {
+                list.add(new LinksObjectToValidate(
+                        jsonObject.getString("value"),
+                        jsonObject.getString("rel"),
+                        jsonObject.getString("href")));
+            } catch (Exception e) {
+                logger.info("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
+                list.add(new LinksObjectToValidate(NOT_FOUND, NOT_FOUND, NOT_FOUND));
+            }
         }
         return list;
     }
