@@ -19,7 +19,8 @@ public enum ConnectionStatus implements ConformanceError {
     NETWORK_RECEIVE_FAIL(20, "Failure in receiving network data"),
     // 21 is over in ToolResult as FILE_WRITE_ERROR TODO: we need to review exit codes
     UNKNOWN_HOST(23, "Unknown host"),
-    TOO_MANY_REQUESTS(22, "Too many requests");
+    TOO_MANY_REQUESTS(22, "Too many requests"),
+    CONNECTION_REFUSED(24, "Connection refused by host");
 
     private final int code;
     private final String description;
