@@ -178,7 +178,10 @@ public class RDAPValidator implements ValidatorWorkflow {
         validator.validate(query.getData()); // validates the JSON
         RDAPHttpRequest.SimpleHttpResponse rdapResponse = (RDAPHttpRequest.SimpleHttpResponse ) query.getRawResponse();
 
-        logger.info("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
+        if(rdapResponse != null) {
+            logger.info("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
+        }
+
 
         if (rdapResponse != null && !query.isErrorContent() && config.isNetworkEnabled()) {
             new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate(); // Network calls
