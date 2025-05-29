@@ -20,7 +20,8 @@ public enum ConnectionStatus implements ConformanceError {
     // 21 is over in ToolResult as FILE_WRITE_ERROR TODO: we need to review exit codes
     UNKNOWN_HOST(23, "Unknown host"),
     TOO_MANY_REQUESTS(22, "Too many requests"),
-    CONNECTION_REFUSED(24, "Connection refused by host");
+    CONNECTION_REFUSED(24, "Connection refused by host"),
+    CONNECTION_TIMEOUT(25, "Connection timed out");
 
     private final int code;
     private final String description;

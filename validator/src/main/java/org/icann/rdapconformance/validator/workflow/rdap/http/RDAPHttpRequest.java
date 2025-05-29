@@ -64,22 +64,24 @@ import io.netty.util.CharsetUtil;
 import java.util.concurrent.CompletableFuture;
 
 public class RDAPHttpRequest {
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
 
-    private static final EventLoopGroup SHARED_EVENT_LOOP_GROUP;
-    // Shared single-threaded executor for strict serialization
-    private static final ExecutorService SERIAL_EXECUTOR = Executors.newSingleThreadExecutor();
+        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
 
-    static {
-        ThreadFactory threadFactory = new DefaultThreadFactory("event-loop");
+        private static final EventLoopGroup SHARED_EVENT_LOOP_GROUP;
+        // Shared single-threaded executor for strict serialization
+        private static final ExecutorService SERIAL_EXECUTOR = Executors.newSingleThreadExecutor();
+        public static final int MAX_BUFF = 65536;
 
-        if (KQueue.isAvailable()) {
-            SHARED_EVENT_LOOP_GROUP = new KQueueEventLoopGroup(ONE, threadFactory);
-            logger.info("Using KQueueEventLoopGroup");
-        } else {
-            SHARED_EVENT_LOOP_GROUP = new NioEventLoopGroup(ONE, threadFactory);
-            logger.info("Using NioEventLoopGroup");
-        }
+        static {
+            ThreadFactory threadFactory = new DefaultThreadFactory("event-loop");
+
+            if (KQueue.isAvailable()) {
+                SHARED_EVENT_LOOP_GROUP = new KQueueEventLoopGroup(ONE, threadFactory);
+                logger.info("Using KQueueEventLoopGroup");
+            } else {
+                SHARED_EVENT_LOOP_GROUP = new NioEventLoopGroup(ONE, threadFactory);
+                logger.info("Using NioEventLoopGroup");
+            }
     }
 
     public static final int RETRY_STATUS_CODE = 429;
@@ -108,15 +110,14 @@ public class RDAPHttpRequest {
             try {
                 return makeRequest(originalUri, timeoutSeconds, method, isMain, canRecordError);
             } catch (Exception e) {
-                if (e instanceof RuntimeException) {
-                    throw (RuntimeException) e;
-                }
+                logger.info("Exception in makeRequestSerialized for URI: {} with method: {} - {}", originalUri, method, e.getMessage());
                 throw new RuntimeException(e);
             }
         });
-
         try {
-            return future.get(timeoutSeconds * 2L, TimeUnit.SECONDS);
+               // this is the timeout for the entire request, not just the connection
+              // we multiply by 5 to allow for retries and backoff
+             return future.get(timeoutSeconds * 5L, TimeUnit.SECONDS);
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof Exception) {
@@ -193,6 +194,11 @@ public class RDAPHttpRequest {
                 }
 
                 bootstrap
+                         .option(ChannelOption.SO_KEEPALIVE, true)
+                         .option(ChannelOption.SO_RCVBUF, MAX_BUFF)
+                         .option(ChannelOption.SO_SNDBUF, MAX_BUFF)
+                         .option(ChannelOption.SO_REUSEADDR, true)
+                         .option(ChannelOption.TCP_NODELAY, true)
                          .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSeconds * PAUSE)
                          .localAddress(new InetSocketAddress(localBindIp, ZERO))
                          .handler(new ChannelInitializer<io.netty.channel.socket.SocketChannel>() {
@@ -245,14 +251,6 @@ public class RDAPHttpRequest {
                              }
                          });
 
-//                ChannelFuture connectFuture = bootstrap.connect(remoteIp, port);
-//                connectFuture.addListener((ChannelFutureListener) future -> {
-//                    if (!future.isSuccess()) {
-//                       logger.info("Connection failed for id: {} ->  {}", trackingId, future.cause().getMessage());
-//                        futureResponse.completeExceptionally(future.cause());
-//                    }
-//                });
-
                 SimpleHttpResponse result = executeRequest(trackingId, originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
 
                 if (result.statusCode() == RETRY_STATUS_CODE && currentAttempt < MAX_RETRIES) {
@@ -287,27 +285,6 @@ public class RDAPHttpRequest {
         return tooManyRequests;
     }
 
-//    public static SimpleHttpResponse executeRequest(URI originalUri,
-//                                                            int timeoutSeconds,
-//                                                            String method,
-//                                                            Bootstrap bootstrap,
-//                                                            InetAddress remoteIp,
-//                                                            int port,
-//                                                            String host,
-//                                                            CompletableFuture<SimpleHttpResponse> futureResponse)
-//        throws IOException, InterruptedException, ExecutionException, TimeoutException {
-//        ChannelFuture f = bootstrap.connect(new InetSocketAddress(remoteIp, port)).sync();
-//        FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
-//        request.headers().set(HttpHeaderNames.HOST, host);
-//        request.headers().set(HttpHeaderNames.ACCEPT, NetworkInfo.getAcceptHeader());
-//        request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-//
-//        f.channel().writeAndFlush(request);
-//        f.channel().closeFuture().sync();
-//
-//        logger.info("Setting connection timeout to {} seconds", timeoutSeconds);
-//        return  futureResponse.get(timeoutSeconds, TimeUnit.SECONDS);
-//    }
 public static SimpleHttpResponse executeRequest(
     String trackingId,
     URI originalUri,
@@ -365,6 +342,14 @@ public static SimpleHttpResponse executeRequest(
             }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
             return ConnectionStatus.NETWORK_RECEIVE_FAIL;
+        }
+
+        if (e.getMessage() != null && e.getMessage().contains("connection timed out")) {
+            if (recordError) {
+                addErrorToResultsFile(ZERO, -13022, "no response available", "Connection attempt timed out.");
+            }
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_TIMEOUT);
+            return ConnectionStatus.CONNECTION_TIMEOUT;
         }
 
         if (e.getMessage() != null && e.getMessage().contains("Connection refused")) {
