@@ -212,7 +212,15 @@ public class RDAPHttpRequest {
                              }
                          });
 
-                    SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
+                ChannelFuture connectFuture = bootstrap.connect(remoteIp, port);
+                connectFuture.addListener((ChannelFutureListener) future -> {
+                    if (!future.isSuccess()) {
+                       logger.info("Connection failed for id: {} ->  {}", trackingId, future.cause().getMessage());
+                        futureResponse.completeExceptionally(future.cause());
+                    }
+                });
+
+                SimpleHttpResponse result = executeRequest(originalUri, timeoutSeconds, method, bootstrap, remoteIp, port, host, futureResponse);
 
                 if (result.statusCode() == RETRY_STATUS_CODE && currentAttempt < MAX_RETRIES) {
                     TimeUnit.SECONDS.sleep(DEFAULT_BACKOFF_SECS);
@@ -284,6 +292,14 @@ public class RDAPHttpRequest {
             }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
             return ConnectionStatus.NETWORK_RECEIVE_FAIL;
+        }
+
+        if (e.getMessage() != null && e.getMessage().contains("Connection refused")) {
+            if (recordError) {
+                addErrorToResultsFile(ZERO, -13021, "no response available", "Connection refused by host.");
+            }
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_REFUSED);
+            return ConnectionStatus.CONNECTION_REFUSED;
         }
 
         // java.util.concurrent.ExecutionException: java.net.SocketException: Connection reset
@@ -448,7 +464,7 @@ public class RDAPHttpRequest {
                 }
             } catch (NumberFormatException ignored) {}
         }
-        logger.info("Received 429 but no retry-after header was offered. Waiting {}} seconds.", DEFAULT_BACKOFF_SECS);
+        logger.info("Received 429 but no retry-after header was offered. Waiting {} seconds.", DEFAULT_BACKOFF_SECS);
         return DEFAULT_BACKOFF_SECS;
     }
 

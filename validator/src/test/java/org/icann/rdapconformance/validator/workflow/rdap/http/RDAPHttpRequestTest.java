@@ -172,7 +172,7 @@ public class RDAPHttpRequestTest {
 
             assertThat(response).isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
-                .isEqualTo(ConnectionStatus.CONNECTION_FAILED);
+                .isEqualTo(ConnectionStatus.CONNECTION_REFUSED);
         }
     }
 
@@ -837,12 +837,12 @@ public class RDAPHttpRequestTest {
             // Verify
             assertThat(response).isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
-                .isEqualTo(ConnectionStatus.CONNECTION_FAILED);
+                .isEqualTo(ConnectionStatus.CONNECTION_REFUSED);
 
             // Verify that the error was added - use specific arguments instead of matchers in the lambda
             commonUtilsMock.verify(() ->
-                CommonUtils.addErrorToResultsFile(0, -13007, "no response available",
-                    "Failed to connect to server."));
+                CommonUtils.addErrorToResultsFile(0, -13021, "no response available",
+                    "Connection refused by host."));
         }
     }
 
@@ -979,19 +979,19 @@ public class RDAPHttpRequestTest {
             ConnectionStatus status = RDAPHttpRequest.handleRequestException(ex, true);
 
             // Verify correct status is returned
-            assertThat(status).isEqualTo(ConnectionStatus.CONNECTION_FAILED);
+            assertThat(status).isEqualTo(ConnectionStatus.CONNECTION_REFUSED);
 
             // Verify this specific area was added
             commonUtilsMock.verify(() ->
-                    CommonUtils.addErrorToResultsFile(eq(ZERO), eq(-13007), eq("no response available"),
-                        eq("Failed to connect to server.")),
+                    CommonUtils.addErrorToResultsFile(eq(ZERO), eq(-13021), eq("no response available"),
+                        eq("Connection refused by host.")),
                 times(ONE));
 
             // This time we test yet again, but with recordError = false
             status = RDAPHttpRequest.handleRequestException(ex, false);
 
             // Verify the correct status is returned but no additional error recorded
-            assertThat(status).isEqualTo(ConnectionStatus.CONNECTION_FAILED);
+            assertThat(status).isEqualTo(ConnectionStatus.CONNECTION_REFUSED);
             commonUtilsMock.verify(() ->
                     CommonUtils.addErrorToResultsFile(anyInt(), anyInt(), anyString(), anyString()),
                 times(ONE)); // Still just 1 call from before
