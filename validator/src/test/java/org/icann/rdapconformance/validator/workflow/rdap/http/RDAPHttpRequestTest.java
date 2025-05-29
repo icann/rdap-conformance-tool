@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
-import io.netty.bootstrap.Bootstrap;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.io.EOFException;
@@ -13,7 +12,7 @@ import java.net.http.HttpResponse;
 import java.security.cert.CertificateExpiredException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+
 import javax.net.ssl.SSLHandshakeException;
 
 import org.icann.rdapconformance.validator.CommonUtils;
@@ -25,13 +24,11 @@ import org.icann.rdapconformance.validator.NetworkProtocol;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.Header;
-import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
@@ -47,6 +44,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
+@Test(singleThreaded = true)
 public class RDAPHttpRequestTest {
 
     public static final String RETRY_AFTER = "Retry-After";

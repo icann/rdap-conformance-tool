@@ -16,6 +16,7 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.util.concurrent.Future;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -27,6 +28,8 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.net.http.HttpTimeoutException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import org.icann.rdapconformance.validator.ConnectionStatus;
@@ -63,6 +66,8 @@ public class RDAPHttpRequest {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
 
     private static final EventLoopGroup SHARED_EVENT_LOOP_GROUP;
+    // Shared single-threaded executor for strict serialization
+    private static final ExecutorService SERIAL_EXECUTOR = Executors.newSingleThreadExecutor();
 
     static {
         ThreadFactory threadFactory = new DefaultThreadFactory("event-loop");
@@ -95,13 +100,39 @@ public class RDAPHttpRequest {
         return makeRequest(uri, timeoutSeconds, HEAD);
     }
 
+    public static HttpResponse<String> makeRequestSerialized(
+        URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError
+    ) throws Exception {
+        java.util.concurrent.Future<HttpResponse<String>> future = SERIAL_EXECUTOR.submit(() -> {
+            try {
+                return makeRequest(originalUri, timeoutSeconds, method, isMain, canRecordError);
+            } catch (Exception e) {
+                if (e instanceof RuntimeException) {
+                    throw (RuntimeException) e;
+                }
+                throw new RuntimeException(e);
+            }
+        });
+
+        try {
+            return future.get(timeoutSeconds * 2L, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Exception) {
+                throw (Exception) cause;
+            }
+            throw e;
+        }
+    }
+
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method) throws Exception {
-        return makeRequest(originalUri, timeoutSeconds, method, false);
+        return makeRequestSerialized(originalUri, timeoutSeconds, method, false, true);
     }
 
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain) throws Exception {
-        return makeRequest(originalUri, timeoutSeconds, method, isMain, true);
+        return makeRequestSerialized(originalUri, timeoutSeconds, method, isMain, true);
     }
+
 
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
         if (originalUri == null) throw new IllegalArgumentException("The provided URI is null.");

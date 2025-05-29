@@ -18,8 +18,6 @@ import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.Map.Entry;
 
-import org.icann.rdapconformance.validator.ConnectionStatus;
-import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -68,7 +66,8 @@ public final class TigValidation1Dot2 extends ProfileValidation {
       try {
         URI uri = URI.create(rdapResponse.uri().toString().replaceFirst(HTTPS_PREFIX, HTTP_PREFIX));
         // the two false items are: it is not the main connection and do not record an error if the http connection fails - that's a good thing that it fails!
-        HttpResponse<String> httpResponse = RDAPHttpRequest.makeRequest(uri, config.getTimeout(), GET, false, false);
+        HttpResponse<String> httpResponse = RDAPHttpRequest.makeRequestSerialized(uri, config.getTimeout(), GET, false, false);
+
         JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
         JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
         if (!httpResponse.uri().getScheme().equals(HTTPS) // if redirect to https, do not validate

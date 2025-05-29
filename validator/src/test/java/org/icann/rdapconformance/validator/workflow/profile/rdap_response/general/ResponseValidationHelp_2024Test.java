@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
+@Test(singleThreaded = true)
 public class ResponseValidationHelp_2024Test {
 
   private RDAPValidatorConfiguration mockConfig;

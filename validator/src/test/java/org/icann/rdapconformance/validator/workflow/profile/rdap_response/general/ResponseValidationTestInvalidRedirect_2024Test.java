@@ -21,6 +21,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+@Test(singleThreaded = true)
 public class ResponseValidationTestInvalidRedirect_2024Test {
 
     public static final String LOCATION = "Location";

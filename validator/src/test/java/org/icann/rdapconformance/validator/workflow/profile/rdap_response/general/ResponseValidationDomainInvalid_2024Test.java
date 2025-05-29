@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
+@Test(singleThreaded = true)
 public class ResponseValidationDomainInvalid_2024Test {
 
   private RDAPValidatorConfiguration mockConfig;
@@ -48,44 +49,43 @@ public class ResponseValidationDomainInvalid_2024Test {
     when(mockResponse.statusCode()).thenReturn(200);
     when(mockResponse.body()).thenReturn("{\"rdapConformance\":[], \"errorCode\":404}");
 
-    MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-    mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    try (MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class)) {
+      mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
 
-    boolean result = responseValidator.doValidate();
-    assertTrue(result);
-
-    mockRequest.close();
+      boolean result = responseValidator.doValidate();
+      assertTrue(result);
+    } // mockRequest.close() is automatically called here
   }
 
   @Test
   public void testDoValidate_InvalidDomainTypeUrl_WithInvalidInUri_AndQueryType() throws Exception {
     URI uri = new URI("http://example.com/rdap");
-    MockedStatic<RDAPHttpQueryTypeProcessor.RDAPHttpQueryType> queryTypeProcessor = Mockito.mockStatic(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.class);
-    queryTypeProcessor.when(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType::values)
-            .thenReturn(new RDAPHttpQueryTypeProcessor.RDAPHttpQueryType[] {
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.DOMAIN,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.AUTNUM,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.ENTITY,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVER,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.HELP});
 
-    when(mockConfig.getUri()).thenReturn(uri);
-    when(mockConfig.getTimeout()).thenReturn(1000);
-    when(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.getType(uri.toString())).thenReturn(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP);
+    try (MockedStatic<RDAPHttpQueryTypeProcessor.RDAPHttpQueryType> queryTypeProcessor = Mockito.mockStatic(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.class);
+        MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class)) {
 
-    HttpResponse<String> mockResponse = mock(HttpResponse.class);
-    when(mockResponse.statusCode()).thenReturn(404);
+      queryTypeProcessor.when(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType::values)
+                        .thenReturn(new RDAPHttpQueryTypeProcessor.RDAPHttpQueryType[] {
+                            RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.DOMAIN,
+                            RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP,
+                            RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.AUTNUM,
+                            RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.ENTITY,
+                            RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVER,
+                            RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS,
+                            RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.HELP});
 
-    MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-    mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+      when(mockConfig.getUri()).thenReturn(uri);
+      when(mockConfig.getTimeout()).thenReturn(1000);
+      when(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.getType(uri.toString())).thenReturn(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP);
 
-    boolean result = responseValidator.doValidate();
-    assertTrue(result);
+      HttpResponse<String> mockResponse = mock(HttpResponse.class);
+      when(mockResponse.statusCode()).thenReturn(404);
 
-    mockRequest.close();
-    queryTypeProcessor.close();
+      mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+
+      boolean result = responseValidator.doValidate();
+      assertTrue(result);
+    }
   }
 
   @Test
@@ -97,18 +97,18 @@ public class ResponseValidationDomainInvalid_2024Test {
     when(response.statusCode()).thenReturn(200);
     when(response.body()).thenReturn("{\"rdapConformance\":[]}");
 
-    MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-    mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+    try (MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class)) {
+      mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
 
-    assertThat(responseValidator.doValidate()).isFalse();
+      assertThat(responseValidator.doValidate()).isFalse();
 
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor.forClass(RDAPValidationResult.class);
-    assertThat(results.getAll().stream().anyMatch(result ->
-            result.getCode() == -46701 &&
-                    result.getMessage().equals("A query for an invalid domain name did not yield a 404 response.")
-    )).isTrue();
-
-    mockRequest.close();
+      ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor.forClass(RDAPValidationResult.class);
+      assertThat(results.getAll()
+                        .stream()
+                        .anyMatch(result -> result.getCode() == -46701 && result.getMessage()
+                                                                                .equals(
+                                                                                    "A query for an invalid domain name did not yield a 404 response."))).isTrue();
+    }
   }
 
   @Test
