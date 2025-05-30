@@ -138,7 +138,7 @@ public class RDAPHttpRequest {
 
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
         if (originalUri == null) throw new IllegalArgumentException("The provided URI is null.");
-        sleep(1); // Sleep for 1 second to avoid immediate retries
+//        sleep(1); // Sleep for 1 second to avoid immediate retries
 
         ConnectionTracker tracker = ConnectionTracker.getInstance();
         String trackingId = tracker.startTrackingNewConnection(originalUri, method, isMain);
