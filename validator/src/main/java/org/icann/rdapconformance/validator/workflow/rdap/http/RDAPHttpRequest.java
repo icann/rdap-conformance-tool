@@ -17,7 +17,7 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import io.netty.util.concurrent.Future;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -145,7 +145,7 @@ public class RDAPHttpRequest {
 
 
         String host = originalUri.getHost();
-        int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT) : originalUri.getPort();
+        int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase(HTTPS) ? HTTPS_PORT : HTTP_PORT) : originalUri.getPort();
 
         if (DNSCacheResolver.hasNoAddresses(host)) {
             logger.info("No IP address found for host: {} ", host);
@@ -261,7 +261,7 @@ public class RDAPHttpRequest {
 
                 return result;
             } catch (IOException ioe) {
-                logger.info("[trackingID: {}] Error during HTTP request: {}", trackingId, ioe.getMessage());
+                logger.info("[trackingID: {}] IOError during HTTP request: {}", trackingId, ioe.getMessage());
                 ConnectionStatus connStatus = handleRequestException(ioe, canRecordError);
                 tracker.completeCurrentConnection(ZERO, connStatus);
 
@@ -269,7 +269,7 @@ public class RDAPHttpRequest {
                 errorResponse.setConnectionStatusCode(connStatus);
                 return errorResponse;
             } catch (Exception ex) {
-                logger.info("[trackingID: {}] General error during HTTP request: {}", trackingId, ex.getMessage());
+                logger.info("[trackingID: {}] General Error during HTTP request: {}", trackingId, ex.getMessage());
                 ConnectionStatus connStatus = handleRequestException(new IOException(ex), canRecordError);
                 tracker.completeCurrentConnection(ZERO, connStatus);
 
