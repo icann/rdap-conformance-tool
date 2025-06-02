@@ -23,7 +23,7 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
       RDAPValidatorResults results,
       RDAPDatasetService datasetService,
       RDAPQueryType queryType) {
-    super(config, rdapResponse, results, datasetService, queryType, -47201);
+    super(rdapResponse, results, datasetService, queryType, -47201);
     this.config = config;
   }
 

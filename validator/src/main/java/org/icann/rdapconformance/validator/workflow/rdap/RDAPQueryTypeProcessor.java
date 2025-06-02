@@ -1,7 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
-import org.icann.rdapconformance.validator.ToolResult;
-
 public interface RDAPQueryTypeProcessor {
 
   /**
@@ -12,7 +10,7 @@ public interface RDAPQueryTypeProcessor {
   /**
    * Get the error status when query type is invalid.
    */
-  ToolResult getErrorStatus();
+  RDAPValidationStatus getErrorStatus();
 
   /**
    * Get the query type.

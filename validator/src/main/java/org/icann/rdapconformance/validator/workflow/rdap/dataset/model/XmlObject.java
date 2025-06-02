@@ -1,9 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import static org.icann.rdapconformance.validator.CommonUtils.DASH;
-import static org.icann.rdapconformance.validator.CommonUtils.ONE;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-
 import java.io.IOException;
 import java.io.InputStream;
 import javax.xml.XMLConstants;
@@ -72,9 +68,9 @@ public abstract class XmlObject implements RDAPDatasetModel {
       int nbr = Integer.parseInt(numberOrInterval);
       return nbr == numberToCheck;
     } catch (NumberFormatException e) {
-      String[] interval = numberOrInterval.split(DASH, 2);
-      int min = Integer.parseInt(interval[ZERO]);
-      int max = Integer.parseInt(interval[ONE]);
+      String[] interval = numberOrInterval.split("-", 2);
+      int min = Integer.parseInt(interval[0]);
+      int max = Integer.parseInt(interval[1]);
       return min <= numberToCheck || numberToCheck <= max;
     }
   }

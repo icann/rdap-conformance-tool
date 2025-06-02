@@ -3,34 +3,36 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
-
+import java.net.http.HttpTimeoutException;
 import java.security.Security;
-import java.util.*;
-import org.icann.rdapconformance.validator.ConformanceError;
-import org.icann.rdapconformance.validator.ConnectionStatus;
-import org.icann.rdapconformance.validator.ConnectionTracker;
-import org.icann.rdapconformance.validator.StatusCodes;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 
-import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.SimpleHttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.icann.rdapconformance.validator.CommonUtils.CONTENT_TYPE;
-import static org.icann.rdapconformance.validator.CommonUtils.GET;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
-import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
-import static org.icann.rdapconformance.validator.CommonUtils.SEMI_COLON;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
 public class RDAPHttpQuery implements RDAPQuery {
 
+    private static final int HTTP_NOT_FOUND = 404;
+    private static final int ZERO = 0;
+
+    private static final String SEMI_COLON = ";";
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String LOCATION = "Location";
     private static final String APPLICATION_RDAP_JSON = "application/rdap+JSON";
     public static final String OBJECT_CLASS_NAME = "objectClassName";
     public static final String ENTITIES = "entities";
@@ -39,18 +41,15 @@ public class RDAPHttpQuery implements RDAPQuery {
     public static final String NETWORKS = "networks";
     public static final String ERROR_CODE = "errorCode";
     public static final String RDAP_CONFORMANCE = "rdapConformance";
-    public static final String NAMESERVER_SEARCH_RESULTS = "nameserverSearchResults";
 
     private List<URI> redirects = new ArrayList<>();
     private String acceptHeader;
     private final RDAPValidatorConfiguration config;
     private RDAPValidatorResults results = null;
     private HttpResponse<String> httpResponse = null;
-    private String connectionTrackingId = "";
-
+    private RDAPValidationStatus status = null;
     private JsonData jsonResponse = null;
     private boolean isQuerySuccessful = true;
-    private ConnectionStatus status = null;
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
@@ -69,123 +68,95 @@ public class RDAPHttpQuery implements RDAPQuery {
         System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
     }
 
+  /**
+   * Launch the HTTP request and validate it.
+   */
+  @Override
+  public boolean run() {
+      this.makeRequest(this.config.getUri());
+      this.validate();
+      return this.isQuerySuccessful();
+  }
 
-      /**
-       * Launch the HTTP request and validate it.
-       */
-      @Override
-      public boolean run() {
-          //TODO ok, this needs to be abstracted into a state holding instance
-          // without this we error out forever after a single failure
-          this.isQuerySuccessful = true; // reset to the default state
-          this.status = null; // same
-          // continue on
-          this.makeRequest(this.config.getUri());
-          this.validate();
-          return this.isQuerySuccessful();
-      }
+  /**
+   * Get the HTTP response status code
+   */
+  @Override
+  public Optional<Integer> getStatusCode() {
+    return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
+  }
 
-    /**
-       * Get the HTTP response status code
-       */
-      @Override
-      public Optional<Integer> getStatusCode() {
-        return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
-      }
+  // These two (getRedirects and getAcceptHeader) are specific to HTTP queries
+  /**
+   * Get the list of redirects
+   */
+  public List<URI> getRedirects() {
+    return redirects;
+  }
 
-      // These two (getRedirects and getAcceptHeader) are specific to HTTP queries
-      /**
-       * Get the list of redirects
-       */
-      public List<URI> getRedirects() {
-        return redirects;
-      }
-
-      /**
-       * Get the connection tracking ID
-       */
-      public String getConnectionTrackingId() {
-          return connectionTrackingId;
-      }
-
-      /**
-       * Get the Accept header
-       */
-      public String getAcceptHeader() {
-        return acceptHeader;
-      }
+  /**
+   * Get the Accept header
+   */
+  public String getAcceptHeader() {
+    return acceptHeader;
+  }
 
 
-      @Override
-      public boolean checkWithQueryType(RDAPQueryType queryType) {
-          /**
-           * Validates if the RDAP response matches the expected format for the given query type.
-           *
-           * For lookup queries: checks if the response contains a valid objectClassName.
-           * For nameserver search queries: checks if the response contains a nameserverSearchResults collection.
-           *
-           * Adds appropriate error codes to results file if validation fails:
-           * - Error -13003: Missing objectClassName in lookup query response
-           * - Error -12610: Missing nameserverSearchResults in nameserver search query (RDAP Profile Feb 2024)
-           *
-           * @param queryType The type of RDAP query performed
-           * @return Always returns true to continue processing regardless of validation results
-           */
-        if (httpResponse.statusCode() == HTTP_OK) {
-          if (queryType.isLookupQuery() && !jsonResponseValid()) {
-            logger.info("objectClassName was not found in the topmost object");
-              addErrorToResultsFile(-13003, httpResponse.body(), "The response does not have an objectClassName string.");
-          } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !hasNameserverSearchResults()) {
-            logger.info("No JSON array in answer");
-            if (config.useRdapProfileFeb2024()) {
-                addErrorToResultsFile(-12610, httpResponse.body(), "The nameserverSearchResults structure is required.");
-            } else {
-                addErrorToResultsFile(-13003, httpResponse.body(),"The response does not have an objectClassName string.");
-            }
-          }
-        }
-        return true; // this always returns true
-      }
-
-        @Override
-        public boolean isErrorContent() {
-            return httpResponse.statusCode() == HTTP_NOT_FOUND;
-        }
-
-      @Override
-      public String getData() {
-        return httpResponse.body();
-      }
-
-      @Override
-      public Object getRawResponse() {
-        return httpResponse;
-      }
-
-      @Override
-      public void setResults(RDAPValidatorResults results) {
-        this.results = results;
-      }
-
-      /**
-       * Check if we got errors with the RDAP HTTP request.
-       */
-      private boolean isQuerySuccessful() {
-          return (status == null || status.getCode() == 0) && isQuerySuccessful;
-      }
-
-    /**
-     * Get the connection status in case of error
+  @Override
+  public boolean checkWithQueryType(RDAPQueryType queryType) {
+    /*
+     * If a response is available to the tool, but the expected objectClassName in the topmost
+     * object was not found for a lookup query (i.e. domain/<domain name>,
+     * nameserver/<nameserver name> and entity/<handle>) nor the expected JSON array
+     * (i.e. nameservers?ip=<nameserver search pattern>, just the JSON array should exist,
+     * not validation on the contents) for a search query, code error -13003 added in results file.
      */
-    @Override
-    public ConformanceError getErrorStatus() {
-        return status;
+    if (httpResponse.statusCode() == HTTP_OK) {
+      if (queryType.isLookupQuery() && !jsonResponseValid()) {
+        logger.error("objectClassName was not found in the topmost object");
+          addErrorToResultsFile(-13003, httpResponse.body(), "The response does not have an objectClassName string.");
+      } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !jsonIsSearchResponse()) {
+        logger.error("No JSON array in answer");
+        addErrorToResultsFile(-13003, httpResponse.body(),"The response does not have an objectClassName string.");
+      }
     }
+    return true; // this always returns true
+  }
 
     @Override
-    public void setErrorStatus(ConformanceError status) {
-        this.status = (ConnectionStatus) status; // remember, 0 is ok - SUCCESS
+    public boolean isErrorContent() {
+        return httpResponse.statusCode() == HTTP_NOT_FOUND;
     }
+
+  @Override
+  public String getData() {
+    return httpResponse.body();
+  }
+
+  @Override
+  public Object getRawResponse() {
+    return httpResponse;
+  }
+
+  @Override
+  public void setResults(RDAPValidatorResults results) {
+    this.results = results;
+  }
+
+  /**
+   * Check if we got errors with the RDAP HTTP request.
+   */
+  private boolean isQuerySuccessful() {
+    return status == null && isQuerySuccessful;
+  }
+
+  /**
+   * Get the RDAP status in case of error
+   */
+  public RDAPValidationStatus getErrorStatus() {
+    return status;
+  }
+
 
     public void makeRequest(URI currentUri ) {
         try {
@@ -194,18 +165,10 @@ public class RDAPHttpQuery implements RDAPQuery {
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
-                response = RDAPHttpRequest.makeRequest(currentUri, this.config.getTimeout(), GET, true);
-                int httpStatusCode = response.statusCode();
-                ConnectionStatus st = ((SimpleHttpResponse) response).getConnectionStatusCode();
-                this.setErrorStatus(((SimpleHttpResponse) response).getConnectionStatusCode());   // ensure this is set
-                StatusCodes.add(httpStatusCode); // we need this for future reference
-               // TODO: we need to think about why we have this check in here and remove when we refactor the State Error/Success Handling
-                if(httpStatusCode == 0) { // if our fake status code is 0, we have a problem
-                    isQuerySuccessful = false;
-                    return;
-                }
+                response = RDAPHttpRequest.makeHttpGetRequest(currentUri, this.config.getTimeout());
+                int status = response.statusCode();
 
-                if (isRedirectStatus(httpStatusCode)) {
+                if (isRedirectStatus(status)) {
                     Optional<String> location = response.headers().firstValue(LOCATION);
                     if (location.isEmpty()) {
                         break; // can't follow if no location header
@@ -235,20 +198,20 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             // check for the redirects
             if (remainingRedirects == ZERO) {
-                status = ConnectionStatus.TOO_MANY_REDIRECTS;
-                ConnectionTracker.getInstance().updateCurrentConnection(status);
+                status = RDAPValidationStatus.TOO_MANY_REDIRECTS;
             }
 
             // if we exit the loop without a redirect, we have a final response
             httpResponse = response;
         } catch (Exception e) {
-            logger.info("Exception when making HTTP request", e);
+            handleRequestException(e); // catch for all subclasses of these exceptions
         }
     }
 
+
     private void validate() {
         // If it wasn't successful, we don't need to validate
-        if (!isQuerySuccessful() || httpResponse == null) {
+        if (!isQuerySuccessful()) {
             logger.info("Querying wasn't successful .. don't validate ");
             return;
         }
@@ -258,16 +221,12 @@ public class RDAPHttpQuery implements RDAPQuery {
         HttpHeaders headers = httpResponse.headers();
         String rdapResponse = httpResponse.body();
 
-        logger.info("http Status code: {}", httpStatusCode);
-
         if(config.useRdapProfileFeb2024()) {
             if(!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
                 addErrorToResultsFile(-12107, rdapResponse,"The errorCode value is required in an error response.");
             }
         }
 
-        // dump headers
-        headers.map().forEach((k, v) -> logger.info("Header: {} = {}", k, v));
         // If a response is available to the tool, and the header Content-Type is not
         // application/rdap+JSON, error code -13000 added in results file.
         if (Arrays.stream(String.join(SEMI_COLON, headers.allValues(CONTENT_TYPE)).split(SEMI_COLON))
@@ -286,7 +245,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
         // If a response is available to the tool, but the HTTP status code is not 200 nor 404, error code -13002 added in results file
         if (!List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpStatusCode)) {
-            logger.info("Invalid HTTP status {}", httpStatusCode);
+            logger.error("Invalid HTTP status {}", httpStatusCode);
             addErrorToResultsFile(-13002, String.valueOf(httpStatusCode), "The HTTP status code was neither 200 nor 404.");
             isQuerySuccessful = false;
         }
@@ -314,7 +273,49 @@ public class RDAPHttpQuery implements RDAPQuery {
         return false; // not copying them, so don't worry
     }
 
+    /**
+     * Handle exceptions that occur during the HTTP request.
+     */
+  private void handleRequestException(Exception e) {
+    logger.info("Exception during RDAP query", e);
+    if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
+      status = hasCause(e, "java.nio.channels.UnresolvedAddressException")
+          ? RDAPValidationStatus.NETWORK_SEND_FAIL
+          : RDAPValidationStatus.CONNECTION_FAILED;
+      return;
+    }
+
+    if (e instanceof IOException) {
+      status = analyzeIOException((IOException) e);
+      return;
+    }
+
+    status = RDAPValidationStatus.CONNECTION_FAILED;
+  }
+
   /* *
+   * Analyze the IOException to determine the RDAP validation status.
+   */
+  private RDAPValidationStatus analyzeIOException(IOException e) {
+    if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
+      return RDAPValidationStatus.EXPIRED_CERTIFICATE;
+    } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
+      return RDAPValidationStatus.REVOKED_CERTIFICATE;
+    } else if (hasCause(e, "java.security.cert.CertificateException")) {
+        if (e.getMessage().contains("No name matching") ||
+            e.getMessage().contains("No subject alternative DNS name matching")) {
+            return RDAPValidationStatus.INVALID_CERTIFICATE;
+        }
+      return RDAPValidationStatus.CERTIFICATE_ERROR;
+    } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException")) {
+      return RDAPValidationStatus.HANDSHAKE_FAILED;
+    } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
+      return RDAPValidationStatus.CERTIFICATE_ERROR;
+    }
+
+    return RDAPValidationStatus.NETWORK_RECEIVE_FAIL;
+  }
+
   /**
    * Check if the RDAP json response contains a specific key.
    */
@@ -351,24 +352,31 @@ public class RDAPHttpQuery implements RDAPQuery {
     return null != jsonResponse && objectClassExists;
   }
 
-    /**
-     * Checks if the JSON response contains a nameserver search results collection.
-     *
-     * @return true if the response contains a valid nameserverSearchResults collection
-     */
-    boolean hasNameserverSearchResults() {
-        return null != jsonResponse && jsonResponse.hasKey(NAMESERVER_SEARCH_RESULTS)
-            && jsonResponse.getValue(NAMESERVER_SEARCH_RESULTS) instanceof Collection<?>;
+  /**
+   * Check if the RDAP is a JSON array results response
+   */
+  boolean jsonIsSearchResponse() {
+    return null != jsonResponse && jsonResponse.hasKey("nameserverSearchResults")
+        && jsonResponse.getValue("nameserverSearchResults") instanceof Collection<?>;
+  }
+
+  private boolean hasCause(Throwable e, String causeClassName) {
+    while (e.getCause() != null) {
+      if (e.getCause().getClass().getName().equals(causeClassName)) {
+        return true;
+      }
+      e = e.getCause();
     }
+    return false;
+  }
 
-
-  public static class JsonData {
+  static class JsonData {
 
     private Map<String, Object> rawRdapMap = null;
     private List<Object> rawRdapList = null;
 
 
-    public JsonData(String data) {
+    private JsonData(String data) {
       ObjectMapper mapper = new ObjectMapper();
 
       try {
@@ -452,5 +460,13 @@ public class RDAPHttpQuery implements RDAPQuery {
             case 301, 302, 303, 307, 308 -> true;
             default -> false;
         };
+    }
+
+    public void addErrorToResultsFile(int code, String value, String message) {
+      results.add(RDAPValidationResult.builder()
+                                        .code(code)
+                                        .value(value)
+                                        .message(message)
+                                        .build());
     }
 }

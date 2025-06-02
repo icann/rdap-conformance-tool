@@ -22,7 +22,7 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
   private final Class<T> validationClass;
   protected RDAPQueryType baseQueryType;
   private RDAPDatasetService datasetService;
-  private RDAPQueryType queryType; // must be public
+  private RDAPQueryType queryType;
   private EPPRoid eppRoid;
 
   public HandleValidationTest(String validJsonResourcePath, String testGroupName,

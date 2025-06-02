@@ -1,15 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import static org.icann.rdapconformance.validator.CommonUtils.DASH;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
-import static org.icann.rdapconformance.validator.CommonUtils.TIMEOUT_IN_5SECS;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.http.HttpResponse;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -18,16 +9,12 @@ import java.util.Optional;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
-import org.icann.rdapconformance.validator.NetworkInfo;
-import org.icann.rdapconformance.validator.NetworkProtocol;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xbill.DNS.HTTPSRecord;
 
 public class TigValidation1Dot5_2024 extends ProfileValidation {
 
@@ -54,52 +41,30 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
         Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
         while (responseOpt.isPresent()) {
             HttpResponse<String> response = responseOpt.get();
-            if (response.uri().getScheme().equals(HTTPS)) {
+            if (response.uri().getScheme().equals("https")) {
                 SSLContext sslContext;
 
                 try {
                     sslContext = SSLContext.getDefault();
                 } catch (NoSuchAlgorithmException e) {
-                    logger.info("Cannot create SSL context", e);
+                    logger.error("Cannot create SSL context", e);
                     return false;
                 }
 
                 int port = config.getUri().getPort();
-                if (port < ZERO) {
-                    port = HTTPS_PORT;
+                if (port < 0) {
+                    port = 443;
                 }
 
                 List<String> enabledProtocols;
-                try (Socket socket = new Socket()) {
-                    String hostname = config.getUri().getHost();
-                    InetAddress ipAddress = null;
+                try (SSLSocket sslSocket = (SSLSocket) sslContext.getSocketFactory()
+                    .createSocket(config.getUri().getHost(), port)) {
+                    sslSocket.startHandshake();
+                    enabledProtocols = Arrays.asList(sslSocket.getEnabledProtocols());
 
-                    if (NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) {
-                        ipAddress = DNSCacheResolver.getFirstV6Address(hostname);
-                        logger.info("Using IPv6 address {} for host {}", ipAddress, hostname);
-                    } else { // then we are doing v4
-                        ipAddress = DNSCacheResolver.getFirstV4Address(hostname);
-                        logger.info("Using IPv4 address {} for host {}", ipAddress, hostname);
-                    }
-
-                    if (ipAddress == null) {
-                        logger.info("Cannot resolve correct v4 or v6 host adder for  {}", hostname);
-                        return false;
-                    }
-
-                    socket.connect(new InetSocketAddress(ipAddress, port), TIMEOUT_IN_5SECS);
-                    logger.info("Connected to {} ({})", hostname, ipAddress.getHostAddress());
-
-                    try (SSLSocket sslSocket = (SSLSocket) sslContext.getSocketFactory().createSocket(socket,
-                        config.getUri().getHost(), port, true)) {
-                        sslSocket.startHandshake();
-                        enabledProtocols = Arrays.asList(sslSocket.getEnabledProtocols());
-                        logger.debug("Enabled protocols: {}", enabledProtocols);
-                    }
-
-
+                    logger.info("enabledProtocols = {}", enabledProtocols);
                 } catch (IOException e) {
-                    logger.info("Error during SSL connection setup", e);
+                    logger.error("Cannot create SSL connection", e);
                     return false;
                 }
 
@@ -107,8 +72,6 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                     if (!"TLSv1.2".equalsIgnoreCase(enabledProtocol) && !"TLSv1.3".equalsIgnoreCase(enabledProtocol)) {
                         results.add(RDAPValidationResult.builder()
                             .code(-61100)
-                            .httpStatusCode(ZERO)
-                            .httpMethod(DASH)
                             .value(response.uri().toString())
                             .message("The RDAP server must only use TLS 1.2 or TLS 1.3")
                             .build());
@@ -133,8 +96,6 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
 
                                 results.add(RDAPValidationResult.builder()
                                     .code(-61101)
-                                    .httpStatusCode(ZERO)
-                                    .httpMethod(DASH)
                                     .value(response.uri().toString())
                                     .message("The RDAP server must use one of the following cipher suites when using TLS 1.2: "
                                         + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, "
@@ -143,7 +104,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                                 isValid = false;
                             }
                         } catch (IOException e) {
-                            logger.info("Cannot create SSL connection", e);
+                            logger.error("Cannot create SSL connection", e);
                             return false;
                         }
                     } // end of TLSv1.2 protocol

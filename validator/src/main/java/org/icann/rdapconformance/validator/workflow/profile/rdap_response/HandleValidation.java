@@ -1,9 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 
-import static org.icann.rdapconformance.validator.CommonUtils.DASH;
-
-import org.icann.rdapconformance.validator.CommonUtils;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -11,28 +7,18 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 
-
-/**
- * Used by the following validations:
- *  ResponseValidation2Dot2
- *  ResponseValidation2Dot7Dot1DotXAndRelated3And4 (via SimpleHandleValidation)
- *  ResponseValidation2Dot9Dot1And2Dot9Dot2
- *  ResponseValidation4Dot1Handle
- */
 public abstract class HandleValidation extends ProfileJsonValidation {
 
   private final RDAPDatasetService datasetService;
   protected final RDAPQueryType queryType;
-  protected final RDAPValidatorConfiguration config;
   final int code;
 
-  public HandleValidation(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
-                          RDAPDatasetService datasetService, RDAPQueryType queryType, int code) {
+  public HandleValidation(String rdapResponse, RDAPValidatorResults results,
+      RDAPDatasetService datasetService, RDAPQueryType queryType, int code) {
     super(rdapResponse, results);
     this.datasetService = datasetService;
     this.queryType = queryType;
     this.code = code;
-    this.config = config;
   }
 
   protected boolean validateHandle(String handleJsonPointer) {
@@ -46,7 +32,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
       handle = obj.toString();
     }
 
-    if (handle == null || !handle.matches(CommonUtils.HANDLE_PATTERN)) {
+    if (handle == null || !handle.matches("(\\w|_){1,80}-\\w{1,8}")) {
       results.add(RDAPValidationResult.builder()
           .code(code)
           .value(getResultValue(handleJsonPointer))
@@ -55,8 +41,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .build());
       return false;
     }
-
-    String roid = handle.substring(handle.indexOf(DASH) + 1);
+    String roid = handle.substring(handle.indexOf("-") + 1);
     EPPRoid eppRoid = datasetService.get(EPPRoid.class);
     if (eppRoid.isInvalid(roid)) {
       results.add(RDAPValidationResult.builder()

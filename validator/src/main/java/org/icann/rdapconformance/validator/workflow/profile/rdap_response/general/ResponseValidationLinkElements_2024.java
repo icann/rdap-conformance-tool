@@ -56,7 +56,7 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
                     }
                 }
             } catch (Exception e) {
-                logger.info("Exception during evaluation of link properties: {} \n\n details: {}", jsonObject.query(jsonPointer), e);
+                logger.error("Exception during evaluation of link properties: {} \n\n details: {}", jsonObject.query(jsonPointer), e);
             }
         }
         return isOK;

@@ -1,17 +1,15 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
-import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
-
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.icann.rdapconformance.validator.SchemaValidator;
-import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.slf4j.Logger;
@@ -21,7 +19,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQueryTypeProcessor.class);
   private final RDAPValidatorConfiguration config;
-  private ToolResult status = null;
+  private RDAPValidationStatus status = null;
   private RDAPHttpQueryType queryType = null;
 
   public RDAPHttpQueryTypeProcessor(RDAPValidatorConfiguration config) {
@@ -48,13 +46,13 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     queryType = RDAPHttpQueryType.getType(this.config.getUri().toString());
     if (queryType == null) {
       logger.error("Unknown RDAP query type for URI {}", this.config.getUri());
-      status = ToolResult.UNSUPPORTED_QUERY;
+      status = RDAPValidationStatus.UNSUPPORTED_QUERY;
       return false;
     }
     if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
       String domainName = queryType.getValue(this.config.getUri().toString());
       String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
-      RDAPValidatorResults testDomainResults = RDAPValidatorResultsImpl.getInstance();
+      RDAPValidatorResults testDomainResults = new RDAPValidatorResultsImpl();
       SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults,
           datasetService);
       if (!validator.validate(domainNameJson)) {
@@ -62,7 +60,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         if (testDomainResults.getAll().stream()
             .map(RDAPValidationResult::getCode)
             .anyMatch(c -> c == -10303)) {
-          status =  ToolResult.MIXED_LABEL_FORMAT;
+          status =  RDAPValidationStatus.MIXED_LABEL_FORMAT;
           return false;
         }
       }
@@ -71,7 +69,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
   }
 
   @Override
-  public ToolResult getErrorStatus() {
+  public RDAPValidationStatus getErrorStatus() {
     return this.status;
   }
 
@@ -81,7 +79,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
   }
 
 
-  public enum RDAPHttpQueryType {
+  private enum RDAPHttpQueryType {
     DOMAIN(RDAPQueryType.DOMAIN, Pattern.compile("/domain/([^/]+)$")),
     NAMESERVER(RDAPQueryType.NAMESERVER, Pattern.compile("/nameserver/([^/]+)$")),
     ENTITY(RDAPQueryType.ENTITY, Pattern.compile("/entity/([^/]+)$")),
@@ -98,7 +96,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
       this.pattern = pattern;
     }
 
-    public static RDAPHttpQueryType getType(String query) {
+    static RDAPHttpQueryType getType(String query) {
       for (RDAPHttpQueryType qt : RDAPHttpQueryType.values()) {
         Matcher matcher = qt.pattern.matcher(query);
         if (matcher.find()) {
@@ -117,7 +115,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
       if (matcher.find()) {
         return matcher.group(1);
       }
-      return EMPTY_STRING;
+      return "";
     }
   }
 }

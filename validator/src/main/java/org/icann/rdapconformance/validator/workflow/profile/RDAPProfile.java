@@ -16,7 +16,6 @@ public class RDAPProfile {
   public boolean validate() {
     boolean result = true;
     for (ProfileValidation validation : validations) {
-      logger.info("Validating: {}", validation.getGroupName());
         result &= validation.validate();
     }
     return result;
