@@ -99,7 +99,7 @@
   "stdRdapStatusValidation": -12211,
   "stdRdapPublicIdsValidation": -12212,
   "stdRdapRemarksValidation": -12213,
-  "stdRdapLinksValidation": -12214,
+  "stdRdapLinksValidation": -10610,
   "stdRdapPort43WhoisServerValidation": -12215,
   "stdRdapEventsValidation": -12216,
   "stdRdapNoticesRemarksValidation": -12217,
