@@ -96,12 +96,12 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       validator = new RDAPFileValidator(this, fileSystem);
     }
 
-    // No matter which validator, we need to initialize the dataset service
-    // TODO: move to a common place
-    if(RDAPHttpValidator.initializeDatasetService(this) == ToolResult.DATASET_UNAVAILABLE.getCode()) {
-      logger.error("Unable to initialize the dataset service, exiting.");
-      return ToolResult.DATASET_UNAVAILABLE.getCode();
-    }
+//    // No matter which validator, we need to initialize the dataset service
+//    // TODO: move to a common place
+//    if(RDAPHttpValidator.initializeDatasetService(this) == ToolResult.DATASET_UNAVAILABLE.getCode()) {
+//      logger.error("Unable to initialize the dataset service, exiting.");
+//      return ToolResult.DATASET_UNAVAILABLE.getCode();
+//    }
 
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
 

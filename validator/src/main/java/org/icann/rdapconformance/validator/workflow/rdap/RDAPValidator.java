@@ -144,6 +144,9 @@ public class RDAPValidator implements ValidatorWorkflow {
 //        if(!datasetInitialized) {
 //            return ToolResult.DATASET_UNAVAILABLE.getCode();
 //        }
+        if (!datasetService.download(this.config.useLocalDatasets())) {
+            return ToolResult.DATASET_UNAVAILABLE.getCode();
+        }
 
         if (!queryTypeProcessor.check(datasetService)) {
             return  queryTypeProcessor.getErrorStatus().getCode();
