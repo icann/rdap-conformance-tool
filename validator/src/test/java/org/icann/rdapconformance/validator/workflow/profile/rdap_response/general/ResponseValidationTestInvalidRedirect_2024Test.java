@@ -30,8 +30,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
 
     @BeforeMethod
     public void setUp() {
-        results = RDAPValidatorResultsImpl.getInstance();
-        results.clear();
+        results = new RDAPValidatorResultsImpl();
         config = mock(RDAPValidatorConfiguration.class);
         when(config.getTimeout()).thenReturn(5000);
         when(config.getUri()).thenReturn(URI.create("http://example.com/rdap"));
@@ -66,7 +65,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
     @Test
     public void testDoValidate_NoRedirect() throws Exception {
         HttpResponse<String> response = mock(HttpResponse.class);
-        when(response.statusCode()).thenReturn(404);  // Change to 404 Not Found instead of 200 OK
+        when(response.statusCode()).thenReturn(200);
 
         MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
         mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
@@ -114,80 +113,5 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
 
         assertThat(validation.handleRedirect(response)).isTrue();
         assertThat(results.getAll()).isEmpty();
-    }
-
-    @Test
-    public void testDoValidate_Returns200OK() throws Exception {
-        // Test for error code -13006: Server responds with 200 OK for test.invalid
-        HttpResponse<String> response = mock(HttpResponse.class);
-        when(response.statusCode()).thenReturn(200);  // 200 OK response
-
-        // Mock the URI in the response to avoid NullPointerException
-        when(response.uri()).thenReturn(URI.create("http://example.com/rdap/domain/test.invalid"));
-
-        MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-        mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
-
-        assertThat(validation.doValidate()).isFalse();
-
-        assertThat(results.getAll().stream().anyMatch(result ->
-            result.getCode() == -13006 &&
-                result.getMessage().equals("Server responded with a 200 OK for 'test.invalid'.")
-        )).isTrue();
-
-        mockRequest.close();
-    }
-
-    @Test
-    public void testDoValidate_Returns404NotFound() throws Exception {
-        HttpResponse<String> response = mock(HttpResponse.class);
-        when(response.statusCode()).thenReturn(404);
-
-        MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-        mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
-
-        assertThat(validation.doValidate()).isTrue();
-        assertThat(results.getAll()).isEmpty();
-
-        mockRequest.close();
-    }
-
-    @Test
-    public void testCanTestForInvalid_True() {
-        // Ensure validation runs when all conditions are met
-        when(config.isGtldRegistry()).thenReturn(true);
-        when(config.isGtldRegistrar()).thenReturn(true);
-        when(config.useRdapProfileFeb2024()).thenReturn(true);
-
-        assertThat(validation.canTestForInvalid()).isTrue();
-    }
-
-    @Test
-    public void testCanTestForInvalid_False() {
-        // Ensure validation is skipped when conditions are not met
-        when(config.isGtldRegistry()).thenReturn(false);
-        when(config.isGtldRegistrar()).thenReturn(false);
-        when(config.useRdapProfileFeb2024()).thenReturn(true);
-
-        assertThat(validation.canTestForInvalid()).isFalse();
-
-        when(config.isGtldRegistry()).thenReturn(true);
-        when(config.isGtldRegistrar()).thenReturn(true);
-        when(config.useRdapProfileFeb2024()).thenReturn(false);
-
-        assertThat(validation.canTestForInvalid()).isFalse();
-    }
-
-    @Test
-    public void testCreateTestInvalidURI() throws Exception {
-        URI testUri = (URI) invokeMethod(validation, "createTestInvalidURI");
-        assertThat(testUri.toString()).isEqualTo("http://example.com/rdap/domain/test.invalid");
-    }
-
-    // Helper method to invoke private methods using reflection
-    private Object invokeMethod(Object object, String methodName) throws Exception {
-        java.lang.reflect.Method method = object.getClass().getDeclaredMethod(methodName);
-        method.setAccessible(true);
-        return method.invoke(object);
     }
 }

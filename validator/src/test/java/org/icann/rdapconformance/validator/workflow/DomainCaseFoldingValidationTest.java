@@ -8,13 +8,10 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpResponse;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -73,23 +70,14 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+    givenUriWithDifferentResponse("/domain/tEsT.ExAmPlE");
 
-      givenUri("http");
-      doReturn(config.getUri()).when(httpsResponse).uri();
-      doReturn(RDAP_RESPONSE).when(httpsResponse).body();
-      givenUriWithDifferentResponse("/domain/tEsT.ExAmPlE");
-
-      validateNotOk(results,
-          -10403, "http://127.0.0.1:8080/domain/tEsT.ExAmPlE",
-          "RDAP responses do not match when handling domain label case folding.");
-    } catch (Exception e) {
-      throw new RuntimeException("Error mocking DNSCacheResolver", e);
-    }
+    validateNotOk(results,
+        -10403, "http://localhost:8080/domain/tEsT.ExAmPlE",
+        "RDAP responses do not match when handling domain label case folding.");
   }
 
   @Test

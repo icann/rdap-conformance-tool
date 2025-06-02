@@ -1,10 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.rdap.file;
 
-import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationStatus;
 
 public class RDAPFileQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
@@ -21,7 +21,7 @@ public class RDAPFileQueryTypeProcessor implements RDAPQueryTypeProcessor {
   }
 
   @Override
-  public ToolResult getErrorStatus() {
+  public RDAPValidationStatus getErrorStatus() {
     return null;
   }
 

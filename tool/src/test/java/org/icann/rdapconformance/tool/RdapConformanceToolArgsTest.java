@@ -88,14 +88,6 @@ public class RdapConformanceToolArgsTest {
   }
 
   @Test
-  public void testAdditionalConformanceQueries_Arg_IsOk() {
-    String[] args = "--config=/tmp/test --thin --gtld-registry http://example.org --use-rdap-profile-february-2019 --additional-conformance-queries".split(" ");
-
-    assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
-            .doesNotThrowAnyException();
-  }
-
-  @Test
   public void testGtldRegistryArg_IsOk() {
     String[] args = "--config=/tmp/test --gtld-registry http://example.org".split(" ");
 

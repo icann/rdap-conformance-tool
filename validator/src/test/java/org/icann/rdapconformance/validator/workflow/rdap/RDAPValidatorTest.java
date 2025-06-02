@@ -7,20 +7,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
+import java.io.PrintStream;
 import java.net.URI;
 import java.util.Optional;
-import org.icann.rdapconformance.validator.ConnectionStatus;
-import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfile;
-import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 public class RDAPValidatorTest {
@@ -39,43 +38,44 @@ public class RDAPValidatorTest {
   @BeforeMethod
   public void setUp() throws IOException {
     doReturn(true).when(config).check();
-    doReturn(URI.create("https://example.com")).when(config).getUri(); // Mock getUri to return a valid URI
-    validator = new RDAPValidator(config, fs, processor, query, configParser, results, datasetService);
+    validator = new RDAPValidator(config, fs, processor, query, configParser, results,
+        datasetService) {
+
+    };
     doReturn(true).when(processor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile("Test", null, null, null, null, false, false, false, false, false))
-        .when(configParser).parse(any());
+            .when(configParser).parse(any());
   }
 
   @Test
   public void testValidate_InvalidConfiguration_ReturnsErrorStatus1() throws IOException {
     doThrow(IOException.class).when(configParser).parse(any());
 
-    assertThat(validator.validate()).isEqualTo(ToolResult.CONFIG_INVALID.getCode());
+    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.CONFIG_INVALID.getValue());
   }
 
-  @Ignore //TODO: this has to do exit codes now - we need to fix this
   @Test
   public void testValidate_DatasetsError_ReturnsErrorStatus2() {
     doReturn(false).when(datasetService).download(anyBoolean());
 
-    assertThat(validator.validate()).isEqualTo(ToolResult.DATASET_UNAVAILABLE.getCode());
+    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.DATASET_UNAVAILABLE.getValue());
   }
 
   @Test
   public void testValidate_QueryTypeProcessorError_ReturnsError() {
     doReturn(false).when(processor).check(datasetService);
-    doReturn(ToolResult.UNSUPPORTED_QUERY).when(processor).getErrorStatus();
+    doReturn(RDAPValidationStatus.UNSUPPORTED_QUERY).when(processor).getErrorStatus();
 
-    assertThat(validator.validate()).isEqualTo(ToolResult.UNSUPPORTED_QUERY.getCode());
+    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.UNSUPPORTED_QUERY.getValue());
   }
 
   @Test
   public void testValidate_QueryError_ReturnsError() {
     doReturn(false).when(query).run();
-    doReturn(ConnectionStatus.CONNECTION_FAILED).when(query).getErrorStatus();
+    doReturn(RDAPValidationStatus.CONNECTION_FAILED).when(query).getErrorStatus();
 
-    assertThat(validator.validate()).isEqualTo(ConnectionStatus.CONNECTION_FAILED.getCode());
+    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.CONNECTION_FAILED.getValue());
   }
 
   @Test
@@ -100,12 +100,35 @@ public class RDAPValidatorTest {
   public void testValidate_QuerycheckWithQueryTypeError_ReturnsError() {
     doReturn(RDAPQueryType.DOMAIN).when(processor).getQueryType();
     doReturn(false).when(query).checkWithQueryType(RDAPQueryType.DOMAIN);
-    doReturn(ToolResult.SUCCESS).when(query).getErrorStatus();
+    doReturn(RDAPValidationStatus.SUCCESS).when(query).getErrorStatus();
 
     assertThat(validator.validate())
-        .isEqualTo(ToolResult.SUCCESS.getCode());
+        .isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
   }
 
+
+  @Test
+  public void testDumpErrorInfo() {
+    int exitCode = RDAPValidationStatus.CONFIG_INVALID.getValue();
+    when(config.getUri()).thenReturn(URI.create("http://example.com"));
+
+    // Redirect standard output to capture the output
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outContent));
+
+    int result = validator.dumpErrorInfo(exitCode, config, query);
+
+    assertThat(result).isEqualTo(exitCode);
+    String expectedOutput = "Exit code: " + exitCode + " - " + RDAPValidationStatus.fromValue(exitCode).name() + "\n" +
+        "URI used for the query: http://example.com\n" +
+        "Redirects followed: N/A (query is not an RDAPHttpQuery)\n" +
+        "Accept header used for the query: N/A (query is not an RDAPHttpQuery)\n" +
+        "IP protocol used for the query: IPv4\n";
+    assertThat(outContent.toString()).isEqualTo(expectedOutput);
+
+    // Ensure we reset standard output
+    System.setOut(System.out);
+  }
 
   @Test
   public void testConstructor_ConfigCheckFails_ThrowsRuntimeException() {
@@ -145,10 +168,9 @@ public class RDAPValidatorTest {
 
     RDAPValidator validator = new RDAPValidator(config, fileSystem, queryTypeProcessor, query, configParser, results, datasetService);
 
-    assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
+    assertThat(validator.validate()).isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
   }
 
-  // fails
   @Test
   public void testValidate_DomainQueryForTestInvalidWithHttpOK_LogsInfo() throws IOException {
     RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
@@ -158,30 +180,27 @@ public class RDAPValidatorTest {
     ConfigurationFileParser configParser = mock(ConfigurationFileParser.class);
     RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
-
-    // Mock the HTTP response that the validator will use
-    RDAPHttpRequest.SimpleHttpResponse mockResponse = mock(RDAPHttpRequest.SimpleHttpResponse.class);
-    when(mockResponse.statusCode()).thenReturn(HTTP_OK);
-    when(mockResponse.body()).thenReturn("{}"); // Simple JSON object
-    when(mockResponse.uri()).thenReturn(URI.create("https://example.com/rdap/domain/test.invalid"));
+    RDAPValidationResultFile rdapValidationResultFile = mock(RDAPValidationResultFile.class);
 
     doReturn(true).when(config).check();
-    doReturn(URI.create("https://example.com")).when(config).getUri();
     doReturn(true).when(queryTypeProcessor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
-    doReturn(new ConfigurationFile(
-        "definitionIdentifier", null, null, null, null, false, false, false, false, false))
-        .when(configParser).parse(any());
+    doReturn(new ConfigurationFile("Test", null, null, null, null, false, false, false, false, false))
+            .when(configParser).parse(any());
+    RDAPQueryType queryType = RDAPQueryType.DOMAIN;
+    doReturn(queryType).when(queryTypeProcessor).getQueryType();
     doReturn(true).when(query).run();
+    doReturn(true).when(query).checkWithQueryType(queryType);
     doReturn(Optional.of(HTTP_OK)).when(query).getStatusCode();
     doReturn("test.invalid").when(query).getData();
-    doReturn(RDAPQueryType.DOMAIN).when(queryTypeProcessor).getQueryType();
-
-    // Use getRawResponse() instead of getRdapResponse()
-    doReturn(mockResponse).when(query).getRawResponse();
 
     RDAPValidator validator = new RDAPValidator(config, fileSystem, queryTypeProcessor, query, configParser, results, datasetService);
 
-    assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
+    int result = validator.validate();
+    // Verify that the -13006 code is in the results
+    verify(results).add(argThat(validationResult -> validationResult.getCode() == -13006));
+
+    assertThat(result).isEqualTo(RDAPValidationStatus.SUCCESS.getValue());
+    verify(query, times(2)).getStatusCode();
   }
 }

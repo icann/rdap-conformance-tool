@@ -22,6 +22,7 @@ public class MultiCertHttpsTestServer {
     public static final int EXPIRED_CERT_PORT = 8444;
     public static final int INVALID_CERT_PORT = 8445;
     public static final int UNTRUSTED_ROOT_CERT_PORT = 8446;
+    public static final int PAUSE = 1000;
     public static final String EXPIRED = "expired";
     public static final String INVALID_HOST = "invalidhost";
     public static final String UNTRUSTED = "untrusted";

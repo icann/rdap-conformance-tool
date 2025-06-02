@@ -1,10 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
-import static org.icann.rdapconformance.validator.CommonUtils.DASH;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
-import static org.icann.rdapconformance.validator.CommonUtils.ONE;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
@@ -49,44 +44,35 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
 
     BootstrapDomainNameSpace dataset = datasetService.get(BootstrapDomainNameSpace.class);
     String urlWithoutPort = removePortInURL();
-    String tld = urlWithoutPort.substring(urlWithoutPort.lastIndexOf(".") + ONE).toLowerCase(Locale.ROOT);
+    String tld = urlWithoutPort.substring(urlWithoutPort.lastIndexOf(".") + 1).toLowerCase(Locale.ROOT);
 
     if (!dataset.tldExists(tld)) {
       results.add(RDAPValidationResult.builder()
-                 .queriedURI(DASH)
-                 .httpMethod(DASH)
-                 .httpStatusCode(ZERO)
-                 .code(-23100)
-                 .value(
-                    tld + "\n/\n" + dataset.getTlds().stream().sorted().collect(Collectors.joining(", ")))
-                 .message("The TLD is not included in the bootstrapDomainNameSpace. "
-                    + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
-                 .build());
+          .code(-23100)
+          .value(
+              tld + "\n/\n" + dataset.getTlds().stream().sorted().collect(Collectors.joining(", ")))
+          .message("The TLD is not included in the bootstrapDomainNameSpace. "
+              + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
+          .build());
       isValid = false;
     } else {
       Set<String> urls = dataset.getUrlsForTld(tld);
       if (StringUtils.isNoneBlank(urlWithoutPort) && urls.stream().noneMatch(urlWithoutPort::startsWith)) {
         results.add(RDAPValidationResult.builder()
-                    .queriedURI(DASH)
-                    .httpMethod(DASH)
-                    .httpStatusCode(ZERO)
-                    .code(-23101)
-                    .value(urls.stream().sorted().collect(Collectors.joining(", ")))
-                    .message("The TLD entry in bootstrapDomainNameSpace does not contain a base URL. "
-                        + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
-                    .build());
+            .code(-23101)
+            .value(urls.stream().sorted().collect(Collectors.joining(", ")))
+            .message("The TLD entry in bootstrapDomainNameSpace does not contain a base URL. "
+                + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
+            .build());
         isValid = false;
       }
-      if (urls.stream().anyMatch(u -> !URI.create(u).getScheme().equals(HTTPS))) {
+      if (urls.stream().anyMatch(u -> !URI.create(u).getScheme().equals("https"))) {
         results.add(RDAPValidationResult.builder()
-                    .queriedURI(DASH)
-                    .httpMethod(DASH)
-                    .httpStatusCode(ZERO)
-                    .code(-23102)
-                    .value(urls.stream().sorted().collect(Collectors.joining(", ")))
-                    .message("One or more of the base URLs for the TLD contain a schema different from "
-                        + "https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.")
-                    .build());
+            .code(-23102)
+            .value(urls.stream().sorted().collect(Collectors.joining(", ")))
+            .message("One or more of the base URLs for the TLD contain a schema different from "
+                + "https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.")
+            .build());
         isValid = false;
       }
     }
@@ -104,7 +90,7 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
     try {
       uri = new URI(uri.getScheme(), uri.getHost(), uri.getPath(), uri.getFragment());
     } catch (URISyntaxException e) {
-      logger.info("URI has a syntax issue: ", e);
+      logger.error("URI has a syntax issue: ", e);
       return StringUtils.EMPTY;
     }
     return uri.toString();
