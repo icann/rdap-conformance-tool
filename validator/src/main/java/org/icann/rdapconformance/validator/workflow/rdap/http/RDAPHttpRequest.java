@@ -15,8 +15,15 @@ import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsF
 import io.netty.channel.kqueue.KQueue;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueSocketChannel;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslHandshakeCompletionEvent;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.ApplicationProtocolNames;
+
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -62,6 +69,8 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.CharsetUtil;
 import java.util.concurrent.CompletableFuture;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.logging.LogLevel;
 
 public class RDAPHttpRequest {
 
@@ -70,7 +79,7 @@ public class RDAPHttpRequest {
         private static final EventLoopGroup SHARED_EVENT_LOOP_GROUP;
         // Shared single-threaded executor for strict serialization
         private static final ExecutorService SERIAL_EXECUTOR = Executors.newSingleThreadExecutor();
-        public static final int MAX_BUFF = 65536;
+        public static final int MAX_BUFF = 1300;
 
         static {
             ThreadFactory threadFactory = new DefaultThreadFactory("event-loop");
@@ -91,7 +100,8 @@ public class RDAPHttpRequest {
     public static int DEFAULT_BACKOFF_SECS = 30;
     public static final int MAX_RETRIES = 2;
     public static final int DNS_PORT = 53;
-    public static final int MB_LIMIT = 10485760; // TODO: 10MB limit, we have to put some sort of limit on Netty really has issues
+//    public static final int MB_LIMIT = 10485760; // TODO: 10MB limit, we have to put some sort of limit on Netty really has issues
+    public static final int MB_LIMIT = 1 * 1024 * 1024; // 1MB
     public static final String OUTGOING_IPV4 = "9.9.9.9";
     public static final String OUTGOING_V6 = "2620:fe::9";
 
@@ -183,7 +193,24 @@ public class RDAPHttpRequest {
             CompletableFuture<SimpleHttpResponse> futureResponse = new CompletableFuture<>();
 
             try {
-                SslContext sslCtx = isHttps ? SslContextBuilder.forClient().build() : null;
+//                SslContext sslCtx = isHttps ? SslContextBuilder.forClient().build() : null;
+//                SslContext sslCtx = SslContextBuilder.forClient()
+//                                                     .sslProvider(SslProvider.OPENSSL)
+//                                                     .sessionCacheSize(0)
+//                                                     .sessionTimeout(0)
+//                                                     .build();
+                SslContext sslCtx = SslContextBuilder.forClient()
+                                                     .sslProvider(SslProvider.OPENSSL)
+                                                     .sessionCacheSize(0)
+                                                     .sessionTimeout(0)
+                                                     .applicationProtocolConfig(new ApplicationProtocolConfig(
+                                                         ApplicationProtocolConfig.Protocol.ALPN,
+                                                         // NO_ADVERTISE: don't send ALPN
+                                                         ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                                                         ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                                         ApplicationProtocolNames.HTTP_1_1
+                                                     ))
+                                                     .build();
 
                 Bootstrap bootstrap = new Bootstrap();
                 if (KQueue.isAvailable()) {
@@ -196,6 +223,7 @@ public class RDAPHttpRequest {
 
                 bootstrap
                          .option(ChannelOption.SO_KEEPALIVE, true)
+                         .option(ChannelOption.TCP_NODELAY, true)
                          .option(ChannelOption.SO_RCVBUF, MAX_BUFF)
                          .option(ChannelOption.SO_SNDBUF, MAX_BUFF)
                          .option(ChannelOption.SO_REUSEADDR, true)
@@ -207,11 +235,42 @@ public class RDAPHttpRequest {
                              protected void initChannel(io.netty.channel.socket.SocketChannel ch) {
                                  ChannelPipeline p = ch.pipeline();
                                  if (sslCtx != null) {
-                                     p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
+                                     SslHandler sslHandler = sslCtx.newHandler(ch.alloc(), host, port);
+                                     sslHandler.setHandshakeTimeout(timeoutSeconds * 2L, TimeUnit.SECONDS); // :scream:
+                                     p.addLast(sslHandler);
                                  }
                                  p.addLast(new HttpClientCodec());
                                  p.addLast(new ReadTimeoutHandler(timeoutSeconds, TimeUnit.SECONDS));
                                  p.addLast(new HttpObjectAggregator(MB_LIMIT));
+                                 p.addLast(new LoggingReadTimeoutHandler(timeoutSeconds, TimeUnit.SECONDS));
+                                 p.addLast(new LoggingWriteTimeoutHandler(timeoutSeconds, TimeUnit.SECONDS));
+                                 p.addLast(new LoggingHandler(LogLevel.DEBUG));
+                                 p.addLast(new ChannelInboundHandlerAdapter() {
+                                     @Override
+                                     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                                         if (evt instanceof SslHandshakeCompletionEvent) {
+                                             SslHandshakeCompletionEvent event = (SslHandshakeCompletionEvent) evt;
+                                             if (event.isSuccess()) {
+                                                 logger.info("TLS handshake successful. Sending HTTP request.");
+
+                                                 FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
+                                                 request.headers().set(HttpHeaderNames.HOST, host);
+                                                 request.headers().set(HttpHeaderNames.ACCEPT, NetworkInfo.getAcceptHeader());
+                                                 request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+                                                 request.headers().set(HttpHeaderNames.ACCEPT_ENCODING, "identity");
+
+                                                 ctx.writeAndFlush(request);
+                                             } else {
+                                                 logger.warn("TLS handshake failed", event.cause());
+                                                 futureResponse.completeExceptionally(event.cause());
+                                                 ctx.close();
+                                             }
+                                         } else {
+                                             super.userEventTriggered(ctx, evt);
+                                         }
+                                     }
+                                 });
+
                                  p.addLast(new SimpleChannelInboundHandler<FullHttpResponse>() {
                                      @Override
                                      protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) {
@@ -316,13 +375,14 @@ public static SimpleHttpResponse executeRequest(
             throw new IOException("Connection failed of id: ", e.getCause());
         }
     }
+//
+//    FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
+//    request.headers().set(HttpHeaderNames.HOST, host);
+//    request.headers().set(HttpHeaderNames.ACCEPT, NetworkInfo.getAcceptHeader());
+//    request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+//    request.headers().set(HttpHeaderNames.ACCEPT_ENCODING, "identity");
 
-    FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
-    request.headers().set(HttpHeaderNames.HOST, host);
-    request.headers().set(HttpHeaderNames.ACCEPT, NetworkInfo.getAcceptHeader());
-    request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-
-    connectFuture.channel().writeAndFlush(request);
+//    connectFuture.channel().writeAndFlush(request);
     connectFuture.channel().closeFuture().sync();
 
     logger.info("Setting connection timeout to {} seconds for id {} ", timeoutSeconds, trackingId);
@@ -539,6 +599,34 @@ public static SimpleHttpResponse executeRequest(
             Thread.sleep(millis);
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
+        }
+    }
+
+    public static class LoggingReadTimeoutHandler extends ReadTimeoutHandler {
+        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LoggingReadTimeoutHandler.class);
+
+        public LoggingReadTimeoutHandler(long timeout, TimeUnit unit) {
+            super(timeout, unit);
+        }
+
+        @Override
+        protected void readTimedOut(ChannelHandlerContext ctx) throws Exception {
+            logger.debug("Read timed out on channel: {}", ctx.channel());
+            super.readTimedOut(ctx);
+        }
+    }
+
+    public static class LoggingWriteTimeoutHandler extends WriteTimeoutHandler {
+        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LoggingWriteTimeoutHandler.class);
+
+        public LoggingWriteTimeoutHandler(long timeout, TimeUnit unit) {
+            super(timeout, unit);
+        }
+
+        @Override
+        protected void writeTimedOut(ChannelHandlerContext ctx) throws Exception {
+            logger.debug("Write timed out on channel: {}", ctx.channel());
+            super.writeTimedOut(ctx);
         }
     }
 

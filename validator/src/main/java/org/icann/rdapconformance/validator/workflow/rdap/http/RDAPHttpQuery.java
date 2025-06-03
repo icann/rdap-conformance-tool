@@ -67,6 +67,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
         System.setProperty("com.sun.security.enableCRLDP", String.valueOf(true));
         System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
+//        System.setProperty("jdk.tls.client.enableSessionTicketsExtension", "false");
     }
 
 
