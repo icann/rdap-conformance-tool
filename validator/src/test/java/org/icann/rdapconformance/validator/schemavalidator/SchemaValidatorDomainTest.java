@@ -81,7 +81,7 @@ public class SchemaValidatorDomainTest extends SchemaValidatorObjectTest {
 
   @Test
   public void stdRdapLinksValidation() {
-    stdRdapLinksValidation(-12214);
+    stdRdapLinksValidation(-10610);
   }
 
   @Test
