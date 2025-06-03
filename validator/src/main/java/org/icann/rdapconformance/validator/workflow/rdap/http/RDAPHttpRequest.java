@@ -103,7 +103,7 @@ public class RDAPHttpRequest {
     public static final String RETRY_AFTER = "Retry-After";
 
     public static int DEFAULT_BACKOFF_SECS = 30;
-    public static final int MAX_RETRIES = 2;
+    public static final int MAX_RETRIES = 4;
     public static final int DNS_PORT = 53;
 //    public static final int MB_LIMIT = 10485760; // TODO: 10MB limit, we have to put some sort of limit on Netty really has issues
     public static final int MB_LIMIT = 1 * 1024 * 1024; // 1MB
@@ -199,11 +199,6 @@ public class RDAPHttpRequest {
 
             try {
 //                SslContext sslCtx = isHttps ? SslContextBuilder.forClient().build() : null;
-//                SslContext sslCtx = SslContextBuilder.forClient()
-//                                                     .sslProvider(SslProvider.OPENSSL)
-//                                                     .sessionCacheSize(0)
-//                                                     .sessionTimeout(0)
-//                                                     .build();
                 SslContext sslCtx = SslContextBuilder.forClient()
                                                      .sslProvider(SslProvider.OPENSSL)
                                                      .sessionCacheSize(0)
@@ -248,18 +243,8 @@ public class RDAPHttpRequest {
                                  ChannelPipeline p = ch.pipeline();
                                  if (sslCtx != null) {
                                      SslHandler sslHandler = sslCtx.newHandler(ch.alloc(), host, port);
-                                     /// Get access to the OpenSSL engine:
-                                     SSLEngine engine = sslHandler.engine();
-                                     System.out.println("OpenSSL available: " + OpenSsl.isAvailable());
-                                     System.out.println("OpenSSL version: " + OpenSsl.versionString());
-                                     System.out.println("Engine class: " + sslHandler.engine().getClass());
-                                     System.out.println("PlainEngine class: " + engine.getClass().getName());
-//                                     if (engine instanceof ReferenceCountedOpenSslEngine) {
-//                                         ((ReferenceCountedOpenSslEngine) engine).setHandshakeTimeoutMillis(timeoutSeconds * 1000L); // Optional
-//                                         ((ReferenceCountedOpenSslEngine) engine).setMaxWrapOverhead(0); // Optional
-//                                         ((ReferenceCountedOpenSslEngine) engine).setMaxWrapBufferSize(1200); // This is what you want
-//                                     }
-                                     sslHandler.setHandshakeTimeout(timeoutSeconds * 2L, TimeUnit.SECONDS); // :scream:
+//                                     sslHandler.setHandshakeTimeout(timeoutSeconds * 2L, TimeUnit.SECONDS); // :scream:
+                                     sslHandler.setHandshakeTimeout(4, TimeUnit.SECONDS);
                                      p.addLast(sslHandler);
                                  }
                                  p.addLast(new HttpClientCodec());
@@ -275,13 +260,11 @@ public class RDAPHttpRequest {
                                              SslHandshakeCompletionEvent event = (SslHandshakeCompletionEvent) evt;
                                              if (event.isSuccess()) {
                                                  logger.info("TLS handshake successful. Sending HTTP request.");
-
                                                  FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(method), originalUri.getRawPath());
                                                  request.headers().set(HttpHeaderNames.HOST, host);
                                                  request.headers().set(HttpHeaderNames.ACCEPT, NetworkInfo.getAcceptHeader());
                                                  request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
                                                  request.headers().set(HttpHeaderNames.ACCEPT_ENCODING, "identity");
-
                                                  ctx.writeAndFlush(request);
                                              } else {
                                                  logger.warn("TLS handshake failed", event.cause());
@@ -344,6 +327,12 @@ public class RDAPHttpRequest {
                 return result;
             } catch (IOException ioe) {
                 logger.info("[trackingID: {}] IOError during HTTP request: {}", trackingId, ioe.getMessage());
+
+                if(ioe.getMessage().contains("connection timed out") && currentAttempt < MAX_RETRIES) {
+                    logger.info("Timeout detected, retrying immediately (attempt {}/{})", currentAttempt + 1, MAX_RETRIES + 1);
+                    continue; // Immediately retry
+                }
+
                 ConnectionStatus connStatus = handleRequestException(ioe, canRecordError);
                 tracker.completeCurrentConnection(ZERO, connStatus);
 
@@ -352,6 +341,17 @@ public class RDAPHttpRequest {
                 return errorResponse;
             } catch (Exception ex) {
                 logger.info("[trackingID: {}] General Error during HTTP request: {}", trackingId, ex.getMessage());
+
+                if(ex.getMessage().contains("connection timed out") && currentAttempt < MAX_RETRIES) {
+                    logger.info("Timeout detected, retrying immediately (attempt {}/{})", currentAttempt + 1, MAX_RETRIES + 1);
+                    continue; // Immediately retry
+                }
+
+                if(ex instanceof io.netty.handler.timeout.ReadTimeoutException && currentAttempt < MAX_RETRIES) {
+                    logger.info("io.netty.handler.timeout.ReadTimeoutException, retrying immediately (attempt {}/{})", currentAttempt + 1, MAX_RETRIES + 1);
+                    continue; // Immediately retry
+                }
+
                 ConnectionStatus connStatus = handleRequestException(new IOException(ex), canRecordError);
                 tracker.completeCurrentConnection(ZERO, connStatus);
 
