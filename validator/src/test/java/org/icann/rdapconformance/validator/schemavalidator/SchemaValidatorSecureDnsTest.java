@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SchemaValidatorSecureDnsTest extends SchemaValidatorTest {
 
@@ -19,6 +21,7 @@ public class SchemaValidatorSecureDnsTest extends SchemaValidatorTest {
   @Override
   public void setUp() throws IOException {
     Locale.setDefault(Locale.US);
+    RDAPValidatorResultsImpl.getInstance().clear();
     super.setUp();
     name = "secureDNS";
   }
@@ -82,9 +85,18 @@ public class SchemaValidatorSecureDnsTest extends SchemaValidatorTest {
    */
   @Test
   public void keyDataAndDsDataMissing() {
+    //  Test is inline so that we save the state and don't have the results cleared
     jsonObject.getJSONObject("secureDNS").put("delegationSigned", true);
     jsonObject.getJSONObject("secureDNS").remove("dsData");
-    validateKeyMissing(-12007, "dsData");
-    validateKeyMissing(-12007, "keyData");
+
+    assertThat(schemaValidator.validate(jsonObject.toString())).isFalse();
+    // Verify both required validation errors are present
+    assertThat(results.getAll())
+        .filteredOn(r -> r.getCode() == -12007 && r.getMessage().equals("The dsData element does not exist."))
+        .hasSize(1);
+    assertThat(results.getAll())
+        .filteredOn(r -> r.getCode() == -12007 && r.getMessage().equals("The keyData element does not exist."))
+        .hasSize(1);
   }
+
 }

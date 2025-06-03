@@ -1,25 +1,32 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
-import java.net.URI;
-import java.net.http.HttpResponse;
-import java.util.Arrays;
+import static java.net.HttpURLConnection.HTTP_OK;
+import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
+import static org.icann.rdapconformance.validator.CommonUtils.SEP;
+import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.net.http.HttpResponse;
+import java.util.Arrays;
 
 public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationTestInvalidRedirect_2024.class);
     public static final int PARTS = 2;
-    public static final String EMPTY_STRING = "";
-    public static final String LOCATION = "Location";
-    public static final String SEP = "://";
-    public static final String SLASH = "/";
     private final RDAPValidatorConfiguration config;
     public static final String DOMAIN_TEST_INVALID_WITH_SLASH = "/domain/test.invalid"; // with the slash
 
@@ -34,24 +41,29 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
         return "generalResponseValidation";
     }
 
-    public boolean doValidate() {
+    public boolean doValidate() throws Exception {
         if (!canTestForInvalid()) { // if the flags aren't set, we can't test, it's good
             return true;
         }
 
-        try {
-            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(), config.getTimeout());
             logger.info("Sending a GET request to: {}", createTestInvalidURI());
+            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(),
+                config.getTimeout());
             int status = response.statusCode();
-            logger.info("Status code for test.invalid: {}" , status);
-            if (RDAPHttpQuery.isRedirectStatus(status)) {
+            logger.info("Status code for test.invalid: {}", status);
+            if (status == HTTP_OK) { // if it returns a 200 - that is an error
+                results.add(RDAPValidationResult.builder()
+                                                .queriedURI(response.uri().toString())
+                                                .httpMethod(GET)
+                                                .httpStatusCode(status)
+                                                .code(-13006)
+                                                .value(createTestInvalidURI().toString())
+                                                .message("Server responded with a 200 OK for 'test.invalid'.")
+                                                .build());
+                return false;
+            } else if (RDAPHttpQuery.isRedirectStatus(status)) {
                 return handleRedirect(response);
             }
-        } catch (Exception e) {
-            logger.error("Exception when making HTTP GET request in [generalResponseValidation]", e);
-            return false;
-        }
-
         return true;
     }
 
@@ -67,6 +79,9 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
             // Check if the redirect points to itself
             if (locationUri.equals(createTestInvalidURI())) {
                 results.add(RDAPValidationResult.builder()
+                                                .queriedURI(locationUri.toString())
+                                                .httpStatusCode(response.statusCode())
+                                                .httpMethod(GET)
                                                 .code(-13005)
                                                 .value(locationHeader)
                                                 .message("Server responded with a redirect to itself for domain 'test.invalid'.")
@@ -74,7 +89,7 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
                 return false;
             }
         } catch (Exception e) {
-            logger.error("Error normalizing Location header: {}", locationHeader, e);
+            logger.info("Error normalizing Location header: {}", locationHeader, e);
             return false;
         }
 
@@ -98,11 +113,17 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
         return (this.config.isGtldRegistry() || this.config.isGtldRegistrar()) && this.config.useRdapProfileFeb2024();
     }
 
-    public URI createTestInvalidURI() {
+    private URI createTestInvalidURI() {
         URI baseURI = extractBaseUri(config.getUri());
-        String newPath = baseURI.getPath() + DOMAIN_TEST_INVALID_WITH_SLASH;
+        String basePath = baseURI.getPath();
+
+        // Ensure the base path does not end with a slash
+        if (basePath.endsWith(SLASH)) {
+            basePath = basePath.substring(ZERO, basePath.length() - ONE);
+        }
 
         // Construct the new URI with the appended path
+        String newPath = basePath + DOMAIN_TEST_INVALID_WITH_SLASH;
         return URI.create(baseURI.getScheme() + SEP + baseURI.getAuthority() + newPath);
     }
 

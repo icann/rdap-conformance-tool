@@ -28,6 +28,10 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
 
   @Override
   public boolean doValidate() {
+    if (isRegistrarId9999()) {
+      return true;
+    }
+
     boolean isValid = false;
     JSONArray links = jsonObject.optJSONArray("links");
     if (links != null) {
@@ -39,23 +43,20 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
       }
     }
 
-    if(!isValid) {
-      if(!isGtldRegistryAndRegistrarId9999()) {
-        String linksStr = links == null ? "" : links.toString();
-        results.add(RDAPValidationResult.builder()
-            .code(-23200)
-            .value(linksStr)
-            .message("A links data structure in the topmost object exists, and the links object "
-                + "shall contain the elements rel:related and href, but they were not found. "
-                + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.")
-            .build());
-      }
+    if (!isValid) {
+      String linksStr = links == null ? "" : links.toString();
+      results.add(RDAPValidationResult.builder()
+          .code(-23200)
+          .value(linksStr)
+          .message("A links data structure in the topmost object exists, and the links object "
+              + "shall contain the elements rel:related and href, but they were not found. "
+              + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.")
+          .build());
     }
     return isValid;
   }
 
-  // RCT-104 only apply if the query is for a gtld registry and the value is not 9999
-  public boolean isGtldRegistryAndRegistrarId9999() {
+  public boolean isRegistrarId9999() {
     boolean is9999 = false;
     JSONArray entities = jsonObject.optJSONArray("entities");
     if (entities != null) {
@@ -72,7 +73,7 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
         }
       }
     }
-    return config.isGtldRegistry() && is9999;
+    return is9999;
   }
 
   @Override
