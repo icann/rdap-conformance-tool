@@ -106,6 +106,10 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-tcnative-boringssl-static</artifactId>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.luhuiguo.netty</groupId>-->
+<!--            <artifactId>netty-tcnative-openssl-static</artifactId>-->
+<!--        </dependency>-->
 
         <!-- test dependencies -->
         <dependency>

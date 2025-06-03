@@ -15,6 +15,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsF
 import io.netty.channel.kqueue.KQueue;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueSocketChannel;
+import io.netty.handler.ssl.OpenSsl;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import io.netty.handler.ssl.SslProvider;
@@ -212,6 +213,10 @@ public class RDAPHttpRequest {
                                                      ))
                                                      .build();
 
+                // if we switch back to JDK SSL, we need to set this
+                System.setProperty("jdk.tls.client.enableSessionTicketExtension", "false");
+                System.setProperty("jdk.tls.disableCompression", "true");
+
                 Bootstrap bootstrap = new Bootstrap();
                 if (KQueue.isAvailable()) {
                     bootstrap.group(SHARED_EVENT_LOOP_GROUP)
@@ -220,8 +225,11 @@ public class RDAPHttpRequest {
                     bootstrap.group(SHARED_EVENT_LOOP_GROUP)
                              .channel(NioSocketChannel.class);
                 }
-
+                System.out.println("OpenSSL available: " + OpenSsl.isAvailable());
+                System.out.println("OpenSSL version: " + OpenSsl.versionString());
                 bootstrap
+                        .option(ChannelOption.WRITE_BUFFER_WATER_MARK,
+                        new WriteBufferWaterMark(512, 1024))
                          .option(ChannelOption.SO_KEEPALIVE, true)
                          .option(ChannelOption.TCP_NODELAY, true)
                          .option(ChannelOption.SO_RCVBUF, MAX_BUFF)
