@@ -10,7 +10,7 @@ public final class ResponseValidation4Dot1Handle extends HandleValidation {
 
   public ResponseValidation4Dot1Handle(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
                                        RDAPDatasetService datasetService, RDAPQueryType queryType) {
-    super(rdapResponse, results, datasetService, queryType, -49102);
+    super(config, rdapResponse, results, datasetService, queryType, -49102);
   }
 
   @Override

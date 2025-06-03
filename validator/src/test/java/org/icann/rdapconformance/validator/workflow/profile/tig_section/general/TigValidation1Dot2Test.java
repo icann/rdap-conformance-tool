@@ -8,14 +8,17 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.Comparator;
+import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2.RDAPJsonComparator;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
@@ -59,22 +62,38 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
-    // configure wiremock for HTTP as we will make an HTTP request
-    givenUri("http");
-    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
-    // replace configuration URI by https because we need to enter the tests for an HTTPS uri
-    doReturn(URI.create(config.getUri().toString().replace("http", "https"))).when(config).getUri();
-    doReturn(config.getUri()).when(httpsResponse).uri();
-    stubFor(get(urlEqualTo(REQUEST_PATH))
-        .withScheme("http")
-        .willReturn(aResponse()
-            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
-            .withBody(RDAP_RESPONSE)));
+    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
+      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
+                  .thenReturn(InetAddress.getByName("127.0.0.1"));
+      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
+                  .thenReturn(null);
 
-    validateNotOk(results,
-        -20101, RDAP_RESPONSE + "\n/\n" + RDAP_RESPONSE,
-        "The RDAP response was provided over HTTP, per section 1.2 of the "
-            + "RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
+      // Configure HTTP response
+      stubFor(get(urlEqualTo("/test"))
+          .willReturn(aResponse()
+              .withHeader("Content-Type", "application/rdap+json")
+              .withBody("{\"key\":\"value\"}"))); // Valid JSON body
+
+      // Configure HTTPS response with same body as HTTP
+      // The test is checking that identical HTTP and HTTPS responses trigger error -20101
+      stubFor(get(urlEqualTo("/test"))
+          .withScheme("https")
+          .willReturn(aResponse()
+              .withHeader("Content-Type", "application/rdap+json")
+              .withBody("{\"key\":\"value\"}"))); // Same JSON body as HTTP
+
+      // Ensure the URI is HTTPS
+      doReturn(URI.create("https://127.0.0.1:8080/test")).when(config).getUri();
+      doReturn(config.getUri()).when(httpsResponse).uri();
+      doReturn("{\"key\":\"value\"}").when(httpsResponse).body(); // Same body as HTTP response
+
+      // Validate the match (identical responses should trigger the error)
+      validateNotOk(results,
+          -20101, "{\"key\":\"value\"}\n/\n{\"key\":\"value\"}",
+          "The RDAP response was provided over HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
+    } catch (Exception e) {
+      throw new RuntimeException("Error mocking DNSCacheResolver", e);
+    }
   }
 
 

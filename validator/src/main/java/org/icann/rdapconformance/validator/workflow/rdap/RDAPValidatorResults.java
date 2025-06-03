@@ -5,6 +5,8 @@ import java.util.Set;
 public interface RDAPValidatorResults {
 
 
+  int getResultCount();
+
   void add(RDAPValidationResult result);
 
   Set<RDAPValidationResult> getAll();
@@ -22,4 +24,10 @@ public interface RDAPValidatorResults {
   void addGroupErrorWarning(String group);
 
   Set<String> getGroups();
+
+  void clear();
+
+  String analyzeResultsWithStatusCheck();
+
+  void cullDuplicateIPAddressErrors();
 }

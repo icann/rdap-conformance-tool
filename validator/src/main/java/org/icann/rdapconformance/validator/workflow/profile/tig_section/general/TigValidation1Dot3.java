@@ -1,6 +1,13 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
+import static org.icann.rdapconformance.validator.CommonUtils.TIMEOUT_IN_5SECS;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.http.HttpResponse;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -18,6 +25,8 @@ import org.slf4j.LoggerFactory;
 public final class TigValidation1Dot3 extends ProfileValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(TigValidation1Dot3.class);
+  public static final String SS_LV_2 = "SSLv2";
+  public static final String SS_LV_3 = "SSLv3";
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
 
@@ -32,37 +41,44 @@ public final class TigValidation1Dot3 extends ProfileValidation {
   public String getGroupName() {
     return "tigSection_1_3_Validation";
   }
-
   @Override
   public boolean doValidate() {
     boolean isValid = true;
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
-      if (response.uri().getScheme().equals("https")) {
+      if (response.uri().getScheme().equals(HTTPS)) {
         try {
           SSLContext sslContext = SSLContext.getDefault();
           int port = config.getUri().getPort();
-          if (port < 0) {
-            port = 443;
+          if (port < ZERO) {
+            port = HTTPS_PORT;
           }
           List<String> enabledProtocols;
-          try (SSLSocket sslSocket = (SSLSocket) sslContext.getSocketFactory()
-              .createSocket(config.getUri().getHost(), port)) {
-            sslSocket.startHandshake();
-            enabledProtocols = Arrays.asList(sslSocket.getEnabledProtocols());
+          try (Socket socket = new Socket()) {
+            // Set a timeout for the connection
+            int timeoutMillis = TIMEOUT_IN_5SECS;
+            socket.connect(new InetSocketAddress(config.getUri().getHost(), port), timeoutMillis);
+
+            // Wrap the socket in an SSLSocket
+            try (SSLSocket sslSocket = (SSLSocket) sslContext.getSocketFactory().createSocket(socket,
+                config.getUri().getHost(), port, true)) {
+              sslSocket.startHandshake();
+              enabledProtocols = Arrays.asList(sslSocket.getEnabledProtocols());
+              logger.debug("Enabled protocols: {}", enabledProtocols);
+            }
           }
-          if (enabledProtocols.contains("SSLv2") || enabledProtocols.contains("SSLv3")) {
+          if (enabledProtocols.contains(SS_LV_2) || enabledProtocols.contains(SS_LV_3)) {
             results.add(RDAPValidationResult.builder()
-                .code(-20200)
-                .value(response.uri().toString())
-                .message("The RDAP server is offering SSLv2 and/or SSLv3.")
-                .build());
+                                            .code(-20200)
+                                            .value(response.uri().toString())
+                                            .message("The RDAP server is offering SSLv2 and/or SSLv3.")
+                                            .build());
             isValid = false;
           }
         } catch (NoSuchAlgorithmException | IOException e) {
-          logger.error("Cannot create SSL context", e);
-          return false;
+          logger.info("Cannot create SSL context or connect to the server", e);
+          return false; // Return false if an exception occurs
         }
       }
       responseOpt = response.previousResponse();

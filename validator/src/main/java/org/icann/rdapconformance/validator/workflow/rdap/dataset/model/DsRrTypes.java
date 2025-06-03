@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
+
 import jakarta.xml.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -15,7 +17,7 @@ public class DsRrTypes extends XmlObject {
 
   public boolean isAssigned(int number) {
     return this.records.stream()
-        .filter(r -> !r.status.equals("-"))
+        .filter(r -> !r.status.equals(DASH))
         .anyMatch(r -> numberEqualsOrInInterval(number, r.value));
   }
 

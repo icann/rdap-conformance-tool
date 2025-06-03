@@ -1,10 +1,16 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import static org.mockito.Mockito.when;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
+
 public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseValidation2Dot2> {
+  private boolean mockedForFeb2024 = false;
 
   public ResponseValidation2Dot2Test() {
     super("/validators/domain/valid.json", "rdapResponseProfile_2_1_Validation",
@@ -30,6 +36,11 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
   protected String givenNullHandle2() {
     removeKey("handle");
     return "#/handle:null";
+  }
+
+  protected String givenReservedICANNHandle() {
+    replaceValue("handle", "12345678-ICANNRST");
+    return "#/handle:12345678-ICANNRST";
   }
 
   @Test

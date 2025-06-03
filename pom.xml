@@ -24,7 +24,7 @@
     </distributionManagement>
 
     <properties>
-        <rdap-conformance.version>2.0.0</rdap-conformance.version>
+        <rdap-conformance.version>2.0.1</rdap-conformance.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -127,6 +127,11 @@
                 <version>${commons-text.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>4.2.1.Final</version>
+            </dependency>
 
             <!-- test dependencies -->
             <dependency>
