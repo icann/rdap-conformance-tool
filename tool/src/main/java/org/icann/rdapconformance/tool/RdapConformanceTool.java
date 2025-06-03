@@ -160,7 +160,6 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
       logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
 
-      RDAPHttpRequest.shutdownEventLoopGroup();
       // if we made it to here, exit 0
       return 0;
     }
