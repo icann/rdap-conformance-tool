@@ -16,6 +16,7 @@ import io.netty.channel.kqueue.KQueue;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueSocketChannel;
 import io.netty.handler.ssl.OpenSsl;
+import io.netty.handler.ssl.ReferenceCountedOpenSslEngine;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import io.netty.handler.ssl.SslProvider;
@@ -24,6 +25,8 @@ import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
+import io.netty.handler.ssl.ReferenceCountedOpenSslEngine;
+
 
 
 import java.io.EOFException;
@@ -41,6 +44,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
+import javax.net.ssl.SSLEngine;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
@@ -80,7 +84,7 @@ public class RDAPHttpRequest {
         private static final EventLoopGroup SHARED_EVENT_LOOP_GROUP;
         // Shared single-threaded executor for strict serialization
         private static final ExecutorService SERIAL_EXECUTOR = Executors.newSingleThreadExecutor();
-        public static final int MAX_BUFF = 1300;
+        public static final int MAX_BUFF = 1024;
 
         static {
             ThreadFactory threadFactory = new DefaultThreadFactory("event-loop");
@@ -229,7 +233,7 @@ public class RDAPHttpRequest {
                 System.out.println("OpenSSL version: " + OpenSsl.versionString());
                 bootstrap
                         .option(ChannelOption.WRITE_BUFFER_WATER_MARK,
-                        new WriteBufferWaterMark(512, 1024))
+                        new WriteBufferWaterMark(512, 1024)) // set low so packets don't fragment
                          .option(ChannelOption.SO_KEEPALIVE, true)
                          .option(ChannelOption.TCP_NODELAY, true)
                          .option(ChannelOption.SO_RCVBUF, MAX_BUFF)
@@ -244,6 +248,17 @@ public class RDAPHttpRequest {
                                  ChannelPipeline p = ch.pipeline();
                                  if (sslCtx != null) {
                                      SslHandler sslHandler = sslCtx.newHandler(ch.alloc(), host, port);
+                                     /// Get access to the OpenSSL engine:
+                                     SSLEngine engine = sslHandler.engine();
+                                     System.out.println("OpenSSL available: " + OpenSsl.isAvailable());
+                                     System.out.println("OpenSSL version: " + OpenSsl.versionString());
+                                     System.out.println("Engine class: " + sslHandler.engine().getClass());
+                                     System.out.println("PlainEngine class: " + engine.getClass().getName());
+//                                     if (engine instanceof ReferenceCountedOpenSslEngine) {
+//                                         ((ReferenceCountedOpenSslEngine) engine).setHandshakeTimeoutMillis(timeoutSeconds * 1000L); // Optional
+//                                         ((ReferenceCountedOpenSslEngine) engine).setMaxWrapOverhead(0); // Optional
+//                                         ((ReferenceCountedOpenSslEngine) engine).setMaxWrapBufferSize(1200); // This is what you want
+//                                     }
                                      sslHandler.setHandshakeTimeout(timeoutSeconds * 2L, TimeUnit.SECONDS); // :scream:
                                      p.addLast(sslHandler);
                                  }
