@@ -58,7 +58,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
     public void test65204() {
         jsonObject.getJSONArray("redacted").getJSONObject(0).put("postPath", "$.store.book[");
         validate(-65204, "{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Tech Email\"},\"postPath\":\"$.store.book[\"}",
-            "jsonpath must evaluate to a non-empty set for redaction by postPath of Tech Email.");
+            "jsonpath must evaluate to a non-empty set for redaction by replacementValue of Tech Email.");
     }
 
     @Test
