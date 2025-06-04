@@ -48,12 +48,10 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
                 JSONArray vcardAddressArray = (JSONArray) jsonObject.query(jsonPointer);
                 JSONArray vcardAddressValuesArray = (JSONArray) vcardAddressArray.get(3);
                 if(vcardAddressValuesArray.get(2) instanceof String street) {
-                    logger.info("street address is string, validations for this case");
                     if(StringUtils.isEmpty(street)) {
                         return validateRedactedArrayForEmptyStreetValue();
                     }
                 } else if(vcardAddressValuesArray.get(2) instanceof JSONArray streetArray) {
-                    logger.info("street address is array, validations for this case");
                     if(streetArray.isEmpty()) {
                         return validateRedactedArrayForEmptyStreetValue();
                     }
