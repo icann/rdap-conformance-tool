@@ -18,6 +18,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot3_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.*;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle_2024;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.ResponseValidation2Dot7Dot4Dot3_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
@@ -286,6 +287,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
         validations.add(new ResponseValidation4Dot1Handle_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
         validations.add(new ResponseValidationLinkElements_2024(query.getData(), results)); // clean
+        validations.add(new ResponseValidation2Dot7Dot4Dot3_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidationStatusDuplication_2024(query.getData(), results)); // clean
         validations.add(new StdRdapConformanceValidation_2024(query.getData(), results)); // clean
         validations.add(new TigValidation3Dot2_2024(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
