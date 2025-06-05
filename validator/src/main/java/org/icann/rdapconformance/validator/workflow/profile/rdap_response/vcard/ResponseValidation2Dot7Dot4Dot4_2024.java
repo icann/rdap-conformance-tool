@@ -13,28 +13,28 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.Set;
 
-public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation {
+public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot2_2024.class);
     public static final String VCARD_ADDRESS_PATH = "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
 
-    public ResponseValidation2Dot7Dot4Dot3_2024(String rdapResponse, RDAPValidatorResults results) {
+    public ResponseValidation2Dot7Dot4Dot4_2024(String rdapResponse, RDAPValidatorResults results) {
         super(rdapResponse, results);
     }
 
     @Override
     public String getGroupName() {
-        return "rdapResponseProfile_2_7_4_3_Validation";
+        return "rdapResponseProfile_2_7_4_4_Validation";
     }
 
     @Override
     protected boolean doValidate() {
-        return validateVcardStreetAddressPropertyObject();
+        return validateVcardCityAddressPropertyObject();
     }
 
-    private boolean validateVcardStreetAddressPropertyObject() {
+    private boolean validateVcardCityAddressPropertyObject() {
         try {
             Set<String> vcardAddressPointersValue = getPointerFromJPath(VCARD_ADDRESS_PATH);
             logger.info("vcardAddressPointersValue size: {}", vcardAddressPointersValue.size());
@@ -47,20 +47,16 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
             for (String jsonPointer : vcardAddressPointersValue) {
                 JSONArray vcardAddressArray = (JSONArray) jsonObject.query(jsonPointer);
                 JSONArray vcardAddressValuesArray = (JSONArray) vcardAddressArray.get(3);
-                if(vcardAddressValuesArray.get(2) instanceof String street) {
-                    if(StringUtils.isEmpty(street)) {
-                        return validateRedactedArrayForEmptyStreetValue();
-                    }
-                } else if(vcardAddressValuesArray.get(2) instanceof JSONArray streetArray) {
-                    if(streetArray.isEmpty()) {
-                        return validateRedactedArrayForEmptyStreetValue();
+                if(vcardAddressValuesArray.get(3) instanceof String city) {
+                    if(StringUtils.isEmpty(city)) {
+                        return validateRedactedArrayForEmptyCityValue();
                     }
                 } else {
-                    logger.info("street address is not present");
+                    logger.info("city address is not present");
                     results.add(RDAPValidationResult.builder()
-                            .code(-63400)
+                            .code(-63500)
                             .value(getResultValue(vcardAddressPointersValue))
-                            .message("The street value of the adr property is required on the vcard for the registrant.")
+                            .message("The city value of the adr property is required on the vcard for the registrant.")
                             .build());
                     return false;
                 }
@@ -75,35 +71,35 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
         return true;
     }
 
-    private boolean validateRedactedArrayForEmptyStreetValue() {
-        JSONObject redactedStreet = null;
+    private boolean validateRedactedArrayForEmptyCityValue() {
+        JSONObject redactedCity = null;
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
             JSONObject name = (JSONObject) redacted.get("name");
             if(name.get("type") instanceof String redactedName) {
-                if(redactedName.trim().equalsIgnoreCase("Registrant Street")) {
-                    redactedStreet = redacted;
+                if(redactedName.trim().equalsIgnoreCase("Registrant City")) {
+                    redactedCity = redacted;
                 }
             }
         }
 
-        if(Objects.isNull(redactedStreet)) {
+        if(Objects.isNull(redactedCity)) {
             results.add(RDAPValidationResult.builder()
-                    .code(-63401)
+                    .code(-63501)
                     .value(getResultValue(redactedPointersValue))
-                    .message("a redaction of type Registrant Street is required.")
+                    .message("a redaction of type Registrant City is required.")
                     .build());
 
             return false;
         }
 
-        return validateRedactedProperties(redactedStreet);
+        return validateRedactedProperties(redactedCity);
     }
 
-    private boolean validateRedactedProperties(JSONObject redactedStreet) {
-        if(Objects.isNull(redactedStreet)) {
-            logger.info("redactedStreet object is null");
+    private boolean validateRedactedProperties(JSONObject redactedCity) {
+        if(Objects.isNull(redactedCity)) {
+            logger.info("redactedCity object is null");
             return true;
         }
 
@@ -112,28 +108,28 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
         // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify postPath
         try {
             logger.info("Extracting pathLang...");
-            pathLangValue = redactedStreet.get("pathLang");
+            pathLangValue = redactedCity.get("pathLang");
             if(pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
-                    return validatePostPathBasedOnPathLang(redactedStreet);
+                    return validatePostPathBasedOnPathLang(redactedCity);
                 }
             }
             return true;
         } catch (Exception e) {
             logger.info("pathLang is not found");
-            return validatePostPathBasedOnPathLang(redactedStreet);
+            return validatePostPathBasedOnPathLang(redactedCity);
         }
     }
 
     // Verify that the postPath property is present with a valid JSONPath expression.
-    private boolean validatePostPathBasedOnPathLang(JSONObject redactedStreet) {
-        if(Objects.isNull(redactedStreet)) {
-            logger.info("redactedStreet object for postPath validations is null");
+    private boolean validatePostPathBasedOnPathLang(JSONObject redactedCity) {
+        if(Objects.isNull(redactedCity)) {
+            logger.info("redactedCity object for postPath validations is null");
             return true;
         }
 
         try {
-            var postPathValue = redactedStreet.get("postPath");
+            var postPathValue = redactedCity.get("postPath");
             logger.info("postPath property is found, so verify value");
             if(postPathValue instanceof String postPath) {
                 try {
@@ -141,18 +137,18 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
                     logger.info("postPath pointer with size {}", postPathPointer.size());
                     if(postPathPointer.isEmpty()) {
                         results.add(RDAPValidationResult.builder()
-                                .code(-63403)
+                                .code(-63503)
                                 .value(getResultValue(redactedPointersValue))
-                                .message("jsonpath must evaluate to non-empty set for redaction by empty value of Registrant Street.")
+                                .message("jsonpath must evaluate to non-empty set for redaction by empty value of Registrant City.")
                                 .build());
                         return false;
                     }
                 } catch (Exception e) {
                     // postPath is not a valid JSONPath expression
                     results.add(RDAPValidationResult.builder()
-                            .code(-63402)
+                            .code(-63502)
                             .value(getResultValue(redactedPointersValue))
-                            .message("jsonpath is invalid for Registrant Street.")
+                            .message("jsonpath is invalid for Registrant City.")
                             .build());
                     return false;
                 }
@@ -161,25 +157,25 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
             logger.info("prePath property is not found, so validation is true");
         }
 
-        return validateMethodProperty(redactedStreet);
+        return validateMethodProperty(redactedCity);
     }
 
     // Verify that the method property is present as is a JSON string of “emptyValue”.
-    private boolean validateMethodProperty(JSONObject redactedStreet) {
-        if(Objects.isNull(redactedStreet)) {
-            logger.info("redactedStreet object for method validations is null");
+    private boolean validateMethodProperty(JSONObject redactedCity) {
+        if(Objects.isNull(redactedCity)) {
+            logger.info("redactedCity object for method validations is null");
             return true;
         }
 
         try {
-            var methodValue = redactedStreet.get("method");
+            var methodValue = redactedCity.get("method");
             logger.info("method property is found, so verify value");
             if(methodValue instanceof String method) {
                 if(!method.trim().equalsIgnoreCase("empytValue")) {
                     results.add(RDAPValidationResult.builder()
-                            .code(-63404)
+                            .code(-63504)
                             .value(getResultValue(redactedPointersValue))
-                            .message("Registrant Street redaction method must be empytValue.")
+                            .message("Registrant City redaction method must be empytValue.")
                             .build());
                     return false;
                 }
