@@ -1,9 +1,12 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import static org.icann.rdapconformance.validator.CommonUtils.DASH;
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,6 +16,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.BuildInfo;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
@@ -141,11 +145,15 @@ public class RDAPValidationResultFile {
     Set<RDAPValidationResult> allResults = results.getAll();
 
     Set<Integer> codeToIgnore = new HashSet<>(configurationFile.getDefinitionIgnore());
-    for (RDAPValidationResult result : allResults) {
-      if (codeToIgnore.contains(result.getCode()) || result.getCode() == UNKNOWN_ERROR_CODE) {
-        continue;
-      }
+    Set<RDAPValidationResult> filteredResults = results.getAll().stream()
+                                                       .filter(r -> !codeToIgnore.contains(r.getCode()) && r.getCode() != UNKNOWN_ERROR_CODE)
+                                                       .collect(Collectors.toSet());
 
+    filteredResults = cullDuplicateIPAddressErrors(filteredResults);
+    filteredResults = analyzeResultsWithStatusCheck(filteredResults);
+
+    //  Finally build the resultMap
+    for (RDAPValidationResult result : filteredResults) {
       Map<String, Object> resultMap = new HashMap<>();
       resultMap.put("code", result.getCode());
       resultMap.put("value", result.getValue());
@@ -173,6 +181,86 @@ public class RDAPValidationResultFile {
     resultsMap.put("ignore", configurationFile.getDefinitionIgnore());
     resultsMap.put("notes", configurationFile.getDefinitionNotes());
     return resultsMap;
+  }
+
+  public Set<RDAPValidationResult> analyzeResultsWithStatusCheck(Set<RDAPValidationResult> allResults) {
+    List<RDAPValidationResult> filtered = new ArrayList<>();
+    for (RDAPValidationResult result : allResults) {
+      int code = result.getCode();
+      if (code != -130004 && code != -130005 && code != -130006 && code != -46701) {
+        filtered.add(result);
+      }
+    }
+
+    Set<List<Object>> uniqueTuples = new HashSet<>();
+    for (RDAPValidationResult result : filtered) {
+      List<Object> tuple = new ArrayList<>();
+      tuple.add(result.getCode());
+      Integer status = result.getHttpStatusCode();
+      tuple.add((status != null && status == ZERO) ? null : status);
+      uniqueTuples.add(tuple);
+    }
+
+    // Collect httpStatusCodes - normalize null to 0
+    Set<Integer> statusCodes = new HashSet<>();
+    for (RDAPValidationResult result : filtered) {
+      Integer statusCode = result.getHttpStatusCode();
+      statusCodes.add(statusCode == null ? 0 : statusCode);
+    }
+
+    Set<RDAPValidationResult> updatedResults = new HashSet<>(allResults);
+
+    // If not all the same, add the new error code
+    if (statusCodes.size() > ONE) {
+      logger.info("Not all status codes are the same");
+      String tupleListJson = "[]";
+      try {
+        ObjectMapper mapper = new ObjectMapper();
+        tupleListJson = mapper.writeValueAsString(new ArrayList<>(uniqueTuples));
+      } catch (JsonProcessingException e) {
+        logger.info("Error serializing tuple list to JSON", e);
+      }
+      updatedResults.add(
+          RDAPValidationResult.builder()
+                              .acceptHeader(DASH)
+                              .queriedURI(DASH)
+                              .httpMethod(DASH)
+                              .httpStatusCode(ZERO)
+                              .code(-13018)
+                              .value(tupleListJson)
+                              .message("Queries do not produce the same HTTP status code.")
+                              .build()
+      );
+    }  else {
+      logger.info("All status codes are the same");
+    }
+    return updatedResults;
+  }
+
+  // New culling function
+  public Set<RDAPValidationResult> cullDuplicateIPAddressErrors(Set<RDAPValidationResult> results) {
+    int ipv4Count = ZERO;
+    int ipv6Count = ZERO;
+    Set<RDAPValidationResult> toRemove = new HashSet<>();
+
+    // First pass - count occurrences
+    for (RDAPValidationResult result : results) {
+      if (result.getCode() == -20400) {
+        ipv4Count++;
+        if (ipv4Count > ONE) {
+          toRemove.add(result);
+        }
+      } else if (result.getCode() == -20401) {
+        ipv6Count++;
+        if (ipv6Count > ONE) {
+          toRemove.add(result);
+        }
+      }
+    }
+
+    // Remove duplicates
+    results.removeAll(toRemove);
+    return results;
   }
 
   public String getResultsPath() {

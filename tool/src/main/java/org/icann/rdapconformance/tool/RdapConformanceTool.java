@@ -96,14 +96,14 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       validator = new RDAPFileValidator(this, fileSystem);
     }
 
+    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+
     // No matter which validator, we need to initialize the dataset service
     // TODO: move to a common place
     if(RDAPHttpValidator.initializeDatasetService(this) == ToolResult.DATASET_UNAVAILABLE.getCode()) {
       logger.error("Unable to initialize the dataset service, exiting.");
       return ToolResult.DATASET_UNAVAILABLE.getCode();
     }
-
-    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
 
     if (networkEnabled) {
       // Initialize our DNS lookups with this.
@@ -146,12 +146,6 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
         resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configurationFileObj, fileSystem);
         logger.info("Unable to resolve an IP address endpoint using DNS for uri:  "  + DNSCacheResolver.getHostnameFromUrl(uri.toString()));
       }
-
-
-
-      // Check the results of the http codes and ensure they are all the same
-      String resultsWithStatus = RDAPValidatorResultsImpl.getInstance().analyzeResultsWithStatusCheck();
-      logger.info("Results with status check:\n{}",resultsWithStatus);
 
       // Build the result file
       resultFile.build();
