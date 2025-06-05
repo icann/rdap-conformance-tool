@@ -158,7 +158,7 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.info("prePath property is not found, so validation is true");
+            logger.info("postPath property is not found, so validation is true");
         }
 
         return validateMethodProperty(redactedStreet);
