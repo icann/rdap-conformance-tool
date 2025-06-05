@@ -110,7 +110,9 @@ public class RDAPHttpRequest {
         if (DNSCacheResolver.hasNoAddresses(host)) {
             logger.info("No IP address found for host: " + host);
             tracker.completeCurrentConnection(0, ConnectionStatus.UNKNOWN_HOST);
-            return new SimpleHttpResponse(trackingId,0, EMPTY_STRING, originalUri, new Header[0]);
+            SimpleHttpResponse resp = new SimpleHttpResponse(trackingId,0, EMPTY_STRING, originalUri, new Header[0]);
+            resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
+            return resp;
         }
 
         InetAddress localBindIp = NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
@@ -188,9 +190,22 @@ public class RDAPHttpRequest {
         int attempt = ZERO;
 
         while (attempt <= MAX_RETRIES) {
-            ClassicHttpResponse response = executeRequest(client, request);
-            int statusCode = response.getCode();
-            String body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
+            ClassicHttpResponse response = null;
+            int statusCode = 0;
+            String body = EMPTY_STRING;
+            try {
+                response = executeRequest(client, request);
+                statusCode = response.getCode();
+                body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
+            } catch (Exception e) {
+                ConnectionStatus status = handleRequestException(e, canRecordError);
+                tracker.completeCurrentConnection(statusCode, status);
+                SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
+                    trackingId, statusCode, body, originalUri, new Header[0]
+                );
+                simpleHttpResponse.setConnectionStatusCode(status);
+                return simpleHttpResponse;
+            }
 
             if (statusCode == HTTP_TOO_MANY_REQUESTS) {
                 long backoffSeconds = getBackoffTime(response.getHeaders());
