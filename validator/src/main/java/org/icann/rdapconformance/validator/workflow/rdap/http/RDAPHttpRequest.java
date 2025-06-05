@@ -73,7 +73,7 @@ public class RDAPHttpRequest {
     public static final String RETRY_AFTER = "Retry-After";
 
     public static int DEFAULT_BACKOFF_SECS = 30;
-    public static final int MAX_RETRIES = 2;
+    public static final int MAX_RETRIES = 1;
     public static final int DNS_PORT = 53;
     public static final String OUTGOING_IPV4 = "9.9.9.9";
     public static final String OUTGOING_V6 = "2620:fe::9";
@@ -109,39 +109,30 @@ public class RDAPHttpRequest {
 
         if (DNSCacheResolver.hasNoAddresses(host)) {
             logger.info("No IP address found for host: " + host);
-            tracker.completeCurrentConnection(0, ConnectionStatus.UNKNOWN_HOST);
-            SimpleHttpResponse resp = new SimpleHttpResponse(trackingId,0, EMPTY_STRING, originalUri, new Header[0]);
+            tracker.completeCurrentConnection(ZERO, ConnectionStatus.UNKNOWN_HOST);
+            SimpleHttpResponse resp = new SimpleHttpResponse(trackingId,ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
             resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
             return resp;
         }
 
-        InetAddress localBindIp = NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
+        NetworkProtocol protocol = NetworkInfo.getNetworkProtocol();
+        InetAddress localBindIp = (protocol == NetworkProtocol.IPv6)
             ? getDefaultIPv6Address()
             : getDefaultIPv4Address();
 
-
-        InetAddress remoteAddress = NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
+        InetAddress remoteAddress = (protocol == NetworkProtocol.IPv6)
             ? DNSCacheResolver.getFirstV6Address(host)
             : DNSCacheResolver.getFirstV4Address(host);
 
-        InetAddress remoteIp = NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6
-            ? DNSCacheResolver.getFirstV6Address(host)
-            : DNSCacheResolver.getFirstV4Address(host);
-
-
-        if (remoteAddress == null) {
-            tracker.completeCurrentConnection(0, ConnectionStatus.UNKNOWN_HOST);
-            return new SimpleHttpResponse(trackingId,0, EMPTY_STRING, originalUri, new Header[0]);
-        }
-
-        if (remoteIp != null && remoteIp.getHostAddress().equals(LOCAL_IPv4)) {
-            // localBind needs to be 127.0.0.1 as well
-            localBindIp = InetAddress.getByName(LOCAL_IPv4);
-        }
-
-        if (remoteIp == null || localBindIp == null) {
+        // If remote address or local bind IP is null, treat as unknown host
+        if (remoteAddress == null || localBindIp == null) {
             tracker.completeCurrentConnection(ZERO, ConnectionStatus.UNKNOWN_HOST);
-            return new SimpleHttpResponse(trackingId, ZERO, "", originalUri, new Header[ZERO]);
+            return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+        }
+
+        // Special case: if remote is 127.0.0.1, bind to 127.0.0.1
+        if (remoteAddress.getHostAddress().equals(LOCAL_IPv4)) {
+            localBindIp = InetAddress.getByName(LOCAL_IPv4);
         }
 
         URI ipUri = new URI(
@@ -209,10 +200,10 @@ public class RDAPHttpRequest {
 
             if (statusCode == HTTP_TOO_MANY_REQUESTS) {
                 long backoffSeconds = getBackoffTime(response.getHeaders());
-                logger.warn("[429] Too Many Requests. Backing off for {} seconds. Attempt {}/{}", backoffSeconds, attempt + 1, MAX_RETRIES);
                 attempt++;
 
                 if (attempt > MAX_RETRIES) {
+                    logger.info("Requeried using retry-after wait time but result was a 429.");
                     tracker.completeCurrentConnection(statusCode, ConnectionStatus.TOO_MANY_REQUESTS);
 
                     SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
@@ -222,7 +213,6 @@ public class RDAPHttpRequest {
                     simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
                     return simpleHttpResponse;
                 }
-
                 sleep(backoffSeconds);
                 continue;
             }
@@ -252,16 +242,10 @@ public class RDAPHttpRequest {
      * Handle exceptions that occur during the HTTP request.
      */
     public static ConnectionStatus handleRequestException(Exception e, boolean recordError) {
+        System.out.println("Handling exception: " + e.getMessage());
         if (e instanceof UnknownHostException) {
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
-        }
-        if( e instanceof java.util.concurrent.TimeoutException) {
-            if(recordError) {
-                addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
-            }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
-            return ConnectionStatus.NETWORK_RECEIVE_FAIL;
         }
 
         if (e.getMessage() != null && e.getMessage().contains("Connection refused")) {
@@ -272,39 +256,12 @@ public class RDAPHttpRequest {
             return ConnectionStatus.CONNECTION_REFUSED;
         }
 
-        // java.util.concurrent.ExecutionException: java.net.SocketException: Connection reset
-        if (e instanceof java.util.concurrent.ExecutionException) {
-            if (e.getCause() instanceof SocketTimeoutException) {
-                if(recordError) {
-                    addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
-                }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
-                return ConnectionStatus.NETWORK_RECEIVE_FAIL;
-            }
-        }
-
-        if (hasCause(e, "io.netty.handler.timeout.ReadTimeoutException")) {
-            if (recordError) {
-                addErrorToResultsFile(ZERO, -13017, "no response available",
-                    "Network receive fail");
-            }
-            return ConnectionStatus.NETWORK_RECEIVE_FAIL;
-        }
-
         if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
-            if (hasCause(e, "java.nio.channels.UnresolvedAddressException")) {
-                if(recordError) {
-                    addErrorToResultsFile(ZERO,-13016, "no response available", "Network send fail");
-                }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
-                return ConnectionStatus.NETWORK_SEND_FAIL;
-            } else {
                 if(recordError) {
                     addErrorToResultsFile(ZERO, -13007, "no response available", "Failed to connect to server.");
                 }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
                 return ConnectionStatus.CONNECTION_FAILED;
-            }
         }
 
         if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
@@ -347,13 +304,13 @@ public class RDAPHttpRequest {
 
         // Differentiates between  NETWORK_SEND_FAIL and NETWORK_RECEIVE_FAIL
         if (e instanceof SocketTimeoutException) {
-            if (e.getMessage().contains("Read timed out")) {
+            if (e.getMessage() != null && e.getMessage().contains("Read timed out")) {
                 if(recordError) {
                     addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
                 }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
                 return ConnectionStatus.NETWORK_RECEIVE_FAIL;
-            } else {
+            } else { // anything that isn't a read timeout with a SocketTimeoutException gets a  send failure
                 if(recordError) {
                     addErrorToResultsFile(ZERO, -13016, "no response available", "Network send fail");
                 }
@@ -374,7 +331,7 @@ public class RDAPHttpRequest {
             return ConnectionStatus.NETWORK_RECEIVE_FAIL;
         }
 
-        // Default to CONNECTION_FAILED if no specific cause identified
+        // we are at the fall through point, which means we have not identified a specific cause, and it gets classified as a connection failure
         if(recordError) {
             addErrorToResultsFile(ZERO,-13007, "no response available", "Failed to connect to server.");
         }
