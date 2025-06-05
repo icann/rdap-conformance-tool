@@ -13,28 +13,28 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.Set;
 
-public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation {
+public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot2_2024.class);
     public static final String VCARD_ADDRESS_PATH = "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
 
-    public ResponseValidation2Dot7Dot4Dot4_2024(String rdapResponse, RDAPValidatorResults results) {
+    public ResponseValidation2Dot7Dot4Dot6_2024(String rdapResponse, RDAPValidatorResults results) {
         super(rdapResponse, results);
     }
 
     @Override
     public String getGroupName() {
-        return "rdapResponseProfile_2_7_4_4_Validation";
+        return "rdapResponseProfile_2_7_4_6_Validation";
     }
 
     @Override
     protected boolean doValidate() {
-        return validateVcardCityAddressPropertyObject();
+        return validateVcardPostalCodeAddressPropertyObject();
     }
 
-    private boolean validateVcardCityAddressPropertyObject() {
+    private boolean validateVcardPostalCodeAddressPropertyObject() {
         try {
             Set<String> vcardAddressPointersValue = getPointerFromJPath(VCARD_ADDRESS_PATH);
             logger.info("vcardAddressPointersValue size: {}", vcardAddressPointersValue.size());
@@ -47,16 +47,16 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
             for (String jsonPointer : vcardAddressPointersValue) {
                 JSONArray vcardAddressArray = (JSONArray) jsonObject.query(jsonPointer);
                 JSONArray vcardAddressValuesArray = (JSONArray) vcardAddressArray.get(3);
-                if(vcardAddressValuesArray.get(3) instanceof String city) {
-                    if(StringUtils.isEmpty(city)) {
-                        return validateRedactedArrayForEmptyCityValue();
+                if(vcardAddressValuesArray.get(5) instanceof String postalCode) {
+                    if(StringUtils.isEmpty(postalCode)) {
+                        return validateRedactedArrayForEmptyPostalCodeValue();
                     }
                 } else {
-                    logger.info("city address is not present");
+                    logger.info("postalCode address is not present");
                     results.add(RDAPValidationResult.builder()
-                            .code(-63500)
+                            .code(-63600)
                             .value(getResultValue(vcardAddressPointersValue))
-                            .message("The city value of the adr property is required on the vcard for the registrant.")
+                            .message("The postal code value of the adr property is required on the vcard for the registrant.")
                             .build());
                     return false;
                 }
@@ -71,35 +71,35 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
         return true;
     }
 
-    private boolean validateRedactedArrayForEmptyCityValue() {
-        JSONObject redactedCity = null;
+    private boolean validateRedactedArrayForEmptyPostalCodeValue() {
+        JSONObject redactedPostalCode = null;
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
             JSONObject name = (JSONObject) redacted.get("name");
             if(name.get("type") instanceof String redactedName) {
-                if(redactedName.trim().equalsIgnoreCase("Registrant City")) {
-                    redactedCity = redacted;
+                if(redactedName.trim().equalsIgnoreCase("Registrant Postal Code")) {
+                    redactedPostalCode = redacted;
                 }
             }
         }
 
-        if(Objects.isNull(redactedCity)) {
+        if(Objects.isNull(redactedPostalCode)) {
             results.add(RDAPValidationResult.builder()
-                    .code(-63501)
+                    .code(-63601)
                     .value(getResultValue(redactedPointersValue))
-                    .message("a redaction of type Registrant City is required.")
+                    .message("a redaction of type Registrant Postal Code is required.")
                     .build());
 
             return false;
         }
 
-        return validateRedactedProperties(redactedCity);
+        return validateRedactedProperties(redactedPostalCode);
     }
 
-    private boolean validateRedactedProperties(JSONObject redactedCity) {
-        if(Objects.isNull(redactedCity)) {
-            logger.info("redactedCity object is null");
+    private boolean validateRedactedProperties(JSONObject redactedPostalCode) {
+        if(Objects.isNull(redactedPostalCode)) {
+            logger.info("redactedPostalCode object is null");
             return true;
         }
 
@@ -108,28 +108,28 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
         // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify postPath
         try {
             logger.info("Extracting pathLang...");
-            pathLangValue = redactedCity.get("pathLang");
+            pathLangValue = redactedPostalCode.get("pathLang");
             if(pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
-                    return validatePostPathBasedOnPathLang(redactedCity);
+                    return validatePostPathBasedOnPathLang(redactedPostalCode);
                 }
             }
             return true;
         } catch (Exception e) {
             logger.info("pathLang is not found");
-            return validatePostPathBasedOnPathLang(redactedCity);
+            return validatePostPathBasedOnPathLang(redactedPostalCode);
         }
     }
 
     // Verify that the postPath property is present with a valid JSONPath expression.
-    private boolean validatePostPathBasedOnPathLang(JSONObject redactedCity) {
-        if(Objects.isNull(redactedCity)) {
-            logger.info("redactedCity object for postPath validations is null");
+    private boolean validatePostPathBasedOnPathLang(JSONObject redactedPostalCode) {
+        if(Objects.isNull(redactedPostalCode)) {
+            logger.info("redactedPostalCode object for postPath validations is null");
             return true;
         }
 
         try {
-            var postPathValue = redactedCity.get("postPath");
+            var postPathValue = redactedPostalCode.get("postPath");
             logger.info("postPath property is found, so verify value");
             if(postPathValue instanceof String postPath) {
                 try {
@@ -137,18 +137,18 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                     logger.info("postPath pointer with size {}", postPathPointer.size());
                     if(postPathPointer.isEmpty()) {
                         results.add(RDAPValidationResult.builder()
-                                .code(-63503)
+                                .code(-63603)
                                 .value(getResultValue(redactedPointersValue))
-                                .message("jsonpath must evaluate to non-empty set for redaction by empty value of Registrant City.")
+                                .message("jsonpath must evaluate to non-empty set for redaction by empty value of Registrant Postal Code.")
                                 .build());
                         return false;
                     }
                 } catch (Exception e) {
                     // postPath is not a valid JSONPath expression
                     results.add(RDAPValidationResult.builder()
-                            .code(-63502)
+                            .code(-63602)
                             .value(getResultValue(redactedPointersValue))
-                            .message("jsonpath is invalid for Registrant City.")
+                            .message("jsonpath is invalid for Registrant Postal Code.")
                             .build());
                     return false;
                 }
@@ -157,25 +157,25 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
             logger.info("postPath property is not found, so validation is true");
         }
 
-        return validateMethodProperty(redactedCity);
+        return validateMethodProperty(redactedPostalCode);
     }
 
     // Verify that the method property is present as is a JSON string of “emptyValue”.
-    private boolean validateMethodProperty(JSONObject redactedCity) {
-        if(Objects.isNull(redactedCity)) {
-            logger.info("redactedCity object for method validations is null");
+    private boolean validateMethodProperty(JSONObject redactedPostalCode) {
+        if(Objects.isNull(redactedPostalCode)) {
+            logger.info("redactedPostalCode object for method validations is null");
             return true;
         }
 
         try {
-            var methodValue = redactedCity.get("method");
+            var methodValue = redactedPostalCode.get("method");
             logger.info("method property is found, so verify value");
             if(methodValue instanceof String method) {
                 if(!method.trim().equalsIgnoreCase("empytValue")) {
                     results.add(RDAPValidationResult.builder()
-                            .code(-63504)
+                            .code(-63604)
                             .value(getResultValue(redactedPointersValue))
-                            .message("Registrant City redaction method must be empytValue.")
+                            .message("Registrant Postal Code redaction method must be empytValue")
                             .build());
                     return false;
                 }
