@@ -242,7 +242,6 @@ public class RDAPHttpRequest {
      * Handle exceptions that occur during the HTTP request.
      */
     public static ConnectionStatus handleRequestException(Exception e, boolean recordError) {
-        System.out.println("Handling exception: " + e.getMessage());
         if (e instanceof UnknownHostException) {
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
