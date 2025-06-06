@@ -175,6 +175,7 @@ public class RDAPHttpRequest {
 
         CloseableHttpClient client = HttpClientBuilder.create()
                                                       .setConnectionManager(connectionManager)
+                                                      .disableAutomaticRetries()
                                                       .disableRedirectHandling()
                                                       .build();
 
