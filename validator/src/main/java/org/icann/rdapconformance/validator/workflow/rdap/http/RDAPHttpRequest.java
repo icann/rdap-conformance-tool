@@ -23,6 +23,25 @@ import java.net.UnknownHostException;
 import java.net.http.HttpTimeoutException;
 
 
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import javax.net.ssl.SNIHostName;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
@@ -148,7 +167,8 @@ public class RDAPHttpRequest {
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
         logger.info("Connecting to: {} using {}", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
 
-        HttpUriRequestBase request = method.equals(GET) ? new HttpGet(ipUri) : new HttpHead(ipUri);
+
+        HttpUriRequestBase request = method.equals(GET) ? new HttpGet(originalUri) : new HttpHead(originalUri);
         request.setHeader(HOST, host);
         request.setHeader(ACCEPT, NetworkInfo.getAcceptHeader());
         request.setHeader(CONNECTION, CLOSE);
@@ -159,10 +179,14 @@ public class RDAPHttpRequest {
                                             .build();
         request.setConfig(config);
 
-        TrustStrategy acceptAll = (chain, authType) -> true;
-        SSLContext sslContext = SSLContextBuilder.create()
-                                                 .loadTrustMaterial(null, acceptAll)
-                                                 .build();
+//        TrustStrategy acceptAll = (chain, authType) -> true;
+        SSLContext  sslContext = SSLContextBuilder.create().build();
+//        X509TrustManager leafCheckingTm = createLeafValidatingTrustManager();
+
+//        SSLContext sslContext = SSLContext.getInstance("TLS");
+//        sslContext.init(null, new TrustManager[] { leafCheckingTm }, new SecureRandom());
+
+
 
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                                                                                                         .setSSLSocketFactory(
@@ -170,15 +194,17 @@ public class RDAPHttpRequest {
                                                                                                                                              .setSslContext(sslContext)
                                                                                                                                              .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
                                                                                                                                              .setHostnameVerifier((hostname, session) -> true)
+//                                                                                                                                             .setHostnameVerifier(new DefaultHostnameVerifier())
                                                                                                                                              .build()
                                                                                                         ).build();
 
         CloseableHttpClient client = HttpClientBuilder.create()
                                                       .setConnectionManager(connectionManager)
+//                                                      .setRoutePlanner(new LocalBindRoutePlanner(localBindIp))
                                                       .disableAutomaticRetries()
                                                       .disableRedirectHandling()
                                                       .build();
-
+        // Set the local bind address for the request
         int attempt = ZERO;
 
         while (attempt <= MAX_RETRIES) {
@@ -411,6 +437,67 @@ public class RDAPHttpRequest {
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
         }
+    }
+
+//    public static TlsStrategy createSniTlsStrategy(SSLContext sslContext, String sniHostName) {
+//        return ClientTlsStrategyBuilder.create()
+//                                       .setSslContext(sslContext)
+//                                       .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
+//                                       .setHostnameVerifier(NoopHostnameVerifier.INSTANCE) // or DefaultHostnameVerifier
+//                                       .setTlsDetailsFactory((endpoint, sslEngine) -> {
+//                                           SSLParameters params = new SSLParameters();
+//                                           params.setServerNames(Collections.singletonList(new SNIHostName(sniHostName)));
+//                                           if (sslEngine instanceof javax.net.ssl.SSLEngine) {
+//                                               ((javax.net.ssl.SSLEngine) sslEngine).setSSLParameters(params);
+//                                           }
+//                                           return null; // return value is unused
+//                                       })
+//                                       .build();
+//    }
+
+    public static X509TrustManager createLeafValidatingTrustManager() {
+        return new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                // Skip client certs (unused in typical HTTPS)
+            }
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                if (chain == null || chain.length == 0) throw new IllegalArgumentException("Empty certificate chain");
+
+                X509Certificate leaf = chain[0];
+
+                System.out.println("---> Leaf Cert <---");
+                System.out.println("Subject: " + leaf.getSubjectX500Principal());
+                System.out.println("Issuer:  " + leaf.getIssuerX500Principal());
+                System.out.println("Not Before: " + leaf.getNotBefore());
+                System.out.println("Not After:  " + leaf.getNotAfter());
+
+                if (leaf.getNotAfter().before(new Date())) {
+                    throw new CertificateExpiredException("Leaf certificate expired: " + leaf.getSubjectX500Principal());
+                }
+
+                // Optionally check SANs
+                try {
+                    Collection<List<?>> sans = leaf.getSubjectAlternativeNames();
+                    if (sans != null) {
+                        for (List<?> san : sans) {
+                            System.out.println("SAN: " + san.get(1));
+                        }
+                    }
+                } catch (CertificateParsingException ex) {
+                    System.err.println("Failed to parse SANs from leaf cert");
+                }
+
+                // ⚠️ No chain validation performed here
+            }
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
+        };
     }
 
     private static RDAPHttpRequest.Header[] convertHeaders(org.apache.hc.core5.http.Header[] headers) {
