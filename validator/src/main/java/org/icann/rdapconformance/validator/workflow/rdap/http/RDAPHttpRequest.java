@@ -24,6 +24,8 @@ import java.net.http.HttpTimeoutException;
 
 
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.cert.CertificateException;
@@ -35,12 +37,14 @@ import java.util.Collections;
 import java.util.Date;
 import javax.net.ssl.SNIHostName;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
@@ -165,6 +169,7 @@ public class RDAPHttpRequest {
         );
 
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
+        tracker.updateIPAddressOnCurrentConnection(remoteAddress.getHostAddress());
         logger.info("Connecting to: {} using {}", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
 
 
@@ -181,12 +186,44 @@ public class RDAPHttpRequest {
         request.setConfig(config);
 
 //        TrustStrategy acceptAll = (chain, authType) -> true;
-        SSLContext  sslContext = SSLContextBuilder.create().build();
-//        X509TrustManager leafCheckingTm = createLeafValidatingTrustManager();
+//        SSLContext  sslContext = SSLContextBuilder.create().build();
+        X509TrustManager leafCheckingTm = createLeafValidatingTrustManager();
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[] { leafCheckingTm }, new SecureRandom());
 
-//        SSLContext sslContext = SSLContext.getInstance("TLS");
-//        sslContext.init(null, new TrustManager[] { leafCheckingTm }, new SecureRandom());
 
+        // ??!??
+        // Create the SSLConnectionSocketFactory with SNI support
+        String finalHost = host;
+        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
+            sslContext,
+            new String[] { "TLSv1.3", "TLSv1.2" },
+            null, // Use default cipher suites
+            (hostname, session) -> {
+                // This is critical - use the original hostname (finalHost) for verification
+                // instead of the IP address that Apache HttpClient will pass
+                DefaultHostnameVerifier verifier = new DefaultHostnameVerifier();
+                try {
+                    return verifier.verify(finalHost, session);
+                } catch (Exception e) {
+                    logger.debug("Hostname verification failed for: {}", finalHost, e);
+                    return false;
+                }
+            }) {
+            @Override
+            protected void prepareSocket(SSLSocket socket) throws IOException {
+                // Set the SNI hostname to the original hostname, not the IP
+                SSLParameters sslParameters = socket.getSSLParameters();
+                sslParameters.setServerNames(Collections.singletonList(new SNIHostName(finalHost)));
+                socket.setSSLParameters(sslParameters);
+            }
+
+        };
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                                                                                                        .setSSLSocketFactory(sslSocketFactory)
+                                                                                                        .build();
+
+        /*
 
 
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
@@ -198,6 +235,8 @@ public class RDAPHttpRequest {
 //                                                                                                                                             .setHostnameVerifier(new DefaultHostnameVerifier())
                                                                                                                                              .build()
                                                                                                         ).build();
+
+         */
 
         CloseableHttpClient client = HttpClientBuilder.create()
                                                       .setConnectionManager(connectionManager)
@@ -297,33 +336,55 @@ public class RDAPHttpRequest {
             }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
             return ConnectionStatus.EXPIRED_CERTIFICATE;
-        } else if (hasCause(e, "java.security.cert.CertificateRevokedException")) {
+        } else if (hasCause(e, "java.security.cert.CertificateRevokedException") || e.toString().contains("CertificateRevokedException") ||  e.toString().contains("Certificate revoked")) {
             if(recordError) {
                 addErrorToResultsFile(ZERO, -13010, "no response available", "Revoked TLS certificate.");
             }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
             return ConnectionStatus.REVOKED_CERTIFICATE;
-        } else if (hasCause(e, "java.security.cert.CertificateException")) {
-            if (e.getMessage().contains("No name matching") ||
-                e.getMessage().contains("No subject alternative DNS name matching")) {
+        } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
+            if (e.getMessage() != null && (e.getMessage().contains("certificate_unknown") ||
+                e.getMessage().contains("unable to find valid certification path") ||
+                e.getMessage().contains("PKIX path building failed") ||
+                e.getMessage().contains("self signed certificate") ||
+                e.getMessage().contains("unknown CA"))) {
+                if(recordError) {
+                    addErrorToResultsFile(ZERO, -13012, "no response available", "Untrusted certificate root.");
+                }
+                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
+                return ConnectionStatus.CERTIFICATE_ERROR;
+            }
+
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13008, "no response available", "TLS handshake failed.");
+            }
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
+            return ConnectionStatus.HANDSHAKE_FAILED;
+        }
+        else if (hasCause(e, "javax.net.ssl.SSLPeerUnverifiedException") || e.toString().contains("SSLPeerUnverifiedException")) {
+//            if (e.getMessage() != null && (
+//                e.getMessage().contains("No name matching") ||
+//                    e.getMessage().contains("No subject alternative DNS name matching") ||
+//                    e.getMessage().contains("subjectAltName does not match") ||
+//                    e.getMessage().contains("Host name") && e.getMessage().contains("does not match"))) {
                 if(recordError) {
                     addErrorToResultsFile(ZERO, -13009, "no response available", "Invalid TLS certificate.");
                 }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
                 return ConnectionStatus.INVALID_CERTIFICATE;
-            }
-            if(recordError) {
-                addErrorToResultsFile(ZERO, -13012, "no response available", "TLS certificate error.");
-            }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
-            return ConnectionStatus.CERTIFICATE_ERROR;
+//            }
+//            if(recordError) {
+//                addErrorToResultsFile(ZERO, -13012, "no response available", "TLS certificate error.");
+//            }
+//            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
+//            return ConnectionStatus.CERTIFICATE_ERROR;
         } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
             if(recordError) {
                 addErrorToResultsFile(ZERO, -13008, "no response available", "TLS handshake failed.");
             }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
             return ConnectionStatus.HANDSHAKE_FAILED;
-        } else if (hasCause(e, "sun.security.validator.ValidatorException")) {
+        } else if (hasCause(e, "sun.security.validator.ValidatorException") || hasCause(e, "java.security.cert.CertificateException") ) {
             addErrorToResultsFile(ZERO,-13012, "no response available", "TLS certificate error.");
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
             return ConnectionStatus.CERTIFICATE_ERROR;
@@ -456,7 +517,20 @@ public class RDAPHttpRequest {
 //                                       .build();
 //    }
 
-    public static X509TrustManager createLeafValidatingTrustManager() {
+    public static X509TrustManager createLeafValidatingTrustManager() throws Exception {
+        // Get the default trust manager
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init((KeyStore) null);
+        X509TrustManager defaultTm = null;
+        for (TrustManager tm : tmf.getTrustManagers()) {
+            if (tm instanceof X509TrustManager) {
+                defaultTm = (X509TrustManager) tm;
+                break;
+            }
+        }
+
+        final X509TrustManager finalDefaultTm = defaultTm;
+
         return new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -465,7 +539,9 @@ public class RDAPHttpRequest {
 
             @Override
             public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                if (chain == null || chain.length == 0) throw new IllegalArgumentException("Empty certificate chain");
+                if (chain == null || chain.length == 0) {
+                    throw new CertificateException("Empty certificate chain");
+                }
 
                 X509Certificate leaf = chain[0];
 
@@ -491,12 +567,38 @@ public class RDAPHttpRequest {
                     System.err.println("Failed to parse SANs from leaf cert");
                 }
 
-                // ⚠️ No chain validation performed here
+                // Check expiration
+                try {
+                    leaf.checkValidity(new Date());
+                } catch (CertificateExpiredException e) {
+                    throw new CertificateExpiredException("Leaf certificate expired: " +
+                        leaf.getSubjectX500Principal().getName());
+                }
+
+                // Check revocation status
+                try {
+                    // Force revocation check through OCSP/CRL
+                    Security.setProperty("ocsp.enable", "true");
+                    System.setProperty("com.sun.security.enableCRLDP", "true");
+
+                    // Use the default trust manager to check the cert chain, which includes revocation
+                    finalDefaultTm.checkServerTrusted(chain, authType);
+                } catch (Exception e) {
+                    if (e.getMessage() != null && e.getMessage().contains("revoked")) {
+                        throw new CertificateException("Certificate revoked: " +
+                            leaf.getSubjectX500Principal().getName());
+                    }
+                    // If we reach here, it's some other certificate trust issue
+                    // (like untrusted root) so let it propagate
+                    throw e;
+                }
             }
 
             @Override
             public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
+//                return new X509Certificate[0];
+                assert finalDefaultTm != null;
+                return finalDefaultTm.getAcceptedIssuers();
             }
         };
     }
