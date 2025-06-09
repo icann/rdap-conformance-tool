@@ -2,7 +2,6 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard
 
 import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation2Dot7Dot6Dot2_2024;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
@@ -15,7 +14,7 @@ import java.util.Set;
 
 public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot2_2024.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot4_2024.class);
     public static final String VCARD_ADDRESS_PATH = "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
