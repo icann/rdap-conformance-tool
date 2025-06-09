@@ -172,6 +172,7 @@ public class RDAPHttpRequest {
         request.setHeader(HOST, host);
         request.setHeader(ACCEPT, NetworkInfo.getAcceptHeader());
         request.setHeader(CONNECTION, CLOSE);
+        request.setUri(ipUri);
 
         RequestConfig config = RequestConfig.custom()
                                             .setConnectTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
@@ -200,7 +201,7 @@ public class RDAPHttpRequest {
 
         CloseableHttpClient client = HttpClientBuilder.create()
                                                       .setConnectionManager(connectionManager)
-//                                                      .setRoutePlanner(new LocalBindRoutePlanner(localBindIp))
+                                                      .setRoutePlanner(new LocalBindRoutePlanner(localBindIp))
                                                       .disableAutomaticRetries()
                                                       .disableRedirectHandling()
                                                       .build();
