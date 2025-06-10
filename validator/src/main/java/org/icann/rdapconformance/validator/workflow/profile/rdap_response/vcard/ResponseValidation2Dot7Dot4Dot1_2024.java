@@ -81,11 +81,24 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
             JSONObject name = (JSONObject) redacted.get("name");
-            if(name.get("type") instanceof String redactedName) {
-                if(redactedName.trim().equalsIgnoreCase("Registrant Name")) {
-                    redactedRegistrantName = redacted;
+            try {
+                var nameValue = name.get("type");
+                if(nameValue instanceof String redactedName) {
+                    if(redactedName.trim().equalsIgnoreCase("Registrant Name")) {
+                        redactedRegistrantName = redacted;
+                    }
                 }
+            } catch (Exception e) {
+                logger.info("Extract type from name is not possible by {}", e.getMessage());
+                results.add(RDAPValidationResult.builder()
+                        .code(-63201)
+                        .value(getResultValue(redactedPointersValue))
+                        .message("a redaction of type Registrant Name is required.")
+                        .build());
+
+                return false;
             }
+
         }
 
         if(Objects.isNull(redactedRegistrantName)) {
@@ -148,7 +161,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
                         return false;
                     }
                 } catch (Exception e) {
-                    // postPath is not a valid JSONPath expression
+                    logger.info("postPath is not a valid JSONPath expression, Error: {}", e.getMessage());
                     results.add(RDAPValidationResult.builder()
                             .code(-63202)
                             .value(getResultValue(redactedPointersValue))

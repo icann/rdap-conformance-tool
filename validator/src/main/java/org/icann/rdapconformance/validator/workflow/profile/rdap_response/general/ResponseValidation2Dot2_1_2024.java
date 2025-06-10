@@ -98,10 +98,23 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
    for (String redactedJsonPointer : redactedPointersValue) {
      JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
      JSONObject name = (JSONObject) redacted.get("name");
-     if(name.get("type") instanceof String redactedName) {
-       if(redactedName.trim().equalsIgnoreCase("Registry Domain ID")) {
-         redactedRegistryDomain = redacted;
-       }
+
+     try {
+         var nameValue = name.get("type");
+         if(nameValue instanceof String redactedName) {
+             if(redactedName.trim().equalsIgnoreCase("Registry Domain ID")) {
+                 redactedRegistryDomain = redacted;
+             }
+         }
+     } catch (Exception e) {
+         logger.info("Extract type from name is not possible by {}", e.getMessage());
+         results.add(RDAPValidationResult.builder()
+                 .code(-46202)
+                 .value(getResultValue(redactedPointersValue))
+                 .message("a redaction of type Registry Domain ID is required.")
+                 .build());
+
+         return new RedactedHandleObjectToValidate(redactedRegistryDomain, false);
      }
    }
 
