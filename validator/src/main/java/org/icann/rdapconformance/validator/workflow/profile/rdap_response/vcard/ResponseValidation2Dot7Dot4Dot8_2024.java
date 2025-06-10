@@ -37,7 +37,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
             logger.info("vcardVoicePointersValue size: {}", vcardVoicePointersValue.size());
 
             if(vcardVoicePointersValue.isEmpty()) {
-                logger.info("voice tel in vcard does not have values, no validations");
+                logger.info("voice tel in vcard does not have values, validate redaction object");
                 return validateRedactedArrayForNoVoiceValue();
             }
 
