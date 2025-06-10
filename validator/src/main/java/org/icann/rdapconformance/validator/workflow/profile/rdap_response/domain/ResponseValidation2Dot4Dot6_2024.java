@@ -74,6 +74,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         }
 
         if (!this.config.getUri().toString().equals(value)) {
+            logger.info("47701, value = {}, request url = {}", value, this.config.getUri());
             results.add(RDAPValidationResult.builder()
                 .code(-47701)
                 .value(getResultValue(linkPointer))
@@ -85,6 +86,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         }
 
         if (href == null || !href.startsWith("https")) {
+            logger.info("47702, href = {}", href);
             results.add(RDAPValidationResult.builder()
                 .code(-47702)
                 .value(getResultValue(linkPointer))
@@ -122,6 +124,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         String rdapUrl = record.getRdapUrl();
 
         if (href == null || !href.equals(rdapUrl)) {
+            logger.info("47703, handle/id = {}, rdap url = {}, href = {}", id, rdapUrl, href);
             results.add(RDAPValidationResult.builder()
                 .code(-47703)
                 .value(getResultValue(linkPointer))

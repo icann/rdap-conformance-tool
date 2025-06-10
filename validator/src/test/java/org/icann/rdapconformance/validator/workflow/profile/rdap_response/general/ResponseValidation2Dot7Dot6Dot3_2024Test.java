@@ -8,7 +8,7 @@ import org.testng.annotations.Test;
 
 public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidationTestBase {
     public ResponseValidation2Dot7Dot6Dot3_2024Test() {
-        super("/validators/profile/response_validations/vcard/tech_email_with_both_emai_and_contact-uri.json",
+        super("/validators/profile/response_validations/vcard/valid_tech_email.json",
             "rdapResponseProfile_2_7_6_3_Validation");
     }
 
