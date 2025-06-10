@@ -8,6 +8,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_TOO_MANY_REQUESTS;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
@@ -94,6 +95,7 @@ public class RDAPHttpRequest {
     public static final String CLOSE = "close";
 
     public static final String RETRY_AFTER = "Retry-After";
+    public static final int MAX_RETRY_TIME = 120;
 
     public static int DEFAULT_BACKOFF_SECS = 30;
     public static final int MAX_RETRIES = 1;
@@ -185,8 +187,6 @@ public class RDAPHttpRequest {
                                             .build();
         request.setConfig(config);
 
-//        TrustStrategy acceptAll = (chain, authType) -> true;
-//        SSLContext  sslContext = SSLContextBuilder.create().build();
         X509TrustManager leafCheckingTm = createLeafValidatingTrustManager();
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(null, new TrustManager[] { leafCheckingTm }, new SecureRandom());
@@ -219,31 +219,17 @@ public class RDAPHttpRequest {
             }
 
         };
+
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                                                                                                         .setSSLSocketFactory(sslSocketFactory)
                                                                                                         .build();
-
-        /*
-
-
-        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                                                                                                        .setSSLSocketFactory(
-                                                                                                            SSLConnectionSocketFactoryBuilder.create()
-                                                                                                                                             .setSslContext(sslContext)
-                                                                                                                                             .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
-                                                                                                                                             .setHostnameVerifier((hostname, session) -> true)
-//                                                                                                                                             .setHostnameVerifier(new DefaultHostnameVerifier())
-                                                                                                                                             .build()
-                                                                                                        ).build();
-
-         */
-
         CloseableHttpClient client = HttpClientBuilder.create()
                                                       .setConnectionManager(connectionManager)
                                                       .setRoutePlanner(new LocalBindRoutePlanner(localBindIp))
                                                       .disableAutomaticRetries()
                                                       .disableRedirectHandling()
                                                       .build();
+
         // Set the local bind address for the request
         int attempt = ZERO;
 
@@ -251,6 +237,7 @@ public class RDAPHttpRequest {
             ClassicHttpResponse response = null;
             int statusCode = 0;
             String body = EMPTY_STRING;
+
             try {
                 response = executeRequest(client, request);
                 statusCode = response.getCode();
@@ -259,7 +246,7 @@ public class RDAPHttpRequest {
                 ConnectionStatus status = handleRequestException(e, canRecordError);
                 tracker.completeCurrentConnection(statusCode, status);
                 SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
-                    trackingId, statusCode, body, originalUri, new Header[0]
+                    trackingId, statusCode, body, originalUri, new Header[ZERO]
                 );
                 simpleHttpResponse.setConnectionStatusCode(status);
                 return simpleHttpResponse;
@@ -267,9 +254,8 @@ public class RDAPHttpRequest {
 
             if (statusCode == HTTP_TOO_MANY_REQUESTS) {
                 long backoffSeconds = getBackoffTime(response.getHeaders());
-                attempt++;
 
-                if (attempt > MAX_RETRIES) {
+                if (attempt >= MAX_RETRIES) {
                     logger.info("Requeried using retry-after wait time but result was a 429.");
                     tracker.completeCurrentConnection(statusCode, ConnectionStatus.TOO_MANY_REQUESTS);
 
@@ -280,7 +266,15 @@ public class RDAPHttpRequest {
                     simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
                     return simpleHttpResponse;
                 }
-                sleep(backoffSeconds);
+                attempt++;
+                // in-line the sleep method to avoid unnecessary complexity
+                if (backoffSeconds > ZERO) {
+                    try {
+                        Thread.sleep(backoffSeconds * 1000); // Convert seconds to milliseconds
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
                 continue;
             }
 
@@ -296,7 +290,7 @@ public class RDAPHttpRequest {
 
         // If all retries are exhausted
         tracker.completeCurrentConnection(HTTP_TOO_MANY_REQUESTS, ConnectionStatus.TOO_MANY_REQUESTS);
-        return new SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[0]);
+        return new SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[ZERO]);
     }
 
 
@@ -305,16 +299,19 @@ public class RDAPHttpRequest {
     }
 
 
+
     /**
      * Handle exceptions that occur during the HTTP request.
      */
     public static ConnectionStatus handleRequestException(Exception e, boolean recordError) {
+        String exceptionString = e.toString();
+
         if (e instanceof UnknownHostException) {
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
         }
 
-        if (e.getMessage() != null && e.getMessage().contains("Connection refused")) {
+        if (exceptionString.contains("Connection refused")) {
             if (recordError) {
                 addErrorToResultsFile(ZERO, -13021, "no response available", "Connection refused by host.");
             }
@@ -330,26 +327,28 @@ public class RDAPHttpRequest {
                 return ConnectionStatus.CONNECTION_FAILED;
         }
 
+        // SSL and TLS related exceptions
         if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
             if(recordError) {
                 addErrorToResultsFile(ZERO, -13011, "no response available", "Expired certificate.");
             }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
             return ConnectionStatus.EXPIRED_CERTIFICATE;
-        } else if (hasCause(e, "java.security.cert.CertificateRevokedException") || e.toString().contains("CertificateRevokedException") ||  e.toString().contains("Certificate revoked")) {
+        } else if (hasCause(e, "java.security.cert.CertificateRevokedException") || exceptionString.contains("CertificateRevokedException") ||  exceptionString.contains("Certificate revoked")) {
             if(recordError) {
                 addErrorToResultsFile(ZERO, -13010, "no response available", "Revoked TLS certificate.");
             }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
             return ConnectionStatus.REVOKED_CERTIFICATE;
-        } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
-            if (e.getMessage() != null && (e.getMessage().contains("certificate_unknown") ||
-                e.getMessage().contains("unable to find valid certification path") ||
-                e.getMessage().contains("PKIX path building failed") ||
-                e.getMessage().contains("self signed certificate") ||
-                e.getMessage().contains("unknown CA"))) {
+        }
+        else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
+            if (exceptionString.contains("certificate_unknown") ||
+                exceptionString.contains("unable to find valid certification path") ||
+                exceptionString.contains("PKIX path building failed") ||
+                exceptionString.contains("self signed certificate") ||
+                exceptionString.contains("unknown CA")) {
                 if(recordError) {
-                    addErrorToResultsFile(ZERO, -13012, "no response available", "Untrusted certificate root.");
+                    addErrorToResultsFile(ZERO, -13012, "no response available", "TLS certificate error.");
                 }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
                 return ConnectionStatus.CERTIFICATE_ERROR;
@@ -362,29 +361,20 @@ public class RDAPHttpRequest {
             return ConnectionStatus.HANDSHAKE_FAILED;
         }
         else if (hasCause(e, "javax.net.ssl.SSLPeerUnverifiedException") || e.toString().contains("SSLPeerUnverifiedException")) {
-//            if (e.getMessage() != null && (
-//                e.getMessage().contains("No name matching") ||
-//                    e.getMessage().contains("No subject alternative DNS name matching") ||
-//                    e.getMessage().contains("subjectAltName does not match") ||
-//                    e.getMessage().contains("Host name") && e.getMessage().contains("does not match"))) {
                 if(recordError) {
                     addErrorToResultsFile(ZERO, -13009, "no response available", "Invalid TLS certificate.");
                 }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
                 return ConnectionStatus.INVALID_CERTIFICATE;
-//            }
+        }
+//        else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
 //            if(recordError) {
-//                addErrorToResultsFile(ZERO, -13012, "no response available", "TLS certificate error.");
+//                addErrorToResultsFile(ZERO, -13008, "no response available", "TLS handshake failed.");
 //            }
-//            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
-//            return ConnectionStatus.CERTIFICATE_ERROR;
-        } else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
-            if(recordError) {
-                addErrorToResultsFile(ZERO, -13008, "no response available", "TLS handshake failed.");
-            }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
-            return ConnectionStatus.HANDSHAKE_FAILED;
-        } else if (hasCause(e, "sun.security.validator.ValidatorException") || hasCause(e, "java.security.cert.CertificateException") ) {
+//            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
+//            return ConnectionStatus.HANDSHAKE_FAILED;
+         else if (hasCause(e, "sun.security.validator.ValidatorException") || hasCause(e, "java.security.cert.CertificateException") ) {
+            // else it's just a generic certificate error and falls under the certificate error category
             addErrorToResultsFile(ZERO,-13012, "no response available", "TLS certificate error.");
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
             return ConnectionStatus.CERTIFICATE_ERROR;
@@ -465,7 +455,6 @@ public class RDAPHttpRequest {
     }
 
 
-
     private static long getBackoffTime(org.apache.hc.core5.http.Header[] headers) {
         String retryAfter = headers == null ? null :
             java.util.Arrays.stream(headers)
@@ -477,6 +466,10 @@ public class RDAPHttpRequest {
             try {
                 long value = Long.parseLong(retryAfter);
                 if (value > ZERO) {
+                    if(value > MAX_RETRY_TIME) {
+                        value = MAX_RETRY_TIME; // Cap the retry-after to MAX_RETRY_TIME(120) seconds
+                    }
+                    value  = value + ONE; // no matter what, we add 1 second to the retry-after value
                     logger.info("Received 429 with retry-after header. Waiting {} seconds to requery.", value);
                     return value;
                 }
@@ -485,37 +478,6 @@ public class RDAPHttpRequest {
         logger.info("Received 429 but no retry-after header was offered. Waiting {} seconds.", DEFAULT_BACKOFF_SECS);
         return DEFAULT_BACKOFF_SECS;
     }
-
-    private static void sleep(long seconds) {
-        if (seconds <= ZERO) return;
-        long millis;
-        try {
-            millis = Math.multiplyExact(seconds, PAUSE);
-        } catch (ArithmeticException ex) {
-            millis = Long.MAX_VALUE;
-        }
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-//    public static TlsStrategy createSniTlsStrategy(SSLContext sslContext, String sniHostName) {
-//        return ClientTlsStrategyBuilder.create()
-//                                       .setSslContext(sslContext)
-//                                       .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
-//                                       .setHostnameVerifier(NoopHostnameVerifier.INSTANCE) // or DefaultHostnameVerifier
-//                                       .setTlsDetailsFactory((endpoint, sslEngine) -> {
-//                                           SSLParameters params = new SSLParameters();
-//                                           params.setServerNames(Collections.singletonList(new SNIHostName(sniHostName)));
-//                                           if (sslEngine instanceof javax.net.ssl.SSLEngine) {
-//                                               ((javax.net.ssl.SSLEngine) sslEngine).setSSLParameters(params);
-//                                           }
-//                                           return null; // return value is unused
-//                                       })
-//                                       .build();
-//    }
 
     public static X509TrustManager createLeafValidatingTrustManager() throws Exception {
         // Get the default trust manager
@@ -545,11 +507,11 @@ public class RDAPHttpRequest {
 
                 X509Certificate leaf = chain[0];
 
-                System.out.println("---> Leaf Cert <---");
-                System.out.println("Subject: " + leaf.getSubjectX500Principal());
-                System.out.println("Issuer:  " + leaf.getIssuerX500Principal());
-                System.out.println("Not Before: " + leaf.getNotBefore());
-                System.out.println("Not After:  " + leaf.getNotAfter());
+                logger.info("---> Leaf Cert <---");
+                logger.info("Subject: " + leaf.getSubjectX500Principal());
+                logger.info("Issuer:  " + leaf.getIssuerX500Principal());
+                logger.info("Not Before: " + leaf.getNotBefore());
+                logger.info("Not After:  " + leaf.getNotAfter());
 
                 if (leaf.getNotAfter().before(new Date())) {
                     throw new CertificateExpiredException("Leaf certificate expired: " + leaf.getSubjectX500Principal());
@@ -560,11 +522,11 @@ public class RDAPHttpRequest {
                     Collection<List<?>> sans = leaf.getSubjectAlternativeNames();
                     if (sans != null) {
                         for (List<?> san : sans) {
-                            System.out.println("SAN: " + san.get(1));
+                            logger.info("SAN: " + san.get(1));
                         }
                     }
                 } catch (CertificateParsingException ex) {
-                    System.err.println("Failed to parse SANs from leaf cert");
+                    logger.info("Failed to parse SANs from leaf cert");
                 }
 
                 // Check expiration
@@ -596,7 +558,6 @@ public class RDAPHttpRequest {
 
             @Override
             public X509Certificate[] getAcceptedIssuers() {
-//                return new X509Certificate[0];
                 assert finalDefaultTm != null;
                 return finalDefaultTm.getAcceptedIssuers();
             }
