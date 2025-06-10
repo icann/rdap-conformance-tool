@@ -37,7 +37,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
             logger.info("vcardVoicePointersValue size: {}", vcardVoicePointersValue.size());
 
             if(vcardVoicePointersValue.isEmpty()) {
-                logger.info("voice tel in vcard does not have values, no validations");
+                logger.info("voice tel in vcard does not have values, validate redaction object");
                 return validateRedactedArrayForNoVoiceValue();
             }
 
@@ -55,10 +55,22 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
             JSONObject name = (JSONObject) redacted.get("name");
-            if(name.get("type") instanceof String redactedName) {
-                if(redactedName.trim().equalsIgnoreCase("Registrant Phone")) {
-                    redactedPhone = redacted;
+            try {
+                var nameValue = name.get("type");
+                if(nameValue instanceof String redactedName) {
+                    if(redactedName.trim().equalsIgnoreCase("Registrant Phone")) {
+                        redactedPhone = redacted;
+                    }
                 }
+            } catch (Exception e) {
+                logger.info("Extract type from name is not possible by {}", e.getMessage());
+                results.add(RDAPValidationResult.builder()
+                        .code(-63700)
+                        .value(getResultValue(redactedPointersValue))
+                        .message("a redaction of type Registrant Phone is required.")
+                        .build());
+
+                return false;
             }
         }
 
