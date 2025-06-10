@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import org.apache.commons.lang3.StringUtils;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
@@ -11,7 +12,11 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+
 public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidationTestBase {
+    private RDAPValidatorConfiguration config;
 
     static final String voicePointer =
             "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"test\"},\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
@@ -30,11 +35,14 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
     @BeforeMethod
     public void setUp() throws IOException {
         super.setUp();
+        this.config = mock(RDAPValidatorConfiguration.class);
+        doReturn(true).when(config).isGtldRegistrar();
     }
 
     @Override
     public ProfileValidation getProfileValidation() {
         return new ResponseValidation2Dot7Dot4Dot8_2024(
+                config,
                 jsonObject.toString(),
                 results);
     }
