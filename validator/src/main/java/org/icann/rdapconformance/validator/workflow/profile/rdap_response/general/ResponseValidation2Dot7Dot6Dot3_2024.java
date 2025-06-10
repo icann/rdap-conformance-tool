@@ -63,7 +63,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
             } catch (JSONException e) {
                 logger.info("method is absent: {}", e.getMessage());
             }
-            logger.info("method = {}", redactedTechEmail.get("method"));
+            logger.info("method = {}", method);
             if (method == null || !"replacementValue".equals(method.toString())) {
                 results.add(RDAPValidationResult.builder()
                     .code(-65202)
