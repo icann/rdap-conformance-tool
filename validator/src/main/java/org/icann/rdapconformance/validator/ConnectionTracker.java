@@ -73,7 +73,7 @@ public class ConnectionTracker {
         String trackingId = generateTrackingId();
         ConnectionRecord record = new ConnectionRecord(
             uri,
-            NetworkInfo.getServerIpAddress(),
+            "UNKNOWN", // was NetworkInfo.getServerIpAddress(),
             NetworkInfo.getNetworkProtocol(),
             ZERO,  // Status code not yet known
             null,  // Duration not yet known
@@ -106,6 +106,19 @@ public class ConnectionTracker {
         if (currentConnection != null) {
             currentConnection.setStatus(status);
             logger.info("Updated current connection with status: {}", status);
+        } else {
+            logger.warn("Attempted to update current connection, but no current connection exists");
+        }
+    }
+
+    /**
+     * Update the current connection with a new IP address
+     * @param remoteAddress The new remote IP address to set
+     */
+    public synchronized void updateIPAddressOnCurrentConnection(String remoteAddress) {
+        if (currentConnection != null) {
+            currentConnection.setIpAddress(remoteAddress);
+            logger.info("Updated current connection with ipAddress: {}", remoteAddress);
         } else {
             logger.warn("Attempted to update current connection, but no current connection exists");
         }

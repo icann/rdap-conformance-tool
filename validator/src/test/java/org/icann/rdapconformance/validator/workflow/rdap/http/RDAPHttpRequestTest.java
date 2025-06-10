@@ -1070,11 +1070,10 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
                            .thenReturn(true);
 
             ConnectionStatus status = RDAPHttpRequest.handleRequestException(ioEx, true);
-            assertThat(status).isEqualTo(ConnectionStatus.INVALID_CERTIFICATE);
-
+            assertThat(status).isEqualTo(ConnectionStatus.CERTIFICATE_ERROR);
             commonUtilsMock.verify(() ->
-                    CommonUtils.addErrorToResultsFile(eq(ZERO), eq(-13009), eq("no response available"),
-                        eq("Invalid TLS certificate.")),
+                    CommonUtils.addErrorToResultsFile(eq(ZERO), eq(-13012), eq("no response available"),
+                        eq("TLS certificate error.")),
                 times(ONE));
         }
     }
