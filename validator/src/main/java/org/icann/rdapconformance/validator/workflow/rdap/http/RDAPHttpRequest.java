@@ -163,7 +163,6 @@ public class RDAPHttpRequest {
         tracker.updateIPAddressOnCurrentConnection(remoteAddress.getHostAddress());
         logger.info("Connecting to: {} using {}", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
 
-
         HttpUriRequestBase request = method.equals(GET) ? new HttpGet(originalUri) : new HttpHead(originalUri);
         request.setHeader(HOST, host);
         request.setHeader(ACCEPT, NetworkInfo.getAcceptHeader());
