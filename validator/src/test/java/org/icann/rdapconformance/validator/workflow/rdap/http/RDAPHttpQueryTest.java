@@ -77,8 +77,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     return new Object[][]{
         {"https://expired.badssl.com", ConnectionStatus.EXPIRED_CERTIFICATE},
         {"https://revoked.badssl.com", ConnectionStatus.REVOKED_CERTIFICATE},
-        {"https://wrong.host.badssl.com", ConnectionStatus.INVALID_CERTIFICATE},
-        {"https://untrusted-root.badssl.com", ConnectionStatus.CERTIFICATE_ERROR}
+        {"https://wrong.host.badssl.com", ConnectionStatus.INVALID_CERTIFICATE}
+        // we don't test for untrusted roots, we just continue on.
+        // {"https://untrusted-root.badssl.com", ConnectionStatus.CERTIFICATE_ERROR}
         };
   }
 
@@ -522,8 +523,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             .build());
   }
 
-  // Note: we no longer do this, we now host our own
-//  @Ignore
+
   @Test(dataProvider = "tlsErrors")
   public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,
       ConnectionStatus expectedStatus) {
