@@ -244,6 +244,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             // check for the redirects
             if (remainingRedirects == ZERO) {
                 status = ConnectionStatus.TOO_MANY_REDIRECTS;
+                addErrorToResultsFile(-13013, "no response available", "Too many HTTP redirects.");
                 ConnectionTracker.getInstance().updateCurrentConnection(status);
             }
 
@@ -292,12 +293,12 @@ public class RDAPHttpQuery implements RDAPQuery {
           return;
         }
 
-        // If a response is available to the tool, but the HTTP status code is not 200 nor 404, error code -13002 added in results file
-        if (!List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpStatusCode)) {
-            logger.info("Invalid HTTP status {}", httpStatusCode);
-            addErrorToResultsFile(-13002, String.valueOf(httpStatusCode), "The HTTP status code was neither 200 nor 404.");
-            isQuerySuccessful = false;
-        }
+            //  if a response is available to the tool, but the HTTP status code is not 200 nor 404, error code -13002 added in results file
+            if (!List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpStatusCode)) {
+                logger.info("Invalid HTTP status {}", httpStatusCode);
+                addErrorToResultsFile(-13002, String.valueOf(httpStatusCode), "The HTTP status code was neither 200 nor 404.");
+                isQuerySuccessful = false;
+            }
     }
 
     /**

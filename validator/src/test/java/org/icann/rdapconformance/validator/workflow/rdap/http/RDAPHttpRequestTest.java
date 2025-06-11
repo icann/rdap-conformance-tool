@@ -10,12 +10,20 @@ import java.net.UnknownHostException;
 import java.net.http.HttpResponse;
 import java.security.cert.CertificateExpiredException;
 import javax.net.ssl.SSLHandshakeException;
+import java.util.List;
+
+import org.apache.hc.core5.http.MalformedChunkCodingException;
+import org.apache.hc.core5.http.MessageConstraintException;
+import org.apache.hc.core5.http.NoHttpResponseException;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.TruncatedChunkException;
 
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
+import org.apache.commons.lang3.tuple.Pair;
 
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.ConnectionStatus;
@@ -28,7 +36,12 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImp
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import org.testng.Assert;
 
@@ -43,6 +56,8 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTP_TOO_MANY_REQU
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
+
 
 public class RDAPHttpRequestTest {
 
@@ -1284,107 +1299,6 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
         }
     }
 
-    // TODO - redo this for THIS class using the MULTI Cert Server
-//    @Test
-//    public void test_WithLocalHttpsCertificateErrors_ReturnsAppropriateErrorStatus() throws Exception {
-//        // Force certificate validation
-//        System.setProperty("com.sun.net.ssl.checkRevocation", "true");
-//        System.setProperty("com.sun.security.enableCRLDP", "true");
-//        System.setProperty("javax.net.ssl.trustStore", getClass().getClassLoader().getResource("keystores/truststore.jks").getPath());
-//        System.setProperty("javax.net.ssl.trustStorePassword", "password");
-//
-//        // Create a custom SSL context with strict validation
-//        SSLContext sslContext = SSLContext.getInstance("TLS");
-//        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-//        KeyStore ks = KeyStore.getInstance("JKS");
-//        try (InputStream is = getClass().getClassLoader().getResourceAsStream("keystores/truststore.jks")) {
-//            ks.load(is, "password".toCharArray());
-//        }
-//        tmf.init(ks);
-//
-//        // Configure the SSL context
-//        sslContext.init(null, tmf.getTrustManagers(), null);
-//        SSLContext.setDefault(sslContext);
-//        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-//
-//        // Start HTTPS servers with different certificates
-//        MultiCertHttpsTestServer.startHttpsServer(EXPIRED_CERT_PORT, EXPIRED);
-//        MultiCertHttpsTestServer.startHttpsServer(INVALID_CERT_PORT, INVALID_HOST);
-//        MultiCertHttpsTestServer.startHttpsServer(UNTRUSTED_ROOT_CERT_PORT, UNTRUSTED);
-//        Thread.sleep(PAUSE);
-//
-//        try {
-//            // Test expired certificate
-//            try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-//                IOException certificateException = new IOException("Certificate expired");
-//                certificateException.initCause(new java.security.cert.CertificateExpiredException("Certificate has expired"));
-//                URI expiredCertUri = URI.create(HTTPS_LOCALHOST + EXPIRED_CERT_PORT);
-//
-//                mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(expiredCertUri, TIMEOUT_SECONDS))
-//                            .thenThrow(certificateException);
-//
-//                RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
-//                results.clear();
-//
-//                RDAPHttpQuery query = new RDAPHttpQuery(config);
-//                query.setResults(results);
-//                doReturn(expiredCertUri).when(config).getUri();
-//
-//                query.run();
-//                assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
-//            }
-//
-//            // Test invalid host certificate
-//            try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-//                IOException certificateException = new IOException("No name matching");
-//                certificateException.initCause(new java.security.cert.CertificateException("No subject alternative DNS name matching"));
-//                URI invalidCertUri = URI.create(HTTPS_LOCALHOST + INVALID_CERT_PORT);
-//
-//                mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(invalidCertUri, TIMEOUT_SECONDS))
-//                            .thenThrow(certificateException);
-//
-//                RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
-//                results.clear();
-//
-//                RDAPHttpQuery query = new RDAPHttpQuery(config);
-//                query.setResults(results);
-//                doReturn(invalidCertUri).when(config).getUri();
-//
-//                query.run();
-//                assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.INVALID_CERTIFICATE);
-//            }
-//
-//            // Test untrusted certificate
-//            try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-//                IOException certificateException = new IOException("SSL handshake failed");
-//                certificateException.initCause(new javax.net.ssl.SSLHandshakeException("PKIX path building failed"));
-//                URI untrustedCertUri = URI.create(HTTPS_LOCALHOST + UNTRUSTED_ROOT_CERT_PORT);
-//
-//                mockedStatic.when(() -> RDAPHttpRequest.makeHttpGetRequest(untrustedCertUri, TIMEOUT_SECONDS))
-//                            .thenThrow(certificateException);
-//
-//                RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
-//                results.clear();
-//
-//                RDAPHttpQuery query = new RDAPHttpQuery(config);
-//                query.setResults(results);
-//                doReturn(untrustedCertUri).when(config).getUri();
-//
-//                query.run();
-//                assertThat(query.getErrorStatus()).isEqualTo(ConnectionStatus.HANDSHAKE_FAILED);
-//            }
-//        } finally {
-//            // Clean up
-//            MultiCertHttpsTestServer.stopAll();
-//            // Reset system properties
-//            System.clearProperty("com.sun.net.ssl.checkRevocation");
-//            System.clearProperty("com.sun.security.enableCRLDP");
-//            System.clearProperty("javax.net.ssl.trustStore");
-//            System.clearProperty("javax.net.ssl.trustStorePassword");
-//        }
-//    }
-
-
 @Test
 public void testSimpleHttpResponse() {
     URI testUri = URI.create("http://example.com");
@@ -1410,6 +1324,59 @@ public void testSimpleHttpResponse() {
     assertThat(response.headers().firstValue("Content-Length").get()).isEqualTo("123");
 }
 
+@Test
+public void testMakeRequest_HttpProtocolErrors() throws Exception {
+    try (MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class);
+         MockedStatic<RDAPHttpRequest> httpRequestMock = mockStatic(RDAPHttpRequest.class, CALLS_REAL_METHODS);
+         MockedStatic<NetworkInfo> networkInfoMock = mockStatic(NetworkInfo.class);
+         MockedStatic<ConnectionTracker> trackerMock = mockStatic(ConnectionTracker.class);
+         MockedStatic<CommonUtils> commonUtilsMock = mockStatic(CommonUtils.class)) {
+
+        dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
+        InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
+        dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
+        networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+
+        ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+        trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
+
+        // Test cases for each exception type
+        List<Pair<IOException, String>> testCases = List.of(
+            Pair.of(new NoHttpResponseException("The target server failed to respond"), "NoHttpResponseException"),
+            Pair.of(new IOException(new ProtocolException("Protocol violation")), "ProtocolException"),
+            Pair.of(new IOException(new MalformedChunkCodingException("Malformed chunk")), "MalformedChunkCodingException"),
+            Pair.of(new IOException(new MessageConstraintException("Message constraint violation")), "MessageConstraintException"),
+            Pair.of(new IOException(new TruncatedChunkException("Truncated chunk")), "TruncatedChunkException")
+        );
+
+        for (Pair<IOException, String> testCase : testCases) {
+            // Reset mocks for each test case
+            clearInvocations(mockTracker);
+            commonUtilsMock.clearInvocations();
+
+            // Mock throwing the specific exception
+            IOException exception = testCase.getLeft();
+            String exceptionName = testCase.getRight();
+
+            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenThrow(exception);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+
+            assertThat(response).isNotNull()
+                .isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
+            assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
+                .as("Testing " + exceptionName)
+                .isEqualTo(ConnectionStatus.HTTP_ERROR);
+
+            commonUtilsMock.verify(() ->
+                CommonUtils.addErrorToResultsFile(eq(ZERO), eq(-13014), eq("no response available"), eq("HTTP error.")),
+                times(1));
+
+            verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+            verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.HTTP_ERROR));
+        }
+    }
+}
     // Helper class for headers
     private static class TestHeader implements Header {
         private final String name;

@@ -149,7 +149,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
   }
 
 
-  // disable until this is understood
   @Ignore
   @Test(dataProvider = "fault")
   public void test_ServerFault_ReturnsErrorStatus20(Fault fault) {
@@ -171,9 +170,17 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     RDAPValidationResult expectedResult;
 
     switch (fault) {
-      case EMPTY_RESPONSE:
       case RANDOM_DATA_THEN_CLOSE:
       case MALFORMED_RESPONSE_CHUNK:
+        expectedStatus = ConnectionStatus.HTTP_ERROR;
+        expectedResult = RDAPValidationResult.builder()
+                                             .code(-13014)
+                                             .httpStatusCode(ZERO)
+                                             .value("no response available")
+                                             .message( "HTTP error.")
+                                             .build();
+        break;
+      case EMPTY_RESPONSE:
         expectedStatus = ConnectionStatus.CONNECTION_FAILED;
         expectedResult = RDAPValidationResult.builder()
                                              .code(-13007)
@@ -316,6 +323,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
       assertThat(rdapHttpQuery.getErrorStatus()).isEqualTo(ConnectionStatus.TOO_MANY_REDIRECTS);
       assertThat(result).isFalse();
+      assertThat(results.getAll()).contains(
+          RDAPValidationResult.builder()
+                              .code(-13013)
+                              .value("no response available")
+                              .message("Too many HTTP redirects.")
+                              .build());
     }
   }
 
