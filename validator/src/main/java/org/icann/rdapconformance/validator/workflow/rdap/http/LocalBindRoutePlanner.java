@@ -10,6 +10,7 @@ import java.net.InetAddress;
 
 public class LocalBindRoutePlanner implements HttpRoutePlanner {
     private final InetAddress localAddress;
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LocalBindRoutePlanner.class);
 
     public LocalBindRoutePlanner(InetAddress localAddress) {
         this.localAddress = localAddress;
@@ -17,8 +18,7 @@ public class LocalBindRoutePlanner implements HttpRoutePlanner {
 
     @Override
     public HttpRoute determineRoute(HttpHost target, HttpContext context) throws HttpException {
-        System.out.println("[ROUTE] Determining route for host: " + target + " with local address: " + localAddress);
-
+        logger.info("[ROUTE] Determining route for host: " + target + " with local address: " + localAddress);
 
         // Create a proper HttpHost from the target if needed
         HttpHost host = target;

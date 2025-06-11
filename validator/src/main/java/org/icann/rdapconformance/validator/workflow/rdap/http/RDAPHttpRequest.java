@@ -39,8 +39,16 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.MalformedChunkCodingException;
+import org.apache.hc.core5.http.MessageConstraintException;
+import org.apache.hc.core5.http.NoHttpResponseException;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.TruncatedChunkException;
+import org.apache.hc.core5.http.ConnectionClosedException;
+
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
@@ -291,6 +299,23 @@ public class RDAPHttpRequest {
     public static ConnectionStatus handleRequestException(Exception e, boolean recordError) {
         String exceptionString = e.toString();
 
+        if (e instanceof NoHttpResponseException ||
+            e instanceof ProtocolException ||
+            e instanceof MalformedChunkCodingException ||
+            e instanceof MessageConstraintException ||
+            e instanceof TruncatedChunkException ||
+            // Also check causes for wrapped exceptions
+            (e.getCause() instanceof ProtocolException) ||
+            (e.getCause() instanceof MalformedChunkCodingException) ||
+            (e.getCause() instanceof MessageConstraintException) ||
+            (e.getCause() instanceof TruncatedChunkException)) {
+            if (recordError) {
+                addErrorToResultsFile(ZERO, -13014, "no response available", "HTTP error.");
+            }
+            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HTTP_ERROR);
+            return ConnectionStatus.HTTP_ERROR;
+        }
+
         if (e instanceof UnknownHostException) {
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
@@ -346,35 +371,40 @@ public class RDAPHttpRequest {
             return ConnectionStatus.CERTIFICATE_ERROR;
         }
 
-        // Differentiates between  NETWORK_SEND_FAIL and NETWORK_RECEIVE_FAIL
+        // Handle network timeouts and connection issues
         if (e instanceof SocketTimeoutException) {
-            if (e.getMessage() != null && e.getMessage().contains("Read timed out")) {
-                if(recordError) {
+            boolean isReadTimeout = e.getMessage() != null && e.getMessage().contains("Read timed out");
+
+            if (isReadTimeout) {
+                // Read timeout = network receive failure (-13017)
+                if (recordError) {
                     addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
                 }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
                 return ConnectionStatus.NETWORK_RECEIVE_FAIL;
-            } else { // anything that isn't a read timeout with a SocketTimeoutException gets a  send failure
-                if(recordError) {
+            } else {
+                // Other socket timeouts = network send failure (-13016)
+                if (recordError) {
                     addErrorToResultsFile(ZERO, -13016, "no response available", "Network send fail");
                 }
                 ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
                 return ConnectionStatus.NETWORK_SEND_FAIL;
             }
-        } else if (e instanceof EOFException) {
-            if(recordError) {
-                addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
-            }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
-            return ConnectionStatus.NETWORK_RECEIVE_FAIL;
-        } else if (e.getMessage().contains("Connection reset") || e.getMessage().contains("Connection closed by peer")) {
-            if(recordError) {
+        }
+
+        // Network failures
+        if (e instanceof EOFException || e instanceof ConnectionClosedException ||
+            (exceptionString != null && (
+                exceptionString.contains("Connection reset") ||
+                    exceptionString.contains("Connection closed by peer")
+            ))) {
+
+            if (recordError) {
                 addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
             }
             ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
             return ConnectionStatus.NETWORK_RECEIVE_FAIL;
         }
-
         // we are at the fall through point, which means we have not identified a specific cause, and it gets classified as a connection failure
         if(recordError) {
             addErrorToResultsFile(ZERO,-13007, "no response available", "Failed to connect to server.");
