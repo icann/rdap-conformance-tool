@@ -15,7 +15,7 @@ public class CommonUtils {
     public static final String LOCALHOST = "localhost";
     public static final String LOCAL_IPv4 = "127.0.0.1";
 
-    public static final String LOCAL_IPv6 = "::1";
+    public static final String LOCAL_IPv6 = "0000:0000:0000:0000:0000:0000:0000:0001";
     public static final String GET = "GET";
     public static final String HEAD = "HEAD";
     public static final String SEMI_COLON = ";";

@@ -8,6 +8,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_TOO_MANY_REQUESTS;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv6;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
@@ -124,7 +125,7 @@ public class RDAPHttpRequest {
 
         String host = originalUri.getHost();
         if (LOCALHOST.equalsIgnoreCase(host)) {
-            host = LOCAL_IPv4;
+            host = LOCAL_IPv4; // only do v4, no dual-stack binding
         }
 
         int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT) : originalUri.getPort();
