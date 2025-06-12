@@ -12,11 +12,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * TODO: JsonPath.compile(path) is being used to change if a given jsonpath is valid.
- * But some invalid path will pass this check. Might need to revisit to find a more accurate way
- * to do the validation. As of June 2025, it seems that there is no easy perfect way on the market.
- */
 public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation {
 
     public static final String VCARD_ARRAY_PATH = "$.entities[?(@.roles[0]=='technical')].vcardArray";
@@ -150,11 +145,8 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
     }
 
     private boolean validatePostPath(Object postPath, String value) {
-        try {
-            JsonPath.compile(postPath.toString());
-        } catch (Exception e) {
+        if (postPath == null || !isValidJsonPath(postPath.toString())) {
             // postPath is null or not a valid JSONPath
-            logger.info("postPath is null or not a valid JSON path: {}", e.getMessage());
             logger.info("adding 65002, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65002)
