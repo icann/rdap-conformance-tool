@@ -73,72 +73,6 @@
     },
     {
       "objectClassName": "entity",
-      "handle": "ZZZZ",
-      "roles": [
-        "registrant"
-      ],
-      "vcardArray": [
-        "vcard",
-        [
-          [
-            "version",
-            {},
-            "text",
-            "4.0"
-          ],
-          [
-            "fn",
-            {},
-            "text",
-            "Administrative User"
-          ],
-          [
-            "org",
-            {},
-            "text",
-            "Example Inc."
-          ],
-          [
-            "adr",
-            {},
-            "text",
-            [
-              "",
-              "Suite 1236",
-              "4321 Rue Somewhere",
-              "Quebec",
-              "QC",
-              "G1V 2M2",
-              "Canada"
-            ]
-          ],
-          [
-            "contact-uri",
-            {},
-            "uri",
-            "https://email.example.com/123"
-          ],
-          [
-            "tel",
-            {
-              "type": "voice"
-            },
-            "uri",
-            "tel:+1-555-555-1236;ext=789"
-          ],
-          [
-            "tel",
-            {
-              "type": "fax"
-            },
-            "uri",
-            "tel:+1-555-555-6321"
-          ]
-        ]
-      ]
-    },
-    {
-      "objectClassName": "entity",
       "handle": "123",
       "roles": [
         "technical"
@@ -210,7 +144,7 @@
         "type": "Registrant Email"
       },
       "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='email')]",
-      "method": "removal",
+      "method": "replacementValue",
       "reason": {
         "description": "Server policy"
       }

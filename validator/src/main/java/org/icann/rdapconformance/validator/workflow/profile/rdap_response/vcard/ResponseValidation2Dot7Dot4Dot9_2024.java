@@ -71,9 +71,9 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
         for (String jsonPointer : vcardPointersValue) {
             Set<String> titles = new HashSet<>();
             JSONArray vcardArray = (JSONArray) jsonObject.query(jsonPointer);
-            var test = convertJsonArrayToList(vcardArray);
-            test.forEach(t -> {
-                if(vcardArray.get(0) instanceof String title) {
+            var vcardList = convertJsonArrayToList(vcardArray);
+            vcardList.forEach(t -> {
+                if(t.get(0) instanceof String title) {
                     titles.add(title);
                 }
             });
@@ -93,14 +93,17 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
 
     private boolean validateVCardAtLeastOne() {
         vcardPointersValue = getPointerFromJPath(VCARD_PATH);
+        List<String> titles = new ArrayList<>();
         logger.info("vcardVoicePointersValue size: {}", vcardPointersValue.size());
 
         for (String jsonPointer : vcardPointersValue) {
-            List<String> titles = new ArrayList<>();
             JSONArray vcardArray = (JSONArray) jsonObject.query(jsonPointer);
-            if(vcardArray.get(0) instanceof String title) {
-                titles.add(title);
-            }
+            var vcardList = convertJsonArrayToList(vcardArray);
+            vcardList.forEach(t -> {
+                if(t.get(0) instanceof String title) {
+                    titles.add(title);
+                }
+            });
 
             var atLeastOne = Stream.of("contact-uri", "email").anyMatch(titles::contains);
             if(!atLeastOne) {
@@ -111,19 +114,13 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                         .build());
                 return false;
             }
-
-            if(titles.contains("email")) {
-                return validateEmailRedactedProperties();
-            } else if(titles.contains("contact-uri")) {
-                return validateContactRedactedProperties();
-            }
         }
 
-        return validateMethodProperty();
+        return validateMethodProperty(titles);
     }
 
     // Verify that the method property is present as is a JSON string of “replacementValue”.
-    private boolean validateMethodProperty() {
+    private boolean validateMethodProperty(List<String> titles) {
         if(Objects.isNull(redactedRegistrantEmail)) {
             logger.info("redactedRegistrantEmail object for method validations is null");
             return true;
@@ -146,7 +143,13 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             logger.error("method property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
-        return true;
+        if(titles.contains("email")) {
+            return validateEmailRedactedProperties();
+        } else if(titles.contains("contact-uri")) {
+            return validateContactRedactedProperties();
+        } else {
+            return true;
+        }
     }
 
     // If email exists in any VCard, following validations run
