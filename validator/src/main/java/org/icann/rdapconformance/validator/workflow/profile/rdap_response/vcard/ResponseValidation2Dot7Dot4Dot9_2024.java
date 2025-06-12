@@ -69,11 +69,14 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
         logger.info("vcardVoicePointersValue size: {}", vcardPointersValue.size());
 
         for (String jsonPointer : vcardPointersValue) {
-            List<String> titles = new ArrayList<>();
+            Set<String> titles = new HashSet<>();
             JSONArray vcardArray = (JSONArray) jsonObject.query(jsonPointer);
-            if(vcardArray.get(0) instanceof String title) {
-                titles.add(title);
-            }
+            var test = convertJsonArrayToList(vcardArray);
+            test.forEach(t -> {
+                if(vcardArray.get(0) instanceof String title) {
+                    titles.add(title);
+                }
+            });
 
             if(titles.containsAll(Arrays.asList("contact-uri", "email"))) {
                 results.add(RDAPValidationResult.builder()
@@ -315,6 +318,15 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
         }
 
         return true;
+    }
+
+    private List<JSONArray> convertJsonArrayToList(JSONArray jsonArray) {
+        List<JSONArray> arrayList = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            arrayList.add(jsonArray.getJSONArray(i));
+        }
+
+        return arrayList;
     }
 }
 
