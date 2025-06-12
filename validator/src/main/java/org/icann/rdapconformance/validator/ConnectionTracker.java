@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.net.URI;
@@ -90,9 +91,9 @@ public class ConnectionTracker {
 
         if (isMainConnection) {
             lastMainConnection = record;
-            logger.debug("Started tracking main connection: {}", record);
+            logger.debug("Started tracking main connection: {}", trackingId);
         } else {
-            logger.debug("Started tracking connection: {}", record);
+            logger.debug("Started tracking connection: {}", trackingId);
         }
 
         return trackingId;
@@ -141,7 +142,7 @@ public class ConnectionTracker {
                 lastMainConnection = currentConnection;
             }
 
-            logger.info("Completed current connection: {} with tracking id: {}", currentConnection, currentConnection.trackingId);
+            logger.info("Completed current connection with tracking id: {}", currentConnection.trackingId);
             currentConnection = null;
         } else {
             logger.warn("Attempted to complete current connection, but no current connection exists");
@@ -164,7 +165,7 @@ public class ConnectionTracker {
             uri,
             ipAddress,
             protocol,
-            0,
+            ZERO,
             null,
             null,
             httpMethod,
@@ -179,9 +180,9 @@ public class ConnectionTracker {
 
         if (isMainConnection) {
             lastMainConnection = record;
-            logger.debug("Started tracking main connection: {}", record);
+            logger.debug("Started tracking main connection: {}", trackingId);
         } else {
-            logger.debug("Started tracking connection: {}", record);
+            logger.debug("Started tracking connection: {}", trackingId);
         }
 
         return trackingId;
@@ -208,7 +209,7 @@ public class ConnectionTracker {
      */
     public synchronized void completeTracking(URI uri, String ipAddress,
                                               int statusCode, ConnectionStatus status) {
-        for (int i = connections.size() - 1; i >= 0; i--) {
+        for (int i = connections.size() - ONE; i >= ZERO; i--) {
             ConnectionRecord record = connections.get(i);
             if (record.getUri().equals(uri) && record.getIpAddress().equals(ipAddress) &&
                 record.getStartTime() != null && record.getDuration() == null) {
@@ -305,7 +306,7 @@ public class ConnectionTracker {
      * @return The number of connections with non-success status
      */
     public synchronized int getErrorCount() {
-        int count = 0;
+        int count = ZERO;
         for (ConnectionRecord record : connections) {
             if (record.getStatus() != null && record.getStatus() != ConnectionStatus.SUCCESS) {
                 count++;
@@ -319,7 +320,7 @@ public class ConnectionTracker {
      * @return The number of connections with success status
      */
     public synchronized int getSuccessCount() {
-        int count = 0;
+        int count = ZERO;
         for (ConnectionRecord record : connections) {
             if (record.getStatus() == ConnectionStatus.SUCCESS) {
                 count++;
