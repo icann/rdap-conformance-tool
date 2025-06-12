@@ -1,19 +1,14 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import org.apache.commons.lang3.StringUtils;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
 public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidationTestBase {
 
@@ -36,14 +31,11 @@ public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidat
     @BeforeMethod
     public void setUp() throws IOException {
         super.setUp();
-        this.config = mock(RDAPValidatorConfiguration.class);
-        doReturn(true).when(config).isGtldRegistrar();
     }
 
     @Override
     public ProfileValidation getProfileValidation() {
         return new ResponseValidation2Dot7Dot4Dot1_2024(
-                config,
                 jsonObject.toString(),
                 results);
     }
