@@ -39,4 +39,8 @@ public abstract class ProfileJsonValidation extends ProfileValidation {
         .sorted()
         .collect(Collectors.joining(", "));
   }
+
+  public boolean isValidJsonPath(String jsonPath) {
+    return jpathUtil.isValidJsonPath(jsonPath);
+  }
 }
