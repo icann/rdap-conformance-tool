@@ -1,7 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpResponse;
@@ -12,7 +10,7 @@ import java.util.Map;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ToolResult;
-import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
+
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.*;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot3_2024;
@@ -125,12 +123,15 @@ public class RDAPValidator implements ValidatorWorkflow {
             return ToolResult.CONFIG_INVALID.getCode();
         }
 
-//        RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
-//        rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
+        RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
+        rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
 
-//        if (!queryTypeProcessor.check(datasetService)) {
-//            return  queryTypeProcessor.getErrorStatus().getCode();
-//        }
+        if (!queryTypeProcessor.check(datasetService)) {
+            System.out.println("We failed checking the query type: " + queryTypeProcessor.getErrorStatus());
+            return  queryTypeProcessor.getErrorStatus().getCode();
+        }
+
+//        RDAPQueryType queryType  = queryTypeProcessor.getQueryType();
 
         query.setResults(results);
         if (!query.run()) {

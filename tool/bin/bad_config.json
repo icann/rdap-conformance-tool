@@ -1,0 +1,37 @@
+{
+  "definitionIdentifier": "Standard gTLD RDAP Server Conformance",
+    {
+      "code": -10912,
+      "notes": "Repeating event actions is not a protocol violation but is unintentional in most scenarios."
+    },
+    {
+      "code": -11003,
+      "notes": "Repeating status values is not a protocol violation but is unintentional in most scenarios."
+    },
+    {
+      "code": -11310,
+      "notes": "Repeating event actions is not a protocol violation but is unintentional in most scenarios."
+    }],
+  "definitionIgnore": [
+    -10601,
+    -10701,
+    -10901,
+    -11201,
+    -11302,
+    -11501,
+    -11508,
+    -12001,
+    -12009,
+    -12019,
+    -12101,
+    -12201,
+    -12301,
+    -12401,
+    -12501,
+    -12601,
+    -47000
+  ],
+  "definitionNotes": [
+    "This conformance configuration is typical of gTLD RDAP server needs."
+  ]
+}
