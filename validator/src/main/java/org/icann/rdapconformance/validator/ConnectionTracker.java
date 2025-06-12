@@ -141,7 +141,7 @@ public class ConnectionTracker {
                 lastMainConnection = currentConnection;
             }
 
-            logger.info("Completed current connection: {} with tracking id: {}", currentConnection, currentConnection.trackingId);
+            logger.info("Completed current connection: {} with tracking id: {}", currentConnection.trackingId, currentConnection.trackingId);
             currentConnection = null;
         } else {
             logger.warn("Attempted to complete current connection, but no current connection exists");

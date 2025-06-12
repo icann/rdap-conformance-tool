@@ -6,29 +6,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.BootstrapDomainNameSpaceDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.DNSSecAlgNumbersDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.DsRrTypesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.EPPRoidDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.IPv4AddressSpaceDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.IPv6AddressSpaceDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.LinkRelationsDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.MediaTypesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPExtensionsDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.RDAPJsonValuesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.RegistrarIdDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv4AddressesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.SpecialIPv6AddressesDataset;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPDatasetModel;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPJsonValues;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RedactedExpressionLanguageJsonValues;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RedactedNameJsonValues;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RoleJsonValues;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRelationJsonValues;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.*;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +19,11 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
   protected Map<Class<? extends RDAPDataset>, RDAPDataset> datasets;
   protected Map<Class<?>, Object> datasetValidatorModels;
 
-  public RDAPDatasetServiceImpl(FileSystem fileSystem) {
+  // Singleton instance
+  private static RDAPDatasetServiceImpl instance;
+
+  // Private constructor to prevent instantiation
+  private RDAPDatasetServiceImpl(FileSystem fileSystem) {
     this.fileSystem = fileSystem;
     datasetList = List.of(new IPv4AddressSpaceDataset(fileSystem),
         new SpecialIPv4AddressesDataset(fileSystem),
@@ -58,6 +41,34 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
     this.datasets = datasetList
         .stream()
         .collect(Collectors.toMap(RDAPDataset::getClass, Function.identity()));
+  }
+
+  /**
+   * Get the singleton instance of RDAPDatasetServiceImpl.
+   * If the instance doesn't exist, it will be created with the provided FileSystem.
+   *
+   * @param fileSystem The FileSystem to use
+   * @return The singleton instance of RDAPDatasetServiceImpl
+   */
+  public static synchronized RDAPDatasetServiceImpl getInstance(FileSystem fileSystem) {
+    if (instance == null) {
+      instance = new RDAPDatasetServiceImpl(fileSystem);
+    }
+    return instance;
+  }
+
+  /**
+   * Get the singleton instance of RDAPDatasetServiceImpl.
+   * This method should only be called after the instance has been initialized with a FileSystem.
+   *
+   * @return The singleton instance of RDAPDatasetServiceImpl
+   * @throws IllegalStateException if getInstance was not previously called with a FileSystem
+   */
+  public static RDAPDatasetServiceImpl getInstance() {
+    if (instance == null) {
+      throw new IllegalStateException("RDAPDatasetServiceImpl has not been initialized. Call getInstance(FileSystem) first.");
+    }
+    return instance;
   }
 
   /**

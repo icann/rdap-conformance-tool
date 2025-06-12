@@ -75,26 +75,13 @@ public class RDAPValidator implements ValidatorWorkflow {
     private final ConfigurationFileParser configParser;
     private final RDAPValidatorResults results;
     private static RDAPDatasetService datasetService;
-    private static boolean datasetInitialized = false;
 
     public RDAPValidator(RDAPValidatorConfiguration config,
                          FileSystem fileSystem,
                          RDAPQueryTypeProcessor queryTypeProcessor,
                          RDAPQuery query) {
         this(config, fileSystem, queryTypeProcessor, query, new ConfigurationFileParserImpl(),
-            RDAPValidatorResultsImpl.getInstance(), new RDAPDatasetServiceImpl(fileSystem));
-    }
-
-    // TODO: refactor this out into a common thing
-    public static int initializeDatasetService(RDAPValidatorConfiguration config) {
-        datasetService =  new RDAPDatasetServiceImpl(new LocalFileSystem());
-        if (!datasetService.download(config.useLocalDatasets())) {
-            return ToolResult.DATASET_UNAVAILABLE.getCode();
-        } else {
-            logger.info("RDAP datasets downloaded successfully.");
-            datasetInitialized = true;
-            return ZERO;
-        }
+            RDAPValidatorResultsImpl.getInstance(),  RDAPDatasetServiceImpl.getInstance());
     }
 
     public RDAPValidator(RDAPValidatorConfiguration config,
@@ -114,7 +101,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         this.queryTypeProcessor = queryTypeProcessor;
         this.configParser = configParser;
         this.results = results;
-        this.datasetService = datasetService;
+        RDAPValidator.datasetService = datasetService;
     }
 
     @Override
@@ -138,17 +125,12 @@ public class RDAPValidator implements ValidatorWorkflow {
             return ToolResult.CONFIG_INVALID.getCode();
         }
 
-        RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
-        rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
+//        RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
+//        rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
 
-//        TODO: we need to find a workaround for this.
-//        if(!datasetInitialized) {
-//            return ToolResult.DATASET_UNAVAILABLE.getCode();
+//        if (!queryTypeProcessor.check(datasetService)) {
+//            return  queryTypeProcessor.getErrorStatus().getCode();
 //        }
-
-        if (!queryTypeProcessor.check(datasetService)) {
-            return  queryTypeProcessor.getErrorStatus().getCode();
-        }
 
         query.setResults(results);
         if (!query.run()) {
