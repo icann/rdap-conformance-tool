@@ -33,6 +33,10 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
     }
 
     private boolean validateVcardVoiceInTelPropertyObject() {
+        if(getPointerFromJPath(ENTITY_ROLE_PATH).isEmpty()) {
+            return true;
+        }
+
         try {
             Set<String> vcardVoicePointersValue = getPointerFromJPath(VCARD_VOICE_PATH);
             logger.info("vcardVoicePointersValue size: {}", vcardVoicePointersValue.size());
