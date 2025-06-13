@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation {
 
+    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles[0]=='registrant')]";
     public static final String VCARD_ORG_PATH = "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot2_2024.class);
@@ -27,9 +28,8 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
 
     @Override
     protected boolean doValidate() {
-        if (!getPointerFromJPath(VCARD_ORG_PATH).isEmpty()) {
-            logger.info("org property on the vCards for the entity with the role of registrant is present, skip validation");
-            // if the org property on the vCards for the entity with the role of registrant is present, skip validation
+        if (getPointerFromJPath(ENTITY_ROLE_PATH).isEmpty() || (!getPointerFromJPath(VCARD_ORG_PATH).isEmpty())) {
+            logger.info("either entity with the role of registrant is not present, or it has org property, skip validation");
             return true;
         }
 
