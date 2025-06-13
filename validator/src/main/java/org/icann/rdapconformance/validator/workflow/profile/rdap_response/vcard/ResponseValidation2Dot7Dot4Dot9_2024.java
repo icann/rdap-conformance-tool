@@ -15,9 +15,8 @@ import java.util.stream.Stream;
 public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot9_2024.class);
-    public static final String VCARD_CONTACT_URI_PATH = "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='contact-uri')]";
-    public static final String VCARD_EMAIL_PATH = "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='email')]";
     public static final String VCARD_PATH = "$.entities[?(@.roles[0]=='registrant')].vcardArray[1]";
+    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles[0]=='registrant')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private  Set<String> vcardPointersValue = null;
     private Set<String> redactedPointersValue = null;
@@ -38,6 +37,10 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     }
 
     private boolean validateRedactedArrayForRegistrantEmailValue() {
+
+        if(getPointerFromJPath(ENTITY_ROLE_PATH).isEmpty()) {
+            return true;
+        }
 
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {

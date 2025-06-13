@@ -13,6 +13,7 @@ import java.util.Set;
 public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot8_2024.class);
+    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles[0]=='registrant')]";
     public static final String VCARD_VOICE_PATH = "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[1].type=='voice')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
@@ -32,21 +33,24 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
     }
 
     private boolean validateVcardVoiceInTelPropertyObject() {
+        if(getPointerFromJPath(ENTITY_ROLE_PATH).isEmpty()) {
+            return true;
+        }
+
         try {
             Set<String> vcardVoicePointersValue = getPointerFromJPath(VCARD_VOICE_PATH);
             logger.info("vcardVoicePointersValue size: {}", vcardVoicePointersValue.size());
 
-            if(vcardVoicePointersValue.isEmpty()) {
+            if(!vcardVoicePointersValue.isEmpty()) {
                 logger.info("voice tel in vcard does not have values, validate redaction object");
                 return validateRedactedArrayForNoVoiceValue();
             }
 
-            return true;
-
         } catch (Exception e) {
-            logger.info("vcard voice is not found, validations for this case");
-            return validateRedactedArrayForNoVoiceValue();
+            logger.info("vcard voice is not found,no validations for this case");
         }
+
+        return true;
     }
 
     private boolean validateRedactedArrayForNoVoiceValue() {
