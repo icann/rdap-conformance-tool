@@ -527,7 +527,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         .willReturn(aResponse().withStatus(403)
                                .withBody(response)));
 
-    assertThat(rdapHttpQuery.run()).isFalse();
+    assertThat(rdapHttpQuery.run()).isTrue(); // this must be true for us to continue and get the error code, we cannot exit early
     assertThat(results.getAll()).contains(
         RDAPValidationResult.builder()
             .code(-13002)

@@ -268,9 +268,6 @@ public class RDAPHttpQuery implements RDAPQuery {
         if (!isQuerySuccessful() || httpResponse == null) {
             logger.info("Querying wasn't successful .. don't validate");
             return;
-        } else if (!isValidStatusCode) {
-            isQuerySuccessful = false;
-            return;
         }
 
         // else continue on
