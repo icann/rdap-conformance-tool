@@ -18,7 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
-  private static final Logger logger = LoggerFactory.getLogger(RDAPValidatorResults.class);
+  private static final Logger logger = LoggerFactory.getLogger(RDAPValidatorResultsImpl.class);
   public static final String CODE = "code=";
   public static final String HTTP_STATUS_CODE = ", httpStatusCode=";
   public static final String BRACKETS = "[]";

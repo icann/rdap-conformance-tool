@@ -17,8 +17,6 @@ import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
-import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
-import org.icann.rdapconformance.validator.configuration.ConfigurationFileParserImpl;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
@@ -101,12 +99,6 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       return ToolResult.DATASET_UNAVAILABLE.getCode();
     }
 
-    // Don't do anything until we check that the query type is supported
-//    if (!CommonUtils.verifyQueryType(this)) {
-//      logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
-//      return ToolResult.UNSUPPORTED_QUERY.getCode();
-//    }
-
     // Setup the configuration file
     ConfigurationFile configFile = CommonUtils.verifyConfigFile(this, fileSystem);
 
@@ -119,17 +111,22 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     // Get the queryType - bail out if it is not correct
     RDAPHttpQueryTypeProcessor queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
     if(!queryTypeProcessor.check(datasetService)) {
-      System.out.println("We failed checking the query type: " + queryTypeProcessor.getErrorStatus());
+      logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
       return queryTypeProcessor.getErrorStatus().getCode();
+    }
+
+    if( queryTypeProcessor.getQueryType().equals(RDAPQueryType.ENTITY) && this.isThin()) {
+      logger.error(ToolResult.USES_THIN_MODEL.getDescription());
+      return ToolResult.USES_THIN_MODEL.getCode();
     }
 
     // Determine which validator we are using
     ValidatorWorkflow validator;
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
-      validator = new RDAPHttpValidator(this, fileSystem);
+      validator = new RDAPHttpValidator(this, datasetService);
     } else {
       networkEnabled = false;
-      validator = new RDAPFileValidator(this, fileSystem);
+      validator = new RDAPFileValidator(this, datasetService);
     }
 
     // get the results file ready

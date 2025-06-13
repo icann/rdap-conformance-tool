@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
@@ -27,11 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
-import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
-import org.icann.rdapconformance.validator.configuration.ConfigurationFileParserImpl;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
-import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfile;
@@ -70,34 +66,21 @@ public class RDAPValidator implements ValidatorWorkflow {
     private final RDAPValidatorConfiguration config;
     public RDAPQueryTypeProcessor queryTypeProcessor;
     private final RDAPQuery query;
-    private final FileSystem fileSystem;
-    private final ConfigurationFileParser configParser;
     private final RDAPValidatorResults results;
     private static RDAPDatasetService datasetService;
 
-    public RDAPValidator(RDAPValidatorConfiguration config,
-                         FileSystem fileSystem,
-                         RDAPQuery query) {
-        this(config, fileSystem, query, new ConfigurationFileParserImpl(),
-            RDAPValidatorResultsImpl.getInstance(),  RDAPDatasetServiceImpl.getInstance());
-    }
-
-    public RDAPValidator(RDAPValidatorConfiguration config,
-                         FileSystem fileSystem,
+    public RDAPValidator(
+                         RDAPValidatorConfiguration config,
                          RDAPQuery query,
-                         ConfigurationFileParser configParser,
-                         RDAPValidatorResults results,
                          RDAPDatasetService datasetService) {
         this.config = config;
-        this.fileSystem = fileSystem;
         this.query = query;
         if (!this.config.check()) {
             logger.error("Please fix the configuration");
             throw new RuntimeException("Please fix the configuration");
         }
         this.queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance();
-        this.configParser = configParser;
-        this.results = results;
+        this.results = RDAPValidatorResultsImpl.getInstance();
         RDAPValidator.datasetService = datasetService;
     }
 
@@ -116,11 +99,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         );
 
 
-//        if (!queryTypeProcessor.check(datasetService)) {
-//            System.out.println("We failed checking the query type: " + queryTypeProcessor.getErrorStatus());
-//            return  queryTypeProcessor.getErrorStatus().getCode();
-//        }
-
+        // create this here
         RDAPQueryType queryType  = queryTypeProcessor.getQueryType();
 
         query.setResults(results);
@@ -132,16 +111,13 @@ public class RDAPValidator implements ValidatorWorkflow {
             return errorCode.getCode();
         }
 
-//        query.checkWithQueryType(queryTypeProcessor.getQueryType());
         query.checkWithQueryType(queryType);
 
         if (query.isErrorContent()) {
             validator = new SchemaValidator("rdap_error.json", results, datasetService);
         } else {
-//            String schemaFile = schemaMap.get(queryTypeProcessor.getQueryType());
             String schemaFile = schemaMap.get(queryType);
             if (schemaFile != null) {
-//                if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
                    if (RDAPQueryType.ENTITY.equals(queryType) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
                     return ToolResult.USES_THIN_MODEL.getCode();

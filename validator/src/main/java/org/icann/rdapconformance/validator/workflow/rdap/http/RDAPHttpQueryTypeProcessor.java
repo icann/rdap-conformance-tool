@@ -11,7 +11,6 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.slf4j.Logger;
@@ -40,7 +39,6 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     }
     // Static method to get the singleton instance with configuration
     public static synchronized RDAPHttpQueryTypeProcessor getInstance(RDAPValidatorConfiguration config) {
-        System.out.println("XXXX we are initalizing the processor");
         if (instance == null) {
             instance = new RDAPHttpQueryTypeProcessor();
         }
@@ -55,39 +53,40 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         this.queryType = null;
     }
 
-    @Override
-    public boolean check(RDAPDatasetService datasetService) {
-        queryType = RDAPHttpQueryType.getType(this.config.getUri().toString());
-        if (queryType == null) {
-            logger.error("Unknown RDAP query type for URI {}", this.config.getUri());
-            status = ToolResult.UNSUPPORTED_QUERY;
+@Override
+public boolean check(RDAPDatasetService datasetService) {
+    queryType = RDAPHttpQueryType.getType(this.config.getUri().toString());
+    if (queryType == null) {
+        logger.error("Unknown RDAP query type for URI {}", this.config.getUri());
+        status = ToolResult.UNSUPPORTED_QUERY;
+        return false;
+    }
+
+    if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
+        String domainName = queryType.getValue(this.config.getUri().toString());
+        System.out.println("----->  Validating domain name: " + domainName);
+
+        // Check for mixed labels first
+        if (hasMixedLabels(domainName)) {
+            logger.error("Mixed label format detected in domain name: {}", domainName);
+            status = ToolResult.MIXED_LABEL_FORMAT;
             return false;
         }
 
-        if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
-            String domainName = queryType.getValue(this.config.getUri().toString());
-            System.out.println("----->  Validating domain name: " + domainName);
-
-            // Check for mixed labels first
-            if (hasMixedLabels(domainName)) {
-                logger.error("Mixed label format detected in domain name: {}", domainName);
-                status = ToolResult.MIXED_LABEL_FORMAT;
-                return false;
-            }
-
-            String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
-            System.out.println("----->  Domain name JSON: " + domainNameJson);
-            RDAPValidatorResults testDomainResults = RDAPValidatorResultsImpl.getInstance();
-            SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults, datasetService);
-            if (!validator.validate(domainNameJson)) {
-                System.out.println("----->  Domain name validation failed");
-            } else {
-                System.out.println("----->  Domain name validation passed");
-            }
+        String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
+        System.out.println("----->  Domain name JSON: " + domainNameJson);
+        RDAPValidatorResults testDomainResults = RDAPValidatorResultsImpl.getInstance();
+        SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults, datasetService);
+        if (!validator.validate(domainNameJson)) {
+            System.out.println("----->  Domain name validation failed - return false");
+            return false;
+        } else {
+            System.out.println("----->  Domain name validation passed");
         }
-
-        return true;
     }
+
+    return true;
+}
 
     @Override
     public ToolResult getErrorStatus() {
