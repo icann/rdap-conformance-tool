@@ -17,7 +17,7 @@ import org.testng.annotations.Test;
 public class RDAPHttpQueryTypeProcessorTest {
 
   private final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-  private final RDAPQueryTypeProcessor processor = new RDAPHttpQueryTypeProcessor(config);
+  private final RDAPQueryTypeProcessor processor = RDAPHttpQueryTypeProcessor.getInstance(config);
   private final RDAPDatasetService datasetService = new RDAPDatasetServiceMock();
 
   @Test
@@ -93,5 +93,4 @@ public class RDAPHttpQueryTypeProcessorTest {
     assertThat(processor.check(datasetService)).isFalse();
     assertThat(processor.getErrorStatus()).isEqualTo(ToolResult.MIXED_LABEL_FORMAT);
   }
-
 }

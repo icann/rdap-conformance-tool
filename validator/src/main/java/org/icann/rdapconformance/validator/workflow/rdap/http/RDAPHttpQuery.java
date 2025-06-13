@@ -256,11 +256,24 @@ public class RDAPHttpQuery implements RDAPQuery {
     }
 
     private void validate() {
-        // If it wasn't successful, we don't need to validate
+        // Handle the case where we need to add an error for non-200/404 status codes regardless of query success
+        boolean isValidStatusCode = httpResponse != null &&
+            List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpResponse.statusCode());
+
+        if (!isValidStatusCode) {
+            String statusValue = httpResponse == null ? "no response available" : String.valueOf(httpResponse.statusCode());
+            addErrorToResultsFile(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
+        }
+
+        // If it wasn't successful, early return, we don't need to validate
         if (!isQuerySuccessful() || httpResponse == null) {
-            logger.info("Querying wasn't successful .. don't validate ");
+            logger.info("Querying wasn't successful .. don't validate");
             return;
         }
+//        else if (!isValidStatusCode) {
+//            isQuerySuccessful = false;
+//            return;
+//        }
 
         // else continue on
         int httpStatusCode = httpResponse.statusCode();
@@ -292,13 +305,6 @@ public class RDAPHttpQuery implements RDAPQuery {
             isQuerySuccessful = false;
           return;
         }
-
-            //  if a response is available to the tool, but the HTTP status code is not 200 nor 404, error code -13002 added in results file
-            if (!List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpStatusCode)) {
-                logger.info("Invalid HTTP status {}", httpStatusCode);
-                addErrorToResultsFile(-13002, String.valueOf(httpStatusCode), "The HTTP status code was neither 200 nor 404.");
-                isQuerySuccessful = false;
-            }
     }
 
     /**

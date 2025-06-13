@@ -101,9 +101,12 @@ public class CommonUtils {
         return input;
     }
 
-    public static boolean initializeDataSet(RDAPValidatorConfiguration config) {
+    public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config) {
         RDAPDatasetService  datasetService =   RDAPDatasetServiceImpl.getInstance(new LocalFileSystem());
-        return datasetService.download(config.useLocalDatasets());
+        if(!datasetService.download(config.useLocalDatasets())) {
+            return  null;
+        }
+        return datasetService;
     }
 
     public static boolean verifyQueryType(RDAPValidatorConfiguration config) {

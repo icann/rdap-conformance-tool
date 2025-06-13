@@ -434,22 +434,27 @@ public class RDAPHttpRequest {
             } else {
                 throw new IOException("No IPv4 address found");
             }
+        } catch (Exception e) {
+            logger.warn("Failed to get IPv4 address: {}, skipping IPv4 checks", e.getMessage());
+            return null;
         }
     }
 
-    public static InetAddress getDefaultIPv6Address() throws IOException {
-        try (DatagramSocket socket = new DatagramSocket()) {
-            socket.connect(InetAddress.getByName(OUTGOING_V6), DNS_PORT);
-            InetAddress localAddress = socket.getLocalAddress();
-            if (localAddress instanceof Inet6Address) {
-                logger.info("using local IPv6 Address: {}", localAddress.getHostAddress());
-                return localAddress;
-            } else {
-                throw new IOException("No IPv6 address found");
-            }
-        }
-    }
-
+ public static InetAddress getDefaultIPv6Address() throws IOException {
+     try (DatagramSocket socket = new DatagramSocket()) {
+         socket.connect(InetAddress.getByName(OUTGOING_V6), DNS_PORT);
+         InetAddress localAddress = socket.getLocalAddress();
+         if (localAddress instanceof Inet6Address) {
+             logger.info("using local IPv6 Address: {}", localAddress.getHostAddress());
+             return localAddress;
+         } else {
+             throw new IOException("No IPv6 address found");
+         }
+     } catch (Exception e) {
+         logger.warn("Failed to get IPv6 address: {}, skipping IPv6 checks", e.getMessage());
+         return null;
+     }
+ }
 
     private static long getBackoffTime(org.apache.hc.core5.http.Header[] headers) {
         String retryAfter = headers == null ? null :

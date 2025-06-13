@@ -23,10 +23,12 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 
 import org.slf4j.LoggerFactory;
@@ -92,7 +94,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     }
 
     // No matter which validator, we need to initialize the dataset service
-    if(!CommonUtils.initializeDataSet(this)) {
+    RDAPDatasetService datasetService = CommonUtils.initializeDataSet(this);
+    // if we couldn't do it - exit
+    if(datasetService == null) {
       logger.error(ToolResult.DATASET_UNAVAILABLE.getDescription());
       return ToolResult.DATASET_UNAVAILABLE.getCode();
     }
@@ -110,6 +114,13 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     if( configFile == null) {
       logger.error(ToolResult.CONFIG_INVALID.getDescription());
       return ToolResult.CONFIG_INVALID.getCode();
+    }
+
+    // Get the queryType - bail out if it is not correct
+    RDAPHttpQueryTypeProcessor queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
+    if(!queryTypeProcessor.check(datasetService)) {
+      System.out.println("We failed checking the query type: " + queryTypeProcessor.getErrorStatus());
+      return queryTypeProcessor.getErrorStatus().getCode();
     }
 
     // Determine which validator we are using

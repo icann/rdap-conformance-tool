@@ -20,6 +20,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,15 +77,13 @@ public class RDAPValidator implements ValidatorWorkflow {
 
     public RDAPValidator(RDAPValidatorConfiguration config,
                          FileSystem fileSystem,
-                         RDAPQueryTypeProcessor queryTypeProcessor,
                          RDAPQuery query) {
-        this(config, fileSystem, queryTypeProcessor, query, new ConfigurationFileParserImpl(),
+        this(config, fileSystem, query, new ConfigurationFileParserImpl(),
             RDAPValidatorResultsImpl.getInstance(),  RDAPDatasetServiceImpl.getInstance());
     }
 
     public RDAPValidator(RDAPValidatorConfiguration config,
                          FileSystem fileSystem,
-                         RDAPQueryTypeProcessor queryTypeProcessor,
                          RDAPQuery query,
                          ConfigurationFileParser configParser,
                          RDAPValidatorResults results,
@@ -96,7 +95,8 @@ public class RDAPValidator implements ValidatorWorkflow {
             logger.error("Please fix the configuration");
             throw new RuntimeException("Please fix the configuration");
         }
-        this.queryTypeProcessor = queryTypeProcessor;
+        this.queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this.config);
+        ((RDAPHttpQueryTypeProcessor) this.queryTypeProcessor).setConfiguration(this.config);
         this.configParser = configParser;
         this.results = results;
         RDAPValidator.datasetService = datasetService;
@@ -116,22 +116,13 @@ public class RDAPValidator implements ValidatorWorkflow {
             RDAPQueryType.IP_NETWORK, "rdap_ip_network.json"
         );
 
-        try (InputStream is = fileSystem.uriToStream(this.config.getConfigurationFile())) {
-            configurationFile = configParser.parse(is);
-        } catch (Exception e) {
-            logger.error("Configuration is invalid", e);
-            return ToolResult.CONFIG_INVALID.getCode();
-        }
-
-        RDAPValidationResultFile rdapValidationResultFile = RDAPValidationResultFile.getInstance();
-        rdapValidationResultFile.initialize(results, config, configurationFile, fileSystem);
 
         if (!queryTypeProcessor.check(datasetService)) {
             System.out.println("We failed checking the query type: " + queryTypeProcessor.getErrorStatus());
             return  queryTypeProcessor.getErrorStatus().getCode();
         }
 
-//        RDAPQueryType queryType  = queryTypeProcessor.getQueryType();
+        RDAPQueryType queryType  = queryTypeProcessor.getQueryType();
 
         query.setResults(results);
         if (!query.run()) {
@@ -142,14 +133,17 @@ public class RDAPValidator implements ValidatorWorkflow {
             return errorCode.getCode();
         }
 
-        query.checkWithQueryType(queryTypeProcessor.getQueryType());
+//        query.checkWithQueryType(queryTypeProcessor.getQueryType());
+        query.checkWithQueryType(queryType);
 
         if (query.isErrorContent()) {
             validator = new SchemaValidator("rdap_error.json", results, datasetService);
         } else {
-            String schemaFile = schemaMap.get(queryTypeProcessor.getQueryType());
+//            String schemaFile = schemaMap.get(queryTypeProcessor.getQueryType());
+            String schemaFile = schemaMap.get(queryType);
             if (schemaFile != null) {
-                if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
+//                if (RDAPQueryType.ENTITY.equals(queryTypeProcessor.getQueryType()) && config.isThin()) {
+                   if (RDAPQueryType.ENTITY.equals(queryType) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
                     return ToolResult.USES_THIN_MODEL.getCode();
                 }

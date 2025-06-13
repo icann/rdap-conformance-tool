@@ -40,7 +40,7 @@ public class RDAPValidatorTest {
   public void setUp() throws IOException {
     doReturn(true).when(config).check();
     doReturn(URI.create("https://example.com")).when(config).getUri(); // Mock getUri to return a valid URI
-    validator = new RDAPValidator(config, fs, processor, query, configParser, results, datasetService);
+    validator = new RDAPValidator(config, fs, query, configParser, results, datasetService);
     doReturn(true).when(processor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile("Test", null, null, null, null, false, false, false, false, false))
@@ -119,7 +119,7 @@ public class RDAPValidatorTest {
 
     doReturn(false).when(config).check();
 
-    assertThatThrownBy(() -> new RDAPValidator(config, fileSystem, queryTypeProcessor, query, configParser, results, datasetService))
+    assertThatThrownBy(() -> new RDAPValidator(config, fileSystem, query, configParser, results, datasetService))
         .isInstanceOf(RuntimeException.class)
         .hasMessage("Please fix the configuration");
   }
@@ -143,7 +143,7 @@ public class RDAPValidatorTest {
     doReturn(false).when(query).run();
     doReturn(null).when(query).getErrorStatus();
 
-    RDAPValidator validator = new RDAPValidator(config, fileSystem, queryTypeProcessor, query, configParser, results, datasetService);
+    RDAPValidator validator = new RDAPValidator(config, fileSystem, query, configParser, results, datasetService);
 
     assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
   }
@@ -180,7 +180,7 @@ public class RDAPValidatorTest {
     // Use getRawResponse() instead of getRdapResponse()
     doReturn(mockResponse).when(query).getRawResponse();
 
-    RDAPValidator validator = new RDAPValidator(config, fileSystem, queryTypeProcessor, query, configParser, results, datasetService);
+    RDAPValidator validator = new RDAPValidator(config, fileSystem, query, configParser, results, datasetService);
 
     assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
   }

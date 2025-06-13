@@ -8,7 +8,6 @@ public class RDAPFileValidator extends RDAPValidator {
 
   public RDAPFileValidator(RDAPValidatorConfiguration config, FileSystem fileSystem) {
     super(config, fileSystem,
-        new RDAPFileQueryTypeProcessor(config),
         new RDAPFileQuery(config, fileSystem));
   }
 }
