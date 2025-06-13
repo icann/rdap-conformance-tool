@@ -32,8 +32,15 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     private RDAPHttpQueryTypeProcessor() {
     }
 
+    public static synchronized RDAPHttpQueryTypeProcessor getInstance() {
+        if (instance == null) {
+            instance = new RDAPHttpQueryTypeProcessor();
+        }
+        return instance;
+    }
     // Static method to get the singleton instance with configuration
     public static synchronized RDAPHttpQueryTypeProcessor getInstance(RDAPValidatorConfiguration config) {
+        System.out.println("XXXX we are initalizing the processor");
         if (instance == null) {
             instance = new RDAPHttpQueryTypeProcessor();
         }

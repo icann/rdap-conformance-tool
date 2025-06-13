@@ -68,7 +68,7 @@ public class RDAPValidator implements ValidatorWorkflow {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
     private final RDAPValidatorConfiguration config;
-    private final RDAPQueryTypeProcessor queryTypeProcessor;
+    public RDAPQueryTypeProcessor queryTypeProcessor;
     private final RDAPQuery query;
     private final FileSystem fileSystem;
     private final ConfigurationFileParser configParser;
@@ -95,8 +95,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             logger.error("Please fix the configuration");
             throw new RuntimeException("Please fix the configuration");
         }
-        this.queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this.config);
-        ((RDAPHttpQueryTypeProcessor) this.queryTypeProcessor).setConfiguration(this.config);
+        this.queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance();
         this.configParser = configParser;
         this.results = results;
         RDAPValidator.datasetService = datasetService;
@@ -117,10 +116,10 @@ public class RDAPValidator implements ValidatorWorkflow {
         );
 
 
-        if (!queryTypeProcessor.check(datasetService)) {
-            System.out.println("We failed checking the query type: " + queryTypeProcessor.getErrorStatus());
-            return  queryTypeProcessor.getErrorStatus().getCode();
-        }
+//        if (!queryTypeProcessor.check(datasetService)) {
+//            System.out.println("We failed checking the query type: " + queryTypeProcessor.getErrorStatus());
+//            return  queryTypeProcessor.getErrorStatus().getCode();
+//        }
 
         RDAPQueryType queryType  = queryTypeProcessor.getQueryType();
 

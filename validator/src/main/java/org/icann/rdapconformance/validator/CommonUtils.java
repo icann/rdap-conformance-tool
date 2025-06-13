@@ -14,6 +14,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImp
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor.RDAPHttpQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
+import org.slf4j.LoggerFactory;
 
 public class CommonUtils {
 
@@ -52,6 +53,7 @@ public class CommonUtils {
     public static final int HTTP_TOO_MANY_REQUESTS = 429;
     public static final String HANDLE_PATTERN = "(\\w|_){1,80}-\\w{1,8}";
 
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(CommonUtils.class);
 
     public static void addErrorToResultsFile(int code, String value, String message) {
         RDAPValidatorResultsImpl.getInstance()
@@ -109,10 +111,6 @@ public class CommonUtils {
         return datasetService;
     }
 
-    public static boolean verifyQueryType(RDAPValidatorConfiguration config) {
-        RDAPHttpQueryType queryType = RDAPHttpQueryType.getType(config.getUri().toString());
-        return queryType != null;
-    }
 
     public static ConfigurationFile verifyConfigFile(RDAPValidatorConfiguration config, FileSystem fileSystem) {
         ConfigurationFile configFile = null;

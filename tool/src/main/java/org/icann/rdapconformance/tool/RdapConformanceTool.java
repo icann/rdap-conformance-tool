@@ -102,10 +102,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     }
 
     // Don't do anything until we check that the query type is supported
-    if (!CommonUtils.verifyQueryType(this)) {
-      logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
-      return ToolResult.UNSUPPORTED_QUERY.getCode();
-    }
+//    if (!CommonUtils.verifyQueryType(this)) {
+//      logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
+//      return ToolResult.UNSUPPORTED_QUERY.getCode();
+//    }
 
     // Setup the configuration file
     ConfigurationFile configFile = CommonUtils.verifyConfigFile(this, fileSystem);

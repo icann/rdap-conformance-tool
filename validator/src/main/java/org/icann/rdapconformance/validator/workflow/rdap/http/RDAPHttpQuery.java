@@ -208,7 +208,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                 this.setErrorStatus(((SimpleHttpResponse) response).getConnectionStatusCode());   // ensure this is set
                 StatusCodes.add(httpStatusCode); // we need this for future reference
                // TODO: we need to think about why we have this check in here and remove when we refactor the State Error/Success Handling
-                if(httpStatusCode == 0) { // if our fake status code is 0, we have a problem
+                if(httpStatusCode == ZERO) { // if our fake status code is 0, we have a problem
                     isQuerySuccessful = false;
                     return;
                 }
@@ -270,10 +270,6 @@ public class RDAPHttpQuery implements RDAPQuery {
             logger.info("Querying wasn't successful .. don't validate");
             return;
         }
-//        else if (!isValidStatusCode) {
-//            isQuerySuccessful = false;
-//            return;
-//        }
 
         // else continue on
         int httpStatusCode = httpResponse.statusCode();
