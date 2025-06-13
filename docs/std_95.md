@@ -11,7 +11,7 @@ The following steps should be used to test that an IPv4 address is valid:
 1. The IPv4 address is syntactically valid in dot-decimal notation.
 ``` json
 {
-  "code": -10100 ,
+  "code": -10100,
   "value": "<IPv4 address string>",
   "message": "The IPv4 address is not syntactically valid in dot-decimal notation."
 }
@@ -19,7 +19,7 @@ The following steps should be used to test that an IPv4 address is valid:
 2. The IPv4 address MUST be part of a prefix categorized as "ALLOCATED" or "LEGACY" in  the "Status" field in the ipv4AddressSpace.
 ``` json
 {
-  "code": -10101 ,
+  "code": -10101,
   "value": "<IPv4 address string>",
   "message": "The IPv4 address is not included in a prefix categorized as ALLOCATED or LEGACY in the IANA IPv4 Address Space Registry. Dataset: ipv4AddressSpace"
 }
@@ -27,7 +27,7 @@ The following steps should be used to test that an IPv4 address is valid:
 3. The IPv4 address MUST NOT be part of the **specialIPv4Addresses**.
 ``` json
 {
-  "code": -10102 ,
+  "code": -10102,
   "value": "<IPv4 address string>",
   "message": "The IPv4 address is included in the IANA IPv4 Special-Purpose Address Registry. Dataset: specialIPv4Addresses"
 }
@@ -42,7 +42,7 @@ The following steps should be used to test that an IPv6 address is valid:
 1. The IPv6 address is in canonical textual representation format.
 ``` json
 {
-  "code": -10200 ,
+  "code": -10200,
   "value": "<IPv6 address string>",
   "message": "The IPv6 address is not syntactically valid."
 }
@@ -50,7 +50,7 @@ The following steps should be used to test that an IPv6 address is valid:
 2. The IPv6 address MUST be part of an allocation of type "Global Unicast" in the **ipv6AddressSpace**.
 ``` json
 {
-  "code": -10201 ,
+  "code": -10201,
   "value": "<IPv6 address string>",
   "message": "The IPv6 address is not included in a prefix categorized as Global Unicast in the Internet Protocol Version 6 Address Space. Dataset: ipv6AddressSpace"
 }
@@ -58,7 +58,7 @@ The following steps should be used to test that an IPv6 address is valid:
 3. The IPv6 address MUST NOT be part of the **specialIPv6Addresses**.
 ``` json
 {
-  "code": -10202 ,
+  "code": -10202,
   "value": "<IPv6 address string>",
   "message": "The IPv6 address is included in the IANA IPv6 Special-Purpose Address Registry. Dataset: specialIPv6Addresses"
 }
@@ -74,7 +74,7 @@ The following steps should be used to test that a domain name is valid:
 1. The length of each label is between 1 and 63.
 ``` json
 {
-  "code": -10300 ,
+  "code": -10300,
   "value": "<domain name>",
   "message": "A DNS label with length not between 1 and 63 was found."
 }
@@ -82,7 +82,7 @@ The following steps should be used to test that a domain name is valid:
 2. A maximum total length of 253 characters not including the last ".".
 ``` json
 {
-  "code": -10301 ,
+  "code": -10301,
   "value": "<domain name>",
   "message": "A domain name of more than 253 characters was found. "
 }
@@ -91,7 +91,7 @@ The following steps should be used to test that a domain name is valid:
 RDAP_Technical_Implementation_Guide_2_1 section 1.10.
 ``` json
 {
-  "code": -10302 ,
+  "code": -10302,
   "value": "<domain name>",
   "message": "A domain name with less than two labels was found. See
 }
@@ -99,7 +99,7 @@ RDAP_Technical_Implementation_Guide_2_1 section 1.10.
 4. Each label of the domain name is a valid "A-label", "U-label", or "NR-LDH label".
 ``` json
 {
-  "code": -10303 ,
+  "code": -10303,
   "value": "<domain name>",
   "message": "A DNS label not being a valid 'A-label', 'U-label', or 'NR-LDH label' was found."
 }
@@ -117,7 +117,7 @@ The following steps should be used to test that a Web URI is valid:
 1. The URI shall be syntactically valid according to RFC3986.
 ``` json
 {
-  "code": -10400 ,
+  "code": -10400,
   "value": "<URI>",
   "message": "The URI is not syntactically valid according to RFC3986."
 }
@@ -125,7 +125,7 @@ The following steps should be used to test that a Web URI is valid:
 2. The scheme of the URI shall be "http" or "https".
 ``` json
 {
-  "code": -10401 ,
+  "code": -10401,
   "value": "<URI>",
   "message": "The scheme of the URI is not 'http' nor 'https'".
 }
@@ -133,7 +133,7 @@ The following steps should be used to test that a Web URI is valid:
 3. The host of the URI shall pass the test Domain Name validation [domainNameValidation], IPv4 address validation [ipv4Validation] or IPv6 address validation [ipv6Validation].
 ``` json
 {
-  "code": -10402 ,
+  "code": -10402,
   "value": "<URI>",
   "message": "The host does not pass Domain Name validation [domainNameValidation], IPv4 address validation [ipv4Validation] nor IPv6 address validation [ipv6Validation]".
 }
@@ -147,7 +147,7 @@ Test group: [domainCaseFoldingValidation]
 The following steps should be used to test that an RDAP server is processing label case conversion correctly for domain name lookups:
 
 1. A subsequent RDAP lookup may be performed in the case of a domain name lookup to validate correct support for case insensitive label matching:
-      1. For any "NR-LDH label" or "A-label" present, the RDAP response must match the response of a subsequent request converting any "NR-LDH label" or "A- label" alternating uppercase and lowercase characters (e.g., if the domain is "test.example" the RDAP response must match also for converted domain name "tEsT.ExAmPlE").
+      1. For any "NR-LDH label" or "A-label" present, the RDAP response must match the response of a subsequent request converting any "NR-LDH label" or "A-label" alternating uppercase and lowercase characters (e.g., if the domain is "test.example" the RDAP response must match also for converted domain name "tEsT.ExAmPlE").
       1. For any "U-Label" present, in case that any of the code points support case folding, the u-label should be case-folded for the subsequent request. (e.g., if the domain is "CAFÉ.EXAMPLE" the RDAP response must match also for converted domain name "café.ExAmPlE").
           - In case that the domain name in the query contains all u-labels and none of the labels can be case-folded (i.e., the script or code points do not support case folding) a subsequent query is not required.
           - In case that the domain name in the query contains all u-labels and the resulting domain name to query after case-folding is the same as the original, a subsequent query is not required.
@@ -171,7 +171,7 @@ The following steps should be used to test that an RDAP Conformance data structu
 1. The _RDAP Conformance_ data structure must be a syntactically valid JSON array.
 ``` json
 {
-  "code": -10500 ,
+  "code": -10500,
   "value": "<rdapConformance structure>",
   "message": "The RDAP Conformance structure is not syntactically valid."
 }
@@ -179,7 +179,7 @@ The following steps should be used to test that an RDAP Conformance data structu
 2. Every value of the JSON array shall be a JSON string data type.
 ``` json
 {
-  "code": -10501 ,
+  "code": -10501,
   "value": "<JSON value>",
   "message": "The JSON value is not a string."
 }
@@ -187,7 +187,7 @@ The following steps should be used to test that an RDAP Conformance data structu
 3. Each of the JSON string values in the JSON array, with the exception of "rdap_level_0", shall be included as an Extension Identifier in **RDAPExtensions**.
 ``` json
 {
-  "code": -10502 ,
+  "code": -10502,
   "value": "<JSON string>",
   "message": "The JSON string is not included as an Extension Identifier in RDAPExtensions."
 }
@@ -195,7 +195,7 @@ The following steps should be used to test that an RDAP Conformance data structu
 4. The JSON string value "rdap_level_0" is not included in the _RDAP Conformance_ data structure.
 ``` json
 {
-  "code": -10503 ,
+  "code": -10503,
   "value": "<rdapConformance>",
   "message": "The RDAP Conformance data structure does not include rdap_level_0."
 }
@@ -217,15 +217,15 @@ The following steps should be used to test that a links data structure is valid:
 }
 ```
 2. For every object (i.e. link) of the JSON array, verify that the _link_ structure complies with:
-    1. The name of every name/value pair shall be value , rel , href , hreflang , title , media or type.
+    1. The name of every name/value pair shall be value, rel, href, hreflang, title, media or type.
 ``` json
 {
-  "code": - 10601,
+  "code": -10601,
   "value": "<name/value pair>",
   "message": "The name in the name/value pair is not of: value, rel, href, hreflang, title, media or type."
 }
 ```
-    2. The JSON name/value pairs of _rel_ , _href_ , _hreflang_ , _title_ , _media_ and _type_ shall appear only once.
+    2. The JSON name/value pairs of _rel_, _href_, _hreflang_, _title_, _media_ and _type_ shall appear only once.
 ``` json
 {
   "code": -10602,
@@ -297,7 +297,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The href element does not exist."
 }
 ```
-    11. For the JSON name href , the value shall pass the test Web URI validation [webUriValidation] defined in this document.
+    11. For the JSON name href, the value shall pass the test Web URI validation [webUriValidation] defined in this document.
 ``` json
 {
   "code": -10611,
@@ -321,7 +321,7 @@ The following steps should be used to test that a notices or remarks data struct
 }
 ```
 2. For every object of the JSON array, verify that the structure complies with:
-    1. The name of every name/value pair shall be title , type , description or links.
+    1. The name of every name/value pair shall be title, type, description or links.
 ``` json
 {
   "code": -10701,
@@ -329,7 +329,7 @@ The following steps should be used to test that a notices or remarks data struct
   "message": "The name in the name/value pair is not of: title, type, description or links."
 }
 ```
-    2. The JSON name/values of title , type , description and links shall exist only once.
+    2. The JSON name/values of title, type, description and links shall exist only once.
 ``` json
 {
   "code": -10702,
@@ -400,7 +400,7 @@ Test group: [stdRdapLanguageIdentifierValidation]
 
 The following steps should be used to test that a lang data structure is valid:
 
-1. For the JSON name _lang_ , the value shall conform to the Language-Tag syntax.
+1. For the JSON name _lang_, the value shall conform to the Language-Tag syntax.
 ``` json 
 {
   "code": -10800,
@@ -424,7 +424,7 @@ The following steps should be used to test that a events data structure is valid
 }
 ```
 2. For every object of the JSON array, verify that the structure complies with:
-    1. The name of every name/value pair shall be any of: eventAction , eventActor , eventDate or links.
+    1. The name of every name/value pair shall be any of: eventAction, eventActor, eventDate or links.
 ``` json
 {
   "code": -10901,
@@ -432,7 +432,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The name in the name/value pair is not of: eventAction, eventActor, eventDate or links."
 }
 ```
-    2. The JSON name/value pairs of _eventAction_ , _eventActor_ , _eventDate_ and _links_ shall exist only once.
+    2. The JSON name/value pairs of _eventAction_, _eventActor_, _eventDate_ and _links_ shall exist only once.
 ``` json
 {
   "code": -10902,
@@ -448,7 +448,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The eventAction element does not exist."
 }
 ```
-    4. For the JSON name eventAction , the value shall be a JSON string data type.
+    4. For the JSON name eventAction, the value shall be a JSON string data type.
 ``` json
 {
   "code": -10904,
@@ -456,7 +456,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The JSON value is not a string."
 }
 ```
-    5. For the JSON name _eventAction_ , the value shall be included in the RDAPJSONValues with Type="event action".
+    5. For the JSON name _eventAction_, the value shall be included in the RDAPJSONValues with Type="event action".
 ``` json
 {
   "code": -10905,
@@ -472,7 +472,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The eventDate element does not exist."
 }
 ```
-    7. For the JSON name eventDate , the value shall be a JSON string data type.
+    7. For the JSON name eventDate, the value shall be a JSON string data type.
 ``` json
 {
   "code": -10907,
@@ -480,7 +480,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The JSON value is not a string."
 }
 ```
-    8. For the JSON name eventDate , the value shall be syntactically valid time and date according to RFC3339.
+    8. For the JSON name eventDate, the value shall be syntactically valid time and date according to RFC3339.
 ``` json
 {
 "code": -10908,
@@ -546,7 +546,7 @@ The following steps should be used to test that a status data structure is valid
 3. Each of the JSON string values in the JSON array shall be included in the **RDAPJSONValues** with Type="status".
 ``` json
 {
-  "code": - 11002 ,
+  "code": -11002,
   "value": "<JSON string>",
   "message": "The JSON string is not included as a Value with Type='status'."
 }
@@ -558,7 +558,7 @@ Test group: [stdRdapPort43WhoisServerValidation]
 
 The following steps should be used to test that a port43 data structure is valid:
 
-1. For the JSON name _port43_ , the value shall pass the test [IPv4Validation], [IPv6Validation] or [DomainNameValidation] defined in this document.
+1. For the JSON name _port43_, the value shall pass the test [IPv4Validation], [IPv6Validation] or [DomainNameValidation] defined in this document.
 ``` json
 {
 "code": -11100,
@@ -606,7 +606,7 @@ The following steps should be used to test that a publicIds data structure is va
   "message": "The following name/values shall exist: type or identifier."
 }
 ```
-    4. For the JSON name type , the value shall be a JSON string data type.
+    4. For the JSON name type, the value shall be a JSON string data type.
 ``` json
 {
   "code": -11204,
@@ -614,7 +614,7 @@ The following steps should be used to test that a publicIds data structure is va
   "message": "The JSON value is not a string."
 }
 ```
-    5. For the JSON name identifier , the value shall be a JSON string data type.
+    5. For the JSON name identifier, the value shall be a JSON string data type.
 ``` json
 {
   "code": -11205,
@@ -670,7 +670,7 @@ The following steps should be used to test that an asEventActor data structure i
 "message": "The eventAction element does not exist."
 }
 ```
-    4. For the JSON name eventAction , the value shall be a JSON string data type.
+    4. For the JSON name eventAction, the value shall be a JSON string data type.
 ``` json
 {
 "code": -11305,
@@ -678,7 +678,7 @@ The following steps should be used to test that an asEventActor data structure i
 "message": "The JSON value is not a string."
 }
 ```
-    5. For the JSON name eventAction , the value shall be included in the RDAPJSONValues with Type="event action".
+    5. For the JSON name eventAction, the value shall be included in the RDAPJSONValues with Type="event action".
 ``` json
 {
 "code": -11306,
@@ -702,7 +702,7 @@ The following steps should be used to test that an asEventActor data structure i
   "message": "The JSON value is not a string."
 }
 ```
-    8. For the JSON name _eventDate_ , the value shall be syntactically valid time and date according to RFC3339.
+    8. For the JSON name _eventDate_, the value shall be syntactically valid time and date according to RFC3339.
 ``` json
 {
   "code": -11309,
@@ -810,192 +810,197 @@ The following steps should be used to test that an ipAddresses data structure is
 }
 ```
 
-### Variants validation [stdRdapVariantsValidation]
+### Variants validation 
+
+Test group: [stdRdapVariantsValidation]
 
 The following steps should be used to test that a variants data structure is valid:
 
 1. The _variants_ data structure must be a syntactically valid JSON array.
-    {
-    "code": - 11500 ,
-    "value": "<variants structure>",
-    "message": "The variants structure is not syntactically valid."
-    }
+``` json
+{
+  "code": -11500,
+  "value": "<variants structure>",
+  "message": "The variants structure is not syntactically valid."
+}
+```
 2. For every object of the JSON array, verify that the structure complies with:
-
-2.1. The name of every name/value pair shall be relation , idnTable or variantNames.
-```
+    1. The name of every name/value pair shall be relation, idnTable or variantNames.
+``` json
 {
-"code": - 11501 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair is not of: relation, idnTable
-or variantNames."
+  "code": -11501,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair is not of: relation, idnTable or variantNames."
 }
 ```
-2.2. The JSON name/value pairs of relation , idnTable and variantNames shall appear
+    2. The JSON name/value pairs of relation, idnTable and variantNames shall appear
 only once.
-```
+``` json
 {
-"code": - 11502 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair of a link structure was found
-more than once."
+  "code": -11502,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair of a link structure was found more than once."
 }
 ```
-2.3. The RDAP relation data structure must be a syntactically valid JSON array.
-```
+    3. The RDAP relation data structure must be a syntactically valid JSON array.
+``` json
 {
-"code": - 11503 ,
-"value": "<relation structure>",
-"message": "The RDAP Conformance structure is not syntactically valid."
+  "code": -11503,
+  "value": "<relation structure>",
+  "message": "The RDAP Conformance structure is not syntactically valid."
 }
 ```
-2.4. For every object of the JSON array, verify that the structure complies with:
+    4. For every object of the JSON array, verify that the structure complies with:
 
-2.4.1. Every value of the JSON array shall be a JSON string data type.
-```
+      1. Every value of the JSON array shall be a JSON string data type.
+``` json
 {
-"code": - 11504 ,
-"value": "<JSON value>",
-"message": "The JSON value is not a string."
+  "code": -11504,
+  "value": "<JSON value>",
+  "message": "The JSON value is not a string."
 }
 ```
-2.4.2. Each of the JSON string values in the JSON array shall be included in the
+      2. Each of the JSON string values in the JSON array shall be included in the
 RDAPJSONValues with Type="domain variant relation".
-```
+``` json
 {
-"code": - 11505 ,
-"value": "<JSON string>",
-"message": "The JSON string is not included as a Value with
-Type="domain variant relation "."
+  "code": -11505,
+  "value": "<JSON string>",
+  "message": "The JSON string is not included as a Value with Type='domain variant relation '."
 }
 ```
-2.5. If the JSON name idnTable exists, the value shall be a JSON string data type.
-```
+    5. If the JSON name idnTable exists, the value shall be a JSON string data type.
+``` json
 {
-"code": - 11506 ,
-"value": "<name/value pair>",
-"message": "The JSON value is not a string."
+  "code": -11506,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not a string."
 }
 ```
-2.6. The variantNames data structure must be a syntactically valid JSON array.
-```
+    6. The variantNames data structure must be a syntactically valid JSON array.
+``` json
 {
-"code": - 11507 ,
-"value": "<variantNames structure>",
-"message": "The variantNames structure is not syntactically valid."
+  "code": -11507,
+  "value": "<variantNames structure>",
+  "message": "The variantNames structure is not syntactically valid."
 }
 ```
-2.7. For every object of the JSON array, verify that the structure complies with:
-2.7.1. The name of every name/value pair shall be any of: ldhName or
-unicodeName
-
-```
+    7. For every object of the JSON array, verify that the structure complies with:
+        1. The name of every name/value pair shall be any of: ldhName or unicodeName
+``` json
 {
-"code": - 11508 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair is not of: ldhName or
-unicodeName."
+  "code": -11508,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair is not of: ldhName or unicodeName."
 }
 ```
-2.7.2. The JSON name/value pairs of ldhName or unicodeName shall exist only
-once.
-```
+        2. The JSON name/value pairs of ldhName or unicodeName shall exist only once.
+``` json
 {
-"code": - 11509 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair of a link structure was
-found more than once."
+  "code": -11509,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair of a link structure was found more than once."
 }
 ```
-2.7.3. If the JSON name title ldhName exists, the value shall pass the test LDH
-name [stdRdapLdhNameValidation] defined in this document.
-```
+        3. If the JSON name title ldhName exists, the value shall pass the test LDH name [stdRdapLdhNameValidation] defined in this document.
+``` json
 {
-"code": - 11510 ,
-"value": "<name/value pair>",
-"message": " The value for the JSON name value does not pass LDH name
-[stdRdapLdhNameValidation]."
+  "code": -11510,
+  "value": "<name/value pair>",
+  "message": " The value for the JSON name value does not pass LDH name [stdRdapLdhNameValidation]."
 }
 ```
-2.7.4. If the JSON name unicodeName exists, the value shall pass the test Unicode
-name [stdRdapUnicodeNameValidation] defined in this document.
-```
+        4. If the JSON name unicodeName exists, the value shall pass the test Unicode name [stdRdapUnicodeNameValidation] defined in this document.
+``` json
 {
-"code": - 11511 ,
-"value": "<name/value pair>",
-"message": "The value for the JSON name value does not pass Unicode
-name [stdRdapUnicodeNameValidation]."
+  "code": -11511,
+  "value": "<name/value pair>",
+  "message": "The value for the JSON name value does not pass Unicode name [stdRdapUnicodeNameValidation]."
 }
 ```
 
-### Unicode name [stdRdapUnicodeNameValidation]
+### Unicode name 
+
+Test group: [stdRdapUnicodeNameValidation]
 
 The following steps should be used to test that a unicodeName is valid:
 
 1. The length of each label is between 1 and 63.
-    {
-    "code": - 11600 ,
-    "value": "<domain name>",
-    "message": "A DNS label with length not between 1 and 63 was found."
-    }
-2. A maximum total length of 253 characters not including the last ".".
-    {
-    "code": - 11601 ,
-    "value": "<domain name>",
-    "message": "A domain name of more than 253 characters was found."
-    }
-3. At least two labels shall exist in the domain name. See,
-    RDAP_Technical_Implementation_Guide_2_1 section 1.10.
-    {
-    "code": - 11602 ,
-    "value": "<domain name>",
-    "message": "A domain name with less than two labels was found. See RDAP_Technical_Implementation_Guide_2_1 section 1.10"
+``` json
+{
+  "code": -11600,
+  "value": "<domain name>",
+  "message": "A DNS label with length not between 1 and 63 was found."
 }
-
+```
+2. A maximum total length of 253 characters not including the last ".".
+``` json
+{
+  "code": -11601,
+  "value": "<domain name>",
+  "message": "A domain name of more than 253 characters was found."
+}
+```
+3. At least two labels shall exist in the domain name. See, RDAP_Technical_Implementation_Guide_2_1 section 1.10.
+``` json
+{
+  "code": -11602,
+  "value": "<domain name>",
+  "message": "A domain name with less than two labels was found. See RDAP_Technical_Implementation_Guide_2_1 section 1.10"
+}
+```
 4. Each label of the domain name is a valid "U-label or "NR-LDH label".
-    {
-    "code": - 11603 ,
-    "value": "<domain name>",
-    "message": "A label not being a valid "U-label" or "NR-LDH label" was
-    found."
-    }
+``` json
+{
+  "code": -11603,
+  "value": "<domain name>",
+  "message": "A label not being a valid 'U-label' or 'NR-LDH label' was found."
+}
+```
 
 Note: the latest version of the IANA IDNA Rules and Derived Property Values shall be used. See, https://www.iana.org/assignments/idna-tables-11.0.0/idna-tables-11.0.0.xml
 
 Note: some legacy gTLDs may fail this test, because they have a few domain name registrations that comply with IDNA2003 but not IDNA2018. Such names are not recommended to be used when testing an RDAP response with this tool.
 
 
-### LDH name [stdRdapLdhNameValidation]
+### LDH name 
+
+Test group: [stdRdapLdhNameValidation]
 
 The following steps should be used to test that a ldhName is valid:
 
 1. The length of each label is between 1 and 63.
-    {
-    "code": - 11700 ,
-    "value": "<domain name>",
-    "message": "A DNS label with length not between 1 and 63 was found."
-    }
-2. A maximum total length of 253 characters not including the last ".".
-    {
-    "code": - 11701 ,
-    "value": "<domain name>",
-    "message": "A domain name of more than 253 characters was found."
-    }
-3. At least two labels shall exist in the domain name. See,
-    RDAP_Technical_Implementation_Guide_2_1 section 1.10.
-    {
-    "code": - 11702 ,
-    "value": "<domain name>",
-    "message": "A domain name with less than two labels was found. See RDAP_Technical_Implementation_Guide_2_1 section 1.10"
+``` json
+{
+  "code": -11700,
+  "value": "<domain name>",
+  "message": "A DNS label with length not between 1 and 63 was found."
 }
-
+```
+2. A maximum total length of 253 characters not including the last ".".
+``` json
+{
+  "code": -11701,
+  "value": "<domain name>",
+  "message": "A domain name of more than 253 characters was found."
+}
+```
+3. At least two labels shall exist in the domain name. See, RDAP_Technical_Implementation_Guide_2_1 section 1.10.
+``` json
+{
+  "code": -11702,
+  "value": "<domain name>",
+  "message": "A domain name with less than two labels was found. See RDAP_Technical_Implementation_Guide_2_1 section 1.10"
+}
+```
 4. Each label of the domain name is a valid "A-label or "NR-LDH label".
-    {
-    "code": - 11703 ,
-    "value": "<domain name>",
-    "message": "A label not being a valid "A-label" or "NR-LDH label" was
-    found."
-    }
+``` json
+{
+  "code": -11703,
+  "value": "<domain name>",
+  "message": "A label not being a valid 'A-label' or 'NR-LDH label' was found."
+}
+```
 
 Note: the latest version of the IANA IDNA Rules and Derived Property Values
 shall be used. See, https://www.iana.org/assignments/idna-tables-11.0.0/idna-tables-11.0.0.xml
@@ -1005,367 +1010,351 @@ name registrations that comply with IDNA2003 but not IDNA2018. Such names
 are not recommended to be used when testing an RDAP response with this tool.
 
 
-### Roles validation [stdRdapRolesValidation]
+### Roles validation 
+
+Test group: [stdRdapRolesValidation]
 
 The following steps should be used to test that a roles data structure is valid:
 
 1. The _roles_ data structure must be a syntactically valid JSON array.
-    {
-    "code": - 11800 ,
-    "value": "<roles structure>",
-    "message": "The roles structure is not syntactically valid."
-    }
+``` json
+{
+  "code": -11800,
+  "value": "<roles structure>",
+  "message": "The roles structure is not syntactically valid."
+}
+```
 2. Every value of the JSON array shall be a JSON string data type.
-    {
-    "code": - 11801 ,
-    "value": "<JSON value>",
-    "message": "The JSON value is not a string."
-    }
-3. Each of the JSON string values in the JSON array shall be included in the
-    **RDAPJSONValues** with Type="role".
-    {
-    "code": - 11802 ,
-    "value": "<JSON string>",
-    "message": "The JSON string is not included as a Value with Type="role"."
-    }
+``` json
+{
+  "code": -11801,
+  "value": "<JSON value>",
+  "message": "The JSON value is not a string."
+}
+```
+3. Each of the JSON string values in the JSON array shall be included in the **RDAPJSONValues** with Type="role".
+``` json
+{
+  "code": -11802,
+  "value": "<JSON string>",
+  "message": "The JSON string is not included as a Value with Type="role"."
+}
+```
 4. The role value shall only appear once in the JSON array.
-    {
-    "code": - 11803 ,
-    "value": "<roles structure>",
-    "message": "A role value appeared more than once."
-    }
+``` json
+{
+  "code": -11803,
+  "value": "<roles structure>",
+  "message": "A role value appeared more than once."
+}
+```
 
 
-### Entities validation [stdRdapEntitiesValidation]
+### Entities validation 
+
+Test group: [stdRdapEntitiesValidation]
 
 The following steps should be used to test that an entities data structure is valid:
 
 1. The _entities_ data structure must be a syntactically valid JSON array.
-    {
-    "code": - 11900 ,
+``` json
+{
+    "code": -11900,
     "value": "<entities structure>",
     "message": "The entities structure is not syntactically valid."
-    }
-2. Every value of the JSON array shall pass the test Entity lookup validation
-    [stdRdapEntityLookupValidation] defined in this document.
-    {
-    "code": - 11901 ,
+}
+```
+2. Every value of the JSON array shall pass the test Entity lookup validation [stdRdapEntityLookupValidation] defined in this document.
+``` json
+{
+    "code": -11901,
     "value": "<JSON value>",
-    "message": "The JSON value does not pass Entity lookup validation
-    [stdRdapEntityLookupValidation]."
-    }
+    "message": "The JSON value does not pass Entity lookup validation [stdRdapEntityLookupValidation]."
+}
+```
 
 
-### Secure DNS validation [stdRdapSecureDnsValidation]
+### Secure DNS validation 
+
+Test gruop: [stdRdapSecureDnsValidation]
 
 The following steps should be used to test that a secureDNS data structure is valid:
 
 1. The _secureDNS_ data structure must be a syntactically valid JSON object.
-    {
-    "code": - 12000 ,
-    "value": "<secureDNS structure>",
-    "message": "The domain structure is not syntactically valid."
-    }
-2. The name of every name/value pairs shall be _zoneSigned_ , _delegationSigned_ , _maxSigLife_ ,
-    _dsData_ or _keyData_.
-    {
-    "code": - 12001 ,
-    "value": "<name/value pair>",
-    "message": "The name in the name/value pair is not of: zoneSigned,
-    delegationSigned, maxSigLife, dsData or keyData."
-    }
-3. The JSON name/values of _zoneSigned_ , _delegationSigned_ , _maxSigLife_ , _dsData_ and
-keyData shall appear only once.
-
-```
+``` json
 {
-"code": - 12002 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair of a domain structure was
-found more than once."
+  "code": -12000,
+  "value": "<secureDNS structure>",
+  "message": "The domain structure is not syntactically valid."
+}
+```
+2. The name of every name/value pairs shall be _zoneSigned_, _delegationSigned_, _maxSigLife_, _dsData_ or _keyData_.
+``` json
+{
+  "code": -12001,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair is not of: zoneSigned, delegationSigned, maxSigLife, dsData or keyData."
+}
+```
+3. The JSON name/values of _zoneSigned_, _delegationSigned_, _maxSigLife_, _dsData_ and keyData shall appear only once.
+``` json
+{
+  "code": -12002,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair of a domain structure was found more than once."
 }
 ```
 4. If the JSON name _zoneSigned_ appears, the value shall be a JSON boolean data type.
-    {
-    "code": - 12003 ,
-    "value": "<name/value pair>",
-    "message": "The JSON value is not a boolean."
-    }
-
-<!-- - 12004 -->
-
-5. If the JSON name _delegationSigned_ appears, the value shall be a JSON boolean data
-    type.
-    {
-    "code": - 12005 ,
-    "value": "<name/value pair>",
-    "message": "The JSON value is not a boolean."
-    }
-6. If the JSON name _maxSigLife_ exists, the value shall be a JSON number data type
-    between 1 and 2147483647.
-    {
-    "code": - 12006 ,
-    "value": "<name/value pair>",
-    "message": "The JSON value is not a number between 1 and 2147483647."
-    }
-
-
-<!-- - 12007 -->
-
+``` json
+{
+  "code": -12003,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not a boolean."
+}
+```
+5. If the JSON name _delegationSigned_ appears, the value shall be a JSON boolean data type.
+``` json
+{
+  "code": -12005,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not a boolean."
+}
+```
+6. If the JSON name _maxSigLife_ exists, the value shall be a JSON number data type between 1 and 2147483647.
+``` json
+{
+  "code": -12006,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not a number between 1 and 2147483647."
+}
+```
 7. If the JSON name _dsData_ appears, the value shall pass the following:
-
-```
-7.1. The dsData data structure must be a syntactically valid array of JSON objects.
+    1. The dsData data structure must be a syntactically valid array of JSON objects.
+``` json
 {
-"code": - 12008 ,
-"value": "<dsData structure>",
-"message": "The dsData structure is not syntactically valid."
+  "code": -12008,
+  "value": "<dsData structure>",
+  "message": "The dsData structure is not syntactically valid."
 }
 ```
-7.2. The name of every name/value pair shall be any of: _keyTag_ , _algorithm_ , _digest_ ,
-digestType , events or links.
-
-```
+    2. The name of every name/value pair shall be any of: _keyTag_, _algorithm_, _digest_, digestType, events or links.
+``` json
 {
-"code": - 12009 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair is not of: keyTag, algorithm,
-digest, digestType, events or links."
+  "code": -12009,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair is not of: keyTag, algorithm, digest, digestType, events or links."
 }
 ```
-7.3. The JSON name/values of keyTag , algorithm , digest , digestType , events or links
-shall appear only once.
-```
+    3. The JSON name/values of keyTag, algorithm, digest, digestType, events or links shall appear only once.
+``` json
 {
-"code": - 12010 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair of a dsData structure was
-found more than once."
+  "code": -12010,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair of a dsData structure was found more than once."
 }
 ```
-7.4. The JSON name/values of keyTag , algorithm , digest and digestType shall appear.
-```
+    4. The JSON name/values of keyTag, algorithm, digest and digestType shall appear.
+``` json
 {
-"code": - 12011 ,
-"value": "<dsData structure>",
-"message": "The following name/values shall exist: keyTag, algorithm,
-digest and digestType."
+  "code": -12011,
+  "value": "<dsData structure>",
+  "message": "The following name/values shall exist: keyTag, algorithm, digest and digestType."
 }
 ```
-7.5. For the JSON name _keyTag_ , the value shall be a JSON number data type between 1
-and 65535.
-
-```
+    5. For the JSON name _keyTag_, the value shall be a JSON number data type between 1 and 65535.
+``` json
 {
-"code": - 12012 ,
-"value": "<name/value pair>",
-"message": "The JSON value is not a number between 1 and 65535."
+  "code": -12012,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not a number between 1 and 65535."
 }
 ```
-7.6. For the JSON name _algorithm_ , the value shall be a JSON number listed with Zone
-Signing=Y in dnsSecAlgNumbers. The values 253 and 254 are not valid for this test.
-
-```
+    6. For the JSON name _algorithm_, the value shall be a JSON number listed with Zone Signing=Y in dnsSecAlgNumbers. The values 253 and 254 are not valid for this test.
+``` json
 {
-"code": - 12013 ,
-"value": "<name/value pair>",
-"message": "The JSON value is not listed with Zone Signing=Y in
-dnsSecAlgNumbers, or it's 253 or 254."
+  "code": -12013,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not listed with Zone Signing=Y in dnsSecAlgNumbers, or it's 253 or 254."
 }
 ```
-7.7. For the JSON name digest , the value shall be a JSON string of case-insensitive
-hexadecimal digits. Whitespace is allowed within the hexadecimal text.
-
-```
+    7. For the JSON name digest, the value shall be a JSON string of case-insensitive hexadecimal digits. Whitespace is allowed within the hexadecimal text.
+``` json
 {
-"code": - 12014 ,
-"value": "<name/value pair>",
-"message": "The JSON value is not a string of case-insensitive hexadecimal
-digits. Whitespace is allowed within the hexadecimal test."
+  "code": -12014,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not a string of case-insensitive hexadecimal digits. Whitespace is allowed within the hexadecimal test."
 }
 ```
-7.8. For the JSON name _digestType_ , the value shall be a JSON number assigned in
-dsRrTypes.
-
-```
+    8. For the JSON name _digestType_, the value shall be a JSON number assigned in dsRrTypes.
+``` json
 {
-"code": - 12015 ,
-"value": "<name/value pair>",
-"message": "The JSON value is not assigned in dsRrTypes."
+  "code": -12015,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not assigned in dsRrTypes."
 }
 ```
-7.9. If the JSON name _events_ exists, the value shall pass the test Events Validation
-[stdRdapEventsValidation] defined in this document.
-
-```
+    9. If the JSON name _events_ exists, the value shall pass the test Events Validation [stdRdapEventsValidation] defined in this document.
+``` json
 {
-"code": - 12016 ,
-"value": "<name/value pair>",
-"message": "The value for the JSON name value does not pass Events
-Validation [stdRdapEventsValidation]."
+  "code": -12016,
+  "value": "<name/value pair>",
+  "message": "The value for the JSON name value does not pass Events Validation [stdRdapEventsValidation]."
 }
 ```
-7.10. If the JSON name links exists, the value shall pass the test Links validation
-[stdRdapLinksValidation] defined in this document.
-```
+    10. If the JSON name links exists, the value shall pass the test Links validation [stdRdapLinksValidation] defined in this document.
+``` json
 {
-"code": - 12017 ,
-"value": "<name/value pair>",
-"message": "The value for the JSON name value does not pass Links
-validation [stdRdapLinksValidation]."
+  "code": -12017,
+  "value": "<name/value pair>",
+  "message": "The value for the JSON name value does not pass Links validation [stdRdapLinksValidation]."
 }
 ```
 8. If the JSON name _keyData_ exists, the value shall pass the following:
-8.1. The keyData data structure must be a syntactically valid array of JSON objects.
-
-```
+    1. The keyData data structure must be a syntactically valid array of JSON objects.
+``` json
 {
-"code": - 12018 ,
-"value": "<keyData structure>",
-"message": "The keyData structure is not syntactically valid."
+  "code": -12018,
+  "value": "<keyData structure>",
+  "message": "The keyData structure is not syntactically valid."
 }
 ```
-8.2. The name of every name/value pair shall be _flags_ , _protocol_ , _publicKey_ , _algorithm_ ,
-events or links.
-
-```
+    2. The name of every name/value pair shall be _flags_, _protocol_, _publicKey_, _algorithm_, events or links.
+``` json
 {
-"code": - 12019 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair is not of: flags, protocol,
-publicKey, algorithm, events or links."
+  "code": -12019,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair is not of: flags, protocol, publicKey, algorithm, events or links."
 }
 ```
-
-8.3. The JSON name/values of _flags_ , _protocol_ , _publicKey_ , _algorithm_ , _events_ or _links_ shall
-
-appear only once.
+    3. The JSON name/values of _flags_, _protocol_, _publicKey_, _algorithm_, _events_ or _links_ shall appear only once.
+``` json
 {
-"code": - 12020 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair of a keyData structure was
-found more than once."
-}
-
-8.4. The JSON name/values of _flags_ , _protocol_ , _publicKey_ and _algorithm_ shall appear.
-{
-"code": - 12021 ,
-"value": "<dsData structure>",
-"message": "The following name/values shall exist: flags, protocol,
-publicKey and algorithm."
-}
-
-8.5. For the JSON name _flags_ , the value shall be a JSON number data type with values:
-
-256 or 257.
-{
-"code": - 12022 ,
-"value": "<name/value pair>",
-"message": "The JSON value is not 256 or 257."
-}
-
-8.6. For the JSON name _protocol_ , the value shall be a JSON number data type with
-
-value: 3.
-{
-"code": - 12023 ,
-"value": "<name/value pair>",
-"message": "The JSON value is not 3."
-}
-
-8.7. For the JSON name _publicKey_ , the value shall be a JSON string, and the key is
-
-represented as a Base64. Whitespace is allowed within the text.
-{
-"code": - 12024 ,
-"value": "<name/value pair>",
-"message": "The JSON value is not a string of case-insensitive hexadecimal
-digits. Whitespace is allowed within the hexadecimal text."
-}
-
-8.8. For the JSON name _algorithm_ , the value shall be a JSON number listed with Zone
-
-Signing=Y in **dnsSecAlgNumbers**. The values 253 and 254 are not valid for this test.
-{
-"code": - 12025 ,
-"value": "<name/value pair>",
-"message": "The JSON value is not listed with Zone Signing=Y in
-dnsSecAlgNumbers, or it's 253 or 254."
-}
-
-8.9. If the JSON name events exists, the value shall pass the test Events Validation
-[stdRdapEventsValidation] defined in this document.
-
-```
-{
-"code": - 12026 ,
-"value": "<name/value pair>",
-"message": "The value for the JSON name value does not pass Events
-Validation [stdRdapEventsValidation]."
+  "code": -12020,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair of a keyData structure was found more than once."
 }
 ```
-8.10. If the JSON name _links_ exists, the value shall pass the test Links validation
-
-```
-[stdRdapLinksValidation] defined in this document.
+    4. The JSON name/values of _flags_, _protocol_, _publicKey_ and _algorithm_ shall appear.
+``` json
 {
-"code": - 12027 ,
-"value": "<name/value pair>",
-"message": "The value for the JSON name value does not pass Links
-validation [stdRdapLinksValidation]."
+  "code": -12021,
+  "value": "<dsData structure>",
+  "message": "The following name/values shall exist: flags, protocol, publicKey and algorithm."
+}
+```
+    5. For the JSON name _flags_, the value shall be a JSON number data type with values:  256 or 257.
+``` json
+{
+  "code": -12022,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not 256 or 257."
+}
+```
+    6. For the JSON name _protocol_, the value shall be a JSON number data type with  value: 3.
+``` json
+{
+  "code": -12023,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not 3."
+}
+```
+    7. For the JSON name _publicKey_, the value shall be a JSON string, and the key is  represented as a Base64. Whitespace is allowed within the text.
+``` json
+{
+  "code": -12024,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not a string of case-insensitive hexadecimal digits. Whitespace is allowed within the hexadecimal text."
+}
+```
+    8. For the JSON name _algorithm_, the value shall be a JSON number listed with Zone Signing=Y in **dnsSecAlgNumbers**. The values 253 and 254 are not valid for this test.
+``` json
+{
+  "code": -12025,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not listed with Zone Signing=Y in dnsSecAlgNumbers, or it's 253 or 254."
+}
+```
+    9. If the JSON name events exists, the value shall pass the test Events Validation [stdRdapEventsValidation] defined in this document.
+``` json
+{
+  "code": -12026,
+  "value": "<name/value pair>",
+  "message": "The value for the JSON name value does not pass Events Validation [stdRdapEventsValidation]."
+}
+```
+    10. If the JSON name _links_ exists, the value shall pass the test Links validation [stdRdapLinksValidation] defined in this document.
+``` json
+{
+  "code": -12027,
+  "value": "<name/value pair>",
+  "message": "The value for the JSON name value does not pass Links validation [stdRdapLinksValidation]."
 }
 ```
 
-### Error Response Body [stdRdapErrorResponseBodyValidation]
+Codes -12004 and -12007 are intentionally omitted.
+
+### Error Response Body
+
+Test group: [stdRdapErrorResponseBodyValidation]
 
 The following steps should be used to test that an error data structure is valid:
 
 1. The _error_ data structure must be a syntactically valid JSON object.
-    {
-    "code": - 12100 ,
-    "value": "<error structure>",
-    "message": "The error structure is not syntactically valid."
-    }
-2. At least the following name/value pairs shall appear: _errorCode_ , _title_ and _description_.
-    {
-    "code": - 12101 ,
-    "value": "<name/value pair>",
-    "message": "At least the following name/value pairs shall exist:
-    errorCode, title and description."
-    }
-3. The JSON name/values of _errorCode_ , _title_ , and _description_ shall appear only once.
-    {
-    "code": - 12102 ,
-    "value": "<name/value pair>",
-    "message": "The name in the name/value pair of an error structure was
-    found more than once."
-    }
-4. For the JSON name _errorCode_ , the value shall be a JSON number data type.
-    {
-    "code": - 12103 ,
-    "value": "<name/value pair>",
-    "message": "The JSON value is not a number."
-    }
-5. For the JSON name _title_ , the value shall be a JSON string data type.
-    {
-    "code": - 12104 ,
-    "value": "<name/value pair>",
-    "message": "The JSON value is not a string."
-    }
+``` json
+{
+  "code": -12100,
+  "value": "<error structure>",
+  "message": "The error structure is not syntactically valid."
+}
+```
+2. At least the following name/value pairs shall appear: _errorCode_, _title_ and _description_.
+``` json
+{
+  "code": -12101,
+  "value": "<name/value pair>",
+  "message": "At least the following name/value pairs shall exist: errorCode, title and description."
+}
+```
+3. The JSON name/values of _errorCode_, _title_, and _description_ shall appear only once.
+``` json
+{
+  "code": -12102,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair of an error structure was found more than once."
+}
+```
+4. For the JSON name _errorCode_, the value shall be a JSON number data type.
+``` json
+{
+  "code": -12103,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not a number."
+}
+```
+5. For the JSON name _title_, the value shall be a JSON string data type.
+``` json
+{
+  "code": -12104,
+  "value": "<name/value pair>",
+  "message": "The JSON value is not a string."
+}
+```
 6. The _description_ data structure must be a syntactically valid JSON array.
-    {
-    "code": - 12105 ,
-    "value": "<description structure>",
-    "message": "The description structure is not syntactically valid."
-    }
-7. Every value of the JSON array of the _description_ data structure shall be a JSON string
-    data type.
-    {
-    "code": - 12106 ,
-    "value": "<JSON value>",
-    "message": "The JSON value is not a string."
-    }
-
+``` json
+{
+  "code": -12105,
+  "value": "<description structure>",
+  "message": "The description structure is not syntactically valid."
+}
+```
+7. Every value of the JSON array of the _description_ data structure shall be a JSON string data type.
+``` json
+{
+  "code": -12106,
+  "value": "<JSON value>",
+  "message": "The JSON value is not a string."
+}
+```
 
 
 ## Standard RDAP Object Classes Validations
@@ -1375,55 +1364,55 @@ The following steps should be used to test that an error data structure is valid
 The following steps should be used to test that a domain data structure is valid:
 
 1. The _domain_ data structure must be a syntactically valid JSON object.
-    {
-    "code": - 12200 ,
+{
+    "code": -12200,
     "value": "<domain structure>",
     "message": "The domain structure is not syntactically valid."
-    }
-2. The name of every name/value pairs shall be any of: _objectClassName_ , _handle_ ,
-    _ldhName_ , _unicodeName_ , _variants_ , _nameservers_ , _secureDNS_ , _entities_ , _status_ , _publicIds_ ,
-remarks , links , port43 , events , notices or rdapConformance.
+}
+2. The name of every name/value pairs shall be any of: _objectClassName_, _handle_,
+    _ldhName_, _unicodeName_, _variants_, _nameservers_, _secureDNS_, _entities_, _status_, _publicIds_,
+remarks, links, port43, events, notices or rdapConformance.
 ```
 {
-"code": - 12201 ,
+"code": -12201,
 "value": "<name/value pair>",
 "message": "The name in the name/value pair is not of: objectClassName, handle,
 ldhName, unicodeName, variants, nameservers, secureDNS, entities, status,
 publicIds, remarks, links, port43, events, notices or rdapConformance."
 }
 ```
-3. The JSON name/values of _objectClassName_ , _handle_ , _ldhName_ , _unicodeName_ , _variants_ ,
-nameservers , secureDNS , entities , status , publicIds , remarks , links , port43 , events ,
+3. The JSON name/values of _objectClassName_, _handle_, _ldhName_, _unicodeName_, _variants_,
+nameservers, secureDNS, entities, status, publicIds, remarks, links, port43, events,
 notices or rdapConformance shall appear only once.
 
 ```
 {
-"code": - 12202 ,
+"code": -12202,
 "value": "<name/value pair>",
 "message": "The name in the name/value pair of a domain structure was
 found more than once."
 }
 ```
-4. For the JSON name _objectClassName_ , the value shall be "domain".
-    {
-    "code": - 12203 ,
+4. For the JSON name _objectClassName_, the value shall be "domain".
+{
+    "code": -12203,
     "value": "<name/value pair>",
     "message": "The JSON value is not "domain"."
-    }
+}
 5. If the JSON name _handle_ exists, the value shall be a JSON string data type.
-    {
-    "code": - 12204 ,
+{
+    "code": -12204,
     "value": "<name/value pair>",
     "message": "The JSON value is not a string."
-    }
-6. If the JSON name _ldhName_ , the value shall pass the test LDH name
+}
+6. If the JSON name _ldhName_, the value shall pass the test LDH name
     [stdRdapLdhNameValidation] defined in this document.
-    {
-    "code": - 12205 ,
+{
+    "code": -12205,
     "value": "<name/value pair>",
     "message": " The value for the JSON name value does not pass LDH name
     [stdRdapLdhNameValidation]."
-    }
+}
 
 
 7. If the JSON name _unicodeName_ exists, the value shall pass the test Unicode name
@@ -1431,7 +1420,7 @@ found more than once."
 [stdRdapUnicodeNameValidation] defined in this document.
 ```
 {
-"code": - 12206 ,
+"code": -12206,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Unicode name
 [stdRdapUnicodeNameValidation]."
@@ -1442,7 +1431,7 @@ found more than once."
 
 ```
 {
-"code": - 12207 ,
+"code": -12207,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Variants
 validation [stdRdapVariantsValidation]."
@@ -1453,7 +1442,7 @@ validation [stdRdapVariantsValidation]."
 validation [stdRdapNameserverLookupValidation] defined in this document.
 ```
 {
-"code": - 12208 ,
+"code": -12208,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Nameserver
 lookup validation [stdRdapNameserverLookupValidation]."
@@ -1464,7 +1453,7 @@ lookup validation [stdRdapNameserverLookupValidation]."
 
 ```
 {
-"code": - 12209 ,
+"code": -12209,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Secure DNS
 validation [stdRdapSecureDnsValidation]."
@@ -1475,7 +1464,7 @@ validation [stdRdapSecureDnsValidation]."
 
 ```
 {
-"code": - 12210 ,
+"code": -12210,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Entities
 validation [stdRdapEntitiesValidation]."
@@ -1486,7 +1475,7 @@ validation [stdRdapEntitiesValidation]."
 
 ```
 {
-"code": - 12211 ,
+"code": -12211,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Status
 validation [stdRdapStatusValidation]."
@@ -1498,7 +1487,7 @@ validation [stdRdapStatusValidation]."
 
 ```
 {
-"code": - 12212 ,
+"code": -12212,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Public IDs
 validation [stdRdapPublicIdsValidation]."
@@ -1509,7 +1498,7 @@ Validation [stdRdapNoticesRemarksValidation] defined in this document.
 
 ```
 {
-"code": - 12213 ,
+"code": -12213,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Notices and
 Remarks Validation [stdRdapNoticesRemarksValidation]."
@@ -1520,7 +1509,7 @@ Remarks Validation [stdRdapNoticesRemarksValidation]."
 
 ```
 {
-"code": - 12214 ,
+"code": -12214,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Links
 validation [stdRdapLinksValidation]."
@@ -1531,7 +1520,7 @@ validation [stdRdapLinksValidation]."
 
 ```
 {
-"code": - 12215 ,
+"code": -12215,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Port 43 WHOIS
 Server [stdRdapPort43WhoisServerValidation]."
@@ -1542,7 +1531,7 @@ Server [stdRdapPort43WhoisServerValidation]."
 
 ```
 {
-"code": - 12216 ,
+"code": -12216,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Events
 Validation [stdRdapEventsValidation]."
@@ -1553,7 +1542,7 @@ Validation [stdRdapNoticesRemarksValidation] defined in this document.
 
 ```
 {
-"code": - 12217 ,
+"code": -12217,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Notices and
 Remarks Validation [stdRdapNoticesRemarksValidation]."
@@ -1561,72 +1550,72 @@ Remarks Validation [stdRdapNoticesRemarksValidation]."
 ```
 
 19. If the JSON name _notices_ exists and the domain object is not the topmost JSON object.
-    {
-    "code": - 12218 ,
+{
+    "code": -12218,
     "value": "<name/value pair>",
     "message": "The value for the JSON name notices exists but domain object
     is not the topmost JSON object."
-    }
+}
 20. If the JSON name _rdapConformance_ exists, the value shall pass the test RDAP
     Conformance validation [stdRdapConformanceValidation] defined in this document.
-    {
-    "code": - 12219 ,
+{
+    "code": -12219,
     "value": "<name/value pair>",
     "message": "The value for the JSON name value does not pass RDAP
     Conformance validation [stdRdapConformanceValidation]."
-    }
+}
 
 ### Entity lookup validation [stdRdapEntityLookupValidation]
 
 The following steps should be used to test that an entity data structure is valid:
 
 1. The _entity_ data structure must be a syntactically valid JSON object.
-    {
-    "code": - 12300 ,
+{
+    "code": -12300,
     "value": "<entity structure>",
     "message": "The entity structure is not syntactically valid."
-    }
-2. The name of every name/value pairs shall be any of: _objectClassName_ , _handle_ ,
-    _vcardArray_ , _roles_ , _publicIds_ , _entities_ , _remarks_ , _links_ , _events_ , _asEventActor_ , _status_ , _port43_ ,
+}
+2. The name of every name/value pairs shall be any of: _objectClassName_, _handle_,
+    _vcardArray_, _roles_, _publicIds_, _entities_, _remarks_, _links_, _events_, _asEventActor_, _status_, _port43_,
     _notices_ or _rdapConformance_.
-    {
-    "code": - 12301 ,
+{
+    "code": -12301,
     "value": "<name/value pair>",
     "message": "The name in the name/value pair is not of: objectClassName, handle,
     vcardArray, roles, publicIds, entities, remarks, links, events, asEventActor,
     status, port43, notices or rdapConformance."
-    }
-3. The JSON name/values of _objectClassName_ , _handle_ , _vcardArray_ , _roles_ , _publicIds_ , _entities_ ,
-    _remarks_ , _links_ , _events_ , _asEventActor_ , _status_ , _port43_ , _notices_ or _rdapConformance_ shall
+}
+3. The JSON name/values of _objectClassName_, _handle_, _vcardArray_, _roles_, _publicIds_, _entities_,
+    _remarks_, _links_, _events_, _asEventActor_, _status_, _port43_, _notices_ or _rdapConformance_ shall
 
 exist only once.
 ```
 {
-"code": - 12302 ,
+"code": -12302,
 "value": "<name/value pair>",
 "message": "The name in the name/value pair of a domain structure was
 found more than once."
 }
 ```
-4. For the JSON name _objectClassName_ , the value shall be "entity".
-    {
-    "code": - 12303 ,
+4. For the JSON name _objectClassName_, the value shall be "entity".
+{
+    "code": -12303,
     "value": "<name/value pair>",
     "message": "The JSON value is not "entity"."
-    }
+}
 5. If the JSON name _handle_ exists, the value shall be a JSON string data type.
-    {
-    "code": - 12304 ,
+{
+    "code": -12304,
     "value": "<name/value pair>",
     "message": "The JSON value is not a string."
-    }
+}
 6. If the JSON name title _vcardArray_ exists, the value shall be syntactically valid.
-    {
-    "code": - 12305 ,
+{
+    "code": -12305,
     "value": "<name/value pair>",
     "message": " The value for the JSON name value is not a syntactically
     valid vcardArray."
-    }
+}
 
 
 7. If the JSON name _roles_ exists, the value shall pass the test Roles validation
@@ -1634,7 +1623,7 @@ found more than once."
 
 ```
 {
-"code": - 12306 ,
+"code": -12306,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Roles
 validation [stdRdapRolesValidation]."
@@ -1645,7 +1634,7 @@ validation [stdRdapRolesValidation]."
 
 ```
 {
-"code": - 12307 ,
+"code": -12307,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Public IDs
 validation [stdRdapPublicIdsValidation]."
@@ -1655,7 +1644,7 @@ validation [stdRdapPublicIdsValidation]."
 [stdRdapEntitiesValidation] defined in this document.
 ```
 {
-"code": - 12308 ,
+"code": -12308,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Entities
 validation [stdRdapEntitiesValidation]."
@@ -1666,7 +1655,7 @@ Validation [stdRdapNoticesRemarksValidation] defined in this document.
 
 ```
 {
-"code": - 12309 ,
+"code": -12309,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Notices and
 Remarks Validation [stdRdapNoticesRemarksValidation]."
@@ -1677,7 +1666,7 @@ Remarks Validation [stdRdapNoticesRemarksValidation]."
 
 ```
 {
-"code": - 12310 ,
+"code": -12310,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Links
 validation [stdRdapLinksValidation]."
@@ -1688,7 +1677,7 @@ validation [stdRdapLinksValidation]."
 
 ```
 {
-"code": - 12311 ,
+"code": -12311,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Events
 Validation [stdRdapEventsValidation]."
@@ -1700,7 +1689,7 @@ Validation [stdRdapAsEventActorValidation] defined in this document.
 
 ```
 {
-"code": - 12312 ,
+"code": -12312,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass asEventActor
 Validation [stdRdapAsEventActorValidation]."
@@ -1711,7 +1700,7 @@ Validation [stdRdapAsEventActorValidation]."
 
 ```
 {
-"code": - 12313 ,
+"code": -12313,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Status
 validation [stdRdapStatusValidation]."
@@ -1722,7 +1711,7 @@ validation [stdRdapStatusValidation]."
 
 ```
 {
-"code": - 12314 ,
+"code": -12314,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Port 43 WHOIS
 Server [stdRdapPort43WhoisServerValidation]."
@@ -1733,25 +1722,25 @@ Validation [stdRdapNoticesRemarksValidation] defined in this document.
 
 ```
 {
-"code": - 12315 ,
+"code": -12315,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Notices and
 Remarks Validation [stdRdapNoticesRemarksValidation]."
 }
 ```
 17. If the JSON name _notices_ exists and the entity object is not the topmost JSON object.
-    {
-    "code": - 12316 ,
+{
+    "code": -12316,
     "value": "<name/value pair>",
     "message": "The value for the JSON name notices exists but entity object
     is not the topmost JSON object."
-    }
+}
 18. If the JSON name _rdapConformance_ exists, the value shall pass the test RDAP
 Conformance validation [stdRdapConformanceValidation] defined in this document.
 
 ```
 {
-"code": - 12317 ,
+"code": -12317,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass RDAP
 Conformance validation [stdRdapConformanceValidation]."
@@ -1763,53 +1752,53 @@ Conformance validation [stdRdapConformanceValidation]."
 The following steps should be used to test that a nameserver data structure is valid:
 
 1. The _nameserver_ data structure must be a syntactically valid JSON object.
-    {
-    "code": - 12400 ,
+{
+    "code": -12400,
     "value": "<nameserver structure>",
     "message": "The nameserver structure is not syntactically valid."
-    }
-2. The name of every name/value pairs shall be any of: _objectClassName_ , _handle_ ,
-    _ldhName_ , _unicodeName_ , _ipAddresses_ , _entities_ , _status_ , _remarks_ , _links_ , _port43_ , _events_ ,
+}
+2. The name of every name/value pairs shall be any of: _objectClassName_, _handle_,
+    _ldhName_, _unicodeName_, _ipAddresses_, _entities_, _status_, _remarks_, _links_, _port43_, _events_,
     _notices_ or _rdapConformance_.
-    {
-    "code": - 12401 ,
+{
+    "code": -12401,
     "value": "<name/value pair>",
     "message": "The name in the name/value pair is not of: objectClassName, handle,
     ldhName, unicodeName, ipAddresses, entities, status, remarks, links, port43,
     events, notices or rdapConformance."
-    }
-3. The JSON name/values of _objectClassName_ , _handle_ , _ldhName_ , _unicodeName_ ,
-    _ipAddresses_ , _entities_ , _status_ , _remarks_ , _links_ , _port43_ , _events_ , _notices_ or _rdapConformance_
+}
+3. The JSON name/values of _objectClassName_, _handle_, _ldhName_, _unicodeName_,
+    _ipAddresses_, _entities_, _status_, _remarks_, _links_, _port43_, _events_, _notices_ or _rdapConformance_
 shall exist only once.
 
 ```
 {
-"code": - 12402 ,
+"code": -12402,
 "value": "<name/value pair>",
 "message": "The name in the name/value pair of a link structure was found
 more than once."
 }
 ```
-4. For the JSON name _objectClassName_ , the value shall be "nameserver".
-    {
-    "code": - 12403 ,
+4. For the JSON name _objectClassName_, the value shall be "nameserver".
+{
+    "code": -12403,
     "value": "<name/value pair>",
     "message": "The JSON value is not "nameserver"."
-    }
+}
 5. If the JSON name _handle_ exists, the value shall be a JSON string data type.
-    {
-    "code": - 12404 ,
+{
+    "code": -12404,
     "value": "<name/value pair>",
     "message": "The JSON value is not a string."
-    }
+}
 6. If the JSON name _ldhName_ exists, the value shall pass the test LDH name
     [stdRdapLdhNameValidation] defined in this document.
-    {
-    "code": - 12405 ,
+{
+    "code": -12405,
     "value": "<name/value pair>",
     "message": " The value for the JSON name value does not pass LDH name
     [stdRdapLdhNameValidation]."
-    }
+}
 
 
 7. If the JSON name _unicodeName_ exists, the value shall pass the test Unicode name
@@ -1817,7 +1806,7 @@ more than once."
 
 ```
 {
-"code": - 12406 ,
+"code": -12406,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Unicode name
 [stdRdapUnicodeNameValidation]."
@@ -1828,7 +1817,7 @@ more than once."
 
 ```
 {
-"code": - 12407 ,
+"code": -12407,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass IP Addresses
 Validation [stdRdapIpAddressesValidation]."
@@ -1839,7 +1828,7 @@ Validation [stdRdapIpAddressesValidation]."
 
 ```
 {
-"code": - 12408 ,
+"code": -12408,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Entities
 validation [stdRdapEntitiesValidation]."
@@ -1850,7 +1839,7 @@ validation [stdRdapEntitiesValidation]."
 
 ```
 {
-"code": - 12409 ,
+"code": -12409,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Status
 validation [stdRdapStatusValidation]."
@@ -1861,7 +1850,7 @@ Validation [stdRdapNoticesRemarksValidation] defined in this document.
 
 ```
 {
-"code": - 12410 ,
+"code": -12410,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Notices and
 Remarks Validation [stdRdapNoticesRemarksValidation]."
@@ -1872,7 +1861,7 @@ Remarks Validation [stdRdapNoticesRemarksValidation]."
 
 ```
 {
-"code": - 12411 ,
+"code": -12411,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Links
 validation [stdRdapLinksValidation]."
@@ -1881,18 +1870,18 @@ validation [stdRdapLinksValidation]."
 
 13. If the JSON name _port43_ exists, the value shall pass the test Port 43 WHOIS Server
     [stdRdapPort43WhoisServerValidation] defined in this document.
-    {
-    "code": - 12412 ,
+{
+    "code": -12412,
     "value": "<name/value pair>",
     "message": "The value for the JSON name value does not pass Port 43 WHOIS
     Server [stdRdapPort43WhoisServerValidation]."
-    }
+}
 14. If the JSON name _events_ exists, the value shall pass the test Events Validation
 [stdRdapEventsValidation] defined in this document.
 
 ```
 {
-"code": - 12413 ,
+"code": -12413,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Events
 Validation [stdRdapEventsValidation]."
@@ -1903,7 +1892,7 @@ Validation [stdRdapNoticesRemarksValidation] defined in this document.
 
 ```
 {
-"code": - 12414 ,
+"code": -12414,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Notices and
 Remarks Validation [stdRdapNoticesRemarksValidation]."
@@ -1914,7 +1903,7 @@ object.
 
 ```
 {
-"code": - 12415 ,
+"code": -12415,
 "value": "<name/value pair>",
 "message": "The value for the JSON name notices exists but nameserver
 object is not the topmost JSON object."
@@ -1922,43 +1911,43 @@ object is not the topmost JSON object."
 ```
 17. If the JSON name _rdapConformance_ exists, the value shall pass the test RDAP
     Conformance validation [stdRdapConformanceValidation] defined in this document.
-    {
-    "code": - 12416 ,
+{
+    "code": -12416,
     "value": "<name/value pair>",
     "message": "The value for the JSON name value does not pass RDAP
     Conformance validation [stdRdapConformanceValidation]."
-    }
+}
 
 ### Help validation [stdRdapHelpValidation]
 
 The following steps should be used to test that a help data structure is valid:
 
 1. The _help_ data structure must be a syntactically valid JSON object.
-    {
-    "code": - 12500 ,
+{
+    "code": -12500,
     "value": "<help structure>",
     "message": "The help structure is not syntactically valid."
-    }
+}
 2. The name of every name/value pairs shall be _notices_ or _rdapConformance_.
-    {
-    "code": - 12501 ,
+{
+    "code": -12501,
     "value": "<name/value pair>",
     "message": "The name in the name/value pair is not of: notices or
     rdapConformance."
-    }
+}
 3. The JSON name/values of _notices_ or _rdapConformance_ shall exist only once.
-    {
-    "code": - 12502 ,
+{
+    "code": -12502,
     "value": "<name/value pair>",
     "message": "The name in the name/value pair of a link structure was found
     more than once."
-    }
+}
 4. If the JSON name _notices_ exists, the value shall pass the test Notices and Remarks
 Validation [stdRdapNoticesRemarksValidation] defined in this document.
 
 ```
 {
-"code": - 12503 ,
+"code": -12503,
 "value": "<name/value pair>",
 "message": "The value for the JSON name value does not pass Notices and
 Remarks Validation [stdRdapNoticesRemarksValidation]."
@@ -1966,112 +1955,97 @@ Remarks Validation [stdRdapNoticesRemarksValidation]."
 ```
 5. If the JSON name _rdapConformance_ exists, the value shall pass the test RDAP
     Conformance validation [stdRdapConformanceValidation] defined in this document.
-    {
-    "code": - 12504 ,
+{
+    "code": -12504,
     "value": "<name/value pair>",
     "message": "The value for the JSON name value does not pass RDAP
     Conformance validation [stdRdapConformanceValidation]."
-    }
+}
 
-### Nameservers search validation [stdRdapNameserversSearchValidation]
+### Nameservers search validation 
+
+Test group: [stdRdapNameserversSearchValidation]
 
 The following steps should be used to test that a nameserverSearchResults data
 structure is valid:
 
 
 1. The _nameserverSearchResults_ data structure must be a syntactically valid JSON object.
-    {
-    "code": - 12600 ,
-    "value": "<nameserver structure>",
-    "message": "The nameserver structure is not syntactically valid."
-    }
-2. The name of every name/value pairs shall be any of: _nameserverSearchResults_ , _remarks_ ,
-events , notices or rdapConformance.
-
-```
+``` json
 {
-"code": - 12601 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair is not of: nameserverSearchResults,
-remarks, events, notices or rdapConformance."
+  "code": -12600,
+  "value": "<nameserver structure>",
+  "message": "The nameserver structure is not syntactically valid."
 }
 ```
-3. The JSON name/values of _nameserverSearchResults_ , _remarks_ , _events_ , _notices_ or
-rdapConformance shall exist only once.
-
-```
+2. The name of every name/value pairs shall be any of: _nameserverSearchResults_, _remarks_, events, notices or rdapConformance.
+``` json
 {
-"code": - 12602 ,
-"value": "<name/value pair>",
-"message": "The name in the name/value pair of a link structure was found
-more than once."
+  "code": -12601,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair is not of: nameserverSearchResults, remarks, events, notices or rdapConformance."
+}
+```
+3. The JSON name/values of _nameserverSearchResults_, _remarks_, _events_, _notices_ or rdapConformance shall exist only once.
+``` json
+{
+  "code": -12602,
+  "value": "<name/value pair>",
+  "message": "The name in the name/value pair of a link structure was found more than once."
 }
 ```
 3. The _nameserverSearchResults_ data structure must be a syntactically valid JSON array.
-    {
-    "code": - 12603 ,
-    "value": "<nameserverSearchResults structure>",
-    "message": "The nameserverSearchResults structure is not syntactically
-    valid."
-    }
+``` json
+{
+  "code": -12603,
+  "value": "<nameserverSearchResults structure>",
+  "message": "The nameserverSearchResults structure is not syntactically valid."
+}
+```
 4. For every object (i.e. nameserver) of the JSON array, verify that the _nameserverSearchResults_ structure complies with:
-
-4.1. The object (i.e. nameserver) shall pass the Nameserver lookup validation
-[stdRdapNameserverLookupValidation] test.
-
-```
+    1. The object (i.e. nameserver) shall pass the Nameserver lookup validation [stdRdapNameserverLookupValidation] test.
+``` json
 {
-"code": - 12604 ,
-"value": "<nameserver object>",
-"message": "The nameserver object does not pass Nameserver lookup
-validation [stdRdapNameserverLookupValidation]."
+  "code": -12604,
+  "value": "<nameserver object>",
+  "message": "The nameserver object does not pass Nameserver lookup validation [stdRdapNameserverLookupValidation]."
 }
 ```
-5. If the JSON name _remarks_ exists, the value shall pass the test Notices and Remarks
-Validation [stdRdapNoticesRemarksValidation] defined in this document.
-
-```
+5. If the JSON name _remarks_ exists, the value shall pass the test Notices and Remarks Validation [stdRdapNoticesRemarksValidation] defined in this document.
+``` json
 {
-"code": - 12605 ,
-"value": "<name/value pair>",
-"message": "The value for the JSON name value does not pass Notices and
-Remarks Validation [stdRdapNoticesRemarksValidation]."
+  "code": -12605,
+  "value": "<name/value pair>",
+  "message": "The value for the JSON name value does not pass Notices and Remarks Validation [stdRdapNoticesRemarksValidation]."
 }
 ```
-6. If the JSON name _events_ exists, the value shall pass the test Events Validation
-[stdRdapEventsValidation] defined in this document.
-
-```
+6. If the JSON name _events_ exists, the value shall pass the test Events Validation [stdRdapEventsValidation] defined in this document.
+``` json
 {
-"code": - 12606 ,
-"value": "<name/value pair>",
-"message": "The value for the JSON name value does not pass Events
-Validation [stdRdapEventsValidation]."
+  "code": -12606,
+  "value": "<name/value pair>",
+  "message": "The value for the JSON name value does not pass Events Validation [stdRdapEventsValidation]."
 }
 ```
-7. If the JSON name _notices_ exists, the value shall pass the test Notices and Remarks
-Validation [stdRdapNoticesRemarksValidation] defined in this document.
-
-```
+7. If the JSON name _notices_ exists, the value shall pass the test Notices and Remarks Validation [stdRdapNoticesRemarksValidation] defined in this document.
+``` json
 {
-"code": - 12607 ,
-"value": "<name/value pair>",
-"message": "The value for the JSON name value does not pass Notices and
-Remarks Validation [stdRdapNoticesRemarksValidation]."
+  "code": -12607,
+  "value": "<name/value pair>",
+  "message": "The value for the JSON name value does not pass Notices and Remarks Validation [stdRdapNoticesRemarksValidation]."
 }
 ```
 8. If the JSON name _notices_ exists and the object is not the topmost JSON object.
 ```json
 {
-  "code": -12608 ,
+  "code": -12608,
   "value": "<name/value pair>",
   "message": "The value for the JSON name notices exists but object is not the topmost JSON object."
-}
-```
+} ```
 9. If the JSON name _rdapConformance_ exists, the value shall pass the test RDAP Conformance validation [stdRdapConformanceValidation] defined in this document.
 ```json
 {
-  "code": -12609 ,
+  "code": -12609,
   "value": "<name/value pair>",
   "message": "The value for the JSON name value does not pass RDAP Conformance validation [stdRdapConformanceValidation]."
 }
