@@ -14,6 +14,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
 
   private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot2_2024.class);
   public static final String TEL_VOICE_PATH = "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]";
+  public static final String ENTITY_TECHNICAL_ROLE_PATH = "$.entities[?(@.roles[0]=='technical')]";
   private static final String REDACTED_PATH = "$.redacted[*]";
   private Set<String> redactedPointersValue = null;
 
@@ -44,19 +45,23 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
   }
 
  private RedactedHandleObjectToValidate validateTelVoicePropertyObject() {
-        try {
-            Set<String> telPointersValue = getPointerFromJPath(TEL_VOICE_PATH);
-            logger.info("telVoicePointer size: {}", telPointersValue.size());
-            if(telPointersValue.isEmpty()) {
-                return validateRedactedArrayForEmptyTelVoice();
-            }
+     if(getPointerFromJPath(ENTITY_TECHNICAL_ROLE_PATH).isEmpty()) {
+         return new RedactedHandleObjectToValidate(null, true);
+     }
 
-            return new RedactedHandleObjectToValidate(null, true);
-
-       } catch (Exception e) {
-           logger.info("tel voice is not found, same validations into redacted array runs");
+    try {
+        Set<String> telPointersValue = getPointerFromJPath(TEL_VOICE_PATH);
+        logger.info("telVoicePointer size: {}", telPointersValue.size());
+        if(telPointersValue.isEmpty()) {
             return validateRedactedArrayForEmptyTelVoice();
-       }
+        }
+
+        return new RedactedHandleObjectToValidate(null, true);
+
+    } catch (Exception e) {
+       logger.info("tel voice is not found, same validations into redacted array runs");
+        return validateRedactedArrayForEmptyTelVoice();
+    }
  }
 
  private RedactedHandleObjectToValidate validateRedactedArrayForEmptyTelVoice() {
