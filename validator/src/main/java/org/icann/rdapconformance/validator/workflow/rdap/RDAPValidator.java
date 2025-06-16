@@ -16,6 +16,7 @@ import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.*;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot3_2024;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidationRegistrantHandle_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.*;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.*;
@@ -288,6 +289,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot7Dot6Dot3_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
         validations.add(new ResponseValidation4Dot1Handle_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidationRegistrantHandle_2024(query.getData(), results, datasetService)); // clean
         validations.add(new ResponseValidationLinkElements_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot7Dot2_2024(config, queryTypeProcessor.getQueryType(), query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot7Dot4Dot1_2024(query.getData(), results)); // clean
