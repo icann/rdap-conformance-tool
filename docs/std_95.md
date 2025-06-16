@@ -4,7 +4,7 @@
 
 ### IPv4 address validation 
 
-Test group: [ipv4Validation]
+Test group: [ipv4Validation]  [](){ #id-ipv4Validation } 
 
 The following steps should be used to test that an IPv4 address is valid:
 
@@ -67,7 +67,7 @@ The following steps should be used to test that an IPv6 address is valid:
 
 ### Domain Name validation 
 
-Test group: [domainNameValidation]
+Test group: [domainNameValidation]  [](){ #id-domainNameValidation }
 
 The following steps should be used to test that a domain name is valid:
 
@@ -130,7 +130,7 @@ The following steps should be used to test that a Web URI is valid:
   "message": "The scheme of the URI is not 'http' nor 'https'".
 }
 ```
-3. The host of the URI shall pass the test Domain Name validation [domainNameValidation], IPv4 address validation [ipv4Validation] or IPv6 address validation [ipv6Validation].
+3. The host of the URI shall pass the test Domain Name validation [domainNameValidation][id-domainNameValidation], IPv4 address validation [ipv4Validation][id-ipv4Validation] or IPv6 address validation [ipv6Validation].
 ``` json
 {
   "code": -10402,

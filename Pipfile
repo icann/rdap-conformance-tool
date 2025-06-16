@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 mkdocs-material = "*"
 mkdocs-print-site-plugin = "*"
+mkdocs-autorefs = "*"
 
 [dev-packages]
 

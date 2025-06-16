@@ -3,6 +3,7 @@
 ```
 pipenv install mkdocs-material
 pipenv install mkdocs-print-site-plugin
+pipenv install mkdocs-autorefs
 ```
 
 # Serve
