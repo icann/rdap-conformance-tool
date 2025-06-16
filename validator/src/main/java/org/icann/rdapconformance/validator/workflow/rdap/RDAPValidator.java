@@ -288,6 +288,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
         validations.add(new ResponseValidation4Dot1Handle_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
         validations.add(new ResponseValidationLinkElements_2024(query.getData(), results)); // clean
+        validations.add(new ResponseValidation2Dot7Dot2_2024(config, queryTypeProcessor.getQueryType(), query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot7Dot4Dot1_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot7Dot4Dot2_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot7Dot4Dot3_2024(query.getData(), results)); // clean
