@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValidation {
 
+    public static final String ENTITY_TECHNICAL_ROLE_PATH = "$.entities[?(@.roles[0]=='technical')]";
     public static final String VCARD_ARRAY_PATH = "$.entities[?(@.roles[0]=='technical')].vcardArray";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot3_2024.class);
     private static final String REDACTED_PATH = "$.redacted[*]";
@@ -31,6 +32,10 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
 
     @Override
     protected boolean doValidate() {
+        if(getPointerFromJPath(ENTITY_TECHNICAL_ROLE_PATH).isEmpty()) {
+            return true;
+        }
+
         boolean isValid = true;
 
         JSONObject redactedTechEmail = null;
