@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
+package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
