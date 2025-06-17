@@ -141,10 +141,10 @@
   "redacted": [
     {
       "name": {
-        "type": "Registrant Phone"
+        "type": "Registrant Email"
       },
-      "prePath": "$.test",
-      "method": "removal",
+      "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='email')]",
+      "method": "replacementValue",
       "reason": {
         "description": "Server policy"
       }

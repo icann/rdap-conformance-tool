@@ -6,7 +6,6 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -39,6 +38,13 @@ public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidat
         return new ResponseValidation2Dot7Dot4Dot1_2024(
                 jsonObject.toString(),
                 results);
+    }
+
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot1_2024_No_Registrant() {
+        JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("roles");
+        roles.put(0, "registrar");
+        validate();
     }
 
     @Test

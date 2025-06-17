@@ -12,13 +12,9 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * TODO: JsonPath.compile(path) is being used to change if a given jsonpath is valid.
- * But some invalid path will pass this check. Might need to revisit to find a more accurate way
- * to do the validation. As of June 2025, it seems that there is no easy perfect way on the market.
- */
 public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValidation {
 
+    public static final String ENTITY_TECHNICAL_ROLE_PATH = "$.entities[?(@.roles[0]=='technical')]";
     public static final String VCARD_ARRAY_PATH = "$.entities[?(@.roles[0]=='technical')].vcardArray";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot3_2024.class);
     private static final String REDACTED_PATH = "$.redacted[*]";
@@ -36,6 +32,10 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
 
     @Override
     protected boolean doValidate() {
+        if(getPointerFromJPath(ENTITY_TECHNICAL_ROLE_PATH).isEmpty()) {
+            return true;
+        }
+
         boolean isValid = true;
 
         JSONObject redactedTechEmail = null;
@@ -189,11 +189,8 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     }
 
     private boolean validatePostPath(String postPath, String value) {
-        try {
-            JsonPath.compile(postPath);
-        } catch (Exception e) {
+        if (!isValidJsonPath(postPath)) {
             // postPath is not a valid JSONPath
-            logger.info("postPath is not a valid JSON path: {}", e.getMessage());
             logger.info("adding 65203, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65203)
@@ -220,11 +217,8 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     }
 
     private boolean validateReplacementPath(String replacementPath, String value) {
-        try {
-            JsonPath.compile(replacementPath);
-        } catch (Exception e) {
+        if (!isValidJsonPath(replacementPath)) {
             // replacementPath is not a valid JSONPath
-            logger.info("replacementPath is not a valid JSON path: {}", e.getMessage());
             logger.info("adding 65205, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65205)
@@ -251,11 +245,8 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     }
 
     private boolean validatePrePath(String prePath, String value) {
-        try {
-            JsonPath.compile(prePath);
-        } catch (Exception e) {
+        if (!isValidJsonPath(prePath)) {
             // prePath is not a valid JSONPath
-            logger.info("prePath is not a valid JSON path: {}", e.getMessage());
             logger.info("adding 65206, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65206)

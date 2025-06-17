@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator;
 import static com.jayway.jsonpath.JsonPath.using;
 
 import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.ParseContext;
 import java.util.List;
@@ -10,8 +11,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JpathUtil {
+  private static final Logger logger = LoggerFactory.getLogger(JpathUtil.class);
 
   private final ParseContext parseContext;
 
@@ -40,5 +44,23 @@ public class JpathUtil {
         .stream()
         .map(JsonPointers::fromJpath)
         .collect(Collectors.toSet());
+  }
+
+  /**
+   * This is meant to check the syntax error of jsonPath only.
+   *
+   * TODO: JsonPath.compile(path) is being used to change if a given jsonpath is valid.
+   * But some invalid path will pass this check. Might need to revisit to find a more accurate way
+   * to do the validation. As of June 2025, it seems that there is no easy perfect way on the market.
+   */
+  public boolean isValidJsonPath(String jsonPath) {
+    try {
+      JsonPath.compile(jsonPath);
+    } catch (Exception e) {
+      logger.info("Invalid JSON path: {} with error: {}", jsonPath, e.getMessage());
+      return false;
+    }
+
+    return true;
   }
 }

@@ -74,7 +74,6 @@ public class RDAPHttpQuery implements RDAPQuery {
         //  System.setProperty("javax.net.debug", "ssl");
         //  System.setProperty("java.net.debug", "all");
         //  System.setProperty("javax.net.debug", "ssl:handshake:verbose");
-
     }
 
 

@@ -41,6 +41,13 @@ public class ResponseValidation2Dot7Dot4Dot6_2024Test extends ProfileJsonValidat
     }
 
     @Test
+    public void ResponseValidation2Dot7Dot4Dot6_2024_No_Registrant() {
+        JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("roles");
+        roles.put(0, "registrar");
+        validate();
+    }
+
+    @Test
     public void ResponseValidation2Dot7Dot4Dot6_2024_63600() {
         JSONArray postalCodeValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
 

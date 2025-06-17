@@ -27,12 +27,6 @@
             "Administrative User"
           ],
           [
-            "org",
-            {},
-            "text",
-            "Example Inc."
-          ],
-          [
             "adr",
             {},
             "text",
@@ -141,31 +135,12 @@
   "redacted": [
     {
       "name": {
-        "type": "Registrant Phone"
-      },
-      "prePath": "$.test",
-      "method": "removal",
-      "reason": {
-        "description": "Server policy"
-      }
-    },
-    {
-      "name": {
-        "type": "Tech Phone"
-      },
-      "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]",
-      "method": "removal",
-      "reason": {
-        "description": "Server policy"
-      }
-    },
-    {
-      "name": {
-        "type": "Registrant Street"
+        "type": "Registrant Phone Ext"
       },
       "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]",
       "pathLang": "jsonpath",
-      "method": "emptyValue",
+      "prePath": "book",
+      "method": "removal",
       "reason": {
         "description": "Server policy"
       }

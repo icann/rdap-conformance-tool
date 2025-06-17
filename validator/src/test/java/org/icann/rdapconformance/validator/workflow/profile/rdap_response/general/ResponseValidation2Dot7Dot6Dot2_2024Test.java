@@ -42,6 +42,13 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
     }
 
     @Test
+    public void ResponseValidation2Dot7Dot6Dot2_2024_No_Technical() {
+        JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(1).getJSONArray("roles");
+        roles.put(0, "registrar");
+        validate();
+    }
+
+    @Test
     public void ResponseValidation2Dot7Dot6Dot2_2024_65100() {
         JSONObject telVoiceObject = jsonObject.getJSONArray("entities").getJSONObject(1).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4).getJSONObject(1);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);

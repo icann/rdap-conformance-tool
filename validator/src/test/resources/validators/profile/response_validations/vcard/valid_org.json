@@ -27,12 +27,6 @@
             "Administrative User"
           ],
           [
-            "org",
-            {},
-            "text",
-            "Example Inc."
-          ],
-          [
             "adr",
             {},
             "text",
@@ -141,10 +135,23 @@
   "redacted": [
     {
       "name": {
-        "type": "Registrant Phone"
+        "type": "Registrant Organization"
       },
-      "prePath": "$.test",
+      "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]",
+      "pathLang": "jsonpath",
+      "prePath": "book",
       "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Registrant Name"
+      },
+      "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+      "pathLang": "jsonpath",
+      "method": "emptyValue",
       "reason": {
         "description": "Server policy"
       }
@@ -155,17 +162,6 @@
       },
       "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]",
       "method": "removal",
-      "reason": {
-        "description": "Server policy"
-      }
-    },
-    {
-      "name": {
-        "type": "Registrant Street"
-      },
-      "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]",
-      "pathLang": "jsonpath",
-      "method": "emptyValue",
       "reason": {
         "description": "Server policy"
       }
