@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.tool;
 
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -76,7 +77,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
 
   @Option(names = {"--query-type"}, hidden = true)
-  private RDAPQueryType queryType;
+  RDAPQueryType queryType;
 
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
@@ -102,7 +103,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     // Setup the configuration file
     ConfigurationFile configFile = CommonUtils.verifyConfigFile(this, fileSystem);
 
-    // Ensure the config file is valid
+    // Ensure the config file is valid, exit if invalid
     if( configFile == null) {
       logger.error(ToolResult.CONFIG_INVALID.getDescription());
       return ToolResult.CONFIG_INVALID.getCode();
@@ -115,6 +116,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       return queryTypeProcessor.getErrorStatus().getCode();
     }
 
+    // If they are using the thin model to ask for an entity, bail out
     if( queryTypeProcessor.getQueryType().equals(RDAPQueryType.ENTITY) && this.isThin()) {
       logger.error(ToolResult.USES_THIN_MODEL.getDescription());
       return ToolResult.USES_THIN_MODEL.getCode();
@@ -166,7 +168,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       }
 
       // Build the result file
-      resultFile.build();
+       if(!resultFile.build()) {
+          logger.error("Unable to write to results file: " + validator.getResultsPath());
+          return ToolResult.FILE_WRITE_ERROR.getCode();
+        }
 
       // now the results file is set, print the path
       logger.info("Results file: {}",  validator.getResultsPath());
@@ -175,7 +180,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
 
       // if we made it to here, exit 0
-      return 0;
+      return ZERO;
     }
 
     // else we are validating a file
@@ -183,10 +188,13 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   }
 
 
-  private int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
+  int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
     // If network is not enabled or ipv4 AND ipv6 flags are off, validate and return
     int file_exit_code =  validator.validate();
-    resultFile.build();
+    if(!resultFile.build()) {
+      logger.error("Unable to write to results file: " + validator.getResultsPath());
+      return ToolResult.FILE_WRITE_ERROR.getCode();
+    }
     logger.info("Results file: {}",  validator.getResultsPath());
     return file_exit_code;
   }

@@ -16,9 +16,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImp
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
-
 public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQueryTypeProcessor.class);
@@ -53,40 +50,33 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         this.queryType = null;
     }
 
-@Override
-public boolean check(RDAPDatasetService datasetService) {
-    queryType = RDAPHttpQueryType.getType(this.config.getUri().toString());
-    if (queryType == null) {
-        logger.error("Unknown RDAP query type for URI {}", this.config.getUri());
-        status = ToolResult.UNSUPPORTED_QUERY;
-        return false;
-    }
-
-    if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
-        String domainName = queryType.getValue(this.config.getUri().toString());
-        System.out.println("----->  Validating domain name: " + domainName);
-
-        // Check for mixed labels first
-        if (hasMixedLabels(domainName)) {
-            logger.error("Mixed label format detected in domain name: {}", domainName);
-            status = ToolResult.MIXED_LABEL_FORMAT;
+    @Override
+    public boolean check(RDAPDatasetService datasetService) {
+        queryType = RDAPHttpQueryType.getType(this.config.getUri().toString());
+        if (queryType == null) {
+            logger.error("Unknown RDAP query type for URI {}", this.config.getUri());
+            status = ToolResult.UNSUPPORTED_QUERY;
             return false;
         }
 
-        String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
-        System.out.println("----->  Domain name JSON: " + domainNameJson);
-        RDAPValidatorResults testDomainResults = RDAPValidatorResultsImpl.getInstance();
-        SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults, datasetService);
-        if (!validator.validate(domainNameJson)) {
-            System.out.println("----->  Domain name validation failed - return false");
-            return false;
-        } else {
-            System.out.println("----->  Domain name validation passed");
-        }
-    }
+        if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
+            String domainName = queryType.getValue(this.config.getUri().toString());
 
-    return true;
-}
+            // Check for mixed labels first
+            if (hasMixedLabels(domainName)) {
+                logger.error("Mixed label format detected in domain name: {}", domainName);
+                status = ToolResult.MIXED_LABEL_FORMAT;
+                return false;
+            }
+
+            String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
+            RDAPValidatorResults testDomainResults = RDAPValidatorResultsImpl.getInstance();
+            SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults, datasetService);
+            return validator.validate(domainNameJson);
+        }
+
+        return true;
+    }
 
     @Override
     public ToolResult getErrorStatus() {

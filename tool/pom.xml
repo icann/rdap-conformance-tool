@@ -18,6 +18,12 @@
 
     <maven.compiler.target>21</maven.compiler.target>
     <maven.compiler.source>21</maven.compiler.source>
+    <!-- This allows tests to work under Java 21. Bytebuddy is a dependency
+     of mockito, and long story short... updates aren't yet available
+     for mockito to use the correct version of ByteBuddy yet.           -->
+    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+    <build.timestamp>${maven.build.timestamp}</build.timestamp>
+    <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
   </properties>
 
   <dependencies>
@@ -50,17 +56,23 @@
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>7.5.1</version>
+      <version>${testng.version}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>3.19.0</version>
+      <version>${assertj-core.version}</version>
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-testng</artifactId>
+      <version>${mockito-testng.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

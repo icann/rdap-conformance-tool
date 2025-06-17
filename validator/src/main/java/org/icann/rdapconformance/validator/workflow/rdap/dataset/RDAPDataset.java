@@ -57,12 +57,13 @@ public abstract class RDAPDataset<T extends RDAPDatasetModel> {
     public boolean download(boolean useLocalDatasets) {
         String path = filePath();
         if (useLocalDatasets && this.fileSystem.exists(path)) {
-            logger.debug("Dataset {} is already downloaded", name);
+            logger.debug("Dataset {} is already downloaded at: {}", name, path);
             return true;
         }
         logger.debug("Download dataset {}", name);
         try {
             fileSystem.download(uri, path);
+            logger.debug("Dataset {} downloaded to {}", name, path);
         } catch (IOException e) {
             logger.error("Failed to download dataset {}", name, e);
             return false;

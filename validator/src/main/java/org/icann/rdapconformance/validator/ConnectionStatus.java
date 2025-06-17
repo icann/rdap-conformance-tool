@@ -17,9 +17,9 @@ public enum ConnectionStatus implements ConformanceError {
     HTTP2_ERROR(18, "HTTP/2 errors"),
     NETWORK_SEND_FAIL(19, "Failure sending network data"),
     NETWORK_RECEIVE_FAIL(20, "Failure in receiving network data"),
-    // 21 is over in ToolResult as FILE_WRITE_ERROR TODO: we need to review exit codes
-    UNKNOWN_HOST(23, "Unknown host"),
+    // 21 is over in ToolResult as FILE_WRITE_ERROR
     TOO_MANY_REQUESTS(22, "Too many requests"),
+    UNKNOWN_HOST(23, "Unknown host"),
     CONNECTION_REFUSED(24, "Connection refused by host");
 
     private final int code;

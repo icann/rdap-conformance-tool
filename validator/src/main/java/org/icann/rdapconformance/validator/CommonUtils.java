@@ -1,6 +1,9 @@
 package org.icann.rdapconformance.validator;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.AccessDeniedException;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParserImpl;
@@ -103,14 +106,19 @@ public class CommonUtils {
         return input;
     }
 
-    public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config) {
-        RDAPDatasetService  datasetService =   RDAPDatasetServiceImpl.getInstance(new LocalFileSystem());
+public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config) {
+    RDAPDatasetService datasetService = null;
+    try {
+        datasetService = RDAPDatasetServiceImpl.getInstance(new LocalFileSystem());
         if(!datasetService.download(config.useLocalDatasets())) {
-            return  null;
+            return null;
         }
-        return datasetService;
+    } catch (SecurityException  | IllegalArgumentException e) {
+        logger.error(ToolResult.FILE_READ_ERROR.getDescription());
+        System.exit(ToolResult.FILE_READ_ERROR.getCode());
     }
-
+    return datasetService;
+}
 
     public static ConfigurationFile verifyConfigFile(RDAPValidatorConfiguration config, FileSystem fileSystem) {
         ConfigurationFile configFile = null;

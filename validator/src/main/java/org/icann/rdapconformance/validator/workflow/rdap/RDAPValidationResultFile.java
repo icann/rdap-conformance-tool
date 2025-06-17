@@ -78,7 +78,6 @@ public class RDAPValidationResultFile {
    * Fill and save the result file.
    */
   public boolean build() {
-    // TODO: for the moment we do nothing with the exitCode
     Map<String, Object> fileMap = new HashMap<>();
     fileMap.put("definitionIdentifier", configurationFile.getDefinitionIdentifier());
     fileMap.put("testedURI", config.getUri());
@@ -118,7 +117,7 @@ public class RDAPValidationResultFile {
       fileSystem.write(path.toString(), object.toString(4));
       return true;
     } catch (IOException e) {
-      logger.error("Failed to write results into {}", path, e);
+      logger.info("Failed to write results into {}", path, e);
       return false;
     }
   }
