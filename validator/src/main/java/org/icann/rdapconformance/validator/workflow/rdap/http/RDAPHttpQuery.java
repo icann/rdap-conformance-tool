@@ -44,7 +44,6 @@ public class RDAPHttpQuery implements RDAPQuery {
     private List<URI> redirects = new ArrayList<>();
     private String acceptHeader;
     private final RDAPValidatorConfiguration config;
-    private RDAPValidatorResults results = null;
     private HttpResponse<String> httpResponse = null;
     private String connectionTrackingId = "";
 
@@ -169,10 +168,6 @@ public class RDAPHttpQuery implements RDAPQuery {
         return httpResponse;
       }
 
-      @Override
-      public void setResults(RDAPValidatorResults results) {
-        this.results = results;
-      }
 
       /**
        * Check if we got errors with the RDAP HTTP request.

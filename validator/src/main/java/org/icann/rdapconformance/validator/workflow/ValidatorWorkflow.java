@@ -10,7 +10,6 @@ public interface ValidatorWorkflow {
    * @return The error status
    */
   int validate();
-  RDAPValidatorResults getResults();
 
   /**
    * Get the results path.

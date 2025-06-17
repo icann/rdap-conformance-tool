@@ -99,11 +99,10 @@ public class RDAPValidator implements ValidatorWorkflow {
             RDAPQueryType.IP_NETWORK, "rdap_ip_network.json"
         );
 
-
-        // create this here
+        // create this here so we don't call it multiple times
         RDAPQueryType queryType  = queryTypeProcessor.getQueryType();
 
-        query.setResults(results);
+        // if the query can't run, return the error code
         if (!query.run()) {
             if (query.getErrorStatus() == null || query.getErrorStatus() == ToolResult.SUCCESS) {
                 return ToolResult.SUCCESS.getCode();
@@ -112,53 +111,62 @@ public class RDAPValidator implements ValidatorWorkflow {
             return errorCode.getCode();
         }
 
+        // check the query type and log their errors to the results file if they have any
         query.checkWithQueryType(queryType);
 
+        // if they return a 404 then we need to check the error response content itself
         if (query.isErrorContent()) {
             validator = new SchemaValidator("rdap_error.json", results, datasetService);
         } else {
+            // else we check the schema of the data that was sent back
             String schemaFile = schemaMap.get(queryType);
             if (schemaFile != null) {
                    if (RDAPQueryType.ENTITY.equals(queryType) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
                     return ToolResult.USES_THIN_MODEL.getCode();
                 }
-                // asEventActor property is not allow in topMost entity object, see spec 7.2.9.2
+                // asEventActor property is not allowed in the topMost entity object, see spec 7.2.9.2
                 validator = new SchemaValidator(schemaFile, results, datasetService);
             }
         }
 
+        // verify that the above hasn't failed and sent us a null validator.
+        // TODO: why are we NOT throwing some sort of error here and logging it.
+        // We should be handling this above.
         assert null != validator;
-        validator.validate(query.getData()); // validates the JSON
-        RDAPHttpRequest.SimpleHttpResponse rdapResponse = (RDAPHttpRequest.SimpleHttpResponse ) query.getRawResponse();
 
+        // otherwise, validate the JSON and get the rdapResponse
+        validator.validate(query.getData());
+        RDAPHttpRequest.SimpleHttpResponse rdapResponse = (RDAPHttpRequest.SimpleHttpResponse ) query.getRawResponse();
         if(rdapResponse != null) {
             logger.info("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
         }
 
-
+        // fold the name stuff and send out another query to that URL
         if (rdapResponse != null && !query.isErrorContent() && config.isNetworkEnabled()) {
-            new DomainCaseFoldingValidation(rdapResponse, config, results, queryTypeProcessor.getQueryType()).validate(); // Network calls
+            new DomainCaseFoldingValidation(rdapResponse, config, results, queryType).validate(); // Network calls
         }
 
         // Issue additional queries (/help and /not-a-domain.invalid) when flag is true and profile 2024 is false
         if(config.isAdditionalConformanceQueries() && !config.useRdapProfileFeb2024()) {
             logger.info("Validations for additional conformance queries");
-            new ResponseValidationHelp_2024(config, results).validate();
-            new ResponseValidationDomainInvalid_2024(config, results).validate();
+            new ResponseValidationHelp_2024(config, results).validate();  // Network calls
+            new ResponseValidationDomainInvalid_2024(config, results).validate(); // Network calls
         }
 
+        // get all the 2019 profile validations and run them
         if (config.useRdapProfileFeb2019()) {
             logger.info("Validations for 2019 profile");
             RDAPProfile rdapProfile = new RDAPProfile(
-                get2019RdapValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, validator, query));
+                get2019RdapValidations(rdapResponse, config, results, datasetService, queryType, validator, query));
             rdapProfile.validate();
         }
 
+        // get all the 2024 profile validations and run them
         if (config.useRdapProfileFeb2024()) {
             logger.info("Validations for 2024 profile");
             RDAPProfile rdapProfile = new RDAPProfile(
-                get2024ProfileValidations(rdapResponse, config, results, datasetService, queryTypeProcessor, query));
+                get2024ProfileValidations(rdapResponse, config, results, datasetService, queryType, query));
             rdapProfile.validate();
         }
 
@@ -167,16 +175,13 @@ public class RDAPValidator implements ValidatorWorkflow {
         List<URI> redirects = (query instanceof RDAPHttpQuery httpQuery) ? httpQuery.getRedirects() : List.of();
 
 
+        // Nice to have info
         logger.info("URI used for the query: {}", config.getUri());
         logger.info("IP Address used: {}", ipAddress);
         logger.info("Redirects followed: {}", redirects);
 
+        // if we made it this far without an error, return success
         return ToolResult.SUCCESS.getCode();
-    }
-
-    @Override
-    public RDAPValidatorResults getResults() {
-        return null;
     }
 
     @Override
@@ -188,33 +193,33 @@ public class RDAPValidator implements ValidatorWorkflow {
                                                               RDAPValidatorConfiguration config,
                                                               RDAPValidatorResults results,
                                                               RDAPDatasetService datasetService,
-                                                              RDAPQueryTypeProcessor queryTypeProcessor,
+                                                              RDAPQueryType queryType,
                                                               RDAPQuery query) {
         List<ProfileValidation> validations = new ArrayList<>();
 
         // below are from 2019 profile validations
         // Add validations that do not require network connections
-        validations.add(new TigValidation3Dot2(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new TigValidation3Dot2(query.getData(), results, config, queryType)); // clean
         validations.add(new TigValidation4Dot1(query.getData(), results)); // clean
         validations.add(new TigValidation7Dot1And7Dot2(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot2Dot2(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot4(query.getData(), results)); // clean
-        validations.add(new ResponseValidationLastUpdateEvent(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot1(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot3Dot1Dot1(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot3Dot1Dot2(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot10(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidationRFC5731(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidationRFC3915(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot6Dot1(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot4Dot1(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot4Dot5(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseNameserverStatusValidation(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation4Dot1Handle(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation4Dot1Query(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation4Dot3(query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidationLastUpdateEvent(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot1(query.getData(), results, config, queryType)); // clean
+        validations.add(new ResponseValidation2Dot3Dot1Dot1(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot3Dot1Dot2(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot10(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidationRFC5731(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidationRFC3915(query.getData(), results,queryType)); // clean
+        validations.add(new ResponseValidation2Dot6Dot1(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, query.getData(), results, datasetService, queryType)); // clean
+        validations.add(new ResponseValidation2Dot4Dot1(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(query.getData(), results, datasetService, queryType)); // clean
+        validations.add(new ResponseValidation2Dot4Dot5(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseNameserverStatusValidation(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation4Dot1Handle(config, query.getData(), results, datasetService, queryType)); // clean
+        validations.add(new ResponseValidation4Dot1Query(query.getData(), results, config, queryType)); // clean
+        validations.add(new ResponseValidation4Dot3(query.getData(), results, datasetService, queryType)); // clean
 
         // Add validations that require network connections if the flag is enabled
         if (config.isNetworkEnabled()) {
@@ -223,7 +228,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
             validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService, config)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryTypeProcessor.getQueryType())); // assume you passed in a URL on the cli
+            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // assume you passed in a URL on the cli
         }
         // above are from 2019 validations
 
@@ -231,19 +236,19 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new TigValidation1Dot3_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot2_1_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot2_2_2024(query.getData(), results)); // clean
-        validations.add(new ResponseValidation2Dot2_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot2_2024(query.getData(), results, queryType)); // clean
         validations.add(new ResponseValidation2Dot2_1_2024(query.getData(), results, datasetService)); // clean
-        validations.add(new ResponseValidation2Dot4Dot6_2024(query.getData(), results, datasetService, queryTypeProcessor.getQueryType(), config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot3_2024(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType()));
+        validations.add(new ResponseValidation2Dot4Dot6_2024(query.getData(), results, datasetService,queryType, config)); // clean
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(query.getData(), results, queryType, config)); // clean
+        validations.add(new ResponseValidation2Dot7Dot3_2024(config, query.getData(), results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot7Dot5Dot1_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot7Dot6Dot2_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot7Dot6Dot3_2024(query.getData(), results)); // clean
-        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation4Dot1Handle_2024(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation4Dot1Handle_2024(query.getData(), results, queryType)); // clean
         validations.add(new ResponseValidationRegistrantHandle_2024(query.getData(), results, datasetService)); // clean
         validations.add(new ResponseValidationLinkElements_2024(query.getData(), results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot2_2024(config, queryTypeProcessor.getQueryType(), query.getData(), results)); // clean
+        validations.add(new ResponseValidation2Dot7Dot2_2024(config, queryType, query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot7Dot4Dot1_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot7Dot4Dot2_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidation2Dot7Dot4Dot3_2024(query.getData(), results)); // clean
@@ -253,7 +258,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot7Dot4Dot9_2024(query.getData(), results)); // clean
         validations.add(new ResponseValidationStatusDuplication_2024(query.getData(), results)); // clean
         validations.add(new StdRdapConformanceValidation_2024(query.getData(), results)); // clean
-        validations.add(new TigValidation3Dot2_2024(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new TigValidation3Dot2_2024(query.getData(), results, config, queryType)); // clean
         validations.add(new TigValidation3Dot3And3Dot4_2024(query.getData(), results, config)); // clean
         validations.add(new ResponseValidation2Dot6Dot3_2024(query.getData(), results)); //clean
         validations.add(new ResponseValidation2Dot10_2024(query.getData(), results)); // clean
@@ -277,50 +282,50 @@ public class RDAPValidator implements ValidatorWorkflow {
                                                        RDAPValidatorConfiguration config,
                                                        RDAPValidatorResults results,
                                                        RDAPDatasetService datasetService,
-                                                       RDAPQueryTypeProcessor queryTypeProcessor,
+                                                       RDAPQueryType queryType,
                                                        SchemaValidator validator,
                                                        RDAPQuery query) {
         List<ProfileValidation> validations = new ArrayList<>();
 
         // Add validations that do not require network connections
         validations.add(new TigValidation1Dot14(query.getData(), results)); // clean
-        validations.add(new TigValidation3Dot2(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new TigValidation3Dot2(query.getData(), results, config, queryType)); // clean
         validations.add(new TigValidation3Dot3And3Dot4(query.getData(), results, validator)); // clean
         validations.add(new TigValidation4Dot1(query.getData(), results)); // clean
         validations.add(new TigValidation7Dot1And7Dot2(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot2Dot2(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot3(query.getData(), results)); // clean
         validations.add(new ResponseValidation1Dot4(query.getData(), results)); // clean
-        validations.add(new ResponseValidationLastUpdateEvent(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot1(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot2(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot3Dot1Dot1(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot3Dot1Dot2(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidationNoticesIncluded(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot6Dot3(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot11(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot10(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidationRFC5731(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidationRFC3915(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot6Dot1(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot4Dot1(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot4Dot5(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated1(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated2(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4(query.getData(), results, queryTypeProcessor.getQueryType(), config,
-            new SimpleHandleValidation(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType(), -52102))); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated5(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated6(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot5Dot2(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot5Dot3(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
-        validations.add(new ResponseValidation3Dot1(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
-        validations.add(new ResponseValidation3Dot2(query.getData(), results, queryTypeProcessor.getQueryType(), config)); // clean
-        validations.add(new ResponseNameserverStatusValidation(query.getData(), results, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation4Dot1Handle(config, query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation4Dot1Query(query.getData(), results, config, queryTypeProcessor.getQueryType())); // clean
-        validations.add(new ResponseValidation4Dot3(query.getData(), results, datasetService, queryTypeProcessor.getQueryType())); // clean
+        validations.add(new ResponseValidationLastUpdateEvent(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot1(query.getData(), results, config, queryType)); // clean
+        validations.add(new ResponseValidation2Dot2(config, query.getData(), results, datasetService, queryType)); // clean
+        validations.add(new ResponseValidation2Dot3Dot1Dot1(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot3Dot1Dot2(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidationNoticesIncluded(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot6Dot3(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot11(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot10(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidationRFC5731(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidationRFC3915(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot6Dot1(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, query.getData(), results, datasetService, queryType)); // clean
+        validations.add(new ResponseValidation2Dot4Dot1(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(query.getData(), results, datasetService, queryType)); // clean
+        validations.add(new ResponseValidation2Dot4Dot5(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated1(query.getData(), results, queryType, config)); // clean
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated2(query.getData(), results, queryType, config)); // clean
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4(query.getData(), results, queryType, config,
+            new SimpleHandleValidation(config, query.getData(), results, datasetService, queryType, -52102))); // clean
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated5(query.getData(), results, queryType, config)); // clean
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated6(query.getData(), results, queryType, config)); // clean
+        validations.add(new ResponseValidation2Dot7Dot5Dot2(query.getData(), results, queryType, config)); // clean
+        validations.add(new ResponseValidation2Dot7Dot5Dot3(query.getData(), results, queryType, config)); // clean
+        validations.add(new ResponseValidation3Dot1(query.getData(), results, queryType, config)); // clean
+        validations.add(new ResponseValidation3Dot2(query.getData(), results, queryType, config)); // clean
+        validations.add(new ResponseNameserverStatusValidation(query.getData(), results, queryType)); // clean
+        validations.add(new ResponseValidation4Dot1Handle(config, query.getData(), results, datasetService, queryType)); // clean
+        validations.add(new ResponseValidation4Dot1Query(query.getData(), results, config, queryType)); // clean
+        validations.add(new ResponseValidation4Dot3(query.getData(), results, datasetService, queryType)); // clean
 
         // Add validations that require network connections if the flag is enabled
         if (config.isNetworkEnabled()) {
@@ -330,7 +335,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
             validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService, config)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryTypeProcessor.getQueryType())); // assume you passed in a URL on the cli
+            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // assume you passed in a URL on the cli
         }
 
         return validations;

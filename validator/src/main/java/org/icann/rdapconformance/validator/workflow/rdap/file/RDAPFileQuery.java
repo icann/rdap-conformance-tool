@@ -76,7 +76,4 @@ public class RDAPFileQuery implements RDAPQuery {
   public Object getRawResponse() {
     return null;
   }
-
-  @Override
-  public void setResults(RDAPValidatorResults results) {}
 }
