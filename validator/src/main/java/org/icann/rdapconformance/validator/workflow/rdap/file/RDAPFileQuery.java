@@ -26,7 +26,7 @@ public class RDAPFileQuery implements RDAPQuery {
 
   public RDAPFileQuery(RDAPValidatorConfiguration config, RDAPDatasetService datasetService)  {
     this.config = config;
-    this.fileSystem = new LocalFileSystem();;
+    this.fileSystem = new LocalFileSystem();
   }
 
 
