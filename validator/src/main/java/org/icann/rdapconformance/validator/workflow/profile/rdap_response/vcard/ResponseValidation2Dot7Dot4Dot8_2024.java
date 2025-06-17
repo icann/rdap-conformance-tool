@@ -41,13 +41,14 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
             Set<String> vcardVoicePointersValue = getPointerFromJPath(VCARD_VOICE_PATH);
             logger.info("vcardVoicePointersValue size: {}", vcardVoicePointersValue.size());
 
-            if(!vcardVoicePointersValue.isEmpty()) {
+            if(vcardVoicePointersValue.isEmpty()) {
                 logger.info("voice tel in vcard does not have values, validate redaction object");
                 return validateRedactedArrayForNoVoiceValue();
             }
 
         } catch (Exception e) {
-            logger.info("vcard voice is not found,no validations for this case");
+            logger.info("vcard voice is not found, validations for this case");
+            return validateRedactedArrayForNoVoiceValue();
         }
 
         return true;

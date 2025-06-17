@@ -5,7 +5,6 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -47,24 +46,30 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot8_2024_63700() {
+        JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
+        tel.remove(1);
         redactedObject.getJSONObject("name").put("type", "test");
         validate(-63700, voicePointer, "a redaction of type Registrant Phone is required.");
     }
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot8_2024_63701_By_PathLang_NotValid() {
+        JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
+        tel.remove(1);
         redactedObject.put("prePath", "$test");
         validate(-63701, pathLangBadPointer, "jsonpath is invalid for Registrant Phone.");
     }
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot8_2024_63702_By_MissingPathLang_Bad_PrePath() {
+        JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
+        tel.remove(1);
         redactedObject.remove("pathLang");
         redactedObject.put("prePath", "$.redacted[*]");
         validate(-63702, prePathExistingPointer, "jsonpath must evaluate to a zero set for redaction by removal of Registrant Phone.");
@@ -72,8 +77,10 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot8_2024_63703_By_Method() {
+        JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
+        tel.remove(1);
         redactedObject.put("method", "test2");
         validate(-63703, methodPointer, "Registrant Phone redaction method must be removal if present");
     }
