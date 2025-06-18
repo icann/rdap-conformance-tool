@@ -44,7 +44,6 @@ public class RDAPHttpQuery implements RDAPQuery {
     private List<URI> redirects = new ArrayList<>();
     private String acceptHeader;
     private final RDAPValidatorConfiguration config;
-    private RDAPValidatorResults results = null;
     private HttpResponse<String> httpResponse = null;
     private String connectionTrackingId = "";
 
@@ -169,10 +168,6 @@ public class RDAPHttpQuery implements RDAPQuery {
         return httpResponse;
       }
 
-      @Override
-      public void setResults(RDAPValidatorResults results) {
-        this.results = results;
-      }
 
       /**
        * Check if we got errors with the RDAP HTTP request.
@@ -207,7 +202,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                 this.setErrorStatus(((SimpleHttpResponse) response).getConnectionStatusCode());   // ensure this is set
                 StatusCodes.add(httpStatusCode); // we need this for future reference
                // TODO: we need to think about why we have this check in here and remove when we refactor the State Error/Success Handling
-                if(httpStatusCode == 0) { // if our fake status code is 0, we have a problem
+                if(httpStatusCode == ZERO) { // if our fake status code is 0, we have a problem
                     isQuerySuccessful = false;
                     return;
                 }

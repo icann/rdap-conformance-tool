@@ -21,6 +21,4 @@ void setErrorStatus(ConformanceError errorStatus);
   String getData();
 
   Object getRawResponse();
-
-  void setResults(RDAPValidatorResults results);
 }

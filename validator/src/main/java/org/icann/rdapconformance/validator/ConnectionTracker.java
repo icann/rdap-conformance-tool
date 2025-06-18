@@ -320,7 +320,7 @@ public class ConnectionTracker {
      * @return The number of connections with success status
      */
     public synchronized int getSuccessCount() {
-        int count = ZERO;
+        int count = 0;
         for (ConnectionRecord record : connections) {
             if (record.getStatus() == ConnectionStatus.SUCCESS) {
                 count++;
@@ -351,7 +351,7 @@ public class ConnectionTracker {
         // else
         ConnectionRecord currentConnection = tracker.getLastConnection(); // Given the way it works, the _last_ connection is the one we want. Current would be set to null.
 
-        if (currentConnection == null || currentConnection.getStatusCode() == 0 || currentConnection.getStatus() == null) {
+        if (currentConnection == null || currentConnection.getStatusCode() == ZERO || currentConnection.getStatus() == null) {
             return null;
         }
 

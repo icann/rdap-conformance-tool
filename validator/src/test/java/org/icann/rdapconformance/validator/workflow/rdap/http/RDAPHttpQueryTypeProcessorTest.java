@@ -17,8 +17,35 @@ import org.testng.annotations.Test;
 public class RDAPHttpQueryTypeProcessorTest {
 
   private final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-  private final RDAPQueryTypeProcessor processor = new RDAPHttpQueryTypeProcessor(config);
+  private final RDAPQueryTypeProcessor processor = RDAPHttpQueryTypeProcessor.getInstance(config);
   private final RDAPDatasetService datasetService = new RDAPDatasetServiceMock();
+
+  @Test
+  public void testUnsupportedQuery_ReturnsUnsupportedQueryError() {
+    URI uri = URI.create("http://rdap.server.example/unsupported/test");
+    doReturn(uri).when(config).getUri();
+
+    assertThat(processor.check(datasetService)).isFalse();
+    assertThat(processor.getErrorStatus()).isEqualTo(ToolResult.UNSUPPORTED_QUERY);
+  }
+
+  @Test
+  public void testMixedLabelFormatInDomain_ReturnsMixedLabelFormatError() {
+    URI uri = URI.create("http://rdap.server.example/domain/example.xn--mller-kva.例子");
+    doReturn(uri).when(config).getUri();
+
+    assertThat(processor.check(datasetService)).isFalse();
+    assertThat(processor.getErrorStatus()).isEqualTo(ToolResult.MIXED_LABEL_FORMAT);
+  }
+
+  @Test
+  public void testMixedLabelFormatInNameserver_ReturnsMixedLabelFormatError() {
+    URI uri = URI.create("http://rdap.server.example/nameserver/ns1.example.xn--mller-kva.例子");
+    doReturn(uri).when(config).getUri();
+
+    assertThat(processor.check(datasetService)).isFalse();
+    assertThat(processor.getErrorStatus()).isEqualTo(ToolResult.MIXED_LABEL_FORMAT);
+  }
 
   @Test
   public void testDomainQuery() {
@@ -93,5 +120,4 @@ public class RDAPHttpQueryTypeProcessorTest {
     assertThat(processor.check(datasetService)).isFalse();
     assertThat(processor.getErrorStatus()).isEqualTo(ToolResult.MIXED_LABEL_FORMAT);
   }
-
 }

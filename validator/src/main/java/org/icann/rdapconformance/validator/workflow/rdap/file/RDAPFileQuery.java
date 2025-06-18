@@ -7,11 +7,12 @@ import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
+import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,10 +24,9 @@ public class RDAPFileQuery implements RDAPQuery {
   private final FileSystem fileSystem;
   private String data;
 
-  public RDAPFileQuery(RDAPValidatorConfiguration config,
-      FileSystem fileSystem) {
+  public RDAPFileQuery(RDAPValidatorConfiguration config, RDAPDatasetService datasetService)  {
     this.config = config;
-    this.fileSystem = fileSystem;
+    this.fileSystem = new LocalFileSystem();
   }
 
 
@@ -76,7 +76,4 @@ public class RDAPFileQuery implements RDAPQuery {
   public Object getRawResponse() {
     return null;
   }
-
-  @Override
-  public void setResults(RDAPValidatorResults results) {}
 }
