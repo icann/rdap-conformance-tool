@@ -116,8 +116,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       return queryTypeProcessor.getErrorStatus().getCode();
     }
 
-    // TODO: what qualifications to we have for THIN bailing out, apprently this is wrong
-    // If they are using the thin model to ask for an entity, bail out
+    // DEPRECATED - we used to do this, but we no longer do so
     //    if( queryTypeProcessor.getQueryType().equals(RDAPQueryType.ENTITY) && this.isThin()) {
     //      logger.error(ToolResult.USES_THIN_MODEL.getDescription());
     //      return ToolResult.USES_THIN_MODEL.getCode();
