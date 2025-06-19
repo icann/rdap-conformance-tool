@@ -88,15 +88,7 @@ public class RDAPValidator implements ValidatorWorkflow {
     @Override
     public int validate() {
         SchemaValidator validator = null;
-        Map<RDAPQueryType, String> schemaMap = Map.of(
-            RDAPQueryType.DOMAIN, "rdap_domain.json",
-            RDAPQueryType.HELP, "rdap_help.json",
-            RDAPQueryType.NAMESERVER, "rdap_nameserver.json",
-            RDAPQueryType.NAMESERVERS, "rdap_nameservers.json",
-            RDAPQueryType.ENTITY, "rdap_entity_without_asEventActor.json",
-            RDAPQueryType.AUTNUM, "rdap_autnum.json",
-            RDAPQueryType.IP_NETWORK, "rdap_ip_network.json"
-        );
+        Map<RDAPQueryType, String> schemaMap = getDomainMap();
 
         // create this here so we don't call it multiple times
         RDAPQueryType queryType  = queryTypeProcessor.getQueryType();
@@ -114,10 +106,10 @@ public class RDAPValidator implements ValidatorWorkflow {
         query.validateStructureByQueryType(queryType);
 
         if (query.isErrorContent()) {
-            // if they return a 404 then we need to check the error response content itself
+            // if they return a 404 then we need a schema validator that checks the error response content itself
             validator = new SchemaValidator("rdap_error.json", results, datasetService);
         } else {
-            // else we check the schema of the data that was sent back by the queryType itself
+            // else we check the schema of the data pertaining to the query type
             String schemaFile = schemaMap.get(queryType);
             if (schemaFile != null) {
                    if (RDAPQueryType.ENTITY.equals(queryType) && config.isThin()) {
@@ -129,9 +121,12 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         // verify that the above hasn't failed and sent us a null validator.
-        // TODO: why are we NOT throwing some sort of error here and logging it.
-        // We should be handling this above.
-        assert null != validator;
+        if( validator == null) {
+            logger.error("Validator is null, this should not happen -  please check the configuration [{}] and the query type: {}", config.getUri(), queryType);
+            return ToolResult.UNSUPPORTED_QUERY.getCode();
+        }
+
+        // else we continue with the validation process and get the data from the query
         String rdapResponseData = query.getData();
 
         // otherwise, validate the JSON and get the rdapResponse
@@ -183,6 +178,19 @@ public class RDAPValidator implements ValidatorWorkflow {
         return ToolResult.SUCCESS.getCode();
     }
 
+    public static Map<RDAPQueryType, String> getDomainMap() {
+        return Map.of(
+            RDAPQueryType.DOMAIN, "rdap_domain.json",
+            RDAPQueryType.HELP, "rdap_help.json",
+            RDAPQueryType.NAMESERVER, "rdap_nameserver.json",
+            RDAPQueryType.NAMESERVERS, "rdap_nameservers.json",
+            RDAPQueryType.ENTITY, "rdap_entity_without_asEventActor.json",
+            RDAPQueryType.AUTNUM, "rdap_autnum.json",
+            RDAPQueryType.IP_NETWORK, "rdap_ip_network.json"
+        );
+    }
+
+    // the Front-End needs this to get the results path
     @Override
     public String getResultsPath() {
         return RDAPValidationResultFile.getInstance().getResultsPath();
@@ -223,11 +231,11 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Add validations that require network connections if the flag is enabled
         if (config.isNetworkEnabled()) {
             logger.info("Network enabled tests");
-            validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), config, results)); // http head request
+            validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), config, results)); // HTTP head request
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
             validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService, config)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // assume you passed in a URL on the cli
+            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // assumes you passed in a URL on the cli
         }
         // above are from 2019 validations
 
@@ -331,11 +339,11 @@ public class RDAPValidator implements ValidatorWorkflow {
         if (config.isNetworkEnabled()) {
             logger.info("Network enabled tests");
             validations.add(new TigValidation1Dot3(rdapResponse, config, results)); // SSL context
-            validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), config, results)); // http head request
+            validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), config, results)); // HTTP head request
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
             validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService, config)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // assume you passed in a URL on the cli
+            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // assumes you passed in a URL on the cli
         }
 
         return validations;

@@ -50,7 +50,6 @@ public class SchemaValidator {
 
   private static final Logger logger = LoggerFactory.getLogger(SchemaValidator.class);
   static Pattern duplicateKeys = Pattern.compile("Duplicate key \"(.+)\" at");
-  private final RDAPDatasetService datasetService;
   private final JpathUtil jpathUtil;
   private JSONObject schemaObject;
   private Schema schema;
@@ -59,7 +58,6 @@ public class SchemaValidator {
 
   public SchemaValidator(String schemaName, RDAPValidatorResults results,
       RDAPDatasetService datasetService) {
-    this.datasetService = datasetService;
       this.jpathUtil = new JpathUtil();
     this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader(), datasetService),
         results);
