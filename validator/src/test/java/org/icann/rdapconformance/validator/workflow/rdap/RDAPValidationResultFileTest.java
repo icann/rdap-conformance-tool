@@ -220,7 +220,6 @@ public class RDAPValidationResultFileTest {
        // Use RDAPValidationResultFile's implementation to filter the results
        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
        Set<RDAPValidationResult> filteredResults = resultFile.analyzeResultsWithStatusCheck(allResults);
-       System.out.println("Filtered Results: " + filteredResults);
 
        // Verify none of the filtered codes remain
        assertTrue(filteredResults.stream().noneMatch(r -> r.getCode() == -13004));
@@ -616,7 +615,7 @@ public void testCreateResultsMap() {
     doReturn("Unknown note").when(configurationFile).getAlertNotes(-3001);
     doReturn("Status code error").when(configurationFile).getAlertNotes(-13018);
 
-    // cmake sure the results are cleared before starting
+    // make sure the results are cleared before starting
     results.clear();
 
     // Add an error with all fields populated
