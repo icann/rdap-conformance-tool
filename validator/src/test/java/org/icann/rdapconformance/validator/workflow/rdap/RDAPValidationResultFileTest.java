@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
@@ -10,18 +11,25 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+
+import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.BuildInfo;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
+import org.json.JSONObject;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -195,15 +203,41 @@ public class RDAPValidationResultFileTest {
     verify(fileSystem).write(contains("results/results-"), any(String.class));
   }
 
+
+   @Test
+   public void testAllCodesThatShouldBeIgnored() {
+       // Create results with codes that should be filtered
+       RDAPValidatorResultsImpl resultsImpl = RDAPValidatorResultsImpl.getInstance();
+       resultsImpl.clear();
+       resultsImpl.add(RDAPValidationResult.builder().code(-13004).httpStatusCode(200).build());
+       resultsImpl.add(RDAPValidationResult.builder().code(-13005).httpStatusCode(404).build());
+       resultsImpl.add(RDAPValidationResult.builder().code(-13006).httpStatusCode(404).build());
+       resultsImpl.add(RDAPValidationResult.builder().code(-46701).httpStatusCode(404).build());
+
+       // Get all results from the implementation
+       Set<RDAPValidationResult> allResults = resultsImpl.getAll();
+
+       // Use RDAPValidationResultFile's implementation to filter the results
+       RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+       Set<RDAPValidationResult> filteredResults = resultFile.analyzeResultsWithStatusCheck(allResults);
+       System.out.println("Filtered Results: " + filteredResults);
+
+       // Verify none of the filtered codes remain
+       assertTrue(filteredResults.stream().noneMatch(r -> r.getCode() == -13004));
+       assertTrue(filteredResults.stream().noneMatch(r -> r.getCode() == -13005));
+       assertTrue(filteredResults.stream().noneMatch(r -> r.getCode() == -13006));
+       assertTrue(filteredResults.stream().noneMatch(r -> r.getCode() == -46701));
+   }
+
     @Test
-    public void testAllIgnoredCodes() {
+    public void testBuggyIgnoredCodes() {
         RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
         results.clear();
+
         results.add(RDAPValidationResult.builder().code(-130004).httpStatusCode(200).build());
         results.add(RDAPValidationResult.builder().code(-130005).httpStatusCode(404).build());
 
         String output = results.analyzeResultsWithStatusCheck();
-
         assertTrue(output.isEmpty());
         assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
     }
@@ -451,6 +485,226 @@ public class RDAPValidationResultFileTest {
             .containsExactlyInAnyOrder(-20400, -20401, -10000);
     }
 
+    @Test
+    public void testAnalyzeResultsWithStatusCheck_IgnoredCodes() {
+        // Tests lines 125-135: code filtering for special codes that should be ignored
+        Set<RDAPValidationResult> testResults = new HashSet<>();
+        testResults.add(RDAPValidationResult.builder().code(-13004).httpStatusCode(200).build());
+        testResults.add(RDAPValidationResult.builder().code(-13005).httpStatusCode(404).build());
+        testResults.add(RDAPValidationResult.builder().code(-13006).httpStatusCode(404).build());
+        testResults.add(RDAPValidationResult.builder().code(-46701).httpStatusCode(404).build());
+        testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
+
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        Set<RDAPValidationResult> filtered = resultFile.analyzeResultsWithStatusCheck(testResults);
+
+        // Verify the special codes are filtered out
+        assertTrue(filtered.stream().noneMatch(r -> r.getCode() == -13004));
+        assertTrue(filtered.stream().noneMatch(r -> r.getCode() == -13005));
+        assertTrue(filtered.stream().noneMatch(r -> r.getCode() == -13006));
+        assertTrue(filtered.stream().noneMatch(r -> r.getCode() == -46701));
+
+        // Verify other codes remain
+        assertTrue(filtered.stream().anyMatch(r -> r.getCode() == 1001));
+    }
+
+    @Test
+    public void testAnalyzeResultsWithStatusCheck_EmptyResults() {
+        // Create nothing - get nothing
+        Set<RDAPValidationResult> testResults = new HashSet<>();
+
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        Set<RDAPValidationResult> filtered = resultFile.analyzeResultsWithStatusCheck(testResults);
+        assertTrue(filtered.isEmpty());
+    }
+
+    @Test
+    public void testAnalyzeResultsWithStatusCheck_UniqueTuples() {
+        // Tests creating unique tuples with duplicate code/status combinations
+        Set<RDAPValidationResult> testResults = new HashSet<>();
+        testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
+        testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build()); // Duplicate
+        testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
+
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        Set<RDAPValidationResult> filtered = resultFile.analyzeResultsWithStatusCheck(testResults);
+
+        // Verify all unique code/status combinations are preserved
+        assertTrue(filtered.stream().anyMatch(r -> r.getCode() == 1001 && r.getHttpStatusCode() == 200));
+        assertTrue(filtered.stream().anyMatch(r -> r.getCode() == 1002 && r.getHttpStatusCode() == 404));
+
+        // Verify the -13018 code is added for different status codes
+        assertTrue(filtered.stream().anyMatch(r -> r.getCode() == -13018));
+    }
+
+    @Test
+    public void testAnalyzeResultsWithStatusCheck_StatusCodeNormalization() {
+        // Test Status code normalization (null to 0)
+        Set<RDAPValidationResult> testResults = new HashSet<>();
+        testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
+        testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
+
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        Set<RDAPValidationResult> filtered = resultFile.analyzeResultsWithStatusCheck(testResults);
+
+        // Verify results are maintained
+        assertEquals(2, filtered.size());
+
+        // Verify no -13018 code is added since null and 0 are considered equivalent
+        assertFalse(filtered.stream().anyMatch(r -> r.getCode() == -13018));
+    }
+
+    @Test
+    public void testAnalyzeResultsWithStatusCheck_DifferentStatusCodes() {
+        // Tests adding error code for different status codes
+        Set<RDAPValidationResult> testResults = new HashSet<>();
+        testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
+        testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
+
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        Set<RDAPValidationResult> filtered = resultFile.analyzeResultsWithStatusCheck(testResults);
+
+        // Verify the -13018 code is added
+        assertTrue(filtered.stream().anyMatch(r -> r.getCode() == -13018));
+
+        // Verify the error message contains the tuples
+        Optional<RDAPValidationResult> errorResult = filtered.stream()
+                                                             .filter(r -> r.getCode() == -13018)
+                                                             .findFirst();
+        assertTrue(errorResult.isPresent());
+        String value = errorResult.get().getValue();
+        assertTrue(value.contains("[1001,200]"));
+        assertTrue(value.contains("[1002,404]"));
+    }
+
+    @Test
+    public void testCullDuplicateIPAddressErrors_Implementation() {
+        // Test IP address error culling logic
+        Set<RDAPValidationResult> testResults = new HashSet<>();
+        testResults.add(RDAPValidationResult.builder().code(-20400).build()); // IPv4 error
+        testResults.add(RDAPValidationResult.builder().code(-20400).build()); // Duplicate IPv4 error
+        testResults.add(RDAPValidationResult.builder().code(-20401).build()); // IPv6 error
+        testResults.add(RDAPValidationResult.builder().code(-20401).build()); // Duplicate IPv6 error
+        testResults.add(RDAPValidationResult.builder().code(1001).build());   // Other code
+
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        Set<RDAPValidationResult> culled = resultFile.cullDuplicateIPAddressErrors(testResults);
+
+        // Verify duplicates are removed but one of each IP error remains
+        assertEquals(3, culled.size());
+        assertTrue(culled.stream().anyMatch(r -> r.getCode() == -20400));
+        assertTrue(culled.stream().anyMatch(r -> r.getCode() == -20401));
+        assertTrue(culled.stream().anyMatch(r -> r.getCode() == 1001));
+    }
+
+@Test
+public void testCreateResultsMap() {
+    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+
+    // Mock configuration file behavior
+    doReturn(List.of(999)).when(configurationFile).getDefinitionIgnore();
+
+    // Setup specific behaviors for isError and isWarning
+    doReturn(true).when(configurationFile).isError(-1001); // This is an error
+    doReturn(true).when(configurationFile).isWarning(-2001); // This is a warning
+    doReturn(false).when(configurationFile).isError(-3001); // Not explicitly an error
+    doReturn(false).when(configurationFile).isWarning(-3001); // Not explicitly a warning
+    doReturn(true).when(configurationFile).isError(-13018); // The mixed status code error
+
+    doReturn("Error note").when(configurationFile).getAlertNotes(-1001);
+    doReturn("Warning note").when(configurationFile).getAlertNotes(-2001);
+    doReturn("Unknown note").when(configurationFile).getAlertNotes(-3001);
+    doReturn("Status code error").when(configurationFile).getAlertNotes(-13018);
+
+    // cmake sure the results are cleared before starting
+    results.clear();
+
+    // Add an error with all fields populated
+    results.add(RDAPValidationResult.builder()
+        .code(-1001)
+        .value("error-value")
+        .message("error-message")
+        .httpStatusCode(200)
+        .queriedURI("https://example.com/error")
+        .acceptHeader("application/rdap+json")
+        .httpMethod("GET")
+        .serverIpAddress("192.168.1.1")
+        .build());
+
+    // Add a warning with some null fields
+    results.add(RDAPValidationResult.builder()
+        .code(-2001)
+        .value("warning-value")
+        .message("warning-message")
+        .httpStatusCode(404) // Different status code
+        .queriedURI(null)
+        .acceptHeader(DASH) // This should be converted to null
+        .httpMethod(null)
+        .serverIpAddress(null)
+        .build());
+
+    // Add an unknown type with minimal fields
+    results.add(RDAPValidationResult.builder()
+        .code(-3001)
+        .value("unknown-value")
+        .message("unknown-message")
+        .httpStatusCode(500) // Another different status code
+        .build());
+
+    // Call it!
+    Map<String, Object> resultsMap = resultFile.createResultsMap();
+
+    // Verify results
+    assertNotNull(resultsMap);
+
+    // Verify ignore list
+    assertEquals(List.of(999), resultsMap.get("ignore"));
+
+    // Extract and verify error entries
+    List<Map<String, Object>> errors = (List<Map<String, Object>>) resultsMap.get("error");
+
+    // We expect 3 errors:
+    // the original error (-1001),
+    // the unknown type that defaults to error (-3001),
+    // and the mixed status code error (-13018)
+    assertEquals(3, errors.size(), "Expected 3 error entries: -1001, -3001, and -13018");
+
+    // Verify we have all expected error codes
+    Set<Integer> errorCodes = errors.stream()
+        .map(map -> (Integer)map.get("code"))
+        .collect(Collectors.toSet());
+
+    assertTrue(errorCodes.contains(-1001), "Error list should contain code -1001");
+    assertTrue(errorCodes.contains(-3001), "Error list should contain code -3001");
+    assertTrue(errorCodes.contains(-13018), "Error list should contain code -13018 for mixed status codes");
+
+    // Verify error entry with all fields
+    Map<String, Object> errorEntry = errors.stream()
+        .filter(map -> map.get("code").equals(-1001))
+        .findFirst()
+        .orElse(null);
+    assertNotNull(errorEntry, "Error entry for code -1001 should exist");
+    assertEquals("error-value", errorEntry.get("value"));
+    assertEquals("error-message", errorEntry.get("message"));
+    assertEquals(200, errorEntry.get("receivedHttpStatusCode"));
+    assertEquals("https://example.com/error", errorEntry.get("queriedURI"));
+    assertEquals("application/rdap+json", errorEntry.get("acceptMediaType"));
+    assertEquals("GET", errorEntry.get("httpMethod"));
+    assertEquals("192.168.1.1", errorEntry.get("serverIpAddress"));
+    assertEquals("Error note", errorEntry.get("notes"));
+
+    // Extract and verify warning entries
+    List<Map<String, Object>> warnings = (List<Map<String, Object>>) resultsMap.get("warning");
+    assertEquals(1, warnings.size(), "Should have 1 warning entry");
+
+    // Verify warning entry with some null fields
+    Map<String, Object> warningEntry = warnings.get(0);
+    assertEquals(-2001, warningEntry.get("code"));
+    assertEquals("warning-value", warningEntry.get("value"));
+    assertEquals("warning-message", warningEntry.get("message"));
+    assertEquals(404, warningEntry.get("receivedHttpStatusCode"));
+    assertEquals(JSONObject.NULL, warningEntry.get("acceptMediaType"));
+}
     // Helper method to count occurrences in string
     private int countOccurrences(String str, String findStr) {
         int lastIndex = ZERO;

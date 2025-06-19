@@ -136,7 +136,7 @@ public class RDAPValidationResultFile {
     }
   }
 
-  private Map<String, Object> createResultsMap() {
+  public Map<String, Object> createResultsMap() {
     Map<String, Object> resultsMap = new HashMap<>();
     List<Map<String, Object>> errors = new ArrayList<>();
     List<Map<String, Object>> warnings = new ArrayList<>();
@@ -186,11 +186,14 @@ public class RDAPValidationResultFile {
     List<RDAPValidationResult> filtered = new ArrayList<>();
     for (RDAPValidationResult result : allResults) {
       int code = result.getCode();
-      if (code != -130004 && code != -130005 && code != -130006 && code != -46701) {
+      // Filter out these codes
+      //  -13004 (Blind Copy Queries), -13005 (Redirect to itself), -13006 (test.Invalid), -46701 (Invalid Domain Query was not a 404)
+      if (code != -13004 && code != -13005 && code != -13006 && code != -46701) {
         filtered.add(result);
       }
     }
 
+    // Create unique tuples of (code, httpStatusCode)
     Set<List<Object>> uniqueTuples = new HashSet<>();
     for (RDAPValidationResult result : filtered) {
       List<Object> tuple = new ArrayList<>();
@@ -204,10 +207,11 @@ public class RDAPValidationResultFile {
     Set<Integer> statusCodes = new HashSet<>();
     for (RDAPValidationResult result : filtered) {
       Integer statusCode = result.getHttpStatusCode();
-      statusCodes.add(statusCode == null ? 0 : statusCode);
+      statusCodes.add(statusCode == null ? ZERO : statusCode);
     }
 
-    Set<RDAPValidationResult> updatedResults = new HashSet<>(allResults);
+    // make sure we grab the filtered set
+    Set<RDAPValidationResult> updatedResults = new HashSet<>(filtered);
 
     // If not all the same, add the new error code
     if (statusCodes.size() > ONE) {
