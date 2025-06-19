@@ -6,10 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ToolResult;
-
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.*;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot3_2024;
@@ -23,12 +25,8 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
-import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.SimpleHttpResponse;
 import org.icann.rdapconformance.validator.SchemaValidator;
-import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
@@ -89,7 +87,6 @@ public class RDAPValidator implements ValidatorWorkflow {
 
     @Override
     public int validate() {
-        ConfigurationFile configurationFile;
         SchemaValidator validator = null;
         Map<RDAPQueryType, String> schemaMap = Map.of(
             RDAPQueryType.DOMAIN, "rdap_domain.json",
@@ -114,20 +111,19 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         // check the query type and log their errors to the results file if they have any
-        query.checkWithQueryType(queryType);
+        query.validateStructureByQueryType(queryType);
 
-        // if they return a 404 then we need to check the error response content itself
         if (query.isErrorContent()) {
+            // if they return a 404 then we need to check the error response content itself
             validator = new SchemaValidator("rdap_error.json", results, datasetService);
         } else {
-            // else we check the schema of the data that was sent back
+            // else we check the schema of the data that was sent back by the queryType itself
             String schemaFile = schemaMap.get(queryType);
             if (schemaFile != null) {
                    if (RDAPQueryType.ENTITY.equals(queryType) && config.isThin()) {
                     logger.error("Thin flag is set while validating entity");
                     return ToolResult.USES_THIN_MODEL.getCode();
-                }
-                // asEventActor property is not allowed in the topMost entity object, see spec 7.2.9.2
+                   }
                 validator = new SchemaValidator(schemaFile, results, datasetService);
             }
         }
@@ -137,10 +133,10 @@ public class RDAPValidator implements ValidatorWorkflow {
         // We should be handling this above.
         assert null != validator;
         String rdapResponseData = query.getData();
-        
+
         // otherwise, validate the JSON and get the rdapResponse
         validator.validate(rdapResponseData);
-        RDAPHttpRequest.SimpleHttpResponse rdapResponse = (RDAPHttpRequest.SimpleHttpResponse ) query.getRawResponse();
+        SimpleHttpResponse rdapResponse = (SimpleHttpResponse ) query.getRawResponse();
         if(rdapResponse != null) {
             logger.info("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
         }

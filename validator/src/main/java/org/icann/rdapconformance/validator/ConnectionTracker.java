@@ -404,6 +404,19 @@ public class ConnectionTracker {
         }
     }
 
+public synchronized boolean isResourceNotFoundNoteWarning() {
+    boolean foundRelevant = false;
+    for (ConnectionRecord record : connections) {
+        if (record.isMainConnection() || "HEAD".equalsIgnoreCase(record.getHttpMethod())) {
+            foundRelevant = true;
+            if (record.getStatusCode() != 404) {
+                return false;
+            }
+        }
+    }
+    return foundRelevant;
+}
+
     /**
      * Represents a tracked network connection
      */

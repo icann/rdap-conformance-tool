@@ -2,7 +2,6 @@ package org.icann.rdapconformance.validator.workflow.rdap.file;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Optional;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -11,7 +10,6 @@ import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,17 +46,12 @@ public class RDAPFileQuery implements RDAPQuery {
   }
 
   @Override
-  public Optional<Integer> getStatusCode() {
-    return Optional.of(200);
-  }
-
-  @Override
   public void setErrorStatus(ConformanceError errorStatus) {
     // TODO: would be nice to have something here for this.
   }
 
   @Override
-  public boolean checkWithQueryType(RDAPQueryType queryType) {
+  public boolean validateStructureByQueryType(RDAPQueryType queryType) {
     return true;
   }
 

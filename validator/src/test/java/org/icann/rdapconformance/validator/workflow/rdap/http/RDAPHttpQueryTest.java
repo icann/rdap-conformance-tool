@@ -105,7 +105,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
         assertThat(rdapHttpQuery.run()).isTrue();
         assertThat(rdapHttpQuery.getData()).isEqualTo(RDAP_RESPONSE);
-        assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
         assertThat(rdapHttpQuery.hasNameserverSearchResults()).isFalse();
     }
 
@@ -133,7 +132,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
         assertThat(rdapHttpQuery.run()).isTrue();
         assertThat(rdapHttpQuery.getData()).isEqualTo(RDAP_RESPONSE);
-        assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
         assertThat(rdapHttpQuery.hasNameserverSearchResults()).isFalse();
     }
 
@@ -242,7 +240,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
         assertThat(rdapHttpQuery.run()).isTrue();
         assertThat(rdapHttpQuery.getData()).isEqualTo(RDAP_RESPONSE);
-        assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(HTTP_OK);
 
         verify(exactly(1), getRequestedFor(urlEqualTo(path1)));
         verify(exactly(1), getRequestedFor(urlEqualTo(path2)));
@@ -521,7 +518,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                  "application/rdap+JSON;encoding=UTF-8").withBody(RDAP_RESPONSE)));
 
         assertThat(rdapHttpQuery.run()).isTrue();
-        assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.DOMAIN)).isTrue();
+        assertThat(rdapHttpQuery.validateStructureByQueryType(RDAPQueryType.DOMAIN)).isTrue();
 
     }
 
@@ -537,7 +534,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                  "application/rdap+JSON;encoding=UTF-8").withBody(response)));
 
         assertThat(rdapHttpQuery.run()).isTrue();
-        assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.DOMAIN)).isTrue();
+        assertThat(rdapHttpQuery.validateStructureByQueryType(RDAPQueryType.DOMAIN)).isFalse();
         assertThat(results.getAll()).contains(RDAPValidationResult.builder()
                                                                   .code(-13003)
                                                                   .value(response)
@@ -561,7 +558,6 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
         assertThat(rdapHttpQuery.run()).isTrue();
         assertThat(rdapHttpQuery.getData()).isEqualTo(response);
-        assertThat(rdapHttpQuery.getStatusCode()).isPresent().get().isEqualTo(200);
         assertThat(rdapHttpQuery.hasNameserverSearchResults()).isTrue();
     }
 
@@ -579,7 +575,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                     .withBody(response)));
 
         assertThat(rdapHttpQuery.run()).isTrue();
-        assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.NAMESERVERS)).isTrue();
+        assertThat(rdapHttpQuery.validateStructureByQueryType(RDAPQueryType.NAMESERVERS)).isTrue();
     }
 
     @Test
@@ -596,7 +592,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                     .withBody(response)));
 
         assertThat(rdapHttpQuery.run()).isTrue();
-        assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.NAMESERVERS)).isTrue();
+        assertThat(rdapHttpQuery.validateStructureByQueryType(RDAPQueryType.NAMESERVERS)).isFalse();
         assertThat(results.getAll()).contains(RDAPValidationResult.builder()
                                                                   .code(-13003)
                                                                   .value(response)
@@ -622,7 +618,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                     .withBody(response)));
 
         assertThat(rdapHttpQuery.run()).isTrue();
-        assertThat(rdapHttpQuery.checkWithQueryType(RDAPQueryType.NAMESERVERS)).isTrue();
+        assertThat(rdapHttpQuery.validateStructureByQueryType(RDAPQueryType.NAMESERVERS)).isFalse();
         assertThat(results.getAll()).contains(RDAPValidationResult.builder()
                                                                   .code(-12610)
                                                                   .value(response)

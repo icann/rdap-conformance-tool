@@ -1,24 +1,20 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
-import java.util.Optional;
 import org.icann.rdapconformance.validator.ConformanceError;
-import org.icann.rdapconformance.validator.ConnectionStatus;
 
 public interface RDAPQuery {
 
-ConformanceError getErrorStatus();
+    ConformanceError getErrorStatus();
 
-void setErrorStatus(ConformanceError errorStatus);
+    void setErrorStatus(ConformanceError errorStatus);
 
-  boolean run();
+    boolean run();
 
-  Optional<Integer> getStatusCode();
+    boolean validateStructureByQueryType(RDAPQueryType queryType);
 
-  boolean checkWithQueryType(RDAPQueryType queryType);
+    boolean isErrorContent();
 
-  boolean isErrorContent();
+    String getData();
 
-  String getData();
-
-  Object getRawResponse();
+    Object getRawResponse();
 }
