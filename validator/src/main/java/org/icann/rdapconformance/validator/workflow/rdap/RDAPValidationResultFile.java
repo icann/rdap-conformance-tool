@@ -199,7 +199,8 @@ public class RDAPValidationResultFile {
       List<Object> tuple = new ArrayList<>();
       tuple.add(result.getCode());
       Integer status = result.getHttpStatusCode();
-      tuple.add((status != null && status == ZERO) ? null : status);
+      // Always normalize null to 0 (ZERO) for consistent comparison
+      tuple.add(status == null ? ZERO : status);
       uniqueTuples.add(tuple);
     }
 
@@ -210,8 +211,8 @@ public class RDAPValidationResultFile {
       statusCodes.add(statusCode == null ? ZERO : statusCode);
     }
 
-    // make sure we grab the filtered set
-    Set<RDAPValidationResult> updatedResults = new HashSet<>(filtered);
+    // we still care about all our results, that's what gets returned
+    Set<RDAPValidationResult> updatedResults = new HashSet<>(allResults);
 
     // If not all the same, add the new error code
     if (statusCodes.size() > ONE) {
