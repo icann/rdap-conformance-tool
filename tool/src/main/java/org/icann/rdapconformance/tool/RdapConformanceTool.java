@@ -46,40 +46,40 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private FileSystem fileSystem = new LocalFileSystem();
 
   @Option(names = {"-c", "--config"}, description = "Definition file", required = true)
-  String configurationFile;
+  public String configurationFile;
 
   @Option(names = {"--timeout"},
       description = "Timeout for connecting to the server", defaultValue = "20")
-  private int timeout = 20;
+  public int timeout = 20;
 
   @Option(names = {"--maximum-redirects"},
       description = "Maximum number of redirects to follow", defaultValue = "3")
-  private int maxRedirects = 3;
+  public int maxRedirects = 3;
 
   @Option(names = {"--use-local-datasets"},
       description = "Use locally-persisted datasets", defaultValue = "false")
-  private boolean useLocalDatasets = false;
+  public boolean useLocalDatasets = false;
 
   @Option(names = {"--results-file"}, description = "File to store the validation results",  hidden = true)
-  private String resultsFile;
+  public String resultsFile;
 
   @Option(names = {"--no-ipv4-queries"}, description = "No queries over IPv4 are to be issued")
-  private boolean executeIPv4Queries = true;
+  public boolean executeIPv4Queries = true;
 
   @Option(names = {"--no-ipv6-queries"}, description = "No queries over IPv6 are to be issued")
-  private boolean executeIPv6Queries = true;
+  public boolean executeIPv6Queries = true;
 
   @Option(names = {"--additional-conformance-queries"}, description = "Additional queries '/help' and 'not-a-domain.invalid' to be issued")
-  private boolean additionalConformanceQueries = false;
+  public boolean additionalConformanceQueries = false;
 
   @ArgGroup(exclusive = false)
-  private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
+  public DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
 
   @Option(names = {"--query-type"}, hidden = true)
   RDAPQueryType queryType;
 
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
-  private boolean isVerbose = false;
+  public boolean isVerbose = false;
 
   private boolean networkEnabled  = true;
 
@@ -295,49 +295,48 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     return additionalConformanceQueries;
   }
 
-  private static class DependantRdapProfileGtld {
+  public static class DependantRdapProfileGtld {
     @ArgGroup(multiplicity = "1", exclusive = false)
-    ExclusiveRdapProfile exclusiveRdapProfile = new ExclusiveRdapProfile();
+    public ExclusiveRdapProfile exclusiveRdapProfile = new ExclusiveRdapProfile();
   }
 
-  private static class ExclusiveRdapProfile {
+  public static class ExclusiveRdapProfile {
 
     @ArgGroup()
-    private DependantRdapProfile dependantRdapProfile = new DependantRdapProfile();
+    public DependantRdapProfile dependantRdapProfile = new DependantRdapProfile();
 
     @ArgGroup(multiplicity = "1")
-    ExclusiveGtldType exclusiveGtldType = new ExclusiveGtldType();
-
+    public ExclusiveGtldType exclusiveGtldType = new ExclusiveGtldType();
   }
 
-  private static class DependantRdapProfile {
+  public static class DependantRdapProfile {
     @Option(names = {"--use-rdap-profile-february-2019"},
             description = "Use RDAP Profile February 2019", defaultValue = "false")
     boolean useRdapProfileFeb2019 = false;
     @Option(names = {"--use-rdap-profile-february-2024"},
             description = "Use RDAP Profile February 2024", defaultValue = "false", required = true)
-    private boolean useRdapProfileFeb2024 = false;
+    public boolean useRdapProfileFeb2024 = false;
   }
 
-  private static class ExclusiveGtldType {
+  public static class ExclusiveGtldType {
 
     @Option(names = {"--gtld-registrar"},
         description = "Validate the response as coming from a gTLD registrar",
         defaultValue = "false")
-    private boolean gtldRegistrar = false;
+    public boolean gtldRegistrar = false;
     @ArgGroup(exclusive = false)
-    private DependantRegistryThin dependantRegistryThin = new DependantRegistryThin();
+    public DependantRegistryThin dependantRegistryThin = new DependantRegistryThin();
   }
 
-  private static class DependantRegistryThin {
+  public static class DependantRegistryThin {
 
     @Option(names = {"--gtld-registry"},
         description = "Validate the response as coming from a gTLD registry",
         required = true)
-    private boolean gtldRegistry;
+    public boolean gtldRegistry;
     @Option(names = {"--thin"},
         description = "The TLD uses the thin model", defaultValue = "false")
-    private boolean thin = false;
+    public boolean thin = false;
   }
 }
 
