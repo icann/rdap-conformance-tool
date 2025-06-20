@@ -17,7 +17,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
     public static final String VCARD_VOICE_PATH = "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[1].type=='voice')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
-    private int errorCodes = 0;
+    private boolean isValid = true;
 
     public ResponseValidation2Dot7Dot4Dot8_2024(String rdapResponse, RDAPValidatorResults results) {
         super(rdapResponse, results);
@@ -137,7 +137,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                                 .value(getResultValue(redactedPointersValue))
                                 .message("jsonpath must evaluate to a zero set for redaction by removal of Registrant Phone.")
                                 .build());
-                        errorCodes ++;
+                        isValid = false;
                         return validateMethodProperty(redactedPhone);
                     }
                 } catch (Exception e) {
@@ -174,14 +174,14 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                             .value(getResultValue(redactedPointersValue))
                             .message("Registrant Phone redaction method must be removal if present")
                             .build());
-                    errorCodes ++;
+                    isValid = false;
                 }
             }
         } catch (Exception e) {
             logger.error("method property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
-        return errorCodes <= 0;
+        return isValid;
     }
 }
 
