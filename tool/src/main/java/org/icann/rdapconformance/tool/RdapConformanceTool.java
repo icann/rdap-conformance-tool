@@ -109,10 +109,18 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     }
 
     // Get the queryType - bail out if it is not correct
-    RDAPHttpQueryTypeProcessor queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
-    if(!queryTypeProcessor.check(datasetService)) {
-      logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
-      return queryTypeProcessor.getErrorStatus().getCode();
+    if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
+      RDAPHttpQueryTypeProcessor queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
+      if (!queryTypeProcessor.check(datasetService)) {
+        logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
+        return queryTypeProcessor.getErrorStatus().getCode();
+      }
+    } else {
+      // we are not using HTTP, we should be using a file
+      if (!this.queryType.isLookupQuery()) {
+        logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
+        return ToolResult.UNSUPPORTED_QUERY.getCode();
+      }
     }
 
     // DEPRECATED - we used to do this, but we no longer do so
