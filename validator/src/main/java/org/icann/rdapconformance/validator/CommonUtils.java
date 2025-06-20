@@ -1,9 +1,7 @@
 package org.icann.rdapconformance.validator;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.AccessDeniedException;
+
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParserImpl;
@@ -15,8 +13,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
-import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor.RDAPHttpQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
+
 import org.slf4j.LoggerFactory;
 
 public class CommonUtils {

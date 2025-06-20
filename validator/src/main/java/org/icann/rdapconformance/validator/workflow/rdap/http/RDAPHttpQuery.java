@@ -12,7 +12,6 @@ import java.util.*;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
-import org.icann.rdapconformance.validator.StatusCodes;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 
@@ -42,10 +41,8 @@ public class RDAPHttpQuery implements RDAPQuery {
     public static final String NAMESERVER_SEARCH_RESULTS = "nameserverSearchResults";
 
     private List<URI> redirects = new ArrayList<>();
-    private String acceptHeader;
     private final RDAPValidatorConfiguration config;
     private HttpResponse<String> httpResponse = null;
-    private String connectionTrackingId = "";
 
     private JsonData jsonResponse = null;
     private boolean isQuerySuccessful = true;
@@ -55,126 +52,107 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     public RDAPHttpQuery(RDAPValidatorConfiguration config) {
         this.config = config;
-        /*
-         * If the scheme of the URI is "https", the tool will initiate a TLS connection to the server:
-         *  • The tool shall not try to match CA certs (if available) to a well-known CA.
-         *  • If the CRL or OCSP is unavailable, this won't constitute an error, but if CRL or OCSP are
-         *    accessible and indicate that the server certificate is revoked, the revocation
-         *    constitutes an error.
-         */
+        // If the URI scheme is "https", the tool enables OCSP and CRL checks for certificate revocation.
+        // - The tool uses the default Java trust manager, so it will attempt to validate the certificate chain against trusted CAs.
+        // - If the certificate is revoked (as indicated by OCSP or CRL), the connection is treated as an error.
+        // - If OCSP or CRL information is unavailable, the behavior depends on the Java implementation and may result in a connection failure.
+        // - Untrusted root or self-signed certificates are ignored for trust validation errors, but other certificate errors may still cause failure.
         Security.setProperty("ocsp.enable", String.valueOf(true));
         System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
         System.setProperty("com.sun.security.enableCRLDP", String.valueOf(true));
         System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
         System.setProperty("jdk.tls.client.enableSessionTicketExtension", "false");
         System.setProperty("jdk.tls.disableCompression", "true");
-        // Turn on whichever you need for debugging
+
+        // All these have proved useful at one time or another in the past - Turn on whatever level you need for debugging
         //  System.setProperty("javax.net.debug", "all");
         //  System.setProperty("javax.net.debug", "ssl");
-        //  System.setProperty("java.net.debug", "all");
         //  System.setProperty("javax.net.debug", "ssl:handshake:verbose");
+        //  System.setProperty("java.net.debug", "all");
+    }
+
+    /**
+     * Launch the HTTP request and validate it.
+     */
+    @Override
+    public boolean run() {
+        //TODO ok, this needs to be abstracted into a state holding instance
+        // without this we error out forever after a single failure
+        this.isQuerySuccessful = true; // reset to the default state
+        this.status = null; // same
+        // continue on
+        this.makeRequest(this.config.getUri());
+        this.validate();
+        return this.isQuerySuccessful();
+    }
+
+    /**
+     * Get the list of redirects
+     */
+    public List<URI> getRedirects() {
+        return redirects;
     }
 
 
-      /**
-       * Launch the HTTP request and validate it.
-       */
-      @Override
-      public boolean run() {
-          //TODO ok, this needs to be abstracted into a state holding instance
-          // without this we error out forever after a single failure
-          this.isQuerySuccessful = true; // reset to the default state
-          this.status = null; // same
-          // continue on
-          this.makeRequest(this.config.getUri());
-          this.validate();
-          return this.isQuerySuccessful();
-      }
+    /**
+     * Validates if the RDAP response matches the expected format for the given query type.
+     *
+     * For lookup queries: checks if the response contains a valid objectClassName. For nameserver search queries:
+     * checks if the response contains a nameserverSearchResults collection.
+     *
+     * Adds appropriate error codes to results file if validation fails: - Error -13003: Missing objectClassName in
+     * lookup query response - Error -12610: Missing nameserverSearchResults in nameserver search query (RDAP Profile
+     * Feb 2024)
+     *
+     * @param queryType The type of RDAP query performed
+     */
+    public boolean validateStructureByQueryType(RDAPQueryType queryType) {
+        // default to true. Note: we do NOT return early and a false doesn't mean anything other than the structure contains some errors
+        boolean structureValid = true;
+        if (httpResponse.statusCode() == HTTP_OK) {
+            if (queryType.isLookupQuery() && !jsonResponseValid()) {
+                logger.info("objectClassName was not found in the topmost object");
+                addErrorToResultsFile(-13003, httpResponse.body(),
+                    "The response does not have an objectClassName string.");
+                structureValid = false;
+            } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !hasNameserverSearchResults()) {
+                logger.info("No JSON array in answer");
+                if (config.useRdapProfileFeb2024()) {
+                    addErrorToResultsFile(-12610, httpResponse.body(),
+                        "The nameserverSearchResults structure is required.");
+                    structureValid = false;
+                } else {
+                    addErrorToResultsFile(-13003, httpResponse.body(),
+                        "The response does not have an objectClassName string.");
+                    structureValid = false;
+                }
+            }
+        }
+        return structureValid;
+    }
+
+    @Override
+    public boolean isErrorContent() {
+        return httpResponse.statusCode() == HTTP_NOT_FOUND;
+    }
+
+    @Override
+    public String getData() {
+        return httpResponse.body();
+    }
+
+    @Override
+    public Object getRawResponse() {
+        return httpResponse;
+    }
+
 
     /**
-       * Get the HTTP response status code
-       */
-      @Override
-      public Optional<Integer> getStatusCode() {
-        return Optional.ofNullable(httpResponse != null ? httpResponse.statusCode() : null);
-      }
-
-      // These two (getRedirects and getAcceptHeader) are specific to HTTP queries
-      /**
-       * Get the list of redirects
-       */
-      public List<URI> getRedirects() {
-        return redirects;
-      }
-
-      /**
-       * Get the connection tracking ID
-       */
-      public String getConnectionTrackingId() {
-          return connectionTrackingId;
-      }
-
-      /**
-       * Get the Accept header
-       */
-      public String getAcceptHeader() {
-        return acceptHeader;
-      }
-
-
-      @Override
-      public boolean checkWithQueryType(RDAPQueryType queryType) {
-          /**
-           * Validates if the RDAP response matches the expected format for the given query type.
-           *
-           * For lookup queries: checks if the response contains a valid objectClassName.
-           * For nameserver search queries: checks if the response contains a nameserverSearchResults collection.
-           *
-           * Adds appropriate error codes to results file if validation fails:
-           * - Error -13003: Missing objectClassName in lookup query response
-           * - Error -12610: Missing nameserverSearchResults in nameserver search query (RDAP Profile Feb 2024)
-           *
-           * @param queryType The type of RDAP query performed
-           * @return Always returns true to continue processing regardless of validation results
-           */
-        if (httpResponse.statusCode() == HTTP_OK) {
-          if (queryType.isLookupQuery() && !jsonResponseValid()) {
-            logger.info("objectClassName was not found in the topmost object");
-              addErrorToResultsFile(-13003, httpResponse.body(), "The response does not have an objectClassName string.");
-          } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !hasNameserverSearchResults()) {
-            logger.info("No JSON array in answer");
-            if (config.useRdapProfileFeb2024()) {
-                addErrorToResultsFile(-12610, httpResponse.body(), "The nameserverSearchResults structure is required.");
-            } else {
-                addErrorToResultsFile(-13003, httpResponse.body(),"The response does not have an objectClassName string.");
-            }
-          }
-        }
-        return true; // this always returns true
-      }
-
-        @Override
-        public boolean isErrorContent() {
-            return httpResponse.statusCode() == HTTP_NOT_FOUND;
-        }
-
-      @Override
-      public String getData() {
-        return httpResponse.body();
-      }
-
-      @Override
-      public Object getRawResponse() {
-        return httpResponse;
-      }
-
-
-      /**
-       * Check if we got errors with the RDAP HTTP request.
-       */
-      private boolean isQuerySuccessful() {
-          return (status == null || status.getCode() == 0) && isQuerySuccessful;
-      }
+     * Check if we got errors with the RDAP HTTP request.
+     */
+    private boolean isQuerySuccessful() {
+        return (status == null || status.getCode() == 0) && isQuerySuccessful;
+    }
 
     /**
      * Get the connection status in case of error
@@ -189,7 +167,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         this.status = (ConnectionStatus) status; // remember, 0 is ok - SUCCESS
     }
 
-    public void makeRequest(URI currentUri ) {
+    public void makeRequest(URI currentUri) {
         try {
             logger.info("Making request to: {}", currentUri); // ensure we log each request
             int remainingRedirects = this.config.getMaxRedirects();
@@ -200,9 +178,8 @@ public class RDAPHttpQuery implements RDAPQuery {
                 int httpStatusCode = response.statusCode();
                 ConnectionStatus st = ((SimpleHttpResponse) response).getConnectionStatusCode();
                 this.setErrorStatus(((SimpleHttpResponse) response).getConnectionStatusCode());   // ensure this is set
-                StatusCodes.add(httpStatusCode); // we need this for future reference
-               // TODO: we need to think about why we have this check in here and remove when we refactor the State Error/Success Handling
-                if(httpStatusCode == ZERO) { // if our fake status code is 0, we have a problem
+                // TODO: we need to think about why we have this check in here and remove when we refactor the State Error/Success Handling
+                if (httpStatusCode == ZERO) { // if our fake status code is 0, we have a problem
                     isQuerySuccessful = false;
                     return;
                 }
@@ -251,11 +228,12 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     private void validate() {
         // Handle the case where we need to add an error for non-200/404 status codes regardless of query success
-        boolean isValidStatusCode = httpResponse != null &&
-            List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpResponse.statusCode());
+        boolean isValidStatusCode =
+            httpResponse != null && List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpResponse.statusCode());
 
         if (!isValidStatusCode) {
-            String statusValue = httpResponse == null ? "no response available" : String.valueOf(httpResponse.statusCode());
+            String statusValue =
+                httpResponse == null ? "no response available" : String.valueOf(httpResponse.statusCode());
             addErrorToResultsFile(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
         }
 
@@ -269,12 +247,11 @@ public class RDAPHttpQuery implements RDAPQuery {
         int httpStatusCode = httpResponse.statusCode();
         HttpHeaders headers = httpResponse.headers();
         String rdapResponse = httpResponse.body();
-
         logger.info("http Status code: {}", httpStatusCode);
 
-        if(config.useRdapProfileFeb2024()) {
-            if(!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
-                addErrorToResultsFile(-12107, rdapResponse,"The errorCode value is required in an error response.");
+        if (config.useRdapProfileFeb2024()) {
+            if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
+                addErrorToResultsFile(-12107, rdapResponse, "The errorCode value is required in an error response.");
             }
         }
 
@@ -284,16 +261,15 @@ public class RDAPHttpQuery implements RDAPQuery {
         // application/rdap+JSON, error code -13000 added in results file.
         if (Arrays.stream(String.join(SEMI_COLON, headers.allValues(CONTENT_TYPE)).split(SEMI_COLON))
                   .noneMatch(s -> s.equalsIgnoreCase(APPLICATION_RDAP_JSON))) {
-            addErrorToResultsFile(-13000,
-                                  headers.firstValue(CONTENT_TYPE).orElse("missing"), "The content-type header does not contain the application/rdap+json media type.");
+            addErrorToResultsFile(-13000, headers.firstValue(CONTENT_TYPE).orElse("missing"),
+                "The content-type header does not contain the application/rdap+json media type.");
         }
 
         // If a response is available to the tool, but it's not syntactically valid JSON object, error code -13001 added in results file.
         jsonResponse = new JsonData(rdapResponse);
         if (!jsonResponse.isValid()) {
-            addErrorToResultsFile(-13001, "response body not given","The response was not valid JSON.");
+            addErrorToResultsFile(-13001, "response body not given", "The response was not valid JSON.");
             isQuerySuccessful = false;
-          return;
         }
     }
 
@@ -312,49 +288,50 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             // They copied the query over, this is bad
             if (originalQuery != null && originalQuery.equals(locationQuery)) {
-                addErrorToResultsFile(-13004, "<location header value>", "Response redirect contained query parameters copied from the request.");
+                addErrorToResultsFile(-13004, "<location header value>",
+                    "Response redirect contained query parameters copied from the request.");
                 return true;
             }
         }
         return false; // not copying them, so don't worry
     }
 
-  /* *
-  /**
-   * Check if the RDAP json response contains a specific key.
-   */
-  public boolean jsonResponseValid() {
-      if (jsonResponse == null) {
-          return false;
-      }
+    /* *
+    /**
+     * Check if the RDAP json response contains a specific key.
+     */
+    public boolean jsonResponseValid() {
+        if (jsonResponse == null) {
+            return false;
+        }
 
-      boolean objectClassExists = true;
-      if(!jsonResponse.hasKey("objectClassName")) {
-          logger.info("Validating objectClass property in top level");
-          objectClassExists = false;
-      }
+        boolean objectClassExists = true;
+        if (!jsonResponse.hasKey("objectClassName")) {
+            logger.info("Validating objectClass property in top level");
+            objectClassExists = false;
+        }
 
-      Object entitiesObj = jsonResponse.getValue(ENTITIES);
-      if(objectClassExists && entitiesObj instanceof List<?> entities) {
-          logger.info("Validating objectClass property in entities");
-          objectClassExists = verifyIfObjectClassPropExits(entities, ENTITIES);
-          if(objectClassExists) {
-              objectClassExists = verifyIfObjectClassPropExits(entities, AUTNUMS);
-          }
+        Object entitiesObj = jsonResponse.getValue(ENTITIES);
+        if (objectClassExists && entitiesObj instanceof List<?> entities) {
+            logger.info("Validating objectClass property in entities");
+            objectClassExists = verifyIfObjectClassPropExits(entities, ENTITIES);
+            if (objectClassExists) {
+                objectClassExists = verifyIfObjectClassPropExits(entities, AUTNUMS);
+            }
 
-          if(objectClassExists) {
-              objectClassExists = verifyIfObjectClassPropExits(entities, NETWORKS);
-          }
-      }
+            if (objectClassExists) {
+                objectClassExists = verifyIfObjectClassPropExits(entities, NETWORKS);
+            }
+        }
 
-      Object nameserversObj = jsonResponse.getValue(NAMESERVERS);
-      if(objectClassExists && nameserversObj instanceof List<?> nameservers) {
-          logger.info("Validating objectClass property in nameservers");
-          objectClassExists = verifyIfObjectClassPropExits(nameservers, NAMESERVERS);
-      }
+        Object nameserversObj = jsonResponse.getValue(NAMESERVERS);
+        if (objectClassExists && nameserversObj instanceof List<?> nameservers) {
+            logger.info("Validating objectClass property in nameservers");
+            objectClassExists = verifyIfObjectClassPropExits(nameservers, NAMESERVERS);
+        }
 
-    return null != jsonResponse && objectClassExists;
-  }
+        return null != jsonResponse && objectClassExists;
+    }
 
     /**
      * Checks if the JSON response contains a nameserver search results collection.
@@ -362,62 +339,62 @@ public class RDAPHttpQuery implements RDAPQuery {
      * @return true if the response contains a valid nameserverSearchResults collection
      */
     boolean hasNameserverSearchResults() {
-        return null != jsonResponse && jsonResponse.hasKey(NAMESERVER_SEARCH_RESULTS)
-            && jsonResponse.getValue(NAMESERVER_SEARCH_RESULTS) instanceof Collection<?>;
+        return null != jsonResponse && jsonResponse.hasKey(NAMESERVER_SEARCH_RESULTS) && jsonResponse.getValue(
+            NAMESERVER_SEARCH_RESULTS) instanceof Collection<?>;
     }
 
 
-  public static class JsonData {
+    public static class JsonData {
 
-    private Map<String, Object> rawRdapMap = null;
-    private List<Object> rawRdapList = null;
+        private Map<String, Object> rawRdapMap = null;
+        private List<Object> rawRdapList = null;
 
 
-    public JsonData(String data) {
-      ObjectMapper mapper = new ObjectMapper();
+        public JsonData(String data) {
+            ObjectMapper mapper = new ObjectMapper();
 
-      try {
-        rawRdapMap = mapper.readValue(data, Map.class);
-      } catch (Exception e1) {
-        // JSON content may be a list
-        try {
-          rawRdapList = mapper.readValue(data, List.class);
-        } catch (Exception e2) {
-          logger.info("Invalid JSON in RDAP response");
+            try {
+                rawRdapMap = mapper.readValue(data, Map.class);
+            } catch (Exception e1) {
+                // JSON content may be a list
+                try {
+                    rawRdapList = mapper.readValue(data, List.class);
+                } catch (Exception e2) {
+                    logger.info("Invalid JSON in RDAP response");
+                }
+            }
         }
-      }
-    }
 
-    /**
-     * Parse the data into JSON.
-     */
-    public boolean isValid() {
-      return rawRdapMap != null || rawRdapList != null;
-    }
+        /**
+         * Parse the data into JSON.
+         */
+        public boolean isValid() {
+            return rawRdapMap != null || rawRdapList != null;
+        }
 
-    /**
-     * Check whether the JSON data is an array.
-     */
-    public boolean isArray() {
-      return rawRdapList != null;
-    }
+        /**
+         * Check whether the JSON data is an array.
+         */
+        public boolean isArray() {
+            return rawRdapList != null;
+        }
 
-    public boolean hasKey(String key) {
-      return isValid() && !isArray() && rawRdapMap.containsKey(key);
-    }
+        public boolean hasKey(String key) {
+            return isValid() && !isArray() && rawRdapMap.containsKey(key);
+        }
 
-    public Object getValue(String key) {
-      return rawRdapMap.get(key);
+        public Object getValue(String key) {
+            return rawRdapMap.get(key);
+        }
     }
-  }
 
     public boolean verifyIfObjectClassPropExits(List<?> propertyCollection, String containedKey) {
-        for (var x: propertyCollection) {
+        for (var x : propertyCollection) {
             if (!(x instanceof Map<?, ?> map)) {
                 return false;
             }
             var value = map.get(OBJECT_CLASS_NAME);
-            if(value == null) {
+            if (value == null) {
                 return false;
             }
             if (map.containsKey(containedKey)) {

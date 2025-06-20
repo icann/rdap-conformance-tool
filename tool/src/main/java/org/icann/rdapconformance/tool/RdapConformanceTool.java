@@ -1,8 +1,5 @@
 package org.icann.rdapconformance.tool;
 
-import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 
@@ -11,7 +8,14 @@ import java.net.URI;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.LoggerFactory;
+import picocli.CommandLine.ArgGroup;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
@@ -30,11 +34,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 
-import org.slf4j.LoggerFactory;
-import picocli.CommandLine.ArgGroup;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
@@ -165,6 +164,12 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
       if(DNSCacheResolver.hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
         logger.info("Unable to resolve an IP address endpoint using DNS for uri:  "  + DNSCacheResolver.getHostnameFromUrl(uri.toString()));
+      }
+
+      if(ConnectionTracker.getInstance().isResourceNotFoundNoteWarning()) {
+        logger.info("All HEAD and Main queries returned a 404 Not Found response code.");
+      } else {
+        logger.info("At least one HEAD or Main query returned a non-404 Not Found response code.");
       }
 
       // Build the result file

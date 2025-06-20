@@ -18,8 +18,6 @@ import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.Map.Entry;
 
-import org.icann.rdapconformance.validator.ConnectionStatus;
-import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;

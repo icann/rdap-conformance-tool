@@ -57,7 +57,7 @@ public class RDAPValidatorTest {
   @Test
   public void testCallProfile2019_QueryNonContentRdapResponse_ProfileIsNotInvoked() {
     doReturn(true).when(query).run();
-    doReturn(true).when(query).checkWithQueryType(RDAPQueryType.DOMAIN);
+    doReturn(true).when(query).validateStructureByQueryType(RDAPQueryType.DOMAIN);
     doReturn(true).when(query).isErrorContent();
 
    verify(rdapProfile, times(0)).validate();
@@ -66,7 +66,7 @@ public class RDAPValidatorTest {
   @Test
   public void testCallDomainCaseFolding_Query404StatusRdapResponse_CaseFoldingValidationIsNotInvoked() {
     doReturn(true).when(query).run();
-    doReturn(true).when(query).checkWithQueryType(RDAPQueryType.DOMAIN);
+    doReturn(true).when(query).validateStructureByQueryType(RDAPQueryType.DOMAIN);
     doReturn(true).when(query).isErrorContent();
 
     verify(domainCaseFoldingValidation, times(0)).validate();
@@ -75,7 +75,7 @@ public class RDAPValidatorTest {
   @Test
   public void testValidate_QuerycheckWithQueryTypeError_ReturnsError() {
     doReturn(RDAPQueryType.DOMAIN).when(processor).getQueryType();
-    doReturn(false).when(query).checkWithQueryType(RDAPQueryType.DOMAIN);
+    doReturn(false).when(query).validateStructureByQueryType(RDAPQueryType.DOMAIN);
     doReturn(ToolResult.SUCCESS).when(query).getErrorStatus();
 
     assertThat(validator.validate())
@@ -146,7 +146,6 @@ public void testValidate_DomainQueryForTestInvalidWithHttpOK_LogsInfo() throws I
         "definitionIdentifier", null, null, null, null, false, false, false, false, false))
         .when(configParser).parse(any());
     doReturn(true).when(query).run();
-    doReturn(Optional.of(HTTP_OK)).when(query).getStatusCode();
     doReturn("test.invalid").when(query).getData();
     doReturn(mockResponse).when(query).getRawResponse();
     doReturn(false).when(query).isErrorContent();
