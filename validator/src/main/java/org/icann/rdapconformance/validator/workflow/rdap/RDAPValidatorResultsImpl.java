@@ -144,7 +144,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
       List<Object> tuple = new ArrayList<>();
       tuple.add(result.getCode());
       Integer status = result.getHttpStatusCode();
-      tuple.add((status != null && status == ZERO) ? null : status);
+      tuple.add(status == null ? ZERO : status);
       uniqueTuples.add(tuple);
     }
 

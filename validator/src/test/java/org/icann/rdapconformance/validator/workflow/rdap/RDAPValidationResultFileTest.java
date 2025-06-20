@@ -299,7 +299,7 @@ public void testAllCodesThatShouldBeIgnored() {
     public void testNonIgnoredCodeWithZeroStatus() {
         RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
         results.clear();
-        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(0).build());
+        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(200).build());
 
         results.analyzeResultsWithStatusCheck();
@@ -308,8 +308,8 @@ public void testAllCodesThatShouldBeIgnored() {
                                                   .filter(r -> r.getCode() == -13018)
                                                   .findFirst().orElse(null);
         assertNotNull(tupleResult);
-        assertTrue(tupleResult.getValue().contains("[[1001,null],[1002,200]]") ||
-            tupleResult.getValue().contains("[[1002,200],[1001,null]]"));
+        assertTrue(tupleResult.getValue().contains("[[1001,0],[1002,200]]") ||
+            tupleResult.getValue().contains("[[1002,200],[1001,0]]"));
     }
 
     @Test
@@ -361,8 +361,8 @@ public void testAllCodesThatShouldBeIgnored() {
             System.out.println("Tuple result: " + tupleResult);
             assertNotNull(tupleResult);
             String value = tupleResult.getValue();
-            assertTrue(value.contains("[1001,null]"));
-            assertTrue(value.contains("[1002,null]"));
+            assertTrue(value.contains("[1001,0]"));
+            assertTrue(value.contains("[1002,0]"));
             assertTrue(value.contains("[1003,200]"));
         }
     }
@@ -398,10 +398,10 @@ public void testAllCodesThatShouldBeIgnored() {
             "[-52106,200] appears multiple times");
         assertTrue(countOccurrences(tupleListJson, "[-13007,200]") == ONE,
             "[-13007,200] appears multiple times");
-        assertTrue(countOccurrences(tupleListJson, "[-61101,null]") == ONE,
-            "[-61101,null] appears multiple times");
-        assertTrue(countOccurrences(tupleListJson, "[-23101,null]") == ONE,
-            "[-23101,null] appears multiple times");
+        assertTrue(countOccurrences(tupleListJson, "[-61101,0]") == ONE,
+            "[-61101,0] appears multiple times");
+        assertTrue(countOccurrences(tupleListJson, "[-23101,0]") == ONE,
+            "[-23101,0] appears multiple times");
     }
 
     @Test
