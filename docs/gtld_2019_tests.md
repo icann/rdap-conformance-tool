@@ -1,320 +1,289 @@
 # 2019 gTLD RDAP Profile Tests
 
-### 8.1. Technical Implementation Guide – General
+## 8.1. Technical Implementation Guide – General
 
-#### 8.1.1. [tigSection_1_2_Validation]
+### 8.1.1. TIG 1.2
 
-#### The following steps should be used to test the RDAP protocol section 1.2 of the
+Test group: [tigSection_1_2_Validation]
 
-#### RDAP_Technical_Implementation_Guide_2_1:
+The following steps should be used to test the RDAP protocol section 1.2 of the  RDAP_Technical_Implementation_Guide_2_1:
 
 1. If the scheme of the URI to be tested is "http":
-    {
-    "code": - 20100 ,
-    "value": "<URI>",
-    "message": "The URL is HTTP, per section 1.2 of the
-    RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only."
-    }
-2. If the scheme of the URI to be tested is "https", perform the same RDAP query using
-    "http". If the HTTP URI provides a response (other than redirect)::
-    {
-    "code": - 20101 ,
-    "value": "<RDAP response provided over HTTP> + "\n/\n" + <RDAP response
-    provided over HTTPS>",
-    "message": "The RDAP response was provided over HTTP, per section 1.2 of
-    the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only."
-    }
-
-#### Note: If redirects are present, the test [tigSection_1_2_Validation] shall be performed
-
-#### on the URL on the last HTTP redirect.
-
-#### 8.1.2. [tigSection_1_3_Validation]
-
-#### The following steps should be used to test the RDAP protocol section 1.3 of the
-
-#### RDAP_Technical_Implementation_Guide_2_1:
-
-1. If the scheme of the URI to be tested is "https", verify that SSLv2 and SSLv3 are not
-    offered by the RDAP server.
-    {
-    "code": - 20200 ,
-    "value": "<URI>",
-    "message": "The RDAP server is offering SSLv2 and/or SSLv3."
-    }
-
-#### Note: the test [tigSection_1_3_Validation] shall be performed on the URL on every HTTP
-
-#### redirect.
-
-
-#### 8.1.3. [tigSection_1_6_Validation]
-
-#### The following steps should be used to test the RDAP protocol section 1.6 of the
-
-#### RDAP_Technical_Implementation_Guide_2_1:
-
-1. The tool shall use the HTTP HEAD method on the URI to be tested. If the HTTP Status
-    code is different from the status code obtained when doing the GET method:
-    {
-    "code": - 20300 ,
-    "value": "<HTTP Status code when using the GET method> + "\n/\n" "<HTTP
-    Status code when using the HEAD method>",
-    "message": "The HTTP Status code obtained when using the HEAD method is different
-    from the GET method. See section 1.6 of the
-    RDAP_Technical_Implementation_Guide_2_1."
-    }
-
-#### 8.1.4. [tigSection_1_8_Validation]
-
-#### The following steps should be used to test the RDAP protocol section 1.8 of the
-
-#### RDAP_Technical_Implementation_Guide_2_1:
-
-1. Obtain the Resource Record for the A QTYPE for the host in the URI. Validate that the
-    status of the DNS response is not NOERROR. Validate that all IPv4 addresses in the
-
-```
-RDATA pass IPv4 address validation [ipv4Validation]:
+``` json
 {
-"code": - 20400 ,
-"value": "<IPv4 addresses>",
-"message": "The RDAP service is not provided over IPv4. See section 1.8 of
-the RDAP_Technical_Implementation_Guide_2_1."
+  "code": -20100,
+  "value": "<URI>",
+  "message": "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only."
 }
 ```
-2. Obtain the Resource Record for the AAAA QTYPE for the host in the URI. Validate that
-    the status of the DNS response is not NOERROR. Validate that all IPv6 addresses in the
-
-```
-RDATA pass IPv6 address validation [ipv6Validation]:
+2. If the scheme of the URI to be tested is "https", perform the same RDAP query using "http". If the HTTP URI provides a response (other than redirect)::
+``` json
 {
-"code": - 20401 ,
-"value": "<IPv6 addresses>",
-"message": "The RDAP service is not provided over IPv6. See section 1.8 of
-the RDAP_Technical_Implementation_Guide_2_1."
-}
-```
-#### Note: the test [tigSection_1_8_Validation] shall be performed on the URL on every HTTP
-
-#### redirect.
-
-
-#### 8.1.5. [tigSection_1_13_Validation]
-
-#### The following steps should be used to test the RDAP protocol section 1.13 of the
-
-#### RDAP_Technical_Implementation_Guide_2_1:
-
-1. Validate that the HTTP header "Access-Control-Allow-Origin: *" is included in the RDAP
-    response.
-    {
-    "code": - 20500 ,
-    "value": "<HTTP headers>",
-    "message": "The HTTP header "Access-Control-Allow-Origin: *" is not
-    included in the HTTP headers. See section 1.13 of the
-    RDAP_Technical_Implementation_Guide_2_1."
-    }
-
-#### Note: the test [tigSection_1_13_Validation] shall be performed on the URL on every
-
-#### HTTP redirect.
-
-#### 8.1.6. [tigSection_1_14_Validation]
-
-#### The following steps should be used to test the RDAP protocol section 1.14 of the
-
-#### RDAP_Technical_Implementation_Guide_2_1:
-
-1. Validate that the JSON string value "icann_rdap_technical_implementation_guide_0" is
-    included in the RDAP Conformance data structure.
-    {
-    "code": - 20600 ,
-    "value": "<rdapConformance data structure>",
-    "message": "The RDAP Conformance data structure does not include
-    icann_rdap_technical_implementation_guide_0. See section 1.14 of the
-    RDAP_Technical_Implementation_Guide_2_1."
-    }
-
-#### 8.1.7. [tigSection_3_3_and_3_4_Validation].........................................................................................
-
-#### The following steps should be used to test the RDAP protocol section 3.3 and 3.4 of
-
-#### the RDAP_Technical_Implementation_Guide_2_1:
-
-1. Validate that at least one links data structure exists within the notices object in the
-
-```
-topmost object.
-{
-"code": - 20700 ,
-"value": "<notices data structure>",
-"message": "A links object was not found in the notices object in the
-topmost object. See section 3.3 and 3.4 of the
-RDAP_Technical_Implementation_Guide_2_1."
+  "code": -20101,
+  "value": "<RDAP response provided over HTTP> + '\n/\n' + <RDAP response provided over HTTPS>",
+  "message": "The RDAP response was provided over HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only."
 }
 ```
 
-#### 8.1.8. [tigSection_4_1_Validation]
+Note: If redirects are present, the test [tigSection_1_2_Validation] shall be performed  on the URL on the last HTTP redirect.
 
-#### The following steps should be used to test the RDAP protocol section 4.1 of the TIG:
+### 8.1.2. TIG Section 1.3
 
-1. Validate that all the _entities_ in the RDAP Response contain structured address. If a street
+Test group: [tigSection_1_3_Validation]
 
-```
-address has more than one line, it MUST be structured as an array of strings.
+The following steps should be used to test the RDAP protocol section 1.3 of the  RDAP_Technical_Implementation_Guide_2_1:
+
+1. If the scheme of the URI to be tested is "https", verify that SSLv2 and SSLv3 are not offered by the RDAP server.
+``` json
 {
-"code": - 20800 ,
-"value": "<entity data structure>",
-"message": "An entity with a non-structured address was found. See section
-4.1 of the TIG."
+  "code": -20200,
+  "value": "<URI>",
+  "message": "The RDAP server is offering SSLv2 and/or SSLv3."
 }
 ```
-#### 8.1.9. [tigSection_7_1_and_7_2_Validation].........................................................................................
 
-#### The following steps should be used to test the RDAP protocol section 7. 1 and 7. 2 of
+Note: the test [tigSection_1_3_Validation] shall be performed on the URL on every HTTP  redirect.
 
-#### the TIG:
+### 8.1.3. TIG Section 1.6
 
-1. Validate that at all the _tel_ properties in the _entities_ in the RDAP Response contain voice
-    or fax as type parameter.
-    {
-    "code": - 20900 ,
-    "value": "<entity data structure>",
-    "message": "An entity with a tel property without a voice or fax type was
-    found. See section 7.1 and 7.2 of the TIG."
-    }
+Test group: [tigSection_1_6_Validation]
 
+The following steps should be used to test the RDAP protocol section 1.6 of the RDAP_Technical_Implementation_Guide_2_1:
 
-### 8.2. Technical Implementation Guide - Registry
+1. The tool shall use the HTTP HEAD method on the URI to be tested. If the HTTP Status code is different from the status code obtained when doing the GET method:
+``` json
+{
+  "code": -20300,
+  "value": "<HTTP Status code when using the GET method> + '\n/\n' + <HTTP Status code when using the HEAD method>",
+  "message": "The HTTP Status code obtained when using the HEAD method is different from the GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
 
-#### 8.2.1. [tigSection_1_11_1_Validation]
+### 8.1.4. TIG Section 1.8
 
-#### The following steps should be used to test the RDAP protocol section 1.11.1 and 1.2 of
+Test group: [tigSection_1_8_Validation]
 
-#### the RDAP_Technical_Implementation_Guide_2_1:
+The following steps should be used to test the RDAP protocol section 1.8 of the  RDAP_Technical_Implementation_Guide_2_1:
+
+1. Obtain the Resource Record for the A QTYPE for the host in the URI. Validate that the status of the DNS response is not NOERROR. Validate that all IPv4 addresses in the RDATA pass IPv4 address validation [ipv4Validation]:
+``` json
+{
+  "code": -20400,
+  "value": "<IPv4 addresses>",
+  "message": "The RDAP service is not provided over IPv4. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
+2. Obtain the Resource Record for the AAAA QTYPE for the host in the URI. Validate that the status of the DNS response is not NOERROR. Validate that all IPv6 addresses in the RDATA pass IPv6 address validation [ipv6Validation]:
+``` json
+{
+  "code": -20401,
+  "value": "<IPv6 addresses>",
+  "message": "The RDAP service is not provided over IPv6. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
+
+Note: the test [tigSection_1_8_Validation] shall be performed on the URL on every HTTP redirect.
+
+### 8.1.5. TIG Section 1.13
+
+Test group: [tigSection_1_13_Validation]
+
+The following steps should be used to test the RDAP protocol section 1.13 of the RDAP_Technical_Implementation_Guide_2_1:
+
+1. Validate that the HTTP header "Access-Control-Allow-Origin: *" is included in the RDAP response.
+``` json
+{
+  "code": -20500,
+  "value": "<HTTP headers>",
+  "message": "The HTTP header 'Access-Control-Allow-Origin: *' is not included in the HTTP headers. See section 1.13 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
+
+Note: the test [tigSection_1_13_Validation] shall be performed on the URL on every HTTP redirect.
+
+### 8.1.6. TIG Section 1.14
+
+Test group: [tigSection_1_14_Validation]
+
+The following steps should be used to test the RDAP protocol section 1.14 of the RDAP_Technical_Implementation_Guide_2_1:
+
+1. Validate that the JSON string value "icann_rdap_technical_implementation_guide_0" is included in the RDAP Conformance data structure.
+``` json
+{
+  "code": -20600,
+  "value": "<rdapConformance data structure>",
+  "message": "The RDAP Conformance data structure does not include icann_rdap_technical_implementation_guide_0. See section 1.14 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
+
+### 8.1.7. TIG Section 3.3 and 3.4
+
+Test group: [tigSection_3_3_and_3_4_Validation]
+
+The following steps should be used to test the RDAP protocol section 3.3 and 3.4 of the RDAP_Technical_Implementation_Guide_2_1:
+
+1. Validate that at least one links data structure exists within the notices object in the topmost object.
+``` json
+{
+  "code": -20700,
+  "value": "<notices data structure>",
+  "message": "A links object was not found in the notices object in the topmost object. See section 3.3 and 3.4 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
+
+### 8.1.8. TIG Section 4.1
+
+Test group: [tigSection_4_1_Validation]
+
+The following steps should be used to test the RDAP protocol section 4.1 of the TIG:
+
+1. Validate that all the _entities_ in the RDAP Response contain structured address. If a street address has more than one line, it MUST be structured as an array of strings.
+``` json
+{
+  "code": -20800,
+  "value": "<entity data structure>",
+  "message": "An entity with a non-structured address was found. See section 4.1 of the TIG."
+}
+```
+
+### 8.1.9. TIG Section 7.1 and 7.2
+
+Test group: [tigSection_7_1_and_7_2_Validation]
+
+The following steps should be used to test the RDAP protocol section 7. 1 and 7. 2 of the TIG:
+
+1. Validate that at all the _tel_ properties in the _entities_ in the RDAP Response contain voice or fax as type parameter.
+``` json
+{
+  "code": -20900,
+  "value": "<entity data structure>",
+  "message": "An entity with a tel property without a voice or fax type was found. See section 7.1 and 7.2 of the TIG."
+}
+```
+
+## 8.2. Technical Implementation Guide - Registry
+
+### 8.2.1. TIG Section 1.11.1
+
+Test group: [tigSection_1_11_1_Validation]
+
+The following steps should be used to test the RDAP protocol section 1.11.1 and 1.2 of the RDAP_Technical_Implementation_Guide_2_1:
 
 1. Verify that the TLD of the domain name is listed in the bootstrapDomainNameSpace.
-    {
-    "code": - 23100 ,
-    "value": "<TLD> + "\n/\n" <bootstrapDomainNameSpace>",
-    "message": "The TLD is not included in the bootstrapDomainNameSpace. See
-    section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1."
-    }
-2. Validate that at least one base URL exists in the bootstrapDomainNameSpace for the
-    TLD.
-    {
-    "code": - 23101 ,
-    "value": "<TLD element in bootstrapDomainNameSpace>",
-    "message": "The TLD entry in bootstrapDomainNameSpace does not contain a
-    base URL. See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1."
-    }
-3. For the entry of the TLD in bootstrapDomainNameSpace verify that every one of the
-    base URLs contain a schema of "https".
-    {
-    "code": - 23102 ,
-    "value": "<TLD entry in bootstrapDomainNameSpace>",
-    "message": "One or more of the base URLs for the TLD contain a schema
-    different from https. See section 1.2 of the
-    RDAP_Technical_Implementation_Guide_2_1."
-    }
+``` json
+{
+  "code": -23100,
+  "value": "<TLD> + '\n/\n' <bootstrapDomainNameSpace>",
+  "message": "The TLD is not included in the bootstrapDomainNameSpace. See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
+2. Validate that at least one base URL exists in the bootstrapDomainNameSpace for the TLD.
+``` json
+{
+  "code": -23101,
+  "value": "<TLD element in bootstrapDomainNameSpace>",
+  "message": "The TLD entry in bootstrapDomainNameSpace does not contain a base URL. See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
+3. For the entry of the TLD in bootstrapDomainNameSpace verify that every one of the base URLs contain a schema of "https".
+``` json
+{
+  "code": -23102,
+  "value": "<TLD entry in bootstrapDomainNameSpace>",
+  "message": "One or more of the base URLs for the TLD contain a schema different from https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
 
-#### 8.2.2. [tigSection_3_2_Validation]
+### 8.2.2. TIG Section 3.2
 
-#### The following steps should be used to test the RDAP protocol section 3.2 of the
+Test group: [tigSection_3_2_Validation]
 
-#### RDAP_Technical_Implementation_Guide_2_1:
+The following steps should be used to test the RDAP protocol section 3.2 of the RDAP_Technical_Implementation_Guide_2_1:
 
-1. Validate that a links data structure in the topmost object exists, and the links object
-    shall contain the elements _rel_ :related and _href_.
-    {
-    "code": - 23200 ,
-    "value": "<links data structure>",
-    "message": "A links data structure in the topmost object exists, and the
-    links object shall contain the elements rel:related and href, but they were not
-    found. See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1."
-    }
+1. Validate that a links data structure in the topmost object exists, and the links object shall contain the elements _rel_ :related and _href_.
+``` json
+{
+  "code": -23200,
+  "value": "<links data structure>",
+  "message": "A links data structure in the topmost object exists, and the links object shall contain the elements rel:related and href, but they were not found. See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
 
+### 8.2.3. TIG Section 6.1
 
-#### 8.2.3. [tigSection_6_1_Validation]
+Test group: [tigSection_6_1_Validation]
 
-#### The following steps should be used to test the RDAP protocol section 6.1 of the
+The following steps should be used to test the RDAP protocol section 6.1 of the RDAP_Technical_Implementation_Guide_2_1:
 
-#### RDAP_Technical_Implementation_Guide_2_1:
+1. For the _entity_ with the registrar role within the domain object, validate that a _publicIds_ member is included.
+``` json
+{
+  "code": -23300,
+  "value": "<entity data structure>",
+  "message": "A publicIds member is not included in the entity with the registrar role."
+}
+```
+2. For the _entity_ with the registrar role within the domain object, if a _publicIds_ member is included, validate that the identifier member is a positive integer.
+``` json
+{
+  "code": -23301,
+  "value": "<publicIds data structure>",
+  "message": "The identifier of the publicIds member of the entity with the registrar role is not a positive integer."
+}
+```
 
-1. For the _entity_ with the registrar role within the domain object, validate that a _publicIds_
-    member is included.
-    {
-    "code": - 23300 ,
-    "value": "<entity data structure>",
-    "message": "A publicIds member is not included in the entity with the
-    registrar role."
-    }
-2. For the _entity_ with the registrar role within the domain object, if a _publicIds_ member is
-    included, validate that the identifier member is a positive integer.
-    {
-    "code": - 23301 ,
-    "value": "<publicIds data structure>",
-    "message": "The identifier of the publicIds member of the entity with the
-    registrar role is not a positive integer."
-    }
+## 8.3. Technical Implementation Guide – Registrar
 
+### 8.3.1. TIG Section 1.12.1
 
-### 8.3. Technical Implementation Guide – Registrar
+Test group:[tigSection_1_12_1_Validation]
 
-#### 8.3.1. [tigSection_1_12_1_Validation]
-
-#### The following steps should be used to test the RDAP protocol section 1.12.1 of the
-
-#### RDAP_Technical_Implementation_Guide_2_1:
+The following steps should be used to test the RDAP protocol section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1:
 
 1. Get the identifier in the _publicIds_ element in the _entity_ with the registrar role.
-    {
-    "code": - 26100 ,
-    "value": "<publicIds data structure>",
-    "message": "An identifier in the publicIds within the entity data
-    structure with the registrar role was not found. See section 1.12.1 of the
-    RDAP_Technical_Implementation_Guide_2_1."
-    }
-2. For the _identifier_ found in the previous step, validate that an entry exists in the
-    **registrarId**.
-    {
-    "code": - 26101 ,
-    "value": "<identifier> "\n/\n" <registrarId>",
-    "message": "The registrar identifier is not included in the registrarId.
-    See section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1."
-    }
-3. For the _identifier_ found in the previous step, verify that every of the base URLs contain a
-    schema of "https".
-    {
-    "code": - 26102 ,
-    "value": "<Registrar entry in registrarId>",
-    "message": "One or more of the base URLs for the registrar contain a
-    schema different from https. See section 1.2 of the
-    RDAP_Technical_Implementation_Guide_2_1."
-    }
+``` json
+{
+  "code": -26100,
+  "value": "<publicIds data structure>",
+  "message": "An identifier in the publicIds within the entity data structure with the registrar role was not found. See section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
+2. For the _identifier_ found in the previous step, validate that an entry exists in the **registrarId**.
+``` json
+{
+  "code": -26101,
+  "value": "<identifier> '\n/\n' <registrarId>",
+  "message": "The registrar identifier is not included in the registrarId. See section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
+3. For the _identifier_ found in the previous step, verify that every of the base URLs contain a schema of "https".
+``` json
+{
+  "code": -26102,
+  "value": "<Registrar entry in registrarId>",
+  "message": "One or more of the base URLs for the registrar contain a schema different from https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1."
+}
+```
 
 
-### 8.4. RDAP Response Profile - General
+## 8.4. RDAP Response Profile - General
 
-#### 8.4.1. [rdapResponseProfile_1_2_2_Validation]
+### 8.4.1. RP 1.2.2
 
-#### The following steps should be used to test the RDAP protocol section 1.2.2 of the
+Test group: [rdapResponseProfile_1_2_2_Validation]
 
-#### RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 1.2.2 of the RDAP_Response_Profile_2_1:
 
-1. Validate that the RDAP response does not contain browser executable code (e.g.,
-    JavaScript).
-    {
-    "code": - 40100 ,
-    "value": "<rdap response>",
-    "message": "The RDAP response contains browser executable code (e.g.,
-    JavaScript). See section 1.2.2 of the RDAP_Response_Profile_2_1.""
-    }
+1. Validate that the RDAP response does not contain browser executable code (e.g., JavaScript).
+``` json
+{
+  "code": -40100,
+  "value": "<rdap response>",
+  "message": "The RDAP response contains browser executable code (e.g., JavaScript). See section 1.2.2 of the RDAP_Response_Profile_2_1.""
+}
+```
 
-#### Note: a library for HTML sanitizing (https://en.wikipedia.org/wiki/HTML_sanitization)
-
-#### may be used for this test.
+Note: a library for HTML sanitizing (https://en.wikipedia.org/wiki/HTML_sanitization) may be used for this test.
 
 #### 8.4.2. [rdapResponseProfile_1_3_Validation]
 
@@ -337,10 +306,8 @@ address has more than one line, it MUST be structured as an array of strings.
 
 #### RDAP_Response_Profile_2_1:
 
-1. Validate that the country name parameter is empty in the _adr_ of all the jCard objects in
-
+1. Validate that the country name parameter is empty in the _adr_ of all the jCard objects in the RDAP response.
 ```
-the RDAP response.
 {
 "code": - 40400 ,
 "value": "<vcard object>",
@@ -358,10 +325,8 @@ found. "
 
 #### and 4.4 of the RDAP_Response_Profile_2_1:
 
-1. Validate that an _eventAction_ type "last update of RDAP database" exists in events
-
+1. Validate that an _eventAction_ type "last update of RDAP database" exists in events structure included in the topmost object.
 ```
-structure included in the topmost object.
 {
 "code": - 43100 ,
 "value": "<events data structure>",
@@ -380,9 +345,8 @@ exists in the topmost events data structure. See section 2.3.1.3, 2.7.6, 3.3 and
 #### RDAP_Response_Profile_2_1:
 
 1. If domain/<domain name> in the RDAP Query URI contains only A-label or NR-LDH
-
-```
 labels, the topmost domain object shall contain a ldhName.
+```
 {
 "code": - 46100 ,
 "value": "<domain object>",
@@ -392,9 +356,8 @@ RDAP_Response_Profile_2_1."
 }
 ```
 2. If domain/<domain name> in the RDAP Query URI contains one or more U-label, the
-
-```
 topmost domain object shall contain an unicodeName.
+```
 {
 "code": - 46101 ,
 "value": "<domain object>",
