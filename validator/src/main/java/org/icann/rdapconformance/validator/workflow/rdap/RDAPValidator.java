@@ -22,6 +22,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
+import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
@@ -82,7 +83,14 @@ public class RDAPValidator implements ValidatorWorkflow {
             logger.error("Please fix the configuration");
             throw new RuntimeException("Please fix the configuration");
         }
-        this.queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance();
+
+        // TODO: find a cleaner way to do this.
+        if(config.isNetworkEnabled()) {
+            this.queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance();
+        } else {
+            this.queryTypeProcessor = RDAPFileQueryTypeProcessor.getInstance(config);
+        }
+
         this.results = RDAPValidatorResultsImpl.getInstance();
         RDAPValidator.datasetService = datasetService;
     }
