@@ -299,7 +299,7 @@ public void testAllCodesThatShouldBeIgnored() {
     public void testNonIgnoredCodeWithZeroStatus() {
         RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
         results.clear();
-        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
+        results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(0).build());
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(200).build());
 
         results.analyzeResultsWithStatusCheck();
@@ -523,7 +523,7 @@ public void testAllCodesThatShouldBeIgnored() {
     public void testAnalyzeResultsWithStatusCheck_StatusCodeNormalization() {
         // Test Status code normalization (null to 0)
         Set<RDAPValidationResult> testResults = new HashSet<>();
-        testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
+        testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(0).build());
         testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
 
         RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
