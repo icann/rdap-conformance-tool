@@ -117,7 +117,8 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
       }
     } else {
       // we are not using HTTP, we should be using a file
-      if (!this.queryType.isLookupQuery()) {
+      // apparently all types are allowed atm.
+      if (this.queryType == null) {
         logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
         return ToolResult.UNSUPPORTED_QUERY.getCode();
       }
