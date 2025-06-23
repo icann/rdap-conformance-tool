@@ -42,7 +42,8 @@ public class DNSCacheResolver {
         resolver = r;
     }
 
-    private DNSCacheResolver() {}
+    private DNSCacheResolver() {
+    }
 
     public static void initFromUrl(String url) {
         logger.info("Trying to lookup FQDN for URL: {}", url);
@@ -174,7 +175,9 @@ public class DNSCacheResolver {
                     }
                 }
 
-                if (!foundCname) break;
+                if (!foundCname) {
+                    break;
+                }
 
             } catch (Exception e) {
                 logger.error("Error resolving {} [{}]", currentName, Type.string(type), e);
@@ -206,10 +209,11 @@ public class DNSCacheResolver {
         return host.endsWith(DOT) ? host : host + DOT;
     }
 
-    public static void doZeroIPAddressesValidation(String url, boolean executeIPv6Queries, boolean executeIPv4Queries) throws Exception {
+    public static void doZeroIPAddressesValidation(String url, boolean executeIPv6Queries, boolean executeIPv4Queries) {
         String hostname = getHostnameFromUrl(url);
         if (hostname.isEmpty()) {
-            addErrorToResultsFile(-13019, "no response available", "Unable to resolve an IP address endpoint using DNS.");
+            addErrorToResultsFile(-13019, "no response available",
+                "Unable to resolve an IP address endpoint using DNS.");
             return;
         }
 
@@ -225,7 +229,8 @@ public class DNSCacheResolver {
                                             .httpStatusCode(ZERO)
                                             .code(-13019)
                                             .value("no response available")
-                                            .message("Unable to resolve an IP address endpoint using DNS.").build());
+                                            .message("Unable to resolve an IP address endpoint using DNS.")
+                                            .build());
             return;
         }
 
@@ -238,7 +243,22 @@ public class DNSCacheResolver {
                                             .httpStatusCode(ZERO)
                                             .code(-20400)
                                             .value(hostname)
-                                            .message("No IPv4 address records (A) could be resolved in DNS for this service. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1..").build());
+                                            .message(
+                                                "The RDAP service is not provided over IPv4 or contains invalid addresses. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1..")
+                                            .build());
+        }
+
+        if (executeIPv6Queries && !hasV6) {
+            results.add(RDAPValidationResult.builder()
+                                            .acceptHeader(DASH)
+                                            .queriedURI(DASH)
+                                            .httpMethod(DASH)
+                                            .httpStatusCode(ZERO)
+                                            .code(-20401)
+                                            .value(hostname)
+                                            .message(
+                                                "The RDAP service is not provided over IPv6 or contains invalid addresses. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1..")
+                                            .build());
         }
     }
 }
