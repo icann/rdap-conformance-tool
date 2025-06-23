@@ -52,23 +52,6 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     public RDAPHttpQuery(RDAPValidatorConfiguration config) {
         this.config = config;
-        // If the URI scheme is "https", the tool enables OCSP and CRL checks for certificate revocation.
-        // - The tool uses the default Java trust manager, so it will attempt to validate the certificate chain against trusted CAs.
-        // - If the certificate is revoked (as indicated by OCSP or CRL), the connection is treated as an error.
-        // - If OCSP or CRL information is unavailable, the behavior depends on the Java implementation and may result in a connection failure.
-        // - Untrusted root or self-signed certificates are ignored for trust validation errors, but other certificate errors may still cause failure.
-        Security.setProperty("ocsp.enable", String.valueOf(true));
-        System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
-        System.setProperty("com.sun.security.enableCRLDP", String.valueOf(true));
-        System.setProperty("com.sun.net.ssl.checkRevocation", String.valueOf(true));
-        System.setProperty("jdk.tls.client.enableSessionTicketExtension", "false");
-        System.setProperty("jdk.tls.disableCompression", "true");
-
-        // All these have proved useful at one time or another in the past - Turn on whatever level you need for debugging
-        //  System.setProperty("javax.net.debug", "all");
-        //  System.setProperty("javax.net.debug", "ssl");
-        //  System.setProperty("javax.net.debug", "ssl:handshake:verbose");
-        //  System.setProperty("java.net.debug", "all");
     }
 
     /**

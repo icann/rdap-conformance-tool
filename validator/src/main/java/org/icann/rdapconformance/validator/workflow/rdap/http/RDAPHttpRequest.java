@@ -537,10 +537,6 @@ public class RDAPHttpRequest {
 
                 // Check revocation status, but catch and rethrow only revocation errors
                 try {
-                    // Force revocation check through OCSP/CRL
-                    Security.setProperty("ocsp.enable", "true");
-                    System.setProperty("com.sun.security.enableCRLDP", "true");
-
                     // Use the default trust manager to check the cert chain
                     finalDefaultTm.checkServerTrusted(chain, authType);
                 } catch (Exception e) {

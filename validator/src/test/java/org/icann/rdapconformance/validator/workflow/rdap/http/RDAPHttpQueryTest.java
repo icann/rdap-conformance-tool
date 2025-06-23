@@ -16,6 +16,7 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.security.Security;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -500,6 +501,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     @Test(dataProvider = "tlsErrors")
     public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,
                                                                              ConnectionStatus expectedStatus) {
+        // These need to be set before the first call to RDAPHttpQuery.run()
+        System.setProperty("com.sun.net.ssl.checkRevocation", "true");
+        System.setProperty("com.sun.security.enableCRLDP", "true");
+        Security.setProperty("ocsp.enable", "true");
+        System.setProperty("jdk.tls.client.enableSessionTicketExtension", "false");
+        System.setProperty("jdk.tls.disableCompression", "true");
         doReturn(URI.create(url)).when(config).getUri();
 
         assertThat(rdapHttpQuery.run()).isFalse();
