@@ -46,43 +46,99 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private FileSystem fileSystem = new LocalFileSystem();
 
   @Option(names = {"-c", "--config"}, description = "Definition file", required = true)
-  public String configurationFile;
+  String configurationFile;
 
   @Option(names = {"--timeout"},
       description = "Timeout for connecting to the server", defaultValue = "20")
-  public int timeout = 20;
+  private int timeout = 20;
 
   @Option(names = {"--maximum-redirects"},
       description = "Maximum number of redirects to follow", defaultValue = "3")
-  public int maxRedirects = 3;
+  private int maxRedirects = 3;
 
   @Option(names = {"--use-local-datasets"},
       description = "Use locally-persisted datasets", defaultValue = "false")
-  public boolean useLocalDatasets = false;
+  private boolean useLocalDatasets = false;
 
   @Option(names = {"--results-file"}, description = "File to store the validation results",  hidden = true)
-  public String resultsFile;
+  private String resultsFile;
 
   @Option(names = {"--no-ipv4-queries"}, description = "No queries over IPv4 are to be issued")
-  public boolean executeIPv4Queries = true;
+  private boolean executeIPv4Queries = true;
 
   @Option(names = {"--no-ipv6-queries"}, description = "No queries over IPv6 are to be issued")
-  public boolean executeIPv6Queries = true;
+  private boolean executeIPv6Queries = true;
 
   @Option(names = {"--additional-conformance-queries"}, description = "Additional queries '/help' and 'not-a-domain.invalid' to be issued")
-  public boolean additionalConformanceQueries = false;
+  private boolean additionalConformanceQueries = false;
 
   @ArgGroup(exclusive = false)
-  public DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
+  private DependantRdapProfileGtld dependantRdapProfileGtld = new DependantRdapProfileGtld();
 
   @Option(names = {"--query-type"}, hidden = true)
   RDAPQueryType queryType;
 
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
-  public boolean isVerbose = false;
+  private boolean isVerbose = false;
 
   private boolean networkEnabled  = true;
+public void setConfigurationFile(String configurationFile) {
+    this.configurationFile = configurationFile;
+}
 
+public void setTimeout(int timeout) {
+    this.timeout = timeout;
+}
+
+public void setMaxRedirects(int maxRedirects) {
+    this.maxRedirects = maxRedirects;
+}
+
+public void setUseLocalDatasets(boolean useLocalDatasets) {
+    this.useLocalDatasets = useLocalDatasets;
+}
+
+public void setResultsFile(String resultsFile) {
+    this.resultsFile = resultsFile;
+}
+
+public void setExecuteIPv4Queries(boolean executeIPv4Queries) {
+    this.executeIPv4Queries = executeIPv4Queries;
+}
+
+public void setExecuteIPv6Queries(boolean executeIPv6Queries) {
+    this.executeIPv6Queries = executeIPv6Queries;
+}
+
+public void setAdditionalConformanceQueries(boolean additionalConformanceQueries) {
+    this.additionalConformanceQueries = additionalConformanceQueries;
+}
+
+public void setUseRdapProfileFeb2024(boolean value) {
+    this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2024 = value;
+}
+
+public void setUseRdapProfileFeb2019(boolean value) {
+    this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2019 = value;
+}
+
+public void setGtldRegistry(boolean value) {
+    this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.dependantRegistryThin.gtldRegistry = value;
+}
+
+public void setGtldRegistrar(boolean value) {
+    this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.gtldRegistrar = value;
+}
+
+public void setThin(boolean value) {
+    this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.dependantRegistryThin.thin = value;
+}
+
+
+
+public void setVerbose(boolean isVerbose) {
+    this.isVerbose = isVerbose;
+}
   @Override
   public Integer call() throws Exception {
 
@@ -109,10 +165,19 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     }
 
     // Get the queryType - bail out if it is not correct
-    RDAPHttpQueryTypeProcessor queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
-    if(!queryTypeProcessor.check(datasetService)) {
-      logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
-      return queryTypeProcessor.getErrorStatus().getCode();
+    if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
+      RDAPHttpQueryTypeProcessor queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
+      if (!queryTypeProcessor.check(datasetService)) {
+        logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
+        return queryTypeProcessor.getErrorStatus().getCode();
+      }
+    } else {
+      // we are not using HTTP, we should be using a file
+      // apparently all types are allowed atm.
+      if (this.queryType == null) {
+        logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
+        return ToolResult.UNSUPPORTED_QUERY.getCode();
+      }
     }
 
     // DEPRECATED - we used to do this, but we no longer do so
@@ -295,48 +360,49 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     return additionalConformanceQueries;
   }
 
-  public static class DependantRdapProfileGtld {
+  private static class DependantRdapProfileGtld {
     @ArgGroup(multiplicity = "1", exclusive = false)
-    public ExclusiveRdapProfile exclusiveRdapProfile = new ExclusiveRdapProfile();
+    ExclusiveRdapProfile exclusiveRdapProfile = new ExclusiveRdapProfile();
   }
 
-  public static class ExclusiveRdapProfile {
+  private static class ExclusiveRdapProfile {
 
     @ArgGroup()
-    public DependantRdapProfile dependantRdapProfile = new DependantRdapProfile();
+    private DependantRdapProfile dependantRdapProfile = new DependantRdapProfile();
 
     @ArgGroup(multiplicity = "1")
-    public ExclusiveGtldType exclusiveGtldType = new ExclusiveGtldType();
+    ExclusiveGtldType exclusiveGtldType = new ExclusiveGtldType();
+
   }
 
-  public static class DependantRdapProfile {
+  private static class DependantRdapProfile {
     @Option(names = {"--use-rdap-profile-february-2019"},
             description = "Use RDAP Profile February 2019", defaultValue = "false")
     boolean useRdapProfileFeb2019 = false;
     @Option(names = {"--use-rdap-profile-february-2024"},
             description = "Use RDAP Profile February 2024", defaultValue = "false", required = true)
-    public boolean useRdapProfileFeb2024 = false;
+    private boolean useRdapProfileFeb2024 = false;
   }
 
-  public static class ExclusiveGtldType {
+  private static class ExclusiveGtldType {
 
     @Option(names = {"--gtld-registrar"},
         description = "Validate the response as coming from a gTLD registrar",
         defaultValue = "false")
-    public boolean gtldRegistrar = false;
+    private boolean gtldRegistrar = false;
     @ArgGroup(exclusive = false)
-    public DependantRegistryThin dependantRegistryThin = new DependantRegistryThin();
+    private DependantRegistryThin dependantRegistryThin = new DependantRegistryThin();
   }
 
-  public static class DependantRegistryThin {
+  private static class DependantRegistryThin {
 
     @Option(names = {"--gtld-registry"},
         description = "Validate the response as coming from a gTLD registry",
         required = true)
-    public boolean gtldRegistry;
+    private boolean gtldRegistry;
     @Option(names = {"--thin"},
         description = "The TLD uses the thin model", defaultValue = "false")
-    public boolean thin = false;
+    private boolean thin = false;
   }
 }
 
