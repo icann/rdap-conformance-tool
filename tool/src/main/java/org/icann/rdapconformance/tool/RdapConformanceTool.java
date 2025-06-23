@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger;
 
 import java.io.File;
 import java.net.URI;
+import java.security.Security;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -141,6 +142,18 @@ public void setVerbose(boolean isVerbose) {
 }
   @Override
   public Integer call() throws Exception {
+    // these must be set before we do anything else
+    System.setProperty("com.sun.net.ssl.checkRevocation", "true");
+    System.setProperty("com.sun.security.enableCRLDP", "true");
+    Security.setProperty("ocsp.enable", "true");
+    System.setProperty("jdk.tls.client.enableSessionTicketExtension", "false");
+    System.setProperty("jdk.tls.disableCompression", "true");
+
+    // All these have proved useful at one time or another in the past - Turn on whatever level you need for debugging
+    //  System.setProperty("javax.net.debug", "all");
+    //  System.setProperty("javax.net.debug", "ssl");
+    //  System.setProperty("javax.net.debug", "ssl:handshake:verbose");
+    //  System.setProperty("java.net.debug", "all");
 
     if (!isVerbose) {
       Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
