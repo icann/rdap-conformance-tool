@@ -82,7 +82,63 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private boolean isVerbose = false;
 
   private boolean networkEnabled  = true;
+public void setConfigurationFile(String configurationFile) {
+    this.configurationFile = configurationFile;
+}
 
+public void setTimeout(int timeout) {
+    this.timeout = timeout;
+}
+
+public void setMaxRedirects(int maxRedirects) {
+    this.maxRedirects = maxRedirects;
+}
+
+public void setUseLocalDatasets(boolean useLocalDatasets) {
+    this.useLocalDatasets = useLocalDatasets;
+}
+
+public void setResultsFile(String resultsFile) {
+    this.resultsFile = resultsFile;
+}
+
+public void setExecuteIPv4Queries(boolean executeIPv4Queries) {
+    this.executeIPv4Queries = executeIPv4Queries;
+}
+
+public void setExecuteIPv6Queries(boolean executeIPv6Queries) {
+    this.executeIPv6Queries = executeIPv6Queries;
+}
+
+public void setAdditionalConformanceQueries(boolean additionalConformanceQueries) {
+    this.additionalConformanceQueries = additionalConformanceQueries;
+}
+
+public void setUseRdapProfileFeb2024(boolean value) {
+    this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2024 = value;
+}
+
+public void setUseRdapProfileFeb2019(boolean value) {
+    this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2019 = value;
+}
+
+public void setGtldRegistry(boolean value) {
+    this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.dependantRegistryThin.gtldRegistry = value;
+}
+
+public void setGtldRegistrar(boolean value) {
+    this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.gtldRegistrar = value;
+}
+
+public void setThin(boolean value) {
+    this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.dependantRegistryThin.thin = value;
+}
+
+
+
+public void setVerbose(boolean isVerbose) {
+    this.isVerbose = isVerbose;
+}
   @Override
   public Integer call() throws Exception {
 
