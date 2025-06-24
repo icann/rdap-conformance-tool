@@ -263,6 +263,7 @@ public void setVerbose(boolean isVerbose) {
 
       // now the results file is set, print the path
       logger.info("Results file: {}",  validator.getResultsPath());
+      setResultsFile(validator.getResultsPath());
 
       // Having network issues? You WILL need this.
       logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
@@ -284,6 +285,7 @@ public void setVerbose(boolean isVerbose) {
       return ToolResult.FILE_WRITE_ERROR.getCode();
     }
     logger.info("Results file: {}",  validator.getResultsPath());
+    setResultsFile(validator.getResultsPath());
     return file_exit_code;
   }
 
