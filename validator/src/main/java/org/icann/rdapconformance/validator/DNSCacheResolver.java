@@ -244,7 +244,7 @@ public class DNSCacheResolver {
                                             .code(-20400)
                                             .value(hostname)
                                             .message(
-                                                "The RDAP service is not provided over IPv4 or contains invalid addresses. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1..")
+                                                "The RDAP service is not provided over IPv4 or contains invalid addresses. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1.")
                                             .build());
         }
 
@@ -257,7 +257,7 @@ public class DNSCacheResolver {
                                             .code(-20401)
                                             .value(hostname)
                                             .message(
-                                                "The RDAP service is not provided over IPv6 or contains invalid addresses. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1..")
+                                                "The RDAP service is not provided over IPv6 or contains invalid addresses. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1.")
                                             .build());
         }
     }
