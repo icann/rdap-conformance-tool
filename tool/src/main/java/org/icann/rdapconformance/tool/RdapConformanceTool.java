@@ -160,6 +160,11 @@ public void setVerbose(boolean isVerbose) {
       root.setLevel(Level.ERROR);
     }
 
+    if (!executeIPv4Queries && !executeIPv6Queries) {
+      logger.error(ToolResult.BAD_USER_INPUT.getDescription());
+      return ToolResult.BAD_USER_INPUT.getCode();
+    }
+
     // No matter which validator, we need to initialize the dataset service
     RDAPDatasetService datasetService = CommonUtils.initializeDataSet(this);
     // if we couldn't do it - exit

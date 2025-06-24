@@ -99,7 +99,6 @@ public class RdapConformanceToolTest {
 
   @Test
   public void testConfigFileFailure() throws Exception {
-    // Setup dataset to return successfully
     RDAPDatasetService mockDatasetService = mock(RDAPDatasetService.class);
 
     try (MockedStatic<CommonUtils> mockedCommonUtils = Mockito.mockStatic(CommonUtils.class)) {
@@ -114,11 +113,9 @@ public class RdapConformanceToolTest {
 
   @Test
   public void testQueryTypeFailure() throws Exception {
-    // Setup mocks for dataset and config file to return successfully
     RDAPDatasetService mockDatasetService = mock(RDAPDatasetService.class);
     ConfigurationFile mockConfigFile = mock(ConfigurationFile.class);
 
-    // Mock query type processor to fail validation
     RDAPHttpQueryTypeProcessor mockProcessor = mock(RDAPHttpQueryTypeProcessor.class);
     when(mockProcessor.check(any())).thenReturn(false);
     when(mockProcessor.getErrorStatus()).thenReturn(ToolResult.UNSUPPORTED_QUERY);
@@ -135,11 +132,11 @@ public class RdapConformanceToolTest {
     }
   }
 
-  // TODO: when do we fail on the THIN?
+  // TODO: when do we fail on the THIN? Ever?
   @Ignore
   @Test
   public void testThinModelEntityQueryFailure() throws Exception {
-    // Setup for thin model with entity query
+    // Setup for thin model with entity query -- this is a MUST
     tool.queryType = RDAPQueryType.ENTITY;
 
     // Create a tool with the thin model flag set
@@ -177,7 +174,6 @@ public void testBuildResultFileFailure() throws Exception {
     // Set required RDAP profile options using reflection
     setMandatoryRdapProfileOptions(tool);
 
-
     RDAPValidationResultFile mockResultFile = mock(RDAPValidationResultFile.class);
     RDAPFileValidator mockValidator = mock(RDAPFileValidator.class);
     when(mockResultFile.build()).thenReturn(false);
@@ -185,9 +181,16 @@ public void testBuildResultFileFailure() throws Exception {
     // Create a spy of the tool
     RdapConformanceTool spyTool = spy(tool);
 
-
     int result = spyTool.validateWithoutNetwork(mockResultFile, mockValidator);
     assertThat(result).isEqualTo(ToolResult.FILE_WRITE_ERROR.getCode());
+}
+
+@Test
+public void testNoIpv4AndNoIpv6QueriesReturnsBadUserInput() throws Exception {
+    tool.setExecuteIPv4Queries(false);
+    tool.setExecuteIPv6Queries(false);
+    int result = tool.call();
+    assertThat(result).isEqualTo(ToolResult.BAD_USER_INPUT.getCode());
 }
 
 // Helper method to set the mandatory RDAP profile options
