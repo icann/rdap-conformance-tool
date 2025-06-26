@@ -9,6 +9,7 @@ import java.security.Security;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -249,11 +250,13 @@ public void setVerbose(boolean isVerbose) {
         logger.info("Unable to resolve an IP address endpoint using DNS for uri:  "  + DNSCacheResolver.getHostnameFromUrl(uri.toString()));
       }
 
-      if(ConnectionTracker.getInstance().isResourceNotFoundNoteWarning()) {
+
+      if(ConnectionTracker.getInstance().isResourceNotFoundNoteWarning(this)) {
         logger.info("All HEAD and Main queries returned a 404 Not Found response code.");
       } else {
         logger.info("At least one HEAD or Main query returned a non-404 Not Found response code.");
       }
+
 
       // Build the result file
        if(!resultFile.build()) {
@@ -264,6 +267,7 @@ public void setVerbose(boolean isVerbose) {
       // now the results file is set, print the path
       logger.info("Results file: {}",  validator.getResultsPath());
       setResultsFile(validator.getResultsPath());
+
 
       // Having network issues? You WILL need this.
       logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());

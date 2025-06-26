@@ -219,7 +219,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     // Use RDAPValidationResultFile's implementation to filter the results
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-    Set<RDAPValidationResult> filteredResults = resultFile.analyzeResultsWithStatusCheck(allResults);
+    Set<RDAPValidationResult> filteredResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(allResults);
 
     // Check that the filtered codes don't appear in the unique tuples that are checked
     // for status code differences (this is what the method actually does)
@@ -496,12 +496,12 @@ public void testAllCodesThatShouldBeIgnored() {
         Set<RDAPValidationResult> testResults = new HashSet<>();
 
         RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        Set<RDAPValidationResult> filtered = resultFile.analyzeResultsWithStatusCheck(testResults);
+        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
         assertTrue(filtered.isEmpty());
     }
 
     @Test
-    public void testAnalyzeResultsWithStatusCheck_UniqueTuples() {
+    public void testAddErrorIfAllQueriesDoNotReturnSame_StatusCode_UniqueTuples() {
         // Tests creating unique tuples with duplicate code/status combinations
         Set<RDAPValidationResult> testResults = new HashSet<>();
         testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
@@ -509,7 +509,7 @@ public void testAllCodesThatShouldBeIgnored() {
         testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
 
         RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        Set<RDAPValidationResult> filtered = resultFile.analyzeResultsWithStatusCheck(testResults);
+        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
 
         // Verify all unique code/status combinations are preserved
         assertTrue(filtered.stream().anyMatch(r -> r.getCode() == 1001 && r.getHttpStatusCode() == 200));
@@ -520,14 +520,14 @@ public void testAllCodesThatShouldBeIgnored() {
     }
 
     @Test
-    public void testAnalyzeResultsWithStatusCheck_StatusCodeNormalization() {
+    public void testAddErrorIfAllStatusCheck_StatusCodeNormalization() {
         // Test Status code normalization (null to 0)
         Set<RDAPValidationResult> testResults = new HashSet<>();
         testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(0).build());
         testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
 
         RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        Set<RDAPValidationResult> filtered = resultFile.analyzeResultsWithStatusCheck(testResults);
+        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
 
         // Verify results are maintained
         assertEquals(2, filtered.size());
@@ -537,14 +537,14 @@ public void testAllCodesThatShouldBeIgnored() {
     }
 
     @Test
-    public void testAnalyzeResultsWithStatusCheck_DifferentStatusCodes() {
+    public void testAddErrorIfAllStatusCheck_DifferentStatusCodes() {
         // Tests adding error code for different status codes
         Set<RDAPValidationResult> testResults = new HashSet<>();
         testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
         testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
 
         RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        Set<RDAPValidationResult> filtered = resultFile.analyzeResultsWithStatusCheck(testResults);
+        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
 
         // Verify the -13018 code is added
         assertTrue(filtered.stream().anyMatch(r -> r.getCode() == -13018));
