@@ -65,10 +65,12 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"--results-file"}, description = "File to store the validation results",  hidden = true)
   private String resultsFile;
 
-  @Option(names = {"--no-ipv4-queries"}, description = "No queries over IPv4 are to be issued")
-  private boolean executeIPv4Queries = true;
+  // IP version queries group
+  @ArgGroup(exclusive = true)
+  private IpVersionQueriesOptions ipVersionOptions;
 
-  @Option(names = {"--no-ipv6-queries"}, description = "No queries over IPv6 are to be issued")
+  // Default values when neither option is specified
+  private boolean executeIPv4Queries = true;
   private boolean executeIPv6Queries = true;
 
   @Option(names = {"--additional-conformance-queries"}, description = "Additional queries '/help' and 'not-a-domain.invalid' to be issued")
@@ -84,6 +86,16 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private boolean isVerbose = false;
 
   private boolean networkEnabled  = true;
+
+  // IP version query options as mutually exclusive group
+  private static class IpVersionQueriesOptions {
+    @Option(names = {"--no-ipv4-queries"}, description = "No queries over IPv4 are to be issued")
+    private boolean noIPv4Queries;
+
+    @Option(names = {"--no-ipv6-queries"}, description = "No queries over IPv6 are to be issued")
+    private boolean noIPv6Queries;
+  }
+
 public void setConfigurationFile(String configurationFile) {
     this.configurationFile = configurationFile;
 }
@@ -136,8 +148,6 @@ public void setThin(boolean value) {
     this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.dependantRegistryThin.thin = value;
 }
 
-
-
 public void setVerbose(boolean isVerbose) {
     this.isVerbose = isVerbose;
 }
@@ -159,6 +169,18 @@ public void setVerbose(boolean isVerbose) {
     if (!isVerbose) {
       Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
       root.setLevel(Level.ERROR);
+    }
+
+    // Update executeIP*Queries based on command line options if provided
+    if (ipVersionOptions != null) {
+      if (ipVersionOptions.noIPv4Queries) {
+        executeIPv4Queries = false;
+        executeIPv6Queries = true;
+      }
+      if (ipVersionOptions.noIPv6Queries) {
+        executeIPv6Queries = false;
+        executeIPv4Queries = true;
+      }
     }
 
     if (!executeIPv4Queries && !executeIPv6Queries) {
@@ -429,4 +451,3 @@ public void setVerbose(boolean isVerbose) {
     private boolean thin = false;
   }
 }
-
