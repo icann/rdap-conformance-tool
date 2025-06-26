@@ -420,7 +420,7 @@ public synchronized boolean isResourceNotFoundNoteWarning(RDAPValidatorConfigura
             // to get the error code we are looking for -> we also need to check the  config that a Gtld profile was selected AND there are no other errors;
             //  then and only then we put in the error code -13020
             if(config.useRdapProfileFeb2024() && RDAPValidationResultFile.getInstance().getErrorCount() < ONE  && (config.isGtldRegistrar() || config.isGtldRegistry())) {
-                CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL"
+                CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
                     + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
             }
         }
