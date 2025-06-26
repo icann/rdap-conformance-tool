@@ -24,6 +24,7 @@ public class CommonUtils {
     public static final String HTTP_PREFIX = "http://";
     public static final String HTTPS_PREFIX = "https://";
     public static final String SLASH = "/";
+    public static final String DOUBLE_SLASH = "//";
     public static final String SEP = "://";
     public static final String LOCALHOST = "localhost";
     public static final String LOCAL_IPv4 = "127.0.0.1";
@@ -94,9 +95,9 @@ public class CommonUtils {
 
     public static String cleanStringFromExtraSlash(String input) {
         if (input != null) {
-            String uriCleaned = input.replaceAll("//", "/");
-            if (uriCleaned.endsWith("/")) {
-                return input.substring(0, input.length() - 1);
+            String uriCleaned = input.replaceAll(DOUBLE_SLASH, SLASH);
+            if (uriCleaned.endsWith(SLASH)) {
+                return input.substring(ZERO, input.length() - ONE);
             }
         }
 

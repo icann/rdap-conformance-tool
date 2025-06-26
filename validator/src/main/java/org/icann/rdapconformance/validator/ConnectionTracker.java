@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator;
 
+import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
@@ -12,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -404,13 +408,20 @@ public class ConnectionTracker {
         }
     }
 
-public synchronized boolean isResourceNotFoundNoteWarning() {
+public synchronized boolean isResourceNotFoundNoteWarning(RDAPValidatorConfiguration config) {
     boolean foundRelevant = false;
     for (ConnectionRecord record : connections) {
-        if (record.isMainConnection() || "HEAD".equalsIgnoreCase(record.getHttpMethod())) {
+        if (record.isMainConnection() || HEAD.equalsIgnoreCase(record.getHttpMethod())) {
             foundRelevant = true;
-            if (record.getStatusCode() != 404) {
+            if (record.getStatusCode() != HTTP_NOT_FOUND) {
                 return false;
+            }
+            // It's ok to return true here so we can log the message in verbose mode, However....
+            // to get the error code we are looking for -> we also need to check the  config that a Gtld profile was selected AND there are no other errors;
+            //  then and only then we put in the error code -13020
+            if(config.useRdapProfileFeb2024() && RDAPValidationResultFile.getInstance().getErrorCount() < ONE  && (config.isGtldRegistrar() || config.isGtldRegistry())) {
+                CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL"
+                    + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
             }
         }
     }
