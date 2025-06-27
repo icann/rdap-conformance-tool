@@ -117,10 +117,18 @@ public void setResultsFile(String resultsFile) {
 
 public void setExecuteIPv4Queries(boolean executeIPv4Queries) {
     this.executeIPv4Queries = executeIPv4Queries;
+    // Ensure at least one protocol is enabled - if disabling IPv4, enable IPv6
+    if (!executeIPv4Queries && !this.executeIPv6Queries) {
+        this.executeIPv6Queries = true;
+    }
 }
 
 public void setExecuteIPv6Queries(boolean executeIPv6Queries) {
     this.executeIPv6Queries = executeIPv6Queries;
+    // Ensure at least one protocol is enabled - if disabling IPv6, enable IPv4
+    if (!executeIPv6Queries && !this.executeIPv4Queries) {
+        this.executeIPv4Queries = true;
+    }
 }
 
 public void setAdditionalConformanceQueries(boolean additionalConformanceQueries) {
@@ -182,6 +190,7 @@ public void setVerbose(boolean isVerbose) {
       }
     }
 
+    // we should never reach this point ... paranoid check
     if (!executeIPv4Queries && !executeIPv6Queries) {
       logger.error(ToolResult.BAD_USER_INPUT.getDescription());
       return ToolResult.BAD_USER_INPUT.getCode();
