@@ -14,6 +14,8 @@ public class UserInputValidator {
   public static String parseOptions(String[] args, RdapConformanceTool tool, CommandLine commandLine) {
     final String[] errorMessage = {null};
 
+    // most of this is  because Picoli wasn't detecting the logic and misuses around: --no-ipv(4|6)-queries
+    // hence you'll see most of it dedicated to that.
     commandLine.setParameterExceptionHandler((ex, params) -> {
       if (ex instanceof CommandLine.MutuallyExclusiveArgsException) {
         String message = ex.getMessage();
@@ -99,7 +101,7 @@ public class UserInputValidator {
           int firstClose = message.indexOf('}', firstEquals);
           String duplicatedOption = null;
           if (firstEquals > ZERO && firstClose > firstEquals) {
-            duplicatedOption = message.substring(firstEquals + 1, firstClose).trim();
+            duplicatedOption = message.substring(firstEquals + ONE, firstClose).trim();
             duplicatedOption = duplicatedOption.replace("{", "").replace("}", "");
             errorMessage[ZERO] = "Error: " + duplicatedOption + " should be specified only once";
           } else {
