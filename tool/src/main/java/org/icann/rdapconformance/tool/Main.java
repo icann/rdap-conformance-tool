@@ -6,8 +6,7 @@ import org.icann.rdapconformance.validator.ToolResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
-import picocli.CommandLine.ParameterException;
-import picocli.CommandLine.Model.OptionSpec;
+
 
 public class Main {
   private static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -22,44 +21,58 @@ public static void main(String[] args) {
 
       // Check for duplicate options pattern
       if (message.contains("expected only one match but got") && message.contains("and")) {
-        // Extract option name
-        String optionName = null;
+        // Parse which option was actually duplicated
+        // The pattern is: {...}={--option} and {...}={--option}
+        int firstEquals = message.indexOf('=');
+        int firstClose = message.indexOf('}', firstEquals);
 
-        if (message.contains("--no-ipv4-queries")) {
-          optionName = "--no-ipv4-queries";
-          System.err.println("Error: " + optionName + " should be specified only once");
-        } else if (message.contains("--no-ipv6-queries")) {
-          optionName = "--no-ipv6-queries";
-          System.err.println("Error: " + optionName + " should be specified only once");
+        String duplicatedOption = null;
+        if (firstEquals > ZERO && firstClose > firstEquals) {
+          // Extract the option between = and }
+          duplicatedOption = message.substring(firstEquals + 1, firstClose).trim();
+          // Remove the curly braces if present
+          duplicatedOption = duplicatedOption.replace("{", "").replace("}", "");
+
+          System.err.println("Error: " + duplicatedOption + " should be specified only once");
         } else {
-          // Default case - use original message
+          // Fallback to original message if parsing fails
           System.err.println(message);
         }
       } else {
         // True mutually exclusive case (one of each option)
         System.err.println("Error: --no-ipv4-queries, --no-ipv6-queries are mutually exclusive (specify only one)");
       }
-    } else if (ex instanceof CommandLine.OverwrittenOptionException) {
-      CommandLine.OverwrittenOptionException overwrittenEx = (CommandLine.OverwrittenOptionException) ex;
-      String optionName = "";
-
-      if (overwrittenEx.getOverwritten() instanceof OptionSpec) {
-        optionName = ((OptionSpec) overwrittenEx.getOverwritten()).longestName();
-      } else {
-        optionName = overwrittenEx.getOverwritten().toString();
-      }
-
-      System.err.println("Error: " + optionName + " should be specified only once");
     } else if (ex instanceof CommandLine.MaxValuesExceededException) {
-      // Handle MaxValuesExceededException which occurs with duplicate options
       String message = ex.getMessage();
-      System.out.println("------> Error: " + message);
+      // Extract option name directly from the exception
+      CommandLine.MaxValuesExceededException maxValuesEx = (CommandLine.MaxValuesExceededException) ex;
       String optionName = null;
 
-      if (message.contains("--no-ipv4-queries")) {
+      // Directly check the command line arguments to determine which option was duplicated
+      String[] arguments = params;
+      int ipv4Count = ZERO;
+      int ipv6Count = ZERO;
+
+      for (String arg : arguments) {
+        if ("--no-ipv4-queries".equals(arg)) {
+          ipv4Count++;
+        } else if ("--no-ipv6-queries".equals(arg)) {
+          ipv6Count++;
+        }
+      }
+
+      if (ipv4Count > 1) {
         optionName = "--no-ipv4-queries";
-      } else if (message.contains("--no-ipv6-queries")) {
+      } else if (ipv6Count > 1) {
         optionName = "--no-ipv6-queries";
+      } else {
+        // Fallback to checking the message if counting didn't work
+        String msg = maxValuesEx.getMessage();
+        if (msg.contains("--no-ipv4-queries")) {
+          optionName = "--no-ipv4-queries";
+        } else if (msg.contains("--no-ipv6-queries")) {
+          optionName = "--no-ipv6-queries";
+        }
       }
 
       if (optionName != null) {
@@ -67,8 +80,6 @@ public static void main(String[] args) {
       } else {
         System.err.println(message);
       }
-    } else {
-      System.err.println(ex.getMessage());
     }
 
     if (!CommandLine.UnmatchedArgumentException.class.isAssignableFrom(ex.getClass())) {
@@ -82,5 +93,4 @@ public static void main(String[] args) {
   int exitCode = commandLine.execute(args);
   System.exit(exitCode);
 }
-
 }
