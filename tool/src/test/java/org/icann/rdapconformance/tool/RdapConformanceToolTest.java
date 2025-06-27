@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.tool;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.fail;
 
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -30,7 +28,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
-import picocli.CommandLine;
 
 public class RdapConformanceToolTest {
 
@@ -230,7 +227,6 @@ private void setMandatoryRdapProfileOptions(RdapConformanceTool tool) throws Exc
     gtldRegistryField.setAccessible(true);
     gtldRegistryField.set(dependantRegistryThin, true);
 }
-
 
   // Helper class for thin model testing
   private static class TestRdapConformanceTool extends RdapConformanceTool {
