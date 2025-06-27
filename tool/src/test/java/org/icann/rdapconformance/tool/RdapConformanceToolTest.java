@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.tool;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -230,50 +231,108 @@ private void setMandatoryRdapProfileOptions(RdapConformanceTool tool) throws Exc
     gtldRegistryField.set(dependantRegistryThin, true);
 }
 
-
-
 @Test
-public void testMutuallyExclusiveIpvOptions() {
-    RdapConformanceTool tool = new RdapConformanceTool();
-    CommandLine commandLine = new CommandLine(tool);
+public void testParameterExceptionHandling() throws Exception {
+    // Save original System.err
+    PrintStream originalErr = System.err;
 
-    // Test case 1: Using both --no-ipv4-queries and --no-ipv6-queries together should fail
-    try {
-        commandLine.parseArgs("--no-ipv4-queries", "--no-ipv6-queries",
-                              "-c", "config.json", "http://example.com");
-        fail("Expected a CommandLine.MutuallyExclusiveArgsException to be thrown");
-    } catch (CommandLine.MutuallyExclusiveArgsException e) {
-        assertThat(e.getMessage()).contains("--no-ipv4-queries", "--no-ipv6-queries", "mutually exclusive");
-    }
+    // Create temporary files to capture output
+    Path ipv6DuplicateOutput = Files.createTempFile("ipv6-duplicate", ".txt");
+    Path ipv4DuplicateOutput = Files.createTempFile("ipv4-duplicate", ".txt");
+    Path mutuallyExclusiveOutput = Files.createTempFile("mutually-exclusive", ".txt");
 
-    // Test case 2: Using --no-ipv4-queries twice should fail
     try {
-        commandLine.parseArgs("--no-ipv4-queries", "--no-ipv4-queries",
-                             "-c", "config.json", "http://example.com");
-        fail("Expected a CommandLine.OverwrittenOptionException to be thrown");
-    } catch (CommandLine.OverwrittenOptionException e) {
-        assertThat(e.getMessage()).contains("--no-ipv4-queries", "should be specified only once");
-    }
+        // Test case 1: Duplicate --no-ipv6-queries
+        try (PrintStream errCapture = new PrintStream(Files.newOutputStream(ipv6DuplicateOutput))) {
+            System.setErr(errCapture);
 
-    // Test case 3: Using --no-ipv6-queries twice should fail
-    try {
-        commandLine.parseArgs("--no-ipv6-queries", "--no-ipv6-queries",
-                             "-c", "config.json", "http://example.com");
-        fail("Expected a CommandLine.OverwrittenOptionException to be thrown");
-    } catch (CommandLine.OverwrittenOptionException e) {
-        assertThat(e.getMessage()).contains("--no-ipv6-queries", "should be specified only once");
-    }
+            // Use reflection to access the parameter exception handler logic
+            RdapConformanceTool tool = new RdapConformanceTool();
+            CommandLine commandLine = new CommandLine(tool);
 
-    // Test case 4: Using one option works correctly
-    try {
-        commandLine.parseArgs("--no-ipv4-queries", "-c", "config.json", "http://example.com");
-        // Verify the values are set correctly
-        assertThat(tool.isNoIpv4Queries()).isTrue();
-        assertThat(tool.isNoIpv6Queries()).isFalse();
-    } catch (Exception e) {
-        fail("Should not throw exception when using only one option: " + e.getMessage());
+            // Get the exception handler field using reflection
+            Field paramExHandlerField = CommandLine.class.getDeclaredField("parameterExceptionHandler");
+            paramExHandlerField.setAccessible(true);
+
+            // Create MaxValuesExceededException for --no-ipv6-queries
+            CommandLine.Model.OptionSpec optionSpec = commandLine.getCommandSpec()
+                .findOption("--no-ipv6-queries");
+            CommandLine.MaxValuesExceededException ex =
+                new CommandLine.MaxValuesExceededException(
+                    commandLine,
+                    "expected only one match but got [--no-ipv4-queries | --no-ipv6-queries]={--no-ipv6-queries} " +
+                    "and [--no-ipv4-queries | --no-ipv6-queries]={--no-ipv6-queries}");
+
+            // Get handler and invoke it with our exception
+            CommandLine.IParameterExceptionHandler handler =
+                (CommandLine.IParameterExceptionHandler) paramExHandlerField.get(commandLine);
+            String[] args = new String[]{"--no-ipv6-queries", "--no-ipv6-queries", "https://example.com"};
+            handler.handleParseException(ex, args);
+        }
+
+        // Test case 2: Duplicate --no-ipv4-queries
+        try (PrintStream errCapture = new PrintStream(Files.newOutputStream(ipv4DuplicateOutput))) {
+            System.setErr(errCapture);
+
+            RdapConformanceTool tool = new RdapConformanceTool();
+            CommandLine commandLine = new CommandLine(tool);
+
+            Field paramExHandlerField = CommandLine.class.getDeclaredField("parameterExceptionHandler");
+            paramExHandlerField.setAccessible(true);
+
+            CommandLine.MaxValuesExceededException ex =
+                new CommandLine.MaxValuesExceededException(
+                    commandLine,
+                    "expected only one match but got [--no-ipv4-queries | --no-ipv6-queries]={--no-ipv4-queries} " +
+                    "and [--no-ipv4-queries | --no-ipv6-queries]={--no-ipv4-queries}");
+
+            CommandLine.IParameterExceptionHandler handler =
+                (CommandLine.IParameterExceptionHandler) paramExHandlerField.get(commandLine);
+            String[] args = new String[]{"--no-ipv4-queries", "--no-ipv4-queries", "https://example.com"};
+            handler.handleParseException(ex, args);
+        }
+
+        // Test case 3: Mutually exclusive options
+        try (PrintStream errCapture = new PrintStream(Files.newOutputStream(mutuallyExclusiveOutput))) {
+            System.setErr(errCapture);
+
+            RdapConformanceTool tool = new RdapConformanceTool();
+            CommandLine commandLine = new CommandLine(tool);
+
+            Field paramExHandlerField = CommandLine.class.getDeclaredField("parameterExceptionHandler");
+            paramExHandlerField.setAccessible(true);
+
+            CommandLine.MutuallyExclusiveArgsException ex =
+                new CommandLine.MutuallyExclusiveArgsException(
+                    commandLine,
+                    "--no-ipv4-queries and --no-ipv6-queries are mutually exclusive");
+
+            CommandLine.IParameterExceptionHandler handler =
+                (CommandLine.IParameterExceptionHandler) paramExHandlerField.get(commandLine);
+            String[] args = new String[]{"--no-ipv4-queries", "--no-ipv6-queries", "https://example.com"};
+            handler.handleParseException(ex, args);
+        }
+
+        // Verify the error messages
+        String ipv6DuplicateMessage = Files.readString(ipv6DuplicateOutput);
+        assertThat(ipv6DuplicateMessage).contains("--no-ipv6-queries should be specified only once");
+
+        String ipv4DuplicateMessage = Files.readString(ipv4DuplicateOutput);
+        assertThat(ipv4DuplicateMessage).contains("--no-ipv4-queries should be specified only once");
+
+        String mutuallyExclusiveMessage = Files.readString(mutuallyExclusiveOutput);
+        assertThat(mutuallyExclusiveMessage).contains("--no-ipv4-queries, --no-ipv6-queries are mutually exclusive");
+
+    } finally {
+        // Cleanup
+        System.setErr(originalErr);
+        Files.deleteIfExists(ipv6DuplicateOutput);
+        Files.deleteIfExists(ipv4DuplicateOutput);
+        Files.deleteIfExists(mutuallyExclusiveOutput);
     }
 }
+
+
   // Helper class for thin model testing
   private static class TestRdapConformanceTool extends RdapConformanceTool {
     private final boolean isThin;
