@@ -11,15 +11,17 @@ public class Main {
 
   public static void main(String[] args) {
     RdapConformanceTool tool = new RdapConformanceTool();
-    String errorMessage = UserInputValidator.parseOptions(args, tool);
+    CommandLine commandLine = new CommandLine(tool);
+    
+    String errorMessage = UserInputValidator.parseOptions(args, tool, commandLine);
     
     if (errorMessage != null) {
       System.err.println(errorMessage);
+      commandLine.usage(System.err);
       logger.error(ToolResult.BAD_USER_INPUT.getDescription());
       System.exit(ToolResult.BAD_USER_INPUT.getCode());
     }
     
-    CommandLine commandLine = new CommandLine(tool);
     int exitCode = commandLine.execute(args);
     System.exit(exitCode);
   }

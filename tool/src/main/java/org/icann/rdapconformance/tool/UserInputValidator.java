@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.tool;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import org.icann.rdapconformance.validator.ToolResult;
@@ -10,8 +11,7 @@ import picocli.CommandLine;
 public class UserInputValidator {
   private static final Logger logger = LoggerFactory.getLogger(UserInputValidator.class);
 
-  public static String parseOptions(String[] args, RdapConformanceTool tool) {
-    CommandLine commandLine = new CommandLine(tool);
+  public static String parseOptions(String[] args, RdapConformanceTool tool, CommandLine commandLine) {
     final String[] errorMessage = {null};
 
     commandLine.setParameterExceptionHandler((ex, params) -> {
@@ -60,9 +60,9 @@ public class UserInputValidator {
           }
         }
 
-        if (ipv4Count > 1) {
+        if (ipv4Count > ONE) {
           optionName = "--no-ipv4-queries";
-        } else if (ipv6Count > 1) {
+        } else if (ipv6Count > ONE) {
           optionName = "--no-ipv6-queries";
         } else {
           // Fallback to checking the message if counting didn't work
@@ -101,12 +101,12 @@ public class UserInputValidator {
           if (firstEquals > ZERO && firstClose > firstEquals) {
             duplicatedOption = message.substring(firstEquals + 1, firstClose).trim();
             duplicatedOption = duplicatedOption.replace("{", "").replace("}", "");
-            errorMessage[0] = "Error: " + duplicatedOption + " should be specified only once";
+            errorMessage[ZERO] = "Error: " + duplicatedOption + " should be specified only once";
           } else {
-            errorMessage[0] = message;
+            errorMessage[ZERO] = message;
           }
         } else {
-          errorMessage[0] = "Error: --no-ipv4-queries, --no-ipv6-queries are mutually exclusive (specify only one)";
+          errorMessage[ZERO] = "Error: --no-ipv4-queries, --no-ipv6-queries are mutually exclusive (specify only one)";
         }
       } else if (ex instanceof CommandLine.MaxValuesExceededException) {
         String[] arguments = args;
@@ -120,9 +120,9 @@ public class UserInputValidator {
           }
         }
         String optionName = null;
-        if (ipv4Count > 1) {
+        if (ipv4Count > ONE) {
           optionName = "--no-ipv4-queries";
-        } else if (ipv6Count > 1) {
+        } else if (ipv6Count > ONE) {
           optionName = "--no-ipv6-queries";
         } else {
           String msg = ex.getMessage();
@@ -133,15 +133,15 @@ public class UserInputValidator {
           }
         }
         if (optionName != null) {
-          errorMessage[0] = "Error: " + optionName + " should be specified only once";
+          errorMessage[ZERO] = "Error: " + optionName + " should be specified only once";
         } else {
-          errorMessage[0] = ex.getMessage();
+          errorMessage[ZERO] = ex.getMessage();
         }
       } else {
-        errorMessage[0] = ex.getMessage();
+        errorMessage[ZERO] = ex.getMessage();
       }
     }
 
-    return errorMessage[0];
+    return errorMessage[ZERO];
   }
 }
