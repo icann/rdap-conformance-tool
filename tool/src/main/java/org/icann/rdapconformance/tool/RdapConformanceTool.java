@@ -9,7 +9,6 @@ import java.security.Security;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;

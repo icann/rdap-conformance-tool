@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.fail;
 
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -28,6 +29,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
+import picocli.CommandLine;
 
 public class RdapConformanceToolTest {
 
@@ -228,6 +230,50 @@ private void setMandatoryRdapProfileOptions(RdapConformanceTool tool) throws Exc
     gtldRegistryField.set(dependantRegistryThin, true);
 }
 
+
+
+@Test
+public void testMutuallyExclusiveIpvOptions() {
+    RdapConformanceTool tool = new RdapConformanceTool();
+    CommandLine commandLine = new CommandLine(tool);
+
+    // Test case 1: Using both --no-ipv4-queries and --no-ipv6-queries together should fail
+    try {
+        commandLine.parseArgs("--no-ipv4-queries", "--no-ipv6-queries",
+                              "-c", "config.json", "http://example.com");
+        fail("Expected a CommandLine.MutuallyExclusiveArgsException to be thrown");
+    } catch (CommandLine.MutuallyExclusiveArgsException e) {
+        assertThat(e.getMessage()).contains("--no-ipv4-queries", "--no-ipv6-queries", "mutually exclusive");
+    }
+
+    // Test case 2: Using --no-ipv4-queries twice should fail
+    try {
+        commandLine.parseArgs("--no-ipv4-queries", "--no-ipv4-queries",
+                             "-c", "config.json", "http://example.com");
+        fail("Expected a CommandLine.OverwrittenOptionException to be thrown");
+    } catch (CommandLine.OverwrittenOptionException e) {
+        assertThat(e.getMessage()).contains("--no-ipv4-queries", "should be specified only once");
+    }
+
+    // Test case 3: Using --no-ipv6-queries twice should fail
+    try {
+        commandLine.parseArgs("--no-ipv6-queries", "--no-ipv6-queries",
+                             "-c", "config.json", "http://example.com");
+        fail("Expected a CommandLine.OverwrittenOptionException to be thrown");
+    } catch (CommandLine.OverwrittenOptionException e) {
+        assertThat(e.getMessage()).contains("--no-ipv6-queries", "should be specified only once");
+    }
+
+    // Test case 4: Using one option works correctly
+    try {
+        commandLine.parseArgs("--no-ipv4-queries", "-c", "config.json", "http://example.com");
+        // Verify the values are set correctly
+        assertThat(tool.isNoIpv4Queries()).isTrue();
+        assertThat(tool.isNoIpv6Queries()).isFalse();
+    } catch (Exception e) {
+        fail("Should not throw exception when using only one option: " + e.getMessage());
+    }
+}
   // Helper class for thin model testing
   private static class TestRdapConformanceTool extends RdapConformanceTool {
     private final boolean isThin;
