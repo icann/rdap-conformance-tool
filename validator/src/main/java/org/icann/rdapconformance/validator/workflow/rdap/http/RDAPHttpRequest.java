@@ -188,19 +188,8 @@ public class RDAPHttpRequest {
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(null, new TrustManager[] { leafCheckingTm }, new SecureRandom());
 
-
-        // Create the SSLConnectionSocketFactory with SNI support
-        SSLConnectionSocketFactory sslSocketFactory = getSslConnectionSocketFactory(host, sslContext);
-
-        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                                                                                                        .setSSLSocketFactory(sslSocketFactory)
-                                                                                                        .build();
-        CloseableHttpClient client = HttpClientBuilder.create()
-                                                      .setConnectionManager(connectionManager)
-                                                      .setRoutePlanner(new LocalBindRoutePlanner(localBindIp))
-                                                      .disableAutomaticRetries()
-                                                      .disableRedirectHandling()
-                                                      .build();
+        // Use the pooled HTTP client manager instead of creating a new client each time
+        CloseableHttpClient client = HttpClientManager.getInstance().getClient(host, sslContext, localBindIp, timeoutSeconds);
 
         // Set the local bind address for the request
         int attempt = ZERO;
