@@ -186,11 +186,26 @@ public void testBuildResultFileFailure() throws Exception {
 }
 
 @Test
-public void testNoIpv4AndNoIpv6QueriesReturnsBadUserInput() throws Exception {
+public void testSettersPreventBothProtocolsDisabled() throws Exception {
+    // Test that setters prevent both protocols from being disabled
     tool.setExecuteIPv4Queries(false);
     tool.setExecuteIPv6Queries(false);
-    int result = tool.call();
-    assertThat(result).isEqualTo(ToolResult.BAD_USER_INPUT.getCode());
+    
+    // After setting both to false, IPv4 should be automatically re-enabled
+    assertThat(tool.isNoIpv4Queries()).isFalse(); // IPv4 is enabled
+    assertThat(tool.isNoIpv6Queries()).isTrue();  // IPv6 is disabled
+    
+    // Test the reverse order
+    RdapConformanceTool tool2 = new RdapConformanceTool();
+    tool2.uri = URI.create("http://example.com/domain/example.com");
+    tool2.configurationFile = tempConfigFile.toString();
+    
+    tool2.setExecuteIPv6Queries(false);
+    tool2.setExecuteIPv4Queries(false);
+    
+    // After setting both to false, IPv6 should be automatically re-enabled
+    assertThat(tool2.isNoIpv4Queries()).isTrue();  // IPv4 is disabled
+    assertThat(tool2.isNoIpv6Queries()).isFalse(); // IPv6 is enabled
 }
 
 // Helper method to set the mandatory RDAP profile options
