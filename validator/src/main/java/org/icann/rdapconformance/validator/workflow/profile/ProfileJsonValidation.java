@@ -13,7 +13,12 @@ public abstract class ProfileJsonValidation extends ProfileValidation {
 
   public ProfileJsonValidation(String rdapResponse, RDAPValidatorResults results) {
     super(results);
-    jsonObject = new JSONObject(rdapResponse);
+    // Use cached JSON parsing to avoid repeated parsing of the same RDAP response
+    try {
+      jsonObject = org.icann.rdapconformance.validator.workflow.JsonCacheUtil.getCachedJsonObject(rdapResponse);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to parse RDAP response as JSON", e);
+    }
     jpathUtil = new JpathUtil(); // ready to dependency injection if needed sometimes
   }
 

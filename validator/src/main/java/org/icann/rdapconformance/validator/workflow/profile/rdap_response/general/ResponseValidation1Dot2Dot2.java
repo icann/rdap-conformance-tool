@@ -19,7 +19,8 @@ public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
       .* uses every character except line breaks
    */
   public static final String WORD_MATCHED_REGEX="<(?i).*" + WORD_MATCHED + ".*>";
-  private static final ObjectMapper mapper = new ObjectMapper();
+  private static final Pattern WORD_MATCHED_PATTERN = Pattern.compile(WORD_MATCHED_REGEX);
+  private static final ObjectMapper mapper = org.icann.rdapconformance.validator.workflow.JsonMapperUtil.getSharedMapper();
   private final String rdapResponse;
 
   public ResponseValidation1Dot2Dot2(String rdapResponse, RDAPValidatorResults results) {
@@ -34,8 +35,7 @@ public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
 
   @Override
   protected boolean doValidate() {
-    final Pattern pattern = Pattern.compile(WORD_MATCHED_REGEX);
-    final Matcher matcher = pattern.matcher(rdapResponse);
+    final Matcher matcher = WORD_MATCHED_PATTERN.matcher(rdapResponse);
     if(matcher.find()) {
       addResult();
       return false;
