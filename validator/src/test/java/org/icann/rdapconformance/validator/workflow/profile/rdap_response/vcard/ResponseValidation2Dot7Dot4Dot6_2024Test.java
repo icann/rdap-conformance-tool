@@ -93,6 +93,6 @@ public class ResponseValidation2Dot7Dot4Dot6_2024Test extends ProfileJsonValidat
 
         postalCodeValue.put(5, StringUtils.EMPTY);
         redactedObject.put("method", "test2");
-        validate(-63604, methodPointer, "Registrant Postal Code redaction method must be empytValue");
+        validate(-63604, methodPointer, "Registrant Postal Code redaction method must be emptyValue");
     }
 }
