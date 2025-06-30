@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<ResponseValidation2Dot7Dot3_2024> {
     public ResponseValidation2Dot7Dot3_2024Test() {
         super("/validators/domain/valid.json", "rdapResponseProfile_2_7_3_validation",
-            RDAPQueryType.DOMAIN, ResponseValidation2Dot7Dot3_2024.class);
+            RDAPQueryType.DOMAIN, ResponseValidation2Dot7Dot3_2024.class, "entity");
     }
 
     @BeforeMethod
