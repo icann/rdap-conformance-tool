@@ -68,9 +68,14 @@ public class NetworkValidationCoordinator {
             return true;
         }
         
+        // Get network context for logging (define at method level for scope)
+        String currentProtocol = org.icann.rdapconformance.validator.NetworkInfo.getNetworkProtocol().toString();
+        String currentAcceptHeader = org.icann.rdapconformance.validator.NetworkInfo.getAcceptHeader();
+        
         // Fallback to sequential execution if parallel networking is disabled
         if (!PARALLEL_NETWORK_ENABLED) {
-            logger.info("Executing {} network validations sequentially (parallel disabled)", networkValidations.size());
+        logger.info("[{}|{}] Executing {} network validations sequentially (parallel disabled)", 
+                   currentProtocol, currentAcceptHeader, networkValidations.size());
             boolean result = true;
             for (ProfileValidation validation : networkValidations) {
                 logger.info("Validating (sequential): {}", validation.getGroupName());
@@ -79,7 +84,8 @@ public class NetworkValidationCoordinator {
             return result;
         }
         
-        logger.info("Executing {} network validations with controlled parallelization and rate limiting", networkValidations.size());
+        logger.info("[{}|{}] Executing {} network validations with controlled parallelization and rate limiting", 
+                   currentProtocol, currentAcceptHeader, networkValidations.size());
         
         try {
             // Execute validations with controlled concurrency and rate limiting
@@ -163,7 +169,8 @@ public class NetworkValidationCoordinator {
                 }
             }
             
-            logger.info("Network validations completed - All passed: {}", allPassed);
+            logger.info("[{}|{}] Network validations completed - All passed: {}", 
+                       currentProtocol, currentAcceptHeader, allPassed);
             return allPassed;
             
         } catch (Exception e) {
@@ -282,7 +289,12 @@ public class NetworkValidationCoordinator {
             return true;
         }
         
-        logger.info("Executing {} timeout-prone validations async, {} normal validations sync", 
+        // Log current network context for debugging
+        String currentProtocol = org.icann.rdapconformance.validator.NetworkInfo.getNetworkProtocol().toString();
+        String currentAcceptHeader = org.icann.rdapconformance.validator.NetworkInfo.getAcceptHeader();
+        
+        logger.info("[{}|{}] Executing {} timeout-prone validations async, {} normal validations sync", 
+                   currentProtocol, currentAcceptHeader,
                    httpValidations != null ? httpValidations.size() : 0,
                    httpsValidations != null ? httpsValidations.size() : 0);
         
@@ -319,26 +331,84 @@ public class NetworkValidationCoordinator {
         try {
             CompletableFuture<Void> allOf = CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0]));
             
-            // Wait with configured timeout plus small buffer for coordination overhead
-            int coordinationTimeoutSeconds = Math.max(timeoutSeconds + 5, 30); // At least 30 seconds, or config timeout + 5 seconds buffer
-            allOf.get(coordinationTimeoutSeconds, TimeUnit.SECONDS);
+            // Use configured timeout + sufficient buffer to allow HTTP requests to complete naturally
+            int coordinationTimeoutSeconds = timeoutSeconds + 5; // config timeout + 5 seconds buffer for HTTP completion
             
-            // Check if all validations passed
+            try {
+                allOf.get(coordinationTimeoutSeconds, TimeUnit.SECONDS);
+                logger.debug("[{}|{}] All timeout-prone/normal validations completed within {} seconds", 
+                        currentProtocol, currentAcceptHeader, coordinationTimeoutSeconds);
+            } catch (java.util.concurrent.TimeoutException e) {
+                logger.warn("[{}|{}] Timeout-prone/normal validations timed out after {} seconds. Giving additional time for HTTP requests to complete naturally.", 
+                           currentProtocol, currentAcceptHeader, coordinationTimeoutSeconds);
+                
+                // Wait an additional 3 seconds for HTTP requests to complete their timeouts naturally
+                // This prevents "in progress" connections caused by HTTP requests that timeout after coordination timeout
+                try {
+                    logger.debug("Waiting additional 3 seconds for HTTP requests to complete timeout handling...");
+                    Thread.sleep(3000);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            
+            // Check results - only get from completed futures
             boolean allPassed = true;
+            int completedCount = 0;
+            int totalCount = allFutures.size();
+            
             for (CompletableFuture<Boolean> future : allFutures) {
-                Boolean result = future.get(100, TimeUnit.MILLISECONDS);
-                if (result != null) {
-                    allPassed &= result;
-                } else {
+                try {
+                    if (future.isDone()) {
+                        Boolean result = future.get(100, TimeUnit.MILLISECONDS);
+                        if (result != null) {
+                            allPassed &= result;
+                            completedCount++;
+                        } else {
+                            logger.warn("Validation future returned null result");
+                            allPassed = false;
+                        }
+                    } else {
+                        logger.warn("[{}|{}] Validation future not completed after {} seconds + additional wait time", 
+                                   currentProtocol, currentAcceptHeader, coordinationTimeoutSeconds);
+                        
+                        // Give one final chance for future to complete (HTTP request may have just finished)
+                        try {
+                            Boolean result = future.get(500, TimeUnit.MILLISECONDS);
+                            if (result != null) {
+                                allPassed &= result;
+                                completedCount++;
+                                logger.info("Late completion: validation future completed during final check");
+                            } else {
+                                logger.warn("Late completion: validation future returned null result");
+                                allPassed = false;
+                            }
+                        } catch (java.util.concurrent.TimeoutException te) {
+                            // Future still not complete - this should be rare with the additional wait time
+                            logger.warn("Validation future still incomplete after extended wait - gracefully continuing");
+                            allPassed = false;
+                            // Don't cancel - let it complete naturally to avoid "in progress" connections
+                        } catch (Exception e) {
+                            logger.error("Error during final future check", e);
+                            allPassed = false;
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("Error getting validation result", e);
                     allPassed = false;
                 }
             }
             
-            logger.info("Timeout-prone/Normal validations completed - All passed: {}", allPassed);
+            logger.info("[{}|{}] Timeout-prone/Normal validations status: {}/{} completed, All passed: {}", 
+                       currentProtocol, currentAcceptHeader, completedCount, totalCount, allPassed);
             return allPassed;
             
         } catch (Exception e) {
             logger.error("Error executing timeout-prone/normal validations", e);
+            // Cancel all futures to prevent hanging connections
+            for (CompletableFuture<Boolean> future : allFutures) {
+                future.cancel(true);
+            }
             return false;
         }
     }

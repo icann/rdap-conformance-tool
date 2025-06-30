@@ -90,7 +90,10 @@ public class RDAPProfile {
       
       if (sequentialValidations != null && !sequentialValidations.isEmpty()) {
         if (aggressiveNetworkParallel) {
-          logger.info("Executing {} network validations with HTTP/HTTPS separation", sequentialValidations.size());
+          String currentProtocol = org.icann.rdapconformance.validator.NetworkInfo.getNetworkProtocol().toString();
+          String currentAcceptHeader = org.icann.rdapconformance.validator.NetworkInfo.getAcceptHeader();
+          logger.info("[{}|{}] Executing {} network validations with timeout-prone separation", 
+                     currentProtocol, currentAcceptHeader, sequentialValidations.size());
           
           // Separate HTTP from HTTPS validations
           NetworkValidationCoordinator.NetworkValidationGroups groups = 
@@ -100,15 +103,18 @@ public class RDAPProfile {
           List<ProfileValidation> httpsValidations = groups.getHttpsValidations();
           
           if (!httpValidations.isEmpty() || !httpsValidations.isEmpty()) {
-            logger.info("Separated validations: {} HTTP (async), {} HTTPS (sync)", 
-                       httpValidations.size(), httpsValidations.size());
+            logger.info("[{}|{}] Separated validations: {} timeout-prone (async), {} normal (sync)", 
+                       currentProtocol, currentAcceptHeader, httpValidations.size(), httpsValidations.size());
             
             // Extract timeout from any validation that has config access
             int timeoutSeconds = extractTimeoutFromValidations(httpValidations, httpsValidations);
             result &= NetworkValidationCoordinator.executeHttpAndHttpsValidations(httpValidations, httpsValidations, timeoutSeconds);
           }
         } else {
-          logger.info("Executing {} network validations sequentially", sequentialValidations.size());
+          String currentProtocol = org.icann.rdapconformance.validator.NetworkInfo.getNetworkProtocol().toString();
+          String currentAcceptHeader = org.icann.rdapconformance.validator.NetworkInfo.getAcceptHeader();
+          logger.info("[{}|{}] Executing {} network validations sequentially", 
+                     currentProtocol, currentAcceptHeader, sequentialValidations.size());
           for (ProfileValidation validation : sequentialValidations) {
             logger.info("Validating (sequential): {}", validation.getGroupName());
             result &= validation.validate();

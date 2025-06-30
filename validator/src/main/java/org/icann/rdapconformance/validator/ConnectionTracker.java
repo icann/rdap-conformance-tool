@@ -130,6 +130,24 @@ public class ConnectionTracker {
     }
 
     /**
+     * Update a connection's IP address by tracking ID
+     * @param trackingId The tracking ID of the connection
+     * @param remoteAddress The new remote IP address to set
+     * @return true if the connection was found and updated, false otherwise
+     */
+    public synchronized boolean updateIPAddressById(String trackingId, String remoteAddress) {
+        ConnectionRecord record = connectionsByTrackingId.get(trackingId);
+        if (record != null) {
+            record.setIpAddress(remoteAddress);
+            logger.info("Updated connection {} with ipAddress: {}", trackingId, remoteAddress);
+            return true;
+        } else {
+            logger.warn("Attempted to update connection {}, but no connection exists with that tracking ID", trackingId);
+            return false;
+        }
+    }
+
+    /**
      * Complete tracking the current connection with status code and status
      * @param statusCode The HTTP status code
      * @param status The connection status

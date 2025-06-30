@@ -132,7 +132,7 @@ public class RDAPHttpRequest {
 
         if (DNSCacheResolver.hasNoAddresses(host)) {
             logger.info("No IP address found for host: " + host);
-            tracker.completeCurrentConnection(ZERO, ConnectionStatus.UNKNOWN_HOST);
+            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
             SimpleHttpResponse resp = new SimpleHttpResponse(trackingId,ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
             resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
             return resp;
@@ -149,7 +149,7 @@ public class RDAPHttpRequest {
 
         // If remote address or local bind IP is null, treat as unknown host
         if (remoteAddress == null || localBindIp == null) {
-            tracker.completeCurrentConnection(ZERO, ConnectionStatus.UNKNOWN_HOST);
+            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
             return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
         }
 
@@ -169,7 +169,7 @@ public class RDAPHttpRequest {
         );
 
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
-        tracker.updateIPAddressOnCurrentConnection(remoteAddress.getHostAddress());
+        tracker.updateIPAddressById(trackingId, remoteAddress.getHostAddress());
         logger.info("Connecting to: {} using {}", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
 
         HttpUriRequestBase request = method.equals(GET) ? new HttpGet(originalUri) : new HttpHead(originalUri);
@@ -205,7 +205,7 @@ public class RDAPHttpRequest {
                 body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
             } catch (Exception e) {
                 ConnectionStatus status = handleRequestException(e, canRecordError);
-                tracker.completeCurrentConnection(statusCode, status);
+                tracker.completeTrackingById(trackingId, statusCode, status);
                 SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
                     trackingId, statusCode, body, originalUri, new Header[ZERO]
                 );
@@ -218,7 +218,7 @@ public class RDAPHttpRequest {
 
                 if (attempt >= MAX_RETRIES) {
                     logger.info("Requeried using retry-after wait time but result was a 429.");
-                    tracker.completeCurrentConnection(statusCode, ConnectionStatus.TOO_MANY_REQUESTS);
+                    tracker.completeTrackingById(trackingId, statusCode, ConnectionStatus.TOO_MANY_REQUESTS);
 
                     SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
                         trackingId, statusCode, body, originalUri, convertHeaders(response.getHeaders())
@@ -240,7 +240,7 @@ public class RDAPHttpRequest {
             }
 
             // Successful response
-            tracker.completeCurrentConnection(statusCode, ConnectionStatus.SUCCESS);
+            tracker.completeTrackingById(trackingId, statusCode, ConnectionStatus.SUCCESS);
             SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
                 trackingId, statusCode, body, originalUri, convertHeaders(response.getHeaders())
             );
@@ -250,7 +250,7 @@ public class RDAPHttpRequest {
         }
 
         // If all retries are exhausted
-        tracker.completeCurrentConnection(HTTP_TOO_MANY_REQUESTS, ConnectionStatus.TOO_MANY_REQUESTS);
+        tracker.completeTrackingById(trackingId, HTTP_TOO_MANY_REQUESTS, ConnectionStatus.TOO_MANY_REQUESTS);
         return new SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[ZERO]);
     }
 
