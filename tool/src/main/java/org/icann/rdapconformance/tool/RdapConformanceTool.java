@@ -6,6 +6,8 @@ import ch.qos.logback.classic.Logger;
 import java.io.File;
 import java.net.URI;
 import java.security.Security;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -29,17 +31,22 @@ import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
+
   // Create a logger
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RdapConformanceTool.class);
+  public static final int PRETTY_PRINT_INDENT = 2;
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
@@ -412,6 +419,105 @@ public void setVerbose(boolean isVerbose) {
   @Override
   public boolean isAdditionalConformanceQueries() {
     return additionalConformanceQueries;
+  }
+
+  /**
+   * Get validation errors from the last run.
+   * @return List of validation errors, or empty list if no validation has been run
+   */
+  public List<RDAPValidationResult> getErrors() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      return resultFile.getErrors();
+    } catch (Exception e) {
+      // Return empty list if validation hasn't run yet or failed
+      return new java.util.ArrayList<>();
+    }
+  }
+
+  /**
+   * Get all validation results from the last run.
+   * @return List of all validation results, or empty list if no validation has been run
+   */
+  public List<RDAPValidationResult> getAllResults() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      return resultFile.getAllResults();
+    } catch (Exception e) {
+      // Return empty list if validation hasn't run yet or failed
+      return new java.util.ArrayList<>();
+    }
+  }
+
+  /**
+   * Get the count of validation errors from the last run.
+   * @return Number of validation errors
+   */
+  public int getErrorCount() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      return resultFile.getErrorCount();  
+    } catch (Exception e) {
+      // Return 0 if validation hasn't run yet or failed
+      return 0;
+    }
+  }
+
+  /**
+   * Get validation errors from the last run as a JSON array string.
+   * @return JSON array string of validation errors, or empty array if no validation has been run
+   */
+  public String getErrorsAsJson() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      Map<String, Object> resultsMap = resultFile.createResultsMap();
+      @SuppressWarnings("unchecked")
+      List<Map<String, Object>> errors = (List<Map<String, Object>>) resultsMap.get("error");
+      JSONArray jsonArray = new JSONArray(errors);
+      return jsonArray.toString(PRETTY_PRINT_INDENT);
+    } catch (Exception e) {
+      // Return empty JSON array if validation hasn't run yet or failed
+      return new JSONArray().toString();
+    }
+  }
+
+  /**
+   * Get all validation results from the last run as a JSON object string.
+   * @return JSON object string containing all validation results, or empty results if no validation has been run
+   */
+  public String getAllResultsAsJson() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      Map<String, Object> resultsMap = resultFile.createResultsMap();
+      JSONObject jsonObject = new JSONObject(resultsMap);
+      return jsonObject.toString(PRETTY_PRINT_INDENT);
+    } catch (Exception e) {
+      // Return empty results structure if validation hasn't run yet or failed
+      JSONObject fallbackObject = new JSONObject();
+      fallbackObject.put("error", new JSONArray());
+      fallbackObject.put("warning", new JSONArray());
+      fallbackObject.put("ignore", new JSONArray());
+      fallbackObject.put("notes", new JSONArray());
+      return fallbackObject.toString(PRETTY_PRINT_INDENT);
+    }
+  }
+
+  /**
+   * Get validation warnings from the last run as a JSON array string.
+   * @return JSON array string of validation warnings, or empty array if no validation has been run
+   */
+  public String getWarningsAsJson() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      Map<String, Object> resultsMap = resultFile.createResultsMap();
+      @SuppressWarnings("unchecked")
+      List<Map<String, Object>> warnings = (List<Map<String, Object>>) resultsMap.get("warning");
+      JSONArray jsonArray = new JSONArray(warnings);
+      return jsonArray.toString(PRETTY_PRINT_INDENT);
+    } catch (Exception e) {
+      // Return empty JSON array if validation hasn't run yet or failed
+      return new JSONArray().toString();
+    }
   }
 
   private static class DependantRdapProfileGtld {
