@@ -29,6 +29,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileQueryTypeP
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.SimpleHttpResponse;
 import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.workflow.SchemaValidatorCache;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
@@ -116,7 +117,7 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         if (query.isErrorContent()) {
             // if they return a 404 then we need a schema validator that checks the error response content itself
-            validator = new SchemaValidator("rdap_error.json", results, datasetService);
+            validator = SchemaValidatorCache.getCachedValidator("rdap_error.json", results, datasetService);
         } else {
             // else we check the schema of the data pertaining to the query type
             String schemaFile = schemaMap.get(queryType);
@@ -125,7 +126,7 @@ public class RDAPValidator implements ValidatorWorkflow {
                     logger.error("Thin flag is set while validating entity");
                     return ToolResult.USES_THIN_MODEL.getCode();
                    }
-                validator = new SchemaValidator(schemaFile, results, datasetService);
+                validator = SchemaValidatorCache.getCachedValidator(schemaFile, results, datasetService);
             }
         }
 

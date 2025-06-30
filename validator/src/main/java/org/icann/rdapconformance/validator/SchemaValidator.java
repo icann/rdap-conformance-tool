@@ -65,6 +65,11 @@ public class SchemaValidator {
         results);
   }
 
+  public SchemaValidator(Schema schema, RDAPValidatorResults results) {
+    this.jpathUtil = new JpathUtil();
+    this.init(schema, results);
+  }
+
   private void init(Schema schema, RDAPValidatorResults results) {
     this.schema = schema;
     this.schemaRootNode = SchemaNode.create(null, this.schema);
