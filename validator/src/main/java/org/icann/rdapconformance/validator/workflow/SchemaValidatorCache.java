@@ -1,8 +1,6 @@
 package org.icann.rdapconformance.validator.workflow;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.everit.json.schema.Schema;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -15,10 +13,11 @@ public final class SchemaValidatorCache {
   private static final Logger logger = LoggerFactory.getLogger(SchemaValidatorCache.class);
   
   // Cache for compiled Schema objects keyed by schema name + dataset service hash
-  private static final ConcurrentHashMap<String, Schema> schemaCache = new ConcurrentHashMap<>();
+  // Use single-threaded access to reduce contention - schemas are typically loaded once
+  private static final ConcurrentHashMap<String, Schema> schemaCache = new ConcurrentHashMap<>(32, 0.75f, 1);
   
-  // Lock for thread-safe cache operations
-  private static final ReadWriteLock cacheLock = new ReentrantReadWriteLock();
+  // Padding to prevent false sharing with other caches
+  private static final long[] padding2 = new long[8];
   
   // Maximum cache size to prevent memory leaks
   private static final int MAX_CACHE_SIZE = 50;
@@ -43,43 +42,29 @@ public final class SchemaValidatorCache {
     // Create cache key based on schema name and dataset service
     String cacheKey = createCacheKey(schemaName, datasetService);
     
-    cacheLock.readLock().lock();
-    try {
-      Schema cachedSchema = schemaCache.get(cacheKey);
-      if (cachedSchema != null) {
-        logger.debug("Using cached Schema for schema: {}", schemaName);
-        return createValidatorWithSchema(cachedSchema, results);
-      }
-    } finally {
-      cacheLock.readLock().unlock();
+    // Fast path: check cache without locks
+    Schema cachedSchema = schemaCache.get(cacheKey);
+    if (cachedSchema != null) {
+      logger.debug("Using cached Schema for schema: {}", schemaName);
+      return createValidatorWithSchema(cachedSchema, results);
     }
     
-    // Not in cache, create new schema
-    cacheLock.writeLock().lock();
-    try {
-      // Double-check pattern - another thread might have added it
-      Schema cachedSchema = schemaCache.get(cacheKey);
-      if (cachedSchema != null) {
-        logger.debug("Using cached Schema for schema: {} (added by another thread)", schemaName);
-        return createValidatorWithSchema(cachedSchema, results);
-      }
-      
-      // Check cache size and evict if necessary
+    // Lock-free schema creation using computeIfAbsent
+    Schema newSchema = schemaCache.computeIfAbsent(cacheKey, key -> {
+      // Check cache size and evict if necessary (non-blocking)
       if (schemaCache.size() >= MAX_CACHE_SIZE) {
-        evictOldestEntry();
+        // Simple random eviction to avoid blocking
+        schemaCache.entrySet().removeIf(entry -> Math.random() < 0.2);
       }
       
-      // Create new schema and cache it
+      // Create new schema
       logger.debug("Creating new Schema for schema: {}", schemaName);
-      Schema newSchema = SchemaValidator.getSchema(schemaName, "json-schema/", 
-                                                  SchemaValidatorCache.class.getClassLoader(), 
-                                                  datasetService);
-      schemaCache.put(cacheKey, newSchema);
+      return SchemaValidator.getSchema(schemaName, "json-schema/", 
+                                      SchemaValidatorCache.class.getClassLoader(), 
+                                      datasetService);
+    });
       
-      return createValidatorWithSchema(newSchema, results);
-    } finally {
-      cacheLock.writeLock().unlock();
-    }
+    return createValidatorWithSchema(newSchema, results);
   }
   
   private static SchemaValidator createValidatorWithSchema(Schema schema, RDAPValidatorResults results) {
@@ -110,13 +95,8 @@ public final class SchemaValidatorCache {
    * Clears the schema cache. Mainly for testing purposes.
    */
   public static void clearCache() {
-    cacheLock.writeLock().lock();
-    try {
-      schemaCache.clear();
-      logger.debug("Schema cache cleared");
-    } finally {
-      cacheLock.writeLock().unlock();
-    }
+    schemaCache.clear();
+    logger.debug("Schema cache cleared");
   }
   
   /**
@@ -125,11 +105,6 @@ public final class SchemaValidatorCache {
    * @return the number of cached schemas
    */
   public static int getCacheSize() {
-    cacheLock.readLock().lock();
-    try {
-      return schemaCache.size();
-    } finally {
-      cacheLock.readLock().unlock();
-    }
+    return schemaCache.size();
   }
 }

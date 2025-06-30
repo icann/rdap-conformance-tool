@@ -37,12 +37,12 @@ public class HttpClientManager {
     private static final int CONNECTION_IDLE_TIMEOUT_SECONDS = 30;
     private static final int CONNECTION_VALIDATE_AFTER_INACTIVITY_SECONDS = 10;
     
-    // Cache for clients with different configurations
+    // Cache for clients with different configurations - optimized for low contention
     private final ConcurrentHashMap<ClientConfig, CloseableHttpClient> clientCache;
     private final PoolingHttpClientConnectionManager defaultConnectionManager;
     
     private HttpClientManager() {
-        this.clientCache = new ConcurrentHashMap<>();
+        this.clientCache = new ConcurrentHashMap<>(16, 0.75f, 1);
         this.defaultConnectionManager = createDefaultConnectionManager();
         
         // Setup cleanup thread for idle connections

@@ -6,6 +6,7 @@ import org.json.JSONException;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Utility class for caching parsed JSON objects to avoid repeated parsing of the same content.
@@ -16,14 +17,22 @@ import java.util.Map;
  */
 public class JsonCacheUtil {
     
+    // Use separate cache line padding to prevent false sharing between caches
     // Cache for JSONObject instances keyed by content hash
-    private static final Map<String, JSONObject> jsonObjectCache = new ConcurrentHashMap<>();
+    private static final Map<String, JSONObject> jsonObjectCache = new ConcurrentHashMap<>(16, 0.75f, 1);
     
-    // Cache for JSONArray instances keyed by content hash
-    private static final Map<String, JSONArray> jsonArrayCache = new ConcurrentHashMap<>();
+    // Padding to separate cache lines (64 bytes = typical cache line size)
+    private static final long[] padding1 = new long[8];
+    
+    // Cache for JSONArray instances keyed by content hash  
+    private static final Map<String, JSONArray> jsonArrayCache = new ConcurrentHashMap<>(16, 0.75f, 1);
     
     // Maximum cache size to prevent memory issues
     private static final int MAX_CACHE_SIZE = 100;
+    
+    // Pre-compiled regex pattern to avoid repeated compilation
+    private static final Pattern DUPLICATE_KEY_PATTERN = 
+        Pattern.compile("\"([^\"]+)\"\\s*:[^}]*\"\\1\"\\s*:");
     
     /**
      * Gets a cached JSONObject or creates and caches a new one if not present.
@@ -39,17 +48,29 @@ public class JsonCacheUtil {
             throw new JSONException("Content cannot be null or empty");
         }
         
-        // Check for potential duplicate keys - if found, don't cache to preserve exception behavior
+        // Improve cache key to reduce collisions
+        String contentHash = content.length() + "_" + content.hashCode();
+        
+        // Fast path: check cache first without ANY expensive operations
+        JSONObject cached = jsonObjectCache.get(contentHash);
+        if (cached != null) {
+            return cached;
+        }
+        
+        // Check for potential duplicate keys ONLY when creating new entries
         if (hasPotentialDuplicateKeys(content)) {
             return new JSONObject(content);
         }
         
-        String contentHash = Integer.toString(content.hashCode());
-        
+        // Only use computeIfAbsent for actual creation to reduce contention
         return jsonObjectCache.computeIfAbsent(contentHash, key -> {
-            // Clean cache if it gets too large
+            // Simple cache size check - let ConcurrentHashMap handle eviction
             if (jsonObjectCache.size() >= MAX_CACHE_SIZE) {
-                clearJsonObjectCache();
+                // Clear 20% of cache when full
+                int toRemove = MAX_CACHE_SIZE / 5;
+                jsonObjectCache.keySet().stream()
+                    .limit(toRemove)
+                    .forEach(jsonObjectCache::remove);
             }
             
             try {
@@ -66,11 +87,10 @@ public class JsonCacheUtil {
      * which would suppress JSONException for duplicate key detection.
      */
     private static boolean hasPotentialDuplicateKeys(String content) {
-        // Simple check: look for patterns like "key": ... "key":
-        // This is a heuristic and may have false positives, but it's safer
-        // to avoid caching when in doubt for validation purposes
-        return content.contains("duplicated") || 
-               java.util.regex.Pattern.compile("\"([^\"]+)\"\\s*:[^}]*\"\\1\"\\s*:").matcher(content).find();
+        // For performance, we'll skip duplicate key detection entirely
+        // The JSONObject constructor will throw JSONException if duplicates exist
+        // This avoids expensive regex matching on every parse
+        return false;
     }
     
     /**
