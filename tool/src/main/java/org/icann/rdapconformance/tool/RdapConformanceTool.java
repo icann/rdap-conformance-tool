@@ -477,7 +477,7 @@ public void setVerbose(boolean isVerbose) {
       return jsonArray.toString(PRETTY_PRINT_INDENT);
     } catch (Exception e) {
       // Return empty JSON array if validation hasn't run yet or failed
-      return "[]";
+      return new JSONArray().toString();
     }
   }
 
@@ -493,7 +493,12 @@ public void setVerbose(boolean isVerbose) {
       return jsonObject.toString(PRETTY_PRINT_INDENT);
     } catch (Exception e) {
       // Return empty results structure if validation hasn't run yet or failed
-      return "{\n  \"error\": [],\n  \"warning\": [],\n  \"ignore\": [],\n  \"notes\": []\n}";
+      JSONObject fallbackObject = new JSONObject();
+      fallbackObject.put("error", new JSONArray());
+      fallbackObject.put("warning", new JSONArray());
+      fallbackObject.put("ignore", new JSONArray());
+      fallbackObject.put("notes", new JSONArray());
+      return fallbackObject.toString(PRETTY_PRINT_INDENT);
     }
   }
 
@@ -508,10 +513,10 @@ public void setVerbose(boolean isVerbose) {
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> warnings = (List<Map<String, Object>>) resultsMap.get("warning");
       JSONArray jsonArray = new JSONArray(warnings);
-      return jsonArray.toString(PRETTY_PRINT_INDENT); 
+      return jsonArray.toString(PRETTY_PRINT_INDENT);
     } catch (Exception e) {
       // Return empty JSON array if validation hasn't run yet or failed
-      return "[]";
+      return new JSONArray().toString();
     }
   }
 
