@@ -18,11 +18,11 @@ import org.slf4j.LoggerFactory;
 public class NetworkValidationCoordinator {
     private static final Logger logger = LoggerFactory.getLogger(NetworkValidationCoordinator.class);
     
-    // Rate limiting configuration - very conservative settings to avoid server rate limiting
-    private static final int MAX_CONCURRENT_NETWORK_VALIDATIONS = 1; // Ultra-conservative: only 1 at a time
-    private static final long RATE_LIMIT_DELAY_MS = 500; // 500ms between network operations
+    // Conservative rate limiting configuration when explicitly enabled
+    private static final int MAX_CONCURRENT_NETWORK_VALIDATIONS = 2; // Conservative: 2 concurrent connections
+    private static final long RATE_LIMIT_DELAY_MS = 200; // 200ms between network operations (conservative)
     
-    // Fallback mechanism - disabled by default due to connection tracking issues
+    // Opt-in mechanism - user must explicitly enable parallel networking
     private static final boolean PARALLEL_NETWORK_ENABLED = 
         "true".equals(System.getProperty("rdap.parallel.network", "false"));
     
@@ -98,12 +98,15 @@ public class NetworkValidationCoordinator {
                         // NOTE: The validation will use the current NetworkInfo state (IPv4/IPv6)
                         // which is set by the caller before invoking this method
                         // CRITICAL: We do NOT modify NetworkInfo here - it's set globally before this method
-                        boolean result = validation.validate();
-                        
-                        logger.debug("Completed network validation: {} - Result: {}", 
-                            validation.getGroupName(), result);
-                        
-                        return result;
+                        try {
+                            boolean result = validation.validate();
+                            logger.debug("Network validation completed: {} - Result: {}", 
+                                validation.getGroupName(), result);
+                            return result;
+                        } catch (Exception validationError) {
+                            logger.error("Network validation failed: {}", validation.getGroupName(), validationError);
+                            return false;
+                        }
                         
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
@@ -119,29 +122,36 @@ public class NetworkValidationCoordinator {
                 }, networkExecutor))
                 .collect(Collectors.toList());
             
-            // Wait for all validations to complete with shorter timeout
+            // Wait for all validations to complete with generous timeout
             CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
             
-            // Wait with shorter timeout to prevent hanging (2 minutes max)
+            // Wait with generous timeout - network operations can be slow
             try {
-                allOf.get(2, TimeUnit.MINUTES);
+                allOf.get(5, TimeUnit.MINUTES);
             } catch (java.util.concurrent.TimeoutException e) {
-                logger.error("Network validations timed out after 2 minutes - cancelling remaining operations");
-                futures.forEach(future -> future.cancel(true));
-                return false;
+                logger.warn("Network validations timed out after 5 minutes - some operations may still be in progress");
+                // Don't cancel futures - let them complete naturally
+                // Individual validations have their own timeouts
             }
             
             // Check if all validations passed
-            boolean allPassed = futures.stream()
-                .map(future -> {
-                    try {
-                        return future.get();
-                    } catch (Exception e) {
-                        logger.error("Error getting validation result", e);
-                        return false;
+            boolean allPassed = true;
+            for (CompletableFuture<Boolean> future : futures) {
+                try {
+                    if (future.isDone()) {
+                        Boolean result = future.get(100, TimeUnit.MILLISECONDS);
+                        if (result != null) {
+                            allPassed &= result;
+                        }
+                    } else {
+                        logger.warn("Network validation future not completed: {}", future);
+                        allPassed = false;
                     }
-                })
-                .allMatch(result -> result);
+                } catch (Exception e) {
+                    logger.error("Error getting validation result", e);
+                    allPassed = false;
+                }
+            }
             
             logger.info("Network validations completed - All passed: {}", allPassed);
             return allPassed;

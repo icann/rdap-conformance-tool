@@ -154,8 +154,20 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Issue additional queries (/help and /not-a-domain.invalid) when flag is true and profile 2024 is false
         if(config.isAdditionalConformanceQueries() && !config.useRdapProfileFeb2024()) {
             logger.info("Validations for additional conformance queries");
-            new ResponseValidationHelp_2024(config, results).validate();  // Network calls
-            new ResponseValidationDomainInvalid_2024(config, results).validate(); // Network calls
+            
+            boolean aggressiveNetworkParallel = "true".equals(System.getProperty("rdap.parallel.network", "false"));
+            if (aggressiveNetworkParallel) {
+                // Execute additional queries in parallel
+                List<ProfileValidation> additionalValidations = List.of(
+                    new ResponseValidationHelp_2024(config, results),
+                    new ResponseValidationDomainInvalid_2024(config, results)
+                );
+                org.icann.rdapconformance.validator.workflow.profile.NetworkValidationCoordinator.executeNetworkValidations(additionalValidations);
+            } else {
+                // Sequential execution (default)
+                new ResponseValidationHelp_2024(config, results).validate();  // Network calls
+                new ResponseValidationDomainInvalid_2024(config, results).validate(); // Network calls
+            }
         }
 
         // get all the 2019 profile validations and run them

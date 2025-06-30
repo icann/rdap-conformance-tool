@@ -27,28 +27,86 @@ public class RDAPProfile {
   public boolean validate() {
     boolean result = true;
     
-    // Simple sequential execution - just like master branch
+    // Check if aggressive network parallelization is enabled
+    boolean aggressiveNetworkParallel = "true".equals(System.getProperty("rdap.parallel.network", "false"));
+    
     if (validations != null) {
-      for (ProfileValidation validation : validations) {
-        logger.info("Validating: {}", validation.getGroupName());
-        result &= validation.validate();
+      // Original single list approach
+      if (aggressiveNetworkParallel) {
+        // Separate network from non-network validations for parallel execution
+        List<ProfileValidation> networkValidations = new ArrayList<>();
+        List<ProfileValidation> nonNetworkValidations = new ArrayList<>();
+        
+        for (ProfileValidation validation : validations) {
+          if (isNetworkValidation(validation)) {
+            networkValidations.add(validation);
+          } else {
+            nonNetworkValidations.add(validation);
+          }
+        }
+        
+        // Execute non-network validations sequentially (fast)
+        for (ProfileValidation validation : nonNetworkValidations) {
+          logger.debug("Validating (non-network): {}", validation.getGroupName());
+          result &= validation.validate();
+        }
+        
+        // Execute network validations aggressively in parallel
+        if (!networkValidations.isEmpty()) {
+          logger.info("Executing {} network validations with aggressive parallelization", networkValidations.size());
+          result &= NetworkValidationCoordinator.executeNetworkValidations(networkValidations);
+        }
+      } else {
+        // Sequential execution (default)
+        for (ProfileValidation validation : validations) {
+          logger.info("Validating: {}", validation.getGroupName());
+          result &= validation.validate();
+        }
       }
     } else if (parallelValidations != null || sequentialValidations != null) {
-      // If someone is using the new constructor, combine all validations and run sequentially
-      List<ProfileValidation> allValidations = new ArrayList<>();
-      if (parallelValidations != null) {
-        allValidations.addAll(parallelValidations);
-      }
-      if (sequentialValidations != null) {
-        allValidations.addAll(sequentialValidations);
+      // New separated approach
+      if (parallelValidations != null && !parallelValidations.isEmpty()) {
+        logger.debug("Executing {} non-network validations sequentially", parallelValidations.size());
+        for (ProfileValidation validation : parallelValidations) {
+          logger.debug("Validating (non-network): {}", validation.getGroupName());
+          result &= validation.validate();
+        }
       }
       
-      for (ProfileValidation validation : allValidations) {
-        logger.info("Validating: {}", validation.getGroupName());
-        result &= validation.validate();
+      if (sequentialValidations != null && !sequentialValidations.isEmpty()) {
+        if (aggressiveNetworkParallel) {
+          logger.info("Executing {} network validations with aggressive parallelization", sequentialValidations.size());
+          result &= NetworkValidationCoordinator.executeNetworkValidations(sequentialValidations);
+        } else {
+          logger.info("Executing {} network validations sequentially", sequentialValidations.size());
+          for (ProfileValidation validation : sequentialValidations) {
+            logger.info("Validating (sequential): {}", validation.getGroupName());
+            result &= validation.validate();
+          }
+        }
       }
     }
     
     return result;
+  }
+  
+  /**
+   * Determines if a validation is network-dependent based on its class name.
+   */
+  private boolean isNetworkValidation(ProfileValidation validation) {
+    String className = validation.getClass().getSimpleName();
+    return className.contains("Tig") && (
+        className.equals("TigValidation1Dot2") ||
+        className.equals("TigValidation1Dot3") ||
+        className.equals("TigValidation1Dot5_2024") ||
+        className.equals("TigValidation1Dot6") ||
+        className.equals("TigValidation1Dot8") ||
+        className.equals("TigValidation1Dot11Dot1") ||
+        className.equals("TigValidation1Dot13")
+    ) || className.contains("ResponseValidation") && (
+        className.equals("ResponseValidationHelp_2024") ||
+        className.equals("ResponseValidationDomainInvalid_2024") ||
+        className.equals("ResponseValidationTestInvalidRedirect_2024")
+    );
   }
 }
