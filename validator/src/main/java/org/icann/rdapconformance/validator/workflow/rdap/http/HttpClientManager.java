@@ -34,7 +34,7 @@ public class HttpClientManager {
     // Connection pool configuration
     private static final int MAX_TOTAL_CONNECTIONS = 50;
     private static final int MAX_CONNECTIONS_PER_ROUTE = 10;
-    private static final int CONNECTION_IDLE_TIMEOUT_SECONDS = 30;
+    private static final int CONNECTION_IDLE_TIMEOUT_SECONDS = 30; // timeout for idle connections
     private static final int CONNECTION_VALIDATE_AFTER_INACTIVITY_SECONDS = 10;
     
     // Cache for clients with different configurations - optimized for low contention
