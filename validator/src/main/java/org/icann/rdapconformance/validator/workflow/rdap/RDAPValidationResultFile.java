@@ -192,8 +192,8 @@ public class RDAPValidationResultFile {
         for (RDAPValidationResult result : allResults) {
             int code = result.getCode();
             // Filter out these codes, they are not relevant for this check and are exempt
-            //  -13004 (Blind Copy Queries), -13005 (Redirect to itself), -13006 (test.Invalid), -46701 (Invalid Domain Query was not a 404)
-            if (code != -13004 && code != -13005 && code != -13006 && code != -46701) {
+            //  -13004 (Blind Copy Queries), -13005 (Redirect to itself), -13006 (test.Invalid), -65300 (Invalid Domain Query was not a 404)
+            if (code != -13004 && code != -13005 && code != -13006 && code != -65300) {
                 filtered.add(result);
             }
         }
