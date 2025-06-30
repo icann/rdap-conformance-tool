@@ -6,6 +6,7 @@ import ch.qos.logback.classic.Logger;
 import java.io.File;
 import java.net.URI;
 import java.security.Security;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -29,6 +30,7 @@ import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
@@ -412,6 +414,48 @@ public void setVerbose(boolean isVerbose) {
   @Override
   public boolean isAdditionalConformanceQueries() {
     return additionalConformanceQueries;
+  }
+
+  /**
+   * Get validation errors from the last run.
+   * @return List of validation errors, or empty list if no validation has been run
+   */
+  public List<RDAPValidationResult> getErrors() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      return resultFile.getErrors();
+    } catch (Exception e) {
+      // Return empty list if validation hasn't run yet or failed
+      return new java.util.ArrayList<>();
+    }
+  }
+
+  /**
+   * Get all validation results from the last run.
+   * @return List of all validation results, or empty list if no validation has been run
+   */
+  public List<RDAPValidationResult> getAllResults() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      return resultFile.getAllResults();
+    } catch (Exception e) {
+      // Return empty list if validation hasn't run yet or failed
+      return new java.util.ArrayList<>();
+    }
+  }
+
+  /**
+   * Get the count of validation errors from the last run.
+   * @return Number of validation errors
+   */
+  public int getErrorCount() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      return resultFile.getErrorCount();  
+    } catch (Exception e) {
+      // Return 0 if validation hasn't run yet or failed
+      return 0;
+    }
   }
 
   private static class DependantRdapProfileGtld {
