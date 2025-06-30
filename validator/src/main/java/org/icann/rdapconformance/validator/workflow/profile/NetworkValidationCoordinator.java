@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,6 +32,15 @@ public class NetworkValidationCoordinator {
         Executors.newFixedThreadPool(MAX_CONCURRENT_NETWORK_VALIDATIONS, 
             r -> {
                 Thread t = new Thread(r, "NetworkValidation-" + System.currentTimeMillis());
+                t.setDaemon(true);
+                return t;
+            });
+    
+    // Separate thread pool for timeout-prone validations (HTTP + slow HTTPS)
+    private static final ExecutorService httpExecutor = 
+        Executors.newFixedThreadPool(2, // 2 threads for timeout-prone validations
+            r -> {
+                Thread t = new Thread(r, "TimeoutProneValidation-" + System.currentTimeMillis());
                 t.setDaemon(true);
                 return t;
             });
@@ -173,43 +183,56 @@ public class NetworkValidationCoordinator {
             return new NetworkValidationGroups(List.of(), List.of(), List.of());
         }
         
-        List<ProfileValidation> lightweight = networkValidations.stream()
-            .filter(v -> isLightweightNetworkValidation(v))
+        List<ProfileValidation> httpValidations = networkValidations.stream()
+            .filter(v -> isHttpValidation(v))
             .collect(Collectors.toList());
         
-        List<ProfileValidation> ssl = networkValidations.stream()
-            .filter(v -> isSSLValidation(v))
+        List<ProfileValidation> httpsValidations = networkValidations.stream()
+            .filter(v -> !isHttpValidation(v))
             .collect(Collectors.toList());
         
-        List<ProfileValidation> other = networkValidations.stream()
-            .filter(v -> !isLightweightNetworkValidation(v) && !isSSLValidation(v))
-            .collect(Collectors.toList());
-        
-        return new NetworkValidationGroups(lightweight, ssl, other);
+        // For compatibility, return HTTP validations as 'lightweight', HTTPS as 'ssl', empty as 'other'
+        return new NetworkValidationGroups(httpValidations, httpsValidations, List.of());
     }
     
-    private static boolean isLightweightNetworkValidation(ProfileValidation validation) {
+    /**
+     * Identifies validations that are timeout-prone and should run asynchronously.
+     * This includes both HTTP calls and slow HTTPS endpoints like /help.
+     */
+    private static boolean isHttpValidation(ProfileValidation validation) {
         String className = validation.getClass().getSimpleName();
-        return className.equals("TigValidation1Dot13") || // Header analysis
-               className.equals("TigValidation1Dot11Dot1") || // URL validation
-               className.equals("ResponseValidationTestInvalidRedirect_2024") ||
+        // TigValidation1Dot2 makes HTTP calls by converting HTTPS to HTTP
+        // ResponseValidationHelp_2024 often times out on /help endpoints
+        // ResponseValidationDomainInvalid_2024 can be slow on /domain/not-a-domain.invalid
+        return className.equals("TigValidation1Dot2") ||
                className.equals("ResponseValidationHelp_2024") ||
                className.equals("ResponseValidationDomainInvalid_2024");
     }
     
+    /**
+     * Legacy method for backward compatibility
+     */
+    private static boolean isLightweightNetworkValidation(ProfileValidation validation) {
+        return isHttpValidation(validation);
+    }
+    
+    /**
+     * Legacy method for backward compatibility  
+     */
     private static boolean isSSLValidation(ProfileValidation validation) {
-        String className = validation.getClass().getSimpleName();
-        return className.equals("TigValidation1Dot2") || // SSL network
-               className.equals("TigValidation1Dot5_2024"); // SSL network
+        return !isHttpValidation(validation);
     }
     
     /**
      * Groups network validations by their execution characteristics.
+     * lightweight = Timeout-prone validations (HTTP + slow HTTPS like /help)
+     * ssl = Normal HTTPS validations (fast execution)
+     * other = unused (kept for compatibility)
      */
     public static class NetworkValidationGroups {
-        public final List<ProfileValidation> lightweight;
-        public final List<ProfileValidation> ssl;
-        public final List<ProfileValidation> other;
+        public final List<ProfileValidation> lightweight; // HTTP validations
+        public final List<ProfileValidation> ssl;         // HTTPS validations
+        public final List<ProfileValidation> other;       // Unused
         
         public NetworkValidationGroups(List<ProfileValidation> lightweight, 
                                      List<ProfileValidation> ssl, 
@@ -219,24 +242,125 @@ public class NetworkValidationCoordinator {
             this.other = other;
         }
         
+        public List<ProfileValidation> getTimeoutProneValidations() {
+            return lightweight;
+        }
+        
+        public List<ProfileValidation> getNormalValidations() {
+            return ssl;
+        }
+        
+        // Legacy methods for backward compatibility
+        public List<ProfileValidation> getHttpValidations() {
+            return lightweight;
+        }
+        
+        public List<ProfileValidation> getHttpsValidations() {
+            return ssl;
+        }
+        
         public boolean isEmpty() {
             return lightweight.isEmpty() && ssl.isEmpty() && other.isEmpty();
         }
     }
     
     /**
-     * Shutdown the network validation executor.
+     * Executes timeout-prone and normal validations with appropriate threading strategy.
+     * Timeout-prone validations run asynchronously in a separate thread pool to avoid blocking.
+     * Normal validations run in the main network thread pool.
+     * 
+     * @param httpValidations List of timeout-prone validations (HTTP + slow HTTPS like /help)
+     * @param httpsValidations List of normal validations (fast HTTPS execution)
+     * @param timeoutSeconds Timeout in seconds for all validations (respects config timeout)
+     * @return true if all validations passed, false otherwise
+     */
+    public static boolean executeHttpAndHttpsValidations(List<ProfileValidation> httpValidations, 
+                                                         List<ProfileValidation> httpsValidations,
+                                                         int timeoutSeconds) {
+        if ((httpValidations == null || httpValidations.isEmpty()) && 
+            (httpsValidations == null || httpsValidations.isEmpty())) {
+            return true;
+        }
+        
+        logger.info("Executing {} timeout-prone validations async, {} normal validations sync", 
+                   httpValidations != null ? httpValidations.size() : 0,
+                   httpsValidations != null ? httpsValidations.size() : 0);
+        
+        List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
+        
+        // Submit timeout-prone validations to separate thread pool (async, non-blocking)
+        if (httpValidations != null && !httpValidations.isEmpty()) {
+            for (ProfileValidation validation : httpValidations) {
+                CompletableFuture<Boolean> timeoutProneFuture = CompletableFuture.supplyAsync(() -> {
+                    logger.debug("Executing timeout-prone validation: {}", validation.getGroupName());
+                    try {
+                        boolean result = validation.validate();
+                        logger.debug("Timeout-prone validation completed: {} - Result: {}", 
+                                   validation.getGroupName(), result);
+                        return result;
+                    } catch (Exception e) {
+                        logger.error("Timeout-prone validation failed: {}", validation.getGroupName(), e);
+                        return false;
+                    }
+                }, httpExecutor);
+                allFutures.add(timeoutProneFuture);
+            }
+        }
+        
+        // Execute normal validations with rate limiting (using existing network pool)
+        if (httpsValidations != null && !httpsValidations.isEmpty()) {
+            boolean normalResult = executeNetworkValidations(httpsValidations);
+            // Convert normal result to future for consistent handling
+            CompletableFuture<Boolean> normalFuture = CompletableFuture.completedFuture(normalResult);
+            allFutures.add(normalFuture);
+        }
+        
+        // Wait for all validations to complete
+        try {
+            CompletableFuture<Void> allOf = CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0]));
+            
+            // Wait with configured timeout plus small buffer for coordination overhead
+            int coordinationTimeoutSeconds = Math.max(timeoutSeconds + 5, 30); // At least 30 seconds, or config timeout + 5 seconds buffer
+            allOf.get(coordinationTimeoutSeconds, TimeUnit.SECONDS);
+            
+            // Check if all validations passed
+            boolean allPassed = true;
+            for (CompletableFuture<Boolean> future : allFutures) {
+                Boolean result = future.get(100, TimeUnit.MILLISECONDS);
+                if (result != null) {
+                    allPassed &= result;
+                } else {
+                    allPassed = false;
+                }
+            }
+            
+            logger.info("Timeout-prone/Normal validations completed - All passed: {}", allPassed);
+            return allPassed;
+            
+        } catch (Exception e) {
+            logger.error("Error executing timeout-prone/normal validations", e);
+            return false;
+        }
+    }
+    
+    /**
+     * Shutdown the network validation executors.
      * Should be called when the application is shutting down.
      */
     public static void shutdown() {
         networkExecutor.shutdown();
+        httpExecutor.shutdown();
         try {
             if (!networkExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
                 networkExecutor.shutdownNow();
             }
+            if (!httpExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
+                httpExecutor.shutdownNow();
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             networkExecutor.shutdownNow();
+            httpExecutor.shutdownNow();
         }
     }
 }

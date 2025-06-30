@@ -51,10 +51,25 @@ public class RDAPProfile {
           result &= validation.validate();
         }
         
-        // Execute network validations aggressively in parallel
+        // Execute network validations with HTTP/HTTPS separation
         if (!networkValidations.isEmpty()) {
-          logger.info("Executing {} network validations with aggressive parallelization", networkValidations.size());
-          result &= NetworkValidationCoordinator.executeNetworkValidations(networkValidations);
+          logger.info("Executing {} network validations with timeout-prone separation", networkValidations.size());
+          
+          // Separate timeout-prone from normal validations
+          NetworkValidationCoordinator.NetworkValidationGroups groups = 
+              NetworkValidationCoordinator.categorizeNetworkValidations(networkValidations);
+          
+          List<ProfileValidation> timeoutProneValidations = groups.getTimeoutProneValidations();
+          List<ProfileValidation> normalValidations = groups.getNormalValidations();
+          
+          if (!timeoutProneValidations.isEmpty() || !normalValidations.isEmpty()) {
+            logger.info("Separated validations: {} timeout-prone (async), {} normal (sync)", 
+                       timeoutProneValidations.size(), normalValidations.size());
+            
+            // Extract timeout from any validation that has config access
+            int timeoutSeconds = extractTimeoutFromValidations(timeoutProneValidations, normalValidations);
+            result &= NetworkValidationCoordinator.executeHttpAndHttpsValidations(timeoutProneValidations, normalValidations, timeoutSeconds);
+          }
         }
       } else {
         // Sequential execution (default)
@@ -75,8 +90,23 @@ public class RDAPProfile {
       
       if (sequentialValidations != null && !sequentialValidations.isEmpty()) {
         if (aggressiveNetworkParallel) {
-          logger.info("Executing {} network validations with aggressive parallelization", sequentialValidations.size());
-          result &= NetworkValidationCoordinator.executeNetworkValidations(sequentialValidations);
+          logger.info("Executing {} network validations with HTTP/HTTPS separation", sequentialValidations.size());
+          
+          // Separate HTTP from HTTPS validations
+          NetworkValidationCoordinator.NetworkValidationGroups groups = 
+              NetworkValidationCoordinator.categorizeNetworkValidations(sequentialValidations);
+          
+          List<ProfileValidation> httpValidations = groups.getHttpValidations();
+          List<ProfileValidation> httpsValidations = groups.getHttpsValidations();
+          
+          if (!httpValidations.isEmpty() || !httpsValidations.isEmpty()) {
+            logger.info("Separated validations: {} HTTP (async), {} HTTPS (sync)", 
+                       httpValidations.size(), httpsValidations.size());
+            
+            // Extract timeout from any validation that has config access
+            int timeoutSeconds = extractTimeoutFromValidations(httpValidations, httpsValidations);
+            result &= NetworkValidationCoordinator.executeHttpAndHttpsValidations(httpValidations, httpsValidations, timeoutSeconds);
+          }
         } else {
           logger.info("Executing {} network validations sequentially", sequentialValidations.size());
           for (ProfileValidation validation : sequentialValidations) {
@@ -108,5 +138,41 @@ public class RDAPProfile {
         className.equals("ResponseValidationDomainInvalid_2024") ||
         className.equals("ResponseValidationTestInvalidRedirect_2024")
     );
+  }
+  
+  /**
+   * Extracts timeout from validations that have config access.
+   * Uses reflection to access the config field in validation classes.
+   * Returns a default of 20 seconds if no config is found.
+   */
+  private int extractTimeoutFromValidations(List<ProfileValidation> timeoutProneValidations, List<ProfileValidation> normalValidations) {
+    // Try to extract timeout from any validation that has a config field
+    List<ProfileValidation> allValidations = new ArrayList<>();
+    if (timeoutProneValidations != null) allValidations.addAll(timeoutProneValidations);
+    if (normalValidations != null) allValidations.addAll(normalValidations);
+    
+    for (ProfileValidation validation : allValidations) {
+      try {
+        // Use reflection to access the config field
+        java.lang.reflect.Field configField = validation.getClass().getDeclaredField("config");
+        configField.setAccessible(true);
+        Object config = configField.get(validation);
+        
+        if (config != null) {
+          // Call getTimeout() method on the config object
+          java.lang.reflect.Method getTimeoutMethod = config.getClass().getMethod("getTimeout");
+          Object timeoutObj = getTimeoutMethod.invoke(config);
+          if (timeoutObj instanceof Integer) {
+            return (Integer) timeoutObj;
+          }
+        }
+      } catch (Exception e) {
+        // Continue to next validation if reflection fails
+        logger.debug("Could not extract timeout from validation: {}", validation.getGroupName());
+      }
+    }
+    
+    // Default timeout if no config found (20 seconds is typical default)
+    return 20;
   }
 }
