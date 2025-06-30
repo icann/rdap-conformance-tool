@@ -43,8 +43,10 @@ import org.json.JSONObject;
 
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
+
   // Create a logger
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RdapConformanceTool.class);
+  public static final int PRETTY_PRINT_INDENT = 2;
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
@@ -472,7 +474,7 @@ public void setVerbose(boolean isVerbose) {
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> errors = (List<Map<String, Object>>) resultsMap.get("error");
       JSONArray jsonArray = new JSONArray(errors);
-      return jsonArray.toString(2); // Pretty print with 2-space indentation
+      return jsonArray.toString(PRETTY_PRINT_INDENT);
     } catch (Exception e) {
       // Return empty JSON array if validation hasn't run yet or failed
       return "[]";
@@ -488,7 +490,7 @@ public void setVerbose(boolean isVerbose) {
       RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
       Map<String, Object> resultsMap = resultFile.createResultsMap();
       JSONObject jsonObject = new JSONObject(resultsMap);
-      return jsonObject.toString(2); // Pretty print with 2-space indentation
+      return jsonObject.toString(PRETTY_PRINT_INDENT);
     } catch (Exception e) {
       // Return empty results structure if validation hasn't run yet or failed
       return "{\n  \"error\": [],\n  \"warning\": [],\n  \"ignore\": [],\n  \"notes\": []\n}";
@@ -506,7 +508,7 @@ public void setVerbose(boolean isVerbose) {
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> warnings = (List<Map<String, Object>>) resultsMap.get("warning");
       JSONArray jsonArray = new JSONArray(warnings);
-      return jsonArray.toString(2); // Pretty print with 2-space indentation
+      return jsonArray.toString(PRETTY_PRINT_INDENT); 
     } catch (Exception e) {
       // Return empty JSON array if validation hasn't run yet or failed
       return "[]";
