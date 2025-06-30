@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
@@ -8,6 +9,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.net.URI;
+
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 public class ResponseValidation2Dot6Dot3_2024Test extends ProfileJsonValidationTestBase {
 
@@ -22,7 +27,7 @@ public class ResponseValidation2Dot6Dot3_2024Test extends ProfileJsonValidationT
     static final String relPointer =
             "#/notices/0:{\"description\":[\"For more information on domain status codes, please visit https://icann.org/epp\",\"Calm down and come back later.\"],\"links\":[{\"rel\":\"test\",\"href\":\"https://icann.org/epp\",\"type\":\"text/html\",\"value\":\"https://example.net/entity/XXXX\"}],\"title\":\"Status Codes\",\"type\":\"result set truncated due to excessive load\"}";
     static final String valuePointer =
-            "#/notices/0:{\"description\":[\"For more information on domain status codes, please visit https://icann.org/epp\",\"Calm down and come back later.\"],\"links\":[{\"rel\":\"glossary\",\"href\":\"https://icann.org/epp\",\"type\":\"text/html\",\"value\":\"test\"}],\"title\":\"Status Codes\",\"type\":\"result set truncated due to excessive load\"}";
+            "#/notices/0:{\"description\":[\"For more information on domain status codes, please visit https://icann.org/epp\",\"Calm down and come back later.\"],\"links\":[{\"rel\":\"glossary\",\"href\":\"https://icann.org/epp\",\"type\":\"text/html\",\"value\":\"http://test\"}],\"title\":\"Status Codes\",\"type\":\"result set truncated due to excessive load\"}";
 
     public ResponseValidation2Dot6Dot3_2024Test() {
         super("/validators/profile/response_validations/notices/valid.json",
@@ -32,13 +37,19 @@ public class ResponseValidation2Dot6Dot3_2024Test extends ProfileJsonValidationT
     @BeforeMethod
     public void setUp() throws IOException {
         super.setUp();
+        URI uri = URI.create("https://example.net/entity/XXXX");
+        doReturn(uri).when(config).getUri();
+
+        config = mock(RDAPValidatorConfiguration.class);
+        doReturn(uri).when(config).getUri();
     }
 
     @Override
     public ProfileValidation getProfileValidation() {
         return new ResponseValidation2Dot6Dot3_2024(
                 jsonObject.toString(),
-                results);
+                results,
+                this.config);
     }
 
     @Test
@@ -86,7 +97,7 @@ public class ResponseValidation2Dot6Dot3_2024Test extends ProfileJsonValidationT
     public void ResponseValidation2Dot6Dot3_2024_46606() {
         JSONObject link = jsonObject.getJSONArray("notices").getJSONObject(0).getJSONArray("links").getJSONObject(0);
 
-        link.put("value", "test");
+        link.put("value", "http://test");
         validate(-46606, valuePointer, "The notice for Status Codes does not have a link value of the request URL.");
     }
 }
