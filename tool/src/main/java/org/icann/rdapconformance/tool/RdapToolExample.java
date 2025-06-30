@@ -1,8 +1,9 @@
 package org.icann.rdapconformance.tool;
 
-import org.icann.rdapconformance.tool.RdapConformanceTool;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class RdapToolExample {
@@ -20,13 +21,15 @@ public class RdapToolExample {
         tool.setExecuteIPv6Queries(false);
         tool.setAdditionalConformanceQueries(true);
         tool.setVerbose(false);
-        // Use absolute path to config file so it works from any working directory
-        String configPath = System.getProperty("user.dir");
-        if (configPath.endsWith("/tool")) {
-            tool.setConfigurationFile("bin/rdapct_config.json");
+        // Use Path API for safer file path handling
+        Path currentDir = Paths.get(System.getProperty("user.dir"));
+        Path configFilePath;
+        if (currentDir.getFileName().toString().equals("tool")) {
+            configFilePath = currentDir.resolve("bin/rdapct_config.json");
         } else {
-            tool.setConfigurationFile("tool/bin/rdapct_config.json");
+            configFilePath = currentDir.resolve("tool/bin/rdapct_config.json");
         }
+        tool.setConfigurationFile(configFilePath.toString());
 
         // Set gTLD/Registrar/Registry/Profile options as needed
         // Example: enable RDAP Profile Feb 2024
@@ -64,5 +67,31 @@ public class RdapToolExample {
         System.out.println("Total validation results: " + allResults.size());
         System.out.println("Errors: " + tool.getErrorCount());
         System.out.println("Warnings/Other: " + (allResults.size() - tool.getErrorCount()));
+        
+        // Demonstrate JSON output methods
+        System.out.println("\n=== JSON OUTPUT EXAMPLES ===");
+        
+        // Get first 3 errors as JSON (to keep output manageable)
+        String errorsJson = tool.getErrorsAsJson();
+        System.out.println("\nFirst few errors as JSON:");
+        if (!errorsJson.equals("[]")) {
+            // Parse and show only first few errors to keep output readable
+            System.out.println(errorsJson.substring(0, Math.min(500, errorsJson.length())) + 
+                              (errorsJson.length() > 500 ? "...\n(truncated for readability)" : ""));
+        } else {
+            System.out.println(errorsJson);
+        }
+        
+        // Get warnings as JSON
+        String warningsJson = tool.getWarningsAsJson();
+        System.out.println("\nWarnings as JSON:");
+        System.out.println(warningsJson.substring(0, Math.min(300, warningsJson.length())) + 
+                          (warningsJson.length() > 300 ? "...\n(truncated for readability)" : ""));
+        
+        // Show complete structure (just metadata, not full content)
+        String allResultsJson = tool.getAllResultsAsJson();
+        System.out.println("\nComplete results structure available via getAllResultsAsJson()");
+        System.out.println("Contains: errors, warnings, ignore list, and notes");
+        System.out.println("Full JSON size: " + allResultsJson.length() + " characters");
     }
 }

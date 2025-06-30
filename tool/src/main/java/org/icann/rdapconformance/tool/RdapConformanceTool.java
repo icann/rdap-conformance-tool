@@ -7,6 +7,7 @@ import java.io.File;
 import java.net.URI;
 import java.security.Security;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -36,6 +37,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImp
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
@@ -455,6 +458,58 @@ public void setVerbose(boolean isVerbose) {
     } catch (Exception e) {
       // Return 0 if validation hasn't run yet or failed
       return 0;
+    }
+  }
+
+  /**
+   * Get validation errors from the last run as a JSON array string.
+   * @return JSON array string of validation errors, or empty array if no validation has been run
+   */
+  public String getErrorsAsJson() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      Map<String, Object> resultsMap = resultFile.createResultsMap();
+      @SuppressWarnings("unchecked")
+      List<Map<String, Object>> errors = (List<Map<String, Object>>) resultsMap.get("error");
+      JSONArray jsonArray = new JSONArray(errors);
+      return jsonArray.toString(2); // Pretty print with 2-space indentation
+    } catch (Exception e) {
+      // Return empty JSON array if validation hasn't run yet or failed
+      return "[]";
+    }
+  }
+
+  /**
+   * Get all validation results from the last run as a JSON object string.
+   * @return JSON object string containing all validation results, or empty results if no validation has been run
+   */
+  public String getAllResultsAsJson() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      Map<String, Object> resultsMap = resultFile.createResultsMap();
+      JSONObject jsonObject = new JSONObject(resultsMap);
+      return jsonObject.toString(2); // Pretty print with 2-space indentation
+    } catch (Exception e) {
+      // Return empty results structure if validation hasn't run yet or failed
+      return "{\n  \"error\": [],\n  \"warning\": [],\n  \"ignore\": [],\n  \"notes\": []\n}";
+    }
+  }
+
+  /**
+   * Get validation warnings from the last run as a JSON array string.
+   * @return JSON array string of validation warnings, or empty array if no validation has been run
+   */
+  public String getWarningsAsJson() {
+    try {
+      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      Map<String, Object> resultsMap = resultFile.createResultsMap();
+      @SuppressWarnings("unchecked")
+      List<Map<String, Object>> warnings = (List<Map<String, Object>>) resultsMap.get("warning");
+      JSONArray jsonArray = new JSONArray(warnings);
+      return jsonArray.toString(2); // Pretty print with 2-space indentation
+    } catch (Exception e) {
+      // Return empty JSON array if validation hasn't run yet or failed
+      return "[]";
     }
   }
 
