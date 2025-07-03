@@ -135,4 +135,33 @@ file name.
 
 ## Exit Codes
 
-TODO: put the exit codes here
+RDAPCT emits the following exit codes when the process terminates:
+
+| Value | Meaning |
+| ----- | ------- |
+| 0 | Normal Exit. |
+| 1 | The configuration definition file is syntactically invalid. |
+| 2 | The tool was not able to download a dataset. |
+| 3 | The RDAP query is not supported by the tool. |
+| 4 | The RDAP query is domain/<domain name> or nameserver/<nameserver>, but A-labels and U-labels are mixed. |
+| 5 | No longer used. See result code -13000. |
+| 6 | No longer used. See result code -13001. |
+| 7 | No longer used. See result code -13002. |
+| 8 | No longer used. See result code -13003. |
+| 9 | The RDAP query is invalid because the TLD uses the thin model. |
+| 10 | Failed to connect to host. |
+| 11 | The TLS handshake failed. |
+| 12 | TLS server certificate - common name invalid. |
+| 13 | TLS server certificate - revoked. |
+| 14 | TLS server certificate - expired. |
+| 15 | Other errors with the TLS server certificate. |
+| 16 | Too many redirects. |
+| 17 | HTTP errors. |
+| 18 | HTTP/2 errors. |
+| 19 | Failure sending network data. |
+| 20 | Failure in receiving network data. |
+| 21 | Failure in writing result file. |
+| 22 | Failure in reading result file. |
+| 23 | Reserved. |
+| 24 | Reserved. |
+| 25 | Bad user input. |
