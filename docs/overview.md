@@ -1,17 +1,4 @@
-# Overview
-
-The ICANN RDAP Conformance Tool, often referred to as "RDAPCT", is program to help RDAP server operators find
-issues of conformance to the Registration Data Access Protocol (RDAP) specifications, as defined by the Internet
-Engineering Task Force (IETF), and (optionally) the gTLD RDAP profiles, as defined by ICANN. RDAPCT may be
-used by other RDAP server operators, such as ccTLDs and RIRs, but is primarily designed for gTLD RDAP service
-operators. Apart from generic RDAP tests, there are no specific tests for IP addresses and AS Numbers RDAP servers.
-
-RDAPCT operates by taking an RDAP URL, along with parameters defining the context of that URL, to send queries
-to the RDAP server and then produces a results file.
-
-ICANN also hosts an online version of RDAPCT at <https://webrdapct.icann.org>.
-
-## Installing and Using
+# Installing and Using
 
 There are two methods for installing and using the RDAP Conformance Tool. The first method uses Docker and the second method uses Java.
 **Please be aware that running these this tool from within the network of a registry, registrar, or RDAP service provider may not
@@ -25,7 +12,7 @@ registry or registrar would be `https://rdap.example/domain/example.net`.
 The supplied configuration file, `rdapct_config.json` (which can be downloaded from a [release](https://github.com/icann/rdap-conformance-tool/releases)) 
 is configured to instruct the tool to ignore known false positives.
 
-### Using with Docker
+## Using with Docker
 
 To use Docker, you must either download a [source release](https://github.com/icann/rdap-conformance-tool/releases) or 
 clone the repository. This repository contains a Dockerfile which builds an image containing the tool.
@@ -45,7 +32,7 @@ printed to `STDOUT`.
 Datasets are added to the image at build time and are not refreshed, so the image
 should be rebuilt in order to ensure they are up-to-date.
 
-### Using with Java
+## Using with Java
 
 To use with Java, you must obtain the RDAPCT JAR file and a configuration file. Both are available to download
 from a [GitHub Release](https://github.com/icann/rdap-conformance-tool/releases). You may also use Maven to build
@@ -82,7 +69,7 @@ Java method:
 java -jar rdapct-3.0.0.jar -c ./rdapct-config.json https://test.example
 ```
 
-### Testing As a gTLD Registry
+## Testing As a gTLD Registry
 
 For gTLD registries, there are additional parameters to be used:
 * `--gtld-registry` signifies to test the output for gTLD registry compliance
@@ -110,7 +97,7 @@ or for thin registries
 java -jar rdapct-3.0.0.jar -c ./rdapct-config.json --gtld-registry --thin --use-rdap-profile-february-2024 https://test.example
 ```
 
-### Testing As a gTLD Registrar
+## Testing As a gTLD Registrar
 
 For gTLD registrars, the following parameters are requried:
 * `--gtld-registrar` signifies to test the output for gTLD registrar compliance
@@ -127,9 +114,7 @@ Java method:
 java -jar rdapct-3.0.0.jar -c ./rdapct-config.json --gtld-registrar --use-rdap-profile-february-2024 https://test.example
 ```
 
-## Additional Command Line Parameters
-
-### Additional Queries
+## Additional Queries
 
 The `--additional-conformance-queries` comamnd line parameter will cause RDAPCT to issue the following RDAP queries in addition
 to the one provided in the give RDAP URL:
@@ -137,12 +122,12 @@ to the one provided in the give RDAP URL:
 1. `/help` - queries the servers help path to asses conformance.
 2. `/domain/not-a-domain.invalid` - queries for a domain that cannot be registered to asses conformance with a negative answer.
 
-### Supressing IPv4 or IPv6 Queries
+## Supressing IPv4 or IPv6 Queries
 
 By default, RDAPCT issues all queries over both IPv4 and IPv6. The `--no-ipv4-queries` may be used to suppress queries over
 IPv4, and the `--no-ipv6-queries` may be used to suppress queries over IPv6.
 
-### Specifying the Results File
+## Specifying the Results File
 
 By default, RDAPCT writes the results to a file in a subordinate `results` directory with the file name `results-XXXX.json` where
 XXXX is the timestamp when the file was generated.  The `--results-file` may be used to write the results to a file with a specific
