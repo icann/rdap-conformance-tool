@@ -50,5 +50,18 @@ nav:
     - std_95/general.md
     - std_95/common_structures.md
     - std_95/object_classes.md
-  - 'gtld_2019_tests.md'
+  - 2019 gTLD profile Tests:
+    - Technical Implemenation Guide:
+      - 2019_gtld/tig/general.md
+      - 2019_gtld/tig/registry.md
+      - 2019_gtld/tig/registrar.md
+    - Response Profile:
+      - 2019_gtld/response/general.md
+      - 2019_gtld/response/miscellaneous.md
+      - 2019_gtld/response/domain.md
+      - 2019_gtld/response/nameserver.md
+      - 2019_gtld/response/domain_entities_general.md
+      - 2019_gtld/response/domain_entities_registry.md
+      - 2019_gtld/response/domain_entities_registrar.md
+      - 2019_gtld/response/entity_registrar.md
   - 'references.md'

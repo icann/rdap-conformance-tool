@@ -132,3 +132,7 @@ IPv4, and the `--no-ipv6-queries` may be used to suppress queries over IPv6.
 By default, RDAPCT writes the results to a file in a subordinate `results` directory with the file name `results-XXXX.json` where
 XXXX is the timestamp when the file was generated.  The `--results-file` may be used to write the results to a file with a specific
 file name.
+
+## Exit Codes
+
+TODO: put the exit codes here
