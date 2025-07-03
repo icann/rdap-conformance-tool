@@ -46,6 +46,7 @@ nav:
   - 'queries_rate_limits.md'
   - 'configuration.md'
   - 'test_categories.md'
+  - 'test_results.md'
   - STD 95 Tests:
     - std_95/general.md
     - std_95/common_structures.md
