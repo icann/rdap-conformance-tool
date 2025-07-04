@@ -150,7 +150,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
     String tupleListJson = BRACKETS;
     try {
-      ObjectMapper mapper = new ObjectMapper();
+      ObjectMapper mapper = org.icann.rdapconformance.validator.workflow.JsonMapperUtil.getSharedMapper();
       tupleListJson = mapper.writeValueAsString(new ArrayList<>(uniqueTuples));
     } catch (JsonProcessingException e) {
       logger.info("Error serializing tuple list to JSON", e);

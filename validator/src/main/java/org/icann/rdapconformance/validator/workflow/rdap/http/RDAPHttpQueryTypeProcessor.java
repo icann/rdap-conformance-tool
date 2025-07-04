@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.workflow.SchemaValidatorCache;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -71,7 +72,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
             String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
             RDAPValidatorResults testDomainResults = RDAPValidatorResultsImpl.getInstance();
-            SchemaValidator validator = new SchemaValidator("rdap_domain_name.json", testDomainResults, datasetService);
+            SchemaValidator validator = SchemaValidatorCache.getCachedValidator("rdap_domain_name.json", testDomainResults, datasetService);
             return validator.validate(domainNameJson);
         }
 

@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.workflow.SchemaValidatorCache;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 
@@ -158,8 +159,8 @@ public final class TigValidation1Dot8 extends ProfileValidation {
       }
 
       String ipAddressJson = String.format("{\"ip\": \"%s\"}", ipAddress.getHostAddress());
-      SchemaValidator validator = new SchemaValidator(schema.path(),  RDAPValidatorResultsImpl.getInstance(),
-          datasetService);
+      SchemaValidator validator = SchemaValidatorCache.getCachedValidator(schema.path(),  
+          RDAPValidatorResultsImpl.getInstance(), datasetService);
       boolean isValid = validator.validate(ipAddressJson);
       logger.info("IP address  {} is {} according to the schema {}", ipAddress.getHostAddress(), isValid ? "VALID" : "<INVALID>", schema.path());
       return !isValid;

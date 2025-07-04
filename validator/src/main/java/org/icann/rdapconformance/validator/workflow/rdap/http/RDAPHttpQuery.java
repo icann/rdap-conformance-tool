@@ -334,7 +334,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
 
         public JsonData(String data) {
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = org.icann.rdapconformance.validator.workflow.JsonMapperUtil.getSharedMapper();
 
             try {
                 rawRdapMap = mapper.readValue(data, Map.class);
