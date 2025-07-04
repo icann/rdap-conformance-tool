@@ -147,15 +147,13 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                 return false;
             }
 
-            if(isValidURL(statusLink.get().value())) {
-                if(!statusLink.get().value().equalsIgnoreCase(this.config.getUri().toString())) {
-                    results.add(RDAPValidationResult.builder()
-                            .code(-46606)
-                            .value(getResultValue(noticePointersValue))
-                            .message("The notice for Status Codes does not have a link value of the request URL.")
-                            .build());
-                    return false;
-                }
+            if(!statusLink.get().value().equalsIgnoreCase(this.config.getUri().toString())) {
+                results.add(RDAPValidationResult.builder()
+                        .code(-46606)
+                        .value(getResultValue(noticePointersValue))
+                        .message("The notice for Status Codes does not have a link value of the request URL.")
+                        .build());
+                return false;
             }
         }
 
