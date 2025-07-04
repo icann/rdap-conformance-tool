@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
 import java.util.Set;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -17,18 +16,15 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot4Dot6_2024.class);
 
     private final RDAPQueryType queryType;
-    private final RDAPValidatorConfiguration config;
     private final RDAPDatasetService datasetService;
 
     public ResponseValidation2Dot4Dot6_2024(String rdapResponse,
         RDAPValidatorResults results,
         RDAPDatasetService datasetService,
-        RDAPQueryType queryType,
-        RDAPValidatorConfiguration config) {
+        RDAPQueryType queryType) {
         super(rdapResponse, results);
         this.datasetService = datasetService;
         this.queryType = queryType;
-        this.config = config;
     }
 
 
@@ -55,40 +51,19 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
 
         String linkPointer = registrarEntitiesJsonPointers.iterator().next();
         String valuePointer = linkPointer + "/value";
-        String hrefPointer = linkPointer + "/href";
-        ;
         String handlePointer = linkPointer.substring(0, linkPointer.lastIndexOf('/', linkPointer.lastIndexOf('/') - 1)) + "/handle";
 
-        boolean valueValid = true;
-
         String value = null;
-        String href = null;
 
         Object obj = jsonObject.query(valuePointer);
         if (obj != null) {
             value = obj.toString();
         }
-        obj = jsonObject.query(hrefPointer);
-        if (obj != null) {
-            href = obj.toString();
-        }
 
-        if (!this.config.getUri().toString().equals(value)) {
-            logger.info("47701, value = {}, request url = {}", value, this.config.getUri());
+        if (value == null || !value.startsWith("https")) {
+            logger.info("47701, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-47701)
-                .value(getResultValue(linkPointer))
-                .message(
-                    "The link for registrar RDAP base URL does not have a link value of the request URL.")
-                .build());
-
-            valueValid = false;
-        }
-
-        if (href == null || !href.startsWith("https")) {
-            logger.info("47702, href = {}", href);
-            results.add(RDAPValidationResult.builder()
-                .code(-47702)
                 .value(getResultValue(linkPointer))
                 .message(
                     "The registrar RDAP base URL must have an https scheme.")
@@ -104,10 +79,10 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
             handle = obj.toString();
         }
 
-        return validRdapUrl(handle, href, linkPointer) && valueValid;
+        return validRdapUrl(handle, value, linkPointer);
     }
 
-    private boolean validRdapUrl(String handle, String href, String linkPointer) {
+    private boolean validRdapUrl(String handle, String value, String linkPointer) {
         int id;
 
         try {
@@ -123,10 +98,10 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         Record record = registrarId.getById(id);
         String rdapUrl = record.getRdapUrl();
 
-        if (href == null || !href.equals(rdapUrl)) {
-            logger.info("47703, handle/id = {}, rdap url = {}, href = {}", id, rdapUrl, href);
+        if (value == null || !value.equals(rdapUrl)) {
+            logger.info("47702, handle/id = {}, rdap url = {}, value = {}", id, rdapUrl, value);
             results.add(RDAPValidationResult.builder()
-                .code(-47703)
+                .code(-47702)
                 .value(getResultValue(linkPointer))
                 .message(
                     "The registrar base URL is not registered with IANA.")
