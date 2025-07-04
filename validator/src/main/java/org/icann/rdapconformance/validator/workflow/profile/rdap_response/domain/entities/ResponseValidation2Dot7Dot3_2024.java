@@ -14,7 +14,7 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
     public ResponseValidation2Dot7Dot3_2024(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
         RDAPDatasetService datasetService, RDAPQueryType queryType) {
 
-        super(config, rdapResponse, results, datasetService, queryType, -47600);
+        super(config, rdapResponse, results, datasetService, queryType, -47600, "entity");
     }
 
     @Override

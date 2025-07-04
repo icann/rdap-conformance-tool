@@ -212,7 +212,7 @@ public void testAllCodesThatShouldBeIgnored() {
     resultsImpl.add(RDAPValidationResult.builder().code(-13004).httpStatusCode(200).build());
     resultsImpl.add(RDAPValidationResult.builder().code(-13005).httpStatusCode(404).build());
     resultsImpl.add(RDAPValidationResult.builder().code(-13006).httpStatusCode(404).build());
-    resultsImpl.add(RDAPValidationResult.builder().code(-46701).httpStatusCode(404).build());
+    resultsImpl.add(RDAPValidationResult.builder().code(-65300).httpStatusCode(404).build());
 
     // Get all results from the implementation
     Set<RDAPValidationResult> allResults = resultsImpl.getAll();
@@ -231,7 +231,7 @@ public void testAllCodesThatShouldBeIgnored() {
     assertTrue(filteredResults.stream().anyMatch(r -> r.getCode() == -13004));
     assertTrue(filteredResults.stream().anyMatch(r -> r.getCode() == -13005));
     assertTrue(filteredResults.stream().anyMatch(r -> r.getCode() == -13006));
-    assertTrue(filteredResults.stream().anyMatch(r -> r.getCode() == -46701));
+    assertTrue(filteredResults.stream().anyMatch(r -> r.getCode() == -65300));
 }
 
     @Test

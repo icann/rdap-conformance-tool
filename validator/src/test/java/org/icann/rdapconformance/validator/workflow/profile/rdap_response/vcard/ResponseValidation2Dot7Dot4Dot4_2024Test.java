@@ -94,6 +94,6 @@ public class ResponseValidation2Dot7Dot4Dot4_2024Test extends ProfileJsonValidat
 
         cityValue.put(3, StringUtils.EMPTY);
         redactedObject.put("method", "test2");
-        validate(-63504, methodPointer, "Registrant City redaction method must be empytValue.");
+        validate(-63504, methodPointer, "Registrant City redaction method must be emptyValue.");
     }
 }

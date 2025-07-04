@@ -188,11 +188,11 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
             var methodValue = redactedPostalCode.get("method");
             logger.info("method property is found, so verify value");
             if(methodValue instanceof String method) {
-                if(!method.trim().equalsIgnoreCase("empytValue")) {
+                if(!method.trim().equalsIgnoreCase("emptyValue")) {
                     results.add(RDAPValidationResult.builder()
                             .code(-63604)
                             .value(getResultValue(redactedPointersValue))
-                            .message("Registrant Postal Code redaction method must be empytValue")
+                            .message("Registrant Postal Code redaction method must be emptyValue")
                             .build());
                     return false;
                 }

@@ -134,7 +134,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     List<RDAPValidationResult> filtered = new ArrayList<>();
     for (RDAPValidationResult result : results) {
       int code = result.getCode();
-      if (code != -130004 && code != -130005 && code != -130006 && code != -46701) {
+      if (code != -130004 && code != -130005 && code != -130006 && code != -65300) {
         filtered.add(result);
       }
     }

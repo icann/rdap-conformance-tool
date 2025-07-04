@@ -73,7 +73,7 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
         jsonDomainInvalidResponse = new RDAPHttpQuery.JsonData(rdapDomainInvalidResponse);
         if(HTTP_NOT_FOUND != domainInvalidStatusCode) {
             if(!isDomainInvalidJsonValid(jsonDomainInvalidResponse )) {
-                addErrorToResultsFile(domainInvalidStatusCode, -46701, String.valueOf(domainInvalidStatusCode),"A query for an invalid domain name did not yield a 404 response.");
+                addErrorToResultsFile(domainInvalidStatusCode, -65300, String.valueOf(domainInvalidStatusCode),"A query for an invalid domain name did not yield a 404 response.");
                 isValid = false;
             }
 

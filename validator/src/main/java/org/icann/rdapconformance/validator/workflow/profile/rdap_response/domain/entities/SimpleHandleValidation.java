@@ -15,7 +15,7 @@ public class SimpleHandleValidation extends HandleValidation {
                                 RDAPValidatorResults results,
                                 RDAPDatasetService datasetService,
                                 RDAPQueryType queryType, int code) {
-    super(config, rdapResponse, results, datasetService, queryType, code);
+    super(config, rdapResponse, results, datasetService, queryType, code, "entity");
   }
 
   @Override

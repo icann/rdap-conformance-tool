@@ -104,7 +104,7 @@ public class ResponseValidationDomainInvalid_2024Test {
 
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor.forClass(RDAPValidationResult.class);
     assertThat(results.getAll().stream().anyMatch(result ->
-            result.getCode() == -46701 &&
+            result.getCode() == -65300 &&
                     result.getMessage().equals("A query for an invalid domain name did not yield a 404 response.")
     )).isTrue();
 
