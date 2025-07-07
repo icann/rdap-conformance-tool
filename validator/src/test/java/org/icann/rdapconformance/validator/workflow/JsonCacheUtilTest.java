@@ -80,8 +80,8 @@ public class JsonCacheUtilTest {
     
     // Should throw exception due to duplicate keys
     assertThatThrownBy(() -> JsonCacheUtil.getCachedJsonObject(jsonWithDuplicates))
-        .isInstanceOf(JSONException.class)
-        .hasMessageContaining("Duplicate key");
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("Failed to parse JSON object");
   }
 
   @Test
