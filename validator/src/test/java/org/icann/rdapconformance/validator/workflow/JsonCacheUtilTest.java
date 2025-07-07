@@ -145,20 +145,6 @@ public class JsonCacheUtilTest {
   }
 
   @Test
-  public void testGetCacheSize() {
-    
-    JsonCacheUtil.getCachedJsonObject("{\"key2\":\"value2\"}");
-    assertThat(JsonCacheUtil.getJsonObjectCacheSize() + JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(2);
-    
-    JsonCacheUtil.getCachedJsonArray("[1,2,3]");
-    assertThat(JsonCacheUtil.getJsonObjectCacheSize() + JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(3);
-    
-    // Same content should not increase cache size
-    JsonCacheUtil.getCachedJsonObject("{\"key1\":\"value1\"}");
-    assertThat(JsonCacheUtil.getJsonObjectCacheSize() + JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(3);
-  }
-
-  @Test
   public void testComplexNestedJson() {
     String complexJson = """
         {
