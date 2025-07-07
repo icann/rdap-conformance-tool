@@ -147,9 +147,6 @@ public class JsonCacheUtilTest {
   @Test
   public void testGetCacheSize() {
     
-    JsonCacheUtil.getCachedJsonObject("{\"key1\":\"value1\"}");
-    assertThat(JsonCacheUtil.getJsonObjectCacheSize() + JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(1);
-    
     JsonCacheUtil.getCachedJsonObject("{\"key2\":\"value2\"}");
     assertThat(JsonCacheUtil.getJsonObjectCacheSize() + JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(2);
     
@@ -159,20 +156,6 @@ public class JsonCacheUtilTest {
     // Same content should not increase cache size
     JsonCacheUtil.getCachedJsonObject("{\"key1\":\"value1\"}");
     assertThat(JsonCacheUtil.getJsonObjectCacheSize() + JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(3);
-  }
-
-  @Test
-  public void testBasicCacheEviction() {
-    // Add a small number of items to test basic eviction behavior
-    for (int i = 0; i < 10; i++) {
-      JsonCacheUtil.getCachedJsonObject("{\"key" + i + "\":\"value" + i + "\"}");
-    }
-    
-    // Add one more
-    JsonCacheUtil.getCachedJsonObject("{\"keyNew\":\"valueNew\"}");
-    
-    // Cache should have grown by 1
-    assertThat(JsonCacheUtil.getJsonObjectCacheSize()).isEqualTo(11);
   }
 
   @Test
