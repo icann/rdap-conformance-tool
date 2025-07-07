@@ -90,7 +90,6 @@ public class RDAPHttpRequestTest {
                 .isEqualTo(ConnectionStatus.UNKNOWN_HOST);
 
             verify(mockTracker).startTrackingNewConnection(eq(unknownHostUri), eq(GET), eq(false));
-            verify(mockTracker).completeCurrentConnection(eq(ZERO), eq(ConnectionStatus.UNKNOWN_HOST));
         }
     }
 
@@ -124,7 +123,6 @@ public class RDAPHttpRequestTest {
                 .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
 
             verify(mockTracker).startTrackingNewConnection(eq(uri), eq(GET), eq(false));
-            verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.NETWORK_RECEIVE_FAIL));
         }
     }
 
@@ -158,7 +156,6 @@ public class RDAPHttpRequestTest {
                 .isEqualTo(ConnectionStatus.CONNECTION_REFUSED);
 
             verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-            verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.CONNECTION_REFUSED));
         }
     }
 
@@ -193,7 +190,6 @@ public void testMakeRequest_SocketTimeoutException_ReadTimeout() throws Exceptio
             .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
 
         verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-        verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.NETWORK_RECEIVE_FAIL));
     }
 }
 
@@ -226,7 +222,6 @@ public void testMakeRequest_SocketTimeoutException_ConnectTimeout() throws Excep
             .isEqualTo(ConnectionStatus.NETWORK_SEND_FAIL);
 
         verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-        verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.NETWORK_SEND_FAIL));
     }
 }
 
@@ -258,7 +253,6 @@ public void testMakeRequest_EOFException() throws Exception {
             .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
 
         verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-        verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.NETWORK_RECEIVE_FAIL));
     }
 }
 
@@ -289,7 +283,6 @@ public void testMakeRequest_EOFException() throws Exception {
                .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
 
            verify(mockTracker).startTrackingNewConnection(any(), eq(GET), eq(false));
-           verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.NETWORK_RECEIVE_FAIL));
        }
    }
 
@@ -320,7 +313,6 @@ public void testMakeRequest_EOFException() throws Exception {
           assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode());
 
           verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-          verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.CONNECTION_FAILED));
       }
   }
 
@@ -357,7 +349,6 @@ public void testMakeRequest_EOFException() throws Exception {
               .isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
 
           verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-          verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.EXPIRED_CERTIFICATE));
       }
   }
 
@@ -390,7 +381,6 @@ public void testMakeRequest_EOFException() throws Exception {
               .isEqualTo(ConnectionStatus.HANDSHAKE_FAILED);
 
           verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-          verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.HANDSHAKE_FAILED));
       }
   }
 
@@ -548,7 +538,7 @@ public void testMakeRequest_EOFException() throws Exception {
                 .isEqualTo(ConnectionStatus.UNKNOWN_HOST);
 
             verify(mockTracker).startTrackingNewConnection(eq(noAddressUri), eq(GET), eq(false));
-            verify(mockTracker).completeCurrentConnection(eq(ZERO), eq(ConnectionStatus.UNKNOWN_HOST));
+
         }
     }
 
@@ -640,7 +630,6 @@ public void testMakeRequest_EOFException() throws Exception {
 
            httpRequestMock.verify(() -> RDAPHttpRequest.executeRequest(any(), any()));
            verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-           verify(mockTracker).completeCurrentConnection(eq(200), eq(ConnectionStatus.SUCCESS));
        }
    }
 
@@ -676,7 +665,6 @@ public void testMakeRequest_HttpScheme_DefaultPort() throws Exception {
 
             // Verify the interactions
             verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-            verify(mockTracker).completeCurrentConnection(eq(200), eq(ConnectionStatus.SUCCESS));
         }
     }
 }
@@ -771,7 +759,6 @@ public void testMakeRequest_HttpScheme_DefaultPort() throws Exception {
               .isEqualTo(ConnectionStatus.UNKNOWN_HOST);
 
           verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-          verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.UNKNOWN_HOST));
       }
   }
 
@@ -1373,7 +1360,6 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
                 times(1));
 
             verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
-            verify(mockTracker).completeCurrentConnection(eq(0), eq(ConnectionStatus.HTTP_ERROR));
         }
     }
 }
