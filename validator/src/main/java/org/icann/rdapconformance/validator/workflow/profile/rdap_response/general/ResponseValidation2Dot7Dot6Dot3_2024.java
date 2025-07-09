@@ -178,7 +178,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                 results.add(RDAPValidationResult.builder()
                     .code(-65201)
                     .value(vcardArray.toString())
-                    .message("a redaction of Tech Email must have either email or contact-uri")
+                    .message("a redaction of Tech Email must have either the email or contact-uri")
                     .build());
 
                 isValid = false;
