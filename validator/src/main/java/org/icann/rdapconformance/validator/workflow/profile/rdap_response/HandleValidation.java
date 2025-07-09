@@ -65,7 +65,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .code(code - 1)
           .value(getResultValue(handleJsonPointer))
           .message(String.format("The globally unique identifier in the %s object handle is not "
-              + "registered in EPPROID.", queryType.name().toLowerCase()))
+              + "registered in EPPROID.", objectName))
           .build());
       return false;
     }
