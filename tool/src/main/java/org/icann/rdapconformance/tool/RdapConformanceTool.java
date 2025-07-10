@@ -251,6 +251,11 @@ public void setVerbose(boolean isVerbose) {
       validator = new RDAPFileValidator(this, datasetService);
     }
 
+   // No creating results file if  "USES_THIN_MODEL" exit code is triggered
+   if(ToolResult.USES_THIN_MODEL.getCode() == validator.validate()) {
+      return ToolResult.USES_THIN_MODEL.getCode();
+   }
+
     // get the results file ready
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
     resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
@@ -293,7 +298,6 @@ public void setVerbose(boolean isVerbose) {
       } else {
         logger.info("At least one HEAD or Main query returned a non-404 Not Found response code.");
       }
-
 
       // Build the result file
        if(!resultFile.build()) {
