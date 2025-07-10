@@ -257,7 +257,6 @@ public void setVerbose(boolean isVerbose) {
    }
 
     // get the results file ready
-    RDAPValidationResultFile.reset();
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
     resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
 
