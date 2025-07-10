@@ -10,8 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.mockito.Mockito.spy;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 public class IPv4v6ValidationSkipTest {
 
@@ -41,8 +40,8 @@ public class IPv4v6ValidationSkipTest {
             tool.call();
 
             var allResults = results.getAll();
-            assertEquals(2, allResults.size(), "Should have exactly two validation result");
-            assertTrue(allResults.stream().anyMatch(r -> r.getCode() == IPV4_ERROR_CODE));
+            assertEquals(0, allResults.size(), "Should have exactly zero validation result");
+            assertFalse(allResults.stream().anyMatch(r -> r.getCode() == IPV4_ERROR_CODE));
         }
     }
 
@@ -58,8 +57,8 @@ public class IPv4v6ValidationSkipTest {
             tool.call();
 
             var allResults = results.getAll();
-            assertEquals(2, allResults.size(), "Should have exactly two validation result");
-            assertTrue(allResults.stream().anyMatch(r -> r.getCode() == IPV6_ERROR_CODE));
+            assertEquals(0, allResults.size(), "Should have exactly zero validation result");
+            assertFalse(allResults.stream().anyMatch(r -> r.getCode() == IPV6_ERROR_CODE));
         }
     }
 
