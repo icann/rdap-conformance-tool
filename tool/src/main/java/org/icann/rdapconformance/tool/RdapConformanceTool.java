@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.icann.rdapconformance.validator.workflow.rdap.*;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -29,11 +30,6 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
@@ -257,6 +253,7 @@ public void setVerbose(boolean isVerbose) {
    }
 
     // get the results file ready
+    RDAPValidationResultFile.reset();
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
     resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
 
