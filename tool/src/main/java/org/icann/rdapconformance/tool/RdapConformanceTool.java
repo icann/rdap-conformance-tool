@@ -242,6 +242,7 @@ public void setVerbose(boolean isVerbose) {
     }
 
     // get the results file ready
+    clean();
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
     resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
 
@@ -420,6 +421,7 @@ public void setVerbose(boolean isVerbose) {
   public void clean() {
     var resultsImpl = RDAPValidatorResultsImpl.getInstance();
     var connectionTracker = ConnectionTracker.getInstance();
+    RDAPValidationResultFile.reset();
     resultsImpl.clear();
     connectionTracker.reset();
   }
