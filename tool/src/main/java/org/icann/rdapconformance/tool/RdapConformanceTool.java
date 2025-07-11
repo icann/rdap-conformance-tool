@@ -232,12 +232,6 @@ public void setVerbose(boolean isVerbose) {
       }
     }
 
-    // DEPRECATED - we used to do this, but we no longer do so
-    //    if( queryTypeProcessor.getQueryType().equals(RDAPQueryType.ENTITY) && this.isThin()) {
-    //      logger.error(ToolResult.USES_THIN_MODEL.getDescription());
-    //      return ToolResult.USES_THIN_MODEL.getCode();
-    //    }
-
     // Determine which validator we are using
     ValidatorWorkflow validator;
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
@@ -246,11 +240,6 @@ public void setVerbose(boolean isVerbose) {
       networkEnabled = false;
       validator = new RDAPFileValidator(this, datasetService);
     }
-
-   // No creating results file if  "USES_THIN_MODEL" exit code is triggered
-   if(ToolResult.USES_THIN_MODEL.getCode() == validator.validate()) {
-      return ToolResult.USES_THIN_MODEL.getCode();
-   }
 
     // get the results file ready
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
@@ -321,6 +310,12 @@ public void setVerbose(boolean isVerbose) {
   int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
     // If network is not enabled or ipv4 AND ipv6 flags are off, validate and return
     int file_exit_code =  validator.validate();
+
+    // No creating results file if  "USES_THIN_MODEL" exit code is triggered
+    if(ToolResult.USES_THIN_MODEL.getCode() == file_exit_code) {
+      return ToolResult.USES_THIN_MODEL.getCode();
+    }
+
     if(!resultFile.build()) {
       logger.error("Unable to write to results file: " + validator.getResultsPath());
       return ToolResult.FILE_WRITE_ERROR.getCode();
@@ -419,6 +414,14 @@ public void setVerbose(boolean isVerbose) {
   @Override
   public boolean isAdditionalConformanceQueries() {
     return additionalConformanceQueries;
+  }
+
+  @Override
+  public void clean() {
+    var resultsImpl = RDAPValidatorResultsImpl.getInstance();
+    var connectionTracker = ConnectionTracker.getInstance();
+    resultsImpl.clear();
+    connectionTracker.reset();
   }
 
   /**
