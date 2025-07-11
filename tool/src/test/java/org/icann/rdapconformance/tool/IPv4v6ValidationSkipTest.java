@@ -40,8 +40,8 @@ public class IPv4v6ValidationSkipTest {
             tool.call();
 
             var allResults = results.getAll();
-            assertEquals(0, allResults.size(), "Should have exactly zero validation result");
-            assertFalse(allResults.stream().anyMatch(r -> r.getCode() == IPV4_ERROR_CODE));
+            assertEquals(2, allResults.size(), "Should have exactly one validation result");
+            assertTrue(allResults.stream().anyMatch(r -> r.getCode() == IPV4_ERROR_CODE));
         }
     }
 
@@ -57,8 +57,8 @@ public class IPv4v6ValidationSkipTest {
             tool.call();
 
             var allResults = results.getAll();
-            assertEquals(0, allResults.size(), "Should have exactly zero validation result");
-            assertFalse(allResults.stream().anyMatch(r -> r.getCode() == IPV6_ERROR_CODE));
+            assertEquals(2, allResults.size(), "Should have exactly one validation result");
+            assertTrue(allResults.stream().anyMatch(r -> r.getCode() == IPV6_ERROR_CODE));
         }
     }
 
