@@ -1,10 +1,5 @@
 package org.icann.rdapconformance.validator;
 
-import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
-import static org.icann.rdapconformance.validator.CommonUtils.ONE;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
@@ -18,6 +13,8 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.icann.rdapconformance.validator.CommonUtils.*;
 
 public class ConnectionTracker {
     private static final ConnectionTracker INSTANCE = new ConnectionTracker();
@@ -66,7 +63,7 @@ public class ConnectionTracker {
         ConnectionRecord record = connectionsByTrackingId.get(trackingId);
         return record != null ? record.getStatusCode() : 0;
     }
-    
+
 
     /**
      * Start tracking a new connection using the current NetworkInfo state
@@ -77,16 +74,16 @@ public class ConnectionTracker {
     public synchronized String startTrackingNewConnection(URI uri, String httpMethod, boolean isMainConnection) {
         String trackingId = generateTrackingId();
         ConnectionRecord record = new ConnectionRecord(
-            uri,
-            "UNKNOWN", // was NetworkInfo.getServerIpAddress(),
-            NetworkInfo.getNetworkProtocol(),
-            ZERO,  // Status code not yet known
-            null,  // Duration not yet known
-            null,  // Status not yet known
-            httpMethod,
-            Instant.now(),
-            trackingId,
-            isMainConnection
+                uri,
+                "UNKNOWN", // was NetworkInfo.getServerIpAddress(),
+                NetworkInfo.getNetworkProtocol(),
+                ZERO,  // Status code not yet known
+                null,  // Duration not yet known
+                null,  // Status not yet known
+                httpMethod,
+                Instant.now(),
+                trackingId,
+                isMainConnection
         );
         record.setStartTime(Instant.now());
         connections.add(record);
@@ -184,16 +181,16 @@ public class ConnectionTracker {
                                              String httpMethod, boolean isMainConnection) {
         String trackingId = generateTrackingId();
         ConnectionRecord record = new ConnectionRecord(
-            uri,
-            ipAddress,
-            protocol,
-            ZERO,
-            null,
-            null,
-            httpMethod,
-            Instant.now(),
-            trackingId,
-            isMainConnection
+                uri,
+                ipAddress,
+                protocol,
+                ZERO,
+                null,
+                null,
+                httpMethod,
+                Instant.now(),
+                trackingId,
+                isMainConnection
         );
         record.setStartTime(Instant.now());
         connections.add(record);
@@ -234,7 +231,7 @@ public class ConnectionTracker {
         for (int i = connections.size() - ONE; i >= ZERO; i--) {
             ConnectionRecord record = connections.get(i);
             if (record.getUri().equals(uri) && record.getIpAddress().equals(ipAddress) &&
-                record.getStartTime() != null && record.getDuration() == null) {
+                    record.getStartTime() != null && record.getDuration() == null) {
 
                 Duration duration = Duration.between(record.getStartTime(), Instant.now());
                 record.setStatusCode(statusCode);
@@ -409,9 +406,9 @@ public class ConnectionTracker {
         }
 
         sb.append("Summary: ")
-          .append(connections.size()).append(" connections, ")
-          .append(getSuccessCount()).append(" successful, ")
-          .append(getErrorCount()).append(" errors.");
+                .append(connections.size()).append(" connections, ")
+                .append(getSuccessCount()).append(" successful, ")
+                .append(getErrorCount()).append(" errors.");
 
         return sb.toString();
     }
@@ -426,25 +423,36 @@ public class ConnectionTracker {
         }
     }
 
-public synchronized boolean isResourceNotFoundNoteWarning(RDAPValidatorConfiguration config) {
-    boolean foundRelevant = false;
-    for (ConnectionRecord record : connections) {
-        if (record.isMainConnection() || HEAD.equalsIgnoreCase(record.getHttpMethod())) {
-            foundRelevant = true;
-            if (record.getStatusCode() != HTTP_NOT_FOUND) {
-                return false;
-            }
-            // It's ok to return true here so we can log the message in verbose mode, However....
-            // to get the error code we are looking for -> we also need to check the  config that a Gtld profile was selected AND there are no other errors;
-            //  then and only then we put in the error code -13020
-            if(config.useRdapProfileFeb2024() && RDAPValidationResultFile.getInstance().getErrorCount() < ONE  && (config.isGtldRegistrar() || config.isGtldRegistry())) {
-                CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
-                    + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
+    public synchronized boolean isResourceNotFoundNoteWarning(RDAPValidatorConfiguration config) {
+        boolean foundRelevant = false;
+        for (ConnectionRecord record : connections) {
+            if (record.isMainConnection() || HEAD.equalsIgnoreCase(record.getHttpMethod())) {
+                foundRelevant = true;
+                if (record.getStatusCode() != HTTP_NOT_FOUND) {
+                    return false;
+                }
+
+                // It's ok to return true here so we can log the message in verbose mode
+                // If a profile is used, and both HEAD and GET result in 404 but no other errors occur, then this should be a warning
+                if((HEAD.equalsIgnoreCase(record.getHttpMethod()) || GET.equalsIgnoreCase(record.getHttpMethod()))
+                        && (config.useRdapProfileFeb2024() || config.useRdapProfileFeb2019())
+                        && RDAPValidationResultFile.getInstance().getErrorCount() < ONE
+                        && (config.isGtldRegistrar() || config.isGtldRegistry())) {
+
+                    CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
+                            + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
+                }
+                // to get the error code we are looking for ->
+                // if no profile is selected and a GET results in 404 and no other errors occur, this should show up as a warning
+                //  then we put in the error code -13020
+                else if(GET.equalsIgnoreCase(record.getHttpMethod()) && RDAPValidationResultFile.getInstance().getErrorCount() < ONE) {
+                    CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
+                            + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
+                }
             }
         }
+        return foundRelevant;
     }
-    return foundRelevant;
-}
 
     /**
      * Represents a tracked network connection
@@ -552,17 +560,17 @@ public synchronized boolean isResourceNotFoundNoteWarning(RDAPValidatorConfigura
         @Override
         public String toString() {
             return String.format(
-                "[%s] %s %s to %s (%s) over %s with ID %s - Status: %d, Duration: %s, Result: %s",
-                timestamp,
-                mainConnection ? "[MAIN]" : "",
-                httpMethod,
-                uri,
-                ipAddress,
-                protocol,
-                trackingId,
-                statusCode,
-                duration != null ? duration.toMillis() + "ms" : "unknown",
-                status != null ? status.name() : "in progress"
+                    "[%s] %s %s to %s (%s) over %s with ID %s - Status: %d, Duration: %s, Result: %s",
+                    timestamp,
+                    mainConnection ? "[MAIN]" : "",
+                    httpMethod,
+                    uri,
+                    ipAddress,
+                    protocol,
+                    trackingId,
+                    statusCode,
+                    duration != null ? duration.toMillis() + "ms" : "unknown",
+                    status != null ? status.name() : "in progress"
             );
         }
     }
