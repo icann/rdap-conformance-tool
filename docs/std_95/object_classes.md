@@ -2,7 +2,7 @@
 
 ## Domain Lookup Validation
 
-Test group: [stdRdapDomainLookupValidation]
+Test group: [stdRdapDomainLookupValidation]  [](){ #id-stdRdapDomainLookupValidation }
 
 The following steps should be used to test that a domain data structure is valid:
 
@@ -169,7 +169,7 @@ The following steps should be used to test that a domain data structure is valid
 
 ## Entity lookup validation
 
-Test group: [stdRdapEntityLookupValidation]
+Test group: [stdRdapEntityLookupValidation]  [](){ #id-stdRdapEntityLookupValidation }
 
 The following steps should be used to test that an entity data structure is valid:
 
@@ -320,7 +320,7 @@ The following steps should be used to test that an entity data structure is vali
 
 ## Nameserver lookup validation
 
-Test group: [stdRdapNameserverLookupValidation]
+Test group: [stdRdapNameserverLookupValidation]  [](){ #id-stdRdapNameserverLookupValidation }
 
 The following steps should be used to test that a nameserver data structure is valid:
 
@@ -510,7 +510,7 @@ The following steps should be used to test that a help data structure is valid:
 
 ## Nameservers search validation 
 
-Test group: [stdRdapNameserversSearchValidation]
+Test group: [stdRdapNameserversSearchValidation]  [](){ #id-stdRdapNameserversSearchValidation }
 
 The following steps should be used to test that a nameserverSearchResults data
 structure is valid:

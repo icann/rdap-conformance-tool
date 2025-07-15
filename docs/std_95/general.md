@@ -33,7 +33,7 @@ The following steps should be used to test that an IPv4 address is valid:
 
 ## IPv6 address validation
 
-Test group: [ipv6Validation]
+Test group: [ipv6Validation]  [](){ #id-ipv6Validation }
 
 The following steps should be used to test that an IPv6 address is valid:
 
@@ -108,7 +108,7 @@ See <https://www.iana.org/assignments/idna-tables-11.0.0/idna-tables-11.0.0.xml>
 
 ## Web URI validation
 
-Test group: [webUriValidation]
+Test group: [webUriValidation]  [](){ #id-webUriValidation }
 
 The following steps should be used to test that a Web URI is valid:
 
@@ -140,7 +140,7 @@ The following steps should be used to test that a Web URI is valid:
 
 ## Domain label case folding validation 
 
-Test group: [domainCaseFoldingValidation]
+Test group: [domainCaseFoldingValidation]  [](){ #id-domainCaseFoldingValidation }
 
 The following steps should be used to test that an RDAP server is processing label case conversion correctly for domain name lookups:
 
