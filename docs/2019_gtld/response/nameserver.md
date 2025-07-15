@@ -2,7 +2,7 @@
 
 #### RP Section 4.1 
 
-Test group: [rdapResponseProfile_4_1_Validation]  [](){ #id-rdapResponseProfile_4_1_Validation }
+Test group: [[rdapResponseProfile_4_1_Validation]](#id-rdapResponseProfile_4_1_Validation){ #id-rdapResponseProfile_4_1_Validation }
 
 The following steps should be used to test the RDAP protocol section 4 .1 of the RDAP Response Profile 2.1:
 
@@ -46,7 +46,7 @@ registered in EPPROID.
 
 ## RP Section 4.3 
 
-Test group: [rdapResponseProfile_4_3_Validation]  [](){ #id-rdapResponseProfile_4_3_Validation }
+Test group: [[rdapResponseProfile_4_3_Validation]](#id-rdapResponseProfile_4_3_Validation){ #id-rdapResponseProfile_4_3_Validation }
 
 The following steps should be used to test the RDAP protocol section 4. 3 of the  RDAP Response Profile 2.1.
 
@@ -110,7 +110,7 @@ member is not included.
 ```
 ## Nameserver Status 
 
-Test group: [nameserver_status]  [](){ #id-nameserver_status }
+Test group: [[nameserver_status]](#id-nameserver_status){ #id-nameserver_status }
 
 1. If a _status_ element is included in the nameserver object, validate that it complies with
 the following:

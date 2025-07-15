@@ -2,7 +2,7 @@
 
 ## RP Section 3.1 
 
-Test group: [rdapResponseProfile_3_1_Validation]  [](){ #id-rdapResponseProfile_3_1_Validation }
+Test group: [[rdapResponseProfile_3_1_Validation]](#id-rdapResponseProfile_3_1_Validation){ #id-rdapResponseProfile_3_1_Validation }
 
 The following steps should be used to test the RDAP protocol section 3.1 of the RDAP Response Profile 2.1:
 
@@ -27,7 +27,7 @@ The following steps should be used to test the RDAP protocol section 3.1 of the 
 
 ## RP Section 3.2 
 
-Test group: [rdapResponseProfile_3_2_Validation]  [](){ #id-rdapResponseProfile_3_2_Validation }
+Test group: [[rdapResponseProfile_3_2_Validation]](#id-rdapResponseProfile_3_2_Validation){ #id-rdapResponseProfile_3_2_Validation }
 
 The following steps should be used to test the RDAP protocol section 3.2 of the
 RDAP Response Profile 2.1: 

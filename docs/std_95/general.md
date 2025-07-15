@@ -2,7 +2,7 @@
 
 ## IPv4 address validation 
 
-Test group: [ipv4Validation]  [](){ #id-ipv4Validation } 
+Test group: [[ipv4Validation]](#id-ipv4Validation){ #id-ipv4Validation } 
 
 The following steps should be used to test that an IPv4 address is valid:
 
@@ -33,7 +33,7 @@ The following steps should be used to test that an IPv4 address is valid:
 
 ## IPv6 address validation
 
-Test group: [ipv6Validation]  [](){ #id-ipv6Validation }
+Test group: [[ipv6Validation]](#id-ipv6Validation){ #id-ipv6Validation }
 
 The following steps should be used to test that an IPv6 address is valid:
 
@@ -65,7 +65,7 @@ The following steps should be used to test that an IPv6 address is valid:
 
 ## Domain Name validation 
 
-Test group: [domainNameValidation]  [](){ #id-domainNameValidation }
+Test group: [[domainNameValidation]](#id-domainNameValidation){ #id-domainNameValidation }
 
 The following steps should be used to test that a domain name is valid:
 
@@ -108,7 +108,7 @@ See <https://www.iana.org/assignments/idna-tables-11.0.0/idna-tables-11.0.0.xml>
 
 ## Web URI validation
 
-Test group: [webUriValidation]  [](){ #id-webUriValidation }
+Test group: [[webUriValidation]](#id-webUriValidation){ #id-webUriValidation }
 
 The following steps should be used to test that a Web URI is valid:
 
@@ -128,7 +128,7 @@ The following steps should be used to test that a Web URI is valid:
   "message": "The scheme of the URI is not 'http' nor 'https'".
 }
 ```
-3. The host of the URI shall pass the test Domain Name validation [domainNameValidation][id-domainNameValidation], IPv4 address validation [ipv4Validation][id-ipv4Validation] or IPv6 address validation [ipv6Validation].
+3. The host of the URI shall pass the test Domain Name validation [[domainNameValidation]][id-domainNameValidation], IPv4 address validation [[ipv4Validation]][id-ipv4Validation] or IPv6 address validation [[ipv6Validation]][id-ipv6Validation].
 ``` json
 {
   "code": -10402,
@@ -140,7 +140,7 @@ The following steps should be used to test that a Web URI is valid:
 
 ## Domain label case folding validation 
 
-Test group: [domainCaseFoldingValidation]  [](){ #id-domainCaseFoldingValidation }
+Test group: [[domainCaseFoldingValidation]](#id-domainCaseFoldingValidation){ #id-domainCaseFoldingValidation }
 
 The following steps should be used to test that an RDAP server is processing label case conversion correctly for domain name lookups:
 

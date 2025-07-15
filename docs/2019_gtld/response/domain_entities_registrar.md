@@ -2,7 +2,7 @@
 
 ## RP Section 2.7.5.2 
 
-Test group: [rdapResponseProfile_2_7_5_2_Validation]  [](){ #id-rdapResponseProfile_2_7_5_2_Validation }
+Test group: [[rdapResponseProfile_2_7_5_2_Validation]](#id-rdapResponseProfile_2_7_5_2_Validation){ #id-rdapResponseProfile_2_7_5_2_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.7.5.2 of the RDAP Response Profile 2.1:
 

@@ -2,7 +2,7 @@
 
 ## RDAP Conformance validation 
 
-Test group: [stdRdapConformanceValidation]  [](){ #id-stdRdapConformanceValidation }
+Test group: [[stdRdapConformanceValidation]](#id-stdRdapConformanceValidation){ #id-stdRdapConformanceValidation }
 
 The following steps should be used to test that an RDAP Conformance data structure is valid:
 
@@ -42,7 +42,7 @@ The following steps should be used to test that an RDAP Conformance data structu
 
 ## Links validation
 
-Test group: [stdRdapLinksValidation]  [](){ #id-stdRdapLinksValidation }
+Test group: [[stdRdapLinksValidation]](#id-stdRdapLinksValidation){ #id-stdRdapLinksValidation }
 
 The following steps should be used to test that a links data structure is valid:
 
@@ -146,7 +146,7 @@ The following steps should be used to test that a links data structure is valid:
 
 ## Notices and Remarks Validation 
 
-Test group: [stdRdapNoticesRemarksValidation]  [](){ #id-stdRdapNoticesRemarksValidation }
+Test group: [[stdRdapNoticesRemarksValidation]](#id-stdRdapNoticesRemarksValidation){ #id-stdRdapNoticesRemarksValidation }
 
 The following steps should be used to test that a notices or remarks data structure is  valid:
 
@@ -234,7 +234,7 @@ The following steps should be used to test that a notices or remarks data struct
 
 ## Language Identifier Validation 
 
-Test group: [stdRdapLanguageIdentifierValidation]  [](){ #id-stdRdapLanguageIdentifierValidation }
+Test group: [[stdRdapLanguageIdentifierValidation]](#id-stdRdapLanguageIdentifierValidation){ #id-stdRdapLanguageIdentifierValidation }
 
 The following steps should be used to test that a lang data structure is valid:
 
@@ -249,7 +249,7 @@ The following steps should be used to test that a lang data structure is valid:
 
 ## Events Validation
 
-Test group: [stdRdapEventsValidation]  [](){ #id-stdRdapEventsValidation }
+Test group: [[stdRdapEventsValidation]](#id-stdRdapEventsValidation){ #id-stdRdapEventsValidation }
 
 The following steps should be used to test that a events data structure is valid:
 
@@ -361,7 +361,7 @@ The following steps should be used to test that a events data structure is valid
 
 ## Status validation 
 
-Test group: [stdRdapStatusValidation]  [](){ #id-stdRdapStatusValidation }
+Test group: [[stdRdapStatusValidation]](#id-stdRdapStatusValidation){ #id-stdRdapStatusValidation }
 
 The following steps should be used to test that a status data structure is valid:
 
@@ -392,7 +392,7 @@ The following steps should be used to test that a status data structure is valid
 
 ## Port 43 WHOIS Server 
 
-Test group: [stdRdapPort43WhoisServerValidation]  [](){ #id-stdRdapPort43WhoisServerValidation }
+Test group: [[stdRdapPort43WhoisServerValidation]](#id-stdRdapPort43WhoisServerValidation){ #id-stdRdapPort43WhoisServerValidation }
 
 The following steps should be used to test that a port43 data structure is valid:
 
@@ -407,7 +407,7 @@ The following steps should be used to test that a port43 data structure is valid
 
 ## Public IDs validation 
 
-Test group: [stdRdapPublicIdsValidation]  [](){ #id-stdRdapPublicIdsValidation }
+Test group: [[stdRdapPublicIdsValidation]](#id-stdRdapPublicIdsValidation){ #id-stdRdapPublicIdsValidation }
 
 The following steps should be used to test that a publicIds data structure is valid:
 
@@ -463,7 +463,7 @@ The following steps should be used to test that a publicIds data structure is va
 
 ## asEventActor Validation 
 
-Test group: [stdRdapAsEventActorValidation]  [](){ #id-stdRdapAsEventActorValidation }
+Test group: [[stdRdapAsEventActorValidation]](#id-stdRdapAsEventActorValidation){ #id-stdRdapAsEventActorValidation }
 
 The following steps should be used to test that an asEventActor data structure is valid:
 
@@ -559,7 +559,7 @@ The following steps should be used to test that an asEventActor data structure i
 
 ## IP Addresses Validation 
 
-Test group: [stdRdapIpAddressesValidation]  [](){ #id-stdRdapIpAddressesValidation }
+Test group: [[stdRdapIpAddressesValidation]](#id-stdRdapIpAddressesValidation){ #id-stdRdapIpAddressesValidation }
 
 The following steps should be used to test that an ipAddresses data structure is valid:
 
@@ -650,7 +650,7 @@ The following steps should be used to test that an ipAddresses data structure is
 
 ## Variants validation 
 
-Test group: [stdRdapVariantsValidation]  [](){ #id-stdRdapVariantsValidation }
+Test group: [[stdRdapVariantsValidation]](#id-stdRdapVariantsValidation){ #id-stdRdapVariantsValidation }
 
 The following steps should be used to test that a variants data structure is valid:
 
@@ -759,7 +759,7 @@ RDAPJSONValues with Type="domain variant relation".
 
 ## Unicode name 
 
-Test group: [stdRdapUnicodeNameValidation]  [](){ #id-stdRdapUnicodeNameValidation }
+Test group: [[stdRdapUnicodeNameValidation]](#id-stdRdapUnicodeNameValidation){ #id-stdRdapUnicodeNameValidation }
 
 The following steps should be used to test that a unicodeName is valid:
 
@@ -803,7 +803,7 @@ Note: some legacy gTLDs may fail this test, because they have a few domain name 
 
 ## LDH name 
 
-Test group: [stdRdapLdhNameValidation]  [](){ #id-stdRdapLdhNameValidation }
+Test group: [[stdRdapLdhNameValidation]](#id-stdRdapLdhNameValidation){ #id-stdRdapLdhNameValidation }
 
 The following steps should be used to test that a ldhName is valid:
 
@@ -850,7 +850,7 @@ are not recommended to be used when testing an RDAP response with this tool.
 
 ## Roles validation 
 
-Test group: [stdRdapRolesValidation]  [](){ #id-stdRdapRolesValidation }
+Test group: [[stdRdapRolesValidation]](#id-stdRdapRolesValidation){ #id-stdRdapRolesValidation }
 
 The following steps should be used to test that a roles data structure is valid:
 
@@ -890,7 +890,7 @@ The following steps should be used to test that a roles data structure is valid:
 
 ## Entities validation 
 
-Test group: [stdRdapEntitiesValidation]  [](){ #id-stdRdapEntitiesValidation }
+Test group: [[stdRdapEntitiesValidation]](#id-stdRdapEntitiesValidation){ #id-stdRdapEntitiesValidation }
 
 The following steps should be used to test that an entities data structure is valid:
 
@@ -1133,7 +1133,7 @@ Codes -12004 and -12007 are intentionally omitted.
 
 ## Error Response Body
 
-Test group: [stdRdapErrorResponseBodyValidation]  [](){ #id-stdRdapErrorResponseBodyValidation }
+Test group: [[stdRdapErrorResponseBodyValidation]](#id-stdRdapErrorResponseBodyValidation){ #id-stdRdapErrorResponseBodyValidation }
 
 The following steps should be used to test that an error data structure is valid:
 

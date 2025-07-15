@@ -2,7 +2,7 @@
 
 ## RP Section 2.1 
 
-Test group: [rdapResponseProfile_2_1_Validation]  [](){ #id-rdapResponseProfile_2_1_Validation }
+Test group: [[rdapResponseProfile_2_1_Validation]](#id-rdapResponseProfile_2_1_Validation){ #id-rdapResponseProfile_2_1_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.1 of the RDAP Response Profile 2.1.
 
@@ -25,7 +25,7 @@ The following steps should be used to test the RDAP protocol section 2.1 of the 
 
 ## RP Section 2.2 
 
-Test group: [rdapResponseProfile_2_2_Validation]  [](){ #id-rdapResponseProfile_2_2_Validation }
+Test group: [[rdapResponseProfile_2_2_Validation]](#id-rdapResponseProfile_2_2_Validation){ #id-rdapResponseProfile_2_2_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.2 of the RDAP Response Profile 2.1:
 
@@ -48,7 +48,7 @@ The following steps should be used to test the RDAP protocol section 2.2 of the 
 
 ## RP Section 2.3.1.1 
 
-Test group: [rdapResponseProfile_2_3_1_1_Validation]  [](){ #id-rdapResponseProfile_2_3_1_1_Validation }
+Test group: [[rdapResponseProfile_2_3_1_1_Validation]](#id-rdapResponseProfile_2_3_1_1_Validation){ #id-rdapResponseProfile_2_3_1_1_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.3.1.1 of the RDAP Response Profile 2.1:
 
@@ -63,7 +63,7 @@ The following steps should be used to test the RDAP protocol section 2.3.1.1 of 
 
 ## RP Section 2.3.1.2 
 
-Test group: [rdapResponseProfile_2_3_1_2_Validation]  [](){ #id-rdapResponseProfile_2_3_1_2_Validation }
+Test group: [[rdapResponseProfile_2_3_1_2_Validation]](#id-rdapResponseProfile_2_3_1_2_Validation){ #id-rdapResponseProfile_2_3_1_2_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.3.1.2 of the  RDAP Response Profile 2.1:
 
@@ -78,7 +78,7 @@ The following steps should be used to test the RDAP protocol section 2.3.1.2 of 
 
 ## Required Notices
 
-Test group: [rdapResponseProfile_notices_included_Validation]  [](){ #id-rdapResponseProfile_notices_included_Validation }
+Test group: [[rdapResponseProfile_notices_included_Validation]](#id-rdapResponseProfile_notices_included_Validation){ #id-rdapResponseProfile_notices_included_Validation }
 
 The following steps should be used to test that a notices member appear in the RDAP  response:
 
@@ -93,7 +93,7 @@ The following steps should be used to test that a notices member appear in the R
 
 ## RP Section 2.6.3
 
-Test group: [rdapResponseProfile_2_6_3_Validation]  [](){ #id-rdapResponseProfile_2_6_3_Validation }
+Test group: [[rdapResponseProfile_2_6_3_Validation]](#id-rdapResponseProfile_2_6_3_Validation){ #id-rdapResponseProfile_2_6_3_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.6.3 of the  RDAP Response Profile 2.1:
 
@@ -111,7 +111,7 @@ containing "https://icann.org/epp".
 
 ## RP Section 2.11 
 
-Test group: [rdapResponseProfile_2_11_Validation]  [](){ #id-rdapResponseProfile_2_11_Validation }
+Test group: [[rdapResponseProfile_2_11_Validation]](#id-rdapResponseProfile_2_11_Validation){ #id-rdapResponseProfile_2_11_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.11 of the  RDAP Response Profile 2.1:
 
@@ -129,7 +129,7 @@ with an href containing "https://icann.org/wicf".
 
 ## RP Section 2.10 
 
-Test group: [rdapResponseProfile_2_10_Validation]  [](){ #id-rdapResponseProfile_2_10_Validation }
+Test group: [[rdapResponseProfile_2_10_Validation]](#id-rdapResponseProfile_2_10_Validation){ #id-rdapResponseProfile_2_10_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.10 of the  RDAP Response Profile 2.1:
 
@@ -160,7 +160,7 @@ The following steps should be used to test the RDAP protocol section 2.10 of the
 
 ## RFC 5731 Validation 
 
-Test group: [rdapResponseProfile_rfc5731_Validation]  [](){ #id-rdapResponseProfile_rfc5731_Validation }
+Test group: [[rdapResponseProfile_rfc5731_Validation]](#id-rdapResponseProfile_rfc5731_Validation){ #id-rdapResponseProfile_rfc5731_Validation }
 
 The following steps should be used to test that the status values comply with  RFC5731:
 
@@ -181,7 +181,7 @@ The following steps should be used to test that the status values comply with  R
 
 ## RFC 3915 Validation 
 
-Test group: [rdapResponseProfile_rfc3915_Validation]  [](){ #id-rdapResponseProfile_rfc3915_Validation }
+Test group: [[rdapResponseProfile_rfc3915_Validation]](#id-rdapResponseProfile_rfc3915_Validation){ #id-rdapResponseProfile_rfc3915_Validation }
 
 The following steps should be used to test that the status values comply with RFC3915:
 
@@ -198,7 +198,7 @@ The following steps should be used to test that the status values comply with RF
 
 ## RP Section 2.6.1 
 
-Test group: [rdapResponseProfile_2_6_1_Validation]  [](){ #id-rdapResponseProfile_2_6_1_Validation }
+Test group: [[rdapResponseProfile_2_6_1_Validation]](#id-rdapResponseProfile_2_6_1_Validation){ #id-rdapResponseProfile_2_6_1_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.6.1 of the RDAP Response Profile 2.1:
 
@@ -213,7 +213,7 @@ The following steps should be used to test the RDAP protocol section 2.6.1 of th
 
 ## RP Section 2.9.1 and 2.9.2
 
-Test group: [rdapResponseProfile_2_9_1_and_2_9_2_Validation]  [](){ #id-rdapResponseProfile_2_9_1_and_2_9_2_Validation }
+Test group: [[rdapResponseProfile_2_9_1_and_2_9_2_Validation]](#id-rdapResponseProfile_2_9_1_and_2_9_2_Validation){ #id-rdapResponseProfile_2_9_1_and_2_9_2_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.9.1 and 2.9.2 of the RDAP Response Profile 2.1:
 
@@ -265,7 +265,7 @@ The following steps should be used to test the RDAP protocol section 2.9.1 and 2
 
 ## RP Section 2.4.1 
 
-Test group: [rdapResponseProfile_2_4_1_Validation]  [](){ #id-rdapResponseProfile_2_4_1_Validation }
+Test group: [[rdapResponseProfile_2_4_1_Validation]](#id-rdapResponseProfile_2_4_1_Validation){ #id-rdapResponseProfile_2_4_1_Validation }
 
 The following steps should be used to test the RDAP protocol section 2. 4 .1 of the  RDAP Response Profile 2.1:
 
@@ -296,7 +296,7 @@ The following steps should be used to test the RDAP protocol section 2. 4 .1 of 
 
 ## RP Section 2.4.2 and 2.4.3 
 
-Test group: [rdapResponseProfile_2_4_2_and_2_4_3_Validation]  [](){ #id-rdapResponseProfile_2_4_2_and_2_4_3_Validation }
+Test group: [[rdapResponseProfile_2_4_2_and_2_4_3_Validation]](#id-rdapResponseProfile_2_4_2_and_2_4_3_Validation){ #id-rdapResponseProfile_2_4_2_and_2_4_3_Validation }
 
 The following steps should be used to test the RDAP protocol section 2. 4. 2 and 2.4.3  of the RDAP Response Profile 2.1:
 
@@ -343,7 +343,7 @@ The following steps should be used to test the RDAP protocol section 2. 4. 2 and
 
 ## RP Section 2.4.5 
 
-Test group: [rdapResponseProfile_2_4_5_Validation]  [](){ #id-rdapResponseProfile_2_4_5_Validation }
+Test group: [[rdapResponseProfile_2_4_5_Validation]](#id-rdapResponseProfile_2_4_5_Validation){ #id-rdapResponseProfile_2_4_5_Validation }
 
 1. For the _entity_ with the registrar role within the _domain_ object, validate that an _entity_
 with the abuse role is included, and the entity with the abuse role includes a tel and

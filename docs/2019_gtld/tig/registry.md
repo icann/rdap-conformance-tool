@@ -2,7 +2,7 @@
 
 ## TIG Section 1.11.1
 
-Test group: [tigSection_1_11_1_Validation]  [](){ #id-tigSection_1_11_1_Validation }
+Test group: [[tigSection_1_11_1_Validation]](#id-tigSection_1_11_1_Validation){ #id-tigSection_1_11_1_Validation }
 
 The following steps should be used to test the RDAP protocol section 1.11.1 and 1.2 of the RDAP_Technical_Implementation_Guide_2_1:
 
@@ -33,7 +33,7 @@ The following steps should be used to test the RDAP protocol section 1.11.1 and 
 
 ## TIG Section 3.2
 
-Test group: [tigSection_3_2_Validation]  [](){ #id-tigSection_3_2_Validation }
+Test group: [[tigSection_3_2_Validation]](#id-tigSection_3_2_Validation){ #id-tigSection_3_2_Validation }
 
 The following steps should be used to test the RDAP protocol section 3.2 of the RDAP_Technical_Implementation_Guide_2_1:
 
@@ -48,7 +48,7 @@ The following steps should be used to test the RDAP protocol section 3.2 of the 
 
 ## TIG Section 6.1
 
-Test group: [tigSection_6_1_Validation]  [](){ #id-tigSection_6_1_Validation }
+Test group: [[tigSection_6_1_Validation]](#id-tigSection_6_1_Validation){ #id-tigSection_6_1_Validation }
 
 The following steps should be used to test the RDAP protocol section 6.1 of the RDAP_Technical_Implementation_Guide_2_1:
 
