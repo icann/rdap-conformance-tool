@@ -1,4 +1,4 @@
-# Overview
+# About
 
 The ICANN RDAP Conformance Tool, often referred to as "RDAPCT", is program to help RDAP server operators find
 issues of conformance to the Registration Data Access Protocol (RDAP) specifications, as defined by the Internet
