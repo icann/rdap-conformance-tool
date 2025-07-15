@@ -38,6 +38,22 @@ The following steps should be used to test that an RDAP Conformance data structu
   "message": "The RDAP Conformance data structure does not include rdap_level_0."
 }
 ```
+5. The rdapConformance array must exist in all RDAP responses.
+``` json
+{
+  "code": -10504,
+  "value": "<response>",
+  "message": "RFC 9083 requires all RDAP responses to have an rdapConformance array."
+}
+```
+6. If the rdapConformance array exists in an object that is embedded in another object, then this is an error because rdapConformance must only appear in the top-most part of an RDAP response.
+``` json
+{
+  "code": -10505,
+  "value": "<RDAP object>",
+  "message": "The rdapConformance array must appear only in the top-most of the RDAP response."
+}
+```
 
 
 ## Links validation
@@ -143,6 +159,23 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The value for the JSON name href does not pass Web URI validation [webUriValidation]."
 }
 ```
+    12.The JSON name value shall exist:
+``` json
+{
+  "code": -10612,
+  "value": "<link structure>",
+  "message": "A 'value' propert does not exist in the link object."
+}
+```
+    13. The JSON name “rel” shall exist:
+``` json
+{
+  "code": -10613,
+  "value": "<link structure>",
+  "message": "A 'rel' property does not exist in the link object."
+}
+```
+
 
 ## Notices and Remarks Validation 
 
@@ -389,6 +422,15 @@ The following steps should be used to test that a status data structure is valid
   "message": "The JSON string is not included as a Value with Type='status'."
 }
 ```
+4. A string in the status array shall only appear once:
+``` json
+{
+  "code": -11003,
+  "value": "<JSON string>",
+  "message": "A status value exists more than once in the status array."
+}
+```
+
 
 ## Port 43 WHOIS Server 
 
@@ -1191,6 +1233,14 @@ The following steps should be used to test that an error data structure is valid
   "code": -12106,
   "value": "<JSON value>",
   "message": "The JSON value is not a string."
+}
+```
+8. "errorCode" is required in an error response.
+``` json
+{
+  "code": -12107,
+  "value": "<error structure>",
+  "message": "The errorCode value is required in an error response."
 }
 ```
 
