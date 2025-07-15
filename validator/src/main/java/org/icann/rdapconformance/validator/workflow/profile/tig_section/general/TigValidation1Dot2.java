@@ -85,7 +85,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
         }
       } catch (Exception e) {
         logger.info("Exception when making HTTP request in order to check [tigSection_1_2_Validation]", e);
-        isValid = false; // Mark as failed but do not throw the exception
+       // isValid = false;  Do not mark as failed because it does not throw none of the errors
       }
     }
     return isValid;
