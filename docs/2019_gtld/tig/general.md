@@ -23,7 +23,7 @@ The following steps should be used to test the RDAP protocol section 1.2 of the 
 }
 ```
 
-Note: If redirects are present, the test [tigSection_1_2_Validation] shall be performed  on the URL on the last HTTP redirect.
+Note: If redirects are present, the test [[tigSection_1_2_Validation]][id-tigSection_1_2_Validation] shall be performed  on the URL on the last HTTP redirect.
 
 ## TIG Section 1.3
 
@@ -40,7 +40,7 @@ The following steps should be used to test the RDAP protocol section 1.3 of the 
 }
 ```
 
-Note: the test [tigSection_1_3_Validation] shall be performed on the URL on every HTTP  redirect.
+Note: the test [[tigSection_1_3_Validation]][id-tigSection_1_3_Validation] shall be performed on the URL on every HTTP  redirect.
 
 ## TIG Section 1.6
 
@@ -80,7 +80,7 @@ The following steps should be used to test the RDAP protocol section 1.8 of the 
 }
 ```
 
-Note: the test [tigSection_1_8_Validation] shall be performed on the URL on every HTTP redirect.
+Note: the test [[tigSection_1_8_Validation]][id-tigSection_1_8_Validation] shall be performed on the URL on every HTTP redirect.
 
 ## TIG Section 1.13
 
@@ -97,7 +97,7 @@ The following steps should be used to test the RDAP protocol section 1.13 of the
 }
 ```
 
-Note: the test [tigSection_1_13_Validation] shall be performed on the URL on every HTTP redirect.
+Note: the test [[tigSection_1_13_Validation]][id-tigSection_1_13_Validation] shall be performed on the URL on every HTTP redirect.
 
 ## TIG Section 1.14
 

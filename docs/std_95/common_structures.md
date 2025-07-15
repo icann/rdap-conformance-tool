@@ -119,7 +119,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The value of the JSON string data in the hreflang does not conform to Language-Tag syntax."
 }
 ```
-    9. If the JSON name _value_ exists, the value shall pass the test Web URI validation [webUriValidation] defined in this document.
+    9. If the JSON name _value_ exists, the value shall pass the test Web URI validation [[webUriValidation]][id-webUriValidation] defined in this document.
 ``` json
 {
   "code": -10609,
@@ -135,7 +135,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The href element does not exist."
 }
 ```
-    11. For the JSON name href, the value shall pass the test Web URI validation [webUriValidation] defined in this document.
+    11. For the JSON name href, the value shall pass the test Web URI validation [[webUriValidation]][id-webUriValidation] defined in this document.
 ``` json
 {
   "code": -10611,
@@ -183,7 +183,7 @@ The following steps should be used to test that a notices or remarks data struct
   "message": "The JSON value is not a string."
 }
 ```
-    4. If the JSON name links exists, the value shall pass the test Links validation [stdRdapLinksValidation] defined in this document.
+    4. If the JSON name links exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
 ``` json
 {
   "code": -10704,
@@ -342,7 +342,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "A links structure was found but an eventActor was not."
 }
 ```
-    11. If the JSON name _links_ exists, the value shall pass the test Links validation [stdRdapLinksValidation] defined in this document.
+    11. If the JSON name _links_ exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
 ``` json
 {
   "code": -10911,
@@ -740,7 +740,7 @@ RDAPJSONValues with Type="domain variant relation".
   "message": "The name in the name/value pair of a link structure was found more than once."
 }
 ```
-        3. If the JSON name title ldhName exists, the value shall pass the test LDH name [stdRdapLdhNameValidation] defined in this document.
+        3. If the JSON name title ldhName exists, the value shall pass the test LDH name [[stdRdapLdhNameValidation]][id-stdRdapLdhNameValidation] defined in this document.
 ``` json
 {
   "code": -11510,
@@ -748,7 +748,7 @@ RDAPJSONValues with Type="domain variant relation".
   "message": " The value for the JSON name value does not pass LDH name [stdRdapLdhNameValidation]."
 }
 ```
-        4. If the JSON name unicodeName exists, the value shall pass the test Unicode name [stdRdapUnicodeNameValidation] defined in this document.
+        4. If the JSON name unicodeName exists, the value shall pass the test Unicode name [[stdRdapUnicodeNameValidation]][id-stdRdapUnicodeNameValidation] defined in this document.
 ``` json
 {
   "code": -11511,
@@ -902,7 +902,7 @@ The following steps should be used to test that an entities data structure is va
     "message": "The entities structure is not syntactically valid."
 }
 ```
-2. Every value of the JSON array shall pass the test Entity lookup validation [stdRdapEntityLookupValidation] defined in this document.
+2. Every value of the JSON array shall pass the test Entity lookup validation [[stdRdapEntityLookupValidation]][id-stdRdapEntityLookupValidation] defined in this document.
 ``` json
 {
     "code": -11901,
@@ -1031,7 +1031,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not assigned in dsRrTypes."
 }
 ```
-    9. If the JSON name _events_ exists, the value shall pass the test Events Validation [stdRdapEventsValidation] defined in this document.
+    9. If the JSON name _events_ exists, the value shall pass the test Events Validation [[stdRdapEventsValidation]][id-stdRdapEventsValidation] defined in this document.
 ``` json
 {
   "code": -12016,
@@ -1039,7 +1039,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The value for the JSON name value does not pass Events Validation [stdRdapEventsValidation]."
 }
 ```
-    10. If the JSON name links exists, the value shall pass the test Links validation [stdRdapLinksValidation] defined in this document.
+    10. If the JSON name links exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
 ``` json
 {
   "code": -12017,
@@ -1112,7 +1112,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not listed with Zone Signing=Y in dnsSecAlgNumbers, or it's 253 or 254."
 }
 ```
-    9. If the JSON name events exists, the value shall pass the test Events Validation [stdRdapEventsValidation] defined in this document.
+    9. If the JSON name events exists, the value shall pass the test Events Validation [[stdRdapEventsValidation]][id-stdRdapEventsValidation] defined in this document.
 ``` json
 {
   "code": -12026,
@@ -1120,7 +1120,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The value for the JSON name value does not pass Events Validation [stdRdapEventsValidation]."
 }
 ```
-    10. If the JSON name _links_ exists, the value shall pass the test Links validation [stdRdapLinksValidation] defined in this document.
+    10. If the JSON name _links_ exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
 ``` json
 {
   "code": -12027,
