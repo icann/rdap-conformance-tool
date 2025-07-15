@@ -4,7 +4,7 @@
 
 Test group: [rdapResponseProfile_3_1_Validation]
 
-The following steps should be used to test the RDAP protocol section 3.1 of the RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 3.1 of the RDAP Response Profile 2.1:
 
 1. An _entity_ with the registrar role as the topmost object shall exist.
 ```json
@@ -21,7 +21,7 @@ The following steps should be used to test the RDAP protocol section 3.1 of the 
 {
   "code": -60101,
   "value": "<topmost object>",
-  "message": "The required members for a registrar entity were not found. See section 3.1 of the RDAP_Response_Profile_2_1."
+  "message": "The required members for a registrar entity were not found. See section 3.1 of the RDAP Response Profile 2.1."
 }
 ```
 
@@ -30,7 +30,7 @@ The following steps should be used to test the RDAP protocol section 3.1 of the 
 Test group: [rdapResponseProfile_3_2_Validation]
 
 The following steps should be used to test the RDAP protocol section 3.2 of the
-RDAP_Response_Profile_2_1: 
+RDAP Response Profile 2.1: 
 1. If entities with the administrative and technical roles within the topmost object exist,
     validate that valid _fn_ , _tel_ , _email_ members are included.
 ```json

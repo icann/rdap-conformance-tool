@@ -4,7 +4,7 @@
 
 Test group: [rdapResponseProfile_2_7_5_3_Validation]
 
-The following steps should be used to test the RDAP protocol section 2.7.5.3 of the RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2.7.5.3 of the RDAP Response Profile 2.1:
 
 1. For the _entities_ with the registrant, administrative, technical and billing role within the
 domain object, if the email property is omitted, validate that a remarks element

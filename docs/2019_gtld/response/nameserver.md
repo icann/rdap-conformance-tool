@@ -4,7 +4,7 @@
 
 Test group: [rdapResponseProfile_4_1_Validation]
 
-The following steps should be used to test the RDAP protocol section 4 .1 of the RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 4 .1 of the RDAP Response Profile 2.1:
 
 1. If nameserver/<nameserver name> in the RDAP Query URI contains only A-label or NR-
 LDH labels, the topmost domain object shall contain a ldhName.
@@ -48,7 +48,7 @@ registered in EPPROID.
 
 Test group: [rdapResponseProfile_4_3_Validation]
 
-The following steps should be used to test the RDAP protocol section 4. 3 of the  RDAP_Response_Profile_2_1.
+The following steps should be used to test the RDAP protocol section 4. 3 of the  RDAP Response Profile 2.1.
 
 The following steps shall only be executed if an entity with the registrar role exists within the topmost object, and the handle is different from "not applicable":
 

@@ -4,7 +4,7 @@
 
 Test group: [rdapResponseProfile_2_7_1_X_and_2_7_2_X_and_2_7_3_X_and_2_7_4_X_Validation]
 
-The following steps should be used to test the RDAP protocol section 2.7.1.X and 2.7.2.X and 2.7.3.X and 2.7.4.X of the RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2.7.1.X and 2.7.2.X and 2.7.3.X and 2.7.4.X of the RDAP Response Profile 2.1:
 
 1. For entities with the registrant, administrative, technical and billing role within the
 domain object, if a remarks member with the title "REDACTED FOR PRIVACY" is

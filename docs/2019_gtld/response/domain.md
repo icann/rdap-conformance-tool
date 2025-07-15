@@ -50,7 +50,7 @@ The following steps should be used to test the RDAP protocol section 2.2 of the 
 
 Test group: [rdapResponseProfile_2_3_1_1_Validation]
 
-The following steps should be used to test the RDAP protocol section 2.3.1.1 of the RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2.3.1.1 of the RDAP Response Profile 2.1:
 
 1. Validate that an _eventAction_ of type "registration" exists in the topmost events structure.
 ```json
@@ -65,7 +65,7 @@ The following steps should be used to test the RDAP protocol section 2.3.1.1 of 
 
 Test group: [rdapResponseProfile_2_3_1_2_Validation]
 
-The following steps should be used to test the RDAP protocol section 2.3.1.2 of the  RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2.3.1.2 of the  RDAP Response Profile 2.1:
 
 1. Validate that an _eventAction_ type "expiration" exists in the topmost events structure.
 ```json
@@ -95,7 +95,7 @@ The following steps should be used to test that a notices member appear in the R
 
 Test group: [rdapResponseProfile_2_6_3_Validation]
 
-The following steps should be used to test the RDAP protocol section 2.6.3 of the  RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2.6.3 of the  RDAP Response Profile 2.1:
 
 1. Validate that the _notices_ member contains an element in the JSON array with a title
 “Status Codes”, a description containing the string “For more information on domain
@@ -113,7 +113,7 @@ containing "https://icann.org/epp".
 
 Test group: [rdapResponseProfile_2_11_Validation]
 
-The following steps should be used to test the RDAP protocol section 2.11 of the  RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2.11 of the  RDAP Response Profile 2.1:
 
 1. Validate that the _notices_ member contains an element in the JSON array with a title
 “RDDS Inaccuracy Complaint Form”, a description containing the string “URL of the
@@ -131,7 +131,7 @@ with an href containing "https://icann.org/wicf".
 
 Test group: [rdapResponseProfile_2_10_Validation]
 
-The following steps should be used to test the RDAP protocol section 2.10 of the  RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2.10 of the  RDAP Response Profile 2.1:
 
 1. Validate that a _secureDNS_ member is included in the domain object.
 ```json
@@ -200,7 +200,7 @@ The following steps should be used to test that the status values comply with RF
 
 Test group: [rdapResponseProfile_2_6_1_Validation]
 
-The following steps should be used to test the RDAP protocol section 2.6.1 of the RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2.6.1 of the RDAP Response Profile 2.1:
 
 1. Validate that a _status_ member in the topmost object contain at least one value.
 ```json
@@ -215,7 +215,7 @@ The following steps should be used to test the RDAP protocol section 2.6.1 of th
 
 Test group: [rdapResponseProfile_2_9_1_and_2_9_2_Validation]
 
-The following steps should be used to test the RDAP protocol section 2.9.1 and 2.9.2 of the RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2.9.1 and 2.9.2 of the RDAP Response Profile 2.1:
 
 1. If the _nameservers_ member is included within the _domain_ object, validate that all nameserver objects contain the ldhName element.
 ``` json
@@ -267,7 +267,7 @@ The following steps should be used to test the RDAP protocol section 2.9.1 and 2
 
 Test group: [rdapResponseProfile_2_4_1_Validation]
 
-The following steps should be used to test the RDAP protocol section 2. 4 .1 of the  RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2. 4 .1 of the  RDAP Response Profile 2.1:
 
 1. An _entity_ with the registrar role within the topmost domain object shall exist.
 ```json
@@ -298,7 +298,7 @@ The following steps should be used to test the RDAP protocol section 2. 4 .1 of 
 
 Test group: [rdapResponseProfile_2_4_2_and_2_4_3_Validation]
 
-The following steps should be used to test the RDAP protocol section 2. 4. 2 and 2.4.3  of the RDAP_Response_Profile_2_1:
+The following steps should be used to test the RDAP protocol section 2. 4. 2 and 2.4.3  of the RDAP Response Profile 2.1:
 
 1. For the _entity_ with the registrar role within the topmost object, validate that a _publicIds_ member is included.
 ```json
