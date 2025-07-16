@@ -45,6 +45,15 @@ The following steps should be used to test the RDAP protocol section 2.2 of the 
   "message": "The globally unique identifier in the domain object handle is not registered in EPPROID."
 }
 ```
+3. If the handle in the topmost domain object comply with the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is not “ICANNRST”.
+``` json
+{
+  "code": -46205,
+  "value": "<domain object>",
+  "message": "The globally unique identifier in the domain object handle is using an EPPROID reserved for testing by ICANN."
+}
+```
+
 
 ## RP Section 2.3.1.1 
 
@@ -126,6 +135,15 @@ with an href containing "https://icann.org/wicf".
   "message": "The notice for https://icann.org/wicf was not found."
 }
 ```
+2. Validate that the query “/domain/not-a-domain.invalid” yields an HTTP status code of 404.
+``` json
+{
+  "code": -65300,
+  "value": "<http status code>",
+  "message": "A query for an invalid domain name did not yield a 404 response."
+}
+```
+
 
 ## RP Section 2.10 
 
@@ -195,6 +213,23 @@ The following steps should be used to test that the status values comply with RF
   "message": "The values of the status data structure does not comply with RFC3915."
 }
 ```
+2. If the topmost object is a domain, validate that if the “status” member has the value “redemption period” only if it also has the value “pending delete”.
+```json
+{
+  "code": -47001,
+  "value": "<status data structure>",
+  "message": "'redemption period' is only valid with a status of 'pending delete'"
+}
+```
+3. If the topmost object is a domain, validate that if the “status” member has the value “pending restore” only if it also has the value “pending delete”.
+```json
+{
+  "code": -47002,
+  "value": "<status data structure>",
+  "message": "'pending restore' is only valid with a status of 'pending delete'"
+}
+```
+
 
 ## RP Section 2.6.1 
 
@@ -241,7 +276,7 @@ The following steps should be used to test the RDAP protocol section 2.9.1 and 2
   "message": "The globally unique identifier in the nameserver object handle is not registered in EPPROID."
 }
 ```
-4. If the _nameservers_ member is included within the _domain_ object and at least one nameserver object contains a _handle_ or a _status_ element, validate that all nameserver objects include a handle and a status element.
+4. If the _nameservers_ member is included within the _domain_ object AND THE QUERY IS TO A GLTD REGISTRAR (i.e. --gtld-registrar option) and at least one nameserver object contains a _handle_ or a _status_ element, validate that all nameserver objects include a handle and a status element.
 ```json
 {
   "code": -47203,
@@ -262,6 +297,15 @@ The following steps should be used to test the RDAP protocol section 2.9.1 and 2
   "message": "The values of the status data structure does not comply with RFC5732."
 }
 ```
+6. If the nameservers member is included within the domain object, validate that the handle is a string followed by a hyphen ("-", ASCII value 0x002D) is not “ICANNRST”.
+```json
+{
+  "code": -47205,
+  "value": "<nameserver object>",
+  "message": "The globally unique identifier in the nameserver object handle is using an EPPROID reserved for testing by ICANN."
+}
+```
+
 
 ## RP Section 2.4.1 
 

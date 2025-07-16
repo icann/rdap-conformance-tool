@@ -43,6 +43,15 @@ registered in EPPROID.
   "message": "The globally unique identifier in the nameserver object handle is not registered in EPPROID."
 }
 ```
+5. If the handle in the topmost nameserver object comply with the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is not “ICANNRST”.
+```json
+{
+  "code": -49104,
+  "value": "<nameserver object>",
+  "message": "The globally unique identifier in the nameserver object handle is using an EPPROID reserved for testing by ICANN."
+}
+```
+
 
 ## RP Section 4.3 
 

@@ -37,7 +37,7 @@ Test group: [[tigSection_3_2_Validation]](#id-tigSection_3_2_Validation){ #id-ti
 
 The following steps should be used to test the RDAP protocol section 3.2 of the RDAP_Technical_Implementation_Guide_2_1:
 
-1. Validate that a links data structure in the topmost object exists, and the links object shall contain the elements _rel_ :related and _href_.
+1. If the query is a gTLD Registry (i.e. --gtld-registry) and Public ID identifier of the registrar is not “9999”, validate that a links data structure in the topmost object exists, and the links object shall contain the elements _rel_ :related and _href_.
 ``` json
 {
   "code": -23200,

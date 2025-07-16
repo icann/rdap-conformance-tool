@@ -68,7 +68,7 @@ The following steps should be used to test the RDAP protocol section 1.8 of the 
 {
   "code": -20400,
   "value": "<IPv4 addresses>",
-  "message": "The RDAP service is not provided over IPv4. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1."
+  "message": "No IPv4 address records (A) could be resolved in DNS for this service. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1."
 }
 ```
 2. Obtain the Resource Record for the AAAA QTYPE for the host in the URI. Validate that the status of the DNS response is not NOERROR. Validate that all IPv6 addresses in the RDATA pass IPv6 address validation [ipv6Validation]:
@@ -76,7 +76,7 @@ The following steps should be used to test the RDAP protocol section 1.8 of the 
 {
   "code": -20401,
   "value": "<IPv6 addresses>",
-  "message": "The RDAP service is not provided over IPv6. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1."
+  "message": "No IPv6 address records (AAAA) could be resolved in DNS for this service. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1."
 }
 ```
 

@@ -24,7 +24,7 @@ included, validate that the type member is "object redacted due to authorization
 {
   "code": -52101,
   "value": "<entity data structure>",
-  "message": "An entity with the registrant, administrative, technical or billing role with a remarks members with the title "REDACTED FOR PRIVACY" was found, but the description and type does not contain the value in 2.7.4.3 of the RDAP_Response_Profile_2_1."
+  "message": "An entity without a remark titled “REDACTED FOR PRIVACY” does not have all the necessary information of handle, fn, adr, tel, street and city."
 }
 ```
 3. For entities with the registrant, administrative, technical and billing role within the
@@ -65,6 +65,14 @@ parameter is included in the entity as defined in RFC8605.
   "code": -52105,
   "value": "<entity data structure>",
   "message": "An entity with the registrant role without the CC parameter was found. See section 2.7.3.1 of the RDAP_Response_Profile_2_1."
+}
+```
+7. For entities with the registrant, administrative, technical and billing role within the domain object, if a remarks member with the title "REDACTED FOR PRIVACY" is not included and the handle conforms to the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is not “ICANNRST”.
+```json
+{
+  "code": -52106,
+  "value": "<entity data structure>",
+  "message": "The globally unique identifier in the entity object handle is using an EPPROID reserved for testing by ICANN."
 }
 ```
 
