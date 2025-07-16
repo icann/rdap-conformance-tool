@@ -18,8 +18,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
@@ -35,6 +33,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeP
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import static org.icann.rdapconformance.validator.CommonUtils.*;
 
 
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
@@ -279,8 +279,11 @@ public void setVerbose(boolean isVerbose) {
       }
 
 
+      // Removing extra errors to avoid discrepancies between profiles when 404 status code is returned
       if(ConnectionTracker.getInstance().isResourceNotFoundNoteWarning(this)) {
         logger.info("All HEAD and Main queries returned a 404 Not Found response code.");
+        resultFile.removeErrors();
+        resultFile.removeResultGroups();
       } else {
         logger.info("At least one HEAD or Main query returned a non-404 Not Found response code.");
       }

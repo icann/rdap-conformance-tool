@@ -64,6 +64,18 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   }
 
   @Override
+  public void addAll(Set<RDAPValidationResult> results) {
+    this.results.clear();
+    this.results.addAll(results);
+  }
+
+  @Override
+  public void removeGroups() {
+    this.groups.clear();
+    this.groupErrorWarning.clear();
+  }
+
+  @Override
   public Set<RDAPValidationResult> getAll() {
     return results;
   }

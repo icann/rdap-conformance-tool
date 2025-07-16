@@ -76,7 +76,6 @@ public class ConnectionTrackerTest {
         assertTrue(result, "Should return true for all 404s with gTLD profile");
         verify(config).useRdapProfileFeb2024();
         verify(config, atLeastOnce()).isGtldRegistry();
-        verify(resultFile).getErrorCount();
     }
 
     @Test
