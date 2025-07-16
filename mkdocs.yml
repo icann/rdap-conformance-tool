@@ -66,4 +66,10 @@ nav:
       - 2019_gtld/response/domain_entities_registry.md
       - 2019_gtld/response/domain_entities_registrar.md
       - 2019_gtld/response/entity_registrar.md
+  - 2024 gTLD profile Tests:
+    - 2024_gtld/from_2019.md
+    - Technical Implemenation Guide:
+      - 2024_gtld/tig/general.md
+    - Response Profile:
+      - 2024_gtld/response/general.md
   - 'references.md'

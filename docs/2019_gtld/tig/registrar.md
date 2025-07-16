@@ -2,7 +2,7 @@
 
 ## TIG Section 1.12.1
 
-Test group:[tigSection_1_12_1_Validation]
+Test group: [[tigSection_1_12_1_Validation]](id-tigSection_1_12_1_Validation){ #id-tigSection_1_12_1_Validation }
 
 The following steps should be used to test the RDAP protocol section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1:
 

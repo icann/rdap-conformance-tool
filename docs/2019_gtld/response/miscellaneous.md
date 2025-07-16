@@ -1,6 +1,6 @@
 # Miscellaneous Tests
 
-Test Group [rdapResponseProfile_2_3_1_3_and_2_7_6_and_3_3_and_4_4_Validation]
+Test Group: [[rdapResponseProfile_2_3_1_3_and_2_7_6_and_3_3_and_4_4_Validation]](id-rdapResponseProfile_2_3_1_3_and_2_7_6_and_3_3_and_4_4_Validation){ #id-rdapResponseProfile_2_3_1_3_and_2_7_6_and_3_3_and_4_4_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.3.1.3, 2.7.6, 3.3 and 4.4 of the RDAP Response Profile 2.1:
 
