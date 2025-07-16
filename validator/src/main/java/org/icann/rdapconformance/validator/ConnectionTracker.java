@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -433,19 +434,17 @@ public class ConnectionTracker {
                 }
 
                 // It's ok to return true here so we can log the message in verbose mode
-                // If a profile is used, and both HEAD and GET result in 404 but no other errors occur, then this should be a warning
+                // If a profile is used, and both HEAD and GET result in 404, then this should be a warning
                 if((HEAD.equalsIgnoreCase(record.getHttpMethod()) || GET.equalsIgnoreCase(record.getHttpMethod()))
                         && (config.useRdapProfileFeb2024() || config.useRdapProfileFeb2019())
-                        && RDAPValidationResultFile.getInstance().getErrorCount() < ONE
                         && (config.isGtldRegistrar() || config.isGtldRegistry())) {
-
                     CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
                             + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
                 }
                 // to get the error code we are looking for ->
                 // if no profile is selected and a GET results in 404 and no other errors occur, this should show up as a warning
                 //  then we put in the error code -13020
-                else if(GET.equalsIgnoreCase(record.getHttpMethod()) && RDAPValidationResultFile.getInstance().getErrorCount() < ONE) {
+                else if(GET.equalsIgnoreCase(record.getHttpMethod())) {
                     CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
                             + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
                 }

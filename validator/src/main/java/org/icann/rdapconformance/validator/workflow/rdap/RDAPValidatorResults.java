@@ -9,6 +9,10 @@ public interface RDAPValidatorResults {
 
   void add(RDAPValidationResult result);
 
+  void addAll(Set<RDAPValidationResult> results);
+
+  void removeGroups();
+
   Set<RDAPValidationResult> getAll();
 
   boolean isEmpty();

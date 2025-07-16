@@ -285,6 +285,19 @@ public class RDAPValidationResultFile {
                            .collect(Collectors.toList());
     }
 
+    public void removeErrors() {
+        Set<RDAPValidationResult> filteredResults = this.results.getAll()
+                .stream()
+                .filter(result -> this.configurationFile.isWarning(result.getCode()))
+                .collect(Collectors.toSet());
+
+        this.results.addAll(filteredResults);
+    }
+
+    public void removeResultGroups() {
+        this.results.removeGroups();
+    }
+
     public List<RDAPValidationResult> getAllResults() {
         return new ArrayList<>(this.results.getAll());
     }
