@@ -16,11 +16,11 @@ RDAPCT issues queries based on the URL it is given. Each URL may result in numer
 Queries using the HEAD method will return no content and therefore tests comparing content will not be applicable.
 
 Use of the HEAD method is determined when an ICANN gTLD profile is specified using either the `--use-rdap-profile-february-2019`
-option or the `--use-rdap-profile-february-2024` option (see [Registry Testing](../overview/#testing-as-a-gtld-registry)
-and [Registrar Testing](../overview/#testing-as-a-gtld-registrar)).
+option or the `--use-rdap-profile-february-2024` option (see [Registry Testing](overview.md#testing-as-a-gtld-registry)
+and [Registrar Testing](overview.md#testing-as-a-gtld-registrar)).
 
 Usage of IPv4 and IPv6 can be suppressed with the `--no-ipv4-queries` and `--no-ipv6-queries`
-(see [Suppressing Queries](../overview/#supressing-ipv4-or-ipv6-queries)).
+(see [Suppressing Queries](overview.md#supressing-ipv4-or-ipv6-queries)).
 
 ## Case Folding Queries
 
@@ -32,7 +32,7 @@ given URL is `https://reg.example/domain/example.com` then a case-folded query o
 ## Additional Queries
 
 The `--additional-conformance-queries` option will also send queries for `/help` and
-`/domain/not-a-domain.invalid`. See [Additional Queries](../overview/#additional-queries).
+`/domain/not-a-domain.invalid`. See [Additional Queries](overview.md#additional-queries).
 
 ## Rate Limiting
 

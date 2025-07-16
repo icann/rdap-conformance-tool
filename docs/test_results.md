@@ -4,7 +4,7 @@ Be default, RDAPCT places the results in a file in the `results` directory in th
 directory, with a file name of `results-YYYYMMDDHHmmsss.json` where YYYYMMDDHHmmss is the UTC time when
 the file was written.
 
-This file can be specified using the `--results-file` option (see [Specifying the Results File](../overview#specifying-the-results-file)).
+This file can be specified using the `--results-file` option (see [Specifying the Results File](overview.md#specifying-the-results-file)).
 
 The results file will look something like this, except with no comments (which are not valid JSON):
 

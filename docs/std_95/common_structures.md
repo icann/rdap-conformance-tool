@@ -956,7 +956,7 @@ The following steps should be used to test that an entities data structure is va
 
 ## Secure DNS validation 
 
-Test gruop: [stdRdapSecureDnsValidation]
+Test group: [[stdRdapSecureDnsValidation]](#id-stdRdapSecureDnsValidation){ #id-stdRdapSecureDnsValidation}
 
 The following steps should be used to test that a secureDNS data structure is valid:
 
