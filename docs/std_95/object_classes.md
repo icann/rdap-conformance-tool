@@ -597,3 +597,11 @@ structure is valid:
   "message": "The value for the JSON name value does not pass RDAP Conformance validation [stdRdapConformanceValidation]."
 }
 ```
+10. The nameserverSearchResults value must exist.
+```json
+{
+  "code": -12610,
+  "value": "<response>",
+  "message": "The nameserverSearchResults structure is required."
+}
+```

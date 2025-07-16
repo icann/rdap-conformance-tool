@@ -51,6 +51,7 @@ nav:
     - std_95/general.md
     - std_95/common_structures.md
     - std_95/object_classes.md
+    - std_95/response.md
   - 2019 gTLD profile Tests:
     - Technical Implemenation Guide:
       - 2019_gtld/tig/general.md
