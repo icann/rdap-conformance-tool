@@ -1,13 +1,9 @@
 #!/bin/sh
 
+RCT_VERSION="$(xq -x //rdap-conformance.version pom.xml)"
+
 help() {
-    cat << END
-Arguments:
-  [--timeout=<timeout>]
-  [[--use-rdap-profile-february-2019]
-  ([--gtld-registrar] | [--gtld-registry [--thin]])]
-  RDAP_URI
-END
+  java -jar "tool/target/rdapct-${RCT_VERSION}.jar" --help
   exit 0
 }
 
@@ -18,8 +14,6 @@ for arg in "$@" ; do
     help
   fi
 done
-
-RCT_VERSION="$(xq -x //rdap-conformance.version pom.xml)"
 
 java -jar "tool/target/rdapct-${RCT_VERSION}.jar" -c tool/bin/rdapct_config.json --use-local-datasets "$@" 1>&2
 
