@@ -72,4 +72,7 @@ nav:
       - 2024_gtld/tig/general.md
     - Response Profile:
       - 2024_gtld/response/general.md
+      - 2024_gtld/response/domain.md
+      - 2024_gtld/response/domain_registrant.md
+      - 2024_gtld/response/domain_technical.md
   - 'references.md'
