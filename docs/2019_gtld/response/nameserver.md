@@ -1,6 +1,6 @@
 # Nameserver Tests
 
-#### RP Section 4.1 
+## RP Section 4.1 
 
 Test group: [[rdapResponseProfile_4_1_Validation]](#id-rdapResponseProfile_4_1_Validation){ #id-rdapResponseProfile_4_1_Validation }
 
