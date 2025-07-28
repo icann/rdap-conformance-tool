@@ -155,9 +155,9 @@ Test group: [[rdapResponseProfile_2_10_Validation]][id-rdapResponseProfile_2_10_
 }
 ```
 
-## RP Section 2.7.3
+## RP 2024 Section 2.7.3
 
-Test group: [[rdapResponseProfile_2_7_3_Validation]][id-rdapResponseProfile_2_7_3_Validation]
+Test group: [[rdapResponseProfile2024_2_7_3_Validation]](#id-rdapResponseProfile2024_2_7_3_Validation){ #id-rdapResponseProfile2024_2_7_3_Validation }
 
 1. For every entity of the domain excluding entities with the roles “registrar”, “registrant”, or “technical”, verify the handle is of the format: "(\w|_){1,80}-\w{1,8}".
 ```json
@@ -176,9 +176,9 @@ Test group: [[rdapResponseProfile_2_7_3_Validation]][id-rdapResponseProfile_2_7_
 }
 ```
 
-## RP Section 2.4.6
+## RP 2024 Section 2.4.6
 
-Test group: [[rdapResponseProfile_2_4_6_Validation]][id-rdapResponseProfile_2_4_6_Validation]
+Test group: [[rdapResponseProfile2024_2_4_6_Validation]](#id-rdapResponseProfile2024_2_4_6_Validation){ #id-rdapResponseProfile2024_2_4_6_Validation }
 
 1. Verify that the domain object has one entity with the role “registrar” with one link object in the links array with a rel property of the string “about”.
 ```json

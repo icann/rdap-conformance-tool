@@ -1,8 +1,8 @@
 # Domain Registrant Tests
 
-## RP Section 2.7.2
+## RP 2024 Section 2.7.2
 
-Test group: [[rdapResponseProfile_2_7_2_Validation]][id-rdapResponseProfile_2_7_2_Validation]
+Test group: [[rdapResponseProfile2024_2_7_2_Validation]](#id-rdapResponseProfile2024_2_7_2_Validation){ #id-rdapResponseProfile2024_2_7_2_Validation }
 
 1. If the queried RDAP server is a registrar (such as with the --gtld-registrar command line parameter or through the configuration object), verify that the domain object has one entity with the “registrant” role.
 ```json
@@ -15,7 +15,7 @@ Test group: [[rdapResponseProfile_2_7_2_Validation]][id-rdapResponseProfile_2_7_
 
 ## Registrant Handle
 
-Test group: [[rdapResponseProfile_registrant_handle]][id-rdapResponseProfile_registrant_handle]
+Test group: [[rdapResponseProfile_registrant_handle]](#id-rdapResponseProfile_registrant_handle){ #id-rdapResponseProfile_registrant_handle }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
@@ -73,9 +73,9 @@ If the handle is NOT in the entity object with the registrant, the following tes
 }
 ```
 
-## RP Section 2.7.4.1
+## RP 2024 Section 2.7.4.1
 
-Test group: [[rdapResponseProfile_2_7_4_1_Validation]][id-rdapResponseProfile_2_7_4_1_Validation]
+Test group: [[rdapResponseProfile2024_2_7_4_1_Validation]](#id-rdapResponseProfile2024_2_7_4_1_Validation){ #id-rdapResponseProfile2024_2_7_4_1_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
@@ -123,9 +123,9 @@ If the fn property above is present but empty, the following tests apply:
 }
 ```
 
-## RP Section 2.7.4.2
+## RP 2024 Section 2.7.4.2
 
-Test group: [[rdapResponseProfile_2_7_4_2_Validation]][id-rdapResponseProfile_2_7_4_2_Validation]
+Test group: [[rdapResponseProfile2024_2_7_4_2_Validation]](#id-rdapResponseProfile2024_2_7_4_2_Validation){ #id-rdapResponseProfile2024_2_7_4_2_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
@@ -164,9 +164,9 @@ If the org property on the vCards for the entity with the role of registrant is 
 }
 ```
 
-## RP Section 2.7.4.3
+## RP 2024 Section 2.7.4.3
 
-Test group: [[rdapResponseProfile_2_7_4_3_Validation]][id-rdapResponseProfile_2_7_4_3_Validation]
+Test group: [[rdapResponseProfile2024_2_7_4_3_Validation]](#id-rdapResponseProfile2024_2_7_4_3_Validation){ #id-rdapResponseProfile2024_2_7_4_3_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
@@ -214,9 +214,9 @@ If the street value of the adr property above is present but empty, the followin
 }
 ```
 
-## RP Section 2.7.4.4
+## RP 2024 Section 2.7.4.4
 
-Test group: [[rdapResponseProfile_2_7_4_4_Validation]][id-rdapResponseProfile_2_7_4_4_Validation]
+Test group: [[rdapResponseProfile2024_2_7_4_4_Validation]](#id-rdapResponseProfile2024_2_7_4_4_Validation){ #id-rdapResponseProfile2024_2_7_4_4_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
@@ -264,9 +264,9 @@ If the city value of the adr property above is present but empty, the following 
 }
 ```
 
-## RP Section 2.7.4.6
+## RP 2024 Section 2.7.4.6
 
-Test group: [[rdapResponseProfile_2_7_4_6_Validation]][id-rdapResponseProfile_2_7_4_6_Validation]
+Test group: [[rdapResponseProfile_2_7_4_6_Validation]](#id-rdapResponseProfile_2_7_4_6_Validation){ #id-rdapResponseProfile_2_7_4_6_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
@@ -314,9 +314,9 @@ If the postal code value of the adr property above is present but empty, the fol
 }
 ```
 
-## RP Section 2.7.4.8
+## RP 2024 Section 2.7.4.8
 
-Test group: [[rdapResponseProfile_2_7_4_8_Validation]][id-rdapResponseProfile_2_7_4_8_Validation]
+Test group: [[rdapResponseProfile2024_2_7_4_8_Validation]](#id-rdapResponseProfile2024_2_7_4_8_Validation){ #id-rdapResponseProfile2024_2_7_4_8_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
@@ -355,9 +355,9 @@ If a tel property with a “voice” parameter on the vCards for the entity with
 }
 ```
 
-## RP Section 2.7.5.1
+## RP 2024 Section 2.7.5.1
 
-Test group: [[rdapResponseProfile_2_7_5_1_Validation]][id-rdapResponseProfile_2_7_5_1_Validation]
+Test group: [[rdapResponseProfile2024_2_7_5_1_Validation]](#id-rdapResponseProfile2024_2_7_5_1_Validation){ #id-rdapResponseProfile2024_2_7_5_1_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
@@ -388,9 +388,9 @@ If  a redaction object (see RFC 9537) is in the redacted array with a name objec
 }
 ```
 
-## RP Section 2.7.5.2
+## RP 2024 Section 2.7.5.2
 
-Test group: [[rdapResponseProfile_2_7_5_2_Validation]][id-rdapResponseProfile_2_7_5_2_Validation]
+Test group: [[rdapResponseProfile_2_7_5_2_Validation]](#id-rdapResponseProfile_2_7_5_2_Validation){ #id-rdapResponseProfile_2_7_5_2_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
@@ -454,9 +454,9 @@ If  a redaction object (see RFC 9537) is in the redacted array with a name objec
 }
 ```
 
-## RP Section 2.7.4.9
+## RP 2024 Section 2.7.4.9
 
-Test group: [[rdapResponseProfile_2_7_4_9_Validation]][id-rdapResponseProfile_2_7_4_9_Validation]
+Test group: [[rdapResponseProfile2024_2_7_4_9_Validation]](#id-rdapResponseProfile2024_2_7_4_9_Validation){ #id-rdapResponseProfile2024_2_7_4_9_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 

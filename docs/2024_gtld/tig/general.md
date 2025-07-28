@@ -13,9 +13,9 @@ Test group: [[tigSection_1_3_Validation]][id-tigSection_1_3_Validation]
 }
 ```
 
-## TIG Section 1.5
+## TIG 2024 Section 1.5
 
-Test group: [[tigSection_1_5_Validation]][id-tigSection_1_5_Validation]
+Test group: [[tigSection2024_1_5_Validation]](#id-tigSection2024_1_5_Validation){ #id-tigSection2024_1_5_Validation }
 
 1. If the scheme of the URI to be tested is "https", verify that only TLS 1.2 or TLS 1.3 are offered by the RDAP server.
 ```json
@@ -34,9 +34,9 @@ Test group: [[tigSection_1_5_Validation]][id-tigSection_1_5_Validation]
 }
 ```
 
-## TIG Section 3.2
+## TIG 2024 Section 3.2
 
-Test group: [[tigSection_3_2_Validation]][id-tigSection_3_2_Validation]
+Test group: [[tigSection2024_3_2_Validation]](#id-tigSection2024_3_2_Validation){ #id-tigSection2024_3_2_Validation }
 
 1. Validate that the links object found with the test of code -23201 has a value property and that the property contents match the URI used to query the server.
 ```json
@@ -47,9 +47,9 @@ Test group: [[tigSection_3_2_Validation]][id-tigSection_3_2_Validation]
 }
 ```
 
-## TIG Section 3.3
+## TIG 2024 Section 3.3
 
-Test group: [[tigSection_3_3_Validation]][id-tigSection_3_3_Validation]
+Test group: [[tigSection2024_3_3_Validation]](#id-tigSection2024_3_3_Validation){ #id-tigSection2024_3_3_Validation }
 
 1. Validate that at least one notices object is in the topmost object containing a links object with a rel property of “terms-of-service:
 ```json
@@ -76,9 +76,9 @@ Test group: [[tigSection_3_3_Validation]][id-tigSection_3_3_Validation]
 }
 ```
 
-## TIG Section 3.4
+## TIG 2024 Section 3.4
 
-Test group: [[tigSection_3_4_Validation]][id-tigSection_3_4_Validation]
+Test group: [[tigSection2024_3_4_Validation]](#id-tigSection2024_3_4_Validation){ #id-tigSection2024_3_4_Validation }
 
 1. Validate that the server responds to a /help query with an HTTP 200 OK and a valid RDAP JSON Response to /help.
 ```json

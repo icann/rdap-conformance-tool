@@ -1,8 +1,8 @@
 # General Tests
 
-## RP Section 1.2
+## RP 2024 Section 1.2
 
-Test group: [[rdapResponseProfile_1_2_Validation]][id-rdapResponseProfile_1_2_Validation]
+Test group: [[rdapResponseProfile2024_1_2_Validation]](#id-rdapResponseProfile2024_1_2_Validation){ #id-rdapResponseProfile2024_1_2_Validation }
 
 1. Validate that the JSON string value “icann_rdap_response_profile_1” is included in the RDAP Conformance data structure.
 ```json

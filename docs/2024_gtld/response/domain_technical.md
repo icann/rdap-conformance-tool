@@ -1,8 +1,8 @@
 # Domain Technical Contact Tests
 
-## RP Section 2.7.6.1
+## RP 2024 Section 2.7.6.1
 
-Test group: [[rdapResponseProfile_2_7_6_1_Validation]][id-rdapResponseProfile_2_7_6_1_Validation]
+Test group: [[rdapResponseProfile2024_2_7_6_1_Validation]](#id-rdapResponseProfile2024_2_7_6_1_Validation){ #id-rdapResponseProfile2024_2_7_6_1_Validation }
 
 These tests only apply to an entity with the “technical” role, if present.
 
@@ -50,9 +50,9 @@ If the fn property above is present but empty, the following tests apply:
 }
 ```
 
-## RP Section 2.7.6.2
+## RP 2024 Section 2.7.6.2
 
-Test group: [[rdapResponseProfile_2_7_6_2_Validation]][id-rdapResponseProfile_2_7_6_2_Validation]
+Test group: [[rdapResponseProfile2024_2_7_6_2_Validation]](#id-rdapResponseProfile2024_2_7_6_2_Validation){ #id-rdapResponseProfile2024_2_7_6_2_Validation }
 
 These tests only apply to an entity with the “technical” role, if present.
 
@@ -91,9 +91,9 @@ If a tel property with a “voice” parameter on the vCards for the entity with
 }
 ```
 
-## RP Section 2.7.6.3
+## RP 2024 Section 2.7.6.3
 
-Test group: [[rdapResponseProfile_2_7_6_3_Validation]][id-rdapResponseProfile_2_7_6_3_Validation]
+Test group: [[rdapResponseProfile2024_2_7_6_3_Validation]](#id-rdapResponseProfile2024_2_7_6_3_Validation){ #id-rdapResponseProfile2024_2_7_6_3_Validation }
 
 These tests only apply to an entity with the “technical” role, if present.
 

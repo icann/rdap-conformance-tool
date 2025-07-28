@@ -2,7 +2,7 @@
 
 ## RP Sections 2.7.1.x, 2.7.2.x, 2.7.3.x, and 2.7.4.x
 
-Test group: [[rdapResponseProfile_2_7_1_X_and_2_7_2_X_and_2_7_3_X_and_2_7_4_X_Validation]](id-rdapResponseProfile_2_7_1_X_and_2_7_2_X_and_2_7_3_X_and_2_7_4_X_Validation){ #id-rdapResponseProfile_2_7_1_X_and_2_7_2_X_and_2_7_3_X_and_2_7_4_X_Validation }
+Test group: [[rdapResponseProfile_2_7_1_X_and_2_7_2_X_and_2_7_3_X_and_2_7_4_X_Validation]](#id-rdapResponseProfile_2_7_1_X_and_2_7_2_X_and_2_7_3_X_and_2_7_4_X_Validation){ #id-rdapResponseProfile_2_7_1_X_and_2_7_2_X_and_2_7_3_X_and_2_7_4_X_Validation }
 
 The following steps should be used to test the RDAP protocol section 2.7.1.X and 2.7.2.X and 2.7.3.X and 2.7.4.X of the RDAP Response Profile 2.1:
 
