@@ -7,7 +7,6 @@ theme:
   features:
     - search.share
     - navigation.tracking
-    - navigation.expand
   favicon: images/favicon.png
   logo: images/icann-logo-tagline-white-en_680x152.webp
 plugins:
