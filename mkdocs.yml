@@ -75,4 +75,5 @@ nav:
       - 2024_gtld/response/domain.md
       - 2024_gtld/response/domain_registrant.md
       - 2024_gtld/response/domain_technical.md
+  - 'conformance_considerations.md'
   - 'references.md'

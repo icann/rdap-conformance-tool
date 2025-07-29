@@ -96,6 +96,7 @@ The following steps should be used to test the RDAP protocol section 1.13 of the
   "message": "The HTTP header 'Access-Control-Allow-Origin: *' is not included in the HTTP headers. See section 1.13 of the RDAP_Technical_Implementation_Guide_2_1."
 }
 ```
+See the [CORS (Access-Control-Allow-Origin)][cors-access-control-allow-origin] conformance consideration for more information.
 
 Note: the test [[tigSection_1_13_Validation]][id-tigSection_1_13_Validation] shall be performed on the URL on every HTTP redirect.
 
