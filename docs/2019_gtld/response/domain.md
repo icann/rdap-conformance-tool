@@ -117,6 +117,7 @@ containing "https://icann.org/epp".
   "message": "The notice for https://icann.org/epp was not found."
 }
 ```
+See [Notice of EPP Status Codes][notice-of-epp-status-codes] in the conformance considerations for more information.
 
 ## RP Section 2.11 
 
@@ -135,6 +136,7 @@ with an href containing "https://icann.org/wicf".
   "message": "The notice for https://icann.org/wicf was not found."
 }
 ```
+See [Notice of RDDS Inaccuracy Report][notice-of-rdds-inaccuracy-report] in the conformance considerations for more information.
 2. Test case [-65300](#id-testCase-65300){ #id-testCase-65300 }: Validate that the query “/domain/not-a-domain.invalid” yields an HTTP status code of 404.
 ``` json
 {

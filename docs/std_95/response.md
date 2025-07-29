@@ -10,6 +10,7 @@ Test group: [[stdResponseValidation]](#id-stdResponseValidation){ #id-stdRespons
   "message": "The content-type header does not contain the application/rdap+json media type."
 }
 ```
+See [Media Types][media-types] in the conformance considerations for more information.
 2. Test case [-13001](#id-testCase-13001){ #id-testCase-13001 }: Validate that the response is parsable JSON.
 ```json
 {

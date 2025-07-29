@@ -53,6 +53,35 @@ This means that RDAP services for gTLD registries and registrars is only to be o
 
 If an HTTP URL is operational, it must redirect to the HTTPS URL even if the HTTP URL is not publicly known.
 
+## Media Types
+
+Testing an RDAP service with just a web browser (i.e. not an RDAP web-app) can mask issues with the acceptance of media types (formerly called MIME types). A bare web browser will not properly account for the correct media types required of RDAP.
+
+[RFC 7480 Section 4.2](https://datatracker.ietf.org/doc/html/rfc7480#autoid-6) states the following:
+
+> To indicate to servers that an RDAP response is desired, clients
+> include an Accept header field with an RDAP-specific JSON media type,
+> the generic JSON media type, or both.  Servers receiving an RDAP
+> request return an entity with a Content-Type header containing the
+> RDAP-specific JSON media type.
+
+This means that a client may use either the "application/json" or "application/rdap+json" media type in the "accept" HTTP header of an RDAP
+request, but the RDAP response must only have the "application/rdap+json" media type in the "content-type" HTTP header.
+
+This can be demonstrated using these curl command:
+
+- `curl -v -H "accept: application/rdap+json" https://rdap.example`. 
+    - The output should contain:
+        - `> accept: application/rdap+json`
+        - `< content-type: application/rdap+json`
+- `curl -v -H "accept: application/json" https://rdap.example`. 
+    - The output should contain:
+        - `> accept: application/json`
+        - `< content-type: application/rdap+json`
+
+
+**NOTE:** HTTP headers are not required to be capitalized.
+
 ## Registrant Without CC Parameter
 
 Section 1.4 of the 2024 ICANN [RDAP Response Profile](https://www.icann.org/en/system/files/files/rdap-response-profile-21feb24-en.pdf)
@@ -120,3 +149,109 @@ by a newline (`\n`). Here is an example with the "cc" parameter.
 
 **NOTE:** The seven-element text array is still given but all strings are empty, and the "label" parameter is
 used to represent the address.
+
+## Notice of EPP Status Codes
+
+Section 2.6.3 of the 2024 ICANN [RDAP Response Profile](https://www.icann.org/en/system/files/files/rdap-response-profile-21feb24-en.pdf)
+requires servers provide an RDAP notice with a link to the EPP Status Codes:
+
+> 2.6.3. A domain name RDAP response MUST contain a notices member with a
+> title “Status Codes”, a description containing the string “For more
+> information on domain status codes, please visit https://icann.org/epp”
+> and a links member with the https://icann.org/epp URL in the href,
+> rel:glossary, and a value with the RDAP lookup path that generated the
+> RDAP response.
+
+**NOTE:** This is section 2.6.3 of the 2019 [Profile](https://www.icann.org/en/system/files/files/rdap-response-profile-15feb19-en.pdf).
+
+Here is an example of the notice, which is one of the JSON objects inside the "notices" array that MUST only appear at the top-most JSON of the RDAP response:
+
+```json
+{
+  "title": "Status Codes",
+  "description": [
+    "“For more information on domain status codes, please visit https://icann.org/epp"
+  ],
+  "links": [
+    {
+      "value": "https://some-value.example",
+      "rel": "glossary",
+      "href": "https://icann.org/epp",
+      "type": "text/html"
+    }
+  ]
+}
+```
+
+The "type" attribute is not required to be set, but if set it should match the media type of the value
+used in "href", which is "text/html" for "https://icann.org/epp". Setting this attribute is good practice.
+
+### The "value" attribute
+
+The "value" attribute must be the request URL of the RDAP query. For example, if the RDAP query used
+"https://rdap.example/domain/foo.example" to query for a domain where this notice is found, then the
+"value" attribute must be "https://rdap.example/domain/foo.example".
+
+### The "rel" attribute
+
+The value of the "rel" attribute must be "glossary". Values of "alternate" or "about" will trigger a compliance issue.
+
+### Using www.icann.org
+
+While using the URL of "https://www.icann.org/epp" in either the "href" attribute or the link description
+will lead user to the right page, the conformance tool strictly checks for the usage of "https://icann.org/epp"
+(notice the lack of "www.").
+
+## Notice of RDDS Inaccuracy Report
+
+Section 2.10 of the 2024 ICANN [RDAP Response Profile](https://www.icann.org/en/system/files/files/rdap-response-profile-21feb24-en.pdf)
+requires servers provide an RDAP notice with a link the ICANN RDDS Inaccuracy Form:
+
+> 2.10. RDDS Inaccuracy - A domain name RDAP response MUST contain a notices
+> member with a title “RDDS Inaccuracy Complaint Form”, a description containing
+> the string “URL of the ICANN RDDS Inaccuracy Complaint Form:
+> https://icann.org/wicf” and a links member with the https://icann.org/wicf URL in
+> the href, rel:help, and a value with the RDAP lookup path that generated the
+> RDAP response.
+
+**NOTE:** This is section 2.11 of the 2019 [Profile](https://www.icann.org/en/system/files/files/rdap-response-profile-15feb19-en.pdf).
+
+Here is an example of the notice, which is one of the JSON objects inside the "notices" array that MUST only appear at the top-most JSON of the RDAP response:
+
+```json
+{
+  "title": "RDDS Inaccuracy Complaint Form",
+  "description": [
+    "URL of the ICANN RDDS Inaccuracy Complaint Form: https://icann.org/wicf"
+  ],
+  "links": [
+    {
+      "value": "https://some-value.example",
+      "rel": "help",
+      "href": "https://icann.org/wicf",
+      "type": "text/html"
+    }
+  ]
+}
+```
+
+The "type" attribute is not required to be set, but if set it should match the media type of the value
+used in "href", which is "text/html" for "https://icann.org/wicf". Setting this attribute is good practice.
+
+### The "value" attribute
+
+The "value" attribute must be the request URL of the RDAP query. For example, if the RDAP query used
+"https://rdap.example/domain/foo.example" to query for a domain where this notice is found, then the
+"value" attribute must be "https://rdap.example/domain/foo.example".
+
+### The "rel" attribute
+
+The value of the "rel" attribute must be "help". Values of "alternate" or "about" will trigger a compliance issue.
+
+### Using www.icann.org
+
+While using the URL of "https://www.icann.org/wicf" in either the "href" attribute or the link description
+will lead user to the right page, the conformance tool strictly checks for the usage of "https://icann.org/wicf"
+(notice the lack of "www.").
+
+
