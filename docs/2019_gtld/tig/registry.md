@@ -6,7 +6,7 @@ Test group: [[tigSection_1_11_1_Validation]](#id-tigSection_1_11_1_Validation){ 
 
 The following steps should be used to test the RDAP protocol section 1.11.1 and 1.2 of the RDAP_Technical_Implementation_Guide_2_1:
 
-1. Verify that the TLD of the domain name is listed in the bootstrapDomainNameSpace.
+1. Test case [-23100](#id-testCase-23100){ #id-testCase-23100 }: Verify that the TLD of the domain name is listed in the bootstrapDomainNameSpace.
 ``` json
 {
   "code": -23100,
@@ -14,7 +14,7 @@ The following steps should be used to test the RDAP protocol section 1.11.1 and 
   "message": "The TLD is not included in the bootstrapDomainNameSpace. See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1."
 }
 ```
-2. Validate that at least one base URL exists in the bootstrapDomainNameSpace for the TLD.
+2. Test case [-23101](#id-testCase-23101){ #id-testCase-23101 }: Validate that at least one base URL exists in the bootstrapDomainNameSpace for the TLD.
 ``` json
 {
   "code": -23101,
@@ -22,7 +22,7 @@ The following steps should be used to test the RDAP protocol section 1.11.1 and 
   "message": "The TLD entry in bootstrapDomainNameSpace does not contain a base URL. See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1."
 }
 ```
-3. For the entry of the TLD in bootstrapDomainNameSpace verify that every one of the base URLs contain a schema of "https".
+3. Test case [-23102](#id-testCase-23102){ #id-testCase-23102 }: For the entry of the TLD in bootstrapDomainNameSpace verify that every one of the base URLs contain a schema of "https".
 ``` json
 {
   "code": -23102,
@@ -37,7 +37,7 @@ Test group: [[tigSection_3_2_Validation]](#id-tigSection_3_2_Validation){ #id-ti
 
 The following steps should be used to test the RDAP protocol section 3.2 of the RDAP_Technical_Implementation_Guide_2_1:
 
-1. If the query is a gTLD Registry (i.e. --gtld-registry) and Public ID identifier of the registrar is not “9999”, validate that a links data structure in the topmost object exists, and the links object shall contain the elements _rel_ :related and _href_.
+1. Test case [-23200](#id-testCase-23200){ #id-testCase-23200 }: If the query is a gTLD Registry (i.e. --gtld-registry) and Public ID identifier of the registrar is not “9999”, validate that a links data structure in the topmost object exists, and the links object shall contain the elements _rel_ :related and _href_.
 ``` json
 {
   "code": -23200,
@@ -52,7 +52,7 @@ Test group: [[tigSection_6_1_Validation]](#id-tigSection_6_1_Validation){ #id-ti
 
 The following steps should be used to test the RDAP protocol section 6.1 of the RDAP_Technical_Implementation_Guide_2_1:
 
-1. For the _entity_ with the registrar role within the domain object, validate that a _publicIds_ member is included.
+1. Test case [-23300](#id-testCase-23300){ #id-testCase-23300 }: For the _entity_ with the registrar role within the domain object, validate that a _publicIds_ member is included.
 ``` json
 {
   "code": -23300,
@@ -60,7 +60,7 @@ The following steps should be used to test the RDAP protocol section 6.1 of the 
   "message": "A publicIds member is not included in the entity with the registrar role."
 }
 ```
-2. For the _entity_ with the registrar role within the domain object, if a _publicIds_ member is included, validate that the identifier member is a positive integer.
+2. Test case [-23301](#id-testCase-23301){ #id-testCase-23301 }: For the _entity_ with the registrar role within the domain object, if a _publicIds_ member is included, validate that the identifier member is a positive integer.
 ``` json
 {
   "code": -23301,
@@ -68,4 +68,3 @@ The following steps should be used to test the RDAP protocol section 6.1 of the 
   "message": "The identifier of the publicIds member of the entity with the registrar role is not a positive integer."
 }
 ```
-
