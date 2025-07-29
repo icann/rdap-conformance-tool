@@ -23,6 +23,7 @@ See the [HTTP URLs][http-urls] conformance consideration for further information
   "message": "The RDAP response was provided over HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only."
 }
 ```
+See the [HTTP to HTTPS Redirects][http-to-https-redirects] conformance consideration for further information.
 
 Note: If redirects are present, the test [[tigSection_1_2_Validation]][id-tigSection_1_2_Validation] shall be performed  on the URL on the last HTTP redirect.
 
