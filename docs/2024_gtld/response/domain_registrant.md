@@ -4,11 +4,11 @@
 
 Test group: [[rdapResponseProfile2024_2_7_2_Validation]](#id-rdapResponseProfile2024_2_7_2_Validation){ #id-rdapResponseProfile2024_2_7_2_Validation }
 
-1. If the queried RDAP server is a registrar (such as with the --gtld-registrar command line parameter or through the configuration object), verify that the domain object has one entity with the “registrant” role.
+1. Test case [-63000](#id-testCase-63000){ #id-testCase-63000 }: If the queried RDAP server is a registrar (such as with the --gtld-registrar command line parameter or through the configuration object), verify that the domain object has one entity with the “registrant” role.
 ```json
 {
   "code": -63000,
-  "value": "<domain structure>"
+  "value": "<domain structure>",
   "message": "A domain served by a registrar must have one registrant."
 }
 ```
@@ -21,15 +21,17 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If the handle of the entity with the “registrant” role is present, the following tests apply:
 
-1. The handle of the entity object above shall comply with the following format specified in RFC5730: "(\w|\_){1,80}-\w{1,8}".
+1. Test case [-63100](#id-testCase-63100){ #id-testCase-63100 }: 
+The handle of the entity object above shall comply with the following format specified in RFC5730: "(\w|\_){1,80}-\w{1,8}".
 ```json
 {
   "code": -63100,
   "value": "<handle>",
-  "message": "The handle of the registrant does not comply with the format (\w|_){1,80}-\w{1,8} specified in RFC5730"."
+  "message": "The handle of the registrant does not comply with the format (\\w|_){1,80}-\\w{1,8} specified in RFC5730."
 }
 ```
-2. If the handle of the entity object above complies with the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is registered in EPPROID.
+2. Test case [-63101](#id-testCase-63101){ #id-testCase-63101 }: 
+If the handle of the entity object above complies with the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is registered in EPPROID.
 ```json
 {
   "code": -63101,
@@ -40,7 +42,7 @@ If the handle of the entity with the “registrant” role is present, the follo
 
 If the handle is NOT in the entity object with the registrant, the following tests apply:
 
-1. Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registry Registrant ID”.
+1. Test case [-63102](#id-testCase-63102){ #id-testCase-63102 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registry Registrant ID”.
 ```json
 {
   "code": -63102,
@@ -48,7 +50,7 @@ If the handle is NOT in the entity object with the registrant, the following tes
   "message": "a redaction of type Registry Registrant ID is required."
 }
 ```
-2. In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
+2. Test case [-63103](#id-testCase-63103){ #id-testCase-63103 }: In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json
 {
   "code": -63103,
@@ -56,7 +58,7 @@ If the handle is NOT in the entity object with the registrant, the following tes
   "message": "jsonpath is invalid for Registry Registrant ID"
 }
 ```
-3. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
+3. Test case [-63104](#id-testCase-63104){ #id-testCase-63104 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
 ```json
 {
   "code": -63104,
@@ -64,7 +66,7 @@ If the handle is NOT in the entity object with the registrant, the following tes
   "message": "jsonpath must evaluate to a zero set for redaction by removal of Registry Registrant ID."
 }
 ```
-4. In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
+4. Test case [-63105](#id-testCase-63105){ #id-testCase-63105 }: In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
 ```json
 {
   "code": -63105,
@@ -79,7 +81,7 @@ Test group: [[rdapResponseProfile2024_2_7_4_1_Validation]](#id-rdapResponseProfi
 
 These tests only apply to an entity with the “registrant” role, if present.
 
-1. Verify the fn property of all the vCard objects of the entity with the “registrant” role is present.
+1. Test case [-63200](#id-testCase-63200){ #id-testCase-63200 }: Verify the fn property of all the vCard objects of the entity with the “registrant” role is present.
 ```json
 {
   "code": -63200,
@@ -90,7 +92,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If the fn property above is present but empty, the following tests apply:
 
-1. Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Name”.
+1. Test case [-63201](#id-testCase-63201){ #id-testCase-63201 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Name”.
 ```json
 {
   "code": -63201,
@@ -98,7 +100,7 @@ If the fn property above is present but empty, the following tests apply:
   "message": "a redaction of type Registrant Name is required."
 }
 ```
-2. In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is present with a valid JSONPath expression.
+2. Test case [-63202](#id-testCase-63202){ #id-testCase-63202 }: In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is present with a valid JSONPath expression.
 ```json
 {
   "code": -63202,
@@ -106,7 +108,7 @@ If the fn property above is present but empty, the following tests apply:
   "message": "jsonpath is invalid for Registrant Name"
 }
 ```
-3. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
+3. Test case [-63203](#id-testCase-63203){ #id-testCase-63203 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
 ```json
 {
   "code": -63203,
@@ -114,7 +116,7 @@ If the fn property above is present but empty, the following tests apply:
   "message": "jsonpath must evaluate to non-empty set for redaction by empty value of Registrant Name."
 }
 ```
-4. In the redaction object from the above test, verify that the method property is present as is a JSON string of “emptyValue”.
+4. Test case [-63204](#id-testCase-63204){ #id-testCase-63204 }: In the redaction object from the above test, verify that the method property is present as is a JSON string of “emptyValue”.
 ```json
 {
   "code": -63204,
@@ -131,7 +133,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If the org property on the vCards for the entity with the role of registrant is not present, the following tests apply:
 
-1. Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Organization”.
+1. Test case [-63300](#id-testCase-63300){ #id-testCase-63300 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Organization”.
 ```json
 {
   "code": -63300,
@@ -139,7 +141,7 @@ If the org property on the vCards for the entity with the role of registrant is 
   "message": "a redaction of type Registrant Organization is required."
 }
 ```
-2. In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
+2. Test case [-63301](#id-testCase-63301){ #id-testCase-63301 }: In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json
 {
   "code": -63301,
@@ -147,7 +149,7 @@ If the org property on the vCards for the entity with the role of registrant is 
   "message": "jsonpath is invalid for Registrant Organization"
 }
 ```
-3. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
+3. Test case [-63302](#id-testCase-63302){ #id-testCase-63302 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
 ```json
 {
   "code": -63302,
@@ -155,7 +157,7 @@ If the org property on the vCards for the entity with the role of registrant is 
   "message": "jsonpath must evaluate to a zero set for redaction by removal of Registrant Organization."
 }
 ```
-4. In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
+4. Test case [-63303](#id-testCase-63303){ #id-testCase-63303 }: In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
 ```json
 {
   "code": -63303,
@@ -170,7 +172,7 @@ Test group: [[rdapResponseProfile2024_2_7_4_3_Validation]](#id-rdapResponseProfi
 
 These tests only apply to an entity with the “registrant” role, if present.
 
-1. Verify the street value (zero-indexed 2) of the adr property of all the vCard objects of the entity with the “registrant” role is present.
+1. Test case [-63400](#id-testCase-63400){ #id-testCase-63400 }: Verify the street value (zero-indexed 2) of the adr property of all the vCard objects of the entity with the “registrant” role is present.
 ```json
 {
   "code": -63400,
@@ -181,7 +183,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If the street value of the adr property above is present but empty, the following tests apply:
 
-1. Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Street”.
+1. Test case [-63401](#id-testCase-63401){ #id-testCase-63401 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Street”.
 ```json
 {
   "code": -63401,
@@ -189,7 +191,7 @@ If the street value of the adr property above is present but empty, the followin
   "message": "a redaction of type Registrant Street is required."
 }
 ```
-2. In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is present with a valid JSONPath expression.
+2. Test case [-63402](#id-testCase-63402){ #id-testCase-63402 }: In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is present with a valid JSONPath expression.
 ```json
 {
   "code": -63402,
@@ -197,7 +199,7 @@ If the street value of the adr property above is present but empty, the followin
   "message": "jsonpath is invalid for Registrant Street"
 }
 ```
-3. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
+3. Test case [-63403](#id-testCase-63403){ #id-testCase-63403 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
 ```json
 {
   "code": -63403,
@@ -205,7 +207,7 @@ If the street value of the adr property above is present but empty, the followin
   "message": "jsonpath must evaluate to non-empty set for redaction by empty value of Registrant Street."
 }
 ```
-4. In the redaction object from the above test, verify that the method property is present as is a JSON string of “emptyValue”.
+4. Test case [-63404](#id-testCase-63404){ #id-testCase-63404 }: In the redaction object from the above test, verify that the method property is present as is a JSON string of “emptyValue”.
 ```json
 {
   "code": -63404,
@@ -220,7 +222,7 @@ Test group: [[rdapResponseProfile2024_2_7_4_4_Validation]](#id-rdapResponseProfi
 
 These tests only apply to an entity with the “registrant” role, if present.
 
-1. Verify the city value (zero-indexed 3) of the adr property of all the vCard objects of the entity with the “registrant” role is present.
+1. Test case [-63500](#id-testCase-63500){ #id-testCase-63500 }: Verify the city value (zero-indexed 3) of the adr property of all the vCard objects of the entity with the “registrant” role is present.
 ```json
 {
   "code": -63500,
@@ -231,7 +233,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If the city value of the adr property above is present but empty, the following tests apply:
 
-2. Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant City”.
+2. Test case [-63501](#id-testCase-63501){ #id-testCase-63501 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant City”.
 ```json
 {
   "code": -63501,
@@ -239,7 +241,7 @@ If the city value of the adr property above is present but empty, the following 
   "message": "a redaction of type Registrant City is required."
 }
 ```
-3. In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is present with a valid JSONPath expression.
+3. Test case [-63502](#id-testCase-63502){ #id-testCase-63502 }: In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is present with a valid JSONPath expression.
 ```json
 {
   "code": -63502,
@@ -247,7 +249,7 @@ If the city value of the adr property above is present but empty, the following 
   "message": "jsonpath is invalid for Registrant City"
 }
 ```
-4. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
+4. Test case [-63503](#id-testCase-63503){ #id-testCase-63503 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
 ```json
 {
   "code": -63503,
@@ -255,7 +257,7 @@ If the city value of the adr property above is present but empty, the following 
   "message": "jsonpath must evaluate to non-empty set for redaction by empty value of Registrant City."
 }
 ```
-5. In the redaction object from the above test, verify that the method property is present as is a JSON string of “emptyValue”.
+5. Test case [-63504](#id-testCase-63504){ #id-testCase-63504 }: In the redaction object from the above test, verify that the method property is present as is a JSON string of “emptyValue”.
 ```json
 {
   "code": -63504,
@@ -270,7 +272,7 @@ Test group: [[rdapResponseProfile_2_7_4_6_Validation]](#id-rdapResponseProfile_2
 
 These tests only apply to an entity with the “registrant” role, if present.
 
-1. Verify the postal code value (zero-indexed 5) of the adr property of all the vCard objects of the entity with the “registrant” role is present.
+1. Test case [-63600](#id-testCase-63600){ #id-testCase-63600 }: Verify the postal code value (zero-indexed 5) of the adr property of all the vCard objects of the entity with the “registrant” role is present.
 ```json
 {
   "code": -63600,
@@ -281,7 +283,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If the postal code value of the adr property above is present but empty, the following tests apply:
 
-1. Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Postal Code”.
+1. Test case [-63601](#id-testCase-63601){ #id-testCase-63601 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Postal Code”.
 ```json
 {
   "code": -63601,
@@ -289,7 +291,7 @@ If the postal code value of the adr property above is present but empty, the fol
   "message": "a redaction of type Registrant Postal Code is required."
 }
 ```
-2. In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is present with a valid JSONPath expression.
+2. Test case [-63602](#id-testCase-63602){ #id-testCase-63602 }: In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is present with a valid JSONPath expression.
 ```json
 {
   "code": -63602,
@@ -297,7 +299,7 @@ If the postal code value of the adr property above is present but empty, the fol
   "message": "jsonpath is invalid for Registrant Postal Code"
 }
 ```
-3. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
+3. Test case [-63603](#id-testCase-63603){ #id-testCase-63603 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
 ```json
 {
   "code": -63603,
@@ -305,7 +307,7 @@ If the postal code value of the adr property above is present but empty, the fol
   "message": "jsonpath must evaluate to non-empty set for redaction by empty value of Registrant Postal Code."
 }
 ```
-4. In the redaction object from the above test, verify that the method property is present as is a JSON string of “emptyValue”.
+4. Test case [-63604](#id-testCase-63604){ #id-testCase-63604 }: In the redaction object from the above test, verify that the method property is present as is a JSON string of “emptyValue”.
 ```json
 {
   "code": -63604,
@@ -322,7 +324,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If a tel property with a “voice” parameter on the vCards for the entity with the role of registrant is not present, the following tests apply:
 
-1. Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Phone”.
+1. Test case [-63700](#id-testCase-63700){ #id-testCase-63700 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Phone”.
 ```json
 {
   "code": -63700,
@@ -330,7 +332,7 @@ If a tel property with a “voice” parameter on the vCards for the entity with
   "message": "a redaction of type Registrant Phone is required."
 }
 ```
-2. In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
+2. Test case [-63701](#id-testCase-63701){ #id-testCase-63701 }: In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json
 {
   "code": -63701,
@@ -338,7 +340,7 @@ If a tel property with a “voice” parameter on the vCards for the entity with
   "message": "jsonpath is invalid for Registrant Phone"
 }
 ```
-3. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
+3. Test case [-63702](#id-testCase-63702){ #id-testCase-63702 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
 ```json
 {
   "code": -63702,
@@ -346,7 +348,7 @@ If a tel property with a “voice” parameter on the vCards for the entity with
   "message": "jsonpath must evaluate to a zero set for redaction by removal of Registrant Phone."
 }
 ```
-4. In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
+4. Test case [-63703](#id-testCase-63703){ #id-testCase-63703 }: In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
 ```json
 {
   "code": -63703,
@@ -363,7 +365,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If  a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Phone Ext”, these tests apply:
 
-1. In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
+1. Test case [-63800](#id-testCase-63800){ #id-testCase-63800 }: In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json
 {
   "code": -63800,
@@ -371,7 +373,7 @@ If  a redaction object (see RFC 9537) is in the redacted array with a name objec
   "message": "jsonpath is invalid for Registrant Phone Ext"
 }
 ```
-2. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
+2. Test case [-63801](#id-testCase-63801){ #id-testCase-63801 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
 ```json
 {
   "code": -63801,
@@ -379,7 +381,7 @@ If  a redaction object (see RFC 9537) is in the redacted array with a name objec
   "message": "jsonpath must evaluate to a zero set for redaction by removal of Registrant Phone Ext."
 }
 ```
-3. In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
+3. Test case [-63802](#id-testCase-63802){ #id-testCase-63802 }: In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
 ```json
 {
   "code": -63802,
@@ -396,7 +398,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If  a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Fax”, these tests apply:
 
-1. In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
+1. Test case [-63900](#id-testCase-63900){ #id-testCase-63900 }: In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json
 {
   "code": -63900,
@@ -404,7 +406,7 @@ If  a redaction object (see RFC 9537) is in the redacted array with a name objec
   "message": "jsonpath is invalid for Registrant Fax"
 }
 ```
-2. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
+2. Test case [-63901](#id-testCase-63901){ #id-testCase-63901 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
 ```json
 {
   "code": -63901,
@@ -412,7 +414,7 @@ If  a redaction object (see RFC 9537) is in the redacted array with a name objec
   "message": "jsonpath must evaluate to a zero set for redaction by removal of Registrant Fax."
 }
 ```
-3. In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
+3. Test case [-63902](#id-testCase-63902){ #id-testCase-63902 }: In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
 ```json
 {
   "code": -63902,
@@ -429,7 +431,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If  a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Fax Ext”, these tests apply:
 
-1. In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
+1. Test case [-64000](#id-testCase-64000){ #id-testCase-64000 }: In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json
 {
   "code": -64000,
@@ -437,7 +439,7 @@ If  a redaction object (see RFC 9537) is in the redacted array with a name objec
   "message": "jsonpath is invalid for Registrant Fax Ext"
 }
 ```
-2. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
+2. Test case [-64001](#id-testCase-64001){ #id-testCase-64001 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
 ```json
 {
   "code": -64001,
@@ -445,7 +447,7 @@ If  a redaction object (see RFC 9537) is in the redacted array with a name objec
   "message": "jsonpath must evaluate to a zero set for redaction by removal of Registrant Fax Ext."
 }
 ```
-3. In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
+3. Test case [-64002](#id-testCase-64002){ #id-testCase-64002 }: In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
 ```json
 {
   "code": -64002,
@@ -462,7 +464,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Email”, these tests apply:
 
-1. Verify that the contact-uri property and the email property do not exist together on any vCards for the entity with the role of “registrant”. 
+1. Test case [-64100](#id-testCase-64100){ #id-testCase-64100 }: Verify that the contact-uri property and the email property do not exist together on any vCards for the entity with the role of “registrant”. 
 ```json
 {
   "code": -64100,
@@ -470,7 +472,7 @@ If a redaction object (see RFC 9537) is in the redacted array with a name object
   "message": "a redaction of Registrant Email may not have both the email and contact-uri"
 }
 ```
-2. Verify that either the contact-uri property or the email property exists on all vCards for the entity with the role of “registrant”. 
+2. Test case [-64101](#id-testCase-64101){ #id-testCase-64101 }: Verify that either the contact-uri property or the email property exists on all vCards for the entity with the role of “registrant”. 
 ```json
 {
   "code": -64101,
@@ -478,7 +480,7 @@ If a redaction object (see RFC 9537) is in the redacted array with a name object
   "message": "a redaction of Registrant Email must have either the email and contact-uri"
 }
 ```
-3. In the redaction object from the above test, verify that the method property is present as is a JSON string of “replacementValue”.
+3. Test case [-64102](#id-testCase-64102){ #id-testCase-64102 }: In the redaction object from the above test, verify that the method property is present as is a JSON string of “replacementValue”.
 ```json
 {
   "code": -64102,
@@ -489,7 +491,7 @@ If a redaction object (see RFC 9537) is in the redacted array with a name object
 
 Given the above, if the email property exists on any of the vCards, the following tests apply:
 
-1. In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is either absent or is present with a valid JSONPath expression.
+1. Test case [-64103](#id-testCase-64103){ #id-testCase-64103 }: In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is either absent or is present with a valid JSONPath expression.
 ```json
 {
   "code": -64103,
@@ -497,7 +499,7 @@ Given the above, if the email property exists on any of the vCards, the followin
   "message": "jsonpath is invalid for Registrant Email postPath"
 }
 ```
-2. With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
+2. Test case [-64104](#id-testCase-64104){ #id-testCase-64104 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
 ```json
 {
   "code": -64104,
@@ -508,7 +510,7 @@ Given the above, if the email property exists on any of the vCards, the followin
 
 Given the above, if the contact-uri property exists on any of the vCards, the following tests apply:
 
-1. In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the replacementPath property is either absent or is present with a valid JSONPath expression.
+1. Test case [-64105](#id-testCase-64105){ #id-testCase-64105 }: In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the replacementPath property is either absent or is present with a valid JSONPath expression.
 ```json
 {
   "code": -64105,
@@ -516,7 +518,7 @@ Given the above, if the contact-uri property exists on any of the vCards, the fo
   "message": "jsonpath is invalid for Registrant Email replacementPath"
 }
 ```
-2. In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
+2. Test case [-64106](#id-testCase-64106){ #id-testCase-64106 }: In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json
 {
   "code": -64106,
@@ -524,7 +526,7 @@ Given the above, if the contact-uri property exists on any of the vCards, the fo
   "message": "jsonpath is invalid for Registrant Email prePath"
 }
 ```
-3. With the JSONPath expression from above in replacementPath, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
+3. Test case [-64107](#id-testCase-64107){ #id-testCase-64107 }: With the JSONPath expression from above in replacementPath, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
 ```json
 {
   "code": -64107,
@@ -532,4 +534,3 @@ Given the above, if the contact-uri property exists on any of the vCards, the fo
   "message": "jsonpath must evaluate to a non-empty set for redaction by replacementvalue of Registrant Email in replacementPath"
 }
 ```
-
