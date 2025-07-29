@@ -427,7 +427,6 @@ public void testJsonMethodsWithMockedResults() throws Exception {
         .code(-12345)
         .message("Test error 1")
         .value("test-value-1")
-        .httpStatusCode(200)
         .queriedURI("https://example.com/test1")
         .build();
         
@@ -435,7 +434,6 @@ public void testJsonMethodsWithMockedResults() throws Exception {
         .code(-11111)
         .message("Test warning")
         .value("test-warning-value")
-        .httpStatusCode(200)
         .queriedURI("https://example.com/warning")
         .build();
     
@@ -461,7 +459,6 @@ public void testJsonMethodsWithMockedResults() throws Exception {
     assertThat(errorsJson).contains("-12345");
     assertThat(errorsJson).contains("Test error 1");
     assertThat(errorsJson).contains("test-value-1");
-    assertThat(errorsJson).contains("200");
     assertThat(errorsJson).contains("https://example.com/test1");
     assertThat(errorsJson).doesNotContain("-11111"); // Should not contain warnings
     
