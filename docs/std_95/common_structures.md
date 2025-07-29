@@ -6,7 +6,7 @@ Test group: [[stdRdapConformanceValidation]](#id-stdRdapConformanceValidation){ 
 
 The following steps should be used to test that an RDAP Conformance data structure is valid:
 
-1. The _RDAP Conformance_ data structure must be a syntactically valid JSON array.
+1. Test case [-10500](#id-testCase-10500){ #id-testCase-10500 }: The _RDAP Conformance_ data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -10500,
@@ -14,7 +14,7 @@ The following steps should be used to test that an RDAP Conformance data structu
   "message": "The RDAP Conformance structure is not syntactically valid."
 }
 ```
-2. Every value of the JSON array shall be a JSON string data type.
+2. Test case [-10501](#id-testCase-10501){ #id-testCase-10501 }: Every value of the JSON array shall be a JSON string data type.
 ``` json
 {
   "code": -10501,
@@ -22,7 +22,7 @@ The following steps should be used to test that an RDAP Conformance data structu
   "message": "The JSON value is not a string."
 }
 ```
-3. Each of the JSON string values in the JSON array, with the exception of "rdap_level_0", shall be included as an Extension Identifier in **RDAPExtensions**.
+3. Test case [-10502](#id-testCase-10502){ #id-testCase-10502 }: Each of the JSON string values in the JSON array, with the exception of "rdap_level_0", shall be included as an Extension Identifier in **RDAPExtensions**.
 ``` json
 {
   "code": -10502,
@@ -30,7 +30,7 @@ The following steps should be used to test that an RDAP Conformance data structu
   "message": "The JSON string is not included as an Extension Identifier in RDAPExtensions."
 }
 ```
-4. The JSON string value "rdap_level_0" is not included in the _RDAP Conformance_ data structure.
+4. Test case [-10503](#id-testCase-10503){ #id-testCase-10503 }: The JSON string value "rdap_level_0" is not included in the _RDAP Conformance_ data structure.
 ``` json
 {
   "code": -10503,
@@ -38,7 +38,7 @@ The following steps should be used to test that an RDAP Conformance data structu
   "message": "The RDAP Conformance data structure does not include rdap_level_0."
 }
 ```
-5. The rdapConformance array must exist in all RDAP responses.
+5. Test case [-10504](#id-testCase-10504){ #id-testCase-10504 }: The rdapConformance array must exist in all RDAP responses.
 ``` json
 {
   "code": -10504,
@@ -46,7 +46,7 @@ The following steps should be used to test that an RDAP Conformance data structu
   "message": "RFC 9083 requires all RDAP responses to have an rdapConformance array."
 }
 ```
-6. If the rdapConformance array exists in an object that is embedded in another object, then this is an error because rdapConformance must only appear in the top-most part of an RDAP response.
+6. Test case [-10505](#id-testCase-10505){ #id-testCase-10505 }: If the rdapConformance array exists in an object that is embedded in another object, then this is an error because rdapConformance must only appear in the top-most part of an RDAP response.
 ``` json
 {
   "code": -10505,
@@ -62,7 +62,7 @@ Test group: [[stdRdapLinksValidation]](#id-stdRdapLinksValidation){ #id-stdRdapL
 
 The following steps should be used to test that a links data structure is valid:
 
-1. The _links_ data structure must be a syntactically valid JSON array.
+1. Test case [-10600](#id-testCase-10600){ #id-testCase-10600 }: The _links_ data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -10600,
@@ -71,7 +71,7 @@ The following steps should be used to test that a links data structure is valid:
 }
 ```
 2. For every object (i.e. link) of the JSON array, verify that the _link_ structure complies with:
-    1. The name of every name/value pair shall be value, rel, href, hreflang, title, media or type.
+    1. Test case [-10601](#id-testCase-10601){ #id-testCase-10601 }: The name of every name/value pair shall be value, rel, href, hreflang, title, media or type.
 ``` json
 {
   "code": -10601,
@@ -79,7 +79,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The name in the name/value pair is not of: value, rel, href, hreflang, title, media or type."
 }
 ```
-    2. The JSON name/value pairs of _rel_, _href_, _hreflang_, _title_, _media_ and _type_ shall appear only once.
+    2. Test case [-10602](#id-testCase-10602){ #id-testCase-10602 }: The JSON name/value pairs of _rel_, _href_, _hreflang_, _title_, _media_ and _type_ shall appear only once.
 ``` json
 {
   "code": -10602,
@@ -87,7 +87,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The name in the name/value pair of a link structure was found more than once."
 }
 ```
-    3. If the JSON name _media_ exists, the allowed values are: screen, tty, tv, projection, handheld, print, braille, embossed, speech, and all.
+    3. Test case [-10603](#id-testCase-10603){ #id-testCase-10603 }: If the JSON name _media_ exists, the allowed values are: screen, tty, tv, projection, handheld, print, braille, embossed, speech, and all.
 ``` json
 {
   "code": -10603,
@@ -95,7 +95,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The value for the JSON name media is not of: screen, tty, tv, projection, handheld, print, braille, embossed, speech, or all."
 }
 ```
-    4. If the JSON name _rel_ exists, the value shall be included as a "Relation Name" in linkRelations.
+    4. Test case [-10604](#id-testCase-10604){ #id-testCase-10604 }: If the JSON name _rel_ exists, the value shall be included as a "Relation Name" in linkRelations.
 ``` json
 {
   "code": -10604,
@@ -103,7 +103,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The JSON value is not included as a Relation Name in linkRelations."
 }
 ```
-    5. If the JSON name _type_ exists, the value shall be included as a "Type Name/Subtype Name" as registered in mediaTypes.
+    5. Test case [-10605](#id-testCase-10605){ #id-testCase-10605 }: If the JSON name _type_ exists, the value shall be included as a "Type Name/Subtype Name" as registered in mediaTypes.
 ``` json
 {
   "code": -10605,
@@ -111,7 +111,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The JSON value is not included as a Name in mediaTypes."
 }
 ```
-    6. If the JSON name title exists, the value shall be a JSON string data type.
+    6. Test case [-10606](#id-testCase-10606){ #id-testCase-10606 }: If the JSON name title exists, the value shall be a JSON string data type.
 ``` json
 {
   "code": -10606,
@@ -119,7 +119,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The JSON value is not a string."
 }
 ```
-    7. If the JSON name hreflang exists, the value shall be a JSON string data type or a valid JSON array where every value is a JSON string data type.
+    7. Test case [-10607](#id-testCase-10607){ #id-testCase-10607 }: If the JSON name hreflang exists, the value shall be a JSON string data type or a valid JSON array where every value is a JSON string data type.
 ``` json
 {
   "code": -10607,
@@ -127,7 +127,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The value for the JSON name hreflang is not a JSON string data type or a valid JSON array where every value is a JSON string data type."
 }
 ```
-    8. If the JSON name _hreflang_ exists, every one of the _JSON string_ data values shall conform to the Language-Tag syntax.
+    8. Test case [-10608](#id-testCase-10608){ #id-testCase-10608 }: If the JSON name _hreflang_ exists, every one of the _JSON string_ data values shall conform to the Language-Tag syntax.
 ``` json
 {
   "code": -10608,
@@ -135,7 +135,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The value of the JSON string data in the hreflang does not conform to Language-Tag syntax."
 }
 ```
-    9. If the JSON name _value_ exists, the value shall pass the test Web URI validation [[webUriValidation]][id-webUriValidation] defined in this document.
+    9. Test case [-10609](#id-testCase-10609){ #id-testCase-10609 }: If the JSON name _value_ exists, the value shall pass the test Web URI validation [[webUriValidation]][id-webUriValidation] defined in this document.
 ``` json
 {
   "code": -10609,
@@ -143,7 +143,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The value for the JSON name value does not pass Web URI validation [webUriValidation]."
 }
 ```
-    10. The JSON name href shall exist.
+    10. Test case [-10610](#id-testCase-10610){ #id-testCase-10610 }: The JSON name href shall exist.
 ``` json
 {
   "code": -10610,
@@ -151,7 +151,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The href element does not exist."
 }
 ```
-    11. For the JSON name href, the value shall pass the test Web URI validation [[webUriValidation]][id-webUriValidation] defined in this document.
+    11. Test case [-10611](#id-testCase-10611){ #id-testCase-10611 }: For the JSON name href, the value shall pass the test Web URI validation [[webUriValidation]][id-webUriValidation] defined in this document.
 ``` json
 {
   "code": -10611,
@@ -159,7 +159,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "The value for the JSON name href does not pass Web URI validation [webUriValidation]."
 }
 ```
-    12.The JSON name value shall exist:
+    12. Test case [-10612](#id-testCase-10612){ #id-testCase-10612 }: The JSON name value shall exist:
 ``` json
 {
   "code": -10612,
@@ -167,7 +167,7 @@ The following steps should be used to test that a links data structure is valid:
   "message": "A 'value' propert does not exist in the link object."
 }
 ```
-    13. The JSON name “rel” shall exist:
+    13. Test case [-10613](#id-testCase-10613){ #id-testCase-10613 }: The JSON name “rel” shall exist:
 ``` json
 {
   "code": -10613,
@@ -183,7 +183,7 @@ Test group: [[stdRdapNoticesRemarksValidation]](#id-stdRdapNoticesRemarksValidat
 
 The following steps should be used to test that a notices or remarks data structure is  valid:
 
-1. The _notices_ or _remarks_ data structure must be a syntactically valid JSON array.
+1. Test case [-10700](#id-testCase-10700){ #id-testCase-10700 }: The _notices_ or _remarks_ data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -10700,
@@ -192,7 +192,7 @@ The following steps should be used to test that a notices or remarks data struct
 }
 ```
 2. For every object of the JSON array, verify that the structure complies with:
-    1. The name of every name/value pair shall be title, type, description or links.
+    1. Test case [-10701](#id-testCase-10701){ #id-testCase-10701 }: The name of every name/value pair shall be title, type, description or links.
 ``` json
 {
   "code": -10701,
@@ -200,7 +200,7 @@ The following steps should be used to test that a notices or remarks data struct
   "message": "The name in the name/value pair is not of: title, type, description or links."
 }
 ```
-    2. The JSON name/values of title, type, description and links shall exist only once.
+    2. Test case [-10702](#id-testCase-10702){ #id-testCase-10702 }: The JSON name/values of title, type, description and links shall exist only once.
 ``` json
 {
   "code": -10702,
@@ -208,7 +208,7 @@ The following steps should be used to test that a notices or remarks data struct
   "message": "The name in the name/value pair of a link structure was found more than once."
 }
 ```
-    3. If the JSON name title exists, the value shall be a JSON string data type.
+    3. Test case [-10703](#id-testCase-10703){ #id-testCase-10703 }: If the JSON name title exists, the value shall be a JSON string data type.
 ``` json
 {
   "code": -10703,
@@ -216,7 +216,7 @@ The following steps should be used to test that a notices or remarks data struct
   "message": "The JSON value is not a string."
 }
 ```
-    4. If the JSON name links exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
+    4. Test case [-10704](#id-testCase-10704){ #id-testCase-10704 }: If the JSON name links exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
 ``` json
 {
   "code": -10704,
@@ -224,7 +224,7 @@ The following steps should be used to test that a notices or remarks data struct
   "message": "The value for the JSON name value does not pass Links validation [stdRdapLinksValidation]."
 }
 ```
-    5. If the JSON name type exists, the value shall be a JSON string data type.
+    5. Test case [-10705](#id-testCase-10705){ #id-testCase-10705 }: If the JSON name type exists, the value shall be a JSON string data type.
 ``` json
 {
   "code": -10705,
@@ -232,7 +232,7 @@ The following steps should be used to test that a notices or remarks data struct
   "message": "The JSON value is not a string."
 }
 ```
-    6. If the JSON name type exists, the value shall be included in the RDAPJSONValues with Type="notice and remark type".
+    6. Test case [-10706](#id-testCase-10706){ #id-testCase-10706 }: If the JSON name type exists, the value shall be included in the RDAPJSONValues with Type="notice and remark type".
 ``` json
 {
   "code": -10706,
@@ -240,7 +240,7 @@ The following steps should be used to test that a notices or remarks data struct
   "message": "The JSON string is not included as a Value with Type='notice and remark type' in the RDAPJSONValues dataset."
 }
 ```
-    7. The JSON name description shall exist.
+    7. Test case [-10707](#id-testCase-10707){ #id-testCase-10707 }: The JSON name description shall exist.
 ``` json
 {
   "code": -10707,
@@ -248,7 +248,7 @@ The following steps should be used to test that a notices or remarks data struct
   "message": "The description element does not exist."
 }
 ```
-    8. The description data structure must be a syntactically valid JSON array.
+    8. Test case [-10708](#id-testCase-10708){ #id-testCase-10708 }: The description data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -10708,
@@ -256,7 +256,7 @@ The following steps should be used to test that a notices or remarks data struct
   "message": "The description structure is not syntactically valid."
 }
 ```
-    9. Every value of the JSON array of the _description_ data structure shall be a JSON string data type.
+    9. Test case [-10709](#id-testCase-10709){ #id-testCase-10709 }: Every value of the JSON array of the _description_ data structure shall be a JSON string data type.
 ``` json
 {
   "code": -10709,
@@ -271,7 +271,7 @@ Test group: [[stdRdapLanguageIdentifierValidation]](#id-stdRdapLanguageIdentifie
 
 The following steps should be used to test that a lang data structure is valid:
 
-1. For the JSON name _lang_, the value shall conform to the Language-Tag syntax.
+1. Test case [-10800](#id-testCase-10800){ #id-testCase-10800 }: For the JSON name _lang_, the value shall conform to the Language-Tag syntax.
 ``` json 
 {
   "code": -10800,
@@ -286,7 +286,7 @@ Test group: [[stdRdapEventsValidation]](#id-stdRdapEventsValidation){ #id-stdRda
 
 The following steps should be used to test that a events data structure is valid:
 
-1. The _events_ data structure must be a syntactically valid JSON array.
+1. Test case [-10900](#id-testCase-10900){ #id-testCase-10900 }: The _events_ data structure must be a syntactically valid JSON array.
 ``` json 
 {
   "code": -10900,
@@ -295,7 +295,7 @@ The following steps should be used to test that a events data structure is valid
 }
 ```
 2. For every object of the JSON array, verify that the structure complies with:
-    1. The name of every name/value pair shall be any of: eventAction, eventActor, eventDate or links.
+    1. Test case [-10901](#id-testCase-10901){ #id-testCase-10901 }: The name of every name/value pair shall be any of: eventAction, eventActor, eventDate or links.
 ``` json
 {
   "code": -10901,
@@ -303,7 +303,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The name in the name/value pair is not of: eventAction, eventActor, eventDate or links."
 }
 ```
-    2. The JSON name/value pairs of _eventAction_, _eventActor_, _eventDate_ and _links_ shall exist only once.
+    2. Test case [-10902](#id-testCase-10902){ #id-testCase-10902 }: The JSON name/value pairs of _eventAction_, _eventActor_, _eventDate_ and _links_ shall exist only once.
 ``` json
 {
   "code": -10902,
@@ -311,7 +311,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The name in the name/value pair of a link structure was found more than once. "
 }
 ```
-    3. The JSON name eventAction shall exist.
+    3. Test case [-10903](#id-testCase-10903){ #id-testCase-10903 }: The JSON name eventAction shall exist.
 ``` json
 {
   "code": -10903,
@@ -319,7 +319,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The eventAction element does not exist."
 }
 ```
-    4. For the JSON name eventAction, the value shall be a JSON string data type.
+    4. Test case [-10904](#id-testCase-10904){ #id-testCase-10904 }: For the JSON name eventAction, the value shall be a JSON string data type.
 ``` json
 {
   "code": -10904,
@@ -332,10 +332,10 @@ The following steps should be used to test that a events data structure is valid
 {
   "code": -10905,
   "value": "<JSON string>",
-  "message": "The JSON string is not included as a Value with Type="event action" in the RDAPJSONValues data set.
+  "message": "The JSON string is not included as a Value with Type='event action' in the RDAPJSONValues data set.
 }
 ```
-    6. The JSON name eventDate shall exist.
+    6. Test case [-10906](#id-testCase-10906){ #id-testCase-10906 }: The JSON name eventDate shall exist.
 ``` json
 {
   "code": -10906,
@@ -343,7 +343,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The eventDate element does not exist."
 }
 ```
-    7. For the JSON name eventDate, the value shall be a JSON string data type.
+    7. Test case [-10907](#id-testCase-10907){ #id-testCase-10907 }: For the JSON name eventDate, the value shall be a JSON string data type.
 ``` json
 {
   "code": -10907,
@@ -351,7 +351,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The JSON value is not a string."
 }
 ```
-    8. For the JSON name eventDate, the value shall be syntactically valid time and date according to RFC3339.
+    8. Test case [-10908](#id-testCase-10908){ #id-testCase-10908 }: For the JSON name eventDate, the value shall be syntactically valid time and date according to RFC3339.
 ``` json
 {
 "code": -10908,
@@ -359,7 +359,7 @@ The following steps should be used to test that a events data structure is valid
 "message": "The JSON value shall be a syntactically valid time and date according to RFC3339."
 }
 ```
-    9. If the JSON name eventActor exists, the value shall be a JSON string data type.
+    9. Test case [-10909](#id-testCase-10909){ #id-testCase-10909 }: If the JSON name eventActor exists, the value shall be a JSON string data type.
 ``` json
 {
   "code": -10909,
@@ -367,7 +367,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The JSON value is not a string."
 }
 ```
-    10. If the JSON name links exists, the JSON name eventActor shall also exist.
+    10. Test case [-10910](#id-testCase-10910){ #id-testCase-10910 }: If the JSON name links exists, the JSON name eventActor shall also exist.
 ``` json
 {
   "code": -10910,
@@ -375,7 +375,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "A links structure was found but an eventActor was not."
 }
 ```
-    11. If the JSON name _links_ exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
+    11. Test case [-10911](#id-testCase-10911){ #id-testCase-10911 }: If the JSON name _links_ exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
 ``` json
 {
   "code": -10911,
@@ -383,7 +383,7 @@ The following steps should be used to test that a events data structure is valid
   "message": "The value for the JSON name value does not pass Links validation [stdRdapLinksValidation]."
 }
 ```
-3. An _eventAction_ value shall only appears once within the events array.
+3. Test case [-10912](#id-testCase-10912){ #id-testCase-10912 }: An _eventAction_ value shall only appears once within the events array.
 ``` json
 {
   "code": -10912,
@@ -398,7 +398,7 @@ Test group: [[stdRdapStatusValidation]](#id-stdRdapStatusValidation){ #id-stdRda
 
 The following steps should be used to test that a status data structure is valid:
 
-1. The _status_ data structure must be a syntactically valid JSON array.
+1. Test case [-11000](#id-testCase-11000){ #id-testCase-11000 }: The _status_ data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -11000,
@@ -406,7 +406,7 @@ The following steps should be used to test that a status data structure is valid
   "message": "The status structure is not syntactically valid."
 }
 ```
-2. Every value of the JSON array shall be a JSON string data type.
+2. Test case [-11001](#id-testCase-11001){ #id-testCase-11001 }: Every value of the JSON array shall be a JSON string data type.
 ``` json
 {
   "code": -11001,
@@ -414,7 +414,7 @@ The following steps should be used to test that a status data structure is valid
   "message": "The JSON value is not a string."
 }
 ```
-3. Each of the JSON string values in the JSON array shall be included in the **RDAPJSONValues** with Type="status".
+3. Test case [-11002](#id-testCase-11002){ #id-testCase-11002 }: Each of the JSON string values in the JSON array shall be included in the **RDAPJSONValues** with Type="status".
 ``` json
 {
   "code": -11002,
@@ -422,7 +422,7 @@ The following steps should be used to test that a status data structure is valid
   "message": "The JSON string is not included as a Value with Type='status'."
 }
 ```
-4. A string in the status array shall only appear once:
+4. Test case [-11003](#id-testCase-11003){ #id-testCase-11003 }: A string in the status array shall only appear once:
 ``` json
 {
   "code": -11003,
@@ -438,7 +438,7 @@ Test group: [[stdRdapPort43WhoisServerValidation]](#id-stdRdapPort43WhoisServerV
 
 The following steps should be used to test that a port43 data structure is valid:
 
-1. For the JSON name _port43_, the value shall pass the test [IPv4Validation], [IPv6Validation] or [DomainNameValidation] defined in this document.
+1. Test case [-11100](#id-testCase-11100){ #id-testCase-11100 }: For the JSON name _port43_, the value shall pass the test [IPv4Validation], [IPv6Validation] or [DomainNameValidation] defined in this document.
 ``` json
 {
 "code": -11100,
@@ -453,7 +453,7 @@ Test group: [[stdRdapPublicIdsValidation]](#id-stdRdapPublicIdsValidation){ #id-
 
 The following steps should be used to test that a publicIds data structure is valid:
 
-1. The _publicIds_ data structure must be a syntactically valid JSON array.
+1. Test case [-11200](#id-testCase-11200){ #id-testCase-11200 }: The _publicIds_ data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -11200,
@@ -462,7 +462,7 @@ The following steps should be used to test that a publicIds data structure is va
 }
 ```
 2. For every object of the JSON array, verify that the structure complies with:
-    1. The name of every name/value pairs shall be type or identifier.
+    1. Test case [-11201](#id-testCase-11201){ #id-testCase-11201 }: The name of every name/value pairs shall be type or identifier.
 ``` json
 {
   "code": -11201,
@@ -470,7 +470,7 @@ The following steps should be used to test that a publicIds data structure is va
   "message": "The name in the name/value pair is not of: type or identifier."
 }
 ```
-    2. The JSON name/values of type or identifier shall appear only once.
+    2. Test case [-11202](#id-testCase-11202){ #id-testCase-11202 }: The JSON name/values of type or identifier shall appear only once.
 ``` json
 {
   "code": -11202,
@@ -478,7 +478,7 @@ The following steps should be used to test that a publicIds data structure is va
   "message": "The name in the name/value pair of a domain structure was found more than once."
 }
 ```
-    3. The JSON name/values of type and identifier shall appear.
+    3. Test case [-11203](#id-testCase-11203){ #id-testCase-11203 }: The JSON name/values of type and identifier shall appear.
 ``` json
 {
   "code": -11203,
@@ -486,7 +486,7 @@ The following steps should be used to test that a publicIds data structure is va
   "message": "The following name/values shall exist: type or identifier."
 }
 ```
-    4. For the JSON name type, the value shall be a JSON string data type.
+    4. Test case [-11204](#id-testCase-11204){ #id-testCase-11204 }: For the JSON name type, the value shall be a JSON string data type.
 ``` json
 {
   "code": -11204,
@@ -494,7 +494,7 @@ The following steps should be used to test that a publicIds data structure is va
   "message": "The JSON value is not a string."
 }
 ```
-    5. For the JSON name identifier, the value shall be a JSON string data type.
+    5. Test case [-11205](#id-testCase-11205){ #id-testCase-11205 }: For the JSON name identifier, the value shall be a JSON string data type.
 ``` json
 {
   "code": -11205,
@@ -509,7 +509,7 @@ Test group: [[stdRdapAsEventActorValidation]](#id-stdRdapAsEventActorValidation)
 
 The following steps should be used to test that an asEventActor data structure is valid:
 
-1. The _asEventActor_ data structure must be a syntactically valid JSON array.
+1. Test case [-11300](#id-testCase-11300){ #id-testCase-11300 }: The _asEventActor_ data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -11300,
@@ -517,7 +517,7 @@ The following steps should be used to test that an asEventActor data structure i
   "message": "The asEventActor structure is not syntactically valid."
 }
 ```
-2. The _asEventActor_ data structure must be embedded within an entity object, and the entity object must be embedded within another object.
+2. Test case [-11301](#id-testCase-11301){ #id-testCase-11301 }: The _asEventActor_ data structure must be embedded within an entity object, and the entity object must be embedded within another object.
 ``` json
 {
   "code": -11301,
@@ -526,7 +526,7 @@ The following steps should be used to test that an asEventActor data structure i
 }
 ```
 3. For every object of the JSON array, verify that the structure complies with:
-    1. The name of every name/value pair shall be any of: eventAction or eventDate.
+    1. Test case [-11302](#id-testCase-11302){ #id-testCase-11302 }: The name of every name/value pair shall be any of: eventAction or eventDate.
 ``` json
 {
   "code": -11302,
@@ -534,7 +534,7 @@ The following steps should be used to test that an asEventActor data structure i
   "message": "The name in the name/value pair is not of: eventAction and eventDate."
 }
 ```
-    2. The JSON name/values of eventAction or eventDate shall appear only once.
+    2. Test case [-11303](#id-testCase-11303){ #id-testCase-11303 }: The JSON name/values of eventAction or eventDate shall appear only once.
 ``` json
 {
   "code": -11303,
@@ -542,7 +542,7 @@ The following steps should be used to test that an asEventActor data structure i
   "message": "The name in the name/value pair of a link structure was found more than once."
 }
 ```
-    3. The JSON name eventAction shall exist.
+    3. Test case [-11304](#id-testCase-11304){ #id-testCase-11304 }: The JSON name eventAction shall exist.
 ``` json
 {
   "code": -11304,
@@ -550,7 +550,7 @@ The following steps should be used to test that an asEventActor data structure i
   "message": "The eventAction element does not exist."
 }
 ```
-    4. For the JSON name eventAction, the value shall be a JSON string data type.
+    4. Test case [-11305](#id-testCase-11305){ #id-testCase-11305 }: For the JSON name eventAction, the value shall be a JSON string data type.
 ``` json
 {
   "code": -11305,
@@ -558,7 +558,7 @@ The following steps should be used to test that an asEventActor data structure i
   "message": "The JSON value is not a string."
 }
 ```
-    5. For the JSON name eventAction, the value shall be included in the RDAPJSONValues with Type="event action".
+    5. Test case [-11306](#id-testCase-11306){ #id-testCase-11306 }: For the JSON name eventAction, the value shall be included in the RDAPJSONValues with Type="event action".
 ``` json
 {
   "code": -11306,
@@ -566,7 +566,7 @@ The following steps should be used to test that an asEventActor data structure i
   "message": "The JSON string is not included as a Value with Type='event action' in the RDAPJSONValues dataset."
 }
 ```
-    6. The JSON name eventDate shall exist.
+    6. Test case [-11307](#id-testCase-11307){ #id-testCase-11307 }: The JSON name eventDate shall exist.
 ``` json
 {
   "code": -11307,
@@ -574,7 +574,7 @@ The following steps should be used to test that an asEventActor data structure i
   "message": "The eventDate element does not exist."
 }
 ```
-    7. For the JSON name eventDate, the value shall be a JSON string data type.
+    7. Test case [-11308](#id-testCase-11308){ #id-testCase-11308 }: For the JSON name eventDate, the value shall be a JSON string data type.
 ``` json
 {
   "code": -11308,
@@ -582,7 +582,7 @@ The following steps should be used to test that an asEventActor data structure i
   "message": "The JSON value is not a string."
 }
 ```
-    8. For the JSON name _eventDate_, the value shall be syntactically valid time and date according to RFC3339.
+    8. Test case [-11309](#id-testCase-11309){ #id-testCase-11309 }: For the JSON name _eventDate_, the value shall be syntactically valid time and date according to RFC3339.
 ``` json
 {
   "code": -11309,
@@ -590,7 +590,7 @@ The following steps should be used to test that an asEventActor data structure i
   "message": "The JSON value shall be a syntactically valid time and date according to RFC3339."
 }
 ```
-4. An _eventAction_ shall only appear once within the events array.
+4. Test case [-11310](#id-testCase-11310){ #id-testCase-11310 }: An _eventAction_ shall only appear once within the events array.
 ``` json
 {
   "code": -11310,
@@ -605,7 +605,7 @@ Test group: [[stdRdapIpAddressesValidation]](#id-stdRdapIpAddressesValidation){ 
 
 The following steps should be used to test that an ipAddresses data structure is valid:
 
-1. The _ipAddresses_ data structure must be a syntactically valid JSON object.
+1. Test case [-11400](#id-testCase-11400){ #id-testCase-11400 }: The _ipAddresses_ data structure must be a syntactically valid JSON object.
 ``` json
 {
   "code": -11400,
@@ -613,7 +613,7 @@ The following steps should be used to test that an ipAddresses data structure is
   "message": "The ipAddresses structure is not syntactically valid."
 }
 ```
-2. The name of every name/value pair shall be any of: _v4_ or _v6_.
+2. Test case [-11401](#id-testCase-11401){ #id-testCase-11401 }: The name of every name/value pair shall be any of: _v4_ or _v6_.
 ``` json
 {
   "code": -11401,
@@ -621,7 +621,7 @@ The following steps should be used to test that an ipAddresses data structure is
   "message": "The name in the name/value pair is not of: v4 or v6."
 }
 ```
-3. The JSON name/values of _v4_ and _v6_ shall appear only once.
+3. Test case [-11402](#id-testCase-11402){ #id-testCase-11402 }: The JSON name/values of _v4_ and _v6_ shall appear only once.
 ``` json
 {
   "code": -11402,
@@ -629,7 +629,7 @@ The following steps should be used to test that an ipAddresses data structure is
   "message": "The name in the name/value pair of an ipAddresses structure was found more than once."
 }
 ```
-4. One _v4_ name/values or one _v6_ name/value shall appear.
+4. Test case [-11403](#id-testCase-11403){ #id-testCase-11403 }: One _v4_ name/values or one _v6_ name/value shall appear.
 ``` json
 {
   "code": -11403,
@@ -638,7 +638,7 @@ The following steps should be used to test that an ipAddresses data structure is
 }
 ```
 5. If the JSON name _v4_ exists, the value shall pass the following:
-    1. The v4 data structure must be a syntactically valid JSON array.
+    1. Test case [-11404](#id-testCase-11404){ #id-testCase-11404 }: The v4 data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -11404,
@@ -647,7 +647,7 @@ The following steps should be used to test that an ipAddresses data structure is
 }
 ```
     2. For every object of the JSON array, verify that the structure complies with:
-        1. Every value of the JSON array shall be a JSON string data type.
+        1. Test case [-11405](#id-testCase-11405){ #id-testCase-11405 }: Every value of the JSON array shall be a JSON string data type.
 ``` json
 {
   "code": -11405,
@@ -655,7 +655,7 @@ The following steps should be used to test that an ipAddresses data structure is
   "message": "The JSON value is not a string."
 }
 ```
-        2. The IPv4 address is syntactically valid in dot-decimal notation.
+        2. Test case [-11406](#id-testCase-11406){ #id-testCase-11406 }: The IPv4 address is syntactically valid in dot-decimal notation.
 ``` json
 {
   "code": -11406,
@@ -664,7 +664,7 @@ The following steps should be used to test that an ipAddresses data structure is
 }
 ```
 6. If the JSON name _v6_ exists, the value shall pass the following:
-    1. The v6 data structure must be a syntactically valid JSON array.
+    1. Test case [-11407](#id-testCase-11407){ #id-testCase-11407 }: The v6 data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -11407,
@@ -673,7 +673,7 @@ The following steps should be used to test that an ipAddresses data structure is
 }
 ```
     2. For every object of the JSON array, verify that the structure complies with:
-        1. Every value of the JSON array shall be a JSON string data type.
+        1. Test case [-11408](#id-testCase-11408){ #id-testCase-11408 }: Every value of the JSON array shall be a JSON string data type.
 ``` json
 {
   "code": -11408,
@@ -681,7 +681,7 @@ The following steps should be used to test that an ipAddresses data structure is
   "message": "The JSON value is not a string."
 }
 ```
-        2. The IPv6 address is syntactically valid.
+        2. Test case [-11409](#id-testCase-11409){ #id-testCase-11409 }: The IPv6 address is syntactically valid.
 ``` json
 {
   "code": -11409,
@@ -696,7 +696,7 @@ Test group: [[stdRdapVariantsValidation]](#id-stdRdapVariantsValidation){ #id-st
 
 The following steps should be used to test that a variants data structure is valid:
 
-1. The _variants_ data structure must be a syntactically valid JSON array.
+1. Test case [-11500](#id-testCase-11500){ #id-testCase-11500 }: The _variants_ data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -11500,
@@ -705,7 +705,7 @@ The following steps should be used to test that a variants data structure is val
 }
 ```
 2. For every object of the JSON array, verify that the structure complies with:
-    1. The name of every name/value pair shall be relation, idnTable or variantNames.
+    1. Test case [-11501](#id-testCase-11501){ #id-testCase-11501 }: The name of every name/value pair shall be relation, idnTable or variantNames.
 ``` json
 {
   "code": -11501,
@@ -713,7 +713,7 @@ The following steps should be used to test that a variants data structure is val
   "message": "The name in the name/value pair is not of: relation, idnTable or variantNames."
 }
 ```
-    2. The JSON name/value pairs of relation, idnTable and variantNames shall appear
+    2. Test case [-11502](#id-testCase-11502){ #id-testCase-11502 }: The JSON name/value pairs of relation, idnTable and variantNames shall appear
 only once.
 ``` json
 {
@@ -722,7 +722,7 @@ only once.
   "message": "The name in the name/value pair of a link structure was found more than once."
 }
 ```
-    3. The RDAP relation data structure must be a syntactically valid JSON array.
+    3. Test case [-11503](#id-testCase-11503){ #id-testCase-11503 }: The RDAP relation data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -11503,
@@ -732,7 +732,7 @@ only once.
 ```
     4. For every object of the JSON array, verify that the structure complies with:
 
-      1. Every value of the JSON array shall be a JSON string data type.
+      1. Test case [-11504](#id-testCase-11504){ #id-testCase-11504 }: Every value of the JSON array shall be a JSON string data type.
 ``` json
 {
   "code": -11504,
@@ -740,7 +740,7 @@ only once.
   "message": "The JSON value is not a string."
 }
 ```
-      2. Each of the JSON string values in the JSON array shall be included in the
+      2. Test case [-11505](#id-testCase-11505){ #id-testCase-11505 }: Each of the JSON string values in the JSON array shall be included in the
 RDAPJSONValues with Type="domain variant relation".
 ``` json
 {
@@ -749,7 +749,7 @@ RDAPJSONValues with Type="domain variant relation".
   "message": "The JSON string is not included as a Value with Type='domain variant relation '."
 }
 ```
-    5. If the JSON name idnTable exists, the value shall be a JSON string data type.
+    5. Test case [-11506](#id-testCase-11506){ #id-testCase-11506 }: If the JSON name idnTable exists, the value shall be a JSON string data type.
 ``` json
 {
   "code": -11506,
@@ -757,7 +757,7 @@ RDAPJSONValues with Type="domain variant relation".
   "message": "The JSON value is not a string."
 }
 ```
-    6. The variantNames data structure must be a syntactically valid JSON array.
+    6. Test case [-11507](#id-testCase-11507){ #id-testCase-11507 }: The variantNames data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -11507,
@@ -766,7 +766,7 @@ RDAPJSONValues with Type="domain variant relation".
 }
 ```
     7. For every object of the JSON array, verify that the structure complies with:
-        1. The name of every name/value pair shall be any of: ldhName or unicodeName
+        1. Test case [-11508](#id-testCase-11508){ #id-testCase-11508 }: The name of every name/value pair shall be any of: ldhName or unicodeName
 ``` json
 {
   "code": -11508,
@@ -774,7 +774,7 @@ RDAPJSONValues with Type="domain variant relation".
   "message": "The name in the name/value pair is not of: ldhName or unicodeName."
 }
 ```
-        2. The JSON name/value pairs of ldhName or unicodeName shall exist only once.
+        2. Test case [-11509](#id-testCase-11509){ #id-testCase-11509 }: The JSON name/value pairs of ldhName or unicodeName shall exist only once.
 ``` json
 {
   "code": -11509,
@@ -782,7 +782,7 @@ RDAPJSONValues with Type="domain variant relation".
   "message": "The name in the name/value pair of a link structure was found more than once."
 }
 ```
-        3. If the JSON name title ldhName exists, the value shall pass the test LDH name [[stdRdapLdhNameValidation]][id-stdRdapLdhNameValidation] defined in this document.
+        3. Test case [-11510](#id-testCase-11510){ #id-testCase-11510 }: If the JSON name title ldhName exists, the value shall pass the test LDH name [[stdRdapLdhNameValidation]][id-stdRdapLdhNameValidation] defined in this document.
 ``` json
 {
   "code": -11510,
@@ -790,7 +790,7 @@ RDAPJSONValues with Type="domain variant relation".
   "message": " The value for the JSON name value does not pass LDH name [stdRdapLdhNameValidation]."
 }
 ```
-        4. If the JSON name unicodeName exists, the value shall pass the test Unicode name [[stdRdapUnicodeNameValidation]][id-stdRdapUnicodeNameValidation] defined in this document.
+        4. Test case [-11511](#id-testCase-11511){ #id-testCase-11511 }: If the JSON name unicodeName exists, the value shall pass the test Unicode name [[stdRdapUnicodeNameValidation]][id-stdRdapUnicodeNameValidation] defined in this document.
 ``` json
 {
   "code": -11511,
@@ -805,7 +805,7 @@ Test group: [[stdRdapUnicodeNameValidation]](#id-stdRdapUnicodeNameValidation){ 
 
 The following steps should be used to test that a unicodeName is valid:
 
-1. The length of each label is between 1 and 63.
+1. Test case [-11600](#id-testCase-11600){ #id-testCase-11600 }: The length of each label is between 1 and 63.
 ``` json
 {
   "code": -11600,
@@ -813,7 +813,7 @@ The following steps should be used to test that a unicodeName is valid:
   "message": "A DNS label with length not between 1 and 63 was found."
 }
 ```
-2. A maximum total length of 253 characters not including the last ".".
+2. Test case [-11601](#id-testCase-11601){ #id-testCase-11601 }: A maximum total length of 253 characters not including the last ".".
 ``` json
 {
   "code": -11601,
@@ -821,7 +821,7 @@ The following steps should be used to test that a unicodeName is valid:
   "message": "A domain name of more than 253 characters was found."
 }
 ```
-3. At least two labels shall exist in the domain name. See, RDAP_Technical_Implementation_Guide_2_1 section 1.10.
+3. Test case [-11602](#id-testCase-11602){ #id-testCase-11602 }: At least two labels shall exist in the domain name. See, RDAP_Technical_Implementation_Guide_2_1 section 1.10.
 ``` json
 {
   "code": -11602,
@@ -829,7 +829,7 @@ The following steps should be used to test that a unicodeName is valid:
   "message": "A domain name with less than two labels was found. See RDAP_Technical_Implementation_Guide_2_1 section 1.10"
 }
 ```
-4. Each label of the domain name is a valid "U-label or "NR-LDH label".
+4. Test case [-11603](#id-testCase-11603){ #id-testCase-11603 }: Each label of the domain name is a valid "U-label or "NR-LDH label".
 ``` json
 {
   "code": -11603,
@@ -849,7 +849,7 @@ Test group: [[stdRdapLdhNameValidation]](#id-stdRdapLdhNameValidation){ #id-stdR
 
 The following steps should be used to test that a ldhName is valid:
 
-1. The length of each label is between 1 and 63.
+1. Test case [-11700](#id-testCase-11700){ #id-testCase-11700 }: The length of each label is between 1 and 63.
 ``` json
 {
   "code": -11700,
@@ -857,7 +857,7 @@ The following steps should be used to test that a ldhName is valid:
   "message": "A DNS label with length not between 1 and 63 was found."
 }
 ```
-2. A maximum total length of 253 characters not including the last ".".
+2. Test case [-11701](#id-testCase-11701){ #id-testCase-11701 }: A maximum total length of 253 characters not including the last ".".
 ``` json
 {
   "code": -11701,
@@ -865,7 +865,7 @@ The following steps should be used to test that a ldhName is valid:
   "message": "A domain name of more than 253 characters was found."
 }
 ```
-3. At least two labels shall exist in the domain name. See, RDAP_Technical_Implementation_Guide_2_1 section 1.10.
+3. Test case [-11702](#id-testCase-11702){ #id-testCase-11702 }: At least two labels shall exist in the domain name. See, RDAP_Technical_Implementation_Guide_2_1 section 1.10.
 ``` json
 {
   "code": -11702,
@@ -873,7 +873,7 @@ The following steps should be used to test that a ldhName is valid:
   "message": "A domain name with less than two labels was found. See RDAP_Technical_Implementation_Guide_2_1 section 1.10"
 }
 ```
-4. Each label of the domain name is a valid "A-label or "NR-LDH label".
+4. Test case [-11703](#id-testCase-11703){ #id-testCase-11703 }: Each label of the domain name is a valid "A-label or "NR-LDH label".
 ``` json
 {
   "code": -11703,
@@ -896,7 +896,7 @@ Test group: [[stdRdapRolesValidation]](#id-stdRdapRolesValidation){ #id-stdRdapR
 
 The following steps should be used to test that a roles data structure is valid:
 
-1. The _roles_ data structure must be a syntactically valid JSON array.
+1. Test case [-11800](#id-testCase-11800){ #id-testCase-11800 }: The _roles_ data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -11800,
@@ -904,7 +904,7 @@ The following steps should be used to test that a roles data structure is valid:
   "message": "The roles structure is not syntactically valid."
 }
 ```
-2. Every value of the JSON array shall be a JSON string data type.
+2. Test case [-11801](#id-testCase-11801){ #id-testCase-11801 }: Every value of the JSON array shall be a JSON string data type.
 ``` json
 {
   "code": -11801,
@@ -912,15 +912,15 @@ The following steps should be used to test that a roles data structure is valid:
   "message": "The JSON value is not a string."
 }
 ```
-3. Each of the JSON string values in the JSON array shall be included in the **RDAPJSONValues** with Type="role".
+3. Test case [-11802](#id-testCase-11802){ #id-testCase-11802 }: Each of the JSON string values in the JSON array shall be included in the **RDAPJSONValues** with Type="role".
 ``` json
 {
   "code": -11802,
   "value": "<JSON string>",
-  "message": "The JSON string is not included as a Value with Type="role"."
+  "message": "The JSON string is not included as a Value with Type='role'."
 }
 ```
-4. The role value shall only appear once in the JSON array.
+4. Test case [-11803](#id-testCase-11803){ #id-testCase-11803 }: The role value shall only appear once in the JSON array.
 ``` json
 {
   "code": -11803,
@@ -936,7 +936,7 @@ Test group: [[stdRdapEntitiesValidation]](#id-stdRdapEntitiesValidation){ #id-st
 
 The following steps should be used to test that an entities data structure is valid:
 
-1. The _entities_ data structure must be a syntactically valid JSON array.
+1. Test case [-11900](#id-testCase-11900){ #id-testCase-11900 }: The _entities_ data structure must be a syntactically valid JSON array.
 ``` json
 {
     "code": -11900,
@@ -944,7 +944,7 @@ The following steps should be used to test that an entities data structure is va
     "message": "The entities structure is not syntactically valid."
 }
 ```
-2. Every value of the JSON array shall pass the test Entity lookup validation [[stdRdapEntityLookupValidation]][id-stdRdapEntityLookupValidation] defined in this document.
+2. Test case [-11901](#id-testCase-11901){ #id-testCase-11901 }: Every value of the JSON array shall pass the test Entity lookup validation [[stdRdapEntityLookupValidation]][id-stdRdapEntityLookupValidation] defined in this document.
 ``` json
 {
     "code": -11901,
@@ -960,7 +960,7 @@ Test group: [[stdRdapSecureDnsValidation]](#id-stdRdapSecureDnsValidation){ #id-
 
 The following steps should be used to test that a secureDNS data structure is valid:
 
-1. The _secureDNS_ data structure must be a syntactically valid JSON object.
+1. Test case [-12000](#id-testCase-12000){ #id-testCase-12000 }: The _secureDNS_ data structure must be a syntactically valid JSON object.
 ``` json
 {
   "code": -12000,
@@ -968,7 +968,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The domain structure is not syntactically valid."
 }
 ```
-2. The name of every name/value pairs shall be _zoneSigned_, _delegationSigned_, _maxSigLife_, _dsData_ or _keyData_.
+2. Test case [-12001](#id-testCase-12001){ #id-testCase-12001 }: The name of every name/value pairs shall be _zoneSigned_, _delegationSigned_, _maxSigLife_, _dsData_ or _keyData_.
 ``` json
 {
   "code": -12001,
@@ -976,7 +976,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The name in the name/value pair is not of: zoneSigned, delegationSigned, maxSigLife, dsData or keyData."
 }
 ```
-3. The JSON name/values of _zoneSigned_, _delegationSigned_, _maxSigLife_, _dsData_ and keyData shall appear only once.
+3. Test case [-12002](#id-testCase-12002){ #id-testCase-12002 }: The JSON name/values of _zoneSigned_, _delegationSigned_, _maxSigLife_, _dsData_ and keyData shall appear only once.
 ``` json
 {
   "code": -12002,
@@ -984,7 +984,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The name in the name/value pair of a domain structure was found more than once."
 }
 ```
-4. If the JSON name _zoneSigned_ appears, the value shall be a JSON boolean data type.
+4. Test case [-12003](#id-testCase-12003){ #id-testCase-12003 }: If the JSON name _zoneSigned_ appears, the value shall be a JSON boolean data type.
 ``` json
 {
   "code": -12003,
@@ -992,7 +992,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not a boolean."
 }
 ```
-5. If the JSON name _delegationSigned_ appears, the value shall be a JSON boolean data type.
+5. Test case [-12005](#id-testCase-12005){ #id-testCase-12005 }: If the JSON name _delegationSigned_ appears, the value shall be a JSON boolean data type.
 ``` json
 {
   "code": -12005,
@@ -1000,7 +1000,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not a boolean."
 }
 ```
-6. If the JSON name _maxSigLife_ exists, the value shall be a JSON number data type between 1 and 2147483647.
+6. Test case [-12006](#id-testCase-12006){ #id-testCase-12006 }: If the JSON name _maxSigLife_ exists, the value shall be a JSON number data type between 1 and 2147483647.
 ``` json
 {
   "code": -12006,
@@ -1009,7 +1009,7 @@ The following steps should be used to test that a secureDNS data structure is va
 }
 ```
 7. If the JSON name _dsData_ appears, the value shall pass the following:
-    1. The dsData data structure must be a syntactically valid array of JSON objects.
+    1. Test case [-12008](#id-testCase-12008){ #id-testCase-12008 }: The dsData data structure must be a syntactically valid array of JSON objects.
 ``` json
 {
   "code": -12008,
@@ -1017,7 +1017,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The dsData structure is not syntactically valid."
 }
 ```
-    2. The name of every name/value pair shall be any of: _keyTag_, _algorithm_, _digest_, digestType, events or links.
+    2. Test case [-12009](#id-testCase-12009){ #id-testCase-12009 }: The name of every name/value pair shall be any of: _keyTag_, _algorithm_, _digest_, digestType, events or links.
 ``` json
 {
   "code": -12009,
@@ -1025,7 +1025,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The name in the name/value pair is not of: keyTag, algorithm, digest, digestType, events or links."
 }
 ```
-    3. The JSON name/values of keyTag, algorithm, digest, digestType, events or links shall appear only once.
+    3. Test case [-12010](#id-testCase-12010){ #id-testCase-12010 }: The JSON name/values of keyTag, algorithm, digest, digestType, events or links shall appear only once.
 ``` json
 {
   "code": -12010,
@@ -1033,7 +1033,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The name in the name/value pair of a dsData structure was found more than once."
 }
 ```
-    4. The JSON name/values of keyTag, algorithm, digest and digestType shall appear.
+    4. Test case [-12011](#id-testCase-12011){ #id-testCase-12011 }: The JSON name/values of keyTag, algorithm, digest and digestType shall appear.
 ``` json
 {
   "code": -12011,
@@ -1041,7 +1041,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The following name/values shall exist: keyTag, algorithm, digest and digestType."
 }
 ```
-    5. For the JSON name _keyTag_, the value shall be a JSON number data type between 1 and 65535.
+    5. Test case [-12012](#id-testCase-12012){ #id-testCase-12012 }: For the JSON name _keyTag_, the value shall be a JSON number data type between 1 and 65535.
 ``` json
 {
   "code": -12012,
@@ -1049,7 +1049,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not a number between 1 and 65535."
 }
 ```
-    6. For the JSON name _algorithm_, the value shall be a JSON number listed with Zone Signing=Y in dnsSecAlgNumbers. The values 253 and 254 are not valid for this test.
+    6. Test case [-12013](#id-testCase-12013){ #id-testCase-12013 }: For the JSON name _algorithm_, the value shall be a JSON number listed with Zone Signing=Y in dnsSecAlgNumbers. The values 253 and 254 are not valid for this test.
 ``` json
 {
   "code": -12013,
@@ -1057,7 +1057,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not listed with Zone Signing=Y in dnsSecAlgNumbers, or it's 253 or 254."
 }
 ```
-    7. For the JSON name digest, the value shall be a JSON string of case-insensitive hexadecimal digits. Whitespace is allowed within the hexadecimal text.
+    7. Test case [-12014](#id-testCase-12014){ #id-testCase-12014 }: For the JSON name digest, the value shall be a JSON string of case-insensitive hexadecimal digits. Whitespace is allowed within the hexadecimal text.
 ``` json
 {
   "code": -12014,
@@ -1065,7 +1065,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not a string of case-insensitive hexadecimal digits. Whitespace is allowed within the hexadecimal test."
 }
 ```
-    8. For the JSON name _digestType_, the value shall be a JSON number assigned in dsRrTypes.
+    8. Test case [-12015](#id-testCase-12015){ #id-testCase-12015 }: For the JSON name _digestType_, the value shall be a JSON number assigned in dsRrTypes.
 ``` json
 {
   "code": -12015,
@@ -1073,7 +1073,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not assigned in dsRrTypes."
 }
 ```
-    9. If the JSON name _events_ exists, the value shall pass the test Events Validation [[stdRdapEventsValidation]][id-stdRdapEventsValidation] defined in this document.
+    9. Test case [-12016](#id-testCase-12016){ #id-testCase-12016 }: If the JSON name _events_ exists, the value shall pass the test Events Validation [[stdRdapEventsValidation]][id-stdRdapEventsValidation] defined in this document.
 ``` json
 {
   "code": -12016,
@@ -1081,7 +1081,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The value for the JSON name value does not pass Events Validation [stdRdapEventsValidation]."
 }
 ```
-    10. If the JSON name links exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
+    10. Test case [-12017](#id-testCase-12017){ #id-testCase-12017 }: If the JSON name links exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
 ``` json
 {
   "code": -12017,
@@ -1090,7 +1090,7 @@ The following steps should be used to test that a secureDNS data structure is va
 }
 ```
 8. If the JSON name _keyData_ exists, the value shall pass the following:
-    1. The keyData data structure must be a syntactically valid array of JSON objects.
+    1. Test case [-12018](#id-testCase-12018){ #id-testCase-12018 }: The keyData data structure must be a syntactically valid array of JSON objects.
 ``` json
 {
   "code": -12018,
@@ -1098,7 +1098,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The keyData structure is not syntactically valid."
 }
 ```
-    2. The name of every name/value pair shall be _flags_, _protocol_, _publicKey_, _algorithm_, events or links.
+    2. Test case [-12019](#id-testCase-12019){ #id-testCase-12019 }: The name of every name/value pair shall be _flags_, _protocol_, _publicKey_, _algorithm_, events or links.
 ``` json
 {
   "code": -12019,
@@ -1106,7 +1106,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The name in the name/value pair is not of: flags, protocol, publicKey, algorithm, events or links."
 }
 ```
-    3. The JSON name/values of _flags_, _protocol_, _publicKey_, _algorithm_, _events_ or _links_ shall appear only once.
+    3. Test case [-12020](#id-testCase-12020){ #id-testCase-12020 }: The JSON name/values of _flags_, _protocol_, _publicKey_, _algorithm_, _events_ or _links_ shall appear only once.
 ``` json
 {
   "code": -12020,
@@ -1114,7 +1114,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The name in the name/value pair of a keyData structure was found more than once."
 }
 ```
-    4. The JSON name/values of _flags_, _protocol_, _publicKey_ and _algorithm_ shall appear.
+    4. Test case [-12021](#id-testCase-12021){ #id-testCase-12021 }: The JSON name/values of _flags_, _protocol_, _publicKey_ and _algorithm_ shall appear.
 ``` json
 {
   "code": -12021,
@@ -1122,7 +1122,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The following name/values shall exist: flags, protocol, publicKey and algorithm."
 }
 ```
-    5. For the JSON name _flags_, the value shall be a JSON number data type with values:  256 or 257.
+    5. Test case [-12022](#id-testCase-12022){ #id-testCase-12022 }: For the JSON name _flags_, the value shall be a JSON number data type with values:  256 or 257.
 ``` json
 {
   "code": -12022,
@@ -1130,7 +1130,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not 256 or 257."
 }
 ```
-    6. For the JSON name _protocol_, the value shall be a JSON number data type with  value: 3.
+    6. Test case [-12023](#id-testCase-12023){ #id-testCase-12023 }: For the JSON name _protocol_, the value shall be a JSON number data type with  value: 3.
 ``` json
 {
   "code": -12023,
@@ -1138,7 +1138,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not 3."
 }
 ```
-    7. For the JSON name _publicKey_, the value shall be a JSON string, and the key is  represented as a Base64. Whitespace is allowed within the text.
+    7. Test case [-12024](#id-testCase-12024){ #id-testCase-12024 }: For the JSON name _publicKey_, the value shall be a JSON string, and the key is  represented as a Base64. Whitespace is allowed within the text.
 ``` json
 {
   "code": -12024,
@@ -1146,7 +1146,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not a string of case-insensitive hexadecimal digits. Whitespace is allowed within the hexadecimal text."
 }
 ```
-    8. For the JSON name _algorithm_, the value shall be a JSON number listed with Zone Signing=Y in **dnsSecAlgNumbers**. The values 253 and 254 are not valid for this test.
+    8. Test case [-12025](#id-testCase-12025){ #id-testCase-12025 }: For the JSON name _algorithm_, the value shall be a JSON number listed with Zone Signing=Y in **dnsSecAlgNumbers**. The values 253 and 254 are not valid for this test.
 ``` json
 {
   "code": -12025,
@@ -1154,7 +1154,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The JSON value is not listed with Zone Signing=Y in dnsSecAlgNumbers, or it's 253 or 254."
 }
 ```
-    9. If the JSON name events exists, the value shall pass the test Events Validation [[stdRdapEventsValidation]][id-stdRdapEventsValidation] defined in this document.
+    9. Test case [-12026](#id-testCase-12026){ #id-testCase-12026 }: If the JSON name events exists, the value shall pass the test Events Validation [[stdRdapEventsValidation]][id-stdRdapEventsValidation] defined in this document.
 ``` json
 {
   "code": -12026,
@@ -1162,7 +1162,7 @@ The following steps should be used to test that a secureDNS data structure is va
   "message": "The value for the JSON name value does not pass Events Validation [stdRdapEventsValidation]."
 }
 ```
-    10. If the JSON name _links_ exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
+    10. Test case [-12027](#id-testCase-12027){ #id-testCase-12027 }: If the JSON name _links_ exists, the value shall pass the test Links validation [[stdRdapLinksValidation]][id-stdRdapLinksValidation] defined in this document.
 ``` json
 {
   "code": -12027,
@@ -1179,7 +1179,7 @@ Test group: [[stdRdapErrorResponseBodyValidation]](#id-stdRdapErrorResponseBodyV
 
 The following steps should be used to test that an error data structure is valid:
 
-1. The _error_ data structure must be a syntactically valid JSON object.
+1. Test case [-12100](#id-testCase-12100){ #id-testCase-12100 }: The _error_ data structure must be a syntactically valid JSON object.
 ``` json
 {
   "code": -12100,
@@ -1187,7 +1187,7 @@ The following steps should be used to test that an error data structure is valid
   "message": "The error structure is not syntactically valid."
 }
 ```
-2. At least the following name/value pairs shall appear: _errorCode_, _title_ and _description_.
+2. Test case [-12101](#id-testCase-12101){ #id-testCase-12101 }: At least the following name/value pairs shall appear: _errorCode_, _title_ and _description_.
 ``` json
 {
   "code": -12101,
@@ -1195,7 +1195,7 @@ The following steps should be used to test that an error data structure is valid
   "message": "At least the following name/value pairs shall exist: errorCode, title and description."
 }
 ```
-3. The JSON name/values of _errorCode_, _title_, and _description_ shall appear only once.
+3. Test case [-12102](#id-testCase-12102){ #id-testCase-12102 }: The JSON name/values of _errorCode_, _title_, and _description_ shall appear only once.
 ``` json
 {
   "code": -12102,
@@ -1203,7 +1203,7 @@ The following steps should be used to test that an error data structure is valid
   "message": "The name in the name/value pair of an error structure was found more than once."
 }
 ```
-4. For the JSON name _errorCode_, the value shall be a JSON number data type.
+4. Test case [-12103](#id-testCase-12103){ #id-testCase-12103 }: For the JSON name _errorCode_, the value shall be a JSON number data type.
 ``` json
 {
   "code": -12103,
@@ -1211,7 +1211,7 @@ The following steps should be used to test that an error data structure is valid
   "message": "The JSON value is not a number."
 }
 ```
-5. For the JSON name _title_, the value shall be a JSON string data type.
+5. Test case [-12104](#id-testCase-12104){ #id-testCase-12104 }: For the JSON name _title_, the value shall be a JSON string data type.
 ``` json
 {
   "code": -12104,
@@ -1219,7 +1219,7 @@ The following steps should be used to test that an error data structure is valid
   "message": "The JSON value is not a string."
 }
 ```
-6. The _description_ data structure must be a syntactically valid JSON array.
+6. Test case [-12105](#id-testCase-12105){ #id-testCase-12105 }: The _description_ data structure must be a syntactically valid JSON array.
 ``` json
 {
   "code": -12105,
@@ -1227,7 +1227,7 @@ The following steps should be used to test that an error data structure is valid
   "message": "The description structure is not syntactically valid."
 }
 ```
-7. Every value of the JSON array of the _description_ data structure shall be a JSON string data type.
+7. Test case [-12106](#id-testCase-12106){ #id-testCase-12106 }: Every value of the JSON array of the _description_ data structure shall be a JSON string data type.
 ``` json
 {
   "code": -12106,
@@ -1235,7 +1235,7 @@ The following steps should be used to test that an error data structure is valid
   "message": "The JSON value is not a string."
 }
 ```
-8. "errorCode" is required in an error response.
+8. Test case [-12107](#id-testCase-12107){ #id-testCase-12107 }: "errorCode" is required in an error response.
 ``` json
 {
   "code": -12107,
@@ -1243,4 +1243,3 @@ The following steps should be used to test that an error data structure is valid
   "message": "The errorCode value is required in an error response."
 }
 ```
-
