@@ -82,6 +82,14 @@ This can be demonstrated using these curl command:
 
 **NOTE:** HTTP headers are not required to be capitalized.
 
+## Referrals to Registars
+
+Both the 2019 and the 2024 gTLD RDAP profiles require gTLD registries to provide link referrals to the corresponding
+objects in the registrar's RDAP service. The 2019 profile is silent on how a registry obtains a registrar's RDAP URL.
+However, the [2024 profile](https://itp.cdn.icann.org/en/files/registry-operators/rdap-technical-implementation-guide-21feb24-en.pdf) 
+clarifies that the [IANA Registrar IDs registry](https://www.iana.org/assignments/registrar-ids/registrar-ids.xhtml) is
+to be used to obtain a registrar's RDAP base URL.
+
 ## Registrant Without CC Parameter
 
 Section 1.4 of the 2024 ICANN [RDAP Response Profile](https://www.icann.org/en/system/files/files/rdap-response-profile-21feb24-en.pdf)
