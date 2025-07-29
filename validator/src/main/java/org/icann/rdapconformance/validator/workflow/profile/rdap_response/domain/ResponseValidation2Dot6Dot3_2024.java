@@ -187,15 +187,24 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
             JSONObject jsonObject = jsonArray.getJSONObject(i);
             try {
                 list.add(new LinksObjectToValidate(
-                        jsonObject.getString("value"),
-                        jsonObject.getString("rel"),
-                        jsonObject.getString("href")));
+                        getStringOrDefault(jsonObject, "value"),
+                        getStringOrDefault(jsonObject, "rel"),
+                        getStringOrDefault(jsonObject, "href")));
             } catch (Exception e) {
                 logger.info("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
                 list.add(new LinksObjectToValidate(NOT_FOUND, NOT_FOUND, NOT_FOUND));
             }
         }
         return list;
+    }
+
+    private static String getStringOrDefault(JSONObject obj, String key) {
+        try {
+            return obj.getString(key);
+        } catch (JSONException e) {
+            logger.info("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
+            return NOT_FOUND;
+        }
     }
 }
 

@@ -162,7 +162,6 @@ public class RDAPValidationResultFile {
             resultMap.put("code", result.getCode());
             resultMap.put("value", result.getValue());
             resultMap.put("message", result.getMessage());
-            resultMap.put("receivedHttpStatusCode", formatStatusCode(result.getHttpStatusCode()));
             resultMap.put("queriedURI",
                 Objects.nonNull(result.getQueriedURI()) ? formatStringToNull(result.getQueriedURI())
                     : (Objects.nonNull(config.getUri()) ? config.getUri().toString() : StringUtils.EMPTY));
