@@ -1,5 +1,10 @@
 # Queries & Rate Limits
 
+RDAPCT will issue the same query multiple times over different transports and with various HTTP options.
+Depending on the implementation of the RDAP service, this may result in the same test result appearing
+multiple times in the output, appearing to be erroneous duplicates though they are not. The information
+on this page describes how RDAPCT sends queries and handles rate limits.
+
 ## HTTP Methods and Transports
 
 RDAPCT issues queries based on the URL it is given. Each URL may result in numerous queries:
