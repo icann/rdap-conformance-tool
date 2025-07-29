@@ -26,3 +26,16 @@ access-control-allow-origin: *
 
 **NOTE:** HTTP headers are not required to be capitalized.
 
+## HTTP URLs
+
+Section 1.4 of the 2024 
+[ICANN RDAP Technical Implementation Guide](https://www.icann.org/en/system/files/files/rdap-technical-implementation-guide-21feb24-en.pdf)
+states:
+
+> 1.4. The RDAP service MUST be provided over HTTPS only as described in
+> RFC9110 or its successors.
+
+**NOTE:** This in section 1.2 of the 
+[2019 TIG](https://www.icann.org/en/system/files/files/rdap-technical-implementation-guide-15feb19-en.pdf)
+
+This means that RDAP services for gTLD registries and registrars is only to be offered over HTTPS, and the URL for the RDAP service should use the "https" URI scheme.

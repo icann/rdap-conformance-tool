@@ -14,6 +14,7 @@ The following steps should be used to test the RDAP protocol section 1.2 of the 
   "message": "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only."
 }
 ```
+See the [HTTP URLs](http-urls) conformance consideration for further information.
 2. Test case [-20101](#id-testCase-20101){ #id-testCase-20101 }: If the scheme of the URI to be tested is "https", perform the same RDAP query using "http". If the HTTP URI provides a response (other than redirect)::
 ``` json
 {
