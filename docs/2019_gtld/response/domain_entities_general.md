@@ -58,6 +58,7 @@ included, validate that the type member is "object redacted due to authorization
   "message": "More than one entity with the following roles were found: registrant, administrative, technical and billing."
 }
 ```
+See [Registrant Without CC Parameter][registrant-without-cc-parameter] in the conformance considerations for more information.
 6. Test case [-52105](#id-testCase-52105){ #id-testCase-52105 }: For entities with the registrant role within the domain object, validate that the CC
 parameter is included in the entity as defined in RFC8605.
 ```json

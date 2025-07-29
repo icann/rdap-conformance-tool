@@ -44,3 +44,4 @@ The following steps should be used to test the RDAP protocol section 1. 4 of the
   "message": "A vcard object with a country name parameter with data was found. "
 }
 ```
+See [Registrant Without CC Parameter][registrant-without-cc-parameter] in the conformance considerations for more information.
