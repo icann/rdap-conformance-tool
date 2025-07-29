@@ -91,7 +91,7 @@ RDAP_Technical_Implementation_Guide_2_1 section 1.10.
 {
   "code": -10302,
   "value": "<domain name>",
-  "message": "A domain name with less than two labels was found. See
+  "message": "A domain name with less than two labels was found."
 }
 ```
 4. Each label of the domain name is a valid "A-label", "U-label", or "NR-LDH label".
@@ -125,7 +125,7 @@ The following steps should be used to test that a Web URI is valid:
 {
   "code": -10401,
   "value": "<URI>",
-  "message": "The scheme of the URI is not 'http' nor 'https'".
+  "message": "The scheme of the URI is not 'http' nor 'https'"
 }
 ```
 3. The host of the URI shall pass the test Domain Name validation [[domainNameValidation]][id-domainNameValidation], IPv4 address validation [[ipv4Validation]][id-ipv4Validation] or IPv6 address validation [[ipv6Validation]][id-ipv6Validation].
@@ -133,7 +133,7 @@ The following steps should be used to test that a Web URI is valid:
 {
   "code": -10402,
   "value": "<URI>",
-  "message": "The host does not pass Domain Name validation [domainNameValidation], IPv4 address validation [ipv4Validation] nor IPv6 address validation [ipv6Validation]".
+  "message": "The host does not pass Domain Name validation [domainNameValidation], IPv4 address validation [ipv4Validation] nor IPv6 address validation [ipv6Validation]"
 }
 ```
 
