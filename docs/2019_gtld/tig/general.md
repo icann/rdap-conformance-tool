@@ -6,7 +6,7 @@ Test group: [[tigSection_1_2_Validation]](#id-tigSection_1_2_Validation){ #id-ti
 
 The following steps should be used to test the RDAP protocol section 1.2 of the  RDAP_Technical_Implementation_Guide_2_1:
 
-1. If the scheme of the URI to be tested is "http":
+1. Test case [-20100](#id-testCase-20100){ #id-testCase-20100 }: If the scheme of the URI to be tested is "http":
 ``` json
 {
   "code": -20100,
@@ -14,7 +14,7 @@ The following steps should be used to test the RDAP protocol section 1.2 of the 
   "message": "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only."
 }
 ```
-2. If the scheme of the URI to be tested is "https", perform the same RDAP query using "http". If the HTTP URI provides a response (other than redirect)::
+2. Test case [-20101](#id-testCase-20101){ #id-testCase-20101 }: If the scheme of the URI to be tested is "https", perform the same RDAP query using "http". If the HTTP URI provides a response (other than redirect)::
 ``` json
 {
   "code": -20101,
@@ -31,7 +31,7 @@ Test group: [[tigSection_1_3_Validation]](#id-tigSection_1_3_Validation){ #id-ti
 
 The following steps should be used to test the RDAP protocol section 1.3 of the  RDAP_Technical_Implementation_Guide_2_1:
 
-1. If the scheme of the URI to be tested is "https", verify that SSLv2 and SSLv3 are not offered by the RDAP server.
+1. Test case [-20200](#id-testCase-20200){ #id-testCase-20200 }: If the scheme of the URI to be tested is "https", verify that SSLv2 and SSLv3 are not offered by the RDAP server.
 ``` json
 {
   "code": -20200,
@@ -48,7 +48,7 @@ Test group: [[tigSection_1_6_Validation]](#id-tigSection_1_6_Validation){ #id-ti
 
 The following steps should be used to test the RDAP protocol section 1.6 of the RDAP_Technical_Implementation_Guide_2_1:
 
-1. The tool shall use the HTTP HEAD method on the URI to be tested. If the HTTP Status code is different from the status code obtained when doing the GET method:
+1. Test case [-20300](#id-testCase-20300){ #id-testCase-20300 }: The tool shall use the HTTP HEAD method on the URI to be tested. If the HTTP Status code is different from the status code obtained when doing the GET method:
 ``` json
 {
   "code": -20300,
@@ -63,7 +63,7 @@ Test group: [[tigSection_1_8_Validation]](#id-tigSection_1_8_Validation){ #id-ti
 
 The following steps should be used to test the RDAP protocol section 1.8 of the  RDAP_Technical_Implementation_Guide_2_1:
 
-1. Obtain the Resource Record for the A QTYPE for the host in the URI. Validate that the status of the DNS response is not NOERROR. Validate that all IPv4 addresses in the RDATA pass IPv4 address validation [ipv4Validation]:
+1. Test case [-20400](#id-testCase-20400){ #id-testCase-20400 }: Obtain the Resource Record for the A QTYPE for the host in the URI. Validate that the status of the DNS response is not NOERROR. Validate that all IPv4 addresses in the RDATA pass IPv4 address validation [ipv4Validation]:
 ``` json
 {
   "code": -20400,
@@ -71,7 +71,7 @@ The following steps should be used to test the RDAP protocol section 1.8 of the 
   "message": "No IPv4 address records (A) could be resolved in DNS for this service. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1."
 }
 ```
-2. Obtain the Resource Record for the AAAA QTYPE for the host in the URI. Validate that the status of the DNS response is not NOERROR. Validate that all IPv6 addresses in the RDATA pass IPv6 address validation [ipv6Validation]:
+2. Test case [-20401](#id-testCase-20401){ #id-testCase-20401 }: Obtain the Resource Record for the AAAA QTYPE for the host in the URI. Validate that the status of the DNS response is not NOERROR. Validate that all IPv6 addresses in the RDATA pass IPv6 address validation [ipv6Validation]:
 ``` json
 {
   "code": -20401,
@@ -88,7 +88,7 @@ Test group: [[tigSection_1_13_Validation]](#id-tigSection_1_13_Validation){ #id-
 
 The following steps should be used to test the RDAP protocol section 1.13 of the RDAP_Technical_Implementation_Guide_2_1:
 
-1. Validate that the HTTP header "Access-Control-Allow-Origin: *" is included in the RDAP response.
+1. Test case [-20500](#id-testCase-20500){ #id-testCase-20500 }: Validate that the HTTP header "Access-Control-Allow-Origin: *" is included in the RDAP response.
 ``` json
 {
   "code": -20500,
@@ -105,7 +105,7 @@ Test group: [[tigSection_1_14_Validation]](#id-tigSection_1_14_Validation){ #id-
 
 The following steps should be used to test the RDAP protocol section 1.14 of the RDAP_Technical_Implementation_Guide_2_1:
 
-1. Validate that the JSON string value "icann_rdap_technical_implementation_guide_0" is included in the RDAP Conformance data structure.
+1. Test case [-20600](#id-testCase-20600){ #id-testCase-20600 }: Validate that the JSON string value "icann_rdap_technical_implementation_guide_0" is included in the RDAP Conformance data structure.
 ``` json
 {
   "code": -20600,
@@ -120,7 +120,7 @@ Test group: [[tigSection_3_3_and_3_4_Validation]](#id-tigSection_3_3_and_3_4_Val
 
 The following steps should be used to test the RDAP protocol section 3.3 and 3.4 of the RDAP_Technical_Implementation_Guide_2_1:
 
-1. Validate that at least one links data structure exists within the notices object in the topmost object.
+1. Test case [-20700](#id-testCase-20700){ #id-testCase-20700 }: Validate that at least one links data structure exists within the notices object in the topmost object.
 ``` json
 {
   "code": -20700,
@@ -135,7 +135,7 @@ Test group: [[tigSection_4_1_Validation]](#id-tigSection_4_1_Validation){ #id-ti
 
 The following steps should be used to test the RDAP protocol section 4.1 of the TIG:
 
-1. Validate that all the _entities_ in the RDAP Response contain structured address. If a street address has more than one line, it MUST be structured as an array of strings.
+1. Test case [-20800](#id-testCase-20800){ #id-testCase-20800 }: Validate that all the _entities_ in the RDAP Response contain structured address. If a street address has more than one line, it MUST be structured as an array of strings.
 ``` json
 {
   "code": -20800,
@@ -150,7 +150,7 @@ Test group: [[tigSection_7_1_and_7_2_Validation]](#id-tigSection_7_1_and_7_2_Val
 
 The following steps should be used to test the RDAP protocol section 7. 1 and 7. 2 of the TIG:
 
-1. Validate that at all the _tel_ properties in the _entities_ in the RDAP Response contain voice or fax as type parameter.
+1. Test case [-20900](#id-testCase-20900){ #id-testCase-20900 }: Validate that at all the _tel_ properties in the _entities_ in the RDAP Response contain voice or fax as type parameter.
 ``` json
 {
   "code": -20900,
@@ -158,4 +158,3 @@ The following steps should be used to test the RDAP protocol section 7. 1 and 7.
   "message": "An entity with a tel property without a voice or fax type was found. See section 7.1 and 7.2 of the TIG."
 }
 ```
-
