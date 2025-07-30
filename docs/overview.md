@@ -133,6 +133,32 @@ By default, RDAPCT writes the results to a file in a subordinate `results` direc
 XXXX is the timestamp when the file was generated.  The `--results-file` may be used to write the results to a file with a specific
 file name.
 
+## Experimental Parallel Network Mode
+
+You can now enable **parallel network execution** in RDAPCT. This makes the tool run network-related checks at the 
+same time instead of one after the other. It can significantly reduce how long the tool takes to finish.
+
+To enable this feature, use this system property when running the tool:
+
+```bash
+-Drdap.parallel.network=true
+```
+
+Example:
+
+```bash
+java -Drdap.parallel.network=true -jar rdap-conformance-tool.jar --config config.json https://example.com/rdap/domain/example.com
+```
+
+If you leave out the flag, the tool will run in the default (slower) mode with validations executing one at a time.
+
+When enabled, this feature does the following:
+
+* Network checks run in parallel, which means several can happen at once.
+* It’s a more aggressive mode and **may cause some network errors**, especially with slow or unstable servers.
+* If you see a few network failures, **rerunning the tool** might resolve them. These errors are often just timing-related.
+
+
 ## Exit Codes
 
 RDAPCT emits the following exit codes when the process terminates:
