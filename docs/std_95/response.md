@@ -171,6 +171,9 @@ See [Media Types][media-types] in the conformance considerations for more inform
   "message": "This URL returned an HTTP 404 status code that was validly formed. If the provided URL does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error."
 }
 ```
+If the provided URL does not reference a registered resource, then this warning may be ignored. 
+If the provided URL does reference a registered resource, then this should be considered an error.
+
 22. Test case [-13021](#id-testCase-13021){ #id-testCase-13021 }: If the input URL results in a refused connection, then issue the following error:
 ```json
 {
