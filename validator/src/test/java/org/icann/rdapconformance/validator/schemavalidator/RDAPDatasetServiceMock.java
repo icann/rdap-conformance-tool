@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
@@ -44,6 +45,11 @@ public class RDAPDatasetServiceMock implements RDAPDatasetService {
   }
 
   public boolean download(boolean useLocalDatasets) {
+    return true;
+  }
+
+  @Override
+  public boolean download(boolean useLocalDatasets, ProgressCallback progressCallback) {
     return true;
   }
 
