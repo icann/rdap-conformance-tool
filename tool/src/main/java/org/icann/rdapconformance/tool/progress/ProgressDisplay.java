@@ -83,7 +83,7 @@ public class ProgressDisplay {
             String columns = System.getenv("COLUMNS");
             if (columns != null && !columns.isEmpty()) {
                 int width = Integer.parseInt(columns);
-                if (width > RESERVED_SPACE) {
+                if (width > 20) {  // Basic minimum instead of RESERVED_SPACE
                     return width;
                 }
             }
@@ -91,23 +91,7 @@ public class ProgressDisplay {
             // Fall through to default
         }
         
-        // Try using stty command (Unix/Linux/macOS)
-        try {
-            Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", "stty size 2>/dev/null"});
-            process.waitFor();
-            if (process.exitValue() == 0) {
-                String result = new String(process.getInputStream().readAllBytes()).trim();
-                String[] parts = result.split("\\s+");
-                if (parts.length >= 2) {
-                    int width = Integer.parseInt(parts[1]);
-                    if (width > RESERVED_SPACE) {
-                        return width;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Fall through to default
-        }
+        // Platform-specific commands are unreliable, skip external detection
         
         return DEFAULT_TERMINAL_WIDTH;
     }
@@ -126,11 +110,15 @@ public class ProgressDisplay {
         // Truncate phase name if too long
         String truncatedPhase = truncatePhase(phase);
         
-        // Calculate bar width
-        int barWidth = terminalWidth - RESERVED_SPACE;
-        if (barWidth < 10) {
-            barWidth = 10; // Minimum bar width
-        }
+        // Format the right-side info
+        String rightInfo = String.format("%3d%% (%d/%d)", percentage, current, total);
+        
+        // Build the left part: [PhaseName           ]
+        String leftPart = String.format("[%-20s] ", truncatedPhase);
+        
+        // Calculate exact space available for asterisks
+        int availableWidth = terminalWidth - leftPart.length() - rightInfo.length();
+        int barWidth = Math.max(1, availableWidth);
         
         // Calculate filled portion
         int filled = (barWidth * current) / total;
@@ -138,7 +126,7 @@ public class ProgressDisplay {
             filled = barWidth;
         }
         
-        // Build progress bar
+        // Build the asterisk bar to fill exact remaining space
         StringBuilder bar = new StringBuilder();
         for (int i = 0; i < filled; i++) {
             bar.append("*");
@@ -147,9 +135,16 @@ public class ProgressDisplay {
             bar.append(" ");
         }
         
-        // Print complete progress line
-        System.out.printf("[%-20s] %s %3d%% (%d/%d)", 
-            truncatedPhase, bar.toString(), percentage, current, total);
+        // Build complete line
+        String completeLine = leftPart + bar.toString() + rightInfo;
+        
+        // Ensure we don't exceed terminal width (safety check)
+        if (completeLine.length() > terminalWidth) {
+            completeLine = completeLine.substring(0, terminalWidth);
+        }
+        
+        // Print the complete line
+        System.out.print(completeLine);
     }
     
     /**
