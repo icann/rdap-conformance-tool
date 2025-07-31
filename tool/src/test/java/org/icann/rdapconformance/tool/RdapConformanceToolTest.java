@@ -108,6 +108,7 @@ public class RdapConformanceToolTest {
 
     try (MockedStatic<CommonUtils> mockedCommonUtils = Mockito.mockStatic(CommonUtils.class)) {
       mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any())).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(), any())).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.verifyConfigFile(any(), any())).thenReturn(null);
 
       // Call should return config invalid code
@@ -129,6 +130,7 @@ public class RdapConformanceToolTest {
          MockedStatic<RDAPHttpQueryTypeProcessor> mockedProcessor = Mockito.mockStatic(RDAPHttpQueryTypeProcessor.class)) {
 
       mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any())).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(), any())).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.verifyConfigFile(any(), any())).thenReturn(mockConfigFile);
       mockedProcessor.when(() -> RDAPHttpQueryTypeProcessor.getInstance(any())).thenReturn(mockProcessor);
 
@@ -162,6 +164,7 @@ public class RdapConformanceToolTest {
          MockedStatic<RDAPHttpQueryTypeProcessor> mockedProcessor = Mockito.mockStatic(RDAPHttpQueryTypeProcessor.class)) {
 
       mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any())).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(), any())).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.verifyConfigFile(any(), any())).thenReturn(mockConfigFile);
       mockedProcessor.when(() -> RDAPHttpQueryTypeProcessor.getInstance(any())).thenReturn(mockProcessor);
 

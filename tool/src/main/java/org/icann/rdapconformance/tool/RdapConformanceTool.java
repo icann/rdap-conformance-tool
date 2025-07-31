@@ -24,6 +24,7 @@ import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.NetworkInfo;
+import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -734,94 +735,68 @@ public void setShowProgress(boolean showProgress) {
   }
 
   /**
-   * Initialize dataset service with progress tracking.
+   * Initialize dataset service with progress tracking using actual completion events.
    */
   private RDAPDatasetService initializeDataSetWithProgress() {
     updateProgressPhase(ProgressPhase.DATASET_DOWNLOAD);
     
-    // Use a simple time-based progress estimation since we can't hook into the actual dataset operations
-    Thread progressThread = null;
+    // Create a progress callback that updates the real progress tracker
+    ProgressCallback progressCallback = null;
     if (progressTracker != null && showProgress) {
-      progressThread = startDatasetProgressSimulation();
+      progressCallback = new DatasetProgressCallback();
     }
     
-    try {
-      RDAPDatasetService datasetService = CommonUtils.initializeDataSet(this);
-      
-      // Stop the progress simulation
-      if (progressThread != null) {
-        progressThread.interrupt();
-        try {
-          progressThread.join(THREAD_JOIN_TIMEOUT_MS); // Wait for thread to finish
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
-      }
-      
-      // Ensure we're at the right progress point (after dataset phase)
-      if (progressTracker != null && datasetService != null) {
-        // Set progress to after dataset operations
-        progressTracker.setCurrentStep(DATASET_TOTAL_STEPS);
-        updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
-      }
-      
-      return datasetService;
-    } catch (Exception e) {
-      // Stop the progress simulation on error
-      if (progressThread != null) {
-        progressThread.interrupt();
-      }
-      throw e;
+    RDAPDatasetService datasetService = CommonUtils.initializeDataSet(this, progressCallback);
+    
+    // Ensure we're at the right progress point (after dataset phase)
+    if (progressTracker != null && datasetService != null) {
+      // Set progress to after dataset operations
+      progressTracker.setCurrentStep(DATASET_TOTAL_STEPS);
+      updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
     }
+    
+    return datasetService;
   }
 
   /**
-   * Start a background thread to simulate dataset progress.
-   * This handles the async nature of dataset operations by using conservative timing.
+   * Progress callback implementation that updates the progress tracker with real events.
    */
-  private Thread startDatasetProgressSimulation() {
-    Thread thread = new Thread(() -> {
-      try {
-        // Conservative progress simulation for async dataset operations
-        // Use smaller increments with longer delays to account for network variability
-        int totalDatasetSteps = DATASET_TOTAL_STEPS;
-        long startTime = System.currentTimeMillis();
-        long maxWaitTime = MAX_DATASET_WAIT_TIME_MS;
-        
-        for (int i = 0; i < totalDatasetSteps && !Thread.currentThread().isInterrupted(); i++) {
-          // Dynamic delay based on elapsed time - start slow, speed up if needed
-          long elapsed = System.currentTimeMillis() - startTime;
-          long remainingTime = maxWaitTime - elapsed;
-          int remainingSteps = totalDatasetSteps - i;
-          
-          long delayMs;
-          if (remainingSteps > 0 && remainingTime > 0) {
-            delayMs = Math.max(MIN_STEP_DELAY_MS, remainingTime / remainingSteps);
-          } else {
-            delayMs = MIN_STEP_DELAY_MS; // Fallback delay
-          }
-          
-          Thread.sleep(delayMs);
-          
-          if (progressTracker != null && !Thread.currentThread().isInterrupted()) {
-            // Update phase names to show what's likely happening
-            if (i < DATASETS_COUNT) {
-              updateProgressPhase("DatasetDownload");
-            } else {
-              updateProgressPhase("DatasetParse");
-            }
-            progressTracker.setCurrentStep(i + 1);
-          }
-        }
-      } catch (InterruptedException e) {
-        // Thread was interrupted, exit gracefully
-        Thread.currentThread().interrupt();
-      }
-    });
+  private class DatasetProgressCallback implements ProgressCallback {
+    private int completedOperations = 0;
     
-    thread.setDaemon(true); // Make it a daemon thread so it doesn't prevent JVM shutdown
-    thread.setName("DatasetProgressSimulator");
-    thread.start();
-    return thread;
+    @Override
+    public void onDatasetDownloadStarted(String datasetName) {
+      updateProgressPhase("DatasetDownload");
+    }
+    
+    @Override
+    public void onDatasetDownloadCompleted(String datasetName) {
+      if (progressTracker != null) {
+        completedOperations++;
+        progressTracker.setCurrentStep(completedOperations);
+      }
+    }
+    
+    @Override
+    public void onDatasetParseStarted(String datasetName) {
+      updateProgressPhase("DatasetParse");
+    }
+    
+    @Override
+    public void onDatasetParseCompleted(String datasetName) {
+      if (progressTracker != null) {
+        completedOperations++;
+        progressTracker.setCurrentStep(completedOperations);
+      }
+    }
+    
+    @Override
+    public void onDatasetError(String datasetName, String operation, Throwable error) {
+      // Progress continues even on error - the overall operation will handle failures
+      if (progressTracker != null) {
+        completedOperations++;
+        progressTracker.setCurrentStep(completedOperations);
+      }
+    }
   }
 }

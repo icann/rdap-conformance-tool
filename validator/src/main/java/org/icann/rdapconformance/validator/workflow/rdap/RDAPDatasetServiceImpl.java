@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.*;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.*;
@@ -88,6 +89,17 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
    *                         again
    */
   public boolean download(boolean useLocalDatasets) {
+    return download(useLocalDatasets, null);
+  }
+
+  /**
+   * Download all RDAP datasets with progress callback.
+   *
+   * @param useLocalDatasets Whether local versions of datasets are used instead of downloading them
+   *                         again
+   * @param progressCallback Callback to receive progress updates, or null for no progress tracking
+   */
+  public boolean download(boolean useLocalDatasets, ProgressCallback progressCallback) {
     try {
       fileSystem.mkdir(DATASET_PATH);
     } catch (IOException e) {
@@ -106,11 +118,21 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
           .map(dataset -> CompletableFuture
               .supplyAsync(() -> {
                 logger.info("Starting download for dataset: {}", dataset.getName());
+                if (progressCallback != null) {
+                  progressCallback.onDatasetDownloadStarted(dataset.getName());
+                }
                 if (!dataset.download(useLocalDatasets)) {
                   logger.error("Failed to download dataset {}", dataset.getName());
+                  if (progressCallback != null) {
+                    progressCallback.onDatasetError(dataset.getName(), "download", 
+                        new RuntimeException("Download failed"));
+                  }
                   return false;
                 }
                 logger.info("Download completed for dataset: {}", dataset.getName());
+                if (progressCallback != null) {
+                  progressCallback.onDatasetDownloadCompleted(dataset.getName());
+                }
                 return true;
               }, executor)
               .thenApplyAsync(downloadSuccess -> {
@@ -118,16 +140,29 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
                   return false;
                 }
                 logger.info("Starting parse for dataset: {}", dataset.getName());
+                if (progressCallback != null) {
+                  progressCallback.onDatasetParseStarted(dataset.getName());
+                }
                 if (!dataset.parse()) {
                   logger.error("Failed to parse dataset {}", dataset.getName());
+                  if (progressCallback != null) {
+                    progressCallback.onDatasetError(dataset.getName(), "parse", 
+                        new RuntimeException("Parse failed"));
+                  }
                   return false;
                 }
                 logger.info("Parse completed for dataset: {}", dataset.getName());
+                if (progressCallback != null) {
+                  progressCallback.onDatasetParseCompleted(dataset.getName());
+                }
                 return true;
               }, executor)
               .exceptionally(throwable -> {
                 logger.error("Exception occurred while processing dataset {}: {}", 
                     dataset.getName(), throwable.getMessage(), throwable);
+                if (progressCallback != null) {
+                  progressCallback.onDatasetError(dataset.getName(), "processing", throwable);
+                }
                 return false;
               })
           )
