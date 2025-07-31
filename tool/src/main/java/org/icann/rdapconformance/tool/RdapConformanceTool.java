@@ -100,6 +100,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   // Progress tracking
   private ProgressTracker progressTracker;
+  private boolean showProgress = true; // Default to true for CLI usage
 
   private boolean networkEnabled  = true;
 
@@ -174,6 +175,10 @@ public void setThin(boolean value) {
 
 public void setVerbose(boolean isVerbose) {
     this.isVerbose = isVerbose;
+}
+
+public void setShowProgress(boolean showProgress) {
+    this.showProgress = showProgress;
 }
   @Override
   public Integer call() throws Exception {
@@ -627,10 +632,10 @@ public void setVerbose(boolean isVerbose) {
   }
 
   /**
-   * Initialize progress tracking if not in verbose mode.
+   * Initialize progress tracking if not in verbose mode and progress is enabled.
    */
   private void initializeProgressTracking() {
-    if (!isVerbose) {
+    if (!isVerbose && showProgress) {
       int totalSteps = calculateTotalSteps();
       progressTracker = new ProgressTracker(totalSteps, isVerbose);
       progressTracker.start();
@@ -736,7 +741,7 @@ public void setVerbose(boolean isVerbose) {
     
     // Use a simple time-based progress estimation since we can't hook into the actual dataset operations
     Thread progressThread = null;
-    if (progressTracker != null) {
+    if (progressTracker != null && showProgress) {
       progressThread = startDatasetProgressSimulation();
     }
     

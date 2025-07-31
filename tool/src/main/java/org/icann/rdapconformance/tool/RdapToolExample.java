@@ -21,6 +21,7 @@ public class RdapToolExample {
         tool.setExecuteIPv6Queries(false);
         tool.setAdditionalConformanceQueries(true);
         tool.setVerbose(false);
+        tool.setShowProgress(false); // Disable progress bar for programmatic usage
         // Use Path API for safer file path handling
         Path currentDir = Paths.get(System.getProperty("user.dir"));
         Path configFilePath;
