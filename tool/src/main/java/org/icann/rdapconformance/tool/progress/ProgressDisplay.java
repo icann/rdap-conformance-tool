@@ -83,7 +83,7 @@ public class ProgressDisplay {
             String columns = System.getenv("COLUMNS");
             if (columns != null && !columns.isEmpty()) {
                 int width = Integer.parseInt(columns);
-                if (width > MAX_PHASE_LENGTH) {  // Basic minimum for usable terminal width
+                if (width >= RESERVED_SPACE) {  // Ensure sufficient terminal width for progress bar display
                     return width;
                 }
             }
