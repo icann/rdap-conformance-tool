@@ -14,7 +14,9 @@ public interface SSLValidator {
      * 
      * @param hostname The hostname to connect to
      * @param port The port to connect to
-     * @return SSLValidationResult containing the validation outcome
+     * @return SSLValidationResult containing the validation outcome.
+     *         This method will never return null - it always returns either a
+     *         success or failure result.
      */
     SSLValidationResult validateSSL(String hostname, int port);
     
@@ -23,7 +25,9 @@ public interface SSLValidator {
      * 
      * @param hostname The hostname to connect to
      * @param port The port to connect to
-     * @return CipherValidationResult containing the cipher validation outcome
+     * @return CipherValidationResult containing the cipher validation outcome.
+     *         This method will never return null - it always returns either a
+     *         success or failure result.
      */
     CipherValidationResult validateTLS12CipherSuites(String hostname, int port);
     

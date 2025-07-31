@@ -99,9 +99,12 @@ public class DefaultSSLValidator implements SSLValidator {
                 
                 return CipherValidationResult.success(protocol, cipher);
             }
-        } catch (Exception e) {
-            logger.info("Cannot validate TLS 1.2 cipher suites", e);
-            return CipherValidationResult.failure("Cannot validate TLS 1.2 cipher suites", e);
+        } catch (NoSuchAlgorithmException e) {
+            logger.info("Cannot create SSL context for TLS 1.2 cipher validation", e);
+            return CipherValidationResult.failure("Cannot create SSL context for TLS 1.2 cipher validation", e);
+        } catch (IOException e) {
+            logger.info("Connection error during TLS 1.2 cipher validation", e);
+            return CipherValidationResult.failure("Connection error during TLS 1.2 cipher validation", e);
         }
     }
 }
