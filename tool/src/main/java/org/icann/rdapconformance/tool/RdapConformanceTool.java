@@ -45,6 +45,15 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   // Create a logger
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RdapConformanceTool.class);
   public static final int PRETTY_PRINT_INDENT = 2;
+  
+  // Progress tracking constants
+  private static final int DATASETS_COUNT = 13;
+  private static final int OPERATIONS_PER_DATASET = 2;  // download + parse
+  private static final int DATASET_TOTAL_STEPS = DATASETS_COUNT * OPERATIONS_PER_DATASET;
+  private static final int ESTIMATED_VALIDATIONS_PER_ROUND = 75;
+  private static final long THREAD_JOIN_TIMEOUT_MS = 1000;  // 1 second
+  private static final long MAX_DATASET_WAIT_TIME_MS = 45000;  // 45 seconds
+  private static final long MIN_STEP_DELAY_MS = 200;  // 200ms minimum per step
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
@@ -270,13 +279,13 @@ public void setVerbose(boolean isVerbose) {
         NetworkInfo.setStackToV6();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v6ret = validator.validate();
-        incrementProgress(75); // Estimated validations per round
+        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
         // set the header to RDAP+JSON and redo the validations
         updateProgressPhase("IPv6-RDAP+JSON");
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v6ret2 = validator.validate();
-        incrementProgress(75); // Estimated validations per round
+        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
       }
 
       // do v4
@@ -285,13 +294,13 @@ public void setVerbose(boolean isVerbose) {
         NetworkInfo.setStackToV4();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v4ret = validator.validate();
-        incrementProgress(75); // Estimated validations per round
+        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
         // set the header to RDAP+JSON and redo the validations
         updateProgressPhase("IPv4-RDAP+JSON");
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v4ret2 = validator.validate();
-        incrementProgress(75); // Estimated validations per round
+        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
       }
 
       if(DNSCacheResolver.hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
@@ -346,7 +355,7 @@ public void setVerbose(boolean isVerbose) {
     updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
     updateProgressPhase("FileValidation");
     int file_exit_code =  validator.validate();
-    incrementProgress(75); // File validation step
+    incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // File validation step
 
     // No creating results file if  "USES_THIN_MODEL" exit code is triggered
     if(ToolResult.USES_THIN_MODEL.getCode() == file_exit_code) {
@@ -634,8 +643,8 @@ public void setVerbose(boolean isVerbose) {
   private int calculateTotalSteps() {
     int steps = 0;
     
-    // Dataset operations: 13 datasets * 2 operations (download + parse) = 26 steps
-    steps += 26;
+    // Dataset operations: datasets * operations (download + parse)
+    steps += DATASET_TOTAL_STEPS;
     
     // DNS operations: typically 2 queries (A and AAAA records)
     steps += 2;
@@ -663,8 +672,8 @@ public void setVerbose(boolean isVerbose) {
       rounds += 2; // application/json + application/rdap+json
     }
     
-    // Estimate ~75 validations per round (conservative estimate)
-    return rounds * 75;
+    // Estimate validations per round (conservative estimate)
+    return rounds * ESTIMATED_VALIDATIONS_PER_ROUND;
   }
 
   /**
@@ -738,7 +747,7 @@ public void setVerbose(boolean isVerbose) {
       if (progressThread != null) {
         progressThread.interrupt();
         try {
-          progressThread.join(1000); // Wait up to 1 second for thread to finish
+          progressThread.join(THREAD_JOIN_TIMEOUT_MS); // Wait for thread to finish
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
@@ -746,8 +755,8 @@ public void setVerbose(boolean isVerbose) {
       
       // Ensure we're at the right progress point (after dataset phase)
       if (progressTracker != null && datasetService != null) {
-        // Set progress to after dataset operations (26 steps)
-        progressTracker.setCurrentStep(26);
+        // Set progress to after dataset operations
+        progressTracker.setCurrentStep(DATASET_TOTAL_STEPS);
         updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
       }
       
@@ -770,9 +779,9 @@ public void setVerbose(boolean isVerbose) {
       try {
         // Conservative progress simulation for async dataset operations
         // Use smaller increments with longer delays to account for network variability
-        int totalDatasetSteps = 26; // 13 datasets * 2 operations each
+        int totalDatasetSteps = DATASET_TOTAL_STEPS;
         long startTime = System.currentTimeMillis();
-        long maxWaitTime = 45000; // 45 seconds max wait (very conservative)
+        long maxWaitTime = MAX_DATASET_WAIT_TIME_MS;
         
         for (int i = 0; i < totalDatasetSteps && !Thread.currentThread().isInterrupted(); i++) {
           // Dynamic delay based on elapsed time - start slow, speed up if needed
@@ -782,16 +791,16 @@ public void setVerbose(boolean isVerbose) {
           
           long delayMs;
           if (remainingSteps > 0 && remainingTime > 0) {
-            delayMs = Math.max(200, remainingTime / remainingSteps); // At least 200ms per step
+            delayMs = Math.max(MIN_STEP_DELAY_MS, remainingTime / remainingSteps);
           } else {
-            delayMs = 200; // Fallback delay
+            delayMs = MIN_STEP_DELAY_MS; // Fallback delay
           }
           
           Thread.sleep(delayMs);
           
           if (progressTracker != null && !Thread.currentThread().isInterrupted()) {
             // Update phase names to show what's likely happening
-            if (i < 13) {
+            if (i < DATASETS_COUNT) {
               updateProgressPhase("DatasetDownload");
             } else {
               updateProgressPhase("DatasetParse");
