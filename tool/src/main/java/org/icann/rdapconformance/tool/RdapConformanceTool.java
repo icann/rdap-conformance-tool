@@ -13,6 +13,8 @@ import java.util.concurrent.Callable;
 import org.apache.commons.lang3.SystemUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 import org.slf4j.LoggerFactory;
+import org.icann.rdapconformance.tool.progress.ProgressTracker;
+import org.icann.rdapconformance.tool.progress.ProgressPhase;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -86,6 +88,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
+
+  // Progress tracking
+  private ProgressTracker progressTracker;
 
   private boolean networkEnabled  = true;
 
@@ -199,8 +204,11 @@ public void setVerbose(boolean isVerbose) {
       return ToolResult.BAD_USER_INPUT.getCode();
     }
 
+    // Initialize progress tracking if not in verbose mode
+    initializeProgressTracking();
+
     // No matter which validator, we need to initialize the dataset service
-    RDAPDatasetService datasetService = CommonUtils.initializeDataSet(this);
+    RDAPDatasetService datasetService = initializeDataSetWithProgress();
     // if we couldn't do it - exit
     if(datasetService == null) {
       logger.error(ToolResult.DATASET_UNAVAILABLE.getDescription());
@@ -249,29 +257,41 @@ public void setVerbose(boolean isVerbose) {
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
       // Initialize our DNS lookups with this.
+      updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
       DNSCacheResolver.initFromUrl(uri.toString());
+      incrementProgress(); // DNS initialization step
       DNSCacheResolver.doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
+      incrementProgress(); // DNS validation step
 
       // do v6
       if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
+        updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
+        updateProgressPhase("IPv6-JSON");
         NetworkInfo.setStackToV6();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v6ret = validator.validate();
+        incrementProgress(75); // Estimated validations per round
 
         // set the header to RDAP+JSON and redo the validations
+        updateProgressPhase("IPv6-RDAP+JSON");
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v6ret2 = validator.validate();
+        incrementProgress(75); // Estimated validations per round
       }
 
       // do v4
       if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
+        updateProgressPhase("IPv4-JSON");
         NetworkInfo.setStackToV4();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v4ret = validator.validate();
+        incrementProgress(75); // Estimated validations per round
 
         // set the header to RDAP+JSON and redo the validations
+        updateProgressPhase("IPv4-RDAP+JSON");
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v4ret2 = validator.validate();
+        incrementProgress(75); // Estimated validations per round
       }
 
       if(DNSCacheResolver.hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
@@ -289,10 +309,12 @@ public void setVerbose(boolean isVerbose) {
       }
 
       // Build the result file
+      updateProgressPhase(ProgressPhase.RESULTS_GENERATION);
        if(!resultFile.build()) {
           logger.error("Unable to write to results file: " + validator.getResultsPath());
           return ToolResult.FILE_WRITE_ERROR.getCode();
         }
+      incrementProgress(); // Results generation step
 
       // now the results file is set, print the path
       logger.info("Results file: {}",  validator.getResultsPath());
@@ -301,6 +323,9 @@ public void setVerbose(boolean isVerbose) {
 
       // Having network issues? You WILL need this.
       logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+
+      // Complete progress tracking
+      completeProgress();
 
       // if we made it to here, exit 0
       return ZERO;
@@ -313,19 +338,28 @@ public void setVerbose(boolean isVerbose) {
 
   int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
     // If network is not enabled or ipv4 AND ipv6 flags are off, validate and return
+    updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
+    updateProgressPhase("FileValidation");
     int file_exit_code =  validator.validate();
+    incrementProgress(75); // File validation step
 
     // No creating results file if  "USES_THIN_MODEL" exit code is triggered
     if(ToolResult.USES_THIN_MODEL.getCode() == file_exit_code) {
       return ToolResult.USES_THIN_MODEL.getCode();
     }
 
+    updateProgressPhase(ProgressPhase.RESULTS_GENERATION);
     if(!resultFile.build()) {
       logger.error("Unable to write to results file: " + validator.getResultsPath());
       return ToolResult.FILE_WRITE_ERROR.getCode();
     }
+    incrementProgress(); // Results generation step
     logger.info("Results file: {}",  validator.getResultsPath());
     setResultsFile(validator.getResultsPath());
+    
+    // Complete progress tracking
+    completeProgress();
+    
     return file_exit_code;
   }
 
@@ -571,5 +605,199 @@ public void setVerbose(boolean isVerbose) {
     @Option(names = {"--thin"},
         description = "The TLD uses the thin model", defaultValue = "false")
     private boolean thin = false;
+  }
+
+  /**
+   * Initialize progress tracking if not in verbose mode.
+   */
+  private void initializeProgressTracking() {
+    if (!isVerbose) {
+      int totalSteps = calculateTotalSteps();
+      progressTracker = new ProgressTracker(totalSteps, isVerbose);
+      progressTracker.start();
+    }
+  }
+
+  /**
+   * Calculate the total number of steps for progress tracking.
+   */
+  private int calculateTotalSteps() {
+    int steps = 0;
+    
+    // Dataset operations: 13 datasets * 2 operations (download + parse) = 26 steps
+    steps += 26;
+    
+    // DNS operations: typically 2 queries (A and AAAA records)
+    steps += 2;
+    
+    // Network validation steps based on IP version flags
+    steps += getNetworkValidationSteps();
+    
+    // Results generation: 1 step
+    steps += 1;
+    
+    return steps;
+  }
+
+  /**
+   * Calculate network validation steps based on IP version configuration.
+   */
+  private int getNetworkValidationSteps() {
+    int rounds = 0;
+    
+    if (executeIPv6Queries) {
+      rounds += 2; // application/json + application/rdap+json
+    }
+    
+    if (executeIPv4Queries) {
+      rounds += 2; // application/json + application/rdap+json
+    }
+    
+    // Estimate ~75 validations per round (conservative estimate)
+    return rounds * 75;
+  }
+
+  /**
+   * Update progress tracking phase.
+   */
+  public void updateProgressPhase(ProgressPhase phase) {
+    if (progressTracker != null) {
+      progressTracker.updatePhase(phase);
+    }
+  }
+
+  /**
+   * Update progress tracking phase with custom name.
+   */
+  public void updateProgressPhase(String phaseName) {
+    if (progressTracker != null) {
+      progressTracker.updatePhase(phaseName);
+    }
+  }
+
+  /**
+   * Increment progress by one step.
+   */
+  public void incrementProgress() {
+    if (progressTracker != null) {
+      progressTracker.incrementStep();
+    }
+  }
+
+  /**
+   * Increment progress by multiple steps.
+   */
+  public void incrementProgress(int steps) {
+    if (progressTracker != null) {
+      progressTracker.incrementSteps(steps);
+    }
+  }
+
+  /**
+   * Complete progress tracking.
+   */
+  public void completeProgress() {
+    if (progressTracker != null) {
+      progressTracker.complete();
+    }
+  }
+
+  /**
+   * Get the progress tracker (for access by other classes).
+   */
+  public ProgressTracker getProgressTracker() {
+    return progressTracker;
+  }
+
+  /**
+   * Initialize dataset service with progress tracking.
+   */
+  private RDAPDatasetService initializeDataSetWithProgress() {
+    updateProgressPhase(ProgressPhase.DATASET_DOWNLOAD);
+    
+    // Use a simple time-based progress estimation since we can't hook into the actual dataset operations
+    Thread progressThread = null;
+    if (progressTracker != null) {
+      progressThread = startDatasetProgressSimulation();
+    }
+    
+    try {
+      RDAPDatasetService datasetService = CommonUtils.initializeDataSet(this);
+      
+      // Stop the progress simulation
+      if (progressThread != null) {
+        progressThread.interrupt();
+        try {
+          progressThread.join(1000); // Wait up to 1 second for thread to finish
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+      
+      // Ensure we're at the right progress point (after dataset phase)
+      if (progressTracker != null && datasetService != null) {
+        // Set progress to after dataset operations (26 steps)
+        progressTracker.setCurrentStep(26);
+        updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
+      }
+      
+      return datasetService;
+    } catch (Exception e) {
+      // Stop the progress simulation on error
+      if (progressThread != null) {
+        progressThread.interrupt();
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * Start a background thread to simulate dataset progress.
+   * This handles the async nature of dataset operations by using conservative timing.
+   */
+  private Thread startDatasetProgressSimulation() {
+    Thread thread = new Thread(() -> {
+      try {
+        // Conservative progress simulation for async dataset operations
+        // Use smaller increments with longer delays to account for network variability
+        int totalDatasetSteps = 26; // 13 datasets * 2 operations each
+        long startTime = System.currentTimeMillis();
+        long maxWaitTime = 45000; // 45 seconds max wait (very conservative)
+        
+        for (int i = 0; i < totalDatasetSteps && !Thread.currentThread().isInterrupted(); i++) {
+          // Dynamic delay based on elapsed time - start slow, speed up if needed
+          long elapsed = System.currentTimeMillis() - startTime;
+          long remainingTime = maxWaitTime - elapsed;
+          int remainingSteps = totalDatasetSteps - i;
+          
+          long delayMs;
+          if (remainingSteps > 0 && remainingTime > 0) {
+            delayMs = Math.max(200, remainingTime / remainingSteps); // At least 200ms per step
+          } else {
+            delayMs = 200; // Fallback delay
+          }
+          
+          Thread.sleep(delayMs);
+          
+          if (progressTracker != null && !Thread.currentThread().isInterrupted()) {
+            // Update phase names to show what's likely happening
+            if (i < 13) {
+              updateProgressPhase("DatasetDownload");
+            } else {
+              updateProgressPhase("DatasetParse");
+            }
+            progressTracker.setCurrentStep(i + 1);
+          }
+        }
+      } catch (InterruptedException e) {
+        // Thread was interrupted, exit gracefully
+        Thread.currentThread().interrupt();
+      }
+    });
+    
+    thread.setDaemon(true); // Make it a daemon thread so it doesn't prevent JVM shutdown
+    thread.setName("DatasetProgressSimulator");
+    thread.start();
+    return thread;
   }
 }
