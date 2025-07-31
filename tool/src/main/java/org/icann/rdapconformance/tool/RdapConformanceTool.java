@@ -319,6 +319,11 @@ public void setVerbose(boolean isVerbose) {
       // now the results file is set, print the path
       logger.info("Results file: {}",  validator.getResultsPath());
       setResultsFile(validator.getResultsPath());
+      
+      // Always show results file location to user, even when using progress bar (non-verbose mode)
+      if (!isVerbose) {
+        System.out.println("\nResults saved to: " + validator.getResultsPath());
+      }
 
 
       // Having network issues? You WILL need this.
@@ -356,6 +361,11 @@ public void setVerbose(boolean isVerbose) {
     incrementProgress(); // Results generation step
     logger.info("Results file: {}",  validator.getResultsPath());
     setResultsFile(validator.getResultsPath());
+    
+    // Always show results file location to user, even when using progress bar (non-verbose mode)
+    if (!isVerbose) {
+      System.out.println("\nResults saved to: " + validator.getResultsPath());
+    }
     
     // Complete progress tracking
     completeProgress();

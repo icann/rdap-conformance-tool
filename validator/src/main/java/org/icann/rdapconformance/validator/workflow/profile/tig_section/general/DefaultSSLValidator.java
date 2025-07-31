@@ -41,8 +41,7 @@ public class DefaultSSLValidator implements SSLValidator {
             // Create socket connection and get enabled protocols
             List<String> enabledProtocols = getEnabledProtocols(sslContext, hostname, ipAddress, port);
             
-            // Validate TLS 1.2 cipher suites if applicable
-            validateTLS12CipherSuites(sslContext, hostname, port, enabledProtocols);
+            // TLS 1.2 cipher suite validation is now handled through the public method
             
             return SSLValidationResult.success(enabledProtocols);
             
@@ -104,11 +103,5 @@ public class DefaultSSLValidator implements SSLValidator {
             logger.info("Cannot validate TLS 1.2 cipher suites", e);
             return CipherValidationResult.failure("Cannot validate TLS 1.2 cipher suites", e);
         }
-    }
-    
-    private void validateTLS12CipherSuites(SSLContext sslContext, String hostname, int port, 
-                                         List<String> enabledProtocols) throws IOException {
-        // This method can be removed as it's now handled by the public method above
-        // Keeping it temporarily for backward compatibility if needed
     }
 }

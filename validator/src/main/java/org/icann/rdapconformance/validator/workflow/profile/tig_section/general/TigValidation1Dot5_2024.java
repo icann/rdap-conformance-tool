@@ -89,7 +89,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                 // Validate TLS 1.2 cipher suites using the SSLValidator
                 if (enabledProtocols.contains("TLSv1.2")) {
                     SSLValidator.CipherValidationResult cipherResult = sslValidator.validateTLS12CipherSuites(hostname, port);
-                    if (cipherResult.isSuccessful()) {
+                    if (cipherResult != null && cipherResult.isSuccessful()) {
                         String cipher = cipherResult.getCipherSuite();
                         if (!isValidTLS12Cipher(cipher)) {
                             results.add(RDAPValidationResult.builder()
@@ -103,8 +103,11 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                                 .build());
                             isValid = false;
                         }
-                    } else {
+                    } else if (cipherResult != null) {
                         logger.info("Cannot validate TLS 1.2 cipher suites: {}", cipherResult.getErrorMessage());
+                        isValid = false;
+                    } else {
+                        logger.info("Cannot validate TLS 1.2 cipher suites: SSL validator returned null result");
                         isValid = false;
                     }
                 }

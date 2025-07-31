@@ -31,6 +31,11 @@ public class TigValidation1Dot5_2024Test {
 
         when(config.getUri()).thenReturn(URI.create("https://example.com"));
 
+        // Set up default mock behavior for SSL cipher validation to prevent NPE
+        SSLValidator.CipherValidationResult defaultCipherResult = 
+            SSLValidator.CipherValidationResult.success("TLSv1.2", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+        when(mockSSLValidator.validateTLS12CipherSuites(anyString(), anyInt())).thenReturn(defaultCipherResult);
+
         // Use constructor that allows dependency injection
         validation = new TigValidation1Dot5_2024(httpResponse, config, results, mockSSLValidator);
     }
@@ -63,6 +68,11 @@ public class TigValidation1Dot5_2024Test {
         List<String> validProtocols = Arrays.asList("TLSv1.2", "TLSv1.3");
         SSLValidator.SSLValidationResult successResult = SSLValidator.SSLValidationResult.success(validProtocols);
         when(mockSSLValidator.validateSSL("example.com", 443)).thenReturn(successResult);
+        
+        // Mock cipher validation for TLS 1.2
+        SSLValidator.CipherValidationResult cipherResult = 
+            SSLValidator.CipherValidationResult.success("TLSv1.2", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+        when(mockSSLValidator.validateTLS12CipherSuites("example.com", 443)).thenReturn(cipherResult);
 
         boolean isValid = validation.doValidate();
         assertTrue("Validation should pass for valid TLS protocols", isValid);
@@ -112,6 +122,11 @@ public class TigValidation1Dot5_2024Test {
         List<String> mixedProtocols = Arrays.asList("TLSv1.1", "TLSv1.2", "TLSv1.3"); // One invalid, two valid
         SSLValidator.SSLValidationResult successResult = SSLValidator.SSLValidationResult.success(mixedProtocols);
         when(mockSSLValidator.validateSSL("example.com", 443)).thenReturn(successResult);
+        
+        // Mock cipher validation for TLS 1.2 (since TLS 1.2 is present)
+        SSLValidator.CipherValidationResult cipherResult = 
+            SSLValidator.CipherValidationResult.success("TLSv1.2", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+        when(mockSSLValidator.validateTLS12CipherSuites("example.com", 443)).thenReturn(cipherResult);
 
         boolean isValid = validation.doValidate();
         assertFalse("Validation should fail when any invalid protocol is present", isValid);
