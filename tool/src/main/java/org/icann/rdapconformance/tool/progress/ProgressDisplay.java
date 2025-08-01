@@ -17,6 +17,12 @@ public class ProgressDisplay {
     private int lastPercentage = -1;
     private String lastPhase = null;
     
+    // Pulsing animation support
+    private long lastUpdateTime = 0;
+    private int pulseState = 0;
+    private static final long PULSE_INTERVAL_MS = 2000; // 2 seconds between pulses
+    private static final String[] PULSE_CHARS = {"*", "+", "o", "#"}; // Different pulse characters (ASCII only)
+    
     public ProgressDisplay() {
         this.terminalSupported = isTerminalSupported();
         this.terminalWidth = getTerminalWidth();
@@ -32,10 +38,20 @@ public class ProgressDisplay {
         }
         
         int percentage = (current * 100) / total;
+        long currentTime = System.currentTimeMillis();
         
-        // Only update if percentage or phase changed to reduce console writes
-        if (percentage == lastPercentage && java.util.Objects.equals(phase, lastPhase)) {
+        // Check if we should pulse (update display even if percentage/phase unchanged)
+        boolean shouldPulse = (currentTime - lastUpdateTime) >= PULSE_INTERVAL_MS;
+        
+        // Only update if percentage changed, phase changed, or it's time to pulse
+        if (percentage == lastPercentage && java.util.Objects.equals(phase, lastPhase) && !shouldPulse) {
             return;
+        }
+        
+        // Update pulse state if we're pulsing
+        if (shouldPulse) {
+            pulseState = (pulseState + 1) % PULSE_CHARS.length;
+            lastUpdateTime = currentTime;
         }
         
         lastPercentage = percentage;
@@ -129,10 +145,19 @@ public class ProgressDisplay {
             filled = barWidth;
         }
         
-        // Build the asterisk bar to fill exact remaining space
+        // Build the asterisk bar with only rightmost character pulsing
         StringBuilder bar = new StringBuilder();
+        String currentPulseChar = PULSE_CHARS[pulseState];
+        
+        // All asterisks are '*' except the rightmost one which pulses
         for (int i = 0; i < filled; i++) {
-            bar.append("*");
+            if (i == filled - 1 && filled > 0) {
+                // Last (rightmost) character pulses
+                bar.append(currentPulseChar);
+            } else {
+                // All other characters are always '*'
+                bar.append("*");
+            }
         }
         for (int i = filled; i < barWidth; i++) {
             bar.append(" ");

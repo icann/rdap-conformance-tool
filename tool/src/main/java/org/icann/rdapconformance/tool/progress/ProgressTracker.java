@@ -1,6 +1,9 @@
 package org.icann.rdapconformance.tool.progress;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Thread-safe progress tracker for RDAP validation execution.
@@ -18,6 +21,9 @@ public class ProgressTracker {
     private volatile String currentPhaseName;
     private volatile boolean completed;
     
+    // Periodic update mechanism for pulsing progress bar
+    private ScheduledExecutorService updateScheduler;
+    
     public ProgressTracker(int totalSteps, boolean verboseMode) {
         this.totalSteps = totalSteps;
         this.verboseMode = verboseMode;
@@ -30,12 +36,31 @@ public class ProgressTracker {
     }
     
     /**
-     * Start progress tracking. Shows initial progress bar.
+     * Start progress tracking. Shows initial progress bar and starts periodic updates.
      */
     public void start() {
         if (shouldShowProgress()) {
             updateDisplay();
+            startPeriodicUpdates();
         }
+    }
+    
+    /**
+     * Start periodic updates for pulsing progress bar effect.
+     */
+    private void startPeriodicUpdates() {
+        updateScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "ProgressUpdate");
+            t.setDaemon(true);
+            return t;
+        });
+        
+        // Update every 2 seconds to trigger pulse effect
+        updateScheduler.scheduleAtFixedRate(() -> {
+            if (!completed && shouldShowProgress()) {
+                updateDisplay();
+            }
+        }, 2, 2, TimeUnit.SECONDS);
     }
     
     /**
@@ -140,6 +165,11 @@ public class ProgressTracker {
         completed = true;
         currentPhase = ProgressPhase.COMPLETED;
         currentStep.set(totalSteps);
+        
+        // Stop periodic updates
+        if (updateScheduler != null && !updateScheduler.isShutdown()) {
+            updateScheduler.shutdown();
+        }
         
         if (shouldShowProgress()) {
             display.clearAndFinish();
