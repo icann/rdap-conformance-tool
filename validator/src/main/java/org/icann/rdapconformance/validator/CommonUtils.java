@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator;
 
 import java.io.InputStream;
 
+import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParserImpl;
@@ -105,10 +106,14 @@ public class CommonUtils {
     }
 
 public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config) {
+    return initializeDataSet(config, null);
+}
+
+public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config, ProgressCallback progressCallback) {
     RDAPDatasetService datasetService = null;
     try {
         datasetService = RDAPDatasetServiceImpl.getInstance(new LocalFileSystem());
-        if(!datasetService.download(config.useLocalDatasets())) {
+        if(!datasetService.download(config.useLocalDatasets(), progressCallback)) {
             return null;
         }
     } catch (SecurityException  | IllegalArgumentException e) {
