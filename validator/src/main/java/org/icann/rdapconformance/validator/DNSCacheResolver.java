@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.xbill.DNS.Record;
@@ -28,14 +29,23 @@ public class DNSCacheResolver {
 
     private static final Map<String, List<InetAddress>> CACHE_V4 = new ConcurrentHashMap<>();
     private static final Map<String, List<InetAddress>> CACHE_V6 = new ConcurrentHashMap<>();
+    
+    // DNS resolver configuration constants
+    private static final int DNS_TIMEOUT_SECONDS = 10;
+    private static final int DNS_RETRIES = 3;
 
     public static final Resolver resolver;
 
     static {
         Resolver r = null;
         try {
-            r = new ExtendedResolver(); // Uses system-configured resolvers
-            logger.info("DNS Resolver initialized using system DNS settings.");
+            ExtendedResolver extendedResolver = new ExtendedResolver(); // Uses system-configured resolvers
+            // Configure timeouts and retries to avoid long DNS delays
+            extendedResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
+            extendedResolver.setRetries(DNS_RETRIES);
+            r = extendedResolver;
+            logger.info("DNS Resolver initialized using system DNS settings with {}s timeout and {} retries.", 
+                       DNS_TIMEOUT_SECONDS, DNS_RETRIES);
         } catch (Exception e) {
             logger.error("Failed to initialize DNS resolver.", e);
         }

@@ -15,6 +15,7 @@ public class ProgressDisplay {
     private final boolean terminalSupported;
     private final int terminalWidth;
     private int lastPercentage = -1;
+    private String lastPhase = null;
     
     public ProgressDisplay() {
         this.terminalSupported = isTerminalSupported();
@@ -25,19 +26,20 @@ public class ProgressDisplay {
      * Update the progress bar display.
      * Only updates if percentage has changed to avoid excessive console writes.
      */
-    public void updateProgress(String phase, int current, int total) {
+    public synchronized void updateProgress(String phase, int current, int total) {
         if (!terminalSupported || total <= 0) {
             return;
         }
         
         int percentage = (current * 100) / total;
         
-        // Only update if percentage changed to reduce console writes
-        if (percentage == lastPercentage) {
+        // Only update if percentage or phase changed to reduce console writes
+        if (percentage == lastPercentage && java.util.Objects.equals(phase, lastPhase)) {
             return;
         }
         
         lastPercentage = percentage;
+        lastPhase = phase;
         
         clearCurrentLine();
         printProgressBar(phase, current, total, percentage);
@@ -48,7 +50,7 @@ public class ProgressDisplay {
      * Clear the progress bar and move to next line.
      * Call this when progress is complete or on error.
      */
-    public void clearAndFinish() {
+    public synchronized void clearAndFinish() {
         if (terminalSupported) {
             clearCurrentLine();
             System.out.flush();
@@ -101,6 +103,7 @@ public class ProgressDisplay {
      */
     private void clearCurrentLine() {
         System.out.print("\r\033[K");
+        System.out.flush();
     }
     
     /**
@@ -137,11 +140,6 @@ public class ProgressDisplay {
         
         // Build complete line
         String completeLine = leftPart + bar.toString() + rightInfo;
-        
-        // Ensure we don't exceed terminal width (safety check)
-        if (completeLine.length() > terminalWidth) {
-            completeLine = completeLine.substring(0, terminalWidth);
-        }
         
         // Print the complete line
         System.out.print(completeLine);

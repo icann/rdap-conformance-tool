@@ -272,23 +272,26 @@ public void setShowProgress(boolean showProgress) {
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
       // Initialize our DNS lookups with this.
-      updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
+      updateProgressPhase("DNS-Resolving");
       DNSCacheResolver.initFromUrl(uri.toString());
       incrementProgress(); // DNS initialization step
+      updateProgressPhase("DNS-Validating");
       DNSCacheResolver.doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
       incrementProgress(); // DNS validation step
+      
+      // Start network validation phase
+      updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
 
       // do v6
       if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
-        updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
-        updateProgressPhase("IPv6-JSON");
+        updateProgressPhase("IPv6-JSON-Validating");
         NetworkInfo.setStackToV6();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v6ret = validator.validate();
         incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
         // set the header to RDAP+JSON and redo the validations
-        updateProgressPhase("IPv6-RDAP+JSON");
+        updateProgressPhase("IPv6-RDAP+JSON-Validating");
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v6ret2 = validator.validate();
         incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
@@ -296,14 +299,14 @@ public void setShowProgress(boolean showProgress) {
 
       // do v4
       if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
-        updateProgressPhase("IPv4-JSON");
+        updateProgressPhase("IPv4-JSON-Validating");
         NetworkInfo.setStackToV4();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v4ret = validator.validate();
         incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
         // set the header to RDAP+JSON and redo the validations
-        updateProgressPhase("IPv4-RDAP+JSON");
+        updateProgressPhase("IPv4-RDAP+JSON-Validating");
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v4ret2 = validator.validate();
         incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
@@ -738,7 +741,12 @@ public void setShowProgress(boolean showProgress) {
    * Initialize dataset service with progress tracking using actual completion events.
    */
   private RDAPDatasetService initializeDataSetWithProgress() {
-    updateProgressPhase(ProgressPhase.DATASET_DOWNLOAD);
+    // Show appropriate phase name based on whether we're downloading or using local datasets
+    if (useLocalDatasets) {
+      updateProgressPhase("DatasetLoad");
+    } else {
+      updateProgressPhase(ProgressPhase.DATASET_DOWNLOAD);
+    }
     
     // Create a progress callback that updates the real progress tracker
     ProgressCallback progressCallback = null;
@@ -766,7 +774,12 @@ public void setShowProgress(boolean showProgress) {
     
     @Override
     public void onDatasetDownloadStarted(String datasetName) {
-      updateProgressPhase("DatasetDownload");
+      // Show appropriate phase name based on whether we're downloading or using local datasets
+      if (useLocalDatasets) {
+        updateProgressPhase("DatasetLoad");
+      } else {
+        updateProgressPhase("DatasetDownload");
+      }
     }
     
     @Override
