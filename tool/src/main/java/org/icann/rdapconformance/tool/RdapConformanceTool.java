@@ -275,7 +275,7 @@ public void setShowProgress(boolean showProgress) {
       updateProgressPhase("DNS-Resolving");
       DNSCacheResolver.initFromUrl(uri.toString());
       incrementProgress(); // DNS initialization step
-      updateProgressPhase("DNS-Validating");
+      updateProgressPhase("DNS-Validation");
       DNSCacheResolver.doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
       incrementProgress(); // DNS validation step
       
@@ -284,14 +284,14 @@ public void setShowProgress(boolean showProgress) {
 
       // do v6
       if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
-        updateProgressPhase("IPv6-JSON-Validating");
+        updateProgressPhase("IPv6-JSON");
         NetworkInfo.setStackToV6();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v6ret = validator.validate();
         incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
         // set the header to RDAP+JSON and redo the validations
-        updateProgressPhase("IPv6-RDAP+JSON-Validating");
+        updateProgressPhase("IPv6-RDAP+JSON");
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v6ret2 = validator.validate();
         incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
@@ -299,14 +299,14 @@ public void setShowProgress(boolean showProgress) {
 
       // do v4
       if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
-        updateProgressPhase("IPv4-JSON-Validating");
+        updateProgressPhase("IPv4-JSON");
         NetworkInfo.setStackToV4();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v4ret = validator.validate();
         incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
         // set the header to RDAP+JSON and redo the validations
-        updateProgressPhase("IPv4-RDAP+JSON-Validating");
+        updateProgressPhase("IPv4-RDAP+JSON");
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v4ret2 = validator.validate();
         incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round

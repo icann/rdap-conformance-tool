@@ -20,8 +20,8 @@ public class ProgressDisplay {
     // Pulsing animation support
     private long lastUpdateTime = 0;
     private int pulseState = 0;
-    private static final long PULSE_INTERVAL_MS = 2000; // 2 seconds between pulses
-    private static final String[] PULSE_CHARS = {"*", "+", "o", "#"}; // Different pulse characters (ASCII only)
+    private static final long PULSE_INTERVAL_MS = 500; // 0.5 seconds between pulses
+    private static final String[] PULSE_CHARS = {"|", "/", "-", "\\"}; // Spinner style pulse characters (without * default)
     
     public ProgressDisplay() {
         this.terminalSupported = isTerminalSupported();

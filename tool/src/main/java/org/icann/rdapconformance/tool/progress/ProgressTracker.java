@@ -55,12 +55,12 @@ public class ProgressTracker {
             return t;
         });
         
-        // Update every 2 seconds to trigger pulse effect
+        // Update every 0.5 seconds to trigger pulse effect
         updateScheduler.scheduleAtFixedRate(() -> {
             if (!completed && shouldShowProgress()) {
                 updateDisplay();
             }
-        }, 2, 2, TimeUnit.SECONDS);
+        }, 500, 500, TimeUnit.MILLISECONDS);
     }
     
     /**
