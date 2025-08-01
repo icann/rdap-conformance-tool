@@ -145,7 +145,6 @@ public class RDAPValidationResultFile {
         List<Map<String, Object>> warnings = new ArrayList<>();
 
         Set<RDAPValidationResult> allResults = results.getAll();
-
         Set<Integer> codeToIgnore = new HashSet<>(configurationFile.getDefinitionIgnore());
         Set<RDAPValidationResult> filteredResults = results.getAll()
                                                            .stream()
@@ -162,6 +161,9 @@ public class RDAPValidationResultFile {
             resultMap.put("code", result.getCode());
             resultMap.put("value", result.getValue());
             resultMap.put("message", result.getMessage());
+            
+            Object formattedStatus = formatStatusCode(result.getHttpStatusCode());
+            resultMap.put("receivedHttpStatusCode", formattedStatus);
             resultMap.put("queriedURI",
                 Objects.nonNull(result.getQueriedURI()) ? formatStringToNull(result.getQueriedURI())
                     : (Objects.nonNull(config.getUri()) ? config.getUri().toString() : StringUtils.EMPTY));

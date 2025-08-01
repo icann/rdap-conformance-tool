@@ -668,6 +668,7 @@ public void testCreateResultsMap() {
     assertNotNull(errorEntry, "Error entry for code -1001 should exist");
     assertEquals("error-value", errorEntry.get("value"));
     assertEquals("error-message", errorEntry.get("message"));
+    assertEquals(200, errorEntry.get("receivedHttpStatusCode"));
     assertEquals("https://example.com/error", errorEntry.get("queriedURI"));
     assertEquals("application/rdap+json", errorEntry.get("acceptMediaType"));
     assertEquals("GET", errorEntry.get("httpMethod"));
@@ -683,6 +684,7 @@ public void testCreateResultsMap() {
     assertEquals(-2001, warningEntry.get("code"));
     assertEquals("warning-value", warningEntry.get("value"));
     assertEquals("warning-message", warningEntry.get("message"));
+    assertEquals(404, warningEntry.get("receivedHttpStatusCode"));
     assertEquals(JSONObject.NULL, warningEntry.get("acceptMediaType"));
 }
     // Helper method to count occurrences in string
