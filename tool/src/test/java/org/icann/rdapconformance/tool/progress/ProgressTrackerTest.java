@@ -157,4 +157,66 @@ public class ProgressTrackerTest {
         tracker.incrementSteps(-5);
         assertEquals(tracker.getCurrentStep(), initialStep);
     }
+    
+    @Test
+    public void testStartMethod() {
+        tracker.start();
+        // Should not throw exception and should not change completed state
+        assertFalse(tracker.isCompleted());
+    }
+    
+    @Test
+    public void testForceHide() {
+        tracker.start();
+        tracker.forceHide();
+        // Should not throw exception
+        assertFalse(tracker.isCompleted());
+    }
+    
+    @Test
+    public void testDoubleComplete() {
+        tracker.complete();
+        assertTrue(tracker.isCompleted());
+        
+        // Calling complete again should not cause issues
+        tracker.complete();
+        assertTrue(tracker.isCompleted());
+        assertEquals(tracker.getCurrentPhase(), ProgressPhase.COMPLETED);
+    }
+    
+    @Test
+    public void testSetCurrentStepAfterCompletion() {
+        tracker.complete();
+        assertTrue(tracker.isCompleted());
+        
+        // This should be ignored
+        tracker.setCurrentStep(50);
+        assertEquals(tracker.getCurrentStep(), 100);
+    }
+    
+    @Test
+    public void testIncrementBeyondTotal() {
+        // Set to near completion
+        tracker.setCurrentStep(99);
+        assertFalse(tracker.isCompleted());
+        
+        // Increment beyond total should auto-complete
+        tracker.incrementStep();
+        assertTrue(tracker.isCompleted());
+        assertEquals(tracker.getCurrentStep(), 100);
+        
+        // Further increments should be ignored
+        tracker.incrementStep();
+        assertEquals(tracker.getCurrentStep(), 100);
+    }
+    
+    @Test
+    public void testIncrementStepsBeyondTotal() {
+        tracker.setCurrentStep(95);
+        
+        // Increment by more than remaining should auto-complete
+        tracker.incrementSteps(10);
+        assertTrue(tracker.isCompleted());
+        assertEquals(tracker.getCurrentStep(), 100);
+    }
 }

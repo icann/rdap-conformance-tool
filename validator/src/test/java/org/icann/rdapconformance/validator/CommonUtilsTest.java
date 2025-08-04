@@ -96,4 +96,83 @@ public class CommonUtilsTest {
                 RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS, original, replacement);
         assertEquals("Multiple ns1, ns2", result);
     }
+
+    @Test
+    public void testReplaceQueryTypeInStringWith_DefaultCase() {
+        String original = "/help query";
+        String replacement = "assistance";
+
+        String result = CommonUtils.replaceQueryTypeInStringWith(
+                RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.HELP, original, replacement);
+        assertEquals("/help query", result); // Should remain unchanged for default case
+    }
+
+    @Test
+    public void testAddErrorToResultsFileWithHttpStatus() {
+        try (var mockedStatic = mockStatic(RDAPValidatorResultsImpl.class)) {
+            var mockResults = mock(RDAPValidatorResultsImpl.class);
+            mockedStatic.when(RDAPValidatorResultsImpl::getInstance).thenReturn(mockResults);
+
+            int httpStatusCode = 404;
+            int code = -12345;
+            String value = "someValue";
+            String message = "Error message";
+
+            CommonUtils.addErrorToResultsFile(httpStatusCode, code, value, message);
+
+            verify(mockResults, times(1)).add(argThat(result ->
+                    result.getHttpStatusCode() == httpStatusCode &&
+                    result.getCode() == code &&
+                    result.getValue().equals(value) &&
+                    result.getMessage().equals(message)
+            ));
+        }
+    }
+
+    @Test
+    public void testCleanStringFromExtraSlash_NullInput() {
+        String result = CommonUtils.cleanStringFromExtraSlash(null);
+        assertEquals(null, result);
+    }
+
+    @Test
+    public void testCleanStringFromExtraSlash_EmptyString() {
+        String result = CommonUtils.cleanStringFromExtraSlash("");
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testCleanStringFromExtraSlash_RemovesDoubleSlashes() {
+        String input = "https://example.com//path//to//resource";
+        String result = CommonUtils.cleanStringFromExtraSlash(input);
+        assertEquals("https://example.com/path/to/resource", result);
+    }
+
+    @Test
+    public void testCleanStringFromExtraSlash_RemovesTrailingSlash() {
+        String input = "https://example.com/path/to/resource/";
+        String result = CommonUtils.cleanStringFromExtraSlash(input);
+        assertEquals("https://example.com/path/to/resource", result);
+    }
+
+    @Test
+    public void testCleanStringFromExtraSlash_HandlesOnlySlashes() {
+        String input = "///";
+        String result = CommonUtils.cleanStringFromExtraSlash(input);
+        assertEquals("/", result);
+    }
+
+    @Test
+    public void testCleanStringFromExtraSlash_NoChangesNeeded() {
+        String input = "https://example.com/path/to/resource";
+        String result = CommonUtils.cleanStringFromExtraSlash(input);
+        assertEquals("https://example.com/path/to/resource", result);
+    }
+
+    @Test
+    public void testCleanStringFromExtraSlash_SingleSlash() {
+        String input = "/";
+        String result = CommonUtils.cleanStringFromExtraSlash(input);
+        assertEquals("/", result);
+    }
 }
