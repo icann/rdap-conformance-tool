@@ -35,7 +35,10 @@ public class ProgressDisplay {
     private static final String BLUE = "\u001b[34m";
     private static final String PURPLE = "\u001b[35m";
     private static final String RESET = "\u001b[0m";
-    
+    private static final String LIGHT_SKY_BLUE = "\u001b[38;5;111m";
+    private static final String LIGHT_CYAN = "\u001b[38;5;123m";
+    private static final String CYAN = "\u001b[36m";
+
     // Capability detection
     private final boolean supportsUTF8;
     private final boolean supportsColor;
@@ -159,7 +162,7 @@ public class ProgressDisplay {
         // Build the left part with pulsing character after '[': [spinner PhaseName     ]
         String leftPart;
         if (supportsColor) {
-            leftPart = String.format("[%s%s%s %-19s] ", PURPLE, currentPulseChar, RESET, truncatedPhase);
+            leftPart = String.format("[%s%s%s %-19s] ", CYAN, currentPulseChar, RESET, truncatedPhase);
         } else {
             leftPart = String.format("[%s %-19s] ", currentPulseChar, truncatedPhase);
         }
