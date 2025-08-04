@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.icann.rdapconformance.validator.CommonUtils;
 
 /**
  * Thread-safe progress tracker for RDAP validation execution.
@@ -24,10 +25,14 @@ public class ProgressTracker {
     // Periodic update mechanism for pulsing progress bar
     private ScheduledExecutorService updateScheduler;
     
+    // Constants
+    private static final long PULSE_UPDATE_INTERVAL_MS = 500; // 0.5 seconds
+    private static final int MAX_PERCENTAGE = 100;
+    
     public ProgressTracker(int totalSteps, boolean verboseMode) {
         this.totalSteps = totalSteps;
         this.verboseMode = verboseMode;
-        this.currentStep = new AtomicInteger(0);
+        this.currentStep = new AtomicInteger(CommonUtils.ZERO);
         this.display = new ProgressDisplay();
         this.startTime = System.currentTimeMillis();
         this.currentPhase = ProgressPhase.DATASET_DOWNLOAD;
@@ -60,7 +65,7 @@ public class ProgressTracker {
             if (!completed && shouldShowProgress()) {
                 updateDisplay();
             }
-        }, 500, 500, TimeUnit.MILLISECONDS);
+        }, PULSE_UPDATE_INTERVAL_MS, PULSE_UPDATE_INTERVAL_MS, TimeUnit.MILLISECONDS);
     }
     
     /**
@@ -118,7 +123,7 @@ public class ProgressTracker {
      * Increment progress by specified number of steps.
      */
     public void incrementSteps(int steps) {
-        if (completed || steps <= 0) {
+        if (completed || steps <= CommonUtils.ZERO) {
             return;
         }
         
@@ -142,7 +147,7 @@ public class ProgressTracker {
             return;
         }
         
-        currentStep.set(Math.max(0, Math.min(step, totalSteps)));
+        currentStep.set(Math.max(CommonUtils.ZERO, Math.min(step, totalSteps)));
         
         if (shouldShowProgress()) {
             updateDisplay();
@@ -181,10 +186,10 @@ public class ProgressTracker {
      */
     public int getPercentage() {
         int current = currentStep.get();
-        if (totalSteps <= 0) {
-            return 0;
+        if (totalSteps <= CommonUtils.ZERO) {
+            return CommonUtils.ZERO;
         }
-        return Math.min(100, (current * 100) / totalSteps);
+        return Math.min(MAX_PERCENTAGE, (current * MAX_PERCENTAGE) / totalSteps);
     }
     
     /**

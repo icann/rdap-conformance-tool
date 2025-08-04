@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.tool.progress;
 
 import java.io.Console;
+import org.icann.rdapconformance.validator.CommonUtils;
 
 /**
  * Handles the visual display of progress bar in the terminal.
@@ -11,6 +12,11 @@ public class ProgressDisplay {
     private static final int DEFAULT_TERMINAL_WIDTH = 80;
     private static final int RESERVED_SPACE = 35; // Space for text: "[Phase] 100% (9999/9999)"
     private static final int MAX_PHASE_LENGTH = 20;
+    private static final int MAX_PERCENTAGE = 100;
+    private static final int PHASE_TRUNCATION_SUFFIX_LENGTH = 3;
+    private static final int MIN_BAR_WIDTH = 1;
+    private static final int PHASE_PADDING_LENGTH = 19;
+    private static final long PULSE_INTERVAL_MS = 500; // 0.5 seconds between pulses
     
     private final boolean terminalSupported;
     private final int terminalWidth;
@@ -18,9 +24,8 @@ public class ProgressDisplay {
     private String lastPhase = null;
     
     // Pulsing animation support
-    private long lastUpdateTime = 0;
-    private int pulseState = 0;
-    private static final long PULSE_INTERVAL_MS = 500; // 0.5 seconds between pulses
+    private long lastUpdateTime = CommonUtils.ZERO;
+    private int pulseState = CommonUtils.ZERO;
     
     // ASCII fallback spinner
     private static final String[] ASCII_SPINNER = {"|", "/", "-", "\\"};
@@ -57,11 +62,11 @@ public class ProgressDisplay {
      * Only updates if percentage has changed to avoid excessive console writes.
      */
     public synchronized void updateProgress(String phase, int current, int total) {
-        if (!terminalSupported || total <= 0) {
+        if (!terminalSupported || total <= CommonUtils.ZERO) {
             return;
         }
         
-        int percentage = (current * 100) / total;
+        int percentage = (current * MAX_PERCENTAGE) / total;
         long currentTime = System.currentTimeMillis();
         
         // Check if we should pulse (update display even if percentage/phase unchanged)
@@ -74,7 +79,7 @@ public class ProgressDisplay {
         
         // Update pulse state if we're pulsing
         if (shouldPulse) {
-            pulseState = (pulseState + 1) % pulseChars.length;
+            pulseState = (pulseState + CommonUtils.ONE) % pulseChars.length;
             lastUpdateTime = currentTime;
         }
         
@@ -162,14 +167,14 @@ public class ProgressDisplay {
         // Build the left part with pulsing character after '[': [spinner PhaseName     ]
         String leftPart;
         if (supportsColor) {
-            leftPart = String.format("[%s%s%s %-19s] ", CYAN, currentPulseChar, RESET, truncatedPhase);
+            leftPart = String.format("[%s%s%s %-" + PHASE_PADDING_LENGTH + "s] ", CYAN, currentPulseChar, RESET, truncatedPhase);
         } else {
-            leftPart = String.format("[%s %-19s] ", currentPulseChar, truncatedPhase);
+            leftPart = String.format("[%s %-" + PHASE_PADDING_LENGTH + "s] ", currentPulseChar, truncatedPhase);
         }
         
         // Calculate exact space available for asterisks
         int availableWidth = terminalWidth - leftPart.length() - rightInfo.length();
-        int barWidth = Math.max(1, availableWidth);
+        int barWidth = Math.max(MIN_BAR_WIDTH, availableWidth);
         
         // Calculate filled portion
         int filled = (barWidth * current) / total;
@@ -181,7 +186,7 @@ public class ProgressDisplay {
         StringBuilder bar = new StringBuilder();
         
         // All asterisks are static '*' characters
-        for (int i = 0; i < filled; i++) {
+        for (int i = CommonUtils.ZERO; i < filled; i++) {
             if (supportsColor) {
                 bar.append(GREEN).append("*").append(RESET);
             } else {
@@ -211,7 +216,7 @@ public class ProgressDisplay {
             return phase;
         }
         
-        return phase.substring(0, MAX_PHASE_LENGTH - 3) + "...";
+        return phase.substring(CommonUtils.ZERO, MAX_PHASE_LENGTH - PHASE_TRUNCATION_SUFFIX_LENGTH) + "...";
     }
     
     /**
