@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import java.net.InetAddress;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -9,8 +11,12 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
+import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.X509TrustManager;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.hc.core5.http.MalformedChunkCodingException;
