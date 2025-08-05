@@ -1,16 +1,24 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import java.net.InetAddress;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
+import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.X509TrustManager;
+import java.util.Date;
 import java.util.List;
+import java.net.DatagramSocket;
 
 import org.apache.hc.core5.http.MalformedChunkCodingException;
 import org.apache.hc.core5.http.MessageConstraintException;
@@ -48,14 +56,6 @@ import org.testng.Assert;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
-
-import javax.net.ssl.X509TrustManager;
-import java.net.DatagramSocket;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Date;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1480,5 +1480,66 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
         
         // Should return the default trust manager's accepted issuers
         assertThat(acceptedIssuers).isNotNull();
+    }
+
+    @Test
+    public void testSimpleHttpResponse_DuplicateSetCookieHeaders() {
+        URI testUri = URI.create("http://example.com");
+        
+        // Create headers with both "set-cookie" and "Set-Cookie" (case difference would cause duplicate key issue)
+        RDAPHttpRequest.Header[] headers = new RDAPHttpRequest.Header[] {
+            new RDAPHttpRequest.Header("Content-Type", "application/json"),
+            new RDAPHttpRequest.Header("set-cookie", "sessionid=abc123; path=/; HttpOnly"),
+            new RDAPHttpRequest.Header("Set-Cookie", "__cf_bm=xyz789; path=/; expires=Mon, 04-Aug-25 21:08:35 GMT; domain=.example.com; HttpOnly; Secure; SameSite=None")
+        };
+
+        RDAPHttpRequest.SimpleHttpResponse response =
+            new RDAPHttpRequest.SimpleHttpResponse("track-123", 406, "", testUri, headers);
+
+        // After the fix, this should work without throwing an exception
+        HttpHeaders httpHeaders = response.headers();
+        
+        // Verify we can access the headers
+        assertThat(httpHeaders).isNotNull();
+        assertThat(httpHeaders.firstValue("Content-Type")).isPresent();
+        assertThat(httpHeaders.firstValue("Content-Type").get()).isEqualTo("application/json");
+        
+        // Both Set-Cookie header values should be preserved and accessible
+        assertThat(httpHeaders.allValues("set-cookie")).hasSize(2);
+        assertThat(httpHeaders.allValues("Set-Cookie")).hasSize(2); // Case-insensitive access
+        assertThat(httpHeaders.allValues("set-cookie")).contains("sessionid=abc123; path=/; HttpOnly");
+        assertThat(httpHeaders.allValues("set-cookie")).contains("__cf_bm=xyz789; path=/; expires=Mon, 04-Aug-25 21:08:35 GMT; domain=.example.com; HttpOnly; Secure; SameSite=None");
+    }
+
+    @Test
+    public void testSimpleHttpResponse_MultipleDuplicateHeaders() {
+        URI testUri = URI.create("http://example.com");
+        
+        // Test with multiple headers having various case combinations
+        RDAPHttpRequest.Header[] headers = new RDAPHttpRequest.Header[] {
+            new RDAPHttpRequest.Header("set-cookie", "cookie1=value1"),
+            new RDAPHttpRequest.Header("Set-Cookie", "cookie2=value2"),
+            new RDAPHttpRequest.Header("SET-COOKIE", "cookie3=value3"),
+            new RDAPHttpRequest.Header("Content-Type", "application/json"),
+            new RDAPHttpRequest.Header("content-type", "text/html"), // This should merge with Content-Type
+            new RDAPHttpRequest.Header("CONTENT-TYPE", "application/xml")
+        };
+
+        RDAPHttpRequest.SimpleHttpResponse response =
+            new RDAPHttpRequest.SimpleHttpResponse("track-123", 200, "", testUri, headers);
+
+        HttpHeaders httpHeaders = response.headers();
+        
+        // Verify all set-cookie values are preserved
+        assertThat(httpHeaders.allValues("set-cookie")).hasSize(3);
+        assertThat(httpHeaders.allValues("set-cookie")).contains("cookie1=value1", "cookie2=value2", "cookie3=value3");
+        
+        // Verify all content-type values are preserved  
+        assertThat(httpHeaders.allValues("content-type")).hasSize(3);
+        assertThat(httpHeaders.allValues("content-type")).contains("application/json", "text/html", "application/xml");
+        
+        // Verify case-insensitive access works
+        assertThat(httpHeaders.allValues("SET-COOKIE")).hasSize(3);
+        assertThat(httpHeaders.allValues("Content-Type")).hasSize(3);
     }
 }
