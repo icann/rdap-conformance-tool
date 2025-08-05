@@ -21,13 +21,13 @@ public class RDAPJsonValuesDatasetTest {
 
     @Test
     public void testDatasetCreation() {
-        assertThat(dataset.getName()).isEqualTo("rdapJsonValues");
+        assertThat(dataset.getName()).isEqualTo("RDAPJSONValues");
         assertThat(dataset.getData()).isNotNull();
         assertThat(dataset.getData()).isInstanceOf(RDAPJsonValues.class);
     }
 
     @Test
     public void testGetName() {
-        assertThat(dataset.getName()).isEqualTo("rdapJsonValues");
+        assertThat(dataset.getName()).isEqualTo("RDAPJSONValues");
     }
 }

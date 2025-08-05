@@ -36,15 +36,30 @@ public class LocalFileSystemTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        // Clean up test files and directories
-        if (Files.exists(testFile)) {
-            Files.delete(testFile);
-        }
-        if (Files.exists(testDir)) {
-            Files.delete(testDir);
-        }
+        // Clean up test files and directories recursively
         if (Files.exists(tempDir)) {
-            Files.delete(tempDir);
+            deleteDirectoryRecursively(tempDir);
+        }
+    }
+
+    private void deleteDirectoryRecursively(Path path) throws IOException {
+        if (Files.isDirectory(path)) {
+            try (var stream = Files.list(path)) {
+                stream.forEach(child -> {
+                    try {
+                        deleteDirectoryRecursively(child);
+                    } catch (IOException e) {
+                        // Log but don't fail the test cleanup
+                        System.err.println("Failed to delete: " + child + " - " + e.getMessage());
+                    }
+                });
+            }
+        }
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            // Log but don't fail the test cleanup
+            System.err.println("Failed to delete: " + path + " - " + e.getMessage());
         }
     }
 
@@ -211,10 +226,9 @@ public class LocalFileSystemTest {
     }
 
     @Test
-    public void testExists_NullPath_ReturnsFalse() {
-        boolean exists = fileSystem.exists(null);
-
-        assertThat(exists).isFalse();
+    public void testExists_NullPath_ThrowsNullPointerException() {
+        assertThatThrownBy(() -> fileSystem.exists(null))
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Test

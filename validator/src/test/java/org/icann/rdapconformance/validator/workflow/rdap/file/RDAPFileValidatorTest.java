@@ -1,4 +1,4 @@
-package org.icann.rdapconformance.validator.workflow.rdap.http;
+package org.icann.rdapconformance.validator.workflow.rdap.file;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -6,14 +6,14 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.net.URI;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.net.URI;
-
-public class RDAPHttpValidatorTest {
+public class RDAPFileValidatorTest {
 
     private RDAPValidatorConfiguration mockConfig;
     private RDAPDatasetService mockDatasetService;
@@ -25,13 +25,13 @@ public class RDAPHttpValidatorTest {
         
         // Setup mock config to pass validation checks
         when(mockConfig.check()).thenReturn(true);
-        when(mockConfig.isNetworkEnabled()).thenReturn(true);
-        when(mockConfig.getUri()).thenReturn(URI.create("https://example.com"));
+        when(mockConfig.isNetworkEnabled()).thenReturn(false);
+        when(mockConfig.getUri()).thenReturn(URI.create("file:///tmp/test.json"));
     }
 
     @Test
     public void testConstructor_ValidParameters() {
-        RDAPHttpValidator validator = new RDAPHttpValidator(mockConfig, mockDatasetService);
+        RDAPFileValidator validator = new RDAPFileValidator(mockConfig, mockDatasetService);
 
         assertThat(validator).isNotNull();
         assertThat(validator).isInstanceOf(RDAPValidator.class);
@@ -39,13 +39,13 @@ public class RDAPHttpValidatorTest {
 
     @Test
     public void testConstructor_NullConfig_ThrowsException() {
-        assertThatThrownBy(() -> new RDAPHttpValidator(null, mockDatasetService))
+        assertThatThrownBy(() -> new RDAPFileValidator(null, mockDatasetService))
                 .isInstanceOf(RuntimeException.class);
     }
 
     @Test
     public void testConstructor_NullDatasetService_CreatesValidator() {
-        RDAPHttpValidator validator = new RDAPHttpValidator(mockConfig, null);
+        RDAPFileValidator validator = new RDAPFileValidator(mockConfig, null);
         
         assertThat(validator).isNotNull();
         assertThat(validator).isInstanceOf(RDAPValidator.class);
@@ -53,13 +53,13 @@ public class RDAPHttpValidatorTest {
 
     @Test
     public void testConstructor_BothParametersNull_ThrowsException() {
-        assertThatThrownBy(() -> new RDAPHttpValidator(null, null))
+        assertThatThrownBy(() -> new RDAPFileValidator(null, null))
                 .isInstanceOf(RuntimeException.class);
     }
 
     @Test
     public void testInheritance() {
-        RDAPHttpValidator validator = new RDAPHttpValidator(mockConfig, mockDatasetService);
+        RDAPFileValidator validator = new RDAPFileValidator(mockConfig, mockDatasetService);
 
         assertThat(validator).isInstanceOf(RDAPValidator.class);
     }

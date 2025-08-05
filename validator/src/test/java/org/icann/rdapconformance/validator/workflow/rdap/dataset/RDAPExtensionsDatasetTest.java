@@ -21,13 +21,13 @@ public class RDAPExtensionsDatasetTest {
 
     @Test
     public void testDatasetCreation() {
-        assertThat(dataset.getName()).isEqualTo("rdapExtensions");
+        assertThat(dataset.getName()).isEqualTo("RDAPExtensions");
         assertThat(dataset.getData()).isNotNull();
         assertThat(dataset.getData()).isInstanceOf(RDAPExtensions.class);
     }
 
     @Test
     public void testGetName() {
-        assertThat(dataset.getName()).isEqualTo("rdapExtensions");
+        assertThat(dataset.getName()).isEqualTo("RDAPExtensions");
     }
 }

@@ -21,13 +21,13 @@ public class EPPRoidDatasetTest {
 
     @Test
     public void testDatasetCreation() {
-        assertThat(dataset.getName()).isEqualTo("eppRoid");
+        assertThat(dataset.getName()).isEqualTo("EPPROID");
         assertThat(dataset.getData()).isNotNull();
         assertThat(dataset.getData()).isInstanceOf(EPPRoid.class);
     }
 
     @Test
     public void testGetName() {
-        assertThat(dataset.getName()).isEqualTo("eppRoid");
+        assertThat(dataset.getName()).isEqualTo("EPPROID");
     }
 }

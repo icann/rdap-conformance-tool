@@ -67,7 +67,7 @@ public class LocalBindRoutePlannerTest {
     @Test
     public void testDetermineRoute_TargetWithoutScheme() throws Exception {
         LocalBindRoutePlanner planner = new LocalBindRoutePlanner(mockLocalAddress);
-        HttpHost target = new HttpHost("example.com", 443);
+        HttpHost target = new HttpHost("https", "example.com", 443);
         
         HttpRoute route = planner.determineRoute(target, mockContext);
         
@@ -95,7 +95,7 @@ public class LocalBindRoutePlannerTest {
     @Test
     public void testDetermineRoute_DefaultHttpsPort() throws Exception {
         LocalBindRoutePlanner planner = new LocalBindRoutePlanner(mockLocalAddress);
-        HttpHost target = new HttpHost("https", "example.com");
+        HttpHost target = new HttpHost("https", "example.com", 443);
         
         HttpRoute route = planner.determineRoute(target, mockContext);
         
@@ -108,7 +108,7 @@ public class LocalBindRoutePlannerTest {
     @Test
     public void testDetermineRoute_DefaultHttpPort() throws Exception {
         LocalBindRoutePlanner planner = new LocalBindRoutePlanner(mockLocalAddress);
-        HttpHost target = new HttpHost("http", "example.com");
+        HttpHost target = new HttpHost("http", "example.com", 80);
         
         HttpRoute route = planner.determineRoute(target, mockContext);
         

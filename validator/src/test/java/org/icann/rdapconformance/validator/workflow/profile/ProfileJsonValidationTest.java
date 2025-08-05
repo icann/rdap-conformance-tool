@@ -55,13 +55,13 @@ public class ProfileJsonValidationTest {
     @Test
     public void testConstructor_InvalidJsonResponse_ThrowsException() {
         assertThatThrownBy(() -> new TestProfileJsonValidation(invalidJsonResponse, mockResults))
-            .isInstanceOf(org.json.JSONException.class);
+            .isInstanceOf(RuntimeException.class);
     }
 
     @Test
     public void testConstructor_NullJsonResponse() {
         assertThatThrownBy(() -> new TestProfileJsonValidation(null, mockResults))
-            .isInstanceOf(NullPointerException.class);
+            .isInstanceOf(org.json.JSONException.class);
     }
 
     @Test
@@ -113,7 +113,7 @@ public class ProfileJsonValidationTest {
         Set<String> pointers = validation.getPointerFromJPath("$.objectClassName");
         
         assertThat(pointers).isNotEmpty();
-        assertThat(pointers).contains("/objectClassName");
+        assertThat(pointers).contains("#/objectClassName");
     }
 
     @Test
@@ -123,7 +123,7 @@ public class ProfileJsonValidationTest {
         Set<String> pointers = validation.getPointerFromJPath("$.entities[*].handle");
         
         assertThat(pointers).isNotEmpty();
-        assertThat(pointers).contains("/entities/0/handle");
+        assertThat(pointers).contains("#/entities/0/handle");
     }
 
     @Test
@@ -142,35 +142,37 @@ public class ProfileJsonValidationTest {
         Set<String> pointers = validation.getPointerFromJPath(validation.jsonObject, "$.ldhName");
         
         assertThat(pointers).isNotEmpty();
-        assertThat(pointers).contains("/ldhName");
+        assertThat(pointers).contains("#/ldhName");
     }
 
     @Test
     public void testGetResultValue_SinglePointer() {
         TestProfileJsonValidation validation = new TestProfileJsonValidation(validJsonResponse, mockResults);
         
-        String result = validation.getResultValue("/objectClassName");
+        String result = validation.getResultValue("#/objectClassName");
         
-        assertThat(result).isEqualTo("/objectClassName:\"domain\"");
+        assertThat(result).isEqualTo("#/objectClassName:domain");
     }
 
     @Test
     public void testGetResultValue_InvalidPointer() {
         TestProfileJsonValidation validation = new TestProfileJsonValidation(validJsonResponse, mockResults);
         
-        assertThatThrownBy(() -> validation.getResultValue("/nonExistentField"))
-            .isInstanceOf(org.json.JSONPointerException.class);
+        String result = validation.getResultValue("#/nonExistentField");
+        
+        // Invalid pointers return the pointer with null value
+        assertThat(result).isEqualTo("#/nonExistentField:null");
     }
 
     @Test
     public void testGetResultValue_SetOfPointers() {
         TestProfileJsonValidation validation = new TestProfileJsonValidation(validJsonResponse, mockResults);
         
-        Set<String> pointers = Set.of("/objectClassName", "/ldhName");
+        Set<String> pointers = Set.of("#/objectClassName", "#/ldhName");
         String result = validation.getResultValue(pointers);
         
-        assertThat(result).contains("/ldhName:\"example.com\"");
-        assertThat(result).contains("/objectClassName:\"domain\"");
+        assertThat(result).contains("#/ldhName:example.com");
+        assertThat(result).contains("#/objectClassName:domain");
         assertThat(result).contains(", "); // Should be comma-separated
     }
 

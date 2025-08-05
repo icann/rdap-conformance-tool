@@ -79,16 +79,12 @@ public class RDAPDatasetTest {
 
     @Test
     public void testParseSuccess() throws Exception {
-        // Create a mock file that exists
-        String expectedPath = "datasets/dns-sec-alg-numbers.xml";
-
-        // For this test, we need to mock the file system to have a valid XML file
-        // Since we're testing the dataset parsing logic, we'll mock successful parsing
+        // The dataset file exists in the main datasets directory
+        // This tests the successful parsing path
         boolean result = dataset.parse();
 
-        // The parse will fail because there's no actual file, which is expected
-        // This tests the error handling path
-        assertThat(result).isFalse();
+        // The parse should succeed because the actual XML file exists
+        assertThat(result).isTrue();
     }
 
     // Test for unsupported file extension
