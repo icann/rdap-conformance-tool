@@ -1,15 +1,22 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import java.net.InetAddress;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
+import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.X509TrustManager;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.hc.core5.http.MalformedChunkCodingException;
@@ -1392,5 +1399,145 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
         public boolean isSensitive() {
             return false;
         }
+    }
+
+    @Test
+    public void testGetDefaultIPv4Address() throws Exception {
+        InetAddress ipv4Address = RDAPHttpRequest.getDefaultIPv4Address();
+        
+        if (ipv4Address != null) {
+            assertThat(ipv4Address).isInstanceOf(Inet4Address.class);
+            assertThat(ipv4Address.getHostAddress()).isNotEmpty();
+        }
+    }
+
+    @Test
+    public void testGetDefaultIPv6Address() throws Exception {
+        InetAddress ipv6Address = RDAPHttpRequest.getDefaultIPv6Address();
+        
+        if (ipv6Address != null) {
+            assertThat(ipv6Address).isInstanceOf(Inet6Address.class);
+            assertThat(ipv6Address.getHostAddress()).isNotEmpty();
+        }
+    }
+
+
+    @Test
+    public void testCreateLeafValidatingTrustManager() throws Exception {
+        X509TrustManager trustManager = RDAPHttpRequest.createLeafValidatingTrustManager();
+        
+        assertThat(trustManager).isNotNull();
+        
+        // Test with null chain - should throw exception
+        org.testng.Assert.assertThrows(CertificateException.class, () -> {
+            trustManager.checkServerTrusted(null, "RSA");
+        });
+        
+        // Test with empty chain - should throw exception
+        org.testng.Assert.assertThrows(CertificateException.class, () -> {
+            trustManager.checkServerTrusted(new X509Certificate[0], "RSA");
+        });
+    }
+
+    @Test
+    public void testCreateLeafValidatingTrustManager_ExpiredCertificate() throws Exception {
+        X509TrustManager trustManager = RDAPHttpRequest.createLeafValidatingTrustManager();
+        
+        // Mock an expired certificate
+        X509Certificate expiredCert = mock(X509Certificate.class);
+        when(expiredCert.getSubjectX500Principal()).thenReturn(new javax.security.auth.x500.X500Principal("CN=example.com"));
+        when(expiredCert.getIssuerX500Principal()).thenReturn(new javax.security.auth.x500.X500Principal("CN=Test CA"));
+        when(expiredCert.getNotBefore()).thenReturn(new Date(System.currentTimeMillis() - 86400000)); // 1 day ago
+        when(expiredCert.getNotAfter()).thenReturn(new Date(System.currentTimeMillis() - 3600000)); // 1 hour ago (expired)
+        
+        // Mock the checkValidity to throw CertificateExpiredException
+        doThrow(new java.security.cert.CertificateExpiredException("Certificate expired"))
+                .when(expiredCert).checkValidity(any(Date.class));
+        
+        X509Certificate[] chain = {expiredCert};
+        
+        org.testng.Assert.assertThrows(CertificateException.class, () -> {
+            trustManager.checkServerTrusted(chain, "RSA");
+        });
+    }
+
+    @Test
+    public void testCreateLeafValidatingTrustManager_ClientTrusted() throws Exception {
+        X509TrustManager trustManager = RDAPHttpRequest.createLeafValidatingTrustManager();
+        
+        // Client certificate checking should not throw exceptions (it's a no-op)
+        trustManager.checkClientTrusted(new X509Certificate[0], "RSA");
+        trustManager.checkClientTrusted(null, "RSA");
+    }
+
+    @Test
+    public void testCreateLeafValidatingTrustManager_GetAcceptedIssuers() throws Exception {
+        X509TrustManager trustManager = RDAPHttpRequest.createLeafValidatingTrustManager();
+        
+        X509Certificate[] acceptedIssuers = trustManager.getAcceptedIssuers();
+        
+        // Should return the default trust manager's accepted issuers
+        assertThat(acceptedIssuers).isNotNull();
+    }
+
+    @Test
+    public void testSimpleHttpResponse_DuplicateSetCookieHeaders() {
+        URI testUri = URI.create("http://example.com");
+        
+        // Create headers with both "set-cookie" and "Set-Cookie" (case difference would cause duplicate key issue)
+        RDAPHttpRequest.Header[] headers = new RDAPHttpRequest.Header[] {
+            new RDAPHttpRequest.Header("Content-Type", "application/json"),
+            new RDAPHttpRequest.Header("set-cookie", "sessionid=abc123; path=/; HttpOnly"),
+            new RDAPHttpRequest.Header("Set-Cookie", "__cf_bm=xyz789; path=/; expires=Mon, 04-Aug-25 21:08:35 GMT; domain=.example.com; HttpOnly; Secure; SameSite=None")
+        };
+
+        RDAPHttpRequest.SimpleHttpResponse response =
+            new RDAPHttpRequest.SimpleHttpResponse("track-123", 406, "", testUri, headers);
+
+        // After the fix, this should work without throwing an exception
+        HttpHeaders httpHeaders = response.headers();
+        
+        // Verify we can access the headers
+        assertThat(httpHeaders).isNotNull();
+        assertThat(httpHeaders.firstValue("Content-Type")).isPresent();
+        assertThat(httpHeaders.firstValue("Content-Type").get()).isEqualTo("application/json");
+        
+        // Both Set-Cookie header values should be preserved and accessible
+        assertThat(httpHeaders.allValues("set-cookie")).hasSize(2);
+        assertThat(httpHeaders.allValues("Set-Cookie")).hasSize(2); // Case-insensitive access
+        assertThat(httpHeaders.allValues("set-cookie")).contains("sessionid=abc123; path=/; HttpOnly");
+        assertThat(httpHeaders.allValues("set-cookie")).contains("__cf_bm=xyz789; path=/; expires=Mon, 04-Aug-25 21:08:35 GMT; domain=.example.com; HttpOnly; Secure; SameSite=None");
+    }
+
+    @Test
+    public void testSimpleHttpResponse_MultipleDuplicateHeaders() {
+        URI testUri = URI.create("http://example.com");
+        
+        // Test with multiple headers having various case combinations
+        RDAPHttpRequest.Header[] headers = new RDAPHttpRequest.Header[] {
+            new RDAPHttpRequest.Header("set-cookie", "cookie1=value1"),
+            new RDAPHttpRequest.Header("Set-Cookie", "cookie2=value2"),
+            new RDAPHttpRequest.Header("SET-COOKIE", "cookie3=value3"),
+            new RDAPHttpRequest.Header("Content-Type", "application/json"),
+            new RDAPHttpRequest.Header("content-type", "text/html"), // This should merge with Content-Type
+            new RDAPHttpRequest.Header("CONTENT-TYPE", "application/xml")
+        };
+
+        RDAPHttpRequest.SimpleHttpResponse response =
+            new RDAPHttpRequest.SimpleHttpResponse("track-123", 200, "", testUri, headers);
+
+        HttpHeaders httpHeaders = response.headers();
+        
+        // Verify all set-cookie values are preserved
+        assertThat(httpHeaders.allValues("set-cookie")).hasSize(3);
+        assertThat(httpHeaders.allValues("set-cookie")).contains("cookie1=value1", "cookie2=value2", "cookie3=value3");
+        
+        // Verify all content-type values are preserved  
+        assertThat(httpHeaders.allValues("content-type")).hasSize(3);
+        assertThat(httpHeaders.allValues("content-type")).contains("application/json", "text/html", "application/xml");
+        
+        // Verify case-insensitive access works
+        assertThat(httpHeaders.allValues("SET-COOKIE")).hasSize(3);
+        assertThat(httpHeaders.allValues("Content-Type")).hasSize(3);
     }
 }

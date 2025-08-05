@@ -65,6 +65,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLContext;
 import java.net.URI;
@@ -580,7 +581,8 @@ public class RDAPHttpRequest {
             this.uri = uri;
             this.trackingId = trackingId;
 
-            Map<String, List<String>> headersMap = new HashMap<>();
+            // Use case-insensitive header map to handle servers that send headers with different cases
+            Map<String, List<String>> headersMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
             if (headers != null) {
                 for (Header header : headers) {
                     headersMap.computeIfAbsent(header.getName(), k -> new ArrayList<>())
@@ -622,6 +624,8 @@ public class RDAPHttpRequest {
 
         @Override
         public HttpHeaders headers() {
+            // The headers map is now case-insensitive, so duplicate header names with different cases
+            // (e.g., "set-cookie" and "Set-Cookie") are automatically merged into a single entry
             return HttpHeaders.of(headers, (k, v) -> true);
         }
 
