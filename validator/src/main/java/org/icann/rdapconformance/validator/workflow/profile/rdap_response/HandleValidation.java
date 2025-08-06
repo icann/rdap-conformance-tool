@@ -25,14 +25,16 @@ public abstract class HandleValidation extends ProfileJsonValidation {
   protected final RDAPQueryType queryType;
   protected final RDAPValidatorConfiguration config;
   final int code;
+  final String objectName;
 
   public HandleValidation(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
-                          RDAPDatasetService datasetService, RDAPQueryType queryType, int code) {
+                          RDAPDatasetService datasetService, RDAPQueryType queryType, int code, String objectName) {
     super(rdapResponse, results);
     this.datasetService = datasetService;
     this.queryType = queryType;
     this.code = code;
     this.config = config;
+    this.objectName = objectName;
   }
 
   protected boolean validateHandle(String handleJsonPointer) {
@@ -50,8 +52,8 @@ public abstract class HandleValidation extends ProfileJsonValidation {
       results.add(RDAPValidationResult.builder()
           .code(code)
           .value(getResultValue(handleJsonPointer))
-          .message(String.format("The handle in the entity object does not comply with the format "
-              + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730."))
+          .message(String.format("The handle in the %s object does not comply with the format "
+              + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", objectName))
           .build());
       return false;
     }
@@ -63,7 +65,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .code(code - 1)
           .value(getResultValue(handleJsonPointer))
           .message(String.format("The globally unique identifier in the %s object handle is not "
-              + "registered in EPPROID.", queryType.name().toLowerCase()))
+              + "registered in EPPROID.", objectName))
           .build());
       return false;
     }

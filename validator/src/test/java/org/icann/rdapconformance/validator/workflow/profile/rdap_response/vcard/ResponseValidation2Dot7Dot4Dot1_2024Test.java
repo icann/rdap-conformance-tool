@@ -93,6 +93,6 @@ public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidat
 
         fnValue.put(3, StringUtils.EMPTY);
         redactedObject.put("method", "test2");
-        validate(-63204, methodPointer, "Registrant Name redaction method must be empytValue.");
+        validate(-63204, methodPointer, "Registrant Name redaction method must be emptyValue.");
     }
 }

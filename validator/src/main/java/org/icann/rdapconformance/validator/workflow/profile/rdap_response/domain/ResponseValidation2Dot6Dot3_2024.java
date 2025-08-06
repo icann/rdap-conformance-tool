@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -20,10 +20,12 @@ import java.util.Set;
 
 public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidation {
 
+    private final RDAPValidatorConfiguration config;
     private static final String NOT_FOUND = "not_found";
 
-    public ResponseValidation2Dot6Dot3_2024(String rdapResponse, RDAPValidatorResults results) {
+    public ResponseValidation2Dot6Dot3_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
         super(rdapResponse, results);
+        this.config = config;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot6Dot3_2024.class);
@@ -145,13 +147,15 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                 return false;
             }
 
-            if(!isValidURL(statusLink.get().value())) {
-                results.add(RDAPValidationResult.builder()
-                        .code(-46606)
-                        .value(getResultValue(noticePointersValue))
-                        .message("The notice for Status Codes does not have a link value of the request URL.")
-                        .build());
-                return false;
+            if(isValidURL(statusLink.get().value())) {
+                if(!statusLink.get().value().equalsIgnoreCase(this.config.getUri().toString())) {
+                    results.add(RDAPValidationResult.builder()
+                            .code(-46606)
+                            .value(getResultValue(noticePointersValue))
+                            .message("The notice for Status Codes does not have a link value of the request URL.")
+                            .build());
+                    return false;
+                }
             }
         }
 
@@ -183,15 +187,24 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
             JSONObject jsonObject = jsonArray.getJSONObject(i);
             try {
                 list.add(new LinksObjectToValidate(
-                        jsonObject.getString("value"),
-                        jsonObject.getString("rel"),
-                        jsonObject.getString("href")));
+                        getStringOrDefault(jsonObject, "value"),
+                        getStringOrDefault(jsonObject, "rel"),
+                        getStringOrDefault(jsonObject, "href")));
             } catch (Exception e) {
                 logger.info("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
                 list.add(new LinksObjectToValidate(NOT_FOUND, NOT_FOUND, NOT_FOUND));
             }
         }
         return list;
+    }
+
+    private static String getStringOrDefault(JSONObject obj, String key) {
+        try {
+            return obj.getString(key);
+        } catch (JSONException e) {
+            logger.info("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
+            return NOT_FOUND;
+        }
     }
 }
 

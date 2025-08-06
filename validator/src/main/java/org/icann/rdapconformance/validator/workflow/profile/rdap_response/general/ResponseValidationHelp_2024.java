@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
@@ -15,7 +16,7 @@ import java.net.http.HttpResponse;
 import java.util.Objects;
 
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
 
 public class ResponseValidationHelp_2024 extends ProfileValidation {
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationHelp_2024.class);
@@ -72,7 +73,14 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
 
         jsonHelpResponse = new RDAPHttpQuery.JsonData(rdapHelpResponse);
         if(!isHelpJsonValid(jsonHelpResponse ) || HTTP_OK != httpHelpStatusCode) {
-            addErrorToResultsFile(httpHelpStatusCode,-20701, rdapHelpResponse,"Response to a /help query did not yield a proper status code or RDAP response.");
+            results.add(RDAPValidationResult.builder()
+                                            .queriedURI(httpHelpResponse.uri().toString())
+                                            .httpMethod(GET)
+                                            .httpStatusCode(httpHelpStatusCode)
+                                            .code(-20701)
+                                            .value(rdapHelpResponse)
+                                            .message("Response to a /help query did not yield a proper status code or RDAP response.")
+                                            .build());
             isValid = false;
         }
 

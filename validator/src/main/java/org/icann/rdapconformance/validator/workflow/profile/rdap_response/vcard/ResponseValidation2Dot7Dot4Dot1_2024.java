@@ -195,7 +195,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
                     results.add(RDAPValidationResult.builder()
                             .code(-63204)
                             .value(getResultValue(redactedPointersValue))
-                            .message("Registrant Name redaction method must be empytValue.")
+                            .message("Registrant Name redaction method must be emptyValue.")
                             .build());
                     return false;
                 }

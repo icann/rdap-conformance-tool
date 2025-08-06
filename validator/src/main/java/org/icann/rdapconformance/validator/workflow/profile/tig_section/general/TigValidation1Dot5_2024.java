@@ -6,21 +6,13 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.TIMEOUT_IN_5SECS;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.http.HttpResponse;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
-import org.icann.rdapconformance.validator.NetworkInfo;
-import org.icann.rdapconformance.validator.NetworkProtocol;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -34,12 +26,20 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
     private static final Logger logger = LoggerFactory.getLogger(TigValidation1Dot5_2024.class);
     private final HttpResponse<String> rdapResponse;
     private final RDAPValidatorConfiguration config;
+    private final SSLValidator sslValidator;
 
     public TigValidation1Dot5_2024(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
         RDAPValidatorResults results) {
+        this(rdapResponse, config, results, new DefaultSSLValidator());
+    }
+    
+    // Constructor for testing with injectable SSLValidator
+    public TigValidation1Dot5_2024(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
+        RDAPValidatorResults results, SSLValidator sslValidator) {
         super(results);
         this.rdapResponse = rdapResponse;
         this.config = config;
+        this.sslValidator = sslValidator;
     }
 
     @Override
@@ -55,54 +55,24 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
         while (responseOpt.isPresent()) {
             HttpResponse<String> response = responseOpt.get();
             if (response.uri().getScheme().equals(HTTPS)) {
-                SSLContext sslContext;
-
-                try {
-                    sslContext = SSLContext.getDefault();
-                } catch (NoSuchAlgorithmException e) {
-                    logger.info("Cannot create SSL context", e);
-                    return false;
-                }
-
                 int port = config.getUri().getPort();
                 if (port < ZERO) {
                     port = HTTPS_PORT;
                 }
-
-                List<String> enabledProtocols;
-                try (Socket socket = new Socket()) {
-                    String hostname = config.getUri().getHost();
-                    InetAddress ipAddress = null;
-
-                    if (NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) {
-                        ipAddress = DNSCacheResolver.getFirstV6Address(hostname);
-                        logger.info("Using IPv6 address {} for host {}", ipAddress, hostname);
-                    } else { // then we are doing v4
-                        ipAddress = DNSCacheResolver.getFirstV4Address(hostname);
-                        logger.info("Using IPv4 address {} for host {}", ipAddress, hostname);
-                    }
-
-                    if (ipAddress == null) {
-                        logger.info("Cannot resolve correct v4 or v6 host adder for  {}", hostname);
-                        return false;
-                    }
-
-                    socket.connect(new InetSocketAddress(ipAddress, port), TIMEOUT_IN_5SECS);
-                    logger.info("Connected to {} ({})", hostname, ipAddress.getHostAddress());
-
-                    try (SSLSocket sslSocket = (SSLSocket) sslContext.getSocketFactory().createSocket(socket,
-                        config.getUri().getHost(), port, true)) {
-                        sslSocket.startHandshake();
-                        enabledProtocols = Arrays.asList(sslSocket.getEnabledProtocols());
-                        logger.debug("Enabled protocols: {}", enabledProtocols);
-                    }
-
-
-                } catch (IOException e) {
-                    logger.info("Error during SSL connection setup", e);
+                
+                String hostname = config.getUri().getHost();
+                
+                // Use the SSLValidator to perform the SSL validation
+                SSLValidator.SSLValidationResult sslResult = sslValidator.validateSSL(hostname, port);
+                
+                if (!sslResult.isSuccessful()) {
+                    logger.info("SSL validation failed: {}", sslResult.getErrorMessage());
                     return false;
                 }
-
+                
+                List<String> enabledProtocols = sslResult.getEnabledProtocols();
+                
+                // Validate TLS protocols
                 for (String enabledProtocol : enabledProtocols) {
                     if (!"TLSv1.2".equalsIgnoreCase(enabledProtocol) && !"TLSv1.3".equalsIgnoreCase(enabledProtocol)) {
                         results.add(RDAPValidationResult.builder()
@@ -114,43 +84,44 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                             .build());
                         isValid = false;
                     }
-
-                    if ("TLSv1.2".equalsIgnoreCase(enabledProtocol)) {
-                        try (SSLSocket sslSocket = (SSLSocket) sslContext.getSocketFactory().createSocket(config.getUri().getHost(), port)) {
-
-                            sslSocket.setEnabledProtocols(new String[]{"TLSv1.2"});
-                            sslSocket.startHandshake();
-                            SSLSession sslSession = sslSocket.getSession();
-
-                            String protocol = sslSession.getProtocol();
-                            String cipher = sslSession.getCipherSuite();
-                            logger.info("cipher for protocol {} is {}", protocol, cipher);
-
-                            if (!"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256".equalsIgnoreCase(cipher)
-                                && !"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384".equalsIgnoreCase(cipher)
-                                && !"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256".equalsIgnoreCase(cipher)
-                                && !"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384".equalsIgnoreCase(cipher)) {
-
-                                results.add(RDAPValidationResult.builder()
-                                    .code(-61101)
-                                    .httpStatusCode(ZERO)
-                                    .httpMethod(DASH)
-                                    .value(response.uri().toString())
-                                    .message("The RDAP server must use one of the following cipher suites when using TLS 1.2: "
-                                        + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, "
-                                        + "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384.")
-                                    .build());
-                                isValid = false;
-                            }
-                        } catch (IOException e) {
-                            logger.info("Cannot create SSL connection", e);
-                            return false;
+                }
+                
+                // Validate TLS 1.2 cipher suites using the SSLValidator
+                if (enabledProtocols.contains("TLSv1.2")) {
+                    SSLValidator.CipherValidationResult cipherResult = sslValidator.validateTLS12CipherSuites(hostname, port);
+                    if (cipherResult != null && cipherResult.isSuccessful()) {
+                        String cipher = cipherResult.getCipherSuite();
+                        if (!isValidTLS12Cipher(cipher)) {
+                            results.add(RDAPValidationResult.builder()
+                                .code(-61101)
+                                .httpStatusCode(ZERO)
+                                .httpMethod(DASH)
+                                .value(response.uri().toString())
+                                .message("The RDAP server must use one of the following cipher suites when using TLS 1.2: "
+                                    + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, "
+                                    + "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384.")
+                                .build());
+                            isValid = false;
                         }
-                    } // end of TLSv1.2 protocol
-                } // end of for each enabledProtocol
+                    } else if (cipherResult != null) {
+                        logger.info("Cannot validate TLS 1.2 cipher suites: {}", cipherResult.getErrorMessage());
+                        isValid = false;
+                    } else {
+                        logger.info("Cannot validate TLS 1.2 cipher suites: SSL validator returned null result");
+                        isValid = false;
+                    }
+                }
+                
             } // end of if https
             responseOpt = response.previousResponse();
         }
         return isValid;
+    }
+    
+    private boolean isValidTLS12Cipher(String cipher) {
+        return "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256".equalsIgnoreCase(cipher)
+            || "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384".equalsIgnoreCase(cipher)
+            || "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256".equalsIgnoreCase(cipher)
+            || "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384".equalsIgnoreCase(cipher);
     }
 }

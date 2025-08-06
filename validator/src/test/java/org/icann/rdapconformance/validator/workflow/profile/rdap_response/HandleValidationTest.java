@@ -24,13 +24,16 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
   private RDAPDatasetService datasetService;
   private RDAPQueryType queryType; // must be public
   private EPPRoid eppRoid;
+  private String objectName;
 
   public HandleValidationTest(String validJsonResourcePath, String testGroupName,
       RDAPQueryType baseQueryType,
-      Class<T> validationClass) {
+      Class<T> validationClass,
+      String objectName) {
     super(validJsonResourcePath, testGroupName);
     this.baseQueryType = baseQueryType;
     this.validationClass = validationClass;
+    this.objectName = objectName;
   }
 
   @BeforeMethod
@@ -67,8 +70,8 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
     String value = givenInvalidHandle();
     HandleValidation validation = getProfileValidation();
     validate(validation.code, value,
-        String.format("The handle in the entity object does not comply with the format "
-            + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730."));
+        String.format("The handle in the %s object does not comply with the format "
+            + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", objectName));
   }
 
   @Test
@@ -77,7 +80,7 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
     HandleValidation validation = getProfileValidation();
     validate(validation.code - 1, getValidValueWithRoidExmp(),
         String.format("The globally unique identifier in the %s object handle is not registered "
-            + "in EPPROID.", baseQueryType.name().toLowerCase()));
+            + "in EPPROID.", objectName));
   }
 
   @Test

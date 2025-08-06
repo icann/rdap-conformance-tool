@@ -64,6 +64,18 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   }
 
   @Override
+  public void addAll(Set<RDAPValidationResult> results) {
+    this.results.clear();
+    this.results.addAll(results);
+  }
+
+  @Override
+  public void removeGroups() {
+    this.groups.clear();
+    this.groupErrorWarning.clear();
+  }
+
+  @Override
   public Set<RDAPValidationResult> getAll() {
     return results;
   }
@@ -134,7 +146,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     List<RDAPValidationResult> filtered = new ArrayList<>();
     for (RDAPValidationResult result : results) {
       int code = result.getCode();
-      if (code != -130004 && code != -130005 && code != -130006 && code != -46701) {
+      if (code != -130004 && code != -130005 && code != -130006 && code != -65300) {
         filtered.add(result);
       }
     }
@@ -144,13 +156,13 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
       List<Object> tuple = new ArrayList<>();
       tuple.add(result.getCode());
       Integer status = result.getHttpStatusCode();
-      tuple.add((status != null && status == ZERO) ? null : status);
+      tuple.add(status == null ? ZERO : status);
       uniqueTuples.add(tuple);
     }
 
     String tupleListJson = BRACKETS;
     try {
-      ObjectMapper mapper = new ObjectMapper();
+      ObjectMapper mapper = org.icann.rdapconformance.validator.workflow.JsonMapperUtil.getSharedMapper();
       tupleListJson = mapper.writeValueAsString(new ArrayList<>(uniqueTuples));
     } catch (JsonProcessingException e) {
       logger.info("Error serializing tuple list to JSON", e);

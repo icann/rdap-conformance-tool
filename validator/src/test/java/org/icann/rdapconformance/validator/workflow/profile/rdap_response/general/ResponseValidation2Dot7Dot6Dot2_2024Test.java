@@ -55,7 +55,7 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
 
         telVoiceObject.remove("type");
         redactedObject.getJSONObject("name").put("type", "test");
-        validate(-65100, telPointer, "a redaction of type Registrant Phone is required.");
+        validate(-65100, telPointer, "a redaction of type Tech Phone is required.");
     }
 
     @Test

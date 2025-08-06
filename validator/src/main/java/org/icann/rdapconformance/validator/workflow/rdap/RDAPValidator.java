@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot3_2024;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileQueryTypeP
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.SimpleHttpResponse;
 import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.workflow.SchemaValidatorCache;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
@@ -115,7 +117,7 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         if (query.isErrorContent()) {
             // if they return a 404 then we need a schema validator that checks the error response content itself
-            validator = new SchemaValidator("rdap_error.json", results, datasetService);
+            validator = SchemaValidatorCache.getCachedValidator("rdap_error.json", results, datasetService);
         } else {
             // else we check the schema of the data pertaining to the query type
             String schemaFile = schemaMap.get(queryType);
@@ -124,7 +126,7 @@ public class RDAPValidator implements ValidatorWorkflow {
                     logger.error("Thin flag is set while validating entity");
                     return ToolResult.USES_THIN_MODEL.getCode();
                    }
-                validator = new SchemaValidator(schemaFile, results, datasetService);
+                validator = SchemaValidatorCache.getCachedValidator(schemaFile, results, datasetService);
             }
         }
 
@@ -152,8 +154,20 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Issue additional queries (/help and /not-a-domain.invalid) when flag is true and profile 2024 is false
         if(config.isAdditionalConformanceQueries() && !config.useRdapProfileFeb2024()) {
             logger.info("Validations for additional conformance queries");
-            new ResponseValidationHelp_2024(config, results).validate();  // Network calls
-            new ResponseValidationDomainInvalid_2024(config, results).validate(); // Network calls
+            
+            boolean aggressiveNetworkParallel = "true".equals(System.getProperty("rdap.parallel.network", "false"));
+            if (aggressiveNetworkParallel) {
+                // Execute additional queries in parallel
+                List<ProfileValidation> additionalValidations = List.of(
+                    new ResponseValidationHelp_2024(config, results),
+                    new ResponseValidationDomainInvalid_2024(config, results)
+                );
+                org.icann.rdapconformance.validator.workflow.profile.NetworkValidationCoordinator.executeNetworkValidations(additionalValidations);
+            } else {
+                // Sequential execution (default)
+                new ResponseValidationHelp_2024(config, results).validate();  // Network calls
+                new ResponseValidationDomainInvalid_2024(config, results).validate(); // Network calls
+            }
         }
 
         // get all the 2019 profile validations and run them
@@ -204,6 +218,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         return RDAPValidationResultFile.getInstance().getResultsPath();
     }
 
+
     private List<ProfileValidation> get2024ProfileValidations(HttpResponse<String> rdapResponse,
                                                               RDAPValidatorConfiguration config,
                                                               RDAPValidatorResults results,
@@ -212,76 +227,71 @@ public class RDAPValidator implements ValidatorWorkflow {
                                                               String rdapResponseData) {
         List<ProfileValidation> validations = new ArrayList<>();
 
-        // below are from 2019 profile validations
-        // Add validations that do not require network connections
-        validations.add(new TigValidation3Dot2(rdapResponseData, results, config, queryType)); // clean
-        validations.add(new TigValidation4Dot1(rdapResponseData, results)); // clean
-        validations.add(new TigValidation7Dot1And7Dot2(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation1Dot2Dot2(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation1Dot4(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidationLastUpdateEvent(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot1(rdapResponseData, results, config, queryType)); // clean
-        validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot10(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidationRFC5731(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidationRFC3915(rdapResponseData, results,queryType)); // clean
-        validations.add(new ResponseValidation2Dot6Dot1(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, rdapResponseData, results, datasetService, queryType)); // clean
-        validations.add(new ResponseValidation2Dot4Dot1(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(rdapResponseData, results, datasetService, queryType)); // clean
-        validations.add(new ResponseValidation2Dot4Dot5(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseNameserverStatusValidation(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation4Dot1Handle(config, rdapResponseData, results, datasetService, queryType)); // clean
-        validations.add(new ResponseValidation4Dot1Query(rdapResponseData, results, config, queryType)); // clean
-        validations.add(new ResponseValidation4Dot3(rdapResponseData, results, datasetService, queryType)); // clean
+        // All validations in original order - exactly like master branch
+        // From 2019 profile validations
+        validations.add(new TigValidation3Dot2(rdapResponseData, results, config, queryType));
+        validations.add(new TigValidation4Dot1(rdapResponseData, results));
+        validations.add(new TigValidation7Dot1And7Dot2(rdapResponseData, results));
+        validations.add(new ResponseValidation1Dot2Dot2(rdapResponseData, results));
+        validations.add(new ResponseValidation1Dot4(rdapResponseData, results));
+        validations.add(new ResponseValidationLastUpdateEvent(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot1(rdapResponseData, results, config, queryType));
+        validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot10(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidationRFC5731(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidationRFC3915(rdapResponseData, results,queryType));
+        validations.add(new ResponseValidation2Dot6Dot1(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, rdapResponseData, results, datasetService, queryType));
+        validations.add(new ResponseValidation2Dot4Dot1(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(rdapResponseData, results, datasetService, queryType));
+        validations.add(new ResponseValidation2Dot4Dot5(rdapResponseData, results, queryType));
+        validations.add(new ResponseNameserverStatusValidation(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation4Dot1Handle(config, rdapResponseData, results, datasetService, queryType));
+        validations.add(new ResponseValidation4Dot1Query(rdapResponseData, results, config, queryType));
+        validations.add(new ResponseValidation4Dot3(rdapResponseData, results, datasetService, queryType));
 
-        // Add validations that require network connections if the flag is enabled
+        // 2024 specific validations
+        validations.add(new TigValidation1Dot3_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation1Dot2_1_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation1Dot2_2_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot2_2024(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot2_1_2024(rdapResponseData, results, datasetService));
+        validations.add(new ResponseValidation2Dot4Dot6_2024(rdapResponseData, results, datasetService,queryType, config));
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(rdapResponseData, results, queryType, config));
+        validations.add(new ResponseValidation2Dot7Dot3_2024(config, rdapResponseData, results, datasetService, queryType));
+        validations.add(new ResponseValidation2Dot7Dot5Dot1_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot5Dot2_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot5Dot3_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot6Dot2_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot6Dot3_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation4Dot1Handle_2024(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidationRegistrantHandle_2024(rdapResponseData, results, datasetService));
+        validations.add(new ResponseValidationLinkElements_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot2_2024(config, queryType, rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot4Dot1_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot4Dot2_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot4Dot3_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot4Dot4_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot4Dot6_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot4Dot8_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot4Dot9_2024(rdapResponseData, results));
+        validations.add(new ResponseValidationStatusDuplication_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot7Dot6Dot1_2024(rdapResponseData, results));
+        validations.add(new StdRdapConformanceValidation_2024(rdapResponseData, results));
+        validations.add(new TigValidation3Dot2_2024(rdapResponseData, results, config, queryType));
+        validations.add(new TigValidation3Dot3And3Dot4_2024(rdapResponseData, results, config));
+        validations.add(new ResponseValidation2Dot6Dot3_2024(rdapResponseData, results, config));
+        validations.add(new ResponseValidation2Dot10_2024(rdapResponseData, results));
+
+        // Network-dependent validations
         if (config.isNetworkEnabled()) {
-            logger.info("Network enabled tests");
             validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), config, results)); // HTTP head request
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
             validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService, config)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // assumes you passed in a URL on the cli
-        }
-        // above are from 2019 validations
-
-        // 2024 validations
-        validations.add(new TigValidation1Dot3_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation1Dot2_1_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation1Dot2_2_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot2_2024(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot2_1_2024(rdapResponseData, results, datasetService)); // clean
-        validations.add(new ResponseValidation2Dot4Dot6_2024(rdapResponseData, results, datasetService,queryType, config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(rdapResponseData, results, queryType, config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot3_2024(config, rdapResponseData, results, datasetService, queryType));
-        validations.add(new ResponseValidation2Dot7Dot5Dot1_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot5Dot2_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot6Dot2_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot6Dot3_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation4Dot1Handle_2024(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidationRegistrantHandle_2024(rdapResponseData, results, datasetService)); // clean
-        validations.add(new ResponseValidationLinkElements_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot2_2024(config, queryType, rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot4Dot1_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot4Dot2_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot4Dot3_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot4Dot4_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot4Dot6_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot4Dot8_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation2Dot7Dot4Dot9_2024(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidationStatusDuplication_2024(rdapResponseData, results)); // clean
-        validations.add(new StdRdapConformanceValidation_2024(rdapResponseData, results)); // clean
-        validations.add(new TigValidation3Dot2_2024(rdapResponseData, results, config, queryType)); // clean
-        validations.add(new TigValidation3Dot3And3Dot4_2024(rdapResponseData, results, config)); // clean
-        validations.add(new ResponseValidation2Dot6Dot3_2024(rdapResponseData, results)); //clean
-        validations.add(new ResponseValidation2Dot10_2024(rdapResponseData, results)); // clean
-
-        // Conditionally add validations that require network connections
-        if (config.isNetworkEnabled()) {
-            logger.info("Network enabled tests for 2024 profile");
+            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // URL-based validation
             validations.add(new TigValidation1Dot5_2024(rdapResponse, config, results)); // SSL Network connection
             validations.add(new ResponseValidationTestInvalidRedirect_2024(config, results)); // Network connection
 
@@ -294,64 +304,64 @@ public class RDAPValidator implements ValidatorWorkflow {
         return validations;
     }
 
+
     private List<ProfileValidation> get2019RdapValidations(HttpResponse<String> rdapResponse,
-                                                       RDAPValidatorConfiguration config,
-                                                       RDAPValidatorResults results,
-                                                       RDAPDatasetService datasetService,
-                                                       RDAPQueryType queryType,
-                                                       SchemaValidator validator,
-                                                       String rdapResponseData) {
+                                                           RDAPValidatorConfiguration config,
+                                                           RDAPValidatorResults results,
+                                                           RDAPDatasetService datasetService,
+                                                           RDAPQueryType queryType,
+                                                           SchemaValidator validator,
+                                                           String rdapResponseData) {
         List<ProfileValidation> validations = new ArrayList<>();
 
-        // Add validations that do not require network connections
-        validations.add(new TigValidation1Dot14(rdapResponseData, results)); // clean
-        validations.add(new TigValidation3Dot2(rdapResponseData, results, config, queryType)); // clean
-        validations.add(new TigValidation3Dot3And3Dot4(rdapResponseData, results, validator)); // clean
-        validations.add(new TigValidation4Dot1(rdapResponseData, results)); // clean
-        validations.add(new TigValidation7Dot1And7Dot2(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation1Dot2Dot2(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation1Dot3(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidation1Dot4(rdapResponseData, results)); // clean
-        validations.add(new ResponseValidationLastUpdateEvent(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot1(rdapResponseData, results, config, queryType)); // clean
-        validations.add(new ResponseValidation2Dot2(config, rdapResponseData, results, datasetService, queryType)); // clean
-        validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidationNoticesIncluded(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot6Dot3(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot11(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot10(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidationRFC5731(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidationRFC3915(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot6Dot1(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, rdapResponseData, results, datasetService, queryType)); // clean
-        validations.add(new ResponseValidation2Dot4Dot1(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(rdapResponseData, results, datasetService, queryType)); // clean
-        validations.add(new ResponseValidation2Dot4Dot5(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated1(rdapResponseData, results, queryType, config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated2(rdapResponseData, results, queryType, config)); // clean
+        // All validations in original order - exactly like master branch
+        validations.add(new TigValidation1Dot14(rdapResponseData, results));
+        validations.add(new TigValidation3Dot2(rdapResponseData, results, config, queryType));
+        validations.add(new TigValidation3Dot3And3Dot4(rdapResponseData, results, validator));
+        validations.add(new TigValidation4Dot1(rdapResponseData, results));
+        validations.add(new TigValidation7Dot1And7Dot2(rdapResponseData, results));
+        validations.add(new ResponseValidation1Dot2Dot2(rdapResponseData, results));
+        validations.add(new ResponseValidation1Dot3(rdapResponseData, results));
+        validations.add(new ResponseValidation1Dot4(rdapResponseData, results));
+        validations.add(new ResponseValidationLastUpdateEvent(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot1(rdapResponseData, results, config, queryType));
+        validations.add(new ResponseValidation2Dot2(config, rdapResponseData, results, datasetService, queryType));
+        validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidationNoticesIncluded(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot6Dot3(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot11(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot10(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidationRFC5731(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidationRFC3915(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot6Dot1(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, rdapResponseData, results, datasetService, queryType));
+        validations.add(new ResponseValidation2Dot4Dot1(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(rdapResponseData, results, datasetService, queryType));
+        validations.add(new ResponseValidation2Dot4Dot5(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated1(rdapResponseData, results, queryType, config));
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated2(rdapResponseData, results, queryType, config));
         validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4(rdapResponseData, results, queryType, config,
-            new SimpleHandleValidation(config, rdapResponseData, results, datasetService, queryType, -52102))); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated5(rdapResponseData, results, queryType, config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated6(rdapResponseData, results, queryType, config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot5Dot2(rdapResponseData, results, queryType, config)); // clean
-        validations.add(new ResponseValidation2Dot7Dot5Dot3(rdapResponseData, results, queryType, config)); // clean
-        validations.add(new ResponseValidation3Dot1(rdapResponseData, results, queryType, config)); // clean
-        validations.add(new ResponseValidation3Dot2(rdapResponseData, results, queryType, config)); // clean
-        validations.add(new ResponseNameserverStatusValidation(rdapResponseData, results, queryType)); // clean
-        validations.add(new ResponseValidation4Dot1Handle(config, rdapResponseData, results, datasetService, queryType)); // clean
-        validations.add(new ResponseValidation4Dot1Query(rdapResponseData, results, config, queryType)); // clean
-        validations.add(new ResponseValidation4Dot3(rdapResponseData, results, datasetService, queryType)); // clean
+            new SimpleHandleValidation(config, rdapResponseData, results, datasetService, queryType, -52102)));
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated5(rdapResponseData, results, queryType, config));
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated6(rdapResponseData, results, queryType, config));
+        validations.add(new ResponseValidation2Dot7Dot5Dot2(rdapResponseData, results, queryType, config));
+        validations.add(new ResponseValidation2Dot7Dot5Dot3(rdapResponseData, results, queryType, config));
+        validations.add(new ResponseValidation3Dot1(rdapResponseData, results, queryType, config));
+        validations.add(new ResponseValidation3Dot2(rdapResponseData, results, queryType, config));
+        validations.add(new ResponseNameserverStatusValidation(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation4Dot1Handle(config, rdapResponseData, results, datasetService, queryType));
+        validations.add(new ResponseValidation4Dot1Query(rdapResponseData, results, config, queryType));
+        validations.add(new ResponseValidation4Dot3(rdapResponseData, results, datasetService, queryType));
 
-        // Add validations that require network connections if the flag is enabled
+        // Network-dependent validations
         if (config.isNetworkEnabled()) {
-            logger.info("Network enabled tests");
             validations.add(new TigValidation1Dot3(rdapResponse, config, results)); // SSL context
             validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), config, results)); // HTTP head request
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(rdapResponse, config, results)); // SSL Network connection
             validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService, config)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // assumes you passed in a URL on the cli
+            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // URL-based validation
         }
 
         return validations;

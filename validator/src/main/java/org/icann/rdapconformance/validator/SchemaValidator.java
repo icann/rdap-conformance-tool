@@ -50,6 +50,8 @@ public class SchemaValidator {
 
   private static final Logger logger = LoggerFactory.getLogger(SchemaValidator.class);
   static Pattern duplicateKeys = Pattern.compile("Duplicate key \"(.+)\" at");
+  // Cache for compiled patterns to avoid repeated compilation of the same key patterns
+  private static final java.util.concurrent.ConcurrentHashMap<String, Pattern> keyPatternCache = new java.util.concurrent.ConcurrentHashMap<>();
   private final JpathUtil jpathUtil;
   private JSONObject schemaObject;
   private Schema schema;
@@ -61,6 +63,11 @@ public class SchemaValidator {
       this.jpathUtil = new JpathUtil();
     this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader(), datasetService),
         results);
+  }
+
+  public SchemaValidator(Schema schema, RDAPValidatorResults results) {
+    this.jpathUtil = new JpathUtil();
+    this.init(schema, results);
   }
 
   private void init(Schema schema, RDAPValidatorResults results) {
@@ -129,9 +136,10 @@ public class SchemaValidator {
 
     JSONObject jsonObject;
     try {
-      jsonObject = new JSONObject(content);
-    } catch (JSONException e) {
-      RDAPValidationResult result = parseJsonException(e, content);
+      // Use cached JSON parsing to avoid repeated parsing of the same content
+      jsonObject = org.icann.rdapconformance.validator.workflow.JsonCacheUtil.getCachedJsonObject(content);
+    } catch (Exception e) {
+      RDAPValidationResult result = parseJsonException(new org.json.JSONException(e.getMessage()), content);
       results.add(result);
       return false;
     }
@@ -200,7 +208,10 @@ public class SchemaValidator {
     Matcher duplicateKeysMatcher = duplicateKeys.matcher(e.getMessage());
     if (duplicateKeysMatcher.find()) {
       String key = duplicateKeysMatcher.group(1);
-      Matcher valueMatcher = Pattern.compile(key + "\":\\s*\"(.*?)\",").matcher(content);
+      // Use cached pattern compilation for better performance
+      String patternString = key + "\":\\s*\"(.*?)\",";
+      Pattern keyPattern = keyPatternCache.computeIfAbsent(patternString, Pattern::compile);
+      Matcher valueMatcher = keyPattern.matcher(content);
       String value = "...";
       if (valueMatcher.find()) {
         value = valueMatcher.group(1).trim();

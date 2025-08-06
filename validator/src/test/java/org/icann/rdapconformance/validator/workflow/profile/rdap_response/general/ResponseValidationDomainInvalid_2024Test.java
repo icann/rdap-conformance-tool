@@ -9,6 +9,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -24,6 +25,7 @@ public class ResponseValidationDomainInvalid_2024Test {
   private RDAPValidatorConfiguration mockConfig;
   private RDAPValidatorResults results;
   private ResponseValidationDomainInvalid_2024 responseValidator;
+  private MockedStatic<RDAPHttpRequest> mockStaticRequest;
 
   @BeforeMethod
   public void setup() {
@@ -31,6 +33,14 @@ public class ResponseValidationDomainInvalid_2024Test {
     results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
     responseValidator = new ResponseValidationDomainInvalid_2024(mockConfig, results);
+  }
+
+  @AfterMethod
+  public void tearDown() {
+    if (mockStaticRequest != null) {
+      mockStaticRequest.close();
+      mockStaticRequest = null;
+    }
   }
 
   @Test
@@ -47,14 +57,13 @@ public class ResponseValidationDomainInvalid_2024Test {
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(200);
     when(mockResponse.body()).thenReturn("{\"rdapConformance\":[], \"errorCode\":404}");
+    when(mockResponse.uri()).thenReturn(URI.create("http://example.com/domain/test.invalid"));
 
-    MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-    mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
-
-    mockRequest.close();
   }
 
   @Test
@@ -77,14 +86,14 @@ public class ResponseValidationDomainInvalid_2024Test {
 
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(404);
+    when(mockResponse.uri()).thenReturn(URI.create("http://example.com/domain/test.invalid"));
 
-    MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-    mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
 
-    mockRequest.close();
     queryTypeProcessor.close();
   }
 
@@ -96,19 +105,18 @@ public class ResponseValidationDomainInvalid_2024Test {
     HttpResponse<String> response = mock(HttpResponse.class);
     when(response.statusCode()).thenReturn(200);
     when(response.body()).thenReturn("{\"rdapConformance\":[]}");
+    when(response.uri()).thenReturn(URI.create("http://example.com/domain/test.invalid"));
 
-    MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-    mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
 
     assertThat(responseValidator.doValidate()).isFalse();
 
     ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor.forClass(RDAPValidationResult.class);
     assertThat(results.getAll().stream().anyMatch(result ->
-            result.getCode() == -46701 &&
+            result.getCode() == -65300 &&
                     result.getMessage().equals("A query for an invalid domain name did not yield a 404 response.")
     )).isTrue();
-
-    mockRequest.close();
   }
 
   @Test
@@ -126,6 +134,7 @@ public class ResponseValidationDomainInvalid_2024Test {
   public void testValidateInvalidDomainQuery_InvalidJson() {
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(200);
+    when(mockResponse.uri()).thenReturn(URI.create("http://example.com/domain/test.invalid"));
     String jsonBody = "{}";
     when(mockResponse.body()).thenReturn(jsonBody);
 

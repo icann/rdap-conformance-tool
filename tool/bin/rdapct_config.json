@@ -12,7 +12,11 @@
     {
       "code": -11310,
       "notes": "Repeating event actions is not a protocol violation but is unintentional in most scenarios."
-    }],
+    },
+    {
+      "code": -13020
+    }
+  ],
   "definitionIgnore": [
     -10601,
     -10701,

@@ -14,7 +14,7 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
 
   public ResponseValidation2Dot2Test() {
     super("/validators/domain/valid.json", "rdapResponseProfile_2_1_Validation",
-        RDAPQueryType.DOMAIN, ResponseValidation2Dot2.class);
+        RDAPQueryType.DOMAIN, ResponseValidation2Dot2.class, "domain");
   }
 
   @Override
@@ -48,7 +48,7 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
     String value = givenNullHandle();
     getProfileValidation();
     validate(-46200, value,
-        "The handle in the entity object does not comply with the format "
+        "The handle in the domain object does not comply with the format "
             + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
   }
 
@@ -57,7 +57,7 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
     String value = givenNullHandle2();
     getProfileValidation();
     validate(-46200, value,
-        "The handle in the entity object does not comply with the format "
+        "The handle in the domain object does not comply with the format "
             + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
   }
 }

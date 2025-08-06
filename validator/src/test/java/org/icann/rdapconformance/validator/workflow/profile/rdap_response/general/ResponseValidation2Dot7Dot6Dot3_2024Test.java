@@ -37,7 +37,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
     public void test65201() {
         jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).remove(0);
         validate(-65201, "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"\"],[\"org\",{},\"text\",\"Example Inc.\"],[\"adr\",{},\"text\",[\"\",\"Suite 1234\",\"4321 Rue Somewhere\",\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]]]]",
-            "a redaction of Tech Email must have either email or contact-uri");
+            "a redaction of Tech Email must have either the email or contact-uri");
     }
 
     @Test
