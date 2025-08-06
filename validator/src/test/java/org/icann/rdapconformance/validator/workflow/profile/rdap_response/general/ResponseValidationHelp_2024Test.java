@@ -9,6 +9,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -24,6 +25,7 @@ public class ResponseValidationHelp_2024Test {
   private RDAPValidatorConfiguration mockConfig;
   private RDAPValidatorResults results;
   private ResponseValidationHelp_2024 responseValidator;
+  private MockedStatic<RDAPHttpRequest> mockStaticRequest;
 
   @BeforeMethod
   public void setup() {
@@ -31,6 +33,14 @@ public class ResponseValidationHelp_2024Test {
     results = RDAPValidatorResultsImpl.getInstance();
     results.clear();
     responseValidator = new ResponseValidationHelp_2024(mockConfig, results);
+  }
+
+  @AfterMethod
+  public void tearDown() {
+    if (mockStaticRequest != null) {
+      mockStaticRequest.close();
+      mockStaticRequest = null;
+    }
   }
 
   @Test
@@ -47,14 +57,13 @@ public class ResponseValidationHelp_2024Test {
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(200);
     when(mockResponse.body()).thenReturn("{\"rdapConformance\":[],\"notices\":[]}");
+    when(mockResponse.uri()).thenReturn(URI.create("http://example.com/help"));
 
-    MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-    mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
-
-    mockRequest.close();
   }
 
   @Test
@@ -78,14 +87,14 @@ public class ResponseValidationHelp_2024Test {
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(200);
     when(mockResponse.body()).thenReturn("{\"rdapConformance\":[],\"notices\":[]}");
+    when(mockResponse.uri()).thenReturn(URI.create("http://example.com/help"));
 
-    MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-    mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
 
-    mockRequest.close();
     queryTypeProcessor.close();
   }
 
@@ -97,9 +106,10 @@ public class ResponseValidationHelp_2024Test {
     HttpResponse<String> response = mock(HttpResponse.class);
     when(response.statusCode()).thenReturn(200);
     when(response.body()).thenReturn("{\"rdapConformance\":[]}");
+    when(response.uri()).thenReturn(URI.create("http://example.com/help"));
 
-    MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-    mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
 
     assertThat(responseValidator.doValidate()).isFalse();
 
@@ -108,8 +118,6 @@ public class ResponseValidationHelp_2024Test {
             result.getCode() == -20701 &&
                     result.getMessage().equals("Response to a /help query did not yield a proper status code or RDAP response.")
     )).isTrue();
-
-    mockRequest.close();
   }
 
   @Test
@@ -127,6 +135,7 @@ public class ResponseValidationHelp_2024Test {
   public void testValidateHelpQuery_InvalidJson() {
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(200);
+    when(mockResponse.uri()).thenReturn(URI.create("http://example.com/help"));
     String jsonBody = "{}"; // Missing required keys
     when(mockResponse.body()).thenReturn(jsonBody);
 
@@ -138,6 +147,7 @@ public class ResponseValidationHelp_2024Test {
   public void testValidateHelpQuery_NotOkStatus() {
     HttpResponse<String> mockResponse = mock(HttpResponse.class);
     when(mockResponse.statusCode()).thenReturn(404);
+    when(mockResponse.uri()).thenReturn(URI.create("http://example.com/help"));
     when(mockResponse.body()).thenReturn("{\"rdapConformance\":[],\"notices\":[]}");
 
     boolean result = responseValidator.validateHelpQuery(mockResponse, true);
