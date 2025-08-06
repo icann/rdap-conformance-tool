@@ -79,8 +79,7 @@ public class RDAPDatasetTest {
 
     @Test
     public void testParseSuccess() throws Exception {
-        // The dataset file exists in the main datasets directory
-        // This tests the successful parsing path
+        // Parse succeeds because dataset files exist in local directory
         boolean result = dataset.parse();
 
         // The parse should succeed because the actual XML file exists
