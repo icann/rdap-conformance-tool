@@ -185,4 +185,150 @@ public class JsonCacheUtilTest {
     assertThat(obj2.getString("key")).isEqualTo("value");
     assertThat(obj3.getString("key")).isEqualTo("value");
   }
+
+  @Test
+  public void testGetCachedJson_ValidObject() {
+    String objectContent = "{\"test\":true}";
+    
+    JsonCacheUtil.CachedJsonResult result = JsonCacheUtil.getCachedJson(objectContent);
+    
+    assertThat(result.isValid()).isTrue();
+    assertThat(result.isJsonObject()).isTrue();
+    assertThat(result.isJsonArray()).isFalse();
+    assertThat(result.getJsonObject()).isNotNull();
+    assertThat(result.getJsonArray()).isNull();
+    assertThat(result.getJsonObject().getBoolean("test")).isTrue();
+  }
+
+  @Test
+  public void testGetCachedJson_ValidArray() {
+    String arrayContent = "[1,2,3]";
+    
+    JsonCacheUtil.CachedJsonResult result = JsonCacheUtil.getCachedJson(arrayContent);
+    
+    assertThat(result.isValid()).isTrue();
+    assertThat(result.isJsonObject()).isFalse();
+    assertThat(result.isJsonArray()).isTrue();
+    assertThat(result.getJsonObject()).isNull();
+    assertThat(result.getJsonArray()).isNotNull();
+    assertThat(result.getJsonArray().length()).isEqualTo(3);
+  }
+
+  @Test
+  public void testGetCachedJson_InvalidContent() {
+    String invalidContent = "not json at all";
+    
+    JsonCacheUtil.CachedJsonResult result = JsonCacheUtil.getCachedJson(invalidContent);
+    
+    assertThat(result.isValid()).isFalse();
+    assertThat(result.isJsonObject()).isFalse();
+    assertThat(result.isJsonArray()).isFalse();
+    assertThat(result.getJsonObject()).isNull();
+    assertThat(result.getJsonArray()).isNull();
+  }
+
+  @Test
+  public void testGetCachedJson_NullContent() {
+    JsonCacheUtil.CachedJsonResult result = JsonCacheUtil.getCachedJson(null);
+    
+    assertThat(result.isValid()).isFalse();
+    assertThat(result.isJsonObject()).isFalse();
+    assertThat(result.isJsonArray()).isFalse();
+    assertThat(result.getJsonObject()).isNull();
+    assertThat(result.getJsonArray()).isNull();
+  }
+
+  @Test
+  public void testGetCachedJson_EmptyContent() {
+    JsonCacheUtil.CachedJsonResult result = JsonCacheUtil.getCachedJson("");
+    
+    assertThat(result.isValid()).isFalse();
+    assertThat(result.isJsonObject()).isFalse();
+    assertThat(result.isJsonArray()).isFalse();
+    assertThat(result.getJsonObject()).isNull();
+    assertThat(result.getJsonArray()).isNull();
+  }
+
+  @Test
+  public void testCachedJsonResult_Constructor() {
+    JSONObject jsonObject = new JSONObject("{\"test\":true}");
+    JSONArray jsonArray = new JSONArray("[1,2,3]");
+    
+    JsonCacheUtil.CachedJsonResult objectResult = new JsonCacheUtil.CachedJsonResult(jsonObject, null, true);
+    JsonCacheUtil.CachedJsonResult arrayResult = new JsonCacheUtil.CachedJsonResult(null, jsonArray, true);
+    JsonCacheUtil.CachedJsonResult invalidResult = new JsonCacheUtil.CachedJsonResult(null, null, false);
+    
+    assertThat(objectResult.getJsonObject()).isSameAs(jsonObject);
+    assertThat(objectResult.getJsonArray()).isNull();
+    assertThat(objectResult.isValid()).isTrue();
+    assertThat(objectResult.isJsonObject()).isTrue();
+    assertThat(objectResult.isJsonArray()).isFalse();
+    
+    assertThat(arrayResult.getJsonObject()).isNull();
+    assertThat(arrayResult.getJsonArray()).isSameAs(jsonArray);
+    assertThat(arrayResult.isValid()).isTrue();
+    assertThat(arrayResult.isJsonObject()).isFalse();
+    assertThat(arrayResult.isJsonArray()).isTrue();
+    
+    assertThat(invalidResult.getJsonObject()).isNull();
+    assertThat(invalidResult.getJsonArray()).isNull();
+    assertThat(invalidResult.isValid()).isFalse();
+    assertThat(invalidResult.isJsonObject()).isFalse();
+    assertThat(invalidResult.isJsonArray()).isFalse();
+  }
+
+  @Test
+  public void testCacheSizes() {
+    assertThat(JsonCacheUtil.getJsonObjectCacheSize()).isEqualTo(0);
+    assertThat(JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(0);
+    
+    JsonCacheUtil.getCachedJsonObject("{\"test\":1}");
+    JsonCacheUtil.getCachedJsonObject("{\"test\":2}");
+    JsonCacheUtil.getCachedJsonArray("[1]");
+    JsonCacheUtil.getCachedJsonArray("[2]");
+    
+    assertThat(JsonCacheUtil.getJsonObjectCacheSize()).isEqualTo(2);
+    assertThat(JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(2);
+  }
+
+  @Test
+  public void testClearSpecificCaches() {
+    JsonCacheUtil.getCachedJsonObject("{\"test\":1}");
+    JsonCacheUtil.getCachedJsonArray("[1]");
+    
+    assertThat(JsonCacheUtil.getJsonObjectCacheSize()).isEqualTo(1);
+    assertThat(JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(1);
+    
+    JsonCacheUtil.clearJsonObjectCache();
+    
+    assertThat(JsonCacheUtil.getJsonObjectCacheSize()).isEqualTo(0);
+    assertThat(JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(1);
+    
+    JsonCacheUtil.clearJsonArrayCache();
+    
+    assertThat(JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(0);
+  }
+
+  @Test
+  public void testEmptyStringInput() {
+    assertThatThrownBy(() -> JsonCacheUtil.getCachedJsonObject(""))
+        .isInstanceOf(JSONException.class)
+        .hasMessage("Content cannot be null or empty");
+        
+    assertThatThrownBy(() -> JsonCacheUtil.getCachedJsonArray(""))
+        .isInstanceOf(JSONException.class)
+        .hasMessage("Content cannot be null or empty");
+  }
+
+  @Test
+  public void testCacheEviction() {
+    // Test cache eviction by filling beyond max size (100)
+    for (int i = 0; i < 110; i++) {
+      String content = "{\"key" + i + "\":\"value" + i + "\"}";
+      JsonCacheUtil.getCachedJsonObject(content);
+    }
+    
+    // Cache should have performed eviction
+    assertThat(JsonCacheUtil.getJsonObjectCacheSize()).isLessThan(110);
+  }
 }

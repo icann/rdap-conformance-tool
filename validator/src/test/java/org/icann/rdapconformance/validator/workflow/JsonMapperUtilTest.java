@@ -224,6 +224,38 @@ public class JsonMapperUtilTest {
     }
   }
 
+  @Test
+  public void testCreateNewMapper_ReturnsDifferentInstance() {
+    ObjectMapper shared = JsonMapperUtil.getSharedMapper();
+    ObjectMapper newMapper = JsonMapperUtil.createNewMapper();
+    
+    assertThat(newMapper).isNotSameAs(shared);
+    assertThat(newMapper).isNotNull();
+  }
+
+  @Test
+  public void testCreateNewMapper_MultipleCallsReturnDifferentInstances() {
+    ObjectMapper mapper1 = JsonMapperUtil.createNewMapper();
+    ObjectMapper mapper2 = JsonMapperUtil.createNewMapper();
+    
+    assertThat(mapper1).isNotSameAs(mapper2);
+    assertThat(mapper1).isNotNull();
+    assertThat(mapper2).isNotNull();
+  }
+
+  @Test
+  public void testCreateNewMapper_WorksLikeSharedMapper() throws JsonProcessingException {
+    ObjectMapper newMapper = JsonMapperUtil.createNewMapper();
+    
+    TestObject obj = new TestObject("test", 42, true);
+    String json = newMapper.writeValueAsString(obj);
+    TestObject result = newMapper.readValue(json, TestObject.class);
+    
+    assertThat(result.getName()).isEqualTo(obj.getName());
+    assertThat(result.getValue()).isEqualTo(obj.getValue());
+    assertThat(result.isActive()).isEqualTo(obj.isActive());
+  }
+
   // Test helper class
   static class TestObject {
     private String name;

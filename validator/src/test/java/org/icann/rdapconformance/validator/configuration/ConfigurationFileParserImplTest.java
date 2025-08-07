@@ -100,4 +100,35 @@ public class ConfigurationFileParserImplTest {
 
     assertThat(config).usingRecursiveComparison().isEqualTo(expectedConfig);
   }
+
+  @Test
+  public void testParse_InvalidJson_ThrowsException() {
+    String invalidJson = "{ invalid json }";
+    
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> configParser.parse(new ByteArrayInputStream(invalidJson.getBytes())));
+  }
+
+  @Test
+  public void testParse_EmptyJson_ThrowsException() {
+    String emptyJson = "{}";
+    
+    assertThatExceptionOfType(MismatchedInputException.class)
+        .isThrownBy(() -> configParser.parse(new ByteArrayInputStream(emptyJson.getBytes())))
+        .withMessageStartingWith("Missing required creator property 'definitionIdentifier'");
+  }
+
+  @Test
+  public void testParse_NullStream_ThrowsException() {
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> configParser.parse(null));
+  }
+
+  @Test
+  public void testParse_MalformedJson_ThrowsException() {
+    String malformedJson = "{ \"definitionIdentifier\": \"test\", }"; // Trailing comma
+    
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> configParser.parse(new ByteArrayInputStream(malformedJson.getBytes())));
+  }
 }

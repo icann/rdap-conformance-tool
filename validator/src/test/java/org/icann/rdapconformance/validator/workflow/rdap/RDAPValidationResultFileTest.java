@@ -687,6 +687,166 @@ public void testCreateResultsMap() {
     assertEquals(404, warningEntry.get("receivedHttpStatusCode"));
     assertEquals(JSONObject.NULL, warningEntry.get("acceptMediaType"));
 }
+    @Test
+    public void testGetErrorCount() {
+        // Clear existing results
+        results.clear();
+        
+        // Mock configuration file behavior
+        doReturn(true).when(configurationFile).isError(-1001);
+        doReturn(false).when(configurationFile).isWarning(-1001);
+        doReturn(false).when(configurationFile).isError(-2001);
+        doReturn(true).when(configurationFile).isWarning(-2001);
+        doReturn(List.of(-3001)).when(configurationFile).getDefinitionIgnore();
+        
+        // Add different types of results
+        results.add(RDAPValidationResult.builder().code(-1001).build()); // Error
+        results.add(RDAPValidationResult.builder().code(-2001).build()); // Warning
+        results.add(RDAPValidationResult.builder().code(-3001).build()); // Ignored
+        results.add(RDAPValidationResult.builder().code(-4001).build()); // Neither error nor warning nor ignored (defaults to error)
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        int errorCount = resultFile.getErrorCount();
+        
+        assertEquals(2, errorCount); // -1001 and -4001 should be counted as errors
+    }
+    
+    @Test
+    public void testGetErrors() {
+        // Clear existing results
+        results.clear();
+        
+        // Mock configuration file behavior
+        doReturn(true).when(configurationFile).isError(-1001);
+        doReturn(false).when(configurationFile).isWarning(-1001);
+        doReturn(false).when(configurationFile).isError(-2001);
+        doReturn(true).when(configurationFile).isWarning(-2001);
+        doReturn(List.of(-3001)).when(configurationFile).getDefinitionIgnore();
+        
+        // Add different types of results
+        results.add(RDAPValidationResult.builder().code(-1001).message("Error 1").build());
+        results.add(RDAPValidationResult.builder().code(-2001).message("Warning 1").build());
+        results.add(RDAPValidationResult.builder().code(-3001).message("Ignored 1").build());
+        results.add(RDAPValidationResult.builder().code(-4001).message("Default Error").build());
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        List<RDAPValidationResult> errors = resultFile.getErrors();
+        
+        assertEquals(2, errors.size());
+        assertTrue(errors.stream().anyMatch(r -> r.getCode() == -1001));
+        assertTrue(errors.stream().anyMatch(r -> r.getCode() == -4001));
+        assertFalse(errors.stream().anyMatch(r -> r.getCode() == -2001)); // Warning should not be included
+        assertFalse(errors.stream().anyMatch(r -> r.getCode() == -3001)); // Ignored should not be included
+    }
+    
+    @Test
+    public void testRemoveErrors() {
+        // Clear existing results
+        results.clear();
+        
+        // Mock configuration file behavior
+        doReturn(true).when(configurationFile).isError(-1001);
+        doReturn(false).when(configurationFile).isWarning(-1001);
+        doReturn(false).when(configurationFile).isError(-2001);
+        doReturn(true).when(configurationFile).isWarning(-2001);
+        doReturn(false).when(configurationFile).isError(-3001);
+        doReturn(false).when(configurationFile).isWarning(-3001);
+        doReturn(List.of()).when(configurationFile).getDefinitionIgnore();
+        
+        // Add different types of results
+        results.add(RDAPValidationResult.builder().code(-1001).message("Error 1").build());
+        results.add(RDAPValidationResult.builder().code(-2001).message("Warning 1").build());
+        results.add(RDAPValidationResult.builder().code(-3001).message("Default Error").build());
+        
+        assertEquals(3, results.getAll().size());
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.removeErrors();
+        
+        // Only warnings should remain
+        Set<RDAPValidationResult> remaining = results.getAll();
+        assertEquals(1, remaining.size());
+        assertTrue(remaining.stream().anyMatch(r -> r.getCode() == -2001));
+    }
+    
+    @Test
+    public void testRemoveResultGroups() {
+        // Add some results with groups
+        results.clear();
+        results.addGroup("TestGroup1");
+        results.addGroup("TestGroup2");
+        results.add(RDAPValidationResult.builder().code(-1001).build());
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.removeResultGroups();
+        
+        // Groups should be removed but results should remain
+        assertFalse(results.getAll().isEmpty());
+        // Note: We can't easily test group removal without accessing internal state
+    }
+    
+    @Test
+    public void testGetResultsPath() {
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        
+        // Set a test path
+        resultFile.resultPath = "/test/path/results.json";
+        
+        String path = resultFile.getResultsPath();
+        assertEquals("/test/path/results.json", path);
+    }
+    
+    @Test
+    public void testGetResultsPath_Null() {
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        
+        // Clear the path
+        resultFile.resultPath = null;
+        
+        String path = resultFile.getResultsPath();
+        assertThat(path).isNull();
+    }
+    
+    @Test
+    public void testDebugPrintResultBreakdown() {
+        // Clear existing results
+        results.clear();
+        
+        // Mock configuration file behavior
+        doReturn(true).when(configurationFile).isError(-1001);
+        doReturn(false).when(configurationFile).isWarning(-1001);
+        doReturn(false).when(configurationFile).isError(-2001);
+        doReturn(true).when(configurationFile).isWarning(-2001);
+        doReturn(List.of()).when(configurationFile).getDefinitionIgnore();
+        
+        // Add results
+        results.add(RDAPValidationResult.builder().code(-1001).message("Error 1").build());
+        results.add(RDAPValidationResult.builder().code(-2001).message("Warning 1").build());
+        results.add(RDAPValidationResult.builder().code(-3001).message("Default Error").build());
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        
+        // This method should not throw an exception
+        resultFile.debugPrintResultBreakdown(); // Should not throw
+    }
+    
+    @Test
+    public void testGetAllResults() {
+        // Clear existing results
+        results.clear();
+        
+        // Add some results
+        results.add(RDAPValidationResult.builder().code(-1001).build());
+        results.add(RDAPValidationResult.builder().code(-2001).build());
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        List<RDAPValidationResult> allResults = resultFile.getAllResults();
+        
+        assertEquals(2, allResults.size());
+        assertTrue(allResults.stream().anyMatch(r -> r.getCode() == -1001));
+        assertTrue(allResults.stream().anyMatch(r -> r.getCode() == -2001));
+    }
+    
     // Helper method to count occurrences in string
     private int countOccurrences(String str, String findStr) {
         int lastIndex = ZERO;
