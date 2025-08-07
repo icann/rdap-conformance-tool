@@ -1,14 +1,18 @@
 package org.icann.rdapconformance.validator.workflow;
 
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
+import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.lang.UCharacter;
 import java.net.URI;
 import java.net.http.HttpResponse;
-import org.icann.rdapconformance.validator.ConnectionStatus;
-import org.icann.rdapconformance.validator.ConnectionTracker;
+
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2.RDAPJsonComparator;
@@ -19,7 +23,6 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonParseException;
 
 public class DomainCaseFoldingValidation extends ProfileValidation {
 
@@ -40,7 +43,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
     this.config = config;
     this.queryType = queryType;
     String path = this.rdapResponse.uri().getPath();
-    domainName = path.substring(path.lastIndexOf("/") + 1);
+    domainName = path.substring(path.lastIndexOf(SLASH) + ONE);
   }
 
   @Override
@@ -65,7 +68,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
         results.add(RDAPValidationResult.builder()
                                         .queriedURI(uri.toString())
                                         .httpStatusCode(httpResponse.statusCode())
-                                        .httpMethod("GET")
+                                        .httpMethod(GET)
                                         .code(-10403)
                                         .value(uri.toString())
                                         .message("RDAP responses do not match when handling domain label case folding.")
@@ -77,7 +80,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
       JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
       JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
 
-      if (jsonComparator.compare(httpResponseJson, httpsResponseJson) != 0) {
+      if (jsonComparator.compare(httpResponseJson, httpsResponseJson) != ZERO) {
         results.add(RDAPValidationResult.builder()
                                         .queriedURI(uri.toString())
                                         .httpStatusCode(httpResponse.statusCode())
@@ -94,7 +97,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
           e);
       results.add(RDAPValidationResult.builder()
                                       .queriedURI(uri.toString())
-                                      .httpMethod("GET")
+                                      .httpMethod(GET)
                                       .code(-10403)
                                       .value(uri.toString())
                                       .message("RDAP responses do not match when handling domain label case folding.")
