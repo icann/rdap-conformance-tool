@@ -31,7 +31,7 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
 
     @Override
     protected boolean doValidate() {
-        Set<String> entityJsonPointers = getPointerFromJPath("$..entities[?("
+        Set<String> entityJsonPointers = getPointerFromJPath("$.entities[?("
             + "        !(@.roles[*] =~ /registrar/) &&"
             + "        !(@.roles[*] =~ /registrant/) &&"
             + "        !(@.roles[*] =~ /technical/)"

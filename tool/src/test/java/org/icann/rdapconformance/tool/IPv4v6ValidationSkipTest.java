@@ -10,8 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.mockito.Mockito.spy;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 public class IPv4v6ValidationSkipTest {
 

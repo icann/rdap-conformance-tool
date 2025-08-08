@@ -8,7 +8,9 @@ import java.lang.reflect.Field;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.ToolResult;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -21,10 +23,12 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeP
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.mockito.MockedStatic;
@@ -94,7 +98,8 @@ public class RdapConformanceToolTest {
   public void testDatasetInitializationFailure() throws Exception {
     // Mock the dataset initialization to return null
     try (MockedStatic<CommonUtils> mockedCommonUtils = Mockito.mockStatic(CommonUtils.class)) {
-      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any())).thenReturn(null);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class))).thenReturn(null);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class), nullable(ProgressCallback.class))).thenReturn(null);
 
       // Call should return dataset unavailable code
       int result = tool.call();
@@ -107,7 +112,8 @@ public class RdapConformanceToolTest {
     RDAPDatasetService mockDatasetService = mock(RDAPDatasetService.class);
 
     try (MockedStatic<CommonUtils> mockedCommonUtils = Mockito.mockStatic(CommonUtils.class)) {
-      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any())).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class))).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class), nullable(ProgressCallback.class))).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.verifyConfigFile(any(), any())).thenReturn(null);
 
       // Call should return config invalid code
@@ -128,7 +134,8 @@ public class RdapConformanceToolTest {
     try (MockedStatic<CommonUtils> mockedCommonUtils = Mockito.mockStatic(CommonUtils.class);
          MockedStatic<RDAPHttpQueryTypeProcessor> mockedProcessor = Mockito.mockStatic(RDAPHttpQueryTypeProcessor.class)) {
 
-      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any())).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class))).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class), nullable(ProgressCallback.class))).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.verifyConfigFile(any(), any())).thenReturn(mockConfigFile);
       mockedProcessor.when(() -> RDAPHttpQueryTypeProcessor.getInstance(any())).thenReturn(mockProcessor);
 
@@ -161,7 +168,8 @@ public class RdapConformanceToolTest {
     try (MockedStatic<CommonUtils> mockedCommonUtils = Mockito.mockStatic(CommonUtils.class);
          MockedStatic<RDAPHttpQueryTypeProcessor> mockedProcessor = Mockito.mockStatic(RDAPHttpQueryTypeProcessor.class)) {
 
-      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any())).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class))).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class), nullable(ProgressCallback.class))).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.verifyConfigFile(any(), any())).thenReturn(mockConfigFile);
       mockedProcessor.when(() -> RDAPHttpQueryTypeProcessor.getInstance(any())).thenReturn(mockProcessor);
 
@@ -485,6 +493,7 @@ public void testJsonMethodsWithMockedResults() throws Exception {
     assertThat(allResultsJson).startsWith("{");
     assertThat(allResultsJson).endsWith("}");
 }
+
 
 @Test  
 public void testJsonMethodsReturnValidJson() throws Exception {

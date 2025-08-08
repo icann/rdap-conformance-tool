@@ -145,7 +145,6 @@ public class RDAPValidationResultFile {
         List<Map<String, Object>> warnings = new ArrayList<>();
 
         Set<RDAPValidationResult> allResults = results.getAll();
-
         Set<Integer> codeToIgnore = new HashSet<>(configurationFile.getDefinitionIgnore());
         Set<RDAPValidationResult> filteredResults = results.getAll()
                                                            .stream()
@@ -162,7 +161,9 @@ public class RDAPValidationResultFile {
             resultMap.put("code", result.getCode());
             resultMap.put("value", result.getValue());
             resultMap.put("message", result.getMessage());
-            resultMap.put("receivedHttpStatusCode", formatStatusCode(result.getHttpStatusCode()));
+            
+            Object formattedStatus = formatStatusCode(result.getHttpStatusCode());
+            resultMap.put("receivedHttpStatusCode", formattedStatus);
             resultMap.put("queriedURI",
                 Objects.nonNull(result.getQueriedURI()) ? formatStringToNull(result.getQueriedURI())
                     : (Objects.nonNull(config.getUri()) ? config.getUri().toString() : StringUtils.EMPTY));
@@ -283,6 +284,19 @@ public class RDAPValidationResultFile {
                                !this.configurationFile.isWarning(result.getCode())
                                    && !this.configurationFile.getDefinitionIgnore().contains(result.getCode())))
                            .collect(Collectors.toList());
+    }
+
+    public void removeErrors() {
+        Set<RDAPValidationResult> filteredResults = this.results.getAll()
+                .stream()
+                .filter(result -> this.configurationFile.isWarning(result.getCode()))
+                .collect(Collectors.toSet());
+
+        this.results.addAll(filteredResults);
+    }
+
+    public void removeResultGroups() {
+        this.results.removeGroups();
     }
 
     public List<RDAPValidationResult> getAllResults() {

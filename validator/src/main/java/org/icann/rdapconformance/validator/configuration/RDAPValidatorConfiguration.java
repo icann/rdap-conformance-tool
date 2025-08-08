@@ -94,4 +94,6 @@ public interface RDAPValidatorConfiguration {
 
     return true;
   }
+
+  void clean();
 }

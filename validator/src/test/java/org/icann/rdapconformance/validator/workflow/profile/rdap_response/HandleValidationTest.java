@@ -80,7 +80,7 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
     HandleValidation validation = getProfileValidation();
     validate(validation.code - 1, getValidValueWithRoidExmp(),
         String.format("The globally unique identifier in the %s object handle is not registered "
-            + "in EPPROID.", baseQueryType.name().toLowerCase()));
+            + "in EPPROID.", objectName));
   }
 
   @Test

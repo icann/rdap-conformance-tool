@@ -111,4 +111,74 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
             .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
             .withBody("{\"objectClassName\": \"domain\", \"unexpected\":\"property\"}")));
   }
+
+  @Test
+  public void testFoldDomain_NonFoldableCharacters() {
+    doReturn(URI.create("http://domain/test.123")).when(httpsResponse).uri();
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    
+    String folded = validator.foldDomain();
+    assertThat(folded).isEqualTo("tEsT.123");
+  }
+
+  @Test
+  public void testFoldDomain_EmptyDomain() {
+    doReturn(URI.create("http://domain/")).when(httpsResponse).uri();
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    
+    String folded = validator.foldDomain();
+    assertThat(folded).isEmpty();
+  }
+
+  @Test
+  public void testFoldDomain_SingleCharacter() {
+    doReturn(URI.create("http://domain/a")).when(httpsResponse).uri();
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    
+    String folded = validator.foldDomain();
+    assertThat(folded).isEqualTo("a");
+  }
+
+  @Test
+  public void testFoldDomain_AlternatesCase() {
+    doReturn(URI.create("http://domain/abcd")).when(httpsResponse).uri();
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    
+    String folded = validator.foldDomain();
+    assertThat(folded).isEqualTo("aBcD");
+  }
+
+  @Test
+  public void testGetGroupName() {
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    
+    assertThat(validator.getGroupName()).isEqualTo("domainCaseFoldingValidation");
+  }
+
+  @Test
+  public void testDoValidate_SameDomain_ReturnsTrue() throws Exception {
+    // Test when foldDomain returns the same domain (no case folding possible)
+    doReturn(URI.create("http://domain/123.456")).when(httpsResponse).uri();
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    
+    boolean result = validator.doValidate();
+    
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void testDoLaunch_NonDomainQuery_ReturnsFalse() {
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(
+        httpsResponse, config, results, RDAPQueryType.ENTITY);
+    
+    assertThat(validator.doLaunch()).isFalse();
+  }
+
+  @Test
+  public void testDoLaunch_DomainQuery_ReturnsTrue() {
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(
+        httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    
+    assertThat(validator.doLaunch()).isTrue();
+  }
 }

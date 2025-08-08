@@ -64,6 +64,18 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   }
 
   @Override
+  public void addAll(Set<RDAPValidationResult> results) {
+    this.results.clear();
+    this.results.addAll(results);
+  }
+
+  @Override
+  public void removeGroups() {
+    this.groups.clear();
+    this.groupErrorWarning.clear();
+  }
+
+  @Override
   public Set<RDAPValidationResult> getAll() {
     return results;
   }
@@ -150,7 +162,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
     String tupleListJson = BRACKETS;
     try {
-      ObjectMapper mapper = new ObjectMapper();
+      ObjectMapper mapper = org.icann.rdapconformance.validator.workflow.JsonMapperUtil.getSharedMapper();
       tupleListJson = mapper.writeValueAsString(new ArrayList<>(uniqueTuples));
     } catch (JsonProcessingException e) {
       logger.info("Error serializing tuple list to JSON", e);

@@ -82,7 +82,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
              results.add(RDAPValidationResult.builder()
                      .code(-65100)
                      .value(getResultValue(redactedPointersValue))
-                     .message("a redaction of type Registrant Phone is required.")
+                     .message("a redaction of type Tech Phone is required.")
                      .build());
 
              return new RedactedHandleObjectToValidate(null, false);
@@ -93,7 +93,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
          results.add(RDAPValidationResult.builder()
                  .code(-65100)
                  .value(getResultValue(redactedPointersValue))
-                 .message("a redaction of type Registrant Phone is required.")
+                 .message("a redaction of type Tech Phone is required.")
                  .build());
 
          return new RedactedHandleObjectToValidate(null, false);

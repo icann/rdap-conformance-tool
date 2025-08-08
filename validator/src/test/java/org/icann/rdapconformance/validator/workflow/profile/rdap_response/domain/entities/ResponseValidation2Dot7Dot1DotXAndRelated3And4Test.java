@@ -50,7 +50,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4Test extends
     entitiesWithRole("registrant");
     doReturn(true).when(datasets.get(EPPRoid.class)).isInvalid("EXMP");
     validate(-52103, "#/entities/0/handle:2138514_DOMAIN_COM-EXMP", "The globally unique "
-        + "identifier in the domain object handle is not "
+        + "identifier in the entity object handle is not "
         + "registered in EPPROID.");
   }
 }

@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
@@ -14,9 +15,9 @@ import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.Objects;
 
-import static java.net.HttpURLConnection.HTTP_OK;
+import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
-import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationDomainInvalid_2024.class);
@@ -45,7 +46,7 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
             domainInvalidUri = CommonUtils.replaceQueryTypeInStringWith(queryType, this.config.getUri().toString(), DOMAIN_INVALID);
             int index = domainInvalidUri.indexOf("domain");
             if (index != -1) {
-                domainInvalidUri = domainInvalidUri.substring(0, index + DOMAIN_INVALID.length());
+                domainInvalidUri = domainInvalidUri.substring(ZERO, index + DOMAIN_INVALID.length());
             } else {
                 logger.debug("Domain Invalid word was not found, using original url");
                 domainInvalidUri = this.config.getUri().getHost().concat(DOMAIN_INVALID);
@@ -65,22 +66,28 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
         return validateDomainInvalidQuery(response, isValid);
     }
 
-    boolean validateDomainInvalidQuery(HttpResponse<String> domainInvalidResponse, boolean isValid) {
-        RDAPHttpQuery.JsonData jsonDomainInvalidResponse = null;
-        int domainInvalidStatusCode = domainInvalidResponse.statusCode();
-        String rdapDomainInvalidResponse = domainInvalidResponse.body();
+boolean validateDomainInvalidQuery(HttpResponse<String> domainInvalidResponse, boolean isValid) {
+    RDAPHttpQuery.JsonData jsonDomainInvalidResponse = null;
+    int domainInvalidStatusCode = domainInvalidResponse.statusCode();
+    String rdapDomainInvalidResponse = domainInvalidResponse.body();
 
-        jsonDomainInvalidResponse = new RDAPHttpQuery.JsonData(rdapDomainInvalidResponse);
-        if(HTTP_NOT_FOUND != domainInvalidStatusCode) {
-            if(!isDomainInvalidJsonValid(jsonDomainInvalidResponse )) {
-                addErrorToResultsFile(domainInvalidStatusCode, -65300, String.valueOf(domainInvalidStatusCode),"A query for an invalid domain name did not yield a 404 response.");
-                isValid = false;
-            }
-
+    jsonDomainInvalidResponse = new RDAPHttpQuery.JsonData(rdapDomainInvalidResponse);
+    if(HTTP_NOT_FOUND != domainInvalidStatusCode) {
+        if(!isDomainInvalidJsonValid(jsonDomainInvalidResponse )) {
+            results.add(RDAPValidationResult.builder()
+                                            .queriedURI(domainInvalidResponse.uri().toString())
+                                            .httpMethod(GET)
+                                            .httpStatusCode(domainInvalidStatusCode)
+                                            .code(-65300)
+                                            .value(String.valueOf(domainInvalidStatusCode))
+                                            .message("A query for an invalid domain name did not yield a 404 response.")
+                                            .build());
+            isValid = false;
         }
-
-        return isValid;
     }
+
+    return isValid;
+}
 
     private boolean isDomainInvalidJsonValid(RDAPHttpQuery.JsonData jsonDomainInvalidResponse) {
         boolean propertyExists = true;

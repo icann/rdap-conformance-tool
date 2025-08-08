@@ -11,34 +11,33 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.icann.rdapconformance.validator.workflow.rdap.*;
 import org.slf4j.LoggerFactory;
+import org.icann.rdapconformance.tool.progress.ProgressTracker;
+import org.icann.rdapconformance.tool.progress.ProgressPhase;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.NetworkInfo;
+import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import static org.icann.rdapconformance.validator.CommonUtils.*;
 
 
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
@@ -47,6 +46,15 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   // Create a logger
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RdapConformanceTool.class);
   public static final int PRETTY_PRINT_INDENT = 2;
+  
+  // Progress tracking constants
+  private static final int DATASETS_COUNT = 13;
+  private static final int OPERATIONS_PER_DATASET = 2;  // download + parse
+  private static final int DATASET_TOTAL_STEPS = DATASETS_COUNT * OPERATIONS_PER_DATASET;
+  private static final int ESTIMATED_VALIDATIONS_PER_ROUND = 75;
+  private static final long THREAD_JOIN_TIMEOUT_MS = 1000;  // 1 second
+  private static final long MAX_DATASET_WAIT_TIME_MS = 45000;  // 45 seconds
+  private static final long MIN_STEP_DELAY_MS = 200;  // 200ms minimum per step
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
@@ -90,6 +98,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
+
+  // Progress tracking
+  private ProgressTracker progressTracker;
+  private boolean showProgress = true; // Default to true for CLI usage
 
   private boolean networkEnabled  = true;
 
@@ -165,6 +177,10 @@ public void setThin(boolean value) {
 public void setVerbose(boolean isVerbose) {
     this.isVerbose = isVerbose;
 }
+
+public void setShowProgress(boolean showProgress) {
+    this.showProgress = showProgress;
+}
   @Override
   public Integer call() throws Exception {
     // these must be set before we do anything else
@@ -203,8 +219,11 @@ public void setVerbose(boolean isVerbose) {
       return ToolResult.BAD_USER_INPUT.getCode();
     }
 
+    // Initialize progress tracking if not in verbose mode
+    initializeProgressTracking();
+
     // No matter which validator, we need to initialize the dataset service
-    RDAPDatasetService datasetService = CommonUtils.initializeDataSet(this);
+    RDAPDatasetService datasetService = initializeDataSetWithProgress();
     // if we couldn't do it - exit
     if(datasetService == null) {
       logger.error(ToolResult.DATASET_UNAVAILABLE.getDescription());
@@ -236,12 +255,6 @@ public void setVerbose(boolean isVerbose) {
       }
     }
 
-    // DEPRECATED - we used to do this, but we no longer do so
-    //    if( queryTypeProcessor.getQueryType().equals(RDAPQueryType.ENTITY) && this.isThin()) {
-    //      logger.error(ToolResult.USES_THIN_MODEL.getDescription());
-    //      return ToolResult.USES_THIN_MODEL.getCode();
-    //    }
-
     // Determine which validator we are using
     ValidatorWorkflow validator;
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
@@ -252,35 +265,51 @@ public void setVerbose(boolean isVerbose) {
     }
 
     // get the results file ready
+    clean();
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
     resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
 
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
       // Initialize our DNS lookups with this.
+      updateProgressPhase("DNS-Resolving");
       DNSCacheResolver.initFromUrl(uri.toString());
+      incrementProgress(); // DNS initialization step
+      updateProgressPhase("DNS-Validation");
       DNSCacheResolver.doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
+      incrementProgress(); // DNS validation step
+      
+      // Start network validation phase
+      updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
 
       // do v6
       if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
+        updateProgressPhase("IPv6-JSON");
         NetworkInfo.setStackToV6();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v6ret = validator.validate();
+        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
         // set the header to RDAP+JSON and redo the validations
+        updateProgressPhase("IPv6-RDAP+JSON");
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v6ret2 = validator.validate();
+        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
       }
 
       // do v4
       if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
+        updateProgressPhase("IPv4-JSON");
         NetworkInfo.setStackToV4();
         NetworkInfo.setAcceptHeaderToApplicationJson();
         int v4ret = validator.validate();
+        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
         // set the header to RDAP+JSON and redo the validations
+        updateProgressPhase("IPv4-RDAP+JSON");
         NetworkInfo.setAcceptHeaderToApplicationRdapJson();
         int v4ret2 = validator.validate();
+        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
       }
 
       if(DNSCacheResolver.hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
@@ -288,26 +317,38 @@ public void setVerbose(boolean isVerbose) {
       }
 
 
+      // Removing extra errors to avoid discrepancies between profiles when 404 status code is returned
       if(ConnectionTracker.getInstance().isResourceNotFoundNoteWarning(this)) {
         logger.info("All HEAD and Main queries returned a 404 Not Found response code.");
+        resultFile.removeErrors();
+        resultFile.removeResultGroups();
       } else {
         logger.info("At least one HEAD or Main query returned a non-404 Not Found response code.");
       }
 
-
       // Build the result file
+      updateProgressPhase(ProgressPhase.RESULTS_GENERATION);
        if(!resultFile.build()) {
           logger.error("Unable to write to results file: " + validator.getResultsPath());
           return ToolResult.FILE_WRITE_ERROR.getCode();
         }
+      incrementProgress(); // Results generation step
 
       // now the results file is set, print the path
       logger.info("Results file: {}",  validator.getResultsPath());
       setResultsFile(validator.getResultsPath());
+      
+      // Always show results file location to user, even when using progress bar (non-verbose mode)
+      if (!isVerbose) {
+        System.out.println("\nResults saved to: " + validator.getResultsPath());
+      }
 
 
       // Having network issues? You WILL need this.
       logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+
+      // Complete progress tracking
+      completeProgress();
 
       // if we made it to here, exit 0
       return ZERO;
@@ -320,13 +361,33 @@ public void setVerbose(boolean isVerbose) {
 
   int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
     // If network is not enabled or ipv4 AND ipv6 flags are off, validate and return
+    updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
+    updateProgressPhase("FileValidation");
     int file_exit_code =  validator.validate();
+    incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // File validation step
+
+    // No creating results file if  "USES_THIN_MODEL" exit code is triggered
+    if(ToolResult.USES_THIN_MODEL.getCode() == file_exit_code) {
+      return ToolResult.USES_THIN_MODEL.getCode();
+    }
+
+    updateProgressPhase(ProgressPhase.RESULTS_GENERATION);
     if(!resultFile.build()) {
       logger.error("Unable to write to results file: " + validator.getResultsPath());
       return ToolResult.FILE_WRITE_ERROR.getCode();
     }
+    incrementProgress(); // Results generation step
     logger.info("Results file: {}",  validator.getResultsPath());
     setResultsFile(validator.getResultsPath());
+    
+    // Always show results file location to user, even when using progress bar (non-verbose mode)
+    if (!isVerbose) {
+      System.out.println("\nResults saved to: " + validator.getResultsPath());
+    }
+    
+    // Complete progress tracking
+    completeProgress();
+    
     return file_exit_code;
   }
 
@@ -419,6 +480,15 @@ public void setVerbose(boolean isVerbose) {
   @Override
   public boolean isAdditionalConformanceQueries() {
     return additionalConformanceQueries;
+  }
+
+  @Override
+  public void clean() {
+    var resultsImpl = RDAPValidatorResultsImpl.getInstance();
+    var connectionTracker = ConnectionTracker.getInstance();
+    RDAPValidationResultFile.reset();
+    resultsImpl.clear();
+    connectionTracker.reset();
   }
 
   /**
@@ -563,5 +633,183 @@ public void setVerbose(boolean isVerbose) {
     @Option(names = {"--thin"},
         description = "The TLD uses the thin model", defaultValue = "false")
     private boolean thin = false;
+  }
+
+  /**
+   * Initialize progress tracking if not in verbose mode and progress is enabled.
+   */
+  private void initializeProgressTracking() {
+    if (!isVerbose && showProgress) {
+      int totalSteps = calculateTotalSteps();
+      progressTracker = new ProgressTracker(totalSteps, isVerbose);
+      progressTracker.start();
+    }
+  }
+
+  /**
+   * Calculate the total number of steps for progress tracking.
+   */
+  private int calculateTotalSteps() {
+    int steps = 0;
+    
+    // Dataset operations: datasets * operations (download + parse)
+    steps += DATASET_TOTAL_STEPS;
+    
+    // DNS operations: typically 2 queries (A and AAAA records)
+    steps += 2;
+    
+    // Network validation steps based on IP version flags
+    steps += getNetworkValidationSteps();
+    
+    // Results generation: 1 step
+    steps += 1;
+    
+    return steps;
+  }
+
+  /**
+   * Calculate network validation steps based on IP version configuration.
+   */
+  private int getNetworkValidationSteps() {
+    int rounds = 0;
+    
+    if (executeIPv6Queries) {
+      rounds += 2; // application/json + application/rdap+json
+    }
+    
+    if (executeIPv4Queries) {
+      rounds += 2; // application/json + application/rdap+json
+    }
+    
+    // Estimate validations per round (conservative estimate)
+    return rounds * ESTIMATED_VALIDATIONS_PER_ROUND;
+  }
+
+  /**
+   * Update progress tracking phase.
+   */
+  public void updateProgressPhase(ProgressPhase phase) {
+    if (progressTracker != null) {
+      progressTracker.updatePhase(phase);
+    }
+  }
+
+  /**
+   * Update progress tracking phase with custom name.
+   */
+  public void updateProgressPhase(String phaseName) {
+    if (progressTracker != null) {
+      progressTracker.updatePhase(phaseName);
+    }
+  }
+
+  /**
+   * Increment progress by one step.
+   */
+  public void incrementProgress() {
+    if (progressTracker != null) {
+      progressTracker.incrementStep();
+    }
+  }
+
+  /**
+   * Increment progress by multiple steps.
+   */
+  public void incrementProgress(int steps) {
+    if (progressTracker != null) {
+      progressTracker.incrementSteps(steps);
+    }
+  }
+
+  /**
+   * Complete progress tracking.
+   */
+  public void completeProgress() {
+    if (progressTracker != null) {
+      progressTracker.complete();
+    }
+  }
+
+  /**
+   * Get the progress tracker (for access by other classes).
+   */
+  public ProgressTracker getProgressTracker() {
+    return progressTracker;
+  }
+
+  /**
+   * Initialize dataset service with progress tracking using actual completion events.
+   */
+  private RDAPDatasetService initializeDataSetWithProgress() {
+    // Show appropriate phase name based on whether we're downloading or using local datasets
+    if (useLocalDatasets) {
+      updateProgressPhase("DatasetLoad");
+    } else {
+      updateProgressPhase(ProgressPhase.DATASET_DOWNLOAD);
+    }
+    
+    // Create a progress callback that updates the real progress tracker
+    ProgressCallback progressCallback = null;
+    if (progressTracker != null && showProgress) {
+      progressCallback = new DatasetProgressCallback();
+    }
+    
+    RDAPDatasetService datasetService = CommonUtils.initializeDataSet(this, progressCallback);
+    
+    // Ensure we're at the right progress point (after dataset phase)
+    if (progressTracker != null && datasetService != null) {
+      // Set progress to after dataset operations
+      progressTracker.setCurrentStep(DATASET_TOTAL_STEPS);
+      updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
+    }
+    
+    return datasetService;
+  }
+
+  /**
+   * Progress callback implementation that updates the progress tracker with real events.
+   */
+  private class DatasetProgressCallback implements ProgressCallback {
+    private int completedOperations = 0;
+    
+    @Override
+    public void onDatasetDownloadStarted(String datasetName) {
+      // Show appropriate phase name based on whether we're downloading or using local datasets
+      if (useLocalDatasets) {
+        updateProgressPhase("DatasetLoad");
+      } else {
+        updateProgressPhase("DatasetDownload");
+      }
+    }
+    
+    @Override
+    public void onDatasetDownloadCompleted(String datasetName) {
+      if (progressTracker != null) {
+        completedOperations++;
+        progressTracker.setCurrentStep(completedOperations);
+      }
+    }
+    
+    @Override
+    public void onDatasetParseStarted(String datasetName) {
+      updateProgressPhase("DatasetParse");
+    }
+    
+    @Override
+    public void onDatasetParseCompleted(String datasetName) {
+      if (progressTracker != null) {
+        completedOperations++;
+        progressTracker.setCurrentStep(completedOperations);
+      }
+    }
+    
+    @Override
+    public void onDatasetError(String datasetName, String operation, Throwable error) {
+      // Progress continues even on error - the overall operation will handle failures
+      if (progressTracker != null) {
+        completedOperations++;
+        progressTracker.setCurrentStep(completedOperations);
+      }
+    }
   }
 }
