@@ -279,6 +279,7 @@ public class JsonCacheUtilTest {
 
   @Test
   public void testCacheSizes() {
+    JsonCacheUtil.clearAllCaches();
     assertThat(JsonCacheUtil.getJsonObjectCacheSize()).isEqualTo(0);
     assertThat(JsonCacheUtil.getJsonArrayCacheSize()).isEqualTo(0);
     
@@ -293,6 +294,7 @@ public class JsonCacheUtilTest {
 
   @Test
   public void testClearSpecificCaches() {
+    JsonCacheUtil.clearAllCaches();
     JsonCacheUtil.getCachedJsonObject("{\"test\":1}");
     JsonCacheUtil.getCachedJsonArray("[1]");
     

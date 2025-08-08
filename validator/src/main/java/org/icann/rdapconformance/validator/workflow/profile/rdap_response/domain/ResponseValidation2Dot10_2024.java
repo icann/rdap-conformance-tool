@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -19,10 +20,12 @@ import java.util.Set;
 
 public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
 
+    private final RDAPValidatorConfiguration config;
     private static final String NOT_FOUND = "not_found";
 
-    public ResponseValidation2Dot10_2024(String rdapResponse, RDAPValidatorResults results) {
+    public ResponseValidation2Dot10_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
         super(rdapResponse, results);
+        this.config = config;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot10_2024.class);
@@ -145,7 +148,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
                 return false;
             }
 
-            if(!isValidURL(inaccuracyComplaintLink.get().value())) {
+            if(!inaccuracyComplaintLink.get().value().equalsIgnoreCase(this.config.getUri().toString())) {
                 results.add(RDAPValidationResult.builder()
                         .code(-46706)
                         .value(getResultValue(noticePointersValue))

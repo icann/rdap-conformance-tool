@@ -154,7 +154,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Issue additional queries (/help and /not-a-domain.invalid) when flag is true and profile 2024 is false
         if(config.isAdditionalConformanceQueries() && !config.useRdapProfileFeb2024()) {
             logger.info("Validations for additional conformance queries");
-            
+
             boolean aggressiveNetworkParallel = "true".equals(System.getProperty("rdap.parallel.network", "false"));
             if (aggressiveNetworkParallel) {
                 // Execute additional queries in parallel
@@ -283,7 +283,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new TigValidation3Dot2_2024(rdapResponseData, results, config, queryType));
         validations.add(new TigValidation3Dot3And3Dot4_2024(rdapResponseData, results, config));
         validations.add(new ResponseValidation2Dot6Dot3_2024(rdapResponseData, results, config));
-        validations.add(new ResponseValidation2Dot10_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation2Dot10_2024(rdapResponseData, results, config));
 
         // Network-dependent validations
         if (config.isNetworkEnabled()) {
