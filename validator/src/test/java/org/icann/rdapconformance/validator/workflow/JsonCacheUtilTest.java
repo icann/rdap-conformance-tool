@@ -14,8 +14,13 @@ public class JsonCacheUtilTest {
 
   @BeforeMethod
   public void setUp() {
-    // Clear cache before each test
+    // Clear cache before each test to ensure test isolation
+    // This is critical for parallel test execution on build servers
     JsonCacheUtil.clearAllCaches();
+    
+    // Verify caches are actually cleared
+    assert JsonCacheUtil.getJsonObjectCacheSize() == 0 : "JSONObject cache should be empty before test";
+    assert JsonCacheUtil.getJsonArrayCacheSize() == 0 : "JSONArray cache should be empty before test";
   }
 
   @AfterMethod
