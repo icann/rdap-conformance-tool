@@ -18,9 +18,13 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
 
     @BeforeMethod
     public void setup() throws Exception {
+        // Updated test setup per co-worker specifications:
+        // - value should now contain the IANA RDAP base URL (https://example.com/)
+        // - href can be any valid URI
+        // - config.getUri() is no longer used for value validation
         JSONObject link = new JSONObject();
-        link.put("href", "https://example.com/");
-        link.put("value", "https://icann.org/wicf");
+        link.put("href", "https://some-valid-uri.com/");  // Changed: href just needs to be valid URI
+        link.put("value", "https://example.com/");        // Changed: value now contains IANA base URL
         link.put("rel", "about");
         link.put("type", "text/html");
         JSONArray links = new JSONArray();
@@ -31,6 +35,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
             .getJSONObject(0)
             .put("links", links);
 
+        // Config URI no longer used for value validation in new implementation
         doReturn(new URI("https://icann.org/wicf")).when(config).getUri();
     }
 
@@ -59,26 +64,30 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
     }
 
     @Test
-    public void testValidate_ValueDifferentFromRequest_AddResults47701() {
+    public void testValidate_ValueNotIANABaseURL_AddResults47701() {
+        // Changed: -47701 now validates that value matches IANA RDAP base URL, not request URL
         replaceValue("$['entities'][0]['links'][0]['value']", "https://localhost/");
         validate(-47701,
-            "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"https://example.com/\",\"type\":\"text/html\",\"value\":\"https://localhost/\"}",
-            "The link for registrar RDAP base URL does not have a link value of the request URL.");
+            "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"https://some-valid-uri.com/\",\"type\":\"text/html\",\"value\":\"https://localhost/\"}",
+            "The registrar base URL is not registered with IANA.");  // Changed message
     }
 
     @Test
-    public void testValidate_HrefNotHttps_AddResults47702() {
-        replaceValue("$['entities'][0]['links'][0]['href']", "http://localhost/");
+    public void testValidate_ValueNotHttps_AddResults47702() {
+        // Changed: -47702 now validates that value uses HTTPS, not href
+        // Use a value that would pass IANA validation but fails HTTPS check
+        replaceValue("$['entities'][0]['links'][0]['value']", "ftp://example.com/");
         validate(-47702,
-            "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"http://localhost/\",\"type\":\"text/html\",\"value\":\"https://icann.org/wicf\"}",
+            "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"https://some-valid-uri.com/\",\"type\":\"text/html\",\"value\":\"ftp://example.com/\"}",
             "The registrar RDAP base URL must have an https scheme.");
     }
 
     @Test
-    public void testValidate_HrefNotRDAPBaseURL_AddResults47703() {
-        replaceValue("$['entities'][0]['links'][0]['href']", "https://localhost/");
+    public void testValidate_HrefNotValidURI_AddResults47703() {
+        // Changed: -47703 now validates that href is a valid URI, not IANA-specific
+        replaceValue("$['entities'][0]['links'][0]['href']", "invalid-uri");
         validate(-47703,
-            "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"https://localhost/\",\"type\":\"text/html\",\"value\":\"https://icann.org/wicf\"}",
-            "The registrar base URL is not registered with IANA.");
+            "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"invalid-uri\",\"type\":\"text/html\",\"value\":\"https://example.com/\"}",
+            "The 'href' property is not a valid Web URI according to [webUriValidation].");  // Changed message
     }
 }
