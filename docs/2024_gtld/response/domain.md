@@ -191,12 +191,12 @@ Test group: [[rdapResponseProfile2024_2_4_6_Validation]](#id-rdapResponseProfile
   "message": "A domain must have link to the RDAP base URL of the registrar."
 }
 ```
-2. Test case [-47701](#id-testCase-47701){ #id-testCase-47701 }: With the link object above, validate that it contains a value property that is a string of the URL used to query for this response.
+2. Test case [-47701](#id-testCase-47701){ #id-testCase-47701 }: With the handle of the “registrar” entity, verify that the “value” property of the link object above matches one of the base URLs in the registrarId data set.
 ```json
 {
   "code": -47701,
   "value": "<link structure>",
-  "message": "The link for registar RDAP base URL does not have a link value of the request URL."
+  "message": "The registrar base URL is not registered with IANA."
 }
 ```
 3. Test case [-47702](#id-testCase-47702){ #id-testCase-47702 }: With the link object above, validate the href property contains an URL with the “https” scheme.
@@ -207,11 +207,11 @@ Test group: [[rdapResponseProfile2024_2_4_6_Validation]](#id-rdapResponseProfile
   "message": "The registrar RDAP base URL must have an https scheme."
 }
 ```
-4. Test case [-47703](#id-testCase-47703){ #id-testCase-47703 }: With the handle of the “registrar” entity, verify that the href property of the link object above matches one of the base URLs in the registarId data set.
+4. Test case [-47703](#id-testCase-47703){ #id-testCase-47703 }: With the link object above, verify that the href property is a valid URI according to the rules in [webUriValidation][id-webUriValidation].
 ```json
 {
   "code": -47703,
   "value": "<link structure>",
-  "message": "The registrar base URL is not registered with IANA."
+  "message": "The ‘value’ property is not a valid Web URI according to [webUriValidation]."
 }
 ```
