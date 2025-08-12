@@ -104,17 +104,19 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
          if(nameValue instanceof String redactedName) {
              if(redactedName.trim().equalsIgnoreCase("Registry Domain ID")) {
                  redactedRegistryDomain = redacted;
+                 break; // Found the Registry Domain ID redaction, no need to continue
              }
          }
      } catch (Exception e) {
-         logger.info("Extract type from name is not possible by {}", e.getMessage());
-         results.add(RDAPValidationResult.builder()
-                 .code(-46202)
-                 .value(getResultValue(redactedPointersValue))
-                 .message("a redaction of type Registry Domain ID is required.")
-                 .build());
-
-         return new RedactedHandleObjectToValidate(redactedRegistryDomain, false);
+         // FIXED: Don't fail immediately when encountering an exception
+         // Real-world redacted arrays contain mixed objects:
+         // - Some have name.type (e.g., "Registry Domain ID", "Registrant Phone") 
+         // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
+         // - The exception occurs when trying to extract "type" from objects that only have "description"
+         // We should skip these objects and continue searching, not fail the entire validation
+         logger.debug("Redacted object at {} does not have extractable type property, skipping: {}", 
+                    redactedJsonPointer, e.getMessage());
+         continue; // Continue checking other redacted objects instead of failing
      }
    }
 
