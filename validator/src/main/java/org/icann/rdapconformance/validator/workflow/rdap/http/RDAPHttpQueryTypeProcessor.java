@@ -73,7 +73,13 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
             RDAPValidatorResults testDomainResults = RDAPValidatorResultsImpl.getInstance();
             SchemaValidator validator = SchemaValidatorCache.getCachedValidator("rdap_domain_name.json", testDomainResults, datasetService);
-            return validator.validate(domainNameJson);
+            boolean isValid = validator.validate(domainNameJson);
+            if (!isValid) {
+                logger.error("Domain name validation failed for: {}", domainName);
+                status = ToolResult.BAD_USER_INPUT;
+                return false;
+            }
+            return true;
         }
 
         return true;
