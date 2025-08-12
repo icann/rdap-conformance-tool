@@ -148,22 +148,25 @@ public class JsonCacheUtil {
     
     /**
      * Clears the JSONObject cache to free memory.
+     * Synchronized to ensure thread safety during parallel test execution.
      */
-    public static void clearJsonObjectCache() {
+    public static synchronized void clearJsonObjectCache() {
         jsonObjectCache.clear();
     }
     
     /**
      * Clears the JSONArray cache to free memory.
+     * Synchronized to ensure thread safety during parallel test execution.
      */
-    public static void clearJsonArrayCache() {
+    public static synchronized void clearJsonArrayCache() {
         jsonArrayCache.clear();
     }
     
     /**
      * Clears all JSON caches.
+     * Synchronized to ensure thread safety during parallel test execution.
      */
-    public static void clearAllCaches() {
+    public static synchronized void clearAllCaches() {
         clearJsonObjectCache();
         clearJsonArrayCache();
     }
