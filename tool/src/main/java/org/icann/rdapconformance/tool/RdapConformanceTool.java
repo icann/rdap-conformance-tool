@@ -239,6 +239,11 @@ public void setShowProgress(boolean showProgress) {
       return ToolResult.CONFIG_INVALID.getCode();
     }
 
+    // get the results file ready
+    clean();
+    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+    resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
+
     // Get the queryType - bail out if it is not correct
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
       RDAPHttpQueryTypeProcessor queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
@@ -263,11 +268,6 @@ public void setShowProgress(boolean showProgress) {
       networkEnabled = false;
       validator = new RDAPFileValidator(this, datasetService);
     }
-
-    // get the results file ready
-    clean();
-    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-    resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
 
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
