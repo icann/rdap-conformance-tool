@@ -152,9 +152,9 @@ public class RDAPHttpQueryTypeProcessorTest {
     System.out.println("Mixed labels check for 'zz--main-1234': " + 
                       RDAPHttpQueryTypeProcessor.getInstance().hasMixedLabels("zz--main-1234"));
     
-    // Verify that mixed labels check passes but overall check fails
+    // Verify that mixed labels check passes but overall check continues (returns true)
     assertThat(RDAPHttpQueryTypeProcessor.getInstance().hasMixedLabels("zz--main-1234")).isFalse();
-    assertThat(result).isFalse();
+    assertThat(result).isTrue(); // Domain validation errors are recorded, but execution continues
     // This will show us the error status is no longer null after the fix
     System.out.println("Error status is null: " + (errorStatus == null));
     assertThat(errorStatus).isEqualTo(ToolResult.BAD_USER_INPUT);
@@ -212,9 +212,9 @@ public class RDAPHttpQueryTypeProcessorTest {
     // Create fresh processor instance to avoid state pollution
     RDAPQueryTypeProcessor freshProcessor = RDAPHttpQueryTypeProcessor.getInstance(config);
     
-    // This should return false due to schema validation failure
+    // Domain validation now continues execution (returns true) to capture errors in final results
     boolean checkResult = freshProcessor.check(datasetService);
-    assertThat(checkResult).isFalse();
+    assertThat(checkResult).isTrue();
     
     // After the fix: getErrorStatus() should now return BAD_USER_INPUT instead of null
     ToolResult errorStatus = freshProcessor.getErrorStatus();
@@ -287,7 +287,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     boolean checkResult = processor.check(datasetService);
     ToolResult errorStatus = processor.getErrorStatus();
     
-    assertThat(checkResult).isFalse();
+    assertThat(checkResult).isTrue(); // Domain validation errors are recorded, but execution continues
     assertThat(errorStatus).isEqualTo(ToolResult.BAD_USER_INPUT);
   }
 
