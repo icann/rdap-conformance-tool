@@ -45,7 +45,7 @@ The following steps should be used to test the RDAP protocol section 2.2 of the 
   "message": "The globally unique identifier in the domain object handle is not registered in EPPROID."
 }
 ```
-3. Test case [-46205](#id-testCase-46205){ #id-testCase-46205 }: If the handle in the topmost domain object comply with the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is not “ICANNRST”.
+3. Test case [-46205](#id-testCase-46205){ #id-testCase-46205 }: If the handle in the topmost _domain_ object comply with the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is not “ICANNRST”.
 ``` json
 {
   "code": -46205,

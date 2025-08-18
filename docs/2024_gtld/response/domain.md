@@ -6,22 +6,14 @@ Test group: [[rdapResponseProfile_2_2_Validation]][id-rdapResponseProfile_2_2_Va
 
 If the handle is in the topmost domain object, the following tests apply:
 
-1. Test case [-46200](#id-testCase-46200){ #id-testCase-46200 }: 
-The handle in the topmost domain object shall comply with the following format specified in RFC5730: "(\w|\_){1,80}-\w{1,8}".
+1. Run test case [-46200][id-testCase-46200]. 
+2. Run test case [-46201][id-testCase-46201]. 
+3. Test case [-46206](#id-testCase-46206){ #id-testCase-46206 }: If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registry Domain ID”.
 ```json
 {
-  "code": -46200,
-  "value": "<domain object>",
-  "message": "The handle in the domain object does not comply with the format (\\w|_){1,80}-\\w{1,8} specified in RFC5730."
-}
-```
-2. Test case [-46201](#id-testCase-46201){ #id-testCase-46201 }: 
-If the handle in the topmost domain object comply with the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is registered in EPPROID.
-```json
-{
-  "code": -46201,
-  "value": "<domain object>",
-  "message": "The globally unique identifier in the domain object handle is not registered in EPPROID."
+  "code": -46206,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registry Domain ID was found but the domain handle was not redacted."
 }
 ```
 
@@ -51,6 +43,8 @@ If the handle is NOT in the topmost domain object, the following tests apply:
   "message": "Registry Domain ID redaction method must be removal if present"
 }
 ```
+Note [-46205][id-testCase-46205] proceeds immediately after [-46201][id-testCase-46201] in [[rdapResponseProfile_2_2_Validation]][id-rdapResponseProfile_2_2_Validation].
+Note [-46206][id-testCase-46206] proceeds immediately after [-46202][id-testCase-46202] above.
 
 ## RP Section 2.6.3
 

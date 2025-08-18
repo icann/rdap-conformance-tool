@@ -38,12 +38,23 @@ Test group: [[tigSection2024_1_5_Validation]](#id-tigSection2024_1_5_Validation)
 
 Test group: [[tigSection2024_3_2_Validation]](#id-tigSection2024_3_2_Validation){ #id-tigSection2024_3_2_Validation }
 
-1. Test case [-23201](#id-testCase-23201){ #id-testCase-23201 }: Validate that the links object found with the test of code -23201 has a value property and that the property contents match the URI used to query the server.
+1. Test case [-23201](#id-testCase-23201){ #id-testCase-23201 }: Validate that the links object found with the test of code [-23200][id-testCase-23200] has a value property and that the property contents match the URI used to query the server.
 ```json
 {
   "code": -23201,
   "value": "<links data structure>",
   "message": "a value property must be specified and it must match the URI of the query."
+}
+```
+2. Test case [-23202](#id-testCase-23202){ #id-testCase-23202 }: If the query is a gTLD Registry (i.e. --gtld-registry) 
+and the Public ID identifier of the registrar is not “9999”, validate that the links object found with the test of 
+code [-23200][id-testCase-23200] has an href property and that the property contents is a domain query as defined by 
+[Section 3.1.3 of RFC 9082](https://datatracker.ietf.org/doc/html/rfc9082#name-domain-path-segment-specifi).
+```json
+{
+  "code": -23202,
+  "value": "<links data structure>",
+  "message": "the href property must be domain query as defined by Section 3.1.3 of RFC 9082."
 }
 ```
 

@@ -39,6 +39,15 @@ If the handle of the entity object above complies with the format: "(\w|_){1,80}
   "message": "The globally unique identifier in the registrant handle is not registered in EPPROID."
 }
 ```
+3. Test case [-63106](#id-testCase-63106){ #id-testCase-63106 }: If a redaction object (see RFC 9537) is in the redacted 
+array with a name object containing the type property which is a JSON string of “Registry Registrant ID”.
+```json
+{
+  "code": -63106,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registry Registrant ID was found by the registrant handle was not redacted."
+}
+```
 
 If the handle is NOT in the entity object with the registrant, the following tests apply:
 
@@ -74,6 +83,7 @@ If the handle is NOT in the entity object with the registrant, the following tes
   "message": "Registry Registrant ID redaction method must be removal if present"
 }
 ```
+Note [-63106][id-testCase-63106] proceeds immediately after [-63101][id-testCase-63101].
 
 ## RP 2024 Section 2.7.4.1
 
@@ -125,13 +135,25 @@ If the fn property above is present but empty, the following tests apply:
 }
 ```
 
+If the fn property above is present but NOT empty, the following tests apply:
+
+1. Test case [-63205](#id-testCase-63205){ #id-testCase-63205 }: If a redaction object (see RFC 9537) is in the redacted array with a name 
+object containing the type property which is a JSON string of “Registrant Name”.
+```json
+{
+  "code": -63205,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registrant Name was found by registrant fn property was not redacted."
+}
+```
+
 ## RP 2024 Section 2.7.4.2
 
 Test group: [[rdapResponseProfile2024_2_7_4_2_Validation]](#id-rdapResponseProfile2024_2_7_4_2_Validation){ #id-rdapResponseProfile2024_2_7_4_2_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
-If the org property on the vCards for the entity with the role of registrant is not present, the following tests apply:
+If the org property on the vCards for the entity with the role of registrant is NOT present, the following tests apply:
 
 1. Test case [-63300](#id-testCase-63300){ #id-testCase-63300 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Organization”.
 ```json
@@ -163,6 +185,18 @@ If the org property on the vCards for the entity with the role of registrant is 
   "code": -63303,
   "value": "<redaction object>",
   "message": "Registrant Organization redaction method must be removal if present"
+}
+```
+
+If the org property on the vCards for the entity with the role of registrant is present, the following tests apply:
+
+1. Test case [-63304](#id-testCase-63304){ #id-testCase-63304 }: If a redaction object (see RFC 9537) is in the redacted array with a 
+name object containing the type property which is a JSON string of “Registrant Organization”.
+```json
+{
+  "code": -63304,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registrant Organization was found but organization name was not redacted."
 }
 ```
 
@@ -216,6 +250,18 @@ If the street value of the adr property above is present but empty, the followin
 }
 ```
 
+If the street value of the adr property above is present but empty, the following tests apply:
+
+2. Test case [-63405](#id-testCase-63405){ #id-testCase-63405 }: If a redaction object (see RFC 9537) is in the redacted array with a 
+name object containing the type property which is a JSON string of “Registrant Street”.
+```json
+{
+  "code": -63405,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registrant Street was found but the registrant street was not redacted."
+}
+```
+
 ## RP 2024 Section 2.7.4.4
 
 Test group: [[rdapResponseProfile2024_2_7_4_4_Validation]](#id-rdapResponseProfile2024_2_7_4_4_Validation){ #id-rdapResponseProfile2024_2_7_4_4_Validation }
@@ -233,7 +279,7 @@ These tests only apply to an entity with the “registrant” role, if present.
 
 If the city value of the adr property above is present but empty, the following tests apply:
 
-2. Test case [-63501](#id-testCase-63501){ #id-testCase-63501 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant City”.
+1. Test case [-63501](#id-testCase-63501){ #id-testCase-63501 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant City”.
 ```json
 {
   "code": -63501,
@@ -241,7 +287,7 @@ If the city value of the adr property above is present but empty, the following 
   "message": "a redaction of type Registrant City is required."
 }
 ```
-3. Test case [-63502](#id-testCase-63502){ #id-testCase-63502 }: In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is present with a valid JSONPath expression.
+2. Test case [-63502](#id-testCase-63502){ #id-testCase-63502 }: In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the postPath property is present with a valid JSONPath expression.
 ```json
 {
   "code": -63502,
@@ -249,7 +295,7 @@ If the city value of the adr property above is present but empty, the following 
   "message": "jsonpath is invalid for Registrant City"
 }
 ```
-4. Test case [-63503](#id-testCase-63503){ #id-testCase-63503 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
+3. Test case [-63503](#id-testCase-63503){ #id-testCase-63503 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to a non-empty set.
 ```json
 {
   "code": -63503,
@@ -257,12 +303,24 @@ If the city value of the adr property above is present but empty, the following 
   "message": "jsonpath must evaluate to non-empty set for redaction by empty value of Registrant City."
 }
 ```
-5. Test case [-63504](#id-testCase-63504){ #id-testCase-63504 }: In the redaction object from the above test, verify that the method property is present as is a JSON string of “emptyValue”.
+4. Test case [-63504](#id-testCase-63504){ #id-testCase-63504 }: In the redaction object from the above test, verify that the method property is present as is a JSON string of “emptyValue”.
 ```json
 {
   "code": -63504,
   "value": "<redaction object>",
   "message": "Registrant City redaction method must be empytValue"
+}
+```
+
+If the city value of the adr property above is present but NOT empty, the following tests apply:
+
+1. Test case [-63505](#id-testCase-63505){ #id-testCase-63505 }: If a redaction object (see RFC 9537) is in the redacted array with a 
+name object containing the type property which is a JSON string of “Registrant City”.
+```json
+{
+  "code": -63505,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registrant City was found but the city was not redacted."
 }
 ```
 
@@ -316,6 +374,18 @@ If the postal code value of the adr property above is present but empty, the fol
 }
 ```
 
+If the postal code value of the adr property above is present but NOT empty, the following tests apply:
+
+1. Test case [-63605](#id-testCase-63605){ #id-testCase-63605 }: If a redaction object (see RFC 9537) is in the redacted array with a 
+name object containing the type property which is a JSON string of “Registrant Postal Code”.
+```json
+{
+  "code": -63605,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registrant Postal Code was found but the postal code was not redacted."
+}
+```
+
 ## RP 2024 Section 2.7.4.8
 
 Test group: [[rdapResponseProfile2024_2_7_4_8_Validation]](#id-rdapResponseProfile2024_2_7_4_8_Validation){ #id-rdapResponseProfile2024_2_7_4_8_Validation }
@@ -357,13 +427,25 @@ If a tel property with a “voice” parameter on the vCards for the entity with
 }
 ```
 
+If a tel property with a “voice” parameter on the vCards for the entity with the role of registrant is present, the following tests apply:
+
+1. Test case [-63704](#id-testCase-63704){ #id-testCase-63704 }: If a redaction object (see RFC 9537) is in the redacted array with a 
+name object containing the type property which is a JSON string of “Registrant Phone”.
+```json
+{
+  "code": -63704,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registrant Phone was found but the phone was not redacted."
+}
+```
+
 ## RP 2024 Section 2.7.5.1
 
 Test group: [[rdapResponseProfile2024_2_7_5_1_Validation]](#id-rdapResponseProfile2024_2_7_5_1_Validation){ #id-rdapResponseProfile2024_2_7_5_1_Validation }
 
 These tests only apply to an entity with the “registrant” role, if present.
 
-If  a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Phone Ext”, these tests apply:
+If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Phone Ext”, these tests apply:
 
 1. Test case [-63800](#id-testCase-63800){ #id-testCase-63800 }: In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json
@@ -396,7 +478,7 @@ Test group: [[rdapResponseProfile_2_7_5_2_Validation]](#id-rdapResponseProfile_2
 
 These tests only apply to an entity with the “registrant” role, if present.
 
-If  a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Fax”, these tests apply:
+If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Fax”, these tests apply:
 
 1. Test case [-63900](#id-testCase-63900){ #id-testCase-63900 }: In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json
@@ -429,7 +511,7 @@ Test group: [[rdapResponseProfile_2_7_5_3_Validation]][id-rdapResponseProfile_2_
 
 These tests only apply to an entity with the “registrant” role, if present.
 
-If  a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Fax Ext”, these tests apply:
+If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Fax Ext”, these tests apply:
 
 1. Test case [-64000](#id-testCase-64000){ #id-testCase-64000 }: In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json

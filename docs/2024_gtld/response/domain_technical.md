@@ -50,6 +50,18 @@ If the fn property above is present but empty, the following tests apply:
 }
 ```
 
+If the fn property above is present but NOT empty, the following tests apply:
+
+1. Test case [-65005](#id-testCase-65005){ #id-testCase-65005 }: If a redaction object (see RFC 9537) is in the redacted array with a 
+name object containing the type property which is a JSON string of “Tech Name”.
+```json
+{
+  "code": -65005,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Tech Name was found but tech name was not redacted."
+}
+```
+
 ## RP 2024 Section 2.7.6.2
 
 Test group: [[rdapResponseProfile2024_2_7_6_2_Validation]](#id-rdapResponseProfile2024_2_7_6_2_Validation){ #id-rdapResponseProfile2024_2_7_6_2_Validation }
@@ -88,6 +100,18 @@ If a tel property with a “voice” parameter on the vCards for the entity with
   "code": -65103,
   "value": "<redaction object>",
   "message": "Tech Phone redaction method must be removal if present"
+}
+```
+
+If a tel property with a “voice” parameter on the vCards for the entity with the role of “technical” is present, the following tests apply:
+
+1. Test case [-65104](#id-testCase-65104){ #id-testCase-65104 }: If a redaction object (see RFC 9537) is in the redacted array with a 
+name object containing the type property which is a JSON string of “Tech Phone”.
+```json
+{
+  "code": -65104,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Tech Phone was found but tech phone was not redacted."
 }
 ```
 
