@@ -131,6 +131,9 @@ public class RDAPHttpQueryTypeProcessorTest {
     assertThat(processorInstance.hasMixedLabels("zz--main-1234")).isFalse();
   }
 
+  // TEMPORARILY DISABLED - Domain validation tests
+  // These will be re-enabled when domain validation is turned back on
+  /*
   @Test
   public void testSchemaValidationFailure_DebugZzMainDomain() {
     // Clear singleton state before test
@@ -159,6 +162,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     System.out.println("Error status is null: " + (errorStatus == null));
     assertThat(errorStatus).isEqualTo(ToolResult.BAD_USER_INPUT);
   }
+  */
 
   @Test
   public void testSchemaValidationErrorCodes_ZzMain_NewCodes() {
@@ -200,6 +204,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     }
   }
 
+  /*
   @Test
   public void testSchemaValidationFailure_NowHasProperStatus() {
     // Clear singleton state before test
@@ -226,6 +231,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     assertThat(errorCode).isEqualTo(25); // BAD_USER_INPUT code
     System.out.println("NPE bug fixed - got error code: " + errorCode);
   }
+  */
 
   @Test
   public void testIdnHostNameValidator_DebugZzMain() {
@@ -278,6 +284,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     assertThat(errorStatus).isNull(); // No error for valid domain
   }
 
+  /*
   @Test
   public void testDomainValidation_LessThanTwoLabels() {
     // Test domain with less than two labels generates -10302 error
@@ -290,6 +297,7 @@ public class RDAPHttpQueryTypeProcessorTest {
     assertThat(checkResult).isTrue(); // Domain validation errors are recorded, but execution continues
     assertThat(errorStatus).isEqualTo(ToolResult.BAD_USER_INPUT);
   }
+  */
 
   @Test
   public void testDomainValidation_ValidALabel() {

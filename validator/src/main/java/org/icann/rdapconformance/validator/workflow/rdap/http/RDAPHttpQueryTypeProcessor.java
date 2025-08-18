@@ -70,6 +70,9 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
                 return false;
             }
 
+            // TEMPORARILY DISABLED - Domain validation block
+            // This will be re-enabled in a future release
+            /*
             String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
             
             // Store current results count to capture only domain validation errors
@@ -88,6 +91,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
                 // Continue execution (return true) so that domain validation errors are included in final results
                 return true;
             }
+            */
             return true;
         }
 
