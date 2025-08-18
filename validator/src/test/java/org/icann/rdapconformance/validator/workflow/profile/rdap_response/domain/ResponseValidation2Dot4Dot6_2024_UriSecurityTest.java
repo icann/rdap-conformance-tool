@@ -33,9 +33,7 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
         validation = new ResponseValidation2Dot4Dot6_2024(mockJson, results, datasets, queryType, config);
     }
 
-    // ========================================================================================
-    // NULL AND EMPTY INPUT TESTS
-    // ========================================================================================
+    // Null and empty input tests
 
     @Test
     public void testValidHrefUri_NullInput() {
@@ -61,9 +59,7 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
         assertThat(results.getAll().iterator().next().getCode()).isEqualTo(-47703);
     }
 
-    // ========================================================================================
-    // URI SYNTAX TESTS (Step 1 - equivalent to -10400)
-    // ========================================================================================
+    // Uri syntax tests (step 1 - equivalent to -10400)
 
     @Test
     public void testValidHrefUri_InvalidSyntax() {
@@ -87,9 +83,7 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
         }
     }
 
-    // ========================================================================================
-    // SCHEME VALIDATION TESTS (Step 2 - equivalent to -10401)
-    // ========================================================================================
+    // Scheme validation tests (step 2 - equivalent to -10401)
 
     @Test
     public void testValidHrefUri_InvalidSchemes() {
@@ -131,9 +125,7 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
         }
     }
 
-    // ========================================================================================
-    // HOST VALIDATION TESTS (Step 3 - equivalent to -10402)
-    // ========================================================================================
+    // Host validation tests (step 3 - equivalent to -10402)
 
     @Test
     public void testValidHrefUri_InvalidHosts() {
@@ -181,9 +173,7 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
         }
     }
 
-    // ========================================================================================
-    // SECURITY VULNERABILITY TESTS
-    // ========================================================================================
+    // Security vulnerability tests
 
     @Test
     public void testValidHrefUri_SecurityAttacks() {
@@ -204,9 +194,7 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
         }
     }
 
-    // ========================================================================================
-    // EDGE CASES AND NULL SCHEME PROTECTION
-    // ========================================================================================
+    // Edge cases and null scheme protection
 
     @Test
     public void testValidHrefUri_NullSchemeProtection() {
@@ -251,9 +239,7 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
         }
     }
 
-    // ========================================================================================
-    // PERFORMANCE AND BOUNDARY TESTS
-    // ========================================================================================
+    // Performance and boundary tests
 
     @Test
     public void testValidHrefUri_LongInput() {
@@ -288,9 +274,7 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
         }
     }
 
-    // ========================================================================================
-    // SPECIFIC COVERAGE IMPROVEMENT TESTS
-    // ========================================================================================
+    // Specific coverage improvement tests
 
     @Test
     public void testValidHrefUri_SpecificCoverageTests() {
