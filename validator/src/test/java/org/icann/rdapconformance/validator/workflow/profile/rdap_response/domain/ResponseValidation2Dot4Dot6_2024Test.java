@@ -84,10 +84,51 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
 
     @Test
     public void testValidate_HrefNotValidURI_AddResults47703() {
-        // Changed: -47703 now validates that href is a valid URI, not IANA-specific
+        // Test 1: Invalid URI syntax (equivalent to -10400)
         replaceValue("$['entities'][0]['links'][0]['href']", "invalid-uri");
         validate(-47703,
             "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"invalid-uri\",\"type\":\"text/html\",\"value\":\"https://example.com/\"}",
-            "The 'href' property is not a valid Web URI according to [webUriValidation].");  // Changed message
+            "The 'href' property is not a valid Web URI according to [webUriValidation].");
+    }
+
+    @Test
+    public void testValidate_HrefInvalidScheme_AddResults47703() {
+        // Test 2: Invalid scheme - not http/https (equivalent to -10401)
+        replaceValue("$['entities'][0]['links'][0]['href']", "hpsps://example.com/test");
+        validate(-47703,
+            "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"hpsps://example.com/test\",\"type\":\"text/html\",\"value\":\"https://example.com/\"}",
+            "The 'href' property is not a valid Web URI according to [webUriValidation].");
+    }
+
+    @Test
+    public void testValidate_HrefFtpScheme_AddResults47703() {
+        // Test 3: FTP scheme should fail (not http/https)
+        replaceValue("$['entities'][0]['links'][0]['href']", "ftp://example.com/file.txt");
+        validate(-47703,
+            "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"ftp://example.com/file.txt\",\"type\":\"text/html\",\"value\":\"https://example.com/\"}",
+            "The 'href' property is not a valid Web URI according to [webUriValidation].");
+    }
+
+    @Test
+    public void testValidate_HrefInvalidHost_AddResults47703() {
+        // Test 4: Invalid host format (equivalent to -10402)
+        replaceValue("$['entities'][0]['links'][0]['href']", "https://invalid..host.com/test");
+        validate(-47703,
+            "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"https://invalid..host.com/test\",\"type\":\"text/html\",\"value\":\"https://example.com/\"}",
+            "The 'href' property is not a valid Web URI according to [webUriValidation].");
+    }
+
+    @Test
+    public void testValidate_HrefValidHttps_Passes() {
+        // Test 5: Valid HTTPS URI should pass
+        replaceValue("$['entities'][0]['links'][0]['href']", "https://valid-host.example.com/path");
+        validate();  // Should pass without errors
+    }
+
+    @Test
+    public void testValidate_HrefValidHttp_Passes() {
+        // Test 6: Valid HTTP URI should also pass
+        replaceValue("$['entities'][0]['links'][0]['href']", "http://valid-host.example.com/path");
+        validate();  // Should pass without errors
     }
 }
