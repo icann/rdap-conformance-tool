@@ -40,13 +40,17 @@ public class ResponseValidation2Dot7Dot5Dot3_2024 extends ProfileJsonValidation 
 
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-            JSONObject name = (JSONObject) redacted.get("name");
-            if (name.get("type") instanceof String redactedName) {
-                if (redactedName.trim().equalsIgnoreCase("Registrant Fax Ext")) {
-                    redactedFaxExt = redacted;
-
-                    break;
+            try {
+                JSONObject name = (JSONObject) redacted.get("name");
+                if (name != null && name.get("type") instanceof String redactedName) {
+                    if (redactedName.trim().equalsIgnoreCase("Registrant Fax Ext")) {
+                        redactedFaxExt = redacted;
+                        break;
+                    }
                 }
+            } catch (Exception e) {
+                logger.debug("Skipping malformed redacted object: {}", e.getMessage());
+                continue;
             }
         }
 
