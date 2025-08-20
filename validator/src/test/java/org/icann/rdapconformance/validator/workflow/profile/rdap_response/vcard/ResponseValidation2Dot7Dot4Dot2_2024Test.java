@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
+import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
+
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.testng.annotations.Test;
@@ -43,5 +45,28 @@ public class ResponseValidation2Dot7Dot4Dot2_2024Test extends ProfileJsonValidat
         jsonObject.getJSONArray("redacted").getJSONObject(0).put("method", "dummy");
         validate(-63303, "{\"reason\":{\"description\":\"Server policy\"},\"method\":\"dummy\",\"name\":{\"type\":\"Registrant Organization\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\",\"prePath\":\"book\"}",
             "Registrant Organization redaction method must be removal if present");
+    }
+
+    @Test
+    public void testMalformedRedactedArray() throws java.io.IOException {
+        // Load malformed JSON that has malformed redacted object at index 0 
+        // but we need to create a "Registrant Organization" redaction for this test
+        String malformedContent = getResource("/validators/profile/response_validations/vcard/malformed_redacted_test.json");
+        jsonObject = new org.json.JSONObject(malformedContent);
+        
+        // Add a "Registrant Organization" redaction to the test data since malformed_redacted_test.json 
+        // is focused on Technical contact redactions
+        org.json.JSONObject registrantOrgRedaction = new org.json.JSONObject();
+        registrantOrgRedaction.put("name", new org.json.JSONObject().put("type", "Registrant Organization"));
+        registrantOrgRedaction.put("prePath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]");
+        registrantOrgRedaction.put("method", "removal");
+        registrantOrgRedaction.put("reason", new org.json.JSONObject().put("description", "Server policy"));
+        
+        // Add it to the redacted array
+        jsonObject.getJSONArray("redacted").put(registrantOrgRedaction);
+        
+        // This should pass validation because "Registrant Organization" redaction exists,
+        // even though index 0 has malformed "name": null  
+        validate(); // Should NOT generate -63300 error
     }
 }

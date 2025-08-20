@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
+
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
@@ -55,5 +57,18 @@ public class ResponseValidation2Dot7Dot6Dot1_2024Test extends ProfileJsonValidat
         jsonObject.getJSONArray("redacted").getJSONObject(0).put("method", "dummy");
         validate(-65004, "{\"reason\":{\"description\":\"Server policy\"},\"method\":\"dummy\",\"name\":{\"type\":\"Tech Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='technical')]\"}",
             "Tech Name redaction method must be emptyValue");
+    }
+
+    @Test
+    public void testMalformedRedactedArray() throws java.io.IOException {
+        // Load malformed JSON that has malformed redacted object at index 0 
+        // but valid "Tech Name" redaction at index 2
+        String malformedContent = getResource("/validators/profile/response_validations/vcard/malformed_redacted_test.json");
+        jsonObject = new org.json.JSONObject(malformedContent);
+        
+        // This should pass validation because "Tech Name" redaction exists at index 2,
+        // even though index 0 has malformed "name": null. The fn property is preserved
+        // since the "Tech Name" redaction uses emptyValue method, not removal.
+        validate(); // Should NOT generate -65001 error
     }
 }

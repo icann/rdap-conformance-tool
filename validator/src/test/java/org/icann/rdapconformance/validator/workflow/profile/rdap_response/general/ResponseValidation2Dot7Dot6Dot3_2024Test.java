@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
+
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
@@ -113,5 +115,25 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
         jsonObject.getJSONArray("redacted").getJSONObject(0).put("prePath", "$.store.book.[");
         validate(-65206, "{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Tech Email\"},\"prePath\":\"$.store.book.[\"}",
             "jsonpath is invalid for Tech Email prePath");
+    }
+
+    @Test
+    public void testMalformedRedactedArray() throws java.io.IOException {
+        // Load malformed JSON that has malformed redacted object at index 0 
+        // but valid "Tech Email" redaction at index 3
+        String malformedContent = getResource("/validators/profile/response_validations/vcard/malformed_redacted_test.json");
+        jsonObject = new org.json.JSONObject(malformedContent);
+        
+        // Fix the Tech Email redaction to use the correct method for this validation
+        // Tech Email validation requires method "replacementValue", not "removal"
+        jsonObject.getJSONArray("redacted").getJSONObject(3).put("method", "replacementValue");
+        
+        // Remove the prePath since replacementValue doesn't use prePath
+        jsonObject.getJSONArray("redacted").getJSONObject(3).remove("prePath");
+        
+        // The key test: This should pass validation because "Tech Email" redaction exists at index 3,
+        // even though index 0 has malformed "name": null. Our fix ensures malformed redacted 
+        // objects are skipped gracefully.
+        validate(); // Should NOT generate any validation errors
     }
 }
