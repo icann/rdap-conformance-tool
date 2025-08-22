@@ -190,7 +190,7 @@ The following steps should be used to test that the status values comply with  R
     3. "pending renew" status MUST NOT be combined with either "client renew prohibited" or "server renew prohibited" status.
     4. "pending transfer" status MUST NOT be combined with either "client transfer prohibited" or "server transfer prohibited" status.
     5. "pending update" status MUST NOT be combined with either "client update prohibited" or "server update prohibited" status.
-    6. The pending create, pending delete, pending renew, pending transfer, and pending update status values MUST NOT be combined with each other.
+    6. The "pending create", "pending delete", "pending renew", "pending transfer", and "pending update" status values MUST NOT be combined with each other.
 ```json
 {
   "code": -46900,
