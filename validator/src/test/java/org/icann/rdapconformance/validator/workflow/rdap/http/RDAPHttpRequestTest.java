@@ -66,6 +66,13 @@ import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+
 
 
 public class RDAPHttpRequestTest {
@@ -1541,5 +1548,381 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
         // Verify case-insensitive access works
         assertThat(httpHeaders.allValues("SET-COOKIE")).hasSize(3);
         assertThat(httpHeaders.allValues("Content-Type")).hasSize(3);
+    }
+
+    @Test
+    public void testMakeHttpGetRequestWithRedirects_SingleRedirect() throws Exception {
+        WireMockServer wireMock = new WireMockServer(wireMockConfig().dynamicPort());
+        wireMock.start();
+        
+        try (MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class);
+             MockedStatic<ConnectionTracker> trackerMock = mockStatic(ConnectionTracker.class)) {
+            
+            // Mock DNS resolution
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("127.0.0.1")).thenReturn(false);
+            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
+            
+            // Mock connection tracker
+            ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id-1", "test-id-2");
+            trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
+            
+            // Setup WireMock stubs
+            String originalPath = "/domain/original";
+            String redirectPath = "/domain/final";
+            
+            // Original request returns 301 redirect
+            wireMock.stubFor(get(urlEqualTo(originalPath))
+                .willReturn(aResponse()
+                    .withStatus(301)
+                    .withHeader("Location", "http://127.0.0.1:" + wireMock.port() + redirectPath)));
+            
+            // Final request returns 200 OK
+            wireMock.stubFor(get(urlEqualTo(redirectPath))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/rdap+json")
+                    .withBody("{\"objectClassName\": \"domain\"}"))); 
+            
+            URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + originalPath);
+            
+            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequestWithRedirects(originalUri, 10, 3);
+            
+            // Should get final response
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.body()).contains("objectClassName");
+            
+            // Verify both connections were tracked
+            verify(mockTracker, times(2)).startTrackingNewConnection(any(), eq(GET), anyBoolean());
+        } finally {
+            wireMock.stop();
+        }
+    }
+    
+    @Test
+    public void testMakeHttpGetRequestWithRedirects_CrossHostRedirectRejected() throws Exception {
+        WireMockServer wireMock = new WireMockServer(wireMockConfig().dynamicPort());
+        wireMock.start();
+        
+        try (MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class);
+             MockedStatic<ConnectionTracker> trackerMock = mockStatic(ConnectionTracker.class)) {
+            
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("127.0.0.1")).thenReturn(false);
+            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
+            
+            ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
+            
+            // Setup redirect to different host (should be rejected)
+            wireMock.stubFor(get(urlEqualTo("/domain/test"))
+                .willReturn(aResponse()
+                    .withStatus(301)
+                    .withHeader("Location", "http://evil.example.com/domain/test")));
+            
+            URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + "/domain/test");
+            
+            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequestWithRedirects(originalUri, 10, 3);
+            
+            // Should return the redirect response (301) since cross-host redirect is rejected
+            assertThat(response.statusCode()).isEqualTo(301);
+            
+            // Only one connection should be tracked (original request)
+            verify(mockTracker, times(1)).startTrackingNewConnection(any(), eq(GET), anyBoolean());
+        } finally {
+            wireMock.stop();
+        }
+    }
+    
+    @Test
+    public void testMakeHttpGetRequestWithRedirects_NoLocationHeader() throws Exception {
+        WireMockServer wireMock = new WireMockServer(wireMockConfig().dynamicPort());
+        wireMock.start();
+        
+        try (MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class);
+             MockedStatic<ConnectionTracker> trackerMock = mockStatic(ConnectionTracker.class)) {
+            
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("127.0.0.1")).thenReturn(false);
+            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
+            
+            ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
+            
+            // Setup 301 response without Location header
+            wireMock.stubFor(get(urlEqualTo("/domain/test"))
+                .willReturn(aResponse()
+                    .withStatus(301)
+                    .withBody("Moved Permanently")));
+            
+            URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + "/domain/test");
+            
+            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequestWithRedirects(originalUri, 10, 3);
+            
+            // Should return the 301 response since there's no Location header to follow
+            assertThat(response.statusCode()).isEqualTo(301);
+            assertThat(response.body()).isEqualTo("Moved Permanently");
+            
+            verify(mockTracker, times(1)).startTrackingNewConnection(any(), eq(GET), anyBoolean());
+        } finally {
+            wireMock.stop();
+        }
+    }
+    
+    @Test
+    public void testMakeHttpGetRequestWithRedirects_MaxRedirectsExceeded() throws Exception {
+        WireMockServer wireMock = new WireMockServer(wireMockConfig().dynamicPort());
+        wireMock.start();
+        
+        try (MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class);
+             MockedStatic<ConnectionTracker> trackerMock = mockStatic(ConnectionTracker.class)) {
+            
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("127.0.0.1")).thenReturn(false);
+            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
+            
+            ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id-1", "test-id-2");
+            trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
+            
+            // Setup infinite redirect loop
+            wireMock.stubFor(get(urlEqualTo("/domain/test1"))
+                .willReturn(aResponse()
+                    .withStatus(302)
+                    .withHeader("Location", "http://127.0.0.1:" + wireMock.port() + "/domain/test2")));
+            
+            wireMock.stubFor(get(urlEqualTo("/domain/test2"))
+                .willReturn(aResponse()
+                    .withStatus(302)
+                    .withHeader("Location", "http://127.0.0.1:" + wireMock.port() + "/domain/test1")));
+            
+            URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + "/domain/test1");
+            
+            // Set max redirects to 1
+            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequestWithRedirects(originalUri, 10, 1);
+            
+            // Should return the last redirect response (302) when max redirects exceeded
+            assertThat(response.statusCode()).isEqualTo(302);
+            
+            // Should have made exactly maxRedirects + 1 requests (original + 1 redirect)
+            verify(mockTracker, times(2)).startTrackingNewConnection(any(), eq(GET), anyBoolean());
+        } finally {
+            wireMock.stop();
+        }
+    }
+    
+    @Test
+    public void testMakeRequestWithRedirects_AllowedRedirectCodes() throws Exception {
+        WireMockServer wireMock = new WireMockServer(wireMockConfig().dynamicPort());
+        wireMock.start();
+        
+        try (MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class);
+             MockedStatic<ConnectionTracker> trackerMock = mockStatic(ConnectionTracker.class)) {
+            
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("127.0.0.1")).thenReturn(false);
+            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
+            
+            ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id-1", "test-id-2");
+            trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
+            
+            // Test each redirect status code
+            int[] redirectCodes = {301, 302, 303, 307, 308};
+            
+            for (int code : redirectCodes) {
+                String path = "/test" + code;
+                String finalPath = "/final" + code;
+                
+                wireMock.stubFor(get(urlEqualTo(path))
+                    .willReturn(aResponse()
+                        .withStatus(code)
+                        .withHeader("Location", "http://127.0.0.1:" + wireMock.port() + finalPath)));
+                
+                wireMock.stubFor(get(urlEqualTo(finalPath))
+                    .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("Success for " + code)));
+                
+                URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + path);
+                
+                HttpResponse<String> response = RDAPHttpRequest.makeRequestWithRedirects(originalUri, 10, GET, false, false, 3);
+                
+                assertThat(response.statusCode()).as("Testing redirect code " + code).isEqualTo(200);
+                assertThat(response.body()).as("Testing redirect code " + code).isEqualTo("Success for " + code);
+            }
+        } finally {
+            wireMock.stop();
+        }
+    }
+    
+    @Test
+    public void testMakeRequestWithRedirects_NonRedirectStatus() throws Exception {
+        WireMockServer wireMock = new WireMockServer(wireMockConfig().dynamicPort());
+        wireMock.start();
+        
+        try (MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class);
+             MockedStatic<ConnectionTracker> trackerMock = mockStatic(ConnectionTracker.class)) {
+            
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("127.0.0.1")).thenReturn(false);
+            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
+            
+            ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
+            
+            // Setup 200 response (no redirect)
+            wireMock.stubFor(get(urlEqualTo("/domain/test"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBody("Success")));
+            
+            URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + "/domain/test");
+            
+            HttpResponse<String> response = RDAPHttpRequest.makeRequestWithRedirects(originalUri, 10, GET, false, false, 3);
+            
+            // Should return the original 200 response
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.body()).isEqualTo("Success");
+            
+            // Only one connection should be tracked
+            verify(mockTracker, times(1)).startTrackingNewConnection(any(), eq(GET), anyBoolean());
+        } finally {
+            wireMock.stop();
+        }
+    }
+    
+    @Test
+    public void testLinkRedirectConnections() throws Exception {
+        // Test that redirects are properly linked in the connection tracker
+        // We'll test this by verifying the actual connection records are linked
+        
+        WireMockServer wireMock = new WireMockServer(wireMockConfig().dynamicPort());
+        wireMock.start();
+        
+        try (MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class)) {
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("127.0.0.1")).thenReturn(false);
+            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
+            
+            // Clear connection tracker
+            ConnectionTracker tracker = ConnectionTracker.getInstance();
+            tracker.reset();
+            
+            // Setup redirect
+            wireMock.stubFor(get(urlEqualTo("/original"))
+                .willReturn(aResponse()
+                    .withStatus(301)
+                    .withHeader("Location", "http://127.0.0.1:" + wireMock.port() + "/final")));
+            
+            wireMock.stubFor(get(urlEqualTo("/final"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBody("Success")));
+            
+            URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + "/original");
+            
+            HttpResponse<String> response = RDAPHttpRequest.makeRequestWithRedirects(originalUri, 10, GET, false, false, 3);
+            
+            // Verify the response is successful
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.body()).isEqualTo("Success");
+            
+            // Verify connections are linked properly
+            List<ConnectionTracker.ConnectionRecord> connections = tracker.getConnections();
+            assertThat(connections).hasSize(2); // Original + follow-up
+            
+            ConnectionTracker.ConnectionRecord redirectRecord = connections.get(0);
+            ConnectionTracker.ConnectionRecord followRecord = connections.get(1);
+            
+            // The redirect record should have redirectedToId pointing to follow record
+            assertThat(redirectRecord.getRedirectedToId()).isEqualTo(followRecord.getTrackingId());
+            
+            // The follow record should have parentTrackingId pointing to redirect record
+            assertThat(followRecord.getParentTrackingId()).isEqualTo(redirectRecord.getTrackingId());
+            assertThat(followRecord.isRedirectFollow()).isTrue();
+        } finally {
+            wireMock.stop();
+        }
+    }
+    
+    @Test
+    public void testRedirectConnectionTracking_TreeDisplayFormat() throws Exception {
+        // Test that redirect connections are displayed with proper tree-style formatting
+        WireMockServer wireMock = new WireMockServer(wireMockConfig().dynamicPort());
+        wireMock.start();
+        
+        try (MockedStatic<DNSCacheResolver> dnsResolverMock = mockStatic(DNSCacheResolver.class)) {
+            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("127.0.0.1")).thenReturn(false);
+            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
+            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
+            
+            ConnectionTracker tracker = ConnectionTracker.getInstance();
+            tracker.reset();
+            
+            // Setup redirect chain: original -> intermediate -> final
+            wireMock.stubFor(get(urlEqualTo("/chain/original"))
+                .willReturn(aResponse()
+                    .withStatus(301)
+                    .withHeader("Location", "http://127.0.0.1:" + wireMock.port() + "/chain/intermediate")));
+            
+            wireMock.stubFor(get(urlEqualTo("/chain/intermediate"))
+                .willReturn(aResponse()
+                    .withStatus(302)
+                    .withHeader("Location", "http://127.0.0.1:" + wireMock.port() + "/chain/final")));
+            
+            wireMock.stubFor(get(urlEqualTo("/chain/final"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBody("Final result")));
+            
+            URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + "/chain/original");
+            
+            HttpResponse<String> response = RDAPHttpRequest.makeRequestWithRedirects(originalUri, 10, GET, false, false, 3);
+            
+            // Verify final response
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.body()).isEqualTo("Final result");
+            
+            // Get all connections and verify tree structure
+            List<ConnectionTracker.ConnectionRecord> connections = tracker.getConnections();
+            assertThat(connections).hasSize(3); // original -> intermediate -> final
+            
+            // Verify the redirect chain linking
+            ConnectionTracker.ConnectionRecord originalRecord = connections.get(0);
+            ConnectionTracker.ConnectionRecord intermediateRecord = connections.get(1);
+            ConnectionTracker.ConnectionRecord finalRecord = connections.get(2);
+            
+            // Original -> Intermediate
+            assertThat(originalRecord.getRedirectedToId()).isEqualTo(intermediateRecord.getTrackingId());
+            assertThat(intermediateRecord.getParentTrackingId()).isEqualTo(originalRecord.getTrackingId());
+            assertThat(intermediateRecord.isRedirectFollow()).isTrue();
+            
+            // Intermediate -> Final
+            assertThat(intermediateRecord.getRedirectedToId()).isEqualTo(finalRecord.getTrackingId());
+            assertThat(finalRecord.getParentTrackingId()).isEqualTo(intermediateRecord.getTrackingId());
+            assertThat(finalRecord.isRedirectFollow()).isTrue();
+            
+            // Test toString() formatting shows redirect relationships
+            String trackerOutput = tracker.toString();
+            
+            // Should contain redirect indicators in the output
+            assertThat(trackerOutput).contains("[REDIRECTED]");
+            assertThat(trackerOutput).contains("[REDIRECT_FOLLOW]");
+            
+            // Should contain tree-style arrows for redirect relationships
+            assertThat(trackerOutput).contains("└─►");
+            
+            // Verify connection tracking report mentions all URLs in the chain
+            assertThat(trackerOutput).contains("/chain/original");
+            assertThat(trackerOutput).contains("/chain/intermediate");  
+            assertThat(trackerOutput).contains("/chain/final");
+        } finally {
+            wireMock.stop();
+        }
     }
 }
