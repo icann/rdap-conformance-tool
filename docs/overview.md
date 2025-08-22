@@ -133,6 +133,26 @@ By default, RDAPCT writes the results to a file in a subordinate `results` direc
 XXXX is the timestamp when the file was generated.  The `--results-file` may be used to write the results to a file with a specific
 file name.
 
+## Testing A Local File
+
+It is possible to test RDAP responses in local files. This requires using the "file" URL and the `--query-type` parameter.
+Here is an example using Java:
+
+```
+java -jar rdapct-3.0.0.jar -c ./rdapct-config.json --query-type DOMAIN file:///dir/subdir/test_example.json
+```
+
+The values for `--query-type` can be:
+
+* DOMAIN
+* NAMESERVER
+* ENTITY
+* AUTNUM
+* IP_NETWORK
+* NAMESERVERS
+* HELP
+* ERROR
+
 ## Experimental Parallel Network Mode
 
 You can now enable **parallel network execution** in RDAPCT. This makes the tool run network-related checks at the 
