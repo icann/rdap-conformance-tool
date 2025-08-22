@@ -662,4 +662,113 @@ public class RDAPHttpRequest {
             return value;
         }
     }
+
+    /**
+     * Makes an HTTP GET request with optional redirect following.
+     * This is specifically for case folding validation where redirects need to be followed.
+     */
+    public static HttpResponse<String> makeHttpGetRequestWithRedirects(URI uri, int timeoutSeconds, int maxRedirects) throws Exception {
+        return makeRequestWithRedirects(uri, timeoutSeconds, GET, false, true, maxRedirects);
+    }
+
+    /**
+     * Makes an HTTP request with optional redirect following.
+     * This preserves ALL existing connection tracking and error handling.
+     */
+    public static HttpResponse<String> makeRequestWithRedirects(URI originalUri, int timeoutSeconds, String method, 
+                                                               boolean isMain, boolean canRecordError, int maxRedirects) throws Exception {
+        // If maxRedirects is 0, use existing behavior exactly
+        if (maxRedirects <= ZERO) {
+            return makeRequest(originalUri, timeoutSeconds, method, isMain, canRecordError);
+        }
+        
+        // For redirects, we need to handle the redirect chain while preserving connection tracking
+        URI currentUri = originalUri;
+        int remainingRedirects = maxRedirects;
+        String previousTrackingId = null; // Track the previous request in the chain
+        
+        while (remainingRedirects > 0) {
+            // Make the request using existing infrastructure - this preserves ALL tracking
+            HttpResponse<String> response = makeRequest(currentUri, timeoutSeconds, method, isMain, canRecordError);
+            
+            // Get the tracking ID of this response
+            String currentTrackingId = null;
+            if (response instanceof SimpleHttpResponse) {
+                currentTrackingId = ((SimpleHttpResponse) response).getTrackingId();
+            }
+            
+            // Link to previous request if this is a redirect follow
+            if (previousTrackingId != null && currentTrackingId != null) {
+                linkRedirectConnections(previousTrackingId, currentTrackingId);
+            }
+            
+            // If not a redirect, return the response
+            if (!RDAPHttpQuery.isRedirectStatus(response.statusCode())) {
+                return response;
+            }
+            
+            // Handle redirect
+            Optional<String> location = response.headers().firstValue("Location");
+            if (location.isEmpty()) {
+                logger.warn("Redirect response missing Location header");
+                return response; // Return the redirect response as-is
+            }
+            
+            URI redirectUri;
+            try {
+                redirectUri = URI.create(location.get());
+                if (!redirectUri.isAbsolute()) {
+                    redirectUri = currentUri.resolve(redirectUri);
+                }
+            } catch (Exception e) {
+                logger.warn("Invalid redirect Location header: {}", location.get(), e);
+                return response; // Return the redirect response as-is
+            }
+            
+            // Security check: only allow same-host redirects for case folding
+            if (!currentUri.getHost().equalsIgnoreCase(redirectUri.getHost())) {
+                logger.warn("Cross-host redirect rejected: {} -> {}", currentUri.getHost(), redirectUri.getHost());
+                return response; // Return the redirect response as-is
+            }
+            
+            logger.info("Following redirect for case folding: {} -> {}", currentUri, redirectUri);
+            
+            // Prepare for next iteration
+            previousTrackingId = currentTrackingId; // This redirect will be the parent of the next request
+            currentUri = redirectUri;
+            remainingRedirects--;
+            
+            // For subsequent requests in the redirect chain, treat as non-main connections
+            isMain = false;
+        }
+        
+        // If we've exhausted redirects, make one final request
+        return makeRequest(currentUri, timeoutSeconds, method, isMain, canRecordError);
+    }
+
+    /**
+     * Link two connections to show redirect relationship
+     * @param redirectTrackingId The tracking ID of the request that returned a redirect
+     * @param followUpTrackingId The tracking ID of the request that followed the redirect
+     */
+    private static void linkRedirectConnections(String redirectTrackingId, String followUpTrackingId) {
+        try {
+            ConnectionTracker tracker = ConnectionTracker.getInstance();
+            
+            // Get both connection records
+            ConnectionTracker.ConnectionRecord redirectRecord = tracker.getConnectionByTrackingId(redirectTrackingId);
+            ConnectionTracker.ConnectionRecord followUpRecord = tracker.getConnectionByTrackingId(followUpTrackingId);
+            
+            if (redirectRecord != null && followUpRecord != null) {
+                // Link the connections
+                redirectRecord.setRedirectedToId(followUpTrackingId);
+                followUpRecord.setParentTrackingId(redirectTrackingId);
+                followUpRecord.setRedirectFollow(true);
+                
+                logger.debug("Linked redirect connections: {} -> {}", redirectTrackingId, followUpTrackingId);
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to link redirect connections: {} -> {}", redirectTrackingId, followUpTrackingId, e);
+        }
+    }
 }
