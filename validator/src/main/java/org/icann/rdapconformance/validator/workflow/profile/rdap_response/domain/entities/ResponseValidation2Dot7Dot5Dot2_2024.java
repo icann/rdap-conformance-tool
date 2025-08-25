@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 public class ResponseValidation2Dot7Dot5Dot2_2024 extends ProfileJsonValidation {
 
-    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles[0]=='registrant')]";
+    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot5Dot2_2024.class);
 

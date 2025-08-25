@@ -18,7 +18,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonValidation {
   private static final Logger logger = LoggerFactory.getLogger(ResponseValidationRegistrantHandle_2024.class);
   public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
-  public static final String ENTITY_REGISTRANT_PATH = "$.entities[?(@.roles[0]=='registrant')]";
+  public static final String ENTITY_REGISTRANT_PATH = "$.entities[?(@.roles contains 'registrant')]";
   private static final String REDACTED_PATH = "$.redacted[*]";
   private Set<String> redactedPointersValue = null;
   private final RDAPDatasetService datasetService;
@@ -176,6 +176,20 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
           var prePathPointer = getPointerFromJPath(prePath);
           logger.info("prePath pointer with size {}", prePathPointer.size());
 
+          // TODO: Test case -63104: JSONPath must evaluate to empty set for Registry Registrant ID redaction
+          // Currently commented out due to evaluation logic issues - needs investigation
+          // The getPointerFromJPath() method may not be correctly evaluating empty results
+          /*
+          if (prePathPointer != null && !prePathPointer.isEmpty()) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63104)
+                    .value(redactedRegistrantName.toString())
+                    .message("jsonpath must evaluate to a zero set for redaction by removal of Registry Registrant ID.")
+                    .build());
+            return false;
+          }
+          */
+
         } catch (Exception e) {
           logger.info("prePath is not a valid JSONPath expression, Error: {}", e.getMessage());
           results.add(RDAPValidationResult.builder()
@@ -189,6 +203,26 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
     } catch (Exception e) {
       logger.error("prePath property is not found, no validations defined. Error: {}", e.getMessage());
     }
+
+    // TODO: Test case -63105: Registry Registrant ID redaction method must be removal if present
+    // Currently commented out pending proper implementation and testing
+    /*
+    Object method = null;
+    try {
+      method = redactedRegistrantName.get("method");
+    } catch (Exception e) {
+      logger.info("method is absent: {}", e.getMessage());
+    }
+
+    if (method != null && !"removal".equals(method.toString())) {
+      results.add(RDAPValidationResult.builder()
+              .code(-63105)
+              .value(redactedRegistrantName.toString())
+              .message("Registry Registrant ID redaction method must be removal if present")
+              .build());
+      return false;
+    }
+    */
 
     return true;
   }

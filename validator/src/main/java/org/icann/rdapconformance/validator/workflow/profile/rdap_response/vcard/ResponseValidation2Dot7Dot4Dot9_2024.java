@@ -15,8 +15,8 @@ import java.util.stream.Stream;
 public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot9_2024.class);
-    public static final String VCARD_PATH = "$.entities[?(@.roles[0]=='registrant')].vcardArray[1]";
-    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles[0]=='registrant')]";
+    public static final String VCARD_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1]";
+    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private  Set<String> vcardPointersValue = null;
     private Set<String> redactedPointersValue = null;

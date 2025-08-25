@@ -13,8 +13,8 @@ import java.util.Set;
 public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot2_2024.class);
-  public static final String TEL_VOICE_PATH = "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]";
-  public static final String ENTITY_TECHNICAL_ROLE_PATH = "$.entities[?(@.roles[0]=='technical')]";
+  public static final String TEL_VOICE_PATH = "$.entities[?(@.roles contains 'technical')].vcardArray[1][?(@[1].type=='voice')]";
+  public static final String ENTITY_TECHNICAL_ROLE_PATH = "$.entities[?(@.roles contains 'technical')]";
   private static final String REDACTED_PATH = "$.redacted[*]";
   private Set<String> redactedPointersValue = null;
 

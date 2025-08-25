@@ -20,10 +20,11 @@ public class ResponseValidation2Dot7Dot4Dot2_2024Test extends ProfileJsonValidat
     }
 
     @Test
-    public void test63300() {
+    public void test63300Removed() {
+        // Test case -63300 has been removed as per the requirements
+        // Natural persons do not require "Registrant Organization" redaction
         jsonObject.getJSONArray("redacted").remove(0);
-        validate(-63300, "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}",
-            "a redaction of type Registrant Organization is required.");
+        validate(); // Should pass validation now (no error expected)
     }
 
     @Test
@@ -58,15 +59,48 @@ public class ResponseValidation2Dot7Dot4Dot2_2024Test extends ProfileJsonValidat
         // is focused on Technical contact redactions
         org.json.JSONObject registrantOrgRedaction = new org.json.JSONObject();
         registrantOrgRedaction.put("name", new org.json.JSONObject().put("type", "Registrant Organization"));
-        registrantOrgRedaction.put("prePath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]");
+        registrantOrgRedaction.put("prePath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='nonexistent')]");
         registrantOrgRedaction.put("method", "removal");
         registrantOrgRedaction.put("reason", new org.json.JSONObject().put("description", "Server policy"));
         
         // Add it to the redacted array
         jsonObject.getJSONArray("redacted").put(registrantOrgRedaction);
         
-        // This should pass validation because "Registrant Organization" redaction exists,
+        // This should pass validation because "Registrant Organization" redaction exists with proper empty prePath,
         // even though index 0 has malformed "name": null  
-        validate(); // Should NOT generate -63300 error
+        validate(); // Should NOT generate any errors
+    }
+
+    @Test
+    public void testMultiRoleRegistrant() throws java.io.IOException {
+        // REGRESSION TEST: This test verifies that multi-role entities are handled correctly
+        // After fixing role indexing bug (RCT-345), we now use: $.entities[?(@.roles contains 'registrant')]
+        // This correctly finds registrant entities regardless of role position
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // The test JSON has entity with roles: ["technical", "registrant"] 
+        // - roles[0] = "technical" 
+        // - roles[1] = "registrant" <- NOW CORRECTLY FOUND with 'contains' operator
+        
+        // Test with "Registrant Organization" redaction present
+        // Expected: Should pass validation (redaction exists, so natural person check is skipped)
+        validate(); // Should pass - redaction present, validation logic applies correctly
+    }
+
+    @Test
+    public void testMultiRoleRegistrant_NaturalPerson() throws java.io.IOException {
+        // REGRESSION TEST: Test natural person logic with multi-role entities
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Remove the redaction to test natural person logic
+        jsonObject.getJSONArray("redacted").remove(0);
+        
+        // Expected: Should pass validation (no redaction found, treated as natural person)
+        // The updated logic says: "No 'Registrant Organization' redaction found, skip validation (natural person)"
+        validate(); // Should pass - no redaction, treated as natural person per updated requirements
     }
 }

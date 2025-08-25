@@ -136,4 +136,19 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
         // objects are skipped gracefully.
         validate(); // Should NOT generate any validation errors
     }
+
+    @Test
+    public void testMultiRoleTechnical() throws java.io.IOException {
+        // REGRESSION TEST: Verify multi-role entities are handled correctly after RCT-345 fix
+        // Changed from @.roles[0]=='technical' to @.roles contains 'technical'
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Test JSON has entity with roles: ["technical", "registrant"]
+        // Now correctly found with 'contains' operator regardless of role position
+        
+        // Should pass validation with multi-role technical entity
+        validate(); // Should pass - technical entity correctly found
+    }
 }
