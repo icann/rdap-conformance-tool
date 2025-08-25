@@ -230,6 +230,12 @@ public void setShowProgress(boolean showProgress) {
       return ToolResult.DATASET_UNAVAILABLE.getCode();
     }
 
+    // First check if the configuration file exists
+    if (!CommonUtils.configFileExists(this, fileSystem)) {
+      logger.error(ToolResult.CONFIG_DOES_NOT_EXIST.getDescription());
+      return ToolResult.CONFIG_DOES_NOT_EXIST.getCode();
+    }
+
     // Setup the configuration file
     ConfigurationFile configFile = CommonUtils.verifyConfigFile(this, fileSystem);
 

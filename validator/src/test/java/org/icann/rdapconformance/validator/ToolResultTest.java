@@ -10,7 +10,7 @@ public class ToolResultTest {
     public void testEnumValues() {
         ToolResult[] values = ToolResult.values();
         
-        assertThat(values).hasSize(9);
+        assertThat(values).hasSize(10);
         assertThat(values).contains(
             ToolResult.SUCCESS,
             ToolResult.CONFIG_INVALID,
@@ -20,7 +20,8 @@ public class ToolResultTest {
             ToolResult.USES_THIN_MODEL,
             ToolResult.FILE_WRITE_ERROR,
             ToolResult.FILE_READ_ERROR,
-            ToolResult.BAD_USER_INPUT
+            ToolResult.BAD_USER_INPUT,
+            ToolResult.CONFIG_DOES_NOT_EXIST
         );
     }
     
@@ -95,6 +96,14 @@ public class ToolResultTest {
         
         assertThat(result.getCode()).isEqualTo(25);
         assertThat(result.getDescription()).isEqualTo("The user input is invalid");
+    }
+    
+    @Test
+    public void testConfigDoesNotExist() {
+        ToolResult result = ToolResult.CONFIG_DOES_NOT_EXIST;
+        
+        assertThat(result.getCode()).isEqualTo(26);
+        assertThat(result.getDescription()).isEqualTo("The config file does not exist");
     }
     
     @Test
