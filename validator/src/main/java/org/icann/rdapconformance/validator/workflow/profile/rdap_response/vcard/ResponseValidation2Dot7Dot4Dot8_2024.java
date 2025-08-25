@@ -1,8 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
+import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,9 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot8_2024.class);
     public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
     public static final String VCARD_VOICE_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1][?(@[1].type=='voice')]";
+    private static final String TEL_PROPERTY = "tel";
+    private static final String VOICE_TYPE = "voice";
+    private static final String REGISTRANT_PHONE_TYPE = "Registrant Phone";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
     private boolean isValid = true;
@@ -39,10 +44,11 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
         }
 
         try {
-            Set<String> vcardVoicePointersValue = getPointerFromJPath(VCARD_VOICE_PATH);
-            logger.info("vcardVoicePointersValue size: {}", vcardVoicePointersValue.size());
+            // Use custom method to find voice tel properties that handles both string and array types
+            boolean hasVoiceTel = hasVoiceTelProperty();
+            logger.info("hasVoiceTel: {}", hasVoiceTel);
 
-            if(vcardVoicePointersValue.isEmpty()) {
+            if(!hasVoiceTel) {
                 logger.info("voice tel in vcard does not have values, validate redaction object");
                 return validateRedactedArrayForNoVoiceValue();
             }
@@ -64,7 +70,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
             try {
                 var nameValue = name.get("type");
                 if(nameValue instanceof String redactedName) {
-                    if(redactedName.trim().equalsIgnoreCase("Registrant Phone")) {
+                    if(redactedName.trim().equalsIgnoreCase(REGISTRANT_PHONE_TYPE)) {
                         redactedPhone = redacted;
                         break; // Found the Registrant Phone redaction, no need to continue
                     }
@@ -184,6 +190,81 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
         }
 
         return isValid;
+    }
+
+    /**
+     * Custom method to check if registrant entity has tel property with voice type.
+     * This method properly handles both string and array type parameters.
+     */
+    private boolean hasVoiceTelProperty() {
+        try {
+            // Get registrant entities
+            Set<String> registrantEntities = getPointerFromJPath(ENTITY_ROLE_PATH);
+            if (registrantEntities.isEmpty()) {
+                return false;
+            }
+
+            // Check each registrant entity for voice tel properties
+            for (String entityPointer : registrantEntities) {
+                JSONObject entity = (JSONObject) jsonObject.query(entityPointer);
+                JSONArray vcardArray = entity.optJSONArray("vcardArray");
+
+                if (vcardArray != null && vcardArray.length() > CommonUtils.ONE) {
+                    JSONArray vcardProperties = vcardArray.getJSONArray(CommonUtils.ONE);
+
+                    // Iterate through vcard properties to find tel properties
+                    for (int i = CommonUtils.ZERO; i < vcardProperties.length(); i++) {
+                        try {
+                            JSONArray property = vcardProperties.getJSONArray(i);
+                            if (property.length() >= 2 && TEL_PROPERTY.equals(property.getString(CommonUtils.ZERO))) {
+                                JSONObject params = property.getJSONObject(CommonUtils.ONE);
+                                Object type = params.opt("type");
+
+                                if (hasVoiceType(type)) {
+                                    return true;
+                                }
+                            }
+                        } catch (Exception e) {
+                            // Skip malformed properties, continue searching
+                            logger.debug("Skipping malformed vcard property at index {}: {}", i, e.getMessage());
+                            continue;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error checking for voice tel property: {}", e.getMessage());
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a type value contains "voice", handling both string and array cases.
+     */
+    private boolean hasVoiceType(Object type) {
+        if (type == null) {
+            return false;
+        }
+
+        if (type instanceof String) {
+            return VOICE_TYPE.equals(type);
+        } else if (type instanceof JSONArray) {
+            JSONArray typeArray = (JSONArray) type;
+            for (int i = CommonUtils.ZERO; i < typeArray.length(); i++) {
+                try {
+                    if (VOICE_TYPE.equals(typeArray.getString(i))) {
+                        return true;
+                    }
+                } catch (Exception e) {
+                    // Skip non-string elements
+                    continue;
+                }
+            }
+        }
+
+        return false;
     }
 }
 

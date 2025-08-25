@@ -123,6 +123,28 @@ public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration co
     return datasetService;
 }
 
+    public static boolean configFileExists(RDAPValidatorConfiguration config, FileSystem fileSystem) {
+        java.net.URI configUri = config.getConfigurationFile();
+        String filePath;
+        
+        // Convert URI to file path for existence check
+        if (!configUri.isAbsolute()) {
+            filePath = java.nio.file.Path.of(configUri.toString()).toAbsolutePath().toString();
+        } else if ("file".equals(configUri.getScheme())) {
+            filePath = new java.io.File(configUri).getAbsolutePath();
+        } else {
+            // For non-file URIs (http, etc), we assume they exist (will fail later if they don't)
+            return true;
+        }
+        
+        // Check if file exists (only for local files)
+        if (configUri.getScheme() == null || "file".equals(configUri.getScheme())) {
+            return fileSystem.exists(filePath);
+        }
+        
+        return true;
+    }
+
     public static ConfigurationFile verifyConfigFile(RDAPValidatorConfiguration config, FileSystem fileSystem) {
         ConfigurationFile configFile = null;
         try (InputStream is = fileSystem.uriToStream(config.getConfigurationFile())) {
