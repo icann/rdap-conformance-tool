@@ -15,7 +15,8 @@ public enum ToolResult implements ConformanceError {
     USES_THIN_MODEL(9, "The RDAP query is invalid because the TLD uses the thin model"),
     FILE_WRITE_ERROR(21, "Failure in writing to results file"),
     FILE_READ_ERROR(22, "Failure in reading from results file"),
-    BAD_USER_INPUT(25, "The user input is invalid");
+    BAD_USER_INPUT(25, "The user input is invalid"),
+    CONFIG_DOES_NOT_EXIST(26, "The config file does not exist");
 
     private final int code;
     private final String description;

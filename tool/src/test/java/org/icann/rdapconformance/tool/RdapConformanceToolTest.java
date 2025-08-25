@@ -108,12 +108,28 @@ public class RdapConformanceToolTest {
   }
 
   @Test
+  public void testConfigFileDoesNotExist() throws Exception {
+    RDAPDatasetService mockDatasetService = mock(RDAPDatasetService.class);
+
+    try (MockedStatic<CommonUtils> mockedCommonUtils = Mockito.mockStatic(CommonUtils.class)) {
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class))).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class), nullable(ProgressCallback.class))).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.configFileExists(any(), any())).thenReturn(false);
+
+      // Call should return config does not exist code
+      int result = tool.call();
+      assertThat(result).isEqualTo(ToolResult.CONFIG_DOES_NOT_EXIST.getCode());
+    }
+  }
+
+  @Test
   public void testConfigFileFailure() throws Exception {
     RDAPDatasetService mockDatasetService = mock(RDAPDatasetService.class);
 
     try (MockedStatic<CommonUtils> mockedCommonUtils = Mockito.mockStatic(CommonUtils.class)) {
       mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class))).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class), nullable(ProgressCallback.class))).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.configFileExists(any(), any())).thenReturn(true);
       mockedCommonUtils.when(() -> CommonUtils.verifyConfigFile(any(), any())).thenReturn(null);
 
       // Call should return config invalid code
@@ -136,6 +152,7 @@ public class RdapConformanceToolTest {
 
       mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class))).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class), nullable(ProgressCallback.class))).thenReturn(mockDatasetService);
+      mockedCommonUtils.when(() -> CommonUtils.configFileExists(any(), any())).thenReturn(true);
       mockedCommonUtils.when(() -> CommonUtils.verifyConfigFile(any(), any())).thenReturn(mockConfigFile);
       mockedProcessor.when(() -> RDAPHttpQueryTypeProcessor.getInstance(any())).thenReturn(mockProcessor);
 
