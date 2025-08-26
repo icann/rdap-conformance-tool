@@ -60,7 +60,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
                 vcardArray.remove(i);
             }
         }
-        
+
         redactedObject.getJSONObject("name").put("type", "test");
         validate(-63700, voicePointer, "a redaction of type Registrant Phone is required.");
     }
@@ -78,7 +78,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
                 vcardArray.remove(i);
             }
         }
-        
+
         redactedObject.put("prePath", "$test");
         validate(-63701, pathLangBadPointer, "jsonpath is invalid for Registrant Phone.");
     }
@@ -96,7 +96,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
                 vcardArray.remove(i);
             }
         }
-        
+
         redactedObject.remove("pathLang");
         redactedObject.put("prePath", "$.redacted[*]");
         validate(-63702, prePathExistingPointer, "jsonpath must evaluate to a zero set for redaction by removal of Registrant Phone.");
@@ -115,7 +115,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
                 vcardArray.remove(i);
             }
         }
-        
+
         redactedObject.put("method", "test2");
         validate(-63703, methodPointer, "Registrant Phone redaction method must be removal if present");
     }
@@ -173,7 +173,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         
         // Remove ALL tel properties from registrant entity to trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
-        
+
         // Remove both tel properties (voice and fax) from registrant
         for (int i = vcardArray.length() - 1; i >= 0; i--) {
             JSONArray property = vcardArray.getJSONArray(i);
@@ -329,7 +329,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject telParams = tel.getJSONObject(1);
         telParams.put("type", Arrays.asList("voice")); // Array with voice
-        
+
         // After the fix: validation passes because custom method properly detects voice in arrays
         validate(); // Should pass without errors
     }
@@ -341,19 +341,19 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject telParams = tel.getJSONObject(1);
         telParams.put("type", Arrays.asList("voice", "work")); // Array with voice first
-        
+
         // After the fix: validation passes because custom method properly detects voice in arrays
         validate(); // Should pass without errors
     }
 
     @Test
     public void testTypeArrayWithVoiceSecond_NowPassesAfterFix() {
-        // Test case: Array with voice second - should now pass after fix  
+        // Test case: Array with voice second - should now pass after fix
         // This SHOULD pass (voice is present) and NOW DOES pass (custom voice detection)
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject telParams = tel.getJSONObject(1);
         telParams.put("type", Arrays.asList("work", "voice")); // Array with voice second
-        
+
         // After the fix: validation passes because custom method properly detects voice in arrays
         validate(); // Should pass without errors
     }
@@ -365,7 +365,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject telParams = tel.getJSONObject(1);
         telParams.put("type", Arrays.asList("cell", "voice", "work", "home")); // Array with voice included
-        
+
         // After the fix: validation passes because custom method properly detects voice in arrays
         validate(); // Should pass without errors
     }
@@ -374,7 +374,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
     public void testSingleStringFaxType_ShouldTriggerValidation() {
         // Test case: Change ALL tel properties to "fax" - should trigger validation (custom method looks for "voice" only)
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
-        
+
         // Change ALL tel properties from voice to fax to trigger validation
         for (int i = 0; i < vcardArray.length(); i++) {
             JSONArray property = vcardArray.getJSONArray(i);
@@ -383,11 +383,11 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
                 telParams.put("type", "fax"); // Change all to fax (no voice)
             }
         }
-        
+
         // Also invalidate the redaction object to ensure -63700 is triggered
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.getJSONObject("name").put("type", "test"); // Change from "Registrant Phone" to "test"
-        
+
         // Should trigger -63700 because custom method specifically looks for voice
         validate(-63700, voicePointer, "a redaction of type Registrant Phone is required.");
     }
@@ -396,7 +396,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
     public void testTypeArrayWithNoVoice_ShouldTriggerValidation() {
         // Test case: Change ALL tel properties to arrays with no voice - should correctly trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
-        
+
         // Change ALL tel properties to arrays without voice to trigger validation
         for (int i = 0; i < vcardArray.length(); i++) {
             JSONArray property = vcardArray.getJSONArray(i);
@@ -405,11 +405,11 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
                 telParams.put("type", Arrays.asList("home", "cell", "work")); // Array without voice or fax
             }
         }
-        
+
         // Also invalidate the redaction object to ensure -63700 is triggered
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.getJSONObject("name").put("type", "test"); // Change from "Registrant Phone" to "test"
-        
+
         // This should trigger validation because no voice is present in any tel property
         validate(-63700, voicePointer, "a redaction of type Registrant Phone is required.");
     }
@@ -421,7 +421,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject telParams = tel.getJSONObject(1);
         telParams.put("type", Arrays.asList(null, "voice", null));
-        
+
         validate(); // Should pass - voice found despite nulls
     }
 
@@ -430,14 +430,14 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         // Test case: Array with mixed non-string elements - should handle gracefully
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject telParams = tel.getJSONObject(1);
-        
+
         // Mix of different types including valid "voice"
         JSONArray mixedArray = new JSONArray();
         mixedArray.put(123);           // number
         mixedArray.put(true);          // boolean
         mixedArray.put(new JSONObject().put("bad", "data")); // object
         mixedArray.put("voice");       // valid string
-        
+
         telParams.put("type", mixedArray);
         validate(); // Should pass - voice found despite mixed types
     }
@@ -446,12 +446,12 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
     public void testTypeArrayWithOnlyInvalidElements_ShouldTriggerValidation() {
         // Test case: Change ALL tel properties to arrays with only invalid elements - should trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
-        
+
         JSONArray invalidArray = new JSONArray();
         invalidArray.put(123);
         invalidArray.put(true);
         invalidArray.put(new JSONObject().put("x", "y"));
-        
+
         // Change ALL tel properties to have bad data arrays
         for (int i = 0; i < vcardArray.length(); i++) {
             JSONArray property = vcardArray.getJSONArray(i);
@@ -460,11 +460,11 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
                 telParams.put("type", invalidArray);
             }
         }
-        
+
         // Also invalidate the redaction object to ensure -63700 is triggered
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.getJSONObject("name").put("type", "test"); // Change from "Registrant Phone" to "test"
-        
+
         validate(-63700, voicePointer, "a redaction of type Registrant Phone is required.");
     }
 
@@ -473,18 +473,18 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         // Test case: Malformed vcard structure - should handle gracefully
         JSONArray entities = jsonObject.getJSONArray("entities");
         JSONObject registrantEntity = entities.getJSONObject(0);
-        
+
         // Replace vcard array with malformed structure
         JSONArray malformedVcard = new JSONArray();
         malformedVcard.put("vcard");
         malformedVcard.put("not-an-array"); // Should be array
-        
+
         registrantEntity.put("vcardArray", malformedVcard);
-        
+
         // Also invalidate the redaction object to ensure -63700 is triggered
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.getJSONObject("name").put("type", "test"); // Change from "Registrant Phone" to "test"
-        
+
         validate(-63700, voicePointer, "a redaction of type Registrant Phone is required.");
     }
 
@@ -494,11 +494,11 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         JSONArray entities = jsonObject.getJSONArray("entities");
         JSONObject registrantEntity = entities.getJSONObject(0);
         registrantEntity.remove("vcardArray");
-        
+
         // Also invalidate the redaction object to ensure -63700 is triggered
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.getJSONObject("name").put("type", "test"); // Change from "Registrant Phone" to "test"
-        
+
         validate(-63700, voicePointer, "a redaction of type Registrant Phone is required.");
     }
 
@@ -508,11 +508,11 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         JSONArray entities = jsonObject.getJSONArray("entities");
         JSONObject registrantEntity = entities.getJSONObject(0);
         registrantEntity.put("vcardArray", new JSONArray());
-        
+
         // Also invalidate the redaction object to ensure -63700 is triggered
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.getJSONObject("name").put("type", "test"); // Change from "Registrant Phone" to "test"
-        
+
         validate(-63700, voicePointer, "a redaction of type Registrant Phone is required.");
     }
 
@@ -520,7 +520,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
     public void testTelPropertyMissingParameters_ShouldNotCrash() {
         // Test case: Replace ALL tel properties with ones missing parameters objects
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
-        
+
         // Replace ALL tel properties with malformed ones (missing parameters)
         for (int i = vcardArray.length() - 1; i >= 0; i--) {
             JSONArray property = vcardArray.getJSONArray(i);
@@ -530,11 +530,11 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
                 vcardArray.put(i, telWithoutParams);
             }
         }
-        
+
         // Also invalidate the redaction object to ensure -63700 is triggered
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.getJSONObject("name").put("type", "test"); // Change from "Registrant Phone" to "test"
-        
+
         validate(-63700, voicePointer, "a redaction of type Registrant Phone is required.");
     }
 
@@ -542,7 +542,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
     public void testTelParametersAsNonObject_ShouldNotCrash() {
         // Test case: Replace ALL tel properties with ones having bad parameters (string instead of object)
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
-        
+
         // Replace ALL tel properties with ones having bad parameters
         for (int i = vcardArray.length() - 1; i >= 0; i--) {
             JSONArray property = vcardArray.getJSONArray(i);
@@ -555,11 +555,11 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
                 vcardArray.put(i, telBadParams);
             }
         }
-        
+
         // Also invalidate the redaction object to ensure -63700 is triggered
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.getJSONObject("name").put("type", "test"); // Change from "Registrant Phone" to "test"
-        
+
         validate(-63700, voicePointer, "a redaction of type Registrant Phone is required.");
     }
 
@@ -569,7 +569,50 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject telParams = tel.getJSONObject(1);
         telParams.put("type", Arrays.asList("тип", "voice", "声音")); // Mix of languages
-        
+
         validate(); // Should pass - voice found despite unicode
     }
+
+    @Test
+    public void testMultiRoleRegistrant() throws java.io.IOException {
+        // REGRESSION TEST: Verify multi-role entities are handled correctly after RCT-345 fix
+        // Changed from @.roles[0]=='registrant' to @.roles contains 'registrant'
+
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+
+        // Test JSON has entity with roles: ["technical", "registrant"]
+        // Now correctly found with 'contains' operator regardless of role position
+
+        // Should pass validation with multi-role registrant entity
+        validate(); // Should pass - registrant entity correctly found
+    }
+
+    @Test
+    public void testMultiRoleRegistrant_ValidationActuallyRuns_NoVoiceTel() throws java.io.IOException {
+        // NEGATIVE TEST: Ensure validation logic actually executes for multi-role entities
+        // This test verifies the registrant entity is found and phone validation logic runs
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Remove all tel properties to trigger phone validation
+        JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        for (int i = vcardArray.length() - 1; i >= 0; i--) {
+            JSONArray property = vcardArray.getJSONArray(i);
+            if (property.length() > 0 && "tel".equals(property.getString(0))) {
+                vcardArray.remove(i);
+            }
+        }
+        
+        // Also remove the "Registrant Phone" redaction to trigger -63700
+        jsonObject.getJSONArray("redacted").getJSONObject(0).getJSONObject("name").put("type", "test");
+        
+        // Expected: Should fail with -63700 because validation logic actually runs
+        // Don't check exact value string since it's complex, just verify the error code and message
+        validate(-63700, 
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"test\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')][3]\",\"pathLang\":\"jsonpath\",\"prePath\":\"book\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}",
+            "a redaction of type Registrant Phone is required.");
+    }
+
 }

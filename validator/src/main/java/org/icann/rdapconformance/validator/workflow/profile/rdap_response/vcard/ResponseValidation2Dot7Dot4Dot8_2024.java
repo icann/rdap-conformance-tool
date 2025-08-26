@@ -15,10 +15,11 @@ import java.util.Set;
 public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot8_2024.class);
+    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
+    public static final String VCARD_VOICE_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1][?(@[1].type=='voice')]";
     private static final String TEL_PROPERTY = "tel";
     private static final String VOICE_TYPE = "voice";
     private static final String REGISTRANT_PHONE_TYPE = "Registrant Phone";
-    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles[0]=='registrant')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
     private boolean isValid = true;
@@ -207,10 +208,10 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
             for (String entityPointer : registrantEntities) {
                 JSONObject entity = (JSONObject) jsonObject.query(entityPointer);
                 JSONArray vcardArray = entity.optJSONArray("vcardArray");
-                
+
                 if (vcardArray != null && vcardArray.length() > CommonUtils.ONE) {
                     JSONArray vcardProperties = vcardArray.getJSONArray(CommonUtils.ONE);
-                    
+
                     // Iterate through vcard properties to find tel properties
                     for (int i = CommonUtils.ZERO; i < vcardProperties.length(); i++) {
                         try {
@@ -218,7 +219,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                             if (property.length() >= 2 && TEL_PROPERTY.equals(property.getString(CommonUtils.ZERO))) {
                                 JSONObject params = property.getJSONObject(CommonUtils.ONE);
                                 Object type = params.opt("type");
-                                
+
                                 if (hasVoiceType(type)) {
                                     return true;
                                 }
@@ -235,7 +236,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
             logger.error("Error checking for voice tel property: {}", e.getMessage());
             return false;
         }
-        
+
         return false;
     }
 
@@ -246,7 +247,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
         if (type == null) {
             return false;
         }
-        
+
         if (type instanceof String) {
             return VOICE_TYPE.equals(type);
         } else if (type instanceof JSONArray) {
@@ -262,7 +263,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                 }
             }
         }
-        
+
         return false;
     }
 }

@@ -214,4 +214,19 @@ public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidat
             "",  // Empty redacted array results in empty value
             "a redaction of type Registrant Name is required.");
     }
+
+    @Test
+    public void testMultiRoleRegistrant() throws java.io.IOException {
+        // REGRESSION TEST: Verify multi-role entities are handled correctly after RCT-345 fix
+        // Changed from @.roles[0]=='registrant' to @.roles contains 'registrant'
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Test JSON has entity with roles: ["technical", "registrant"]
+        // Now correctly found with 'contains' operator regardless of role position
+        
+        // Should pass validation with multi-role registrant entity
+        validate(); // Should pass - registrant entity correctly found
+    }
 }

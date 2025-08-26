@@ -71,4 +71,64 @@ public class ResponseValidation2Dot7Dot6Dot1_2024Test extends ProfileJsonValidat
         // since the "Tech Name" redaction uses emptyValue method, not removal.
         validate(); // Should NOT generate -65001 error
     }
+
+    @Test
+    public void testMultiRoleTechnical() throws java.io.IOException {
+        // REGRESSION TEST: Verify multi-role entities are handled correctly after RCT-345 fix
+        // Changed from @.roles[0]=='technical' to @.roles contains 'technical'
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Test JSON has entity with roles: ["technical", "registrant"]
+        // Now correctly found with 'contains' operator regardless of role position
+        
+        // Should pass validation with multi-role technical entity
+        validate(); // Should pass - technical entity correctly found
+    }
+
+    @Test
+    public void testMultiRoleTechnical_ValidationActuallyRuns_EmptyFn() throws java.io.IOException {
+        // NEGATIVE TEST: Ensure validation logic actually executes for multi-role technical entities
+        // This test verifies the technical entity is found and fn validation logic runs
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Make fn empty to trigger validation
+        JSONArray fnValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(1);
+        fnValue.put(3, ""); // Make fn empty
+        
+        // Remove "Tech Name" redaction to trigger -65001 
+        jsonObject.getJSONArray("redacted").getJSONObject(1).getJSONObject("name").put("type", "test");
+        
+        // Expected: Should fail with -65001 because validation logic actually runs
+        validate(-65001, 
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')][3]\",\"pathLang\":\"jsonpath\",\"prePath\":\"book\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"test\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}",
+            "a redaction of type Tech Name is required.");
+    }
+
+    @Test
+    public void testMultiRoleTechnical_ValidationRuns_InvalidPostPath() throws java.io.IOException {
+        // NEGATIVE TEST: Ensure postPath validation runs for multi-role technical entities
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Add required Tech Name redaction with invalid postPath
+        JSONArray redactedArray = jsonObject.getJSONArray("redacted");
+        JSONObject techNameRedaction = new JSONObject();
+        techNameRedaction.put("reason", new JSONObject().put("description", "Server policy"));
+        techNameRedaction.put("method", "emptyValue");
+        techNameRedaction.put("name", new JSONObject().put("type", "Tech Name"));
+        techNameRedaction.put("postPath", "$invalid[path"); // Invalid JSONPath
+        redactedArray.put(techNameRedaction);
+        
+        // Make fn empty to trigger validation
+        JSONArray fnValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(1);
+        fnValue.put(3, ""); // Make fn empty
+        
+        // Expected: Should fail with -65002 because validation logic runs and finds invalid JSONPath
+        validate(-65002, techNameRedaction.toString(), "jsonpath is invalid for Tech Name");
+    }
 }
