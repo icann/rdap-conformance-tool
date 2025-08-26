@@ -587,4 +587,32 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         // Should pass validation with multi-role registrant entity
         validate(); // Should pass - registrant entity correctly found
     }
+
+    @Test
+    public void testMultiRoleRegistrant_ValidationActuallyRuns_NoVoiceTel() throws java.io.IOException {
+        // NEGATIVE TEST: Ensure validation logic actually executes for multi-role entities
+        // This test verifies the registrant entity is found and phone validation logic runs
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Remove all tel properties to trigger phone validation
+        JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        for (int i = vcardArray.length() - 1; i >= 0; i--) {
+            JSONArray property = vcardArray.getJSONArray(i);
+            if (property.length() > 0 && "tel".equals(property.getString(0))) {
+                vcardArray.remove(i);
+            }
+        }
+        
+        // Also remove the "Registrant Phone" redaction to trigger -63700
+        jsonObject.getJSONArray("redacted").getJSONObject(0).getJSONObject("name").put("type", "test");
+        
+        // Expected: Should fail with -63700 because validation logic actually runs
+        // Don't check exact value string since it's complex, just verify the error code and message
+        validate(-63700, 
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"test\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')][3]\",\"pathLang\":\"jsonpath\",\"prePath\":\"book\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}",
+            "a redaction of type Registrant Phone is required.");
+    }
+
 }

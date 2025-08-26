@@ -103,4 +103,54 @@ public class ResponseValidation2Dot7Dot4Dot2_2024Test extends ProfileJsonValidat
         // The updated logic says: "No 'Registrant Organization' redaction found, skip validation (natural person)"
         validate(); // Should pass - no redaction, treated as natural person per updated requirements
     }
+
+    @Test
+    public void testMultiRoleRegistrant_ValidationActuallyRuns_WithOrgRedaction() throws java.io.IOException {
+        // NEGATIVE TEST: Ensure validation logic actually executes for multi-role entities
+        // This test verifies that the registrant entity is found and validation logic runs
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Modify to create a scenario where validation should trigger an error
+        // Change the redaction to have an invalid prePath to trigger -63301
+        jsonObject.getJSONArray("redacted").getJSONObject(0).put("prePath", "invalid.[jsonpath");
+        
+        // Expected: Should fail with -63301 because validation logic actually runs and finds invalid JSONPath
+        validate(-63301, 
+            jsonObject.getJSONArray("redacted").getJSONObject(0).toString(),
+            "jsonpath is invalid for Registrant Organization");
+    }
+
+    @Test  
+    public void testMultiRoleRegistrant_ValidationRuns_InvalidMethod() throws java.io.IOException {
+        // NEGATIVE TEST: Ensure method validation runs for multi-role entities
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Change method to trigger -63303
+        jsonObject.getJSONArray("redacted").getJSONObject(0).put("method", "invalid_method");
+        
+        // Expected: Should fail with -63303 because validation logic runs and finds invalid method
+        validate(-63303,
+            jsonObject.getJSONArray("redacted").getJSONObject(0).toString(), 
+            "Registrant Organization redaction method must be removal if present");
+    }
+
+    @Test
+    public void testMultiRoleRegistrant_ValidationRuns_PrePathNonEmpty() throws java.io.IOException {
+        // NEGATIVE TEST: Ensure prePath validation runs for multi-role entities
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Set prePath to a valid JSONPath that evaluates to non-empty set to trigger -63302
+        jsonObject.getJSONArray("redacted").getJSONObject(0).put("prePath", "$.entities[?(@.roles contains 'registrant')].vcardArray[1][?(@[0]=='fn')][3]");
+        
+        // Expected: Should fail with -63302 because validation logic runs and finds non-empty set
+        validate(-63302,
+            jsonObject.getJSONArray("redacted").getJSONObject(0).toString(),
+            "jsonpath must evaluate to a zero set for redaction by removal of Registrant Organization.");
+    }
 }
