@@ -45,7 +45,7 @@ array with a name object containing the type property which is a JSON string of 
 {
   "code": -63106,
   "value": "<redacted data structure>",
-  "message": "a redaction of type Registry Registrant ID was found by the registrant handle was not redacted."
+  "message": "a redaction of type Registry Registrant ID was found but the registrant handle was not redacted."
 }
 ```
 
