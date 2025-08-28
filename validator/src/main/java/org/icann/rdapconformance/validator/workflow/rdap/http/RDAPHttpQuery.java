@@ -218,6 +218,14 @@ public class RDAPHttpQuery implements RDAPQuery {
             String statusValue =
                 httpResponse == null ? "no response available" : String.valueOf(httpResponse.statusCode());
             addErrorToResultsFile(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
+            
+            // Early termination for client errors (4xx) - these indicate issues with the request itself
+            // and further validation is not meaningful
+            if (httpResponse != null && httpResponse.statusCode() >= 400 && httpResponse.statusCode() < 500) {
+                logger.info("Client error {} detected, stopping validation early", httpResponse.statusCode());
+                isQuerySuccessful = false;
+                return;
+            }
         }
 
         // If it wasn't successful, early return, we don't need to validate

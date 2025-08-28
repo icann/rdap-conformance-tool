@@ -488,13 +488,115 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP).willReturn(aResponse().withStatus(403).withBody(response)));
 
         assertThat(
-            rdapHttpQuery.run()).isTrue(); // this must be true for us to continue and get the error code, we cannot exit early
+            rdapHttpQuery.run()).isFalse(); // Client errors (4xx) should cause early termination
         assertThat(results.getAll()).contains(RDAPValidationResult.builder()
                                                                   .code(-13002)
                                                                   .value("403")
                                                                   .message(
                                                                       "The HTTP status code was neither 200 nor 404.")
                                                                   .build());
+    }
+
+    @DataProvider(name = "clientErrorStatusCodes")
+    public static Object[][] clientErrorStatusCodes() {
+        return new Object[][]{{400}, {401}, {403}, {409}, {422}, {429}, {499}};
+    }
+
+    @DataProvider(name = "serverErrorStatusCodes")
+    public static Object[][] serverErrorStatusCodes() {
+        return new Object[][]{{500}, {502}, {503}, {504}};
+    }
+
+    @Test(dataProvider = "clientErrorStatusCodes")
+    public void test_ClientErrorStatus_CausesEarlyTermination(int statusCode) {
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+
+        String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
+        givenUri(HTTP);
+        stubFor(
+            get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
+                .willReturn(aResponse().withStatus(statusCode).withBody(response)));
+
+        // Client errors (4xx) should cause early termination (except 404)
+        assertThat(rdapHttpQuery.run()).isFalse();
+        
+        // Error -13002 should still be recorded
+        assertThat(results.getAll()).contains(RDAPValidationResult.builder()
+                                                                  .code(-13002)
+                                                                  .value(String.valueOf(statusCode))
+                                                                  .message(
+                                                                      "The HTTP status code was neither 200 nor 404.")
+                                                                  .build());
+    }
+
+    @Test(dataProvider = "serverErrorStatusCodes")
+    public void test_ServerErrorStatus_ContinuesValidation(int statusCode) {
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+
+        String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
+        givenUri(HTTP);
+        stubFor(
+            get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
+                .willReturn(aResponse().withStatus(statusCode).withBody(response)));
+
+        // Server errors (5xx) should continue validation to potentially gather more information
+        assertThat(rdapHttpQuery.run()).isTrue();
+        
+        // Error -13002 should still be recorded
+        assertThat(results.getAll()).contains(RDAPValidationResult.builder()
+                                                                  .code(-13002)
+                                                                  .value(String.valueOf(statusCode))
+                                                                  .message(
+                                                                      "The HTTP status code was neither 200 nor 404.")
+                                                                  .build());
+    }
+
+    @Test
+    public void test_400ErrorSpecifically_DocumentsIntendedBehavior() {
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+
+        String response = "{\"errorCode\": 400, \"title\": \"Bad Request\", \"description\": [\"Invalid domain name\"]}";
+        givenUri(HTTP);
+        stubFor(
+            get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
+                .willReturn(aResponse().withStatus(400)
+                    .withHeader("Content-Type", "application/rdap+json")
+                    .withBody(response)));
+
+        // 400 Bad Request should cause early termination - the request is malformed
+        // and no further validation is meaningful
+        assertThat(rdapHttpQuery.run()).isFalse();
+        
+        // Verify the appropriate error was recorded
+        assertThat(results.getAll()).contains(RDAPValidationResult.builder()
+                                                                  .code(-13002)
+                                                                  .value("400")
+                                                                  .message(
+                                                                      "The HTTP status code was neither 200 nor 404.")
+                                                                  .build());
+    }
+
+    @Test
+    public void test_404Error_ContinuesValidation() {
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        results.clear();
+
+        String response = "{\"errorCode\": 404, \"title\": \"Not Found\", \"description\": [\"Domain not found\"]}";
+        givenUri(HTTP);
+        stubFor(
+            get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
+                .willReturn(aResponse().withStatus(404)
+                    .withHeader("Content-Type", "application/rdap+json")
+                    .withBody(response)));
+
+        // 404 is a special case - it should continue for error response validation
+        assertThat(rdapHttpQuery.run()).isTrue();
+        
+        // Should NOT have error -13002 for 404 (since 404 is an accepted status code)
+        assertThat(results.getAll()).noneMatch(result -> result.getCode() == -13002);
     }
 
 
