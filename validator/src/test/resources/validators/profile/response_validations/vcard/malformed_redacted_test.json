@@ -1,0 +1,163 @@
+{
+  "rdapConformance": [
+    "rdap_level_0",
+    "icann_rdap_technical_implementation_guide_0",
+    "icann_rdap_response_profile_0"
+  ],
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "handle": "ZZZZ",
+      "roles": [
+        "registrant"
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "Administrative User"
+          ],
+          [
+            "org",
+            {},
+            "text",
+            "Example Inc."
+          ],
+          [
+            "adr",
+            {},
+            "text",
+            [
+              "",
+              "Suite 1236",
+              "4321 Rue Somewhere",
+              "Quebec",
+              "QC",
+              "G1V 2M2",
+              "Canada"
+            ]
+          ],
+          [
+            "email",
+            {
+              "type": "work"
+            },
+            "text",
+            "joe.user@example.com"
+          ],
+          [
+            "voice",
+            {
+              "type": "work"
+            },
+            "uri",
+            "tel:+1-555-555-1234;ext=1234"
+          ]
+        ]
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "handle": "123",
+      "roles": [
+        "technical"
+      ],
+      "publicIds": [
+        {
+          "type": "IANA Registrar ID",
+          "identifier": "1"
+        }
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "John Doe"
+          ],
+          [
+            "kind",
+            {},
+            "text",
+            "individual"
+          ],
+          [
+            "lang",
+            {
+              "pref": "1"
+            },
+            "language-tag",
+            "en"
+          ],
+          [
+            "email",
+            {
+              "type": "work"
+            },
+            "text",
+            "johndoe@example.com"
+          ]
+        ]
+      ]
+    }
+  ],
+  "redacted": [
+    {
+      "name": null,
+      "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]",
+      "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Tech Phone"
+      },
+      "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]",
+      "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Tech Name"
+      },
+      "postPath": "$.entities[?(@.roles[0]=='technical')]",
+      "pathLang": "jsonpath",
+      "method": "emptyValue",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Tech Email"
+      },
+      "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='work')]",
+      "pathLang": "jsonpath",
+      "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    }
+  ]
+}

@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 public class ResponseValidation2Dot7Dot5Dot2_2024 extends ProfileJsonValidation {
 
-    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles[0]=='registrant')]";
+    public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot5Dot2_2024.class);
 
@@ -40,13 +40,17 @@ public class ResponseValidation2Dot7Dot5Dot2_2024 extends ProfileJsonValidation 
 
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-            JSONObject name = (JSONObject) redacted.get("name");
-            if (name.get("type") instanceof String redactedName) {
-                if (redactedName.trim().equalsIgnoreCase("Registrant Fax")) {
-                    redactedFax = redacted;
-
-                    break;
+            try {
+                JSONObject name = (JSONObject) redacted.get("name");
+                if (name != null && name.get("type") instanceof String redactedName) {
+                    if (redactedName.trim().equalsIgnoreCase("Registrant Fax")) {
+                        redactedFax = redacted;
+                        break;
+                    }
                 }
+            } catch (Exception e) {
+                logger.debug("Skipping malformed redacted object: {}", e.getMessage());
+                continue;
             }
         }
 

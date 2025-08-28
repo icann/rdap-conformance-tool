@@ -1,0 +1,83 @@
+{
+  "rdapConformance": [
+    "rdap_level_0",
+    "icann_rdap_technical_implementation_guide_0",
+    "icann_rdap_response_profile_0"
+  ],
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "handle": "123",
+      "roles": [
+        "technical"
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "John Doe"
+          ],
+          [
+            "email",
+            {
+              "type": "work"
+            },
+            "text",
+            "johndoe@example.com"
+          ]
+        ]
+      ]
+    }
+  ],
+  "redacted": [
+    {
+      "name": "not-an-object",
+      "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]",
+      "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Tech Phone"
+      },
+      "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]",
+      "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Tech Name"
+      },
+      "postPath": "$.entities[?(@.roles[0]=='technical')]",
+      "pathLang": "jsonpath",
+      "method": "emptyValue",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Tech Email"
+      },
+      "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='work')]",
+      "pathLang": "jsonpath",
+      "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    }
+  ]
+}

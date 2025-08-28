@@ -13,8 +13,8 @@ import java.util.Set;
 public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot2_2024.class);
-  public static final String TEL_VOICE_PATH = "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]";
-  public static final String ENTITY_TECHNICAL_ROLE_PATH = "$.entities[?(@.roles[0]=='technical')]";
+  public static final String TEL_VOICE_PATH = "$.entities[?(@.roles contains 'technical')].vcardArray[1][?(@[1].type=='voice')]";
+  public static final String ENTITY_TECHNICAL_ROLE_PATH = "$.entities[?(@.roles contains 'technical')]";
   private static final String REDACTED_PATH = "$.redacted[*]";
   private Set<String> redactedPointersValue = null;
 
@@ -69,23 +69,17 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
      redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
      for (String redactedJsonPointer : redactedPointersValue) {
          JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-         JSONObject name = (JSONObject) redacted.get("name");
          try {
-             var nameValue = name.get("type");
-             if(nameValue instanceof String redactedName) {
+             JSONObject name = (JSONObject) redacted.get("name");
+             if (name != null && name.get("type") instanceof String redactedName) {
                  if(redactedName.trim().equalsIgnoreCase("Tech Phone")) {
                      redactedTechPhone = redacted;
+                     break;
                  }
              }
          } catch (Exception e) {
-             logger.info("Extract type from name is not possible by {}", e.getMessage());
-             results.add(RDAPValidationResult.builder()
-                     .code(-65100)
-                     .value(getResultValue(redactedPointersValue))
-                     .message("a redaction of type Tech Phone is required.")
-                     .build());
-
-             return new RedactedHandleObjectToValidate(null, false);
+             logger.debug("Skipping malformed redacted object: {}", e.getMessage());
+             continue;
          }
      }
 

@@ -1,5 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
+
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
@@ -108,5 +110,32 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
         telVoiceObject.remove("type");
         redactedObject.put("method", "test");
         validate(-65103, methodPointer, "Tech Phone redaction method must be removal if present");
+    }
+
+    @Test
+    public void testMalformedRedactedArray() throws java.io.IOException {
+        // Load malformed JSON that has malformed redacted object at index 0 
+        // but valid "Tech Phone" redaction at index 1
+        String malformedContent = getResource("/validators/profile/response_validations/vcard/malformed_redacted_test.json");
+        jsonObject = new org.json.JSONObject(malformedContent);
+        
+        // This should pass validation because "Tech Phone" redaction exists at index 1,
+        // even though index 0 has malformed "name": null  
+        validate(); // Should NOT generate -65100 error
+    }
+
+    @Test
+    public void testMultiRoleTechnical() throws java.io.IOException {
+        // REGRESSION TEST: Verify multi-role entities are handled correctly after RCT-345 fix
+        // Changed from @.roles[0]=='technical' to @.roles contains 'technical'
+        
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        
+        // Test JSON has entity with roles: ["technical", "registrant"]
+        // Now correctly found with 'contains' operator regardless of role position
+        
+        // Should pass validation with multi-role technical entity
+        validate(); // Should pass - technical entity correctly found
     }
 }

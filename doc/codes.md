@@ -315,16 +315,17 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-63100`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
 - `-63101`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
 - `-63102`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
-- `-63103`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
+- `-63103`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
+- `-63104`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
+- `-63105`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
 - `-63200`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot1_2024.java}
 - `-63201`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63202`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63203`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63204`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
-- `-63300`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot2_2024.java}
-- `-63301`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
-- `-63302`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
-- `-63303`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
+- `-63301`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RFC 9537, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot2_2024.java}
+- `-63302`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RFC 9537, RDAP Response Profile 2024]
+- `-63303`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RFC 9537, RDAP Response Profile 2024]
 - `-63400`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot3_2024.java}
 - `-63401`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63402`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
