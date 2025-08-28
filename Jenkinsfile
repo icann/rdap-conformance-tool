@@ -10,29 +10,33 @@ node('docker') {
 
         utils.notifyBuild("STARTED", 'jenkinsjobs')
 
-        stage ('Checkout on Slave'){
-
+        stage('Environment') {
              checkout scm
-
         }
 
-        stage ('Run Tests'){
-
-            if( "${env.BRANCH_NAME}" == 'master'){
+        stage('Run Tests') {
+            if( "${env.BRANCH_NAME}" == 'master') {
                 utils.mvn(args: 'clean deploy', jdkVersion: 'jdk21', publishArtifacts: true)
-            }
-            else{
+            } else {
                 utils.mvn(args: 'clean test', jdkVersion: 'jdk21')
             }
         }
 
-     }
-     catch (e) {
+        stage('SonarQube Analysis') {
+            withSonarQubeEnv('ICANN') {
+                utils.mvn(args: 'sonar:sonar -Dsonar.java.source=21 -Dsonar.java.target=21', jdkVersion: 'jdk21')
+            }
+        }
+
+        stage('Notify JIRA') {
+          jiraSendDeploymentInfo environmentId: 'qa', environmentName: 'qa', environmentType: 'testing'
+        }
+     } catch (e) {
          currentBuild.result = "FAILED"
          throw e
      }
-    finally{
+    finally {
          step([$class: 'Publisher'])
-         utils.notifyBuild(currentBuild.result, 'jenkinsjobs')
+         utils.notifyBuild(currentBuild.result, 'ts-eng-builds')
     }
 }
