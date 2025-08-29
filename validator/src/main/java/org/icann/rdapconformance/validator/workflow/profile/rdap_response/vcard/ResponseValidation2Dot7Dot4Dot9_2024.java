@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import com.jayway.jsonpath.JsonPath;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -18,12 +19,14 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     public static final String VCARD_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1]";
     public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
+    private final RDAPValidatorConfiguration config;
     private  Set<String> vcardPointersValue = null;
     private Set<String> redactedPointersValue = null;
     private JSONObject redactedRegistrantEmail = null;
 
-    public ResponseValidation2Dot7Dot4Dot9_2024(String rdapResponse, RDAPValidatorResults results) {
+    public ResponseValidation2Dot7Dot4Dot9_2024(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results) {
         super(rdapResponse, results);
+        this.config = config;
     }
 
     @Override
@@ -333,6 +336,11 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
         }
 
         return arrayList;
+    }
+
+    @Override
+    public boolean doLaunch() {
+        return config.isGtldRegistrar();
     }
 }
 

@@ -1,7 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
@@ -13,6 +16,7 @@ import java.io.IOException;
 
 public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidationTestBase {
 
+    private RDAPValidatorConfiguration config;
     static final String vcardPointer =
             "#/entities/0/vcardArray/1:[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Administrative User\"],[\"org\",{},\"text\",\"Example Inc.\"],[\"adr\",{},\"text\",[\"\",\"Suite 1236\",\"4321 Rue Somewhere\",\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]],[\"email\",{},\"text\",\"administrative.user@example.com\"],[\"contact-uri\",{\"type\":\"voice\"},\"uri\",\"tel:+1-555-555-1236;ext=789\"],[\"tel\",{\"type\":\"fax\"},\"uri\",\"tel:+1-555-555-6321\"]]";
     static final String vcardNoReqPointer =
@@ -38,17 +42,21 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
     @BeforeMethod
     public void setUp() throws IOException {
         super.setUp();
+        config = mock(RDAPValidatorConfiguration.class);
     }
 
     @Override
     public ProfileValidation getProfileValidation() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         return new ResponseValidation2Dot7Dot4Dot9_2024(
+                config,
                 jsonObject.toString(),
                 results);
     }
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_No_Registrant() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("roles");
         roles.put(0, "registrar");
         validate();
@@ -56,6 +64,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64100() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
 
         vArray.put(0, "contact-uri");
@@ -64,6 +73,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64101() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
 
         vArray.put(0, "test");
@@ -72,6 +82,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64102() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
         redactedObject.put("method", "test");
@@ -80,6 +91,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64103() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
         redactedObject.put("postPath", "$test");
@@ -88,6 +100,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64104() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
         redactedObject.put("postPath", "$.test");
@@ -96,6 +109,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64105() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
@@ -106,6 +120,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64106() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
@@ -116,6 +131,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64107() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
@@ -128,6 +144,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
     public void testMultiRoleRegistrant() throws java.io.IOException {
         // REGRESSION TEST: Verify multi-role entities are handled correctly after RCT-345 fix
         // Changed from @.roles[0]=='registrant' to @.roles contains 'registrant'
+        when(config.isGtldRegistrar()).thenReturn(true);
         
         String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
         jsonObject = new org.json.JSONObject(multiRoleContent);
