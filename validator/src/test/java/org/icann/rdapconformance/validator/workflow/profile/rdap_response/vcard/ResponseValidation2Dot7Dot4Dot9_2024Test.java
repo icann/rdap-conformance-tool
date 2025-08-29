@@ -34,6 +34,14 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
             "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Registrant Email\"},\"prePath\":\"$test\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String replaceEmptyPointer =
             "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Registrant Email\"},\"replacementPath\":\"$.test\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='email')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+    static final String redactedReplacementPathPointer =
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Registrant Email\"},\"pathLang\":\"jsonpath\",\"replacementPath\":\"$.entities[*]\",\"prePath\":\"$[invalid\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+    static final String redactedReplacementPathPointer2 =
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Registrant Email\"},\"pathLang\":\"jsonpath\",\"replacementPath\":\"$[invalid\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='email')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+    static final String redactedReplacementPathPointer3 =
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Registrant Email\"},\"replacementPath\":\"$[invalid\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='email')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+    static final String redactedReplacementPathPointer4 =
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Registrant Email\"},\"replacementPath\":\"$.entities[*]\",\"prePath\":\"$[invalid\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
 
     public ResponseValidation2Dot7Dot4Dot9_2024Test() {
         super("/validators/profile/response_validations/vcard/valid_contact_email.json",
@@ -532,6 +540,199 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
         vcardArray.put(customVcard);
 
         vcardArray.put(12345);
+        validate();
+    }
+
+    @Test
+    public void testContactRedactedProperties_nullRedactedRegistrantEmail() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Remove all redacted objects
+        jsonObject.remove("redacted");
+        validate(); // Should pass, nothing to validate
+    }
+
+    @Test
+    public void testContactRedactedProperties_pathLangJsonPath_replacementPathValid_prePathValid() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("method", "replacementValue");
+        redacted.put("name", new JSONObject().put("type", "Registrant Email"));
+        redacted.put("pathLang", "jsonpath");
+        redacted.put("replacementPath", "$.entities[*]"); // valid
+        redacted.put("prePath", "$.entities[*]"); // valid
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate();
+    }
+
+    @Test
+    public void testContactRedactedProperties_pathLangJsonPath_replacementPathValid_prePathInvalid() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("method", "replacementValue");
+        redacted.put("name", new JSONObject().put("type", "Registrant Email"));
+        redacted.put("pathLang", "jsonpath");
+        redacted.put("replacementPath", "$.entities[*]"); // valid
+        redacted.put("prePath", "$[invalid"); // invalid
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate(-64106, redactedReplacementPathPointer, "jsonpath is invalid for Registrant Email prePath");
+    }
+
+    @Test
+    public void testContactRedactedProperties_pathLangJsonPath_replacementPathInvalid() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("method", "replacementValue");
+        redacted.put("name", new JSONObject().put("type", "Registrant Email"));
+        redacted.put("pathLang", "jsonpath");
+        redacted.put("replacementPath", "$[invalid"); // invalid
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate(-64105, redactedReplacementPathPointer2, "jsonpath is invalid for Registrant Email replacementPath");
+    }
+
+    @Test
+    public void testContactRedactedProperties_pathLangJsonPath_replacementPathValid_prePathMissing() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("method", "replacementValue");
+        redacted.put("name", new JSONObject().put("type", "Registrant Email"));
+        redacted.put("pathLang", "jsonpath");
+        redacted.put("replacementPath", "$.entities[*]"); // valid
+        redacted.remove("prePath");
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate();
+    }
+
+    @Test
+    public void testContactRedactedProperties_pathLangNotJsonPath() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("method", "replacementValue");
+        redacted.put("name", new JSONObject().put("type", "Registrant Email"));
+        redacted.put("pathLang", "notjsonpath");
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate();
+    }
+
+    @Test
+    public void testContactRedactedProperties_pathLangMissing_replacementPathValid_prePathValid() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("method", "replacementValue");
+        redacted.put("name", new JSONObject().put("type", "Registrant Email"));
+        redacted.remove("pathLang");
+        redacted.put("replacementPath", "$.entities[*]"); // valid
+        redacted.put("prePath", "$.entities[*]"); // valid
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate();
+    }
+
+    @Test
+    public void testContactRedactedProperties_pathLangMissing_replacementPathInvalid() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("method", "replacementValue");
+        redacted.put("name", new JSONObject().put("type", "Registrant Email"));
+        redacted.remove("pathLang");
+        redacted.put("replacementPath", "$[invalid"); // invalid
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate(-64105, redactedReplacementPathPointer3, "jsonpath is invalid for Registrant Email replacementPath");
+    }
+
+    @Test
+    public void testContactRedactedProperties_pathLangMissing_replacementPathValid_prePathInvalid() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("method", "replacementValue");
+        redacted.put("name", new JSONObject().put("type", "Registrant Email"));
+        redacted.remove("pathLang");
+        redacted.put("replacementPath", "$.entities[*]"); // valid
+        redacted.put("prePath", "$[invalid"); // invalid
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate(-64106, redactedReplacementPathPointer4, "jsonpath is invalid for Registrant Email prePath");
+    }
+
+    @Test
+    public void testContactRedactedProperties_pathLangMissing_replacementPathValid_prePathMissing() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("method", "replacementValue");
+        redacted.put("name", new JSONObject().put("type", "Registrant Email"));
+        redacted.remove("pathLang");
+        redacted.put("replacementPath", "$.entities[*]"); // valid
+        redacted.remove("prePath");
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
         validate();
     }
 }

@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
-import com.jayway.jsonpath.JsonPath;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -195,7 +194,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             logger.info("postPath property is found, so verify value");
             if(postPathValue instanceof String postPath) {
                 try {
-                    JsonPath.compile(postPath);
+                    isValidJsonPath(postPath);
                     var postPathPointer = getPointerFromJPath(postPath);
                     logger.info("postPath pointer with size {}", postPathPointer.size());
                     if(postPathPointer.isEmpty()) {
@@ -242,6 +241,8 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                     replacementValidations = validateReplacementPathBasedOnPathLang();
                     if(replacementValidations) {
                         return validatePrePathBasedOnPathLang();
+                    } else {
+                        return false;
                     }
                 }
             }
@@ -270,7 +271,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             logger.info("replacementPath property is found, so verify value");
             if(replacementPathValue instanceof String replacementPath) {
                 try {
-                    JsonPath.compile(replacementPath);
+                    isValidJsonPath(replacementPath);
                     var replacementPathPointer = getPointerFromJPath(replacementPath);
                     logger.info("replacementPath pointer with size {}", replacementPathPointer.size());
                     if(replacementPathPointer.isEmpty()) {
@@ -309,7 +310,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             logger.info("prePathValue property is found, so verify value");
             if(prePathValue instanceof String prePath) {
                 try {
-                    JsonPath.compile(prePath);
+                    isValidJsonPath(prePath);
                     var prePathPointer = getPointerFromJPath(prePath);
                     logger.info("prePath pointer with size {}", prePathPointer.size());
                 } catch (Exception e) {
