@@ -49,9 +49,9 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
     public ProfileValidation getProfileValidation() {
         when(config.isGtldRegistrar()).thenReturn(true);
         return new ResponseValidation2Dot7Dot4Dot9_2024(
-                config,
                 jsonObject.toString(),
-                results);
+                results,
+                config);
     }
 
     @Test
