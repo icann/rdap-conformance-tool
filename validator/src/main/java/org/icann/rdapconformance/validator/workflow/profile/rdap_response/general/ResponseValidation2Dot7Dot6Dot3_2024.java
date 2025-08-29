@@ -24,7 +24,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     private boolean contactUrlExists = false;
     private final RDAPValidatorConfiguration config;
 
-    public ResponseValidation2Dot7Dot6Dot3_2024(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results) {
+    public ResponseValidation2Dot7Dot6Dot3_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
         super(rdapResponse, results);
         this.config = config;
     }
