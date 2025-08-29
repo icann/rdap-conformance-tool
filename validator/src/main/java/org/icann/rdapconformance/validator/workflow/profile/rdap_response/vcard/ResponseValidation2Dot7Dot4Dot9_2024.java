@@ -48,8 +48,8 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-            JSONObject name = (JSONObject) redacted.get("name");
             try {
+                JSONObject name = (JSONObject) redacted.get("name");
                 var nameValue = name.get("type");
                 if(nameValue instanceof String redactedName) {
                     if(redactedName.trim().equalsIgnoreCase("Registrant Email")) {
@@ -332,7 +332,9 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     private List<JSONArray> convertJsonArrayToList(JSONArray jsonArray) {
         List<JSONArray> arrayList = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
-            arrayList.add(jsonArray.getJSONArray(i));
+            if(jsonArray.get(i) instanceof JSONArray) {
+                arrayList.add(jsonArray.getJSONArray(i));;
+            }
         }
 
         return arrayList;
