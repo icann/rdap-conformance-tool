@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
+import static org.mockito.Mockito.when;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
@@ -17,12 +18,14 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
     @Override
     public ProfileValidation getProfileValidation() {
         return new ResponseValidation2Dot7Dot6Dot3_2024(
+            config,
             jsonObject.toString(),
             results);
     }
 
     @Test
     public void test65200() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         JSONArray contactUriEntry = new JSONArray();
         contactUriEntry.put("contact-uri");
         contactUriEntry.put(new JSONObject());  // empty JSON object
@@ -37,6 +40,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
 
     @Test
     public void test65201() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).remove(0);
         validate(-65201, "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"\"],[\"org\",{},\"text\",\"Example Inc.\"],[\"adr\",{},\"text\",[\"\",\"Suite 1234\",\"4321 Rue Somewhere\",\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]]]]",
             "a redaction of Tech Email must have either the email or contact-uri");
@@ -44,6 +48,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
 
     @Test
     public void test65202() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         jsonObject.getJSONArray("redacted").getJSONObject(0).put("method", "dummy");
         validate(-65202, "{\"reason\":{\"description\":\"Server policy\"},\"method\":\"dummy\",\"name\":{\"type\":\"Tech Email\"}}",
             "Tech Email redaction method must be replacementValue");
@@ -51,6 +56,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
 
     @Test
     public void test65203() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         jsonObject.getJSONArray("redacted").getJSONObject(0).put("postPath", "$.store.book.[");
         validate(-65203, "{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Tech Email\"},\"postPath\":\"$.store.book.[\"}",
             "jsonpath is invalid for Tech Email postPath");
@@ -58,6 +64,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
 
     @Test
     public void test65204() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         jsonObject.getJSONArray("redacted").getJSONObject(0).put("postPath", "$.store.book[");
         validate(-65204, "{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Tech Email\"},\"postPath\":\"$.store.book[\"}",
             "jsonpath must evaluate to a non-empty set for redaction by replacementValue of Tech Email.");
@@ -65,6 +72,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
 
     @Test
     public void test65205() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).remove(0);
 
         JSONArray contactUriEntry = new JSONArray();
@@ -83,6 +91,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
 
     @Test
     public void test65207() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).remove(0);
 
         JSONArray contactUriEntry = new JSONArray();
@@ -101,6 +110,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
 
     @Test
     public void test65206() {
+        when(config.isGtldRegistrar()).thenReturn(true);
         jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).remove(0);
 
         JSONArray contactUriEntry = new JSONArray();
@@ -119,6 +129,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
 
     @Test
     public void testMalformedRedactedArray() throws java.io.IOException {
+        when(config.isGtldRegistrar()).thenReturn(true);
         // Load malformed JSON that has malformed redacted object at index 0 
         // but valid "Tech Email" redaction at index 3
         String malformedContent = getResource("/validators/profile/response_validations/vcard/malformed_redacted_test.json");
@@ -139,6 +150,7 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
 
     @Test
     public void testMultiRoleTechnical() throws java.io.IOException {
+        when(config.isGtldRegistrar()).thenReturn(true);
         // REGRESSION TEST: Verify multi-role entities are handled correctly after RCT-345 fix
         // Changed from @.roles[0]=='technical' to @.roles contains 'technical'
         

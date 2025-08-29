@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
@@ -29,6 +30,7 @@ public abstract class ProfileValidationTestBase implements ValidationTest {
   public void setUp() throws IOException {
     results = mock(RDAPValidatorResults.class);
     config = mock(RDAPValidatorConfiguration.class);
+    when(config.isGtldRegistrar()).thenReturn(true);
   }
 
   @Test
