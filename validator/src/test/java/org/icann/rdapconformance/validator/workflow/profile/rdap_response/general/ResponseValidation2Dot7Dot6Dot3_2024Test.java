@@ -163,4 +163,76 @@ public class ResponseValidation2Dot7Dot6Dot3_2024Test extends ProfileJsonValidat
         // Should pass validation with multi-role technical entity
         validate(); // Should pass - technical entity correctly found
     }
+
+    @Test
+    public void testNoTechnicalEntity() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Remove all entities
+        jsonObject.remove("entities");
+    }
+
+    @Test
+    public void testNoRedactedTechEmail() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Remove all redacted objects
+        jsonObject.remove("redacted");
+    }
+
+    @Test
+    public void testMethodAndPathLangAbsent() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Remove method and pathLang from redacted Tech Email
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.remove("method");
+        redacted.remove("pathLang");
+        validate(-65202, redacted.toString(), "Tech Email redaction method must be replacementValue");
+    }
+
+    @Test
+    public void testPathLangNotJsonPath() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("pathLang", "notjsonpath");
+        validate();
+    }
+
+    @Test
+    public void testValidPostPath() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("postPath", "$.entities[*]");
+        validate();
+    }
+
+    @Test
+    public void testValidPrePath() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(0); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("prePath", "$.entities[*]");
+        validate();
+    }
+
+    @Test
+    public void testValidReplacementPath() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(0); // Remove email
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("replacementPath", "$.entities[*]"); // Should be valid and non-empty
+        validate();
+    }
 }
