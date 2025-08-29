@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
-import com.jayway.jsonpath.JsonPath;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -18,12 +18,14 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     public static final String VCARD_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1]";
     public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
+    private final RDAPValidatorConfiguration config;
     private  Set<String> vcardPointersValue = null;
     private Set<String> redactedPointersValue = null;
     private JSONObject redactedRegistrantEmail = null;
 
-    public ResponseValidation2Dot7Dot4Dot9_2024(String rdapResponse, RDAPValidatorResults results) {
+    public ResponseValidation2Dot7Dot4Dot9_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
         super(rdapResponse, results);
+        this.config = config;
     }
 
     @Override
@@ -45,8 +47,8 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-            JSONObject name = (JSONObject) redacted.get("name");
             try {
+                JSONObject name = (JSONObject) redacted.get("name");
                 var nameValue = name.get("type");
                 if(nameValue instanceof String redactedName) {
                     if(redactedName.trim().equalsIgnoreCase("Registrant Email")) {
@@ -192,7 +194,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             logger.info("postPath property is found, so verify value");
             if(postPathValue instanceof String postPath) {
                 try {
-                    JsonPath.compile(postPath);
+                    isValidJsonPath(postPath);
                     var postPathPointer = getPointerFromJPath(postPath);
                     logger.info("postPath pointer with size {}", postPathPointer.size());
                     if(postPathPointer.isEmpty()) {
@@ -239,6 +241,8 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                     replacementValidations = validateReplacementPathBasedOnPathLang();
                     if(replacementValidations) {
                         return validatePrePathBasedOnPathLang();
+                    } else {
+                        return false;
                     }
                 }
             }
@@ -267,7 +271,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             logger.info("replacementPath property is found, so verify value");
             if(replacementPathValue instanceof String replacementPath) {
                 try {
-                    JsonPath.compile(replacementPath);
+                    isValidJsonPath(replacementPath);
                     var replacementPathPointer = getPointerFromJPath(replacementPath);
                     logger.info("replacementPath pointer with size {}", replacementPathPointer.size());
                     if(replacementPathPointer.isEmpty()) {
@@ -306,7 +310,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             logger.info("prePathValue property is found, so verify value");
             if(prePathValue instanceof String prePath) {
                 try {
-                    JsonPath.compile(prePath);
+                    isValidJsonPath(prePath);
                     var prePathPointer = getPointerFromJPath(prePath);
                     logger.info("prePath pointer with size {}", prePathPointer.size());
                 } catch (Exception e) {
@@ -329,10 +333,17 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     private List<JSONArray> convertJsonArrayToList(JSONArray jsonArray) {
         List<JSONArray> arrayList = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
-            arrayList.add(jsonArray.getJSONArray(i));
+            if(jsonArray.get(i) instanceof JSONArray) {
+                arrayList.add(jsonArray.getJSONArray(i));;
+            }
         }
 
         return arrayList;
+    }
+
+    @Override
+    public boolean doLaunch() {
+        return config.isGtldRegistrar();
     }
 }
 
