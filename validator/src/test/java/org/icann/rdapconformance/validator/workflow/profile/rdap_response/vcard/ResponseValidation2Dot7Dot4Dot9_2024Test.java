@@ -42,6 +42,8 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
             "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Registrant Email\"},\"replacementPath\":\"$[invalid\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='email')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String redactedReplacementPathPointer4 =
             "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Registrant Email\"},\"replacementPath\":\"$.entities[*]\",\"prePath\":\"$[invalid\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+    static final String redactedReplacementPathPointer5 =
+            "#/entities/0/vcardArray/1:[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Administrative User\"],[\"org\",{},\"text\",\"Example Inc.\"],[\"adr\",{},\"text\",[\"\",\"Suite 1236\",\"4321 Rue Somewhere\",\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]],[\"tel\",{\"type\":\"voice\"},\"uri\",\"tel:+1-555-555-1236;ext=789\"],[\"tel\",{\"type\":\"fax\"},\"uri\",\"tel:+1-555-555-6321\"]]";
 
     public ResponseValidation2Dot7Dot4Dot9_2024Test() {
         super("/validators/profile/response_validations/vcard/valid_contact_email.json",
@@ -735,4 +737,144 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
         vcard.put(contactUriEntry);
         validate();
     }
+
+    @Test
+    public void testValidateMethodProperty_nullRedactedRegistrantEmail() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Remove all Registrant Email entries so redactedRegistrantEmail is null
+        JSONArray redacted = jsonObject.getJSONArray("redacted");
+        for (int i = 0; i < redacted.length(); i++) {
+            JSONObject obj = redacted.getJSONObject(i);
+            if (obj.has("name")) {
+                JSONObject name = obj.getJSONObject("name");
+                name.put("type", "Other");
+            }
+        }
+        validate();
+    }
+
+    @Test
+    public void testValidateMethodProperty_methodNotString() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("method", 12345); // Not a String
+        validate();
+    }
+
+    @Test
+    public void testValidateMethodProperty_methodMissing() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.remove("method");
+        validate();
+    }
+
+    @Test
+    public void testValidateMethodProperty_titlesContainsNeither() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Remove both email and contact-uri from vcard
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        validate(-64101, redactedReplacementPathPointer5, "a redaction of Registrant Email must have either the email and contact-uri");
+    }
+
+    @Test
+    public void testValidateEmailRedactedProperties_pathLangNotString() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("pathLang", 12345); // Not a String
+        validate();
+    }
+
+    @Test
+    public void testValidatePostPathBasedOnPathLang_postPathNotString() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("postPath", 12345); // Not a String
+        validate();
+    }
+
+    @Test
+    public void testValidateReplacementPathBasedOnPathLang_notString() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("replacementPath", 12345); // Not a String
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4);
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate();
+    }
+
+    @Test
+    public void testValidateReplacementPathBasedOnPathLang_missing() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.remove("replacementPath");
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4);
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate();
+    }
+
+    @Test
+    public void testValidatePrePathBasedOnPathLang_notString() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.put("prePath", 12345); // Not a String
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4);
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate();
+    }
+
+    @Test
+    public void testValidatePrePathBasedOnPathLang_missing() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redacted.remove("prePath");
+        // Remove email from vcard, add contact-uri
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4);
+        JSONArray contactUriEntry = new JSONArray();
+        contactUriEntry.put("contact-uri");
+        contactUriEntry.put(new JSONObject());
+        contactUriEntry.put("uri");
+        contactUriEntry.put("https://email.example.com/123");
+        vcard.put(contactUriEntry);
+        validate();
+    }
+
+    @Test
+    public void testValidateEmailRedactedProperties_pathLangJsonpath() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Set up the redactedRegistrantEmail with pathLang as a String with spaces and mixed case
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.put("pathLang", "  JsOnPaTh");
+        // Ensure method is correct to trigger the logic (if needed)
+        redactedObject.put("method", "replacementValue");
+        // Add a postPath to ensure validatePostPathBasedOnPathLang() is called
+        redactedObject.put("postPath", "$.redacted");
+        // The validate() method will trigger the validation logic
+        validate();
+    }
+
+
 }
