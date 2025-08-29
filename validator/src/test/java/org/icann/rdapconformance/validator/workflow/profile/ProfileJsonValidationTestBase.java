@@ -1,10 +1,13 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
 import net.minidev.json.JSONArray;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.util.FixturesGenerator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;

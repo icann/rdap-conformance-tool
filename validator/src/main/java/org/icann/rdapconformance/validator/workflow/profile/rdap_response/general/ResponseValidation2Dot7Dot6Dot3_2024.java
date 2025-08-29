@@ -1,8 +1,9 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
-import com.jayway.jsonpath.JsonPath;
 import java.util.Objects;
 import java.util.Set;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -20,9 +21,11 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     private static final String REDACTED_PATH = "$.redacted[*]";
     private boolean emailExists = false;
     private boolean contactUrlExists = false;
+    private final RDAPValidatorConfiguration config;
 
-    public ResponseValidation2Dot7Dot6Dot3_2024(String rdapResponse, RDAPValidatorResults results) {
+    public ResponseValidation2Dot7Dot6Dot3_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
         super(rdapResponse, results);
+        this.config = config;
     }
 
     @Override
@@ -262,5 +265,10 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
         }
 
         return true;
+    }
+
+    @Override
+    public boolean doLaunch() {
+        return config.isGtldRegistrar();
     }
 }
