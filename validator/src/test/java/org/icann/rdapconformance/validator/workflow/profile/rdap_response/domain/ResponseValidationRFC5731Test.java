@@ -13,7 +13,15 @@ public class ResponseValidationRFC5731Test extends ResponseDomainValidationTestB
 
   @DataProvider(name = "invalidStatus")
   public static Object[][] invalidStatus() {
-    return new Object[][]{{Set.of("active", "any")},
+    return new Object[][]{{Set.of("active", "client delete prohibited")},
+        {Set.of("active", "pending delete")},
+        {Set.of("active", "add period", "pending delete")},
+        {Set.of("active", "inactive")},
+        {Set.of("active", "server hold")},
+        {Set.of("active", "redemption period")},
+        {Set.of("active", "add period", "server hold")},
+        {Set.of("active", "server delete prohibited")},
+        {Set.of("active", "pending restore")},
         {Set.of("pending delete", "client delete prohibited")},
         {Set.of("pending delete", "server delete prohibited")},
         {Set.of("pending renew", "client renew prohibited")},
@@ -40,10 +48,28 @@ public class ResponseValidationRFC5731Test extends ResponseDomainValidationTestB
     return new ResponseValidationRFC5731(jsonObject.toString(), results, queryType);
   }
 
+  @DataProvider(name = "validActiveStatus")
+  public static Object[][] validActiveStatus() {
+    return new Object[][]{{Set.of("active")},
+        {Set.of("active", "add period")},
+        {Set.of("active", "auto renew period")},
+        {Set.of("active", "renew period")},
+        {Set.of("active", "transfer period")},
+        {Set.of("active", "add period", "renew period")},
+        {Set.of("active", "add period", "auto renew period", "renew period", "transfer period")},
+    };
+  }
+
   @Test(dataProvider = "invalidStatus")
   public void testValidate_InvalidStatusCombination_AddResults46900(Set<String> status) {
     replaceValue("status", status);
     validate(-46900, "#/status:[\"" + String.join("\",\"", status) + "\"]",
         "The values of the status data structure does not comply with RFC5731.");
+  }
+
+  @Test(dataProvider = "validActiveStatus")
+  public void testValidate_ValidActiveStatusCombination_ShouldPass(Set<String> status) {
+    replaceValue("status", status);
+    validate();
   }
 }
