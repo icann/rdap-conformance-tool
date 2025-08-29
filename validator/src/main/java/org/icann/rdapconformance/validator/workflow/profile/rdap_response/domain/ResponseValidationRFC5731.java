@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import java.util.HashSet;
 import java.util.Set;
+import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -28,7 +29,7 @@ public final class ResponseValidationRFC5731 extends ProfileJsonValidation {
     Set<String> status = new HashSet<>();
     jsonObject.optJSONArray("status").forEach(s -> status.add((String) s));
 
-    if ((status.contains("active") && status.size() > 1) ||
+    if ((status.contains("active") && status.stream().anyMatch(s -> !Set.of("active", "add period", "auto renew period", "renew period", "transfer period").contains(s))) ||
         (status.containsAll(Set.of("pending delete", "client delete prohibited")) ||
             status.containsAll(Set.of("pending delete", "server delete prohibited"))) ||
         (status.containsAll(Set.of("pending renew", "client renew prohibited")) ||
@@ -40,7 +41,7 @@ public final class ResponseValidationRFC5731 extends ProfileJsonValidation {
         (status.stream().filter(s -> Set
             .of("pending create", "pending delete", "pending renew", "pending transfer",
                 "pending update").contains(s))
-            .count() > 1)) {
+            .count() > CommonUtils.ONE)) {
       results.add(RDAPValidationResult.builder()
           .code(-46900)
           .value(getResultValue("#/status"))
