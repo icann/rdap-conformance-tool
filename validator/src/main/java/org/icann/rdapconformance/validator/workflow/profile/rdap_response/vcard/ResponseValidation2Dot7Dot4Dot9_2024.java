@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.utils.EmailValidator;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -62,11 +63,45 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
         }
 
         if(Objects.isNull(redactedRegistrantEmail)) {
-            logger.info("redactedRegistrantEmail does not exist in redacted array, no validations");
-            return true;
+            logger.info("redactedRegistrantEmail does not exist in redacted array, email validations");
+            return validateEmailPropertyAtLeastOneVCard();
         }
 
         return validateVCardsNoBothValues();
+    }
+
+    private boolean validateEmailPropertyAtLeastOneVCard() {
+        vcardPointersValue = getPointerFromJPath(VCARD_PATH);
+        List<Map<String, String>> titles = new ArrayList<>();
+        logger.info("vcardVoicePointersValue size: {}", vcardPointersValue.size());
+
+        for (String jsonPointer : vcardPointersValue) {
+            JSONArray vcardArray = (JSONArray) jsonObject.query(jsonPointer);
+            var vcardList = convertJsonArrayToList(vcardArray);
+            vcardList.forEach(t -> {
+                if(t.get(0) instanceof String title) {
+                    if(title.trim().equalsIgnoreCase("email")) {
+                        titles.add(Map.of("title", title, "value", t.get(3).toString()));
+                    }
+                }
+            });
+
+            EmailValidator emailValidator = new EmailValidator();
+            var isEmailValid = true;
+            if(!titles.isEmpty()) {
+               isEmailValid = !titles.getFirst().get("value").trim().isEmpty() && emailValidator.validateEmail(titles.getFirst().get("value").trim());
+            }
+
+            if(titles.isEmpty() || !isEmailValid) {
+                results.add(RDAPValidationResult.builder()
+                        .code(-64108)
+                        .value(getResultValue(vcardPointersValue))
+                        .message("An email must either be present and valid or redacted for the registrant")
+                        .build());
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean validateVCardsNoBothValues() {

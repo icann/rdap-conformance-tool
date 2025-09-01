@@ -23,6 +23,14 @@
         </repository>
     </distributionManagement>
 
+    <repositories>
+        <repository>
+            <id>ICANN-repository</id>
+            <name>ICANN Internal Repository</name>
+            <url>https://artifactory.icann.org/artifactory/ICANN-repository</url>
+        </repository>
+    </repositories>
+
     <properties>
         <rdap-conformance.version>3.0.0</rdap-conformance.version>
 
@@ -187,6 +195,19 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.icann.commons</groupId>
+            <artifactId>emailValidator</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.icann.commons</groupId>
+            <artifactId>dev-commons</artifactId>
+            <version>2.6.18</version>
+        </dependency>
+
+    </dependencies>
     <build>
         <plugins>
             <!-- JaCoCo configuration -->
