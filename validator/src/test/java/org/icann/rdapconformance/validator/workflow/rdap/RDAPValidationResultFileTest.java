@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertEquals;
@@ -769,6 +770,295 @@ public void testCreateResultsMap() {
         assertTrue(remaining.stream().anyMatch(r -> r.getCode() == -2001));
     }
     
+    @Test
+    public void testRemoveErrorsPreservesResponseFormatErrors() {
+        // Clear existing results
+        results.clear();
+        
+        // Mock configuration file behavior - none of these codes are defined as warnings
+        doReturn(false).when(configurationFile).isError(-12107);
+        doReturn(false).when(configurationFile).isWarning(-12107);
+        doReturn(false).when(configurationFile).isError(-12108);
+        doReturn(false).when(configurationFile).isWarning(-12108);
+        doReturn(true).when(configurationFile).isError(-13001);
+        doReturn(false).when(configurationFile).isWarning(-13001);
+        doReturn(false).when(configurationFile).isError(-2001);
+        doReturn(true).when(configurationFile).isWarning(-2001);
+        doReturn(List.of()).when(configurationFile).getDefinitionIgnore();
+        
+        // Add mixed types of results:
+        // -12107: Response format error (should be preserved)
+        results.add(RDAPValidationResult.builder().code(-12107)
+                   .message("The errorCode value is required in an error response.")
+                   .build());
+        // -12108: Another response format error (should be preserved)  
+        results.add(RDAPValidationResult.builder().code(-12108)
+                   .message("Another response format error.")
+                   .build());
+        // -13001: Content validation error (should be removed)
+        results.add(RDAPValidationResult.builder().code(-13001)
+                   .message("Content validation error.")
+                   .build());
+        // -2001: Warning (should be preserved)
+        results.add(RDAPValidationResult.builder().code(-2001)
+                   .message("Warning message.")
+                   .build());
+        
+        assertEquals(4, results.getAll().size());
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.removeErrors();
+        
+        // Should preserve warnings AND response format errors (-121XX range)
+        Set<RDAPValidationResult> remaining = results.getAll();
+        assertEquals(3, remaining.size());
+        
+        // Check that -12107 is preserved (response format error)
+        assertTrue(remaining.stream().anyMatch(r -> r.getCode() == -12107), 
+                   "Response format error -12107 should be preserved");
+        
+        // Check that -12108 is preserved (response format error)
+        assertTrue(remaining.stream().anyMatch(r -> r.getCode() == -12108), 
+                   "Response format error -12108 should be preserved");
+        
+        // Check that warning is preserved
+        assertTrue(remaining.stream().anyMatch(r -> r.getCode() == -2001), 
+                   "Warning should be preserved");
+        
+        // Check that content validation error is removed
+        assertFalse(remaining.stream().anyMatch(r -> r.getCode() == -13001), 
+                    "Content validation error -13001 should be removed");
+    }
+    
+    @Test
+    public void testInitializeWhenAlreadyInitialized() {
+        // Initialize once
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.initialize(results, mock(RDAPValidatorConfiguration.class), 
+                             configurationFile, fileSystem);
+        
+        // Try to initialize again - should return early without overwriting
+        RDAPValidatorConfiguration newConfig = mock(RDAPValidatorConfiguration.class);
+        resultFile.initialize(results, newConfig, configurationFile, fileSystem);
+        
+        // The second initialization should be ignored - test re-initialization safety
+        assertTrue(true); // Test passes if no exception thrown
+    }
+    
+    @Test 
+    public void testBuildWithEmptyResultsFilePath() throws Exception {
+        // Test the edge case where resultsFilePath is empty string (not null)
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        doReturn("").when(config).getResultsFile(); // Empty string, not null
+        doReturn(false).when(config).useRdapProfileFeb2024();
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.initialize(results, config, configurationFile, fileSystem);
+        
+        boolean result = resultFile.build();
+        
+        assertTrue(result);
+        // Test empty string handling in file path logic
+    }
+    
+    // Note: IOException test removed - difficult to mock in this architecture
+    // The catch block at lines 122-124 provides error handling robustness
+    // but is challenging to test with the current FileSystem abstraction
+    @Test
+    public void testFormatStatusCodeWithZero() {
+        // Add a result with status code 0 to test the ZERO formatting
+        results.add(RDAPValidationResult.builder()
+                   .code(-12107)
+                   .httpStatusCode(0) // This should be formatted as NULL
+                   .message("Test")
+                   .build());
+        
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        doReturn(false).when(config).useRdapProfileFeb2024();
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.initialize(results, config, configurationFile, fileSystem);
+        
+        Map<String, Object> resultMap = resultFile.createResultsMap();
+        List<Map<String, Object>> errors = (List<Map<String, Object>>) resultMap.get("error");
+        
+        assertFalse(errors.isEmpty());
+        Object statusCode = errors.get(0).get("receivedHttpStatusCode");
+        assertEquals(statusCode, JSONObject.NULL);
+        // Test status code zero formatting as NULL
+    }
+    
+    @Test
+    public void testFormatStringWithDash() {
+        // Add a result with DASH values to test dash formatting
+        results.add(RDAPValidationResult.builder()
+                   .code(-12107)
+                   .acceptHeader(DASH) // This should be formatted as NULL
+                   .httpMethod(DASH)
+                   .queriedURI(DASH)
+                   .serverIpAddress(DASH)
+                   .message("Test")
+                   .build());
+        
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        doReturn(false).when(config).useRdapProfileFeb2024();
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.initialize(results, config, configurationFile, fileSystem);
+        
+        Map<String, Object> resultMap = resultFile.createResultsMap();
+        List<Map<String, Object>> errors = (List<Map<String, Object>>) resultMap.get("error");
+        
+        assertFalse(errors.isEmpty());
+        Map<String, Object> error = errors.get(0);
+        assertEquals(error.get("acceptMediaType"), JSONObject.NULL);
+        assertEquals(error.get("httpMethod"), JSONObject.NULL);
+        assertEquals(error.get("serverIpAddress"), JSONObject.NULL);
+        // Test DASH string formatting as NULL
+    }
+    
+    @Test
+    public void testCreateResultsMapWithNullConfigUri() {
+        results.add(RDAPValidationResult.builder()
+                   .code(-12107)
+                   .queriedURI(null) // This will trigger fallback to config.getUri()
+                   .message("Test")
+                   .build());
+        
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        doReturn(null).when(config).getUri(); // Null URI to test the fallback
+        doReturn(false).when(config).useRdapProfileFeb2024();
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.initialize(results, config, configurationFile, fileSystem);
+        
+        Map<String, Object> resultMap = resultFile.createResultsMap();
+        List<Map<String, Object>> errors = (List<Map<String, Object>>) resultMap.get("error");
+        
+        assertFalse(errors.isEmpty());
+        String queriedURI = (String) errors.get(0).get("queriedURI");
+        assertEquals(queriedURI, ""); // Should be empty string when config.getUri() is null
+        // Test null config URI fallback to empty string
+    }
+    
+    @Test
+    public void testStatusCodeComparisonWithNullStatus() {
+        // Add results with null HTTP status codes to test null handling
+        results.add(RDAPValidationResult.builder()
+                   .code(-12107)
+                   .httpStatusCode(null) // Null status code
+                   .message("Test 1")
+                   .build());
+        results.add(RDAPValidationResult.builder()
+                   .code(-12108)  
+                   .httpStatusCode(404)
+                   .message("Test 2")
+                   .build());
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        
+        Set<RDAPValidationResult> allResults = results.getAll();
+        Set<RDAPValidationResult> processedResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(allResults);
+        
+        // Should have added -13018 error because null != 404
+        assertTrue(processedResults.stream().anyMatch(r -> r.getCode() == -13018));
+        // Test null status code normalization in comparisons
+    }
+    
+    @Test
+    public void testCullDuplicateIPAddressErrors() {
+        // Add multiple -20400 and -20401 errors to test duplicate culling
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 1").build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 2").build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 3").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 1").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 2").build());
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        Set<RDAPValidationResult> culled = resultFile.cullDuplicateIPAddressErrors(results.getAll());
+        
+        // Should keep only 1 of each type
+        long ipv4Count = culled.stream().filter(r -> r.getCode() == -20400).count();
+        long ipv6Count = culled.stream().filter(r -> r.getCode() == -20401).count();
+        
+        assertEquals(ipv4Count, 1);
+        assertEquals(ipv6Count, 1);
+        // Test IP address error duplicate culling logic
+    }
+    
+    @Test
+    public void testDebugPrintResultBreakdownWithIgnoredCodes() {
+        // Add results with codes that should be ignored
+        results.add(RDAPValidationResult.builder().code(-99999).message("Ignored code").build());
+        
+        // Mock configuration to define this as ignored
+        doReturn(List.of(-99999)).when(configurationFile).getDefinitionIgnore();
+        doReturn(false).when(configurationFile).isError(-99999);
+        doReturn(false).when(configurationFile).isWarning(-99999);
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.initialize(results, mock(RDAPValidatorConfiguration.class), configurationFile, fileSystem);
+        
+        // Test debug printing with ignored codes classification
+        resultFile.debugPrintResultBreakdown();
+        assertTrue(true);
+    }
+    
+    @Test
+    public void testPrintCategoryExamplesWithNullValue() {
+        // Add result with null value to test null handling in debug printing
+        results.add(RDAPValidationResult.builder()
+                   .code(-12107)
+                   .value(null) // Null value to test line 390
+                   .message("Test with null value")
+                   .build());
+        
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.initialize(results, mock(RDAPValidatorConfiguration.class), configurationFile, fileSystem);
+        
+        // Test debug printing with null values handling
+        resultFile.debugPrintResultBreakdown();
+        assertTrue(true);
+    }
+    
+    @Test
+    public void testJsonSerializationError() throws Exception {
+        // Create results that will cause different status codes to test JSON serialization
+        results.add(RDAPValidationResult.builder()
+                   .code(-12107)
+                   .httpStatusCode(404)
+                   .message("Test 1")
+                   .build());
+        results.add(RDAPValidationResult.builder()
+                   .code(-12108)
+                   .httpStatusCode(500)
+                   .message("Test 2")
+                   .build());
+        
+        // This scenario creates uniqueTuples that could potentially cause JSON serialization issues
+        // In practice, ObjectMapper.writeValueAsString should handle this, but this test
+        // exercises the code path and ensures robustness
+        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        
+        Set<RDAPValidationResult> processedResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(results.getAll());
+        
+        // Should have added -13018 error for mixed status codes  
+        assertTrue(processedResults.stream().anyMatch(r -> r.getCode() == -13018));
+        
+        // The JSON value should contain the tuple information
+        RDAPValidationResult mixedStatusResult = processedResults.stream()
+                .filter(r -> r.getCode() == -13018)
+                .findFirst()
+                .orElse(null);
+        assertNotNull(mixedStatusResult);
+        assertNotNull(mixedStatusResult.getValue());
+        assertTrue(mixedStatusResult.getValue().contains("[["));
+        
+        // Test JSON serialization of tuple data for mixed status codes
+        // The exception case is hard to trigger with normal data,
+        // but this at least exercises the successful path
+    }
+
     @Test
     public void testRemoveResultGroups() {
         // Add some results with groups

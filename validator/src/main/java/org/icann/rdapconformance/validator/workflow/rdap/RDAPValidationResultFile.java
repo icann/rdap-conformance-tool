@@ -289,10 +289,22 @@ public class RDAPValidationResultFile {
     public void removeErrors() {
         Set<RDAPValidationResult> filteredResults = this.results.getAll()
                 .stream()
-                .filter(result -> this.configurationFile.isWarning(result.getCode()))
+                .filter(result -> this.configurationFile.isWarning(result.getCode()) 
+                                  || isResponseFormatError(result.getCode()))
                 .collect(Collectors.toSet());
 
         this.results.addAll(filteredResults);
+    }
+
+    /**
+     * Determines if an error code represents response format validation.
+     * Response format errors (like missing errorCode field) should be preserved
+     * even when filtering errors for 404 responses, as they validate the structure
+     * of the error response itself rather than the missing resource.
+     */
+    private boolean isResponseFormatError(int code) {
+        // -121XX series are response format validation errors that should be preserved
+        return code <= -12100 && code >= -12199;
     }
 
     public void removeResultGroups() {

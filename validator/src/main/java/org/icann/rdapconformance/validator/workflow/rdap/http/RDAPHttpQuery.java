@@ -7,7 +7,6 @@ import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 
-import java.security.Security;
 import java.util.*;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionStatus;
