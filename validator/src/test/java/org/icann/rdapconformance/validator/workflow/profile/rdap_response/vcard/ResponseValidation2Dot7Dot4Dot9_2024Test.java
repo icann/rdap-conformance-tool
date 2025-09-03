@@ -969,4 +969,29 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
             // Acceptable if exception is thrown
         }
     }
+
+    @Test
+    public void testValidateEmailPropertyAtLeastOneVCard_multipleEmailsAtLeastOneValid() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Multiple email entries to vcardArray, one invalid, one valid
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        // First email: invalid
+        JSONArray invalidEmailEntry = new JSONArray();
+        invalidEmailEntry.put("email");
+        invalidEmailEntry.put(new JSONObject());
+        invalidEmailEntry.put("text");
+        invalidEmailEntry.put("not-an-email");
+        vcard.put(invalidEmailEntry);
+        // Second email: valid
+        JSONArray validEmailEntry = new JSONArray();
+        validEmailEntry.put("email");
+        validEmailEntry.put(new JSONObject());
+        validEmailEntry.put("text");
+        validEmailEntry.put("valid.email@example.com");
+        vcard.put(validEmailEntry);
+        jsonObject.remove("redacted");
+        validate();
+    }
+
+
 }

@@ -1,14 +1,8 @@
 package org.icann.rdapconformance.validator.utils;
 
-import emailvalidator4j.ValidationStrategy;
-import emailvalidator4j.validator.MXRecord;
-import emailvalidator4j.validator.WarningsNotAllowed;
-import org.icann.commons.lang.AsciiValidator;
-import org.icann.commons.lang.StringUtil;
-import org.icann.commons.validation.EmailWrapper;
+import org.icann.rdapconformance.validator.utils.lang.AsciiValidator;
+import org.icann.rdapconformance.validator.utils.lang.StringUtil;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,24 +14,10 @@ public class EmailValidator {
     private final Pattern patternLabel = Pattern.compile(LABEL_PATTERN);
     private final Pattern patternLocal = Pattern.compile(LOCAL_PATTERN);
 
-    private final boolean supportIdn;
-
-    private final emailvalidator4j.EmailValidator delegate;
     private final AsciiValidator asciiValidator;
 
-    public EmailValidator(boolean supportIdn, boolean mxRecordValidation) {
-        this.supportIdn = supportIdn;
-        List<ValidationStrategy> validationStrategies = new ArrayList<>();
-        validationStrategies.add(new WarningsNotAllowed());
-        if (mxRecordValidation) {
-            validationStrategies.add(new MXRecord());
-        }
-        delegate = new emailvalidator4j.EmailValidator(validationStrategies);
-        asciiValidator = new AsciiValidator();
-    }
-
     public EmailValidator() {
-        this(false, false);
+        asciiValidator = new AsciiValidator();
     }
 
     public synchronized boolean validateEmail(String email) {
@@ -49,8 +29,17 @@ public class EmailValidator {
 
         boolean ascii = asciiValidator.isAscii(email);
 
-        if (!supportIdn && !ascii) {
+        if (!ascii) {
             return false;
+        }
+
+        // Reject double dot before TLD (e.g. user@domain..com)
+        int atIdx = email.indexOf('@');
+        if (atIdx > 0) {
+            String domain = email.substring(atIdx + 1);
+            if (domain.contains("..")) {
+                return false;
+            }
         }
 
         if (email.endsWith(".")) {
@@ -74,7 +63,7 @@ public class EmailValidator {
             email = local + "@" + domain;
         }
 
-        return !dotlessDomain(email) && delegate.isValid(email);
+        return !dotlessDomain(email);
     }
 
     private boolean validLabelLengthAndFormat(String domain) {

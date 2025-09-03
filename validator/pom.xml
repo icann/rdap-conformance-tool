@@ -26,6 +26,14 @@
     <dependencies>
 
         <dependency>
+            <groupId>org.icann.commons</groupId>
+            <artifactId>emailValidator</artifactId>
+            <version>1.0.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/emailValidator-1.0.1.jar</systemPath>
+        </dependency>
+
+        <dependency>
             <groupId>org.icann.rdap-conformance</groupId>
             <artifactId>jitpack</artifactId>
             <version>${project.version}</version>

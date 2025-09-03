@@ -87,12 +87,15 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             });
 
             EmailValidator emailValidator = new EmailValidator();
-            var isEmailValid = true;
-            if(!titles.isEmpty()) {
-               isEmailValid = !titles.getFirst().get("value").trim().isEmpty() && emailValidator.validateEmail(titles.getFirst().get("value").trim());
-            }
+            // Check if ANY email is valid
+            boolean hasValidEmail = titles.stream()
+                .map(email -> email.get("value"))
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .anyMatch(emailValidator::validateEmail);
 
-            if(titles.isEmpty() || !isEmailValid) {
+            if(titles.isEmpty() || !hasValidEmail) {
                 results.add(RDAPValidationResult.builder()
                         .code(-64108)
                         .value(getResultValue(vcardPointersValue))
@@ -381,4 +384,3 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
         return config.isGtldRegistrar();
     }
 }
-
