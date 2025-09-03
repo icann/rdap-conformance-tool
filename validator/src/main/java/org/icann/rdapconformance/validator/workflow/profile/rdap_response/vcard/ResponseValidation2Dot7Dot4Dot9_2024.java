@@ -13,12 +13,15 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot9_2024.class);
     public static final String VCARD_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1]";
     public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
+    public static final String VALUE = "value";
     private final RDAPValidatorConfiguration config;
     private  Set<String> vcardPointersValue = null;
     private Set<String> redactedPointersValue = null;
@@ -79,9 +82,9 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             JSONArray vcardArray = (JSONArray) jsonObject.query(jsonPointer);
             var vcardList = convertJsonArrayToList(vcardArray);
             vcardList.forEach(t -> {
-                if(t.get(0) instanceof String title) {
+                if(t.get(ZERO) instanceof String title) {
                     if(title.trim().equalsIgnoreCase("email")) {
-                        titles.add(Map.of("title", title, "value", t.get(3).toString()));
+                        titles.add(Map.of("title", title, VALUE, t.get(3).toString()));
                     }
                 }
             });
@@ -89,7 +92,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             EmailValidator emailValidator = new EmailValidator();
             // Check if ANY email is valid
             boolean hasValidEmail = titles.stream()
-                .map(email -> email.get("value"))
+                .map(email -> email.get(VALUE))
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
