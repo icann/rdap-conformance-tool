@@ -44,6 +44,12 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
             "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"replacementValue\",\"name\":{\"type\":\"Registrant Email\"},\"replacementPath\":\"$.entities[*]\",\"prePath\":\"$[invalid\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String redactedReplacementPathPointer5 =
             "#/entities/0/vcardArray/1:[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Administrative User\"],[\"org\",{},\"text\",\"Example Inc.\"],[\"adr\",{},\"text\",[\"\",\"Suite 1236\",\"4321 Rue Somewhere\",\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]],[\"tel\",{\"type\":\"voice\"},\"uri\",\"tel:+1-555-555-1236;ext=789\"],[\"tel\",{\"type\":\"fax\"},\"uri\",\"tel:+1-555-555-6321\"]]";
+    static final String getRedactedReplacementPathPointer6 =
+            "#/entities/0/vcardArray/1:[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Administrative User\"],[\"org\",{},\"text\",\"Example Inc.\"],[\"adr\",{},\"text\",[\"\",\"Suite 1236\",\"4321 Rue Somewhere\",\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]],[\"tel\",{\"type\":\"voice\"},\"uri\",\"tel:+1-555-555-1236;ext=789\"],[\"tel\",{\"type\":\"fax\"},\"uri\",\"tel:+1-555-555-6321\"]]";
+    static final String redactedReplacementPathPointer7 =
+            "#/entities/0/vcardArray/1:[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Administrative User\"],[\"org\",{},\"text\",\"Example Inc.\"],[\"adr\",{},\"text\",[\"\",\"Suite 1236\",\"4321 Rue Somewhere\",\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]],[\"email\",{},\"text\",\"\"],[\"tel\",{\"type\":\"voice\"},\"uri\",\"tel:+1-555-555-1236;ext=789\"],[\"tel\",{\"type\":\"fax\"},\"uri\",\"tel:+1-555-555-6321\"]]";
+    static final String redactedReplacementPathPointer8 =
+            "#/entities/0/vcardArray/1:[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Administrative User\"],[\"org\",{},\"text\",\"Example Inc.\"],[\"adr\",{},\"text\",[\"\",\"Suite 1236\",\"4321 Rue Somewhere\",\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]],[\"email\",{},\"text\",\"invalid-email\"],[\"tel\",{\"type\":\"voice\"},\"uri\",\"tel:+1-555-555-1236;ext=789\"],[\"tel\",{\"type\":\"fax\"},\"uri\",\"tel:+1-555-555-6321\"]]";
 
     public ResponseValidation2Dot7Dot4Dot9_2024Test() {
         super("/validators/profile/response_validations/vcard/valid_contact_email.json",
@@ -873,6 +879,117 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
         // Add a postPath to ensure validatePostPathBasedOnPathLang() is called
         redactedObject.put("postPath", "$.redacted");
         // The validate() method will trigger the validation logic
+        validate();
+    }
+
+    @Test
+    public void testValidateEmailPropertyAtLeastOneVCard_noVCardPointers() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Remove registrant role so VCARD_PATH returns empty
+        JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("roles");
+        roles.put(0, "other");
+        jsonObject.remove("redacted"); // Ensure redactedRegistrantEmail is null
+        validate(); // Should pass, no error
+    }
+
+    @Test
+    public void testValidateEmailPropertyAtLeastOneVCard_vCardArrayEmpty() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Set vcardArray[1] to empty array
+        JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray");
+        vcardArray.put(1, new JSONArray());
+        jsonObject.remove("redacted");
+        validate(-64108, "#/entities/0/vcardArray/1:[]", "An email must either be present and valid or redacted for the registrant");
+    }
+
+    @Test
+    public void testValidateEmailPropertyAtLeastOneVCard_noEmailEntry() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Remove email entry from vcardArray[1]
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        vcard.remove(4); // Remove email
+        jsonObject.remove("redacted");
+        validate(-64108, getRedactedReplacementPathPointer6, "An email must either be present and valid or redacted for the registrant");
+    }
+
+    @Test
+    public void testValidateEmailPropertyAtLeastOneVCard_emailEntryEmptyValue() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Set email value to empty string
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        vcard.put(3, "");
+        jsonObject.remove("redacted");
+        validate(-64108, redactedReplacementPathPointer7, "An email must either be present and valid or redacted for the registrant");
+    }
+
+    @Test
+    public void testValidateEmailPropertyAtLeastOneVCard_emailEntryInvalidValue() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Set email value to invalid email
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        vcard.put(3, "invalid-email");
+        jsonObject.remove("redacted");
+        validate(-64108, redactedReplacementPathPointer8, "An email must either be present and valid or redacted for the registrant");
+    }
+
+    @Test
+    public void testValidateEmailPropertyAtLeastOneVCard_emailEntryValidValue() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Set email value to valid email
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        vcard.put(3, "valid.email@example.com");
+        jsonObject.remove("redacted");
+        validate(); // Should pass, no error
+    }
+
+    @Test
+    public void testValidateEmailPropertyAtLeastOneVCard_firstElementNotString() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Add vcard entry with first element not a String
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        JSONArray nonStringEntry = new JSONArray();
+        nonStringEntry.put(12345);
+        nonStringEntry.put(new JSONObject());
+        nonStringEntry.put("text");
+        nonStringEntry.put("not-an-email");
+        vcard.put(nonStringEntry);
+        jsonObject.remove("redacted");
+        validate(); // Should pass, no error (entry skipped)
+    }
+
+    @Test
+    public void testValidateEmailPropertyAtLeastOneVCard_exceptionInQuery() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Simulate exception by removing vcardArray so query fails
+        jsonObject.getJSONArray("entities").getJSONObject(0).remove("vcardArray");
+        jsonObject.remove("redacted");
+        try {
+            validate(); // Should handle gracefully or fail
+        } catch (Exception e) {
+            // Acceptable if exception is thrown
+        }
+    }
+
+    @Test
+    public void testValidateEmailPropertyAtLeastOneVCard_multipleEmailsAtLeastOneValid() {
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Multiple email entries to vcardArray, one invalid, one valid
+        JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        // First email: invalid
+        JSONArray invalidEmailEntry = new JSONArray();
+        invalidEmailEntry.put("email");
+        invalidEmailEntry.put(new JSONObject());
+        invalidEmailEntry.put("text");
+        invalidEmailEntry.put("not-an-email");
+        vcard.put(invalidEmailEntry);
+        // Second email: valid
+        JSONArray validEmailEntry = new JSONArray();
+        validEmailEntry.put("email");
+        validEmailEntry.put(new JSONObject());
+        validEmailEntry.put("text");
+        validEmailEntry.put("valid.email@example.com");
+        vcard.put(validEmailEntry);
+        jsonObject.remove("redacted");
         validate();
     }
 

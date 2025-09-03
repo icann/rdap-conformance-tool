@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.utils.EmailValidator;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -12,12 +13,15 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot9_2024.class);
     public static final String VCARD_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1]";
     public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
     private static final String REDACTED_PATH = "$.redacted[*]";
+    public static final String VALUE = "value";
     private final RDAPValidatorConfiguration config;
     private  Set<String> vcardPointersValue = null;
     private Set<String> redactedPointersValue = null;
@@ -62,11 +66,48 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
         }
 
         if(Objects.isNull(redactedRegistrantEmail)) {
-            logger.info("redactedRegistrantEmail does not exist in redacted array, no validations");
-            return true;
+            logger.info("redactedRegistrantEmail does not exist in redacted array, email validations");
+            return validateEmailPropertyAtLeastOneVCard();
         }
 
         return validateVCardsNoBothValues();
+    }
+
+    private boolean validateEmailPropertyAtLeastOneVCard() {
+        vcardPointersValue = getPointerFromJPath(VCARD_PATH);
+        List<Map<String, String>> titles = new ArrayList<>();
+        logger.info("vcardVoicePointersValue size: {}", vcardPointersValue.size());
+
+        for (String jsonPointer : vcardPointersValue) {
+            JSONArray vcardArray = (JSONArray) jsonObject.query(jsonPointer);
+            var vcardList = convertJsonArrayToList(vcardArray);
+            vcardList.forEach(t -> {
+                if(t.get(ZERO) instanceof String title) {
+                    if(title.trim().equalsIgnoreCase("email")) {
+                        titles.add(Map.of("title", title, VALUE, t.get(3).toString()));
+                    }
+                }
+            });
+
+            EmailValidator emailValidator = new EmailValidator();
+            // Check if ANY email is valid
+            boolean hasValidEmail = titles.stream()
+                .map(email -> email.get(VALUE))
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .anyMatch(emailValidator::validateEmail);
+
+            if(titles.isEmpty() || !hasValidEmail) {
+                results.add(RDAPValidationResult.builder()
+                        .code(-64108)
+                        .value(getResultValue(vcardPointersValue))
+                        .message("An email must either be present and valid or redacted for the registrant")
+                        .build());
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean validateVCardsNoBothValues() {
@@ -346,4 +387,3 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
         return config.isGtldRegistrar();
     }
 }
-

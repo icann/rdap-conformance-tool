@@ -2,7 +2,6 @@ package org.icann.rdapconformance.validator;
 
 import java.io.InputStream;
 
-import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParserImpl;
