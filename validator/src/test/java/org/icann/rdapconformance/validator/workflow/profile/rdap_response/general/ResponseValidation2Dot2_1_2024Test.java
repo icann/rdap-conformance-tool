@@ -49,64 +49,48 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
     }
 
     @Test
-    public void ResponseValidation2Dot2_1_2024_46200() {
-        jsonObject.put("handle", "2138514test");
+    public void ResponseValidation2Dot2_1_2024_46200() throws IOException {
+        loadValidation221Scenario("invalid_handle_format");
         validate(-46200, handlePointer, "The handle in the domain object does not comply with the format "
                 + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
     }
 
     @Test
-    public void ResponseValidation2Dot2_1_2024_46202() {
-        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0).getJSONObject("name");
-
-        redactedObject.put("type", "test");
+    public void ResponseValidation2Dot2_1_2024_46202() throws IOException {
+        loadValidation221Scenario("malformed_redaction_type");
         validate(-46202, typePointer, "a redaction of type Registry Domain ID is required.");
     }
 
     @Test
-    public void ResponseValidation2Dot2_1_2024_46203_By_PathLang() {
-        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
-
-        redactedObject.put("pathLang", "test");
+    public void ResponseValidation2Dot2_1_2024_46203_By_PathLang() throws IOException {
+        loadValidation221Scenario("invalid_pathlang");
         validate(-46203, pathLangPointer, "jsonpath is invalid for Registry Domain ID.");
     }
 
     @Test
-    public void ResponseValidation2Dot2_1_2024_46203_By_PathLangObject() {
-        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
-
-        redactedObject.put("pathLang", new JSONObject());
+    public void ResponseValidation2Dot2_1_2024_46203_By_PathLangObject() throws IOException {
+        loadValidation221Scenario("pathlang_as_object");
         validate(-46203, pathLangObjectPointer, "jsonpath is invalid for Registry Domain ID.");
     }
 
     @Test
-    public void ResponseValidation2Dot2_1_2024_46203_By_MissingPathLang_Bad_PrePath() {
-        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
-
-        redactedObject.remove("pathLang");
-        redactedObject.put("prePath", "test");
+    public void ResponseValidation2Dot2_1_2024_46203_By_MissingPathLang_Bad_PrePath() throws IOException {
+        loadValidation221Scenario("missing_pathlang");
         validate(-46203, pathLangMissingPointer, "jsonpath is invalid for Registry Domain ID.");
     }
 
     @Test
-    public void ResponseValidation2Dot2_1_2024_46204_By_Method() {
-        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
-
-        redactedObject.put("method", "test");
+    public void ResponseValidation2Dot2_1_2024_46204_By_Method() throws IOException {
+        loadValidation221Scenario("invalid_method");
         validate(-46204, methodPointer, "Registry Domain ID redaction method must be removal if present");
     }
 
     @Test
-    public void ResponseValidation2Dot2_1_2024_46206() {
+    public void ResponseValidation2Dot2_1_2024_46206() throws IOException {
         // Test -46206: Registry Domain ID redaction declared but handle still exists
+        loadValidation221Scenario("redaction_consistency_violation");
         
-        // Add handle to topmost object (this creates the inconsistency)
-        jsonObject.put("handle", "123456-TEST");
-        
-        // The redacted array already has Registry Domain ID redaction from valid.json
-        // This creates the scenario: handle exists + Registry Domain ID redaction declared
-        
-        String expectedPointer = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registry Domain ID\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.handle\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}";
+        String expectedPointer = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registry Domain ID\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.handle\"}";
         
         validate(-46206, expectedPointer, "a redaction of type Registry Domain ID was found but the domain handle was not redacted.");
     }
@@ -137,23 +121,10 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
     }
 
     @Test
-    public void testHandlePresent_ShouldNotTriggerValidations() {
+    public void testHandlePresent_ShouldNotTriggerValidations() throws IOException {
         // Test that when handle property exists, no redaction validations are triggered
         // (unless there's a Registry Domain ID redaction inconsistency)
-        
-        // Remove Registry Domain ID redaction to avoid -46206 inconsistency check
-        JSONArray redactedArray = jsonObject.getJSONArray("redacted");
-        JSONArray newRedactedArray = new JSONArray();
-        for (int i = 0; i < redactedArray.length(); i++) {
-            JSONObject redacted = redactedArray.getJSONObject(i);
-            JSONObject name = redacted.optJSONObject("name");
-            if (name == null || !"Registry Domain ID".equals(name.optString("type"))) {
-                newRedactedArray.put(redacted);
-            }
-        }
-        jsonObject.put("redacted", newRedactedArray);
-        
-        jsonObject.put("handle", "DOM123-IANA");
+        loadValidation221Scenario("handle_present_valid");
         
         // Expected: Since handle is present and no Registry Domain ID redaction exists, no validations trigger
         // Test should pass without any validation errors
@@ -161,27 +132,18 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
     }
 
     @Test
-    public void testValidEPPROID_ShouldPass() {
+    public void testValidEPPROID_ShouldPass() throws IOException {
         // Test the missing branch: valid EPPROID scenario (line 79)
-        
-        // Remove redacted array to avoid -46206 inconsistency  
-        jsonObject.remove("redacted");
-        
-        // Add a valid handle with a real EPPROID that should pass validation
-        jsonObject.put("handle", "DOM123-IANA");
+        loadValidation221Scenario("handle_present_valid");
         
         // This should pass - valid handle format and valid EPPROID
         validate();
     }
 
     @Test  
-    public void testNonStringHandle_ShouldFailValidation() {
+    public void testNonStringHandle_ShouldFailValidation() throws IOException {
         // Test the missing branch: non-string handle object scenario (line 66)
-        
-        // Put a JSONObject instead of string for handle (malformed case)
-        JSONObject malformedHandle = new JSONObject();
-        malformedHandle.put("invalid", "not a string");
-        jsonObject.put("handle", malformedHandle);
+        loadValidation221Scenario("malformed_handle_object");
         
         // This should fail validation silently (no specific error message, just returns false)
         // The validation logic returns HandleObjectToValidate with isValid=false but doesn't add error
@@ -194,13 +156,9 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
     }
 
     @Test
-    public void testEmptyRedactedArray_ShouldTrigger46202() {
+    public void testEmptyRedactedArray_ShouldTrigger46202() throws IOException {
         // Test edge case where redacted array exists but is empty
-        
-        jsonObject.remove("handle"); // Remove handle to trigger validation
-        
-        // Clear the redacted array 
-        jsonObject.put("redacted", new JSONArray());
+        loadValidation221Scenario("empty_redacted_array");
         
         // Expected: Should trigger -46202 because no "Registry Domain ID" redaction found
         validate(-46202, 
@@ -389,18 +347,13 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
     }
 
     @Test
-    public void testInvalidEPPROID_ShouldTrigger46201() {
+    public void testInvalidEPPROID_ShouldTrigger46201() throws IOException {
         // Test the missing branch: invalid EPPROID scenario (line 79)
-        
-        // Remove redacted array to avoid -46206 inconsistency  
-        jsonObject.remove("redacted");
+        loadValidation221Scenario("invalid_epproid");
         
         // Mock EPPRoid to return invalid for specific ROID
         EPPRoid eppRoid = datasets.get(EPPRoid.class);
         when(eppRoid.isInvalid("INVALID")).thenReturn(true);
-        
-        // Add a handle with invalid EPPROID 
-        jsonObject.put("handle", "DOM123-INVALID");
         
         // Expected: -46201 error for invalid EPPROID
         String expectedPointer = "#/handle:DOM123-INVALID";
