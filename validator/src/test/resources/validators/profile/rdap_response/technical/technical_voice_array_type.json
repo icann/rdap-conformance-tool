@@ -1,0 +1,111 @@
+{
+  "rdapConformance": [
+    "rdap_level_0",
+    "icann_rdap_technical_implementation_guide_0",
+    "icann_rdap_response_profile_0"
+  ],
+  "objectClassName": "domain",
+  "ldhName": "example.com",
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "handle": "TECH-123",
+      "roles": [
+        "technical"
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "Technical Contact"
+          ],
+          [
+            "org",
+            {},
+            "text",
+            "Example Technical Corp"
+          ],
+          [
+            "adr",
+            {},
+            "text",
+            [
+              "",
+              "Suite 500",
+              "123 Tech Street",
+              "San Francisco",
+              "CA",
+              "94105",
+              "US"
+            ]
+          ],
+          [
+            "email",
+            {},
+            "text",
+            "tech@example.com"
+          ],
+          [
+            "tel",
+            {
+              "type": ["voice", "work"]
+            },
+            "uri",
+            "tel:+1-555-555-1234"
+          ],
+          [
+            "tel",
+            {
+              "type": "fax"
+            },
+            "uri",
+            "tel:+1-555-555-5678"
+          ]
+        ]
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "handle": "REG-456",
+      "roles": [
+        "registrant"
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "Registrant Name"
+          ]
+        ]
+      ]
+    }
+  ],
+  "remarks": [
+    {
+      "title": "Test Case",
+      "description": [
+        "This JSON demonstrates a technical entity with a valid voice tel property",
+        "The type parameter is an array [\"voice\", \"work\"] which is valid per vCard spec",
+        "This should NOT trigger -65100 error since voice tel IS present"
+      ]
+    }
+  ]
+}

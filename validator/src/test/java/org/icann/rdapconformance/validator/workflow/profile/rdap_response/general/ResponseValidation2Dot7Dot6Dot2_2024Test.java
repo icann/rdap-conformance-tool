@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
@@ -48,6 +49,236 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
         JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(1).getJSONArray("roles");
         roles.put(0, "registrar");
         validate();
+    }
+
+    // TESTS FOR -65100 FALSE POSITIVE BUG FIX (voice array type parameters)
+    // These tests verify the fix for the bug where technical entities with valid 
+    // voice tel properties using array type parameters (e.g., ["voice", "work"]) 
+    // were incorrectly triggering -65100 errors
+    
+    @Test
+    public void testTechnicalVoiceWithArrayType_ShouldNotTrigger65100() {
+        // This test demonstrates the bug fix working correctly:
+        // Technical entity HAS a valid voice tel property with type ["voice", "work"]
+        // This should NOT trigger -65100 (which requires Tech Phone redaction when voice is missing)
+        // Before the fix, the JSONPath couldn't detect array type parameters
+        
+        String jsonResponse;
+        try {
+            jsonResponse = getResource("/validators/profile/rdap_response/technical/technical_voice_array_type.json");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load test JSON", e);
+        }
+        jsonObject = new JSONObject(jsonResponse);
+        
+        ProfileValidation validation = getProfileValidation();
+        boolean isValid = validation.validate();
+        
+        // The validation should pass (return true) because voice tel IS present
+        assertThat(isValid).as("Validation should pass because technical entity HAS voice tel property").isTrue();
+    }
+
+    @Test 
+    public void testTechnicalVoiceWithArrayType_WithoutHandle() {
+        // Test the original bug scenario - handle validation is separate 
+        String jsonResponse;
+        try {
+            jsonResponse = getResource("/validators/profile/rdap_response/technical/technical_voice_array_type.json");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load test JSON", e);
+        }
+        jsonObject = new JSONObject(jsonResponse);
+        
+        // Remove handle to test missing handle scenario  
+        removeKey("$.['entities'][0]['handle']");
+        
+        validate();
+    }
+
+    // These tests target specific code paths and edge cases to improve code coverage
+    // They cover error handling, malformed data, and various input combinations
+    @Test
+    public void testTechnicalEntity_WithVoiceTypeAsArray_MultipleValues() {
+        // Test case where type is an array with multiple values including "voice"
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        
+        JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        JSONObject params = telProperty.getJSONObject(1);
+        // Set type as array with multiple values
+        params.put("type", new JSONArray().put("voice").put("work").put("home"));
+        
+        validate();
+    }
+
+    @Test
+    public void testTechnicalEntity_WithVoiceTypeAsArray_NoVoice() {
+        // Test case where type is an array but doesn't contain "voice"
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        
+        JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        JSONObject params = telProperty.getJSONObject(1);
+        // Set type as array without "voice"
+        params.put("type", new JSONArray().put("work").put("home"));
+        
+        // Remove existing redacted array to trigger -65100
+        jsonObject.remove("redacted");
+        
+        // This should require Tech Phone redaction
+        validate(-65100, "", "a redaction of type Tech Phone is required.");
+    }
+    
+    @Test 
+    public void testTechnicalEntity_WithMalformedVcardProperty() {
+        // Test case with malformed vcard property to trigger catch block in hasTechnicalVoiceTelProperty
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        
+        JSONArray vcardProps = technicalEntity.getJSONArray("vcardArray").getJSONArray(1);
+        
+        // Add malformed property - not an array but an object
+        vcardProps.put(new JSONObject().put("invalid", "structure"));
+        
+        // Remove original tel with voice to trigger redaction requirement
+        vcardProps.remove(4);
+        
+        // Remove existing redacted array to trigger -65100
+        jsonObject.remove("redacted");
+        
+        validate(-65100, "", "a redaction of type Tech Phone is required.");
+    }
+    
+    @Test
+    public void testTechnicalEntity_WithNonStringInTypeArray() {
+        // Test case where type array contains non-string elements (exception handling)
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        
+        JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        JSONObject params = telProperty.getJSONObject(1);
+        
+        // Set type as array with mixed types including non-strings
+        JSONArray typeArray = new JSONArray();
+        typeArray.put(123); // number
+        typeArray.put(new JSONObject()); // object
+        typeArray.put("voice"); // string at the end
+        params.put("type", typeArray);
+        
+        validate();
+    }
+    
+    @Test
+    public void testTechnicalEntity_WithEmptyTypeArray() {
+        // Test case where type is an empty array
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        
+        JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        JSONObject params = telProperty.getJSONObject(1);
+        
+        // Set type as empty array
+        params.put("type", new JSONArray());
+        
+        // Remove existing redacted array to trigger -65100
+        jsonObject.remove("redacted");
+        
+        validate(-65100, "", "a redaction of type Tech Phone is required.");
+    }
+    
+    @Test
+    public void testTechnicalEntity_WithNullVcardArray() {
+        // Test case where vcardArray is missing
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        
+        // Remove vcardArray entirely
+        technicalEntity.remove("vcardArray");
+        
+        // Remove existing redacted array to trigger -65100
+        jsonObject.remove("redacted");
+        
+        validate(-65100, "", "a redaction of type Tech Phone is required.");
+    }
+    
+    @Test
+    public void testTechnicalEntity_WithShortVcardArray() {
+        // Test case where vcardArray doesn't have enough elements
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        
+        // Replace with vcardArray that only has the "vcard" string
+        technicalEntity.put("vcardArray", new JSONArray().put("vcard"));
+        
+        // Remove existing redacted array to trigger -65100
+        jsonObject.remove("redacted");
+        
+        validate(-65100, "", "a redaction of type Tech Phone is required.");
+    }
+    
+    @Test
+    public void testTechnicalEntity_WithInvalidTelProperty() {
+        // Test case with tel property that isn't properly formed
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        
+        JSONArray vcardProps = technicalEntity.getJSONArray("vcardArray").getJSONArray(1);
+        
+        // Replace tel property with one that has too few elements
+        vcardProps.put(4, new JSONArray().put("tel"));
+        
+        // Remove existing redacted array to trigger -65100
+        jsonObject.remove("redacted");
+        
+        validate(-65100, "", "a redaction of type Tech Phone is required.");
+    }
+    
+    @Test
+    public void testTechnicalEntity_WithTypeAsUnexpectedObject() {
+        // Test case where type is neither string nor array (covers else branch in hasVoiceType)
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        
+        JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        JSONObject params = telProperty.getJSONObject(1);
+        
+        // Set type as a number or boolean (unexpected type)
+        params.put("type", 42);
+        
+        // Remove existing redacted array to trigger -65100
+        jsonObject.remove("redacted");
+        
+        validate(-65100, "", "a redaction of type Tech Phone is required.");
+    }
+    
+    @Test
+    public void testRedactedArray_WithMalformedNameObject() {
+        // Test redacted array exception handling with various malformed entries
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        
+        // Remove tel voice
+        JSONArray vcardProps = technicalEntity.getJSONArray("vcardArray").getJSONArray(1);
+        vcardProps.remove(4);
+        
+        // Add redacted array with various malformed entries to trigger exception handling
+        JSONArray redactedArray = new JSONArray();
+        
+        // Add entry without name property at all
+        redactedArray.put(new JSONObject().put("method", "removal"));
+        
+        // Add entry with name as string instead of object
+        redactedArray.put(new JSONObject().put("name", "invalid"));
+        
+        // Add entry with name object but no type
+        redactedArray.put(new JSONObject().put("name", new JSONObject().put("description", "something")));
+        
+        // Add entry with name.type as non-string
+        redactedArray.put(new JSONObject().put("name", new JSONObject().put("type", 123)));
+        
+        jsonObject.put("redacted", redactedArray);
+        
+        validate(-65100, "#/redacted/0:{\"method\":\"removal\"}, #/redacted/1:{\"name\":\"invalid\"}, #/redacted/2:{\"name\":{\"description\":\"something\"}}, #/redacted/3:{\"name\":{\"type\":123}}", "a redaction of type Tech Phone is required.");
     }
 
     @Test

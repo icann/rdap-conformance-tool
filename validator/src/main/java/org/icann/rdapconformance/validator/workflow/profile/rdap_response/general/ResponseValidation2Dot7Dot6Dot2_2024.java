@@ -1,8 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +15,12 @@ import java.util.Set;
 public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot2_2024.class);
-  public static final String TEL_VOICE_PATH = "$.entities[?(@.roles contains 'technical')].vcardArray[1][?(@[1].type=='voice')]";
   public static final String ENTITY_TECHNICAL_ROLE_PATH = "$.entities[?(@.roles contains 'technical')]";
   private static final String REDACTED_PATH = "$.redacted[*]";
+  private static final String TEL_PROPERTY = "tel";
+  private static final String VOICE_TYPE = "voice";
+  private static final String TECH_PHONE_TYPE = "Tech Phone";
+  private static final String VCARD_ARRAY = "vcardArray";
   private Set<String> redactedPointersValue = null;
 
   public ResponseValidation2Dot7Dot6Dot2_2024(String rdapResponse, RDAPValidatorResults results) {
@@ -49,19 +54,16 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
          return new RedactedHandleObjectToValidate(null, true);
      }
 
-    try {
-        Set<String> telPointersValue = getPointerFromJPath(TEL_VOICE_PATH);
-        logger.info("telVoicePointer size: {}", telPointersValue.size());
-        if(telPointersValue.isEmpty()) {
-            return validateRedactedArrayForEmptyTelVoice();
-        }
-
-        return new RedactedHandleObjectToValidate(null, true);
-
-    } catch (Exception e) {
-       logger.info("tel voice is not found, same validations into redacted array runs");
+    // Use custom method to properly detect voice tel properties
+    boolean hasVoiceTel = hasTechnicalVoiceTelProperty();
+    logger.info("hasTechnicalVoiceTel: {}", hasVoiceTel);
+    
+    if(!hasVoiceTel) {
+        logger.info("tel voice is not found for technical entity, validating redacted array");
         return validateRedactedArrayForEmptyTelVoice();
     }
+
+    return new RedactedHandleObjectToValidate(null, true);
  }
 
  private RedactedHandleObjectToValidate validateRedactedArrayForEmptyTelVoice() {
@@ -72,7 +74,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
          try {
              JSONObject name = (JSONObject) redacted.get("name");
              if (name != null && name.get("type") instanceof String redactedName) {
-                 if(redactedName.trim().equalsIgnoreCase("Tech Phone")) {
+                 if(redactedName.trim().equalsIgnoreCase(TECH_PHONE_TYPE)) {
                      redactedTechPhone = redacted;
                      break;
                  }
@@ -182,6 +184,82 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
       }
 
       return true;
+    }
+    
+    /**
+     * Custom method to check if technical entity has tel property with voice type.
+     * This method properly handles both string and array type parameters.
+     * Fixes the false positive bug where type: ["voice", "work"] was not detected.
+     */
+    private boolean hasTechnicalVoiceTelProperty() {
+        try {
+            // Get technical entities
+            Set<String> technicalEntities = getPointerFromJPath(ENTITY_TECHNICAL_ROLE_PATH);
+            if (technicalEntities.isEmpty()) {
+                return false;
+            }
+
+            // Check each technical entity for voice tel properties
+            for (String entityPointer : technicalEntities) {
+                JSONObject entity = (JSONObject) jsonObject.query(entityPointer);
+                JSONArray vcardArray = entity.optJSONArray(VCARD_ARRAY);
+
+                if (vcardArray != null && vcardArray.length() > CommonUtils.ONE) {
+                    JSONArray vcardProperties = vcardArray.getJSONArray(CommonUtils.ONE);
+
+                    // Iterate through vcard properties to find tel properties
+                    for (int i = CommonUtils.ZERO; i < vcardProperties.length(); i++) {
+                        try {
+                            JSONArray property = vcardProperties.getJSONArray(i);
+                            if (property.length() >= 2 && TEL_PROPERTY.equals(property.getString(CommonUtils.ZERO))) {
+                                JSONObject params = property.getJSONObject(CommonUtils.ONE);
+                                Object type = params.opt("type");
+
+                                if (hasVoiceType(type)) {
+                                    return true;
+                                }
+                            }
+                        } catch (Exception e) {
+                            // Skip malformed properties, continue searching
+                            logger.debug("Skipping malformed vcard property at index {}: {}", i, e.getMessage());
+                            continue;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error checking for technical voice tel property: {}", e.getMessage());
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a type value contains "voice", handling both string and array cases.
+     */
+    private boolean hasVoiceType(Object type) {
+        if (type == null) {
+            return false;
+        }
+
+        if (type instanceof String) {
+            return VOICE_TYPE.equals(type);
+        } else if (type instanceof JSONArray) {
+            JSONArray typeArray = (JSONArray) type;
+            for (int i = CommonUtils.ZERO; i < typeArray.length(); i++) {
+                try {
+                    if (VOICE_TYPE.equals(typeArray.getString(i))) {
+                        return true;
+                    }
+                } catch (Exception e) {
+                    // Skip non-string elements
+                    continue;
+                }
+            }
+        }
+
+        return false;
     }
 }
 
