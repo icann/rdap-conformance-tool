@@ -1,0 +1,26 @@
+{
+  "objectClassName": "domain",
+  "ldhName": "example.com",
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "roles": ["registrant"],
+      "remarks": [
+        {
+          "title": "NOT REDACTED FOR PRIVACY",
+          "description": ["Contact information is available"]
+        }
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "John Doe"],
+          ["adr", {}, "text", ["", "", "123 Main St", "Anytown", "NY", "12345", "US"]],
+          ["tel", {}, "text", "+1.5551234567"],
+          ["email", {}, "text", "john@example.com"]
+        ]
+      ]
+    }
+  ]
+}

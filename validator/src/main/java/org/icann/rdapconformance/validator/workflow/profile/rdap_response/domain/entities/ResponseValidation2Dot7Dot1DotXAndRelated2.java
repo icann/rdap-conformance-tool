@@ -33,6 +33,12 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
 
     boolean isValid = true;
     if (withRemarkTitleRedactedForPrivacy.isEmpty()) {
+      // Validate handle field (top-level entity property)
+      if (!entity.has("handle")) {
+        isValid &= log52101(jsonPointer);
+      }
+      
+      // Validate vcard properties
       Set<String> properties = Set.of("fn", "adr", "tel", "email");
       for (String property : properties) {
         isValid &= validateVcardProperty(jsonPointer, entity, property);
