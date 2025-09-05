@@ -40,10 +40,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
     if(isValid && Objects.nonNull(redactedObject.registryRedacted())) {
         isValid = validateRedactedProperties(redactedObject);
         if(isValid) {
-            isValid = validateRedactedProperties(redactedObject);
-            if(isValid) {
-                isValid = validateMethodProperty(redactedObject);
-            }
+            isValid = validateMethodProperty(redactedObject);
         }
     }
     return isValid;
