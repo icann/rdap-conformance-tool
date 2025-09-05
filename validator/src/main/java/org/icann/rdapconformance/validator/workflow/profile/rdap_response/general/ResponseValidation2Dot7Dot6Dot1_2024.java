@@ -36,6 +36,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
 
         boolean isValid = true;
         boolean needCheckRedacted = false;
+        boolean needTechObjectExist = true;
 
         for (String vcardArrayPointer : getPointerFromJPath(VCARD_ARRAY_PATH)) {
           JSONArray vcardArray = (JSONArray) jsonObject.query(vcardArrayPointer);
@@ -73,8 +74,13 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                 isValid = false;
             }
 
-            if (hasFn && isFnEmpty) {
+            if (hasFn) {
                 needCheckRedacted = true;
+                if(isFnEmpty) {
+                    needTechObjectExist = true;
+                } else {
+                    needTechObjectExist = false;
+                }
             }
         } // end of vCard loop
 
@@ -97,7 +103,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                 }
             }
 
-            if (Objects.isNull(redactedTechName)) {
+            if (needTechObjectExist && Objects.isNull(redactedTechName)) {
                 logger.info("adding 65001, value = {}", getResultValue(redactedPointersValue));
                 results.add(RDAPValidationResult.builder()
                     .code(-65001)
@@ -106,7 +112,16 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                     .build());
 
                 isValid = false;
-            } else {
+            } else if (!needTechObjectExist && Objects.nonNull(redactedTechName)) {
+                logger.info("adding 65005, value = {}", getResultValue(redactedPointersValue));
+                results.add(RDAPValidationResult.builder()
+                        .code(-65005)
+                        .value(getResultValue(redactedPointersValue))
+                        .message("a redaction of type Tech Name was found but tech name was not redacted.")
+                        .build());
+
+                isValid = false;
+            } else if(needTechObjectExist){
                 Object pathLang = null;
                 try {
                     pathLang = redactedTechName.get("pathLang");
