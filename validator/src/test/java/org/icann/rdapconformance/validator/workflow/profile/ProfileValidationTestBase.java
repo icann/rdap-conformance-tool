@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.ValidationTest;
+import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -31,6 +32,10 @@ public abstract class ProfileValidationTestBase implements ValidationTest {
     results = mock(RDAPValidatorResults.class);
     config = mock(RDAPValidatorConfiguration.class);
     when(config.isGtldRegistrar()).thenReturn(true);
+    
+    // PERFORMANCE FIX: Reduce HTTP 429 retry backoff from 30 seconds to 1 second for tests
+    // This prevents tests from hanging for 30 seconds when hitting rate limits
+    RDAPHttpRequest.DEFAULT_BACKOFF_SECS = 1;
   }
 
   @Test
