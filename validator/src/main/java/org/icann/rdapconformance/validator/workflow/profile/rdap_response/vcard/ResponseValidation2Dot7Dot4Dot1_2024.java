@@ -40,43 +40,32 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
         if(getPointerFromJPath(ENTITY_ROLE_PATH).isEmpty()) {
             return true;
         }
-        try {
-            Set<String> vcardFnPointersValue = getPointerFromJPath(VCARD_FN_PATH);
-            vcardPointersValue = getPointerFromJPath(VCARD_PATH);
-            logger.info("vcardFnPointersValue size: {}", vcardFnPointersValue.size());
+        Set<String> vcardFnPointersValue = getPointerFromJPath(VCARD_FN_PATH);
+        vcardPointersValue = getPointerFromJPath(VCARD_PATH);
+        logger.info("vcardFnPointersValue size: {}", vcardFnPointersValue.size());
 
-            if(vcardFnPointersValue.isEmpty()) {
-                logger.info("fn in vcard does not have values, validate redaction object");
-                results.add(RDAPValidationResult.builder()
-                        .code(-63200)
-                        .value(getResultValue(vcardPointersValue))
-                        .message("The fn property is required on the vcard for the registrant.")
-                        .build());
-                return false;
-            } else {
-                for (String jsonPointer : vcardFnPointersValue) {
-                    JSONArray vcardFnArray = (JSONArray) jsonObject.query(jsonPointer);
-                    if(vcardFnArray.get(3) instanceof String fnValue) {
-                        if(StringUtils.isEmpty(fnValue)) {
-                            return validateRedactedArrayForFnValue();
-                        } else {
-                            return validateRedactedArrayForNotEmptyFnValue();
-                        }
-                    }
-                }
-            }
-
-            return true;
-
-        } catch (Exception e) {
-            logger.info("vcard fn is not found, no validations for this case, Error: {}", e.getMessage());
+        if(vcardFnPointersValue.isEmpty()) {
+            logger.info("fn in vcard does not have values, validate redaction object");
             results.add(RDAPValidationResult.builder()
                     .code(-63200)
                     .value(getResultValue(vcardPointersValue))
                     .message("The fn property is required on the vcard for the registrant.")
                     .build());
             return false;
+        } else {
+            for (String jsonPointer : vcardFnPointersValue) {
+                JSONArray vcardFnArray = (JSONArray) jsonObject.query(jsonPointer);
+                if(vcardFnArray.get(3) instanceof String fnValue) {
+                    if(StringUtils.isEmpty(fnValue)) {
+                        return validateRedactedArrayForFnValue();
+                    } else {
+                        return validateRedactedArrayForNotEmptyFnValue();
+                    }
+                }
+            }
         }
+
+        return true;
     }
 
     private boolean validateRedactedArrayForNotEmptyFnValue() {
@@ -85,7 +74,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
             results.add(RDAPValidationResult.builder()
                     .code(-63205)
                     .value(getResultValue(redactedPointersValue))
-                    .message("a redaction of type Registrant Name was found by registrant fn property was not redacted.")
+                    .message("a redaction of type Registrant Name was found but registrant fn property was not redacted.")
                     .build());
             return false;
         }

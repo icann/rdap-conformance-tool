@@ -259,7 +259,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidat
         fnValue.put(3, "Some Registrant");
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.getJSONObject("name").put("type", "Registrant Name");
-        validate(-63205, "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Name\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}", "a redaction of type Registrant Name was found by registrant fn property was not redacted.");
+        validate(-63205, "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Name\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}", "a redaction of type Registrant Name was found but registrant fn property was not redacted.");
     }
 
     @Test
@@ -334,5 +334,124 @@ public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidat
         // No 'name' property
         redactedArray.put(malformed);
         validate(-63201, "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"}}", "a redaction of type Registrant Name is required.");
+    }
+
+    @Test
+    public void testValidateVcardFnPropertyObject_ExceptionHandling() {
+        // Simulate malformed vCard array that causes exception in jsonObject.query(jsonPointer)
+        JSONArray entities = jsonObject.getJSONArray("entities");
+        JSONObject registrant = entities.getJSONObject(0);
+        JSONArray vcardArray = registrant.getJSONArray("vcardArray");
+        // Replace vcardArray[1] with a non-JSONArray to cause ClassCastException
+        vcardArray.put(1, new JSONObject());
+        validate(-63200, "#/entities/0/vcardArray/1:{}", "The fn property is required on the vcard for the registrant.");
+    }
+
+    @Test
+    public void testValidatePostPathBasedOnPathLang_NullRedactedRegistrantName() throws Exception {
+        // Use reflection to call private method with null
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("validatePostPathBasedOnPathLang", JSONObject.class);
+        m.setAccessible(true);
+        Object result = m.invoke(validation, new Object[]{null});
+        assert result.equals(Boolean.TRUE);
+    }
+
+    @Test
+    public void testValidatePostPathBasedOnPathLang_MissingPostPath() throws Exception {
+        // Setup redactedRegistrantName with no postPath
+        JSONObject redactedRegistrantName = new JSONObject();
+        redactedRegistrantName.put("name", new JSONObject().put("type", "Registrant Name"));
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("validatePostPathBasedOnPathLang", JSONObject.class);
+        m.setAccessible(true);
+        // Should not throw, should return true (calls validateMethodProperty)
+        Object result = m.invoke(validation, redactedRegistrantName);
+        assert result.equals(Boolean.TRUE);
+    }
+
+    @Test
+    public void testValidateMethodProperty_NullRedactedRegistrantName() throws Exception {
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("validateMethodProperty", JSONObject.class);
+        m.setAccessible(true);
+        Object result = m.invoke(validation, new Object[]{null});
+        assert result.equals(Boolean.TRUE);
+    }
+
+    @Test
+    public void testValidateMethodProperty_MissingMethod() throws Exception {
+        JSONObject redactedRegistrantName = new JSONObject();
+        redactedRegistrantName.put("name", new JSONObject().put("type", "Registrant Name"));
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("validateMethodProperty", JSONObject.class);
+        m.setAccessible(true);
+        Object result = m.invoke(validation, redactedRegistrantName);
+        assert result.equals(Boolean.TRUE);
+    }
+
+    @Test
+    public void testValidateRedactedProperties_NullRedactedRegistrantName() throws Exception {
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("validateRedactedProperties", JSONObject.class);
+        m.setAccessible(true);
+        Object result = m.invoke(validation, new Object[]{null});
+        assert result.equals(Boolean.TRUE);
+    }
+
+    @Test
+    public void testValidateRedactedProperties_MissingPathLang() throws Exception {
+        JSONObject redactedRegistrantName = new JSONObject();
+        redactedRegistrantName.put("name", new JSONObject().put("type", "Registrant Name"));
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("validateRedactedProperties", JSONObject.class);
+        m.setAccessible(true);
+        Object result = m.invoke(validation, redactedRegistrantName);
+        assert result.equals(Boolean.TRUE);
+    }
+
+    @Test
+    public void testExtractRedactedRegistrantName_SkipNonType() throws Exception {
+        // Add a redacted object with only name.description, not name.type
+        JSONArray redactedArray = jsonObject.getJSONArray("redacted");
+        JSONObject obj = new JSONObject();
+        obj.put("name", new JSONObject().put("description", "Administrative Contact"));
+        redactedArray.put(obj);
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("extractRedactedRegistrantName");
+        m.setAccessible(true);
+        Object result = m.invoke(validation);
+        // Should return non-null if a valid Registrant Name redaction exists, null otherwise
+        // Here, since only description is present, should return null
+        assert result == null;
+    }
+
+    @Test
+    public void testValidateVcardFnPropertyObject_IndexOutOfBounds() {
+        // vcardArray[1] is a JSONArray but too short (less than 4 elements)
+        JSONArray entities = jsonObject.getJSONArray("entities");
+        JSONObject registrant = entities.getJSONObject(0);
+        JSONArray vcardArray = registrant.getJSONArray("vcardArray");
+        // Replace vcardArray[1] with a short JSONArray (e.g., 2 elements)
+        JSONArray shortArray = new JSONArray();
+        shortArray.put("fn");
+        shortArray.put(new JSONObject());
+        vcardArray.put(1, shortArray);
+        validate(-63200, "#/entities/0/vcardArray/1:[\"fn\",{}]", "The fn property is required on the vcard for the registrant.");
+    }
+
+    @Test
+    public void testValidateVcardFnPropertyObject_NullAtIndex3() {
+        // vcardArray[1] is a JSONArray with index 3 set to null
+        JSONArray entities = jsonObject.getJSONArray("entities");
+        JSONObject registrant = entities.getJSONObject(0);
+        JSONArray vcardArray = registrant.getJSONArray("vcardArray");
+        JSONArray fnArray = new JSONArray();
+        fnArray.put("fn");
+        fnArray.put(new JSONObject());
+        fnArray.put("text");
+        fnArray.put(JSONObject.NULL); // index 3 is null
+        vcardArray.put(1, fnArray);
+        validate(-63200, "#/entities/0/vcardArray/1:[\"fn\",{},\"text\",null]", "The fn property is required on the vcard for the registrant.");
     }
 }
