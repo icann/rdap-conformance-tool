@@ -594,5 +594,51 @@ public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidat
         assert result == null;
     }
 
+    @Test
+    public void testValidateMethodProperty_MethodIsEmptyValue() throws Exception {
+        // method is exactly 'emptyValue' (should return true)
+        JSONObject redactedRegistrantName = new JSONObject();
+        redactedRegistrantName.put("method", "emptyValue");
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("validateMethodProperty", JSONObject.class);
+        m.setAccessible(true);
+        Object result = m.invoke(validation, redactedRegistrantName);
+        assert result.equals(Boolean.TRUE);
+    }
 
+    @Test
+    public void testValidateMethodProperty_MethodIsEmptyValueWithSpacesAndCase() throws Exception {
+        // method is '  EMPTYVALUE  ' (with spaces and different case, should return true)
+        JSONObject redactedRegistrantName = new JSONObject();
+        redactedRegistrantName.put("method", "  EMPTYVALUE  ");
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("validateMethodProperty", JSONObject.class);
+        m.setAccessible(true);
+        Object result = m.invoke(validation, redactedRegistrantName);
+        assert result.equals(Boolean.TRUE);
+    }
+
+    @Test
+    public void testValidateMethodProperty_MethodIsInteger() throws Exception {
+        // method is an Integer (should return true)
+        JSONObject redactedRegistrantName = new JSONObject();
+        redactedRegistrantName.put("method", 123);
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("validateMethodProperty", JSONObject.class);
+        m.setAccessible(true);
+        Object result = m.invoke(validation, redactedRegistrantName);
+        assert result.equals(Boolean.TRUE);
+    }
+
+    @Test
+    public void testValidateMethodProperty_MethodIsNull() throws Exception {
+        // method is explicitly null (should return true)
+        JSONObject redactedRegistrantName = new JSONObject();
+        redactedRegistrantName.put("method", JSONObject.NULL);
+        var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
+        java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("validateMethodProperty", JSONObject.class);
+        m.setAccessible(true);
+        Object result = m.invoke(validation, redactedRegistrantName);
+        assert result.equals(Boolean.TRUE);
+    }
 }
