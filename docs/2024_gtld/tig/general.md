@@ -38,7 +38,7 @@ Test group: [[tigSection2024_1_5_Validation]](#id-tigSection2024_1_5_Validation)
 
 Test group: [[tigSection2024_3_2_Validation]](#id-tigSection2024_3_2_Validation){ #id-tigSection2024_3_2_Validation }
 
-1. Test case [-23201](#id-testCase-23201){ #id-testCase-23201 }: Validate that the links object found with the test of code [-23200][id-testCase-23200] has a value property and that the property contents match the URI used to query the server.
+1. Test case [-23201](#id-testCase-23201){ #id-testCase-23201 }: Validate that the links object found with the test of code -23200 has a value property and that the property contents match the URI used to query the server.
 ```json
 {
   "code": -23201,

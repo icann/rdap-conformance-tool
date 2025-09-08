@@ -190,7 +190,7 @@ The following steps should be used to test that the status values comply with  R
     3. "pending renew" status MUST NOT be combined with either "client renew prohibited" or "server renew prohibited" status.
     4. "pending transfer" status MUST NOT be combined with either "client transfer prohibited" or "server transfer prohibited" status.
     5. "pending update" status MUST NOT be combined with either "client update prohibited" or "server update prohibited" status.
-    6. The pending create, pending delete, pending renew, pending transfer, and pending update status values MUST NOT be combined with each other.
+    6. The "pending create", "pending delete", "pending renew", "pending transfer", and "pending update" status values MUST NOT be combined with each other.
 ```json
 {
   "code": -46900,
@@ -205,7 +205,7 @@ Test group: [[rdapResponseProfile_rfc3915_Validation]](#id-rdapResponseProfile_r
 
 The following steps should be used to test that the status values comply with RFC3915:
 
-1. Test case [-47000](#id-testCase-47000){ #id-testCase-47000 }: Validate that the values of the _status_ member in the topmost object comply with the following:
+1. Test case [-47000](#id-testCase-47000){ #id-testCase-47000 } *-- DEPRECATED, SEE 47001 and 47002*: Validate that the values of the _status_ member in the topmost object comply with the following:
     1. "redemption period" status MUST only be combined with "pending delete".
     2. "pending restore" status MUST only be combined with "pending delete".
 ```json

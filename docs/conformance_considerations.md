@@ -262,4 +262,28 @@ While using the URL of "https://www.icann.org/wicf" in either the "href" attribu
 will lead user to the right page, the conformance tool strictly checks for the usage of "https://icann.org/wicf"
 (notice the lack of "www.").
 
+## TLS Handshake Issues
+
+TLS handshake issues can be caused by TLS certificates signed with out-of-date signing algorithms. This can be
+an issue with the TLS certificate issued for the RDAP server or any certificate in the chain, including the root
+certificate used by the issuing Certificate Authority.
+
+The `openssl` command can be used to determine if this is the issue.
+
+```
+openssl s_client -connect example.com:443 -showcerts < /dev/null 2>/dev/null | grep sigalg  
+```
+
+Might produce the following:
+
+```
+   a:PKEY: RSA, 2048 (bit); sigalg: sha256WithRSAEncryption
+   a:PKEY: RSA, 2048 (bit); sigalg: sha384WithRSAEncryption
+   a:PKEY: RSA, 4096 (bit); sigalg: sha384WithRSAEncryption
+   a:PKEY: RSA, 2048 (bit); sigalg: sha1WithRSAEncryption
+```
+
+Here, the very last certificate has the signing algorithm has "sha1WithRSAEncryption".
+As SHA1 is deprected by [RFC 9155](https://datatracker.ietf.org/doc/rfc9155/), the TLS handshake
+will because SHA1 is considered insecure.
 
