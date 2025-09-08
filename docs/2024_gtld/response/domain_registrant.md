@@ -250,7 +250,7 @@ If the street value of the adr property above is present but empty, the followin
 }
 ```
 
-If the street value of the adr property above is present but empty, the following tests apply:
+If the street value of the adr property above is present but NOT empty, the following tests apply:
 
 2. Test case [-63405](#id-testCase-63405){ #id-testCase-63405 }: If a redaction object (see RFC 9537) is in the redacted array with a 
 name object containing the type property which is a JSON string of “Registrant Street”.
