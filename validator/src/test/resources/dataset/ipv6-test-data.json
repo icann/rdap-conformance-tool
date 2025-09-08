@@ -1,0 +1,30 @@
+{
+  "rdapConformance" : [ "icann_rdap_response_profile_1", "icann_rdap_technical_implementation_guide_1", "rdap_level_0" ],
+  "notices" : [ {
+    "title" : "Terms of Use",
+    "description" : [ "RDAP Terms of Use(.JPRS)" ],
+    "links" : [ {
+      "value" : "https://rdap.nic.jprs/rdap/domain/nic.jprs",
+      "rel" : "terms-of-service",
+      "type" : "text/html",
+      "href" : "https://www.rdap.nic.jprs/docs/terms_of_use.html"
+    } ]
+  } ],
+  "objectClassName" : "domain",
+  "ldhName" : "nic.jprs",
+  "nameservers" : [ {
+    "objectClassName" : "nameserver",
+    "ldhName" : "ns1.nic.jprs",
+    "ipAddresses" : {
+      "v4" : [ "202.11.16.49" ],
+      "v6" : [ "2001:df0:8::a153" ]
+    }
+  }, {
+    "objectClassName" : "nameserver", 
+    "ldhName" : "ns2.nic.jprs",
+    "ipAddresses" : {
+      "v4" : [ "202.11.16.59" ],
+      "v6" : [ "2001:df0:8::a253" ]
+    }
+  } ]
+}
