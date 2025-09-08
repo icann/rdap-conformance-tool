@@ -173,4 +173,46 @@ public class ResponseValidation2Dot7Dot6Dot1_2024Test extends ProfileJsonValidat
         // Should pass validation (no error)
         validate();
     }
+
+    @Test
+    public void testNoTechnicalRoleEntities() throws Exception {
+        // Setup: Remove all technical roles from entities
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        JSONArray entities = jsonObject.getJSONArray("entities");
+        for (int i = 0; i < entities.length(); i++) {
+            JSONObject entity = entities.getJSONObject(i);
+            JSONArray roles = entity.optJSONArray("roles");
+            if (roles != null) {
+                for (int j = roles.length() - 1; j >= 0; j--) {
+                    if (roles.optString(j).equalsIgnoreCase("technical")) {
+                        roles.remove(j);
+                    }
+                }
+            }
+        }
+        // Should pass validation (doValidate returns true immediately)
+        validate();
+    }
+
+    @Test
+    public void testTechNameRedactionWithNonJsonPathPathLangAndNoMethod() throws Exception {
+        // Setup: technical entity with empty fn, Tech Name redaction present, pathLang != 'jsonpath', and no method
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        // Make fn empty
+        JSONArray fnValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(1);
+        fnValue.put(3, "");
+        // Add Tech Name redaction with pathLang != 'jsonpath' and no method
+        JSONArray redactedArray = jsonObject.getJSONArray("redacted");
+        JSONObject techNameRedaction = new JSONObject();
+        techNameRedaction.put("reason", new JSONObject().put("description", "Server policy"));
+        techNameRedaction.put("name", new JSONObject().put("type", "Tech Name"));
+        techNameRedaction.put("pathLang", "other"); // Not 'jsonpath'
+        techNameRedaction.put("postPath", "$.entities[?(@.roles[0]=='technical')]");
+        // Do NOT set 'method' property
+        redactedArray.put(techNameRedaction);
+        // Should trigger -65004 (method is absent)
+        validate(-65004, techNameRedaction.toString(), "Tech Name redaction method must be emptyValue");
+    }
 }

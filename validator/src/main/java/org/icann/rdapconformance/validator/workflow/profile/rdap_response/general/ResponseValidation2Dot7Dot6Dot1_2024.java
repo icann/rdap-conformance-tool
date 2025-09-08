@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
-import com.jayway.jsonpath.JsonPath;
 import java.util.Objects;
 import java.util.Set;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
@@ -12,12 +11,16 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.icann.rdapconformance.validator.CommonUtils.THREE;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation {
 
     public static final String ENTITY_TECHNICAL_ROLE_PATH = "$.entities[?(@.roles contains 'technical')]";
     public static final String VCARD_ARRAY_PATH = "$.entities[?(@.roles contains 'technical')].vcardArray";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot1_2024.class);
+    public static final String FN = "fn";
 
     public ResponseValidation2Dot7Dot6Dot1_2024(String rdapResponse, RDAPValidatorResults results) {
         super(rdapResponse, results);
@@ -48,13 +51,13 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
 
             for (int i = 0; i < vcard.length(); i++) {
                 JSONArray categoryArray = (JSONArray) vcard.get(i);
-                String property = categoryArray.get(0).toString();
+                String property = categoryArray.get(ZERO).toString();
 
-                if ("fn".equals(property)) {
+                if (FN.equals(property)) {
                     hasFn = true;
 
                     try {
-                        isFnEmpty = categoryArray.get(3).toString().isEmpty();
+                        isFnEmpty = categoryArray.get(THREE).toString().isEmpty();
                     } catch (Exception e) {
                         isFnEmpty = true;
                     }
