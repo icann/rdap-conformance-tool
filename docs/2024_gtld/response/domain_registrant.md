@@ -460,7 +460,7 @@ If  a redaction object (see RFC 9537) is in the redacted array with a name objec
 
 Test group: [[rdapResponseProfile2024_2_7_4_9_Validation]](#id-rdapResponseProfile2024_2_7_4_9_Validation){ #id-rdapResponseProfile2024_2_7_4_9_Validation }
 
-These tests only apply to an entity with the “registrant” role, if present.
+These tests only apply to an entity with the “registrant” role, if present, on queries of a gTLD registrar (i.e. `--gtld-registrar`).
 
 If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Email”, these tests apply:
 
@@ -532,5 +532,17 @@ Given the above, if the contact-uri property exists on any of the vCards, the fo
   "code": -64107,
   "value": "<redaction object>",
   "message": "jsonpath must evaluate to a non-empty set for redaction by replacementvalue of Registrant Email in replacementPath"
+}
+```
+
+If a redaction object (see RFC 9537) is NOT in the redacted array with a name object containing the type property which is a 
+JSON string of “Registrant Email”, these tests apply:
+
+1. Validate that a properly formed email address is in an email property on at least one of the vCards.
+```json
+{
+  "code": -64108,
+  "value": "<registrant entity>",
+  "message": "An email must either be present and valid or redacted for the registrant"
 }
 ```
