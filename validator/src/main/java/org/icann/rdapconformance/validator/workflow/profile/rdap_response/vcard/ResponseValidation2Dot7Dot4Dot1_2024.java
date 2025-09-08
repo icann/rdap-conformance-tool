@@ -19,7 +19,6 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
     public static final String VCARD_FN_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1][?(@[0]=='fn')]";
     public static final String VCARD_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1]";
     private static final String REDACTED_PATH = "$.redacted[*]";
-    private Set<String> vcardFnPointersValue = null;
     private Set<String> vcardPointersValue = null;
     private Set<String> redactedPointersValue = null;
 
@@ -42,7 +41,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
             return true;
         }
         try {
-            vcardFnPointersValue = getPointerFromJPath(VCARD_FN_PATH);
+            Set<String> vcardFnPointersValue = getPointerFromJPath(VCARD_FN_PATH);
             vcardPointersValue = getPointerFromJPath(VCARD_PATH);
             logger.info("vcardFnPointersValue size: {}", vcardFnPointersValue.size());
 
@@ -60,6 +59,8 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
                     if(vcardFnArray.get(3) instanceof String fnValue) {
                         if(StringUtils.isEmpty(fnValue)) {
                             return validateRedactedArrayForFnValue();
+                        } else {
+                            return validateRedactedArrayForNotEmptyFnValue();
                         }
                     }
                 }
@@ -78,34 +79,22 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
         }
     }
 
-    private boolean validateRedactedArrayForFnValue() {
-        JSONObject redactedRegistrantName = null;
-        redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
-        for (String redactedJsonPointer : redactedPointersValue) {
-            JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-            JSONObject name = (JSONObject) redacted.get("name");
-            try {
-                var nameValue = name.get("type");
-                if(nameValue instanceof String redactedName) {
-                    if(redactedName.trim().equalsIgnoreCase("Registrant Name")) {
-                        redactedRegistrantName = redacted;
-                        break; // Found the Registrant Name redaction, no need to continue
-                    }
-                }
-            } catch (Exception e) {
-                // FIXED: Don't fail immediately when encountering an exception
-                // Real-world redacted arrays contain mixed objects:
-                // - Some have name.type (e.g., "Registrant Name", "Registry Domain ID") 
-                // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
-                // - The exception occurs when trying to extract "type" from objects that only have "description"
-                // We should skip these objects and continue searching, not fail the entire validation
-                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}", 
-                           redactedJsonPointer, e.getMessage());
-                continue; // Continue checking other redacted objects instead of failing
-            }
-
+    private boolean validateRedactedArrayForNotEmptyFnValue() {
+        var redactedRegistrantName = extractRedactedRegistrantName();
+        if(Objects.nonNull(redactedRegistrantName)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63205)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registrant Name was found by registrant fn property was not redacted.")
+                    .build());
+            return false;
         }
 
+        return true;
+    }
+
+    private boolean validateRedactedArrayForFnValue() {
+        var redactedRegistrantName = extractRedactedRegistrantName();
         if(Objects.isNull(redactedRegistrantName)) {
             results.add(RDAPValidationResult.builder()
                     .code(-63201)
@@ -117,6 +106,36 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
         }
 
         return validateRedactedProperties(redactedRegistrantName);
+    }
+
+    private JSONObject extractRedactedRegistrantName() {
+        JSONObject redactedRegistrantName = null;
+        redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+        for (String redactedJsonPointer : redactedPointersValue) {
+            JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
+            try {
+                JSONObject name = (JSONObject) redacted.get("name");
+                var nameValue = name.get("type");
+                if(nameValue instanceof String redactedName) {
+                    if(redactedName.trim().equalsIgnoreCase("Registrant Name")) {
+                        redactedRegistrantName = redacted;
+                        break; // Found the Registrant Name redaction, no need to continue
+                    }
+                }
+            } catch (Exception e) {
+                // FIXED: Don't fail immediately when encountering an exception
+                // Real-world redacted arrays contain mixed objects:
+                // - Some have name.type (e.g., "Registrant Name", "Registry Domain ID")
+                // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
+                // - The exception occurs when trying to extract "type" from objects that only have "description"
+                // We should skip these objects and continue searching, not fail the entire validation
+                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}",
+                           redactedJsonPointer, e.getMessage());
+                continue; // Continue checking other redacted objects instead of failing
+            }
+
+        }
+        return redactedRegistrantName;
     }
 
     private boolean validateRedactedProperties(JSONObject redactedRegistrantName) {
