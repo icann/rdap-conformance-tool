@@ -17,7 +17,7 @@ public class ResponseValidation2Dot7Dot4Dot3_2024Test extends ProfileJsonValidat
     static final String streetPointer =
             "#/entities/0/vcardArray/1/3:[\"adr\",{},\"text\",[\"\",\"Suite 1236\",3,\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]]";
     static final String namePointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"test\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String pathLangBadPointer =
             "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$test\",\"pathLang\":\"jsonpath\"}";
     static final String postPathNotExistingPointer =
@@ -64,7 +64,7 @@ public class ResponseValidation2Dot7Dot4Dot3_2024Test extends ProfileJsonValidat
 
         streetValue.put(2, StringUtils.EMPTY);
         redactedObject.getJSONObject("name").put("type", "test");
-        validate(-63401, namePointer, "a redaction of type Registrant Street is required.");
+        validate(-63401, "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"test\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}", "a redaction of type Registrant Street is required.");
     }
 
     @Test
@@ -507,5 +507,100 @@ public class ResponseValidation2Dot7Dot4Dot3_2024Test extends ProfileJsonValidat
         validate();
     }
 
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot3_2024_63405_NonEmptyStreetWithRedacted() {
+        JSONArray streetValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        streetValue.put(2, "Some Street");
+        // Add a redacted Registrant Street
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
+        redactedObject.getJSONObject("name").put("type", "Registrant Street");
+        validate(-63405, namePointer, "a redaction of type Registrant Street was found but the registrant street was not redacted.");
+    }
 
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot3_2024_NonEmptyStreetWithoutRedacted() {
+        JSONArray streetValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        streetValue.put(2, "Some Street");
+        // Remove all redacted objects
+        jsonObject.put("redacted", new JSONArray());
+        validate();
+    }
+
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot3_2024_EmptyArrayStreetWithRedacted() {
+        JSONArray streetValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        streetValue.put(2, new JSONArray());
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
+        redactedObject.getJSONObject("name").put("type", "Registrant Street");
+        validate(); // Should pass, as redacted is present
+    }
+
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot3_2024_EmptyArrayStreetWithoutRedacted() {
+        JSONArray streetValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        streetValue.put(2, new JSONArray());
+        // Remove all redacted objects
+        jsonObject.put("redacted", new JSONArray());
+        validate(-63401, "", "a redaction of type Registrant Street is required.");
+    }
+
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot3_2024_NonEmptyArrayStreetWithRedacted() {
+        JSONArray streetValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        JSONArray arr = new JSONArray();
+        arr.put("A");
+        streetValue.put(2, arr);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
+        redactedObject.getJSONObject("name").put("type", "Registrant Street");
+        validate(-63405, namePointer, "a redaction of type Registrant Street was found but the registrant street was not redacted.");
+    }
+
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot3_2024_NonEmptyArrayStreetWithoutRedacted() {
+        JSONArray streetValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        JSONArray arr = new JSONArray();
+        arr.put("A");
+        streetValue.put(2, arr);
+        // Remove all redacted objects
+        jsonObject.put("redacted", new JSONArray());
+        validate();
+    }
+
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot3_2024_RedactedArrayMissing() {
+        JSONArray streetValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        streetValue.put(2, StringUtils.EMPTY);
+        jsonObject.remove("redacted");
+        validate(-63401, "", "a redaction of type Registrant Street is required.");
+    }
+
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot3_2024_RedactedObjectMissingMethod() {
+        JSONArray streetValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        streetValue.put(2, StringUtils.EMPTY);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
+        redactedObject.getJSONObject("name").put("type", "Registrant Street");
+        redactedObject.remove("method");
+        validate(); // Should pass, as missing method is allowed
+    }
+
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot3_2024_RedactedObjectMissingPostPath() {
+        JSONArray streetValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        streetValue.put(2, StringUtils.EMPTY);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
+        redactedObject.getJSONObject("name").put("type", "Registrant Street");
+        redactedObject.remove("postPath");
+        validate(); // Should pass, as missing postPath is allowed
+    }
+
+    @Test
+    public void ResponseValidation2Dot7Dot4Dot3_2024_RedactedObjectMissingPathLang() {
+        JSONArray streetValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        streetValue.put(2, StringUtils.EMPTY);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
+        redactedObject.getJSONObject("name").put("type", "Registrant Street");
+        redactedObject.remove("pathLang");
+        validate(); // Should pass, as missing pathLang is allowed
+    }
 }
