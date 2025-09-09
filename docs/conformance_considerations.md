@@ -24,6 +24,12 @@ This means that an RDAP server must set the "access-control-allow-origin" HTTP h
 access-control-allow-origin: *
 ```
 
+Some web application firewalls and gateways will automatically respond with an `access-control-allow-origin`
+header in the response when the request contains an `origin` header, as is the case with some web browsers.
+Hence, checking for `access-control-allow-origin` with a web browser may be misleading in some cases, and
+confusion may arise between what is returned to the web browser in these specific conditions compared to the
+results seen by RDAPCT.
+
 **NOTE:** HTTP headers are not required to be capitalized.
 
 ## HTTP URLs
@@ -78,7 +84,6 @@ This can be demonstrated using these curl command:
     - The output should contain:
         - `> accept: application/json`
         - `< content-type: application/rdap+json`
-
 
 **NOTE:** HTTP headers are not required to be capitalized.
 
