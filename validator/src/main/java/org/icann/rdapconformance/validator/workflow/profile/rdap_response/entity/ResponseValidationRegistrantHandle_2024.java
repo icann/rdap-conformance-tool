@@ -152,7 +152,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
   }
 
   // Verify that the prePath property is either absent or is present with a valid JSONPath expression.
-  private boolean validatePostPathBasedOnPathLang(JSONObject redactedRegistrantName) {
+  public boolean validatePostPathBasedOnPathLang(JSONObject redactedRegistrantName) {
     if(Objects.isNull(redactedRegistrantName)) {
       logger.info("redactedRegistrantName object for postPath validations is null");
       return true;
@@ -176,10 +176,6 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
           var prePathPointer = getPointerFromJPath(prePath);
           logger.info("prePath pointer with size {}", prePathPointer.size());
 
-          // TODO: Test case -63104: JSONPath must evaluate to empty set for Registry Registrant ID redaction
-          // Currently commented out due to evaluation logic issues - needs investigation
-          // The getPointerFromJPath() method may not be correctly evaluating empty results
-          /*
           if (prePathPointer != null && !prePathPointer.isEmpty()) {
             results.add(RDAPValidationResult.builder()
                     .code(-63104)
@@ -188,7 +184,6 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
                     .build());
             return false;
           }
-          */
 
         } catch (Exception e) {
           logger.info("prePath is not a valid JSONPath expression, Error: {}", e.getMessage());
