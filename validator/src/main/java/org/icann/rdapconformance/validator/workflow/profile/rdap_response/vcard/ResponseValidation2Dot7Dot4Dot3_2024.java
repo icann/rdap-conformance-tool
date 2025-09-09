@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.icann.rdapconformance.validator.CommonUtils.TWO;
+
 public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot3_2024.class);
@@ -51,13 +53,13 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
             for (String jsonPointer : vcardAddressPointersValue) {
                 JSONArray vcardAddressArray = (JSONArray) jsonObject.query(jsonPointer);
                 JSONArray vcardAddressValuesArray = (JSONArray) vcardAddressArray.get(3);
-                if(vcardAddressValuesArray.get(2) instanceof String street) {
+                if(vcardAddressValuesArray.get(TWO) instanceof String street) {
                     if(StringUtils.isEmpty(street)) {
                         return validateRedactedArrayForEmptyStreetValue();
                     } else {
                         return validateRedactedArrayForNonEmptyStreetValue();
                     }
-                } else if(vcardAddressValuesArray.get(2) instanceof JSONArray streetArray) {
+                } else if(vcardAddressValuesArray.get(TWO) instanceof JSONArray streetArray) {
                     if(streetArray.isEmpty()) {
                         return validateRedactedArrayForEmptyStreetValue();
                     } else {
