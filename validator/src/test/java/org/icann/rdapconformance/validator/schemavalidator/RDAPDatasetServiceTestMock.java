@@ -68,10 +68,9 @@ public class RDAPDatasetServiceTestMock implements RDAPDatasetService {
     return true;
   }
 
-  /**
-   * Special handling for mock (mocked classes are in fact artificial subclasses and do not work
-   * with basic equality)
-   */
+    /**
+     * Uses a temp mock to lookup the right class in our dataset map
+     */
   public <T> T get(Class<T> clazz) {
     return (T) datasetValidatorModels.get(mock(clazz).getClass());
   }
