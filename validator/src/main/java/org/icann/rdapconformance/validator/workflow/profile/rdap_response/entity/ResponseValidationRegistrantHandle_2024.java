@@ -162,7 +162,6 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
       var prePathValue = redactedRegistrantName.get("prePath");
       logger.info("prePath property is found, so verify value");
       if(prePathValue instanceof String prePath) {
-        try {
           if(!isValidJsonPath(prePath)) {
             logger.info("prePath is not a valid JSONPath expression");
             results.add(RDAPValidationResult.builder()
@@ -184,24 +183,12 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
                     .build());
             return false;
           }
-
-        } catch (Exception e) {
-          logger.info("prePath is not a valid JSONPath expression, Error: {}", e.getMessage());
-          results.add(RDAPValidationResult.builder()
-                  .code(-63103)
-                  .value(getResultValue(redactedPointersValue))
-                  .message("jsonpath is invalid for Registry Registrant ID.")
-                  .build());
-          return false;
-        }
       }
     } catch (Exception e) {
       logger.error("prePath property is not found, no validations defined. Error: {}", e.getMessage());
     }
 
-    // TODO: Test case -63105: Registry Registrant ID redaction method must be removal if present
-    // Currently commented out pending proper implementation and testing
-    /*
+
     Object method = null;
     try {
       method = redactedRegistrantName.get("method");
@@ -217,7 +204,6 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
               .build());
       return false;
     }
-    */
 
     return true;
   }
