@@ -2,6 +2,8 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard
 
 import java.util.Objects;
 import java.util.Set;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -33,24 +35,18 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
             return true;
         }
 
+        JSONObject redactedOrg = findRedactedOrganization();
         boolean isValid = true;
 
-        JSONObject redactedOrg = null;
-        Set<String> redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
-
-        for (String redactedJsonPointer : redactedPointersValue) {
-            JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-            try {
-                JSONObject name = (JSONObject) redacted.get("name");
-                if (name != null && name.get("type") instanceof String redactedName) {
-                    if (redactedName.trim().equalsIgnoreCase("Registrant Organization")) {
-                        redactedOrg = redacted;
-                        break;
-                    }
-                }
-            } catch (Exception e) {
-                logger.debug("Skipping malformed redacted object: {}", e.getMessage());
-                continue;
+        if(CollectionUtils.isNotEmpty(getPointerFromJPath(VCARD_ORG_PATH))) {
+            logger.info("Registrant Organization is present, should not be redacted");
+            if(Objects.nonNull(redactedOrg)) {
+                results.add(RDAPValidationResult.builder()
+                    .code(-63304)
+                    .value(redactedOrg.toString())
+                    .message("a redaction of type Registrant Organization was found but organization name was not redacted.")
+                    .build());
+                return false;
             }
         }
 
@@ -106,6 +102,27 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
         return isValid;
 }
 
+    private JSONObject findRedactedOrganization() {
+        JSONObject redactedOrg = null;
+        Set<String> redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+
+        for (String redactedJsonPointer : redactedPointersValue) {
+            JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
+            try {
+                JSONObject name = (JSONObject) redacted.get("name");
+                if (name != null && name.get("type") instanceof String redactedName) {
+                    if (redactedName.trim().equalsIgnoreCase("Registrant Organization")) {
+                        redactedOrg = redacted;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Skipping malformed redacted object: {}", e.getMessage());
+                continue;
+            }
+        }
+        return redactedOrg;
+    }
 
 
     private boolean validatePrePath(String prePath, String value) {
