@@ -20,8 +20,8 @@ public abstract class IpAddressSpecialRegistry extends EnumDatasetModel<IpAddres
   }
   public boolean isInvalid(String ip) {
     return getValues().stream().anyMatch(specialIp -> {
-      IPAddressString net = new IPAddressString(specialIp);
-      return net.contains(new IPAddressString(ip));
+      IPAddressString net = new IPAddressString(specialIp.trim());
+      return net.contains(new IPAddressString(ip.trim()));
     });
   }
 
