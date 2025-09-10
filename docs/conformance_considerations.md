@@ -2,7 +2,7 @@
 
 ## CORS (Access-Control-Allow-Origin)
 
-The "access-control-allow-origin" HTTP header is part of the 
+The `access-control-allow-origin` HTTP header is part of the 
 [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) mechanism
 to help applications that run inside of web browsers to access web APIs, such as RDAP.
 
