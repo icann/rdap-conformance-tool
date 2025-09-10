@@ -97,7 +97,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 
-  // RCT-104 only apply if the query is for a gtld registry and the value is not 9999
+  // RCT-104 only apply if the query is for a gtld registry and the value is not in excluded range (9994-9999)
   @Test
   public void testValidate_NoLinksInTopmostObjectWithRegistrar9999_AddResults23200() {
     JSONObject identifier = new JSONObject();
@@ -114,10 +114,10 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     jsonObject.put("entities", entities);
 
     TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
-    assertThat(tigValidation3Dot2.isRegistrarId9999()).isTrue();
+    assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
-  // RCT-104 only apply if the query is for a gtld registry and the value is not 9999
+  // RCT-104 only apply if the query is for a gtld registry and the value is not in excluded range (9994-9999)
   @Test
   public void testValidate_NoLinksInTopmostObjectWithRegistrar9998_AddResults23200() {
     JSONObject identifier = new JSONObject();
@@ -134,6 +134,117 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     jsonObject.put("entities", entities);
 
     TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
-    assertThat(tigValidation3Dot2.isRegistrarId9999()).isFalse();
+    assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
+  }
+
+  @Test
+  public void testValidate_ExcludedRegistrar9994_IsExcluded() {
+    JSONObject identifier = new JSONObject();
+    identifier.put("identifier", "9994");
+
+    JSONArray publicIdArray = new JSONArray();
+    publicIdArray.put(identifier);
+
+    JSONObject publicIds = new JSONObject();
+    publicIds.put("publicIds", publicIdArray);
+
+    JSONArray entities = new JSONArray();
+    entities.put(publicIds);
+    jsonObject.put("entities", entities);
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
+  }
+
+  @Test
+  public void testValidate_ExcludedRegistrar9995_IsExcluded() {
+    JSONObject identifier = new JSONObject();
+    identifier.put("identifier", "9995");
+
+    JSONArray publicIdArray = new JSONArray();
+    publicIdArray.put(identifier);
+
+    JSONObject publicIds = new JSONObject();
+    publicIds.put("publicIds", publicIdArray);
+
+    JSONArray entities = new JSONArray();
+    entities.put(publicIds);
+    jsonObject.put("entities", entities);
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
+  }
+
+  @Test
+  public void testValidate_ExcludedRegistrar9996_IsExcluded() {
+    JSONObject identifier = new JSONObject();
+    identifier.put("identifier", "9996");
+
+    JSONArray publicIdArray = new JSONArray();
+    publicIdArray.put(identifier);
+
+    JSONObject publicIds = new JSONObject();
+    publicIds.put("publicIds", publicIdArray);
+
+    JSONArray entities = new JSONArray();
+    entities.put(publicIds);
+    jsonObject.put("entities", entities);
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
+  }
+
+  @Test
+  public void testValidate_ExcludedRegistrar9997_IsExcluded() {
+    JSONObject identifier = new JSONObject();
+    identifier.put("identifier", "9997");
+
+    JSONArray publicIdArray = new JSONArray();
+    publicIdArray.put(identifier);
+
+    JSONObject publicIds = new JSONObject();
+    publicIds.put("publicIds", publicIdArray);
+
+    JSONArray entities = new JSONArray();
+    entities.put(publicIds);
+    jsonObject.put("entities", entities);
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
+  }
+
+  @Test
+  public void testValidate_NonExcludedRegistrar1000_NotExcluded() {
+    JSONObject identifier = new JSONObject();
+    identifier.put("identifier", "1000");
+
+    JSONArray publicIdArray = new JSONArray();
+    publicIdArray.put(identifier);
+
+    JSONObject publicIds = new JSONObject();
+    publicIds.put("publicIds", publicIdArray);
+
+    JSONArray entities = new JSONArray();
+    entities.put(publicIds);
+    jsonObject.put("entities", entities);
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isFalse();
+  }
+
+  @Test
+  public void testValidate_NoEntities_NotExcluded() {
+    jsonObject.remove("entities");
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isFalse();
+  }
+
+  @Test
+  public void testValidate_EmptyEntities_NotExcluded() {
+    jsonObject.put("entities", new JSONArray());
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isFalse();
   }
 }
