@@ -292,3 +292,4 @@ Here, the very last certificate has the signing algorithm has "sha1WithRSAEncryp
 As SHA1 is deprected by [RFC 9155](https://datatracker.ietf.org/doc/rfc9155/), the TLS handshake
 will because SHA1 is considered insecure.
 
+Another tool to view TLS certificates used in HTTPS is <https://www.ssllabs.com/ssltest/index.html>.
