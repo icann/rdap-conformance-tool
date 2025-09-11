@@ -625,4 +625,103 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
             System.out.println("Exception during JSONPath evaluation test: " + e.getMessage());
         }
     }
+
+    @Test
+    public void test63105_MethodPresentNotRemoval_ShouldTrigger() {
+        // method present and not 'removal' (should trigger -63105)
+        JSONObject registrantEntity = jsonObject.getJSONArray("entities").getJSONObject(0);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        registrantEntity.remove("handle");
+        redactedObject.getJSONObject("name").put("type", "Registry Registrant ID");
+        redactedObject.put("method", "invalid");
+        validate(-63105, redactedObject.toString(), "Registry Registrant ID redaction method must be removal if present");
+    }
+
+    @Test
+    public void test63105_MethodPresentRemoval_ShouldPass() {
+        // method present and is 'removal' (should pass)
+        JSONObject registrantEntity = jsonObject.getJSONArray("entities").getJSONObject(0);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        registrantEntity.remove("handle");
+        redactedObject.getJSONObject("name").put("type", "Registry Registrant ID");
+        redactedObject.put("method", "removal");
+        validate();
+    }
+
+    @Test
+    public void test63105_MethodAbsent_ShouldPass() {
+        // method absent (should pass)
+        JSONObject registrantEntity = jsonObject.getJSONArray("entities").getJSONObject(0);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        registrantEntity.remove("handle");
+        redactedObject.getJSONObject("name").put("type", "Registry Registrant ID");
+        redactedObject.remove("method");
+        validate();
+    }
+
+    @Test
+    public void test63105_MethodNull_ShouldNotPass() {
+        // method present and is null as string (should not pass)
+        JSONObject registrantEntity = jsonObject.getJSONArray("entities").getJSONObject(0);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        registrantEntity.remove("handle");
+        redactedObject.getJSONObject("name").put("type", "Registry Registrant ID");
+        redactedObject.put("method", org.json.JSONObject.NULL);
+        validate(-63105, redactedObject.toString(), "Registry Registrant ID redaction method must be removal if present");
+    }
+
+    @Test
+    public void test63105_MethodNonString_ShouldTrigger() {
+        // method present and is a non-string value (should trigger -63105 if not 'removal')
+        JSONObject registrantEntity = jsonObject.getJSONArray("entities").getJSONObject(0);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        registrantEntity.remove("handle");
+        redactedObject.getJSONObject("name").put("type", "Registry Registrant ID");
+        redactedObject.put("method", 12345);
+        validate(-63105, redactedObject.toString(), "Registry Registrant ID redaction method must be removal if present");
+    }
+
+    @Test
+    public void testPrePathPointerNotEmpty_ShouldTrigger63104() {
+        // Setup: prePath points to an existing entity, so getPointerFromJPath returns non-empty set
+        JSONObject registrantEntity = jsonObject.getJSONArray("entities").getJSONObject(0);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        registrantEntity.remove("handle");
+        redactedObject.getJSONObject("name").put("type", "Registry Registrant ID");
+        redactedObject.put("prePath", "$.entities[?(@.roles[0]=='registrant')]");
+        redactedObject.put("pathLang", "jsonpath");
+        // Should trigger -63104
+        validate(-63104, redactedObject.toString(), "jsonpath must evaluate to a zero set for redaction by removal of Registry Registrant ID.");
+    }
+
+    @Test
+    public void testNoHandleWithValidRedactedRegistryRegistrantId_ShouldPass() {
+        // Remove handle from registrant entity
+        JSONObject registrantEntity = jsonObject.getJSONArray("entities").getJSONObject(0);
+        registrantEntity.remove("handle");
+        // Ensure redacted array has a valid Registry Registrant ID redaction
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registry Registrant ID");
+        redactedObject.put("method", "removal");
+        // Should pass validation
+        validate();
+    }
+
+    @Test
+    public void testNoHandleWithNoValidRedactedRegistryRegistrantId_ShouldFail63102() {
+        // Remove handle from registrant entity
+        JSONObject registrantEntity = jsonObject.getJSONArray("entities").getJSONObject(0);
+        registrantEntity.remove("handle");
+        // Replace redacted array with one missing valid Registry Registrant ID
+        JSONArray newRedactedArray = new JSONArray();
+        JSONObject wrongRedacted = new JSONObject();
+        JSONObject wrongName = new JSONObject();
+        wrongName.put("type", "Wrong Type");
+        wrongRedacted.put("name", wrongName);
+        newRedactedArray.put(wrongRedacted);
+        jsonObject.put("redacted", newRedactedArray);
+        // Should fail with -63102
+        String expectedValue = "#/redacted/0:{\"name\":{\"type\":\"Wrong Type\"}}";
+        validate(-63102, expectedValue, "a redaction of type Registry Registrant ID is required.");
+    }
 }
