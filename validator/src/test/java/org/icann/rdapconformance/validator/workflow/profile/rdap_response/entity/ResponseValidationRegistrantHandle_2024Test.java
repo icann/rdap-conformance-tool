@@ -626,7 +626,6 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         }
     }
 
-
     @Test
     public void test63105_MethodPresentNotRemoval_ShouldTrigger() {
         // method present and not 'removal' (should trigger -63105)
@@ -725,6 +724,4 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         String expectedValue = "#/redacted/0:{\"name\":{\"type\":\"Wrong Type\"}}";
         validate(-63102, expectedValue, "a redaction of type Registry Registrant ID is required.");
     }
-
-
 }
