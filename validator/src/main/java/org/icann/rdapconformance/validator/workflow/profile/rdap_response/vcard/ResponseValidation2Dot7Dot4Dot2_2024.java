@@ -40,7 +40,7 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
 
         if(CollectionUtils.isNotEmpty(getPointerFromJPath(VCARD_ORG_PATH))) {
             logger.info("Registrant Organization is present, should not be redacted");
-            if(Objects.nonNull(redactedOrg)) {
+            if (Objects.nonNull(redactedOrg)) {
                 results.add(RDAPValidationResult.builder()
                     .code(-63304)
                     .value(redactedOrg.toString())

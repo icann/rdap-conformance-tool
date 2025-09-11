@@ -102,7 +102,7 @@ public class ResponseValidation2Dot7Dot4Dot2_2024Test extends ProfileJsonValidat
 
         String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
         jsonObject = new org.json.JSONObject(multiRoleContent);
-        jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).remove(2);
+        removeOrgFromVCard();
 
         // Modify to create a scenario where validation should trigger an error
         // Change the redaction to have an invalid prePath to trigger -63301
@@ -120,7 +120,7 @@ public class ResponseValidation2Dot7Dot4Dot2_2024Test extends ProfileJsonValidat
 
         String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
         jsonObject = new org.json.JSONObject(multiRoleContent);
-        jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).remove(2);
+        removeOrgFromVCard();
 
         // Change method to trigger -63303
         jsonObject.getJSONArray("redacted").getJSONObject(0).put("method", "invalid_method");
@@ -137,7 +137,7 @@ public class ResponseValidation2Dot7Dot4Dot2_2024Test extends ProfileJsonValidat
 
         String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
         jsonObject = new org.json.JSONObject(multiRoleContent);
-        jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).remove(2);
+        removeOrgFromVCard();
 
         // Set prePath to a valid JSONPath that evaluates to non-empty set to trigger -63302
         jsonObject.getJSONArray("redacted").getJSONObject(0).put("prePath", "$.entities[?(@.roles contains 'registrant')].vcardArray[1][?(@[0]=='fn')][3]");
@@ -239,5 +239,9 @@ public class ResponseValidation2Dot7Dot4Dot2_2024Test extends ProfileJsonValidat
         redacted.put("method", org.json.JSONObject.NULL);
         validate(-63304, redacted.toString(),
                 "a redaction of type Registrant Organization was found but organization name was not redacted.");
+    }
+
+    private void removeOrgFromVCard() {
+        jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).remove(2);
     }
 }
