@@ -34,25 +34,40 @@ public class DNSCacheResolver {
     private static final int DNS_TIMEOUT_SECONDS = 10;
     private static final int DNS_RETRIES = 3;
 
-    public static final Resolver resolver;
+    public static Resolver resolver;
 
     static {
-        Resolver r = null;
-        try {
-            ExtendedResolver extendedResolver = new ExtendedResolver(); // Uses system-configured resolvers
-            // Configure timeouts and retries to avoid long DNS delays
-            extendedResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
-            extendedResolver.setRetries(DNS_RETRIES);
-            r = extendedResolver;
-            logger.info("DNS Resolver initialized using system DNS settings with {}s timeout and {} retries.", 
-                       DNS_TIMEOUT_SECONDS, DNS_RETRIES);
-        } catch (Exception e) {
-            logger.error("Failed to initialize DNS resolver.", e);
-        }
-        resolver = r;
+        // Initialize with default system DNS settings
+        initializeResolver(null);
     }
 
     private DNSCacheResolver() {
+    }
+
+    /**
+     * Initialize the DNS resolver with an optional custom DNS server.
+     * @param customDnsServer IP address of custom DNS server, or null to use system DNS
+     */
+    public static synchronized void initializeResolver(String customDnsServer) {
+        try {
+            if (customDnsServer != null && !customDnsServer.isEmpty()) {
+                SimpleResolver simpleResolver = new SimpleResolver(customDnsServer);
+                simpleResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
+                resolver = simpleResolver;
+                logger.info("DNS Resolver configured with custom server: {} ({}s timeout)", 
+                           customDnsServer, DNS_TIMEOUT_SECONDS);
+            } else {
+                ExtendedResolver extendedResolver = new ExtendedResolver(); // Uses system-configured resolvers
+                extendedResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
+                extendedResolver.setRetries(DNS_RETRIES);
+                resolver = extendedResolver;
+                logger.info("DNS Resolver initialized using system DNS settings with {}s timeout and {} retries.", 
+                           DNS_TIMEOUT_SECONDS, DNS_RETRIES);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to initialize DNS resolver with server: " + customDnsServer, e);
+            throw new RuntimeException("Invalid DNS resolver configuration", e);
+        }
     }
 
     public static void initFromUrl(String url) {

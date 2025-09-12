@@ -99,6 +99,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
 
+  @Option(names = {"--dns-resolver"}, 
+          description = "Custom DNS resolver IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888)")
+  private String customDnsResolver;
+
   // Progress tracking
   private ProgressTracker progressTracker;
   private boolean showProgress = true; // Default to true for CLI usage
@@ -181,6 +185,14 @@ public void setVerbose(boolean isVerbose) {
 public void setShowProgress(boolean showProgress) {
     this.showProgress = showProgress;
 }
+
+public void setCustomDnsResolver(String customDnsResolver) {
+    this.customDnsResolver = customDnsResolver;
+}
+
+public String getCustomDnsResolver() {
+    return this.customDnsResolver;
+}
   @Override
   public Integer call() throws Exception {
     // these must be set before we do anything else
@@ -216,6 +228,12 @@ public void setShowProgress(boolean showProgress) {
     // we should never reach this point ... paranoid check
     if (!executeIPv4Queries && !executeIPv6Queries) {
       logger.error(ToolResult.BAD_USER_INPUT.getDescription());
+      return ToolResult.BAD_USER_INPUT.getCode();
+    }
+
+    // Validate custom DNS resolver if provided
+    if (customDnsResolver != null && !customDnsResolver.isEmpty() && !isValidIpAddress(customDnsResolver)) {
+      logger.error(ToolResult.BAD_USER_INPUT.getDescription() + ": Invalid DNS resolver IP address format: " + customDnsResolver);
       return ToolResult.BAD_USER_INPUT.getCode();
     }
 
@@ -277,6 +295,9 @@ public void setShowProgress(boolean showProgress) {
 
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
+      // Initialize DNS resolver with custom server if specified
+      DNSCacheResolver.initializeResolver(customDnsResolver);
+      
       // Initialize our DNS lookups with this.
       updateProgressPhase("DNS-Resolving");
       DNSCacheResolver.initFromUrl(uri.toString());
@@ -816,6 +837,18 @@ public void setShowProgress(boolean showProgress) {
         completedOperations++;
         progressTracker.setCurrentStep(completedOperations);
       }
+    }
+  }
+
+  /**
+   * Validate if the given string is a valid IP address (IPv4 or IPv6).
+   */
+  private boolean isValidIpAddress(String ip) {
+    try {
+      java.net.InetAddress.getByName(ip);
+      return true;
+    } catch (java.net.UnknownHostException e) {
+      return false;
     }
   }
 }
