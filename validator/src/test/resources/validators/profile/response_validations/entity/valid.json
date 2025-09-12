@@ -7,7 +7,7 @@
   "entities": [
     {
       "objectClassName": "entity",
-      "handle": "2138514_DOMAIN_COM-VRSN",
+      "handle": "REG123-IANA",
       "roles": [
         "registrant"
       ],
@@ -205,16 +205,6 @@
     }
   ],
   "redacted": [
-    {
-      "name": {
-        "type": "Registry Registrant ID"
-      },
-      "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]",
-      "method": "removal",
-      "reason": {
-        "description": "Server policy"
-      }
-      },
     {
       "name": {
         "type": "Registrant Name"
