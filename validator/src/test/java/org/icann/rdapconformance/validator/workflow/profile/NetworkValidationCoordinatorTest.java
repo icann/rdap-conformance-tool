@@ -949,20 +949,8 @@ public class NetworkValidationCoordinatorTest {
                 // Count calls by IP version to verify parallel execution
                 if (context.getProtocol() == NetworkProtocol.IPv4) {
                     ipv4CallCount.incrementAndGet();
-                    // Verify system properties are set correctly for IPv4
-                    String preferIPv4 = System.getProperty("java.net.preferIPv4Addresses");
-                    String preferIPv6 = System.getProperty("java.net.preferIPv6Addresses");
-                    if (!"true".equals(preferIPv4) || !"false".equals(preferIPv6)) {
-                        return -2; // IPv4 properties not set correctly
-                    }
                 } else if (context.getProtocol() == NetworkProtocol.IPv6) {
                     ipv6CallCount.incrementAndGet();
-                    // Verify system properties are set correctly for IPv6
-                    String preferIPv4 = System.getProperty("java.net.preferIPv4Addresses");
-                    String preferIPv6 = System.getProperty("java.net.preferIPv6Addresses");
-                    if (!"false".equals(preferIPv4) || !"true".equals(preferIPv6)) {
-                        return -3; // IPv6 properties not set correctly
-                    }
                 }
                 
                 return 0; // Success
@@ -989,12 +977,8 @@ public class NetworkValidationCoordinatorTest {
     }
     
     @Test
-    public void testParallelExecution_SystemPropertyCleanup() throws Exception {
+    public void testParallelExecution_ContextCleanup() throws Exception {
         System.setProperty("rdap.parallel.ipversions", "true");
-        
-        // Store original system properties
-        String originalPreferIPv4 = System.getProperty("java.net.preferIPv4Addresses");
-        String originalPreferIPv6 = System.getProperty("java.net.preferIPv6Addresses");
         
         ValidatorWorkflow mockValidator = mock(ValidatorWorkflow.class);
         when(mockValidator.validate()).thenReturn(0);
@@ -1006,19 +990,8 @@ public class NetworkValidationCoordinatorTest {
             NetworkValidationCoordinator.executeIPVersionValidations(
                 mockValidator, testUri, true, true, progressCallback);
         
-        // After execution completes, system properties should be cleaned up
-        // (Each IPVersionContext should restore properties when deactivated)
-        
-        // Give a moment for async cleanup to complete
-        Thread.sleep(100);
-        
-        // Properties should either be restored or in a clean state
-        String currentPreferIPv4 = System.getProperty("java.net.preferIPv4Addresses");
-        String currentPreferIPv6 = System.getProperty("java.net.preferIPv6Addresses");
-        
-        // The exact values depend on the cleanup order, but they shouldn't be stuck 
-        // in an inconsistent state like both true or both false
-        assertThat(currentPreferIPv4).isNotNull();
-        assertThat(currentPreferIPv6).isNotNull();
+        // After execution completes, no IP version context should remain active
+        assertThat(IPVersionContext.current()).isNull();
+        assertThat(results).isNotNull();
     }
 }

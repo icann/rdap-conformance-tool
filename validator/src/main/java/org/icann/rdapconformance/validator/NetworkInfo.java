@@ -94,25 +94,9 @@ public class NetworkInfo {
 
     public static void setStackToV6() {
         setNetworkProtocol(NetworkProtocol.IPv6);
-        // Only set system properties in non-thread-local mode
-        // In thread-local mode, IPVersionContext handles system properties
-        if (!USE_THREAD_LOCAL || IPVersionContext.current() == null) {
-            System.setProperty("java.net.preferIPv4Addresses", "false");
-            System.setProperty("java.net.preferIPv4Stack", "false");
-            System.setProperty("java.net.preferIPv6Addresses", "true");
-            System.setProperty("java.net.preferIPv6Stack", "true");
-        }
     }
 
     public static void setStackToV4() {
         setNetworkProtocol(NetworkProtocol.IPv4);
-        // Only set system properties in non-thread-local mode
-        // In thread-local mode, IPVersionContext handles system properties
-        if (!USE_THREAD_LOCAL || IPVersionContext.current() == null) {
-            System.setProperty("java.net.preferIPv6Addresses", "false");
-            System.setProperty("java.net.preferIPv6Stack", "false");
-            System.setProperty("java.net.preferIPv4Addresses", "true");
-            System.setProperty("java.net.preferIPv4Stack", "true");
-        }
     }
 }

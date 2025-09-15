@@ -29,10 +29,6 @@ public class IPVersionContextTest {
         assertThat(context.isActive()).isTrue();
         assertThat(IPVersionContext.current()).isEqualTo(context);
         
-        // Check system properties are set for IPv4
-        assertThat(System.getProperty("java.net.preferIPv4Addresses")).isEqualTo("true");
-        assertThat(System.getProperty("java.net.preferIPv6Addresses")).isEqualTo("false");
-        
         context.deactivate();
         
         assertThat(context.isActive()).isFalse();
@@ -51,10 +47,6 @@ public class IPVersionContextTest {
         assertThat(context.isActive()).isTrue();
         assertThat(IPVersionContext.current()).isEqualTo(context);
         
-        // Check system properties are set for IPv6
-        assertThat(System.getProperty("java.net.preferIPv6Addresses")).isEqualTo("true");
-        assertThat(System.getProperty("java.net.preferIPv4Addresses")).isEqualTo("false");
-        
         context.deactivate();
         
         assertThat(context.isActive()).isFalse();
@@ -62,23 +54,20 @@ public class IPVersionContextTest {
     }
     
     @Test
-    public void testIPVersionContext_PropertyRestoration() {
-        // Set initial values
-        System.setProperty("java.net.preferIPv4Addresses", "initial_ipv4");
-        System.setProperty("java.net.preferIPv6Addresses", "initial_ipv6");
-        
+    public void testIPVersionContext_ContextLifecycle() {
         IPVersionContext context = new IPVersionContext(NetworkProtocol.IPv6);
-        context.activate();
         
-        // Properties should be changed
-        assertThat(System.getProperty("java.net.preferIPv6Addresses")).isEqualTo("true");
-        assertThat(System.getProperty("java.net.preferIPv4Addresses")).isEqualTo("false");
+        // Verify context lifecycle works correctly
+        assertThat(context.isActive()).isFalse();
+        assertThat(IPVersionContext.current()).isNull();
+        
+        context.activate();
+        assertThat(context.isActive()).isTrue();
+        assertThat(IPVersionContext.current()).isEqualTo(context);
         
         context.deactivate();
-        
-        // Properties should be restored
-        assertThat(System.getProperty("java.net.preferIPv4Addresses")).isEqualTo("initial_ipv4");
-        assertThat(System.getProperty("java.net.preferIPv6Addresses")).isEqualTo("initial_ipv6");
+        assertThat(context.isActive()).isFalse();
+        assertThat(IPVersionContext.current()).isNull();
     }
     
     @Test
