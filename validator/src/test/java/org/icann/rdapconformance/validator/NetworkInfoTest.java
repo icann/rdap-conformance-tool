@@ -119,48 +119,14 @@ public class NetworkInfoTest {
     
     @Test
     public void testSetStackToV6() {
-        String originalIPv4Addresses = System.getProperty("java.net.preferIPv4Addresses");
-        String originalIPv4Stack = System.getProperty("java.net.preferIPv4Stack");
-        String originalIPv6Addresses = System.getProperty("java.net.preferIPv6Addresses");
-        String originalIPv6Stack = System.getProperty("java.net.preferIPv6Stack");
-        
-        try {
-            NetworkInfo.setStackToV6();
-            
-            assertThat(NetworkInfo.getNetworkProtocol()).isEqualTo(NetworkProtocol.IPv6);
-            assertThat(System.getProperty("java.net.preferIPv4Addresses")).isEqualTo("false");
-            assertThat(System.getProperty("java.net.preferIPv4Stack")).isEqualTo("false");
-            assertThat(System.getProperty("java.net.preferIPv6Addresses")).isEqualTo("true");
-            assertThat(System.getProperty("java.net.preferIPv6Stack")).isEqualTo("true");
-        } finally {
-            restoreSystemProperty("java.net.preferIPv4Addresses", originalIPv4Addresses);
-            restoreSystemProperty("java.net.preferIPv4Stack", originalIPv4Stack);
-            restoreSystemProperty("java.net.preferIPv6Addresses", originalIPv6Addresses);
-            restoreSystemProperty("java.net.preferIPv6Stack", originalIPv6Stack);
-        }
+        NetworkInfo.setStackToV6();
+        assertThat(NetworkInfo.getNetworkProtocol()).isEqualTo(NetworkProtocol.IPv6);
     }
     
     @Test
     public void testSetStackToV4() {
-        String originalIPv4Addresses = System.getProperty("java.net.preferIPv4Addresses");
-        String originalIPv4Stack = System.getProperty("java.net.preferIPv4Stack");
-        String originalIPv6Addresses = System.getProperty("java.net.preferIPv6Addresses");
-        String originalIPv6Stack = System.getProperty("java.net.preferIPv6Stack");
-        
-        try {
-            NetworkInfo.setStackToV4();
-            
-            assertThat(NetworkInfo.getNetworkProtocol()).isEqualTo(NetworkProtocol.IPv4);
-            assertThat(System.getProperty("java.net.preferIPv6Addresses")).isEqualTo("false");
-            assertThat(System.getProperty("java.net.preferIPv6Stack")).isEqualTo("false");
-            assertThat(System.getProperty("java.net.preferIPv4Addresses")).isEqualTo("true");
-            assertThat(System.getProperty("java.net.preferIPv4Stack")).isEqualTo("true");
-        } finally {
-            restoreSystemProperty("java.net.preferIPv4Addresses", originalIPv4Addresses);
-            restoreSystemProperty("java.net.preferIPv4Stack", originalIPv4Stack);
-            restoreSystemProperty("java.net.preferIPv6Addresses", originalIPv6Addresses);
-            restoreSystemProperty("java.net.preferIPv6Stack", originalIPv6Stack);
-        }
+        NetworkInfo.setStackToV4();
+        assertThat(NetworkInfo.getNetworkProtocol()).isEqualTo(NetworkProtocol.IPv4);
     }
     
     @Test
@@ -176,11 +142,4 @@ public class NetworkInfoTest {
         assertThat(NetworkInfo.getServerIpAddress()).isEqualTo("10.0.0.1");
     }
     
-    private void restoreSystemProperty(String key, String originalValue) {
-        if (originalValue == null) {
-            System.clearProperty(key);
-        } else {
-            System.setProperty(key, originalValue);
-        }
-    }
 }

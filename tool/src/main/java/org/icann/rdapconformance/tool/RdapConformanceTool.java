@@ -23,6 +23,7 @@ import picocli.CommandLine.Parameters;
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
+import org.icann.rdapconformance.validator.workflow.profile.NetworkValidationCoordinator;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.ToolResult;
@@ -98,6 +99,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
 
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
+
+  @Option(names = {"--dns-resolver"}, 
+          description = "Custom DNS resolver IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888)")
+  private String customDnsResolver;
 
   // Progress tracking
   private ProgressTracker progressTracker;
@@ -181,6 +186,14 @@ public void setVerbose(boolean isVerbose) {
 public void setShowProgress(boolean showProgress) {
     this.showProgress = showProgress;
 }
+
+public void setCustomDnsResolver(String customDnsResolver) {
+    this.customDnsResolver = customDnsResolver;
+}
+
+public String getCustomDnsResolver() {
+    return this.customDnsResolver;
+}
   @Override
   public Integer call() throws Exception {
     // these must be set before we do anything else
@@ -216,6 +229,12 @@ public void setShowProgress(boolean showProgress) {
     // we should never reach this point ... paranoid check
     if (!executeIPv4Queries && !executeIPv6Queries) {
       logger.error(ToolResult.BAD_USER_INPUT.getDescription());
+      return ToolResult.BAD_USER_INPUT.getCode();
+    }
+
+    // Validate custom DNS resolver if provided
+    if (customDnsResolver != null && !customDnsResolver.isEmpty() && !isValidIpAddress(customDnsResolver)) {
+      logger.error(ToolResult.BAD_USER_INPUT.getDescription() + ": Invalid DNS resolver IP address format: " + customDnsResolver);
       return ToolResult.BAD_USER_INPUT.getCode();
     }
 
@@ -277,6 +296,9 @@ public void setShowProgress(boolean showProgress) {
 
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
+      // Initialize DNS resolver with custom server if specified
+      DNSCacheResolver.initializeResolver(customDnsResolver);
+      
       // Initialize our DNS lookups with this.
       updateProgressPhase("DNS-Resolving");
       DNSCacheResolver.initFromUrl(uri.toString());
@@ -288,34 +310,71 @@ public void setShowProgress(boolean showProgress) {
       // Start network validation phase
       updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
 
-      // do v6
-      if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
-        updateProgressPhase("IPv6-JSON");
-        NetworkInfo.setStackToV6();
-        NetworkInfo.setAcceptHeaderToApplicationJson();
-        int v6ret = validator.validate();
-        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+      // Check if parallel IP version execution is enabled
+      boolean parallelIPVersions = Boolean.parseBoolean(
+          System.getProperty("rdap.parallel.ipversions", "false"));
 
-        // set the header to RDAP+JSON and redo the validations
-        updateProgressPhase("IPv6-RDAP+JSON");
-        NetworkInfo.setAcceptHeaderToApplicationRdapJson();
-        int v6ret2 = validator.validate();
-        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
-      }
+      if (parallelIPVersions) {
+        logger.info("Executing IPv4 and IPv6 validations in parallel");
+        
+        // Execute IP versions in parallel using NetworkValidationCoordinator
+        NetworkValidationCoordinator.IPVersionValidationResults results = 
+            NetworkValidationCoordinator.executeIPVersionValidations(
+                validator, 
+                uri, 
+                executeIPv4Queries, 
+                executeIPv6Queries,
+                (version, header) -> {
+                    updateProgressPhase(version + "-" + header);
+                    incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND);
+                }
+            );
+        
+        // Log results summary
+        Map<String, Integer> allResults = results.getAllResults();
+        logger.info("Parallel IP version validation results: {}", allResults);
+        
+        if (!results.allSuccessful()) {
+            logger.warn("Some parallel validations failed: {}", 
+                allResults.entrySet().stream()
+                    .filter(e -> e.getValue() != 0)
+                    .collect(java.util.stream.Collectors.toMap(
+                        Map.Entry::getKey, Map.Entry::getValue)));
+        }
+        
+      } else {
+        // Original sequential execution
+        logger.info("Executing IPv4 and IPv6 validations sequentially");
+        
+        // do v6
+        if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
+          updateProgressPhase("IPv6-JSON");
+          NetworkInfo.setStackToV6();
+          NetworkInfo.setAcceptHeaderToApplicationJson();
+          int v6ret = validator.validate();
+          incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
-      // do v4
-      if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
-        updateProgressPhase("IPv4-JSON");
-        NetworkInfo.setStackToV4();
-        NetworkInfo.setAcceptHeaderToApplicationJson();
-        int v4ret = validator.validate();
-        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+          // set the header to RDAP+JSON and redo the validations
+          updateProgressPhase("IPv6-RDAP+JSON");
+          NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+          int v6ret2 = validator.validate();
+          incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+        }
 
-        // set the header to RDAP+JSON and redo the validations
-        updateProgressPhase("IPv4-RDAP+JSON");
-        NetworkInfo.setAcceptHeaderToApplicationRdapJson();
-        int v4ret2 = validator.validate();
-        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+        // do v4
+        if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
+          updateProgressPhase("IPv4-JSON");
+          NetworkInfo.setStackToV4();
+          NetworkInfo.setAcceptHeaderToApplicationJson();
+          int v4ret = validator.validate();
+          incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+
+          // set the header to RDAP+JSON and redo the validations
+          updateProgressPhase("IPv4-RDAP+JSON");
+          NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+          int v4ret2 = validator.validate();
+          incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+        }
       }
 
       if(DNSCacheResolver.hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
@@ -816,6 +875,18 @@ public void setShowProgress(boolean showProgress) {
         completedOperations++;
         progressTracker.setCurrentStep(completedOperations);
       }
+    }
+  }
+
+  /**
+   * Validate if the given string is a valid IP address (IPv4 or IPv6).
+   */
+  private boolean isValidIpAddress(String ip) {
+    try {
+      java.net.InetAddress.getByName(ip);
+      return true;
+    } catch (java.net.UnknownHostException e) {
+      return false;
     }
   }
 }
