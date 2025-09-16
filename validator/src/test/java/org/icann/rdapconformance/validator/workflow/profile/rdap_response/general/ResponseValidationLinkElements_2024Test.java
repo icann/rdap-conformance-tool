@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -23,12 +22,10 @@ public class ResponseValidationLinkElements_2024Test {
     public static final int EXPECTED = 2;
     private JSONObject jsonObject;
     private RDAPValidatorResults results;
-    private RDAPValidatorConfiguration config;
 
     @BeforeMethod
     public void setUp() throws java.io.IOException {
         results = mock(RDAPValidatorResults.class);
-        config = mock(RDAPValidatorConfiguration.class);
     }
 
     private void loadJson(String filePath) {
