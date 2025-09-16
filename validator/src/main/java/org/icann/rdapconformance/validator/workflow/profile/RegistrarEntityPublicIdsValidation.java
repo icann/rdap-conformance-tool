@@ -14,8 +14,8 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
   final int code;
 
   public RegistrarEntityPublicIdsValidation(String rdapResponse, RDAPValidatorResults results,
-                                            RDAPValidatorConfiguration config, RDAPQueryType queryType, int code) {
-    super(rdapResponse, results, config);
+                                            RDAPQueryType queryType, int code) {
+    super(rdapResponse, results);
     this.queryType = queryType;
     this.code = code;
   }

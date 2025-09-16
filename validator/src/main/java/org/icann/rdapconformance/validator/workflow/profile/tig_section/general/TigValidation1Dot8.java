@@ -11,7 +11,6 @@ import java.net.http.HttpResponse;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.workflow.SchemaValidatorCache;
@@ -38,7 +37,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
   public TigValidation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
       RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
-    super(results, config);
+    super(results);
     this.rdapResponse = rdapResponse;
     this.datasetService = datasetService;
     this.config = config;

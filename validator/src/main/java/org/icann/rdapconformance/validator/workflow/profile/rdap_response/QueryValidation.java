@@ -24,7 +24,7 @@ public abstract class QueryValidation extends ProfileJsonValidation {
 
   public QueryValidation(String rdapResponse, RDAPValidatorResults results,
       RDAPValidatorConfiguration config, RDAPQueryType queryType, String sectionName, int code) {
-    super(rdapResponse, results, config);
+    super(rdapResponse, results);
     this.config = config;
     this.queryType = queryType;
     this.sectionName = sectionName;

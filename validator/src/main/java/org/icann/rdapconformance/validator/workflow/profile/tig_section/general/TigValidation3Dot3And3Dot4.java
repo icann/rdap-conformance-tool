@@ -1,14 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import java.util.Optional;
 import java.util.Set;
 import org.icann.rdapconformance.validator.SchemaValidator;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.json.JSONObject;
 
 public class TigValidation3Dot3And3Dot4 extends ProfileJsonValidation {
 
@@ -16,9 +12,8 @@ public class TigValidation3Dot3And3Dot4 extends ProfileJsonValidation {
 
   public TigValidation3Dot3And3Dot4(String rdapResponse,
       RDAPValidatorResults results,
-      RDAPValidatorConfiguration config,
       SchemaValidator schemaValidator) {
-    super(rdapResponse, results, config);
+    super(rdapResponse, results);
     this.schemaValidator = schemaValidator;
   }
 

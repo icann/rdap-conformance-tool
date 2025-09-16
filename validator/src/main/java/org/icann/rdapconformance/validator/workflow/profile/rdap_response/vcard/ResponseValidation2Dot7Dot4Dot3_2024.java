@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import org.apache.commons.lang3.StringUtils;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -21,8 +20,8 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
 
-    public ResponseValidation2Dot7Dot4Dot3_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results, config);
+    public ResponseValidation2Dot7Dot4Dot3_2024(String rdapResponse, RDAPValidatorResults results) {
+        super(rdapResponse, results);
     }
 
     @Override

@@ -17,8 +17,8 @@ public abstract class TopMostEventActionValidation extends ProfileJsonValidation
   private final EventAction eventAction;
 
   public TopMostEventActionValidation(String rdapResponse, RDAPValidatorResults results,
-      RDAPQueryType queryType, int code, String message, EventAction eventAction, RDAPValidatorConfiguration config) {
-    super(rdapResponse, results, config);
+      RDAPQueryType queryType, int code, String message, EventAction eventAction) {
+    super(rdapResponse, results);
     this.queryType = queryType;
     this.eventAction = eventAction;
     this.code = code;

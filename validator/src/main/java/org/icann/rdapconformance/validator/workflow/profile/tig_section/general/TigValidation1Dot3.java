@@ -32,7 +32,7 @@ public final class TigValidation1Dot3 extends ProfileValidation {
 
   public TigValidation1Dot3(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
-    super(results, config);
+    super(results);
     this.rdapResponse = rdapResponse;
     this.config = config;
   }

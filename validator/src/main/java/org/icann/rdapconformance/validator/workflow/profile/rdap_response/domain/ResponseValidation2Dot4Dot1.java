@@ -15,9 +15,8 @@ public final class ResponseValidation2Dot4Dot1 extends ProfileJsonValidation {
 
   public ResponseValidation2Dot4Dot1(String rdapResponse,
       RDAPValidatorResults results,
-     RDAPValidatorConfiguration config,
       RDAPQueryType queryType) {
-    super(rdapResponse, results, config);
+    super(rdapResponse, results);
     this.queryType = queryType;
   }
 

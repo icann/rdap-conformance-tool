@@ -12,7 +12,7 @@ public class ResponseValidationNoticesIncludedTest extends ResponseDomainValidat
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidationNoticesIncluded(jsonObject.toString(), results, config, queryType);
+    return new ResponseValidationNoticesIncluded(jsonObject.toString(), results, queryType);
   }
 
   @Test

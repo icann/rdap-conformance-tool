@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -24,8 +23,8 @@ public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
   private static final ObjectMapper mapper = org.icann.rdapconformance.validator.workflow.JsonMapperUtil.getSharedMapper();
   private final String rdapResponse;
 
-  public ResponseValidation1Dot2Dot2(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-    super(rdapResponse, results, config);
+  public ResponseValidation1Dot2Dot2(String rdapResponse, RDAPValidatorResults results) {
+    super(rdapResponse, results);
     this.rdapResponse = rdapResponse;
   }
 

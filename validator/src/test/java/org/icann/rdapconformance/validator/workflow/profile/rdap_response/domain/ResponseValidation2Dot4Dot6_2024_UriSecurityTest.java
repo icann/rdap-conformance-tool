@@ -28,9 +28,8 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
         String mockJson = "{}";
         RDAPDatasetServiceMock datasets = new RDAPDatasetServiceMock();
         RDAPQueryType queryType = RDAPQueryType.DOMAIN;
-        RDAPValidatorConfiguration config = Mockito.mock(RDAPValidatorConfiguration.class);
         
-        validation = new ResponseValidation2Dot4Dot6_2024(mockJson, results, datasets, queryType, config);
+        validation = new ResponseValidation2Dot4Dot6_2024(mockJson, results, datasets, queryType);
     }
 
     // Null and empty input tests

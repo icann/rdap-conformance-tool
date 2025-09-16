@@ -1,19 +1,17 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
 import org.icann.rdapconformance.validator.EventAction;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.TopMostEventActionValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public final class ResponseValidation2Dot3Dot2_2024 extends TopMostEventActionValidation {
 
-  public ResponseValidation2Dot3Dot2_2024(String rdapResponse, RDAPValidatorResults results,
-                                          RDAPValidatorConfiguration config, RDAPQueryType queryType) {
+  public ResponseValidation2Dot3Dot2_2024(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType) {
     super(rdapResponse, results, queryType,
         -65300,
         "An eventAction of type 'registrar expiration' is expected.",
-        EventAction.EXPIRATION, config);
+        EventAction.REGISTRAR_EXPIRATION);
   }
 
   @Override
@@ -23,6 +21,6 @@ public final class ResponseValidation2Dot3Dot2_2024 extends TopMostEventActionVa
 
   @Override
   public boolean doLaunch() {
-    return config.isGtldRegistrar() && queryType.equals(RDAPQueryType.DOMAIN);
+    return queryType.equals(RDAPQueryType.DOMAIN);
   }
 }

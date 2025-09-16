@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPublicIdsValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -17,10 +16,9 @@ public abstract class RegistrarEntityValidation extends
 
   public RegistrarEntityValidation(String rdapResponse,
       RDAPValidatorResults results,
-      RDAPValidatorConfiguration config,
       RDAPDatasetService datasetService,
       RDAPQueryType queryType, int code) {
-    super(rdapResponse, results, config, queryType, code);
+    super(rdapResponse, results, queryType, code);
     this.datasetService = datasetService;
     this.code = code;
   }

@@ -634,7 +634,7 @@ public class NetworkValidationCoordinatorTest {
     // Mock classes for testing HTTP validation categorization
     private static class TigValidation1Dot2 extends ProfileValidation {
         public TigValidation1Dot2() {
-            super(null, null);
+            super(null);
         }
         
         @Override
@@ -650,7 +650,7 @@ public class NetworkValidationCoordinatorTest {
     
     private static class ResponseValidationHelp_2024 extends ProfileValidation {
         public ResponseValidationHelp_2024() {
-            super(null, null);
+            super(null);
         }
         
         @Override
@@ -666,7 +666,7 @@ public class NetworkValidationCoordinatorTest {
     
     private static class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
         public ResponseValidationDomainInvalid_2024() {
-            super(null, null);
+            super(null);
         }
         
         @Override
@@ -682,7 +682,7 @@ public class NetworkValidationCoordinatorTest {
     
     private static class RegularValidationMock extends ProfileValidation {
         public RegularValidationMock() {
-            super(null, null);
+            super(null);
         }
         
         @Override

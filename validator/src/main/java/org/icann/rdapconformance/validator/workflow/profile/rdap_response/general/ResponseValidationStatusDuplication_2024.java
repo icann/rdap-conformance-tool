@@ -23,8 +23,8 @@ public class ResponseValidationStatusDuplication_2024 extends ProfileValidation 
     private JSONObject jsonObject = null;
     private RDAPValidatorResults results = null;
 
-    public ResponseValidationStatusDuplication_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(results, config);
+    public ResponseValidationStatusDuplication_2024(String rdapResponse, RDAPValidatorResults results) {
+        super(results);
         this.jpathUtil = new JpathUtil();
         this.jsonObject = new JSONObject(rdapResponse);
         this.results = results;

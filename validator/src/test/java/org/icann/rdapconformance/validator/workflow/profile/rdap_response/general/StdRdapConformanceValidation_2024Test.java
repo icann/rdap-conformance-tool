@@ -14,7 +14,7 @@ public class StdRdapConformanceValidation_2024Test  extends ProfileJsonValidatio
 
     @Override
     public ProfileJsonValidation getProfileValidation() {
-        return new StdRdapConformanceValidation_2024(jsonObject.toString(), results, config);
+        return new StdRdapConformanceValidation_2024(jsonObject.toString(), results);
     }
 
     @Test

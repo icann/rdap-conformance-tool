@@ -29,8 +29,7 @@ public abstract class TopMostEventActionValidationTest<T extends TopMostEventAct
   @Override
   public TopMostEventActionValidation getProfileValidation() {
     try {
-      return validationClass.getConstructor(String.class, RDAPValidatorResults.class,
-              RDAPValidatorConfiguration.class, RDAPQueryType.class).newInstance(jsonObject.toString(), results, config, queryType);
+      return validationClass.getConstructor(String.class, RDAPValidatorResults.class, RDAPQueryType.class).newInstance(jsonObject.toString(), results, queryType);
     } catch (Exception e) {
       return null;
     }
@@ -41,9 +40,7 @@ public abstract class TopMostEventActionValidationTest<T extends TopMostEventAct
     replaceValue("$.events[*].eventAction", "event");
     TopMostEventActionValidation validation = getProfileValidation();
     validate(validation.code,
-        "[{\"eventAction\":\"event\",\"eventDate\":\"1997-09-15T04:00:00Z\"},"
-            + "{\"eventAction\":\"event\",\"eventDate\":\"2028-09-14T04:00:00Z\"},"
-            + "{\"eventAction\":\"event\",\"eventDate\":\"2021-03-18T09:24:18Z\"}]",
+        "[{\"eventAction\":\"event\",\"eventDate\":\"1997-09-15T04:00:00Z\"},{\"eventAction\":\"event\",\"eventDate\":\"2028-09-14T04:00:00Z\"},{\"eventAction\":\"event\",\"eventDate\":\"2021-03-18T09:24:18Z\"},{\"eventAction\":\"event\",\"eventDate\":\"2021-03-18T09:24:18Z\"}]",
         validation.message);
   }
 

@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import org.icann.rdapconformance.validator.CommonUtils;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -25,8 +24,8 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
     private Set<String> redactedPointersValue = null;
     private boolean isValid = true;
 
-    public ResponseValidation2Dot7Dot4Dot8_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results, config);
+    public ResponseValidation2Dot7Dot4Dot8_2024(String rdapResponse, RDAPValidatorResults results) {
+        super(rdapResponse, results);
     }
 
     @Override

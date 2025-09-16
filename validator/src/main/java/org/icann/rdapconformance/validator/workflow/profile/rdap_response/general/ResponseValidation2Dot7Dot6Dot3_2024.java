@@ -24,7 +24,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     private final RDAPValidatorConfiguration config;
 
     public ResponseValidation2Dot7Dot6Dot3_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results, config);
+        super(rdapResponse, results);
         this.config = config;
     }
 

@@ -158,11 +158,11 @@ public class SchemaValidator {
       verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
       if (content.contains("\"vcardArray\"")) {
-        new VcardArrayGeneralValidation(jsonObject.toString(), results, config).validate();
+        new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
       }
 
       if (content.contains("\"notices\"")) {
-        new NoticesTopMostValidation(jsonObject.toString(), results, config, schemaRootNode).validate();
+        new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode).validate();
       }
     } catch (Exception e) {
       logger.error("Exception during schema validation. This is likely caused by a schema deeply "

@@ -14,7 +14,7 @@ public final class ResponseValidation2Dot6Dot3 extends NoticesValidation {
       RDAPValidatorResults results,
       RDAPValidatorConfiguration config,
       RDAPQueryType queryType) {
-    super(rdapResponse, results, config, queryType,
+    super(rdapResponse, results, queryType,
         TITLE, DESCRIPTION, HREF, -46600);
   }
 

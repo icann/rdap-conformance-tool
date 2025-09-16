@@ -29,7 +29,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
 
   public HandleValidation(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
                           RDAPDatasetService datasetService, RDAPQueryType queryType, int code, String objectName) {
-    super(rdapResponse, results, config);
+    super(rdapResponse, results);
     this.datasetService = datasetService;
     this.queryType = queryType;
     this.code = code;

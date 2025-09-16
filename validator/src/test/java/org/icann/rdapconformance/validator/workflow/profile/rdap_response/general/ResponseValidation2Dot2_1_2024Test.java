@@ -43,7 +43,6 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
         return new ResponseValidation2Dot2_1_2024(
                 jsonObject.toString(),
                 results,
-                config,
                 datasets);
     }
 

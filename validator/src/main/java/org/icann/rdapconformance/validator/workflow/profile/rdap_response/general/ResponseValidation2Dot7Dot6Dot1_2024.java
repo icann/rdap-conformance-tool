@@ -21,8 +21,8 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
     private static final String REDACTED_PATH = "$.redacted[*]";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot1_2024.class);
 
-    public ResponseValidation2Dot7Dot6Dot1_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results, config);
+    public ResponseValidation2Dot7Dot6Dot1_2024(String rdapResponse, RDAPValidatorResults results) {
+        super(rdapResponse, results);
     }
 
     @Override

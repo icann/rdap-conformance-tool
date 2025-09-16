@@ -14,9 +14,8 @@ public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
 
   public ResponseValidationRFC3915(String rdapResponse,
       RDAPValidatorResults results,
-      RDAPValidatorConfiguration config,
       RDAPQueryType queryType) {
-    super(rdapResponse, results,config);
+    super(rdapResponse, results);
     this.queryType = queryType;
   }
 

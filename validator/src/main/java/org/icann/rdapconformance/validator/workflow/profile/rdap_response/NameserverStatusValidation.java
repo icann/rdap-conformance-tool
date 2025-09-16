@@ -3,7 +3,6 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -16,8 +15,8 @@ public abstract class NameserverStatusValidation extends ProfileJsonValidation {
   final int code;
 
   public NameserverStatusValidation(String rdapResponse,
-                                    RDAPValidatorResults results, RDAPValidatorConfiguration config, RDAPQueryType queryType, int code) {
-    super(rdapResponse, results, config);
+                                    RDAPValidatorResults results, RDAPQueryType queryType, int code) {
+    super(rdapResponse, results);
     this.queryType = queryType;
     this.code = code;
   }

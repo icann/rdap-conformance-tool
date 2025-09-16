@@ -12,9 +12,8 @@ public final class ResponseValidationNoticesIncluded extends ProfileJsonValidati
 
   public ResponseValidationNoticesIncluded(String rdapResponse,
       RDAPValidatorResults results,
-      RDAPValidatorConfiguration config,
       RDAPQueryType queryType) {
-    super(rdapResponse, results, config);
+    super(rdapResponse, results);
     this.queryType = queryType;
   }
 

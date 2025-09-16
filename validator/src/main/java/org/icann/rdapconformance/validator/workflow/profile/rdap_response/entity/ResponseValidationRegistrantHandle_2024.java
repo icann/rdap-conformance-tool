@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity;
 
 import org.icann.rdapconformance.validator.CommonUtils;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -26,9 +25,8 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
 
   public ResponseValidationRegistrantHandle_2024(String rdapResponse,
                                                  RDAPValidatorResults results,
-                                                 RDAPValidatorConfiguration config,
                                                  RDAPDatasetService datasetService) {
-    super(rdapResponse, results, config);
+    super(rdapResponse, results);
     this.datasetService = datasetService;
   }
 

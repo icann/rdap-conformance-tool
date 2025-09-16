@@ -41,7 +41,7 @@ public class ResponseValidationLinkElements_2024Test {
     }
 
     private ProfileValidation getProfileValidation() {
-        return new ResponseValidationLinkElements_2024(jsonObject.toString(), results, config);
+        return new ResponseValidationLinkElements_2024(jsonObject.toString(), results);
     }
 
     @Test

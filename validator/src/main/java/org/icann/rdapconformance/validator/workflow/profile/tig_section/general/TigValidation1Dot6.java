@@ -1,11 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.net.http.HttpResponse;
-import org.icann.rdapconformance.validator.ConnectionStatus;
-import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -22,7 +19,7 @@ public final class TigValidation1Dot6 extends ProfileValidation {
 
   public TigValidation1Dot6(int rdapResponseStatusCode, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
-    super(results, config);
+    super(results);
     this.rdapResponseStatusCode = rdapResponseStatusCode;
     this.config = config;
   }

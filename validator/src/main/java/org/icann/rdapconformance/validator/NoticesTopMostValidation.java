@@ -4,8 +4,6 @@ import static org.icann.rdapconformance.validator.exception.parser.ExceptionPars
 
 import java.util.Set;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.exception.parser.ExceptionParser;
 import org.icann.rdapconformance.validator.schema.SchemaNode;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -16,8 +14,8 @@ public class NoticesTopMostValidation extends ProfileJsonValidation {
   private final SchemaNode schemaNode;
 
   public NoticesTopMostValidation(String rdapResponse,
-                                  RDAPValidatorResults results, RDAPValidatorConfiguration config, SchemaNode schemaNode) {
-    super(rdapResponse, results, config);
+                                  RDAPValidatorResults results, SchemaNode schemaNode) {
+    super(rdapResponse, results);
     this.schemaNode = schemaNode;
   }
 

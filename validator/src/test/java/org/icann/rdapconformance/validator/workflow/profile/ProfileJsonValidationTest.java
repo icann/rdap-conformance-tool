@@ -246,7 +246,7 @@ public class ProfileJsonValidationTest {
     private static class TestProfileJsonValidation extends ProfileJsonValidation {
 
         public TestProfileJsonValidation(String rdapResponse, RDAPValidatorResults results) {
-            super(rdapResponse, results, null);
+            super(rdapResponse, results);
         }
 
         @Override

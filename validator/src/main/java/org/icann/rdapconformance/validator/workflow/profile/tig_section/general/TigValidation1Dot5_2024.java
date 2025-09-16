@@ -36,7 +36,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
     // Constructor for testing with injectable SSLValidator
     public TigValidation1Dot5_2024(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
         RDAPValidatorResults results, SSLValidator sslValidator) {
-        super(results, config);
+        super(results);
         this.rdapResponse = rdapResponse;
         this.config = config;
         this.sslValidator = sslValidator;

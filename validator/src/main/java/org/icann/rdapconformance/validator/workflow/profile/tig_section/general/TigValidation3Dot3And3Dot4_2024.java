@@ -15,7 +15,7 @@ public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
 
     public TigValidation3Dot3And3Dot4_2024(String rdapResponse,
         RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results, config);
+        super(rdapResponse, results);
 
         this.config = config;
     }

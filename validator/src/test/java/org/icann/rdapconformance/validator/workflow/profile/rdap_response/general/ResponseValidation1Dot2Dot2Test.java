@@ -13,7 +13,7 @@ public class ResponseValidation1Dot2Dot2Test extends ProfileJsonValidationTestBa
 
   @Override
   public ProfileJsonValidation getProfileValidation() {
-    return new ResponseValidation1Dot2Dot2(jsonObject.toString(), results, config);
+    return new ResponseValidation1Dot2Dot2(jsonObject.toString(), results);
   }
 
   @Test

@@ -21,8 +21,8 @@ public abstract class RDAPConformanceValidation extends ProfileJsonValidation {
   private final String requiredValue;
 
   public RDAPConformanceValidation(String rdapResponse, RDAPValidatorResults results,
-                                   RDAPValidatorConfiguration config, String requiredValue, Integer code, String message) {
-    super(rdapResponse, results, config);
+                                   String requiredValue, Integer code, String message) {
+    super(rdapResponse, results);
     this.requiredValue = requiredValue;
     this.code = code;
     this.message = message;

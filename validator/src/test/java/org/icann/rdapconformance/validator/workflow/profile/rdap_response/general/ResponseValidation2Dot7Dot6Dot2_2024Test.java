@@ -41,8 +41,7 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
     public ProfileValidation getProfileValidation() {
         return new ResponseValidation2Dot7Dot6Dot2_2024(
                 jsonObject.toString(),
-                results,
-                config);
+                results);
     }
 
     @Test

@@ -23,18 +23,15 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot4Dot6_2024.class);
 
     private final RDAPQueryType queryType;
-    private final RDAPValidatorConfiguration config;
     private final RDAPDatasetService datasetService;
 
     public ResponseValidation2Dot4Dot6_2024(String rdapResponse,
         RDAPValidatorResults results,
         RDAPDatasetService datasetService,
-        RDAPQueryType queryType,
-        RDAPValidatorConfiguration config) {
-        super(rdapResponse, results, config);
+        RDAPQueryType queryType) {
+        super(rdapResponse, results);
         this.datasetService = datasetService;
         this.queryType = queryType;
-        this.config = config;
     }
 
 

@@ -9,7 +9,7 @@ public final class ResponseNameserverStatusValidation extends NameserverStatusVa
 
   public ResponseNameserverStatusValidation(String rdapResponse,
                                             RDAPValidatorResults results, RDAPValidatorConfiguration config, RDAPQueryType queryType) {
-    super(rdapResponse, results, config, queryType, -49300);
+    super(rdapResponse, results, queryType, -49300);
   }
 
   @Override

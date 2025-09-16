@@ -18,8 +18,8 @@ public final class TigValidation7Dot1And7Dot2 extends RDAPProfileVcardArrayValid
   private static final Set<String> AUTHORIZED_PHONE_TYPE = Set.of(VOICE_TYPE, FAX_TYPE);
 
   public TigValidation7Dot1And7Dot2(String rdapResponse,
-      RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-    super(rdapResponse, results, config);
+      RDAPValidatorResults results) {
+    super(rdapResponse, results);
   }
 
   @Override

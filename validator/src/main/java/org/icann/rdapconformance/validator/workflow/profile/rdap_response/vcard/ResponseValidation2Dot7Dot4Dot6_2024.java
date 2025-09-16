@@ -22,8 +22,8 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
 
-    public ResponseValidation2Dot7Dot4Dot6_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results, config);
+    public ResponseValidation2Dot7Dot4Dot6_2024(String rdapResponse, RDAPValidatorResults results) {
+        super(rdapResponse, results);
     }
 
     @Override

@@ -18,7 +18,7 @@ public final class ResponseValidation2Dot7Dot2_2024 extends ProfileJsonValidatio
                                             RDAPQueryType queryType,
                                             String rdapResponse,
                                             RDAPValidatorResults results) {
-        super(rdapResponse, results, config);
+        super(rdapResponse, results);
         this.config = config;
         this.queryType = queryType;
     }

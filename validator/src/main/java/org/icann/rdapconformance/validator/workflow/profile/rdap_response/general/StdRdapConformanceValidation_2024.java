@@ -8,8 +8,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public class StdRdapConformanceValidation_2024 extends ProfileJsonValidation {
-    public StdRdapConformanceValidation_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results, config);
+    public StdRdapConformanceValidation_2024(String rdapResponse, RDAPValidatorResults results) {
+        super(rdapResponse, results);
     }
 
     @Override

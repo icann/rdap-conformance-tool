@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.RegistrarEntityValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -12,9 +11,8 @@ public final class ResponseValidation2Dot4Dot2And2Dot4Dot3 extends
   public ResponseValidation2Dot4Dot2And2Dot4Dot3(String rdapResponse,
       RDAPValidatorResults results,
       RDAPDatasetService datasetService,
-      RDAPValidatorConfiguration config,
       RDAPQueryType queryType) {
-    super(rdapResponse, results, config, datasetService, queryType, -47400);
+    super(rdapResponse, results, datasetService, queryType, -47400);
   }
 
   @Override

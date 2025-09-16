@@ -2,13 +2,12 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 
 import java.util.Set;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPConformanceValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public class ResponseValidation1Dot2_2_2024 extends RDAPConformanceValidation {
-    public ResponseValidation1Dot2_2_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results, config, "redacted", -62001,
+    public ResponseValidation1Dot2_2_2024(String rdapResponse, RDAPValidatorResults results) {
+        super(rdapResponse, results, "redacted", -62001,
             "The RDAP Conformance data structure does not include redacted but RFC 9537 is being used.");
     }
 
