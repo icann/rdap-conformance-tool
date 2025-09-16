@@ -135,7 +135,7 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
             }
             return true;
         } catch (Exception e) {
-            logger.error("pathLang is not found due to {}", e.getMessage());
+            logger.debug("pathLang is not found due to {}", e.getMessage());
             return validatePostPathBasedOnPathLang(redactedPostalCode);
         }
     }
@@ -173,7 +173,7 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("postPath property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("postPath property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return validateMethodProperty(redactedPostalCode);
@@ -200,7 +200,7 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("message property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("message property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return true;

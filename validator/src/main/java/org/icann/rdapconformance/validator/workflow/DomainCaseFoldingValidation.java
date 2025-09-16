@@ -92,7 +92,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
         return false;
       }
     } catch (JsonProcessingException e) {
-      logger.error(
+      logger.debug(
           "Exception when processing JSON in [domainCaseFoldingValidation]",
           e);
       results.add(RDAPValidationResult.builder()

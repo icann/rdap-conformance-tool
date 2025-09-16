@@ -120,16 +120,16 @@ public class NetworkValidationCoordinator {
                                 validation.getGroupName(), result);
                             return result;
                         } catch (Exception validationError) {
-                            logger.error("Network validation failed: {}", validation.getGroupName(), validationError);
+                            logger.debug("Network validation failed: {}", validation.getGroupName(), validationError);
                             return false;
                         }
                         
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        logger.error("Network validation interrupted: {}", validation.getGroupName(), e);
+                        logger.debug("Network validation interrupted: {}", validation.getGroupName(), e);
                         return false;
                     } catch (Exception e) {
-                        logger.error("Network validation failed: {}", validation.getGroupName(), e);
+                        logger.debug("Network validation failed: {}", validation.getGroupName(), e);
                         return false;
                     } finally {
                         // Release rate limit permit
@@ -164,7 +164,7 @@ public class NetworkValidationCoordinator {
                         allPassed = false;
                     }
                 } catch (Exception e) {
-                    logger.error("Error getting validation result", e);
+                    logger.debug("Error getting validation result", e);
                     allPassed = false;
                 }
             }
@@ -174,7 +174,7 @@ public class NetworkValidationCoordinator {
             return allPassed;
             
         } catch (Exception e) {
-            logger.error("Error executing network validations", e);
+            logger.debug("Error executing network validations", e);
             return false;
         }
     }
@@ -311,7 +311,7 @@ public class NetworkValidationCoordinator {
                                    validation.getGroupName(), result);
                         return result;
                     } catch (Exception e) {
-                        logger.error("Timeout-prone validation failed: {}", validation.getGroupName(), e);
+                        logger.debug("Timeout-prone validation failed: {}", validation.getGroupName(), e);
                         return false;
                     }
                 }, httpExecutor);
@@ -389,12 +389,12 @@ public class NetworkValidationCoordinator {
                             allPassed = false;
                             // Don't cancel - let it complete naturally to avoid "in progress" connections
                         } catch (Exception e) {
-                            logger.error("Error during final future check", e);
+                            logger.debug("Error during final future check", e);
                             allPassed = false;
                         }
                     }
                 } catch (Exception e) {
-                    logger.error("Error getting validation result", e);
+                    logger.debug("Error getting validation result", e);
                     allPassed = false;
                 }
             }
@@ -404,7 +404,7 @@ public class NetworkValidationCoordinator {
             return allPassed;
             
         } catch (Exception e) {
-            logger.error("Error executing timeout-prone/normal validations", e);
+            logger.debug("Error executing timeout-prone/normal validations", e);
             // Cancel all futures to prevent hanging connections
             for (CompletableFuture<Boolean> future : allFutures) {
                 future.cancel(true);

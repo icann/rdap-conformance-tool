@@ -137,7 +137,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
             // If we found both types, we have mixed labels
             if (hasALabel && hasULabel) {
-                logger.error("Domain name contains mixed A-labels and U-labels: {}", domainName);
+                logger.debug("Domain name contains mixed A-labels and U-labels: {}", domainName);
                 return true;
             }
         }

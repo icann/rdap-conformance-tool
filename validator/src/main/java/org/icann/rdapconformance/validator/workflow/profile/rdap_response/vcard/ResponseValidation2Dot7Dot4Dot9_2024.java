@@ -186,7 +186,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("method property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("method property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         if(titles.contains("email")) {
@@ -218,7 +218,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             }
             return true;
         } catch (Exception e) {
-            logger.error("pathLang is not found due to {}", e.getMessage());
+            logger.debug("pathLang is not found due to {}", e.getMessage());
             return validatePostPathBasedOnPathLang();
         }
     }
@@ -257,7 +257,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("postPath property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("postPath property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return true;
@@ -289,7 +289,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
             }
             return true;
         } catch (Exception e) {
-            logger.error("pathLang is not found due to {}", e.getMessage());
+            logger.debug("pathLang is not found due to {}", e.getMessage());
             replacementValidations =  validateReplacementPathBasedOnPathLang();
             if(replacementValidations) {
                 return validatePrePathBasedOnPathLang();
@@ -334,7 +334,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("replacementPath property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("replacementPath property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return true;
@@ -365,7 +365,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("prePath property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("prePath property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return true;

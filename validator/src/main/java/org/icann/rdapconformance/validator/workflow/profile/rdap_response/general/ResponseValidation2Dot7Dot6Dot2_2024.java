@@ -228,7 +228,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
                 }
             }
         } catch (Exception e) {
-            logger.error("Error checking for technical voice tel property: {}", e.getMessage());
+            logger.debug("Error checking for technical voice tel property: {}", e.getMessage());
             return false;
         }
 

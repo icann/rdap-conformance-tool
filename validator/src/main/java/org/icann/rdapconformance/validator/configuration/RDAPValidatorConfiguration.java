@@ -87,7 +87,7 @@ public interface RDAPValidatorConfiguration {
               getUri().getPort(), getUri().getPath(), getUri().getQuery(), getUri().getFragment());
           setUri(new_uri);
         } catch (URISyntaxException e) {
-          logger.error("Failed to transform URI host from U-Label to A-Label");
+          logger.debug("Failed to transform URI host from U-Label to A-Label");
         }
       }
     }

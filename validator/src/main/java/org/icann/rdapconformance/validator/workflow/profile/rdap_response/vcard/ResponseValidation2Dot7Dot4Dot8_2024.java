@@ -120,7 +120,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
             }
             return true;
         } catch (Exception e) {
-            logger.error("pathLang is not found due to {}", e.getMessage());
+            logger.debug("pathLang is not found due to {}", e.getMessage());
             return validatePrePathBasedOnPathLang(redactedPhone);
         }
     }
@@ -159,7 +159,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("prePath property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("prePath property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return validateMethodProperty(redactedPhone);
@@ -186,7 +186,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("method property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("method property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return isValid;
@@ -233,7 +233,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("Error checking for voice tel property: {}", e.getMessage());
+            logger.debug("Error checking for voice tel property: {}", e.getMessage());
             return false;
         }
 
