@@ -12,7 +12,7 @@ public class ResponseValidation2Dot4Dot5Test extends ResponseDomainValidationTes
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot4Dot5(jsonObject.toString(), results, queryType);
+    return new ResponseValidation2Dot4Dot5(jsonObject.toString(), results, config, queryType);
   }
 
   @Test

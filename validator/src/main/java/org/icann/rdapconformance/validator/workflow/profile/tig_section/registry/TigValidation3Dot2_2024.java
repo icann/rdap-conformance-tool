@@ -16,7 +16,7 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
     public TigValidation3Dot2_2024(String rdapResponse, RDAPValidatorResults results,
         RDAPValidatorConfiguration config,
         RDAPQueryType queryType) {
-        super(rdapResponse, results);
+        super(rdapResponse, results, config);
         this.config = config;
         this.queryType = queryType;
     }

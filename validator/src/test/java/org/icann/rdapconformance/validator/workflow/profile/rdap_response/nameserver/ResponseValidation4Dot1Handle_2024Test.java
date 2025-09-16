@@ -13,7 +13,7 @@ public class ResponseValidation4Dot1Handle_2024Test extends ProfileJsonValidatio
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation4Dot1Handle_2024(jsonObject.toString(), results, RDAPQueryType.NAMESERVER);
+        return new ResponseValidation4Dot1Handle_2024(jsonObject.toString(), results, config, RDAPQueryType.NAMESERVER);
     }
 
     protected String givenReservedICANNHandle() {

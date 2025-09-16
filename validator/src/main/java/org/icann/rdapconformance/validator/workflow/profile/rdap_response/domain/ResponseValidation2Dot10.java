@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -12,8 +13,9 @@ public final class ResponseValidation2Dot10 extends ProfileJsonValidation {
 
   public ResponseValidation2Dot10(String rdapResponse,
       RDAPValidatorResults results,
+      RDAPValidatorConfiguration config,
       RDAPQueryType queryType) {
-    super(rdapResponse, results);
+    super(rdapResponse, results, config);
     this.queryType = queryType;
   }
 

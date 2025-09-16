@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
 import java.util.Set;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -12,8 +14,8 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
   final int code;
 
   public RegistrarEntityPublicIdsValidation(String rdapResponse, RDAPValidatorResults results,
-      RDAPQueryType queryType, int code) {
-    super(rdapResponse, results);
+                                            RDAPValidatorConfiguration config, RDAPQueryType queryType, int code) {
+    super(rdapResponse, results, config);
     this.queryType = queryType;
     this.code = code;
   }

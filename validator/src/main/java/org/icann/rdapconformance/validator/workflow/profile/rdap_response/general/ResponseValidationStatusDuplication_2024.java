@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.JpathUtil;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -22,8 +23,8 @@ public class ResponseValidationStatusDuplication_2024 extends ProfileValidation 
     private JSONObject jsonObject = null;
     private RDAPValidatorResults results = null;
 
-    public ResponseValidationStatusDuplication_2024(String rdapResponse, RDAPValidatorResults results) {
-        super(results);
+    public ResponseValidationStatusDuplication_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
+        super(results, config);
         this.jpathUtil = new JpathUtil();
         this.jsonObject = new JSONObject(rdapResponse);
         this.results = results;

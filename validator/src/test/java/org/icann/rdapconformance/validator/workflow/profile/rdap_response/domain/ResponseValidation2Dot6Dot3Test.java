@@ -33,6 +33,6 @@ public class ResponseValidation2Dot6Dot3Test extends NoticesValidationTest {
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot6Dot3(jsonObject.toString(), results, queryType);
+    return new ResponseValidation2Dot6Dot3(jsonObject.toString(), results, config, queryType);
   }
 }

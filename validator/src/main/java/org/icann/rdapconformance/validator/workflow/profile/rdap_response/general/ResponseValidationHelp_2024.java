@@ -25,7 +25,7 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
     private final RDAPValidatorConfiguration config;
 
     public ResponseValidationHelp_2024(RDAPValidatorConfiguration config, RDAPValidatorResults results) {
-        super(results);
+        super(results, config);
         this.config = config;
     }
 

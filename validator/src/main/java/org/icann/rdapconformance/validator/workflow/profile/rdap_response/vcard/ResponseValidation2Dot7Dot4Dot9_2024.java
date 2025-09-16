@@ -28,7 +28,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     private JSONObject redactedRegistrantEmail = null;
 
     public ResponseValidation2Dot7Dot4Dot9_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results);
+        super(rdapResponse, results, config);
         this.config = config;
     }
 

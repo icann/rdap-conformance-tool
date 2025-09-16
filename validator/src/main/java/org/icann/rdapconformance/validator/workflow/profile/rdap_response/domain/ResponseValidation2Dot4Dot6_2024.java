@@ -31,7 +31,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         RDAPDatasetService datasetService,
         RDAPQueryType queryType,
         RDAPValidatorConfiguration config) {
-        super(rdapResponse, results);
+        super(rdapResponse, results, config);
         this.datasetService = datasetService;
         this.queryType = queryType;
         this.config = config;

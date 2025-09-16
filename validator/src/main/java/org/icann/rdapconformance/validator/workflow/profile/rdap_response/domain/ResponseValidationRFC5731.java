@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 import java.util.HashSet;
 import java.util.Set;
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -14,8 +15,9 @@ public final class ResponseValidationRFC5731 extends ProfileJsonValidation {
 
   public ResponseValidationRFC5731(String rdapResponse,
       RDAPValidatorResults results,
+      RDAPValidatorConfiguration config,
       RDAPQueryType queryType) {
-    super(rdapResponse, results);
+    super(rdapResponse, results, config);
     this.queryType = queryType;
   }
 

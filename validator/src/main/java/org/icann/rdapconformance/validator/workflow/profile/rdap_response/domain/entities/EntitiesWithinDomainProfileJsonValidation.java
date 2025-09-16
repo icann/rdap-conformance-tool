@@ -17,7 +17,7 @@ public abstract class EntitiesWithinDomainProfileJsonValidation extends ProfileJ
       RDAPValidatorResults results,
       RDAPQueryType queryType,
       RDAPValidatorConfiguration config) {
-    super(rdapResponse, results);
+    super(rdapResponse, results, config);
     this.queryType = queryType;
     this.config = config;
   }

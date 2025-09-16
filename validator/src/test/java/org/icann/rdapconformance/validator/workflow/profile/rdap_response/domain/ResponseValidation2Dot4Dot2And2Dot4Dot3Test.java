@@ -15,6 +15,6 @@ public class ResponseValidation2Dot4Dot2And2Dot4Dot3Test extends
   @Override
   public RegistrarEntityPublicIdsValidation getProfileValidation() {
     return new ResponseValidation2Dot4Dot2And2Dot4Dot3(jsonObject.toString(), results,
-        datasetService, queryType);
+        datasetService, config, queryType);
   }
 }

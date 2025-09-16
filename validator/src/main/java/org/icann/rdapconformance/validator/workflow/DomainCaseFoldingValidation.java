@@ -38,7 +38,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
       RDAPValidatorConfiguration config,
       RDAPValidatorResults results,
       RDAPQueryType queryType) {
-    super(results);
+    super(results, config);
     this.rdapResponse = rdapResponse;
     this.config = config;
     this.queryType = queryType;

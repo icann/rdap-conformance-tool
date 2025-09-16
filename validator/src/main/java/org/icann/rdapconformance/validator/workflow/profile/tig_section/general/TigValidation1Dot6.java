@@ -22,7 +22,7 @@ public final class TigValidation1Dot6 extends ProfileValidation {
 
   public TigValidation1Dot6(int rdapResponseStatusCode, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
-    super(results);
+    super(results, config);
     this.rdapResponseStatusCode = rdapResponseStatusCode;
     this.config = config;
   }

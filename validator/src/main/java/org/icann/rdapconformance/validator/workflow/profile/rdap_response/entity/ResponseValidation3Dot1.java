@@ -20,7 +20,7 @@ public final class ResponseValidation3Dot1 extends ProfileJsonValidation {
       RDAPValidatorResults results,
       RDAPQueryType queryType,
       RDAPValidatorConfiguration config) {
-    super(rdapResponse, results);
+    super(rdapResponse, results, config);
     this.queryType = queryType;
     this.config = config;
   }

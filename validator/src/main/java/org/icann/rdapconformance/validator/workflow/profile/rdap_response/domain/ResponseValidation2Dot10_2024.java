@@ -24,7 +24,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
     private static final String NOT_FOUND = "not_found";
 
     public ResponseValidation2Dot10_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results);
+        super(rdapResponse, results, config);
         this.config = config;
     }
 

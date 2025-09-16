@@ -1,6 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver;
 
 import java.util.Set;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.RegistrarEntityValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -12,9 +14,10 @@ public final class ResponseValidation4Dot3 extends RegistrarEntityValidation {
 
   public ResponseValidation4Dot3(String rdapResponse,
       RDAPValidatorResults results,
+       RDAPValidatorConfiguration config,
       RDAPDatasetService datasetService,
       RDAPQueryType queryType) {
-    super(rdapResponse, results, datasetService, queryType, -49200);
+    super(rdapResponse, results, config, datasetService, queryType, -49200);
   }
 
   @Override

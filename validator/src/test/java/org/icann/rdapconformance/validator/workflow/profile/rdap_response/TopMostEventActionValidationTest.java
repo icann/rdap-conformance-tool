@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -29,7 +30,7 @@ public abstract class TopMostEventActionValidationTest<T extends TopMostEventAct
   public TopMostEventActionValidation getProfileValidation() {
     try {
       return validationClass.getConstructor(String.class, RDAPValidatorResults.class,
-          RDAPQueryType.class).newInstance(jsonObject.toString(), results, queryType);
+              RDAPValidatorConfiguration.class, RDAPQueryType.class).newInstance(jsonObject.toString(), results, config, queryType);
     } catch (Exception e) {
       return null;
     }

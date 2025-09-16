@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -245,7 +246,7 @@ public class ProfileJsonValidationTest {
     private static class TestProfileJsonValidation extends ProfileJsonValidation {
 
         public TestProfileJsonValidation(String rdapResponse, RDAPValidatorResults results) {
-            super(rdapResponse, results);
+            super(rdapResponse, results, null);
         }
 
         @Override

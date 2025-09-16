@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import java.util.Set;
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileVcardArrayValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -17,8 +18,8 @@ public final class TigValidation7Dot1And7Dot2 extends RDAPProfileVcardArrayValid
   private static final Set<String> AUTHORIZED_PHONE_TYPE = Set.of(VOICE_TYPE, FAX_TYPE);
 
   public TigValidation7Dot1And7Dot2(String rdapResponse,
-      RDAPValidatorResults results) {
-    super(rdapResponse, results);
+      RDAPValidatorResults results, RDAPValidatorConfiguration config) {
+    super(rdapResponse, results, config);
   }
 
   @Override

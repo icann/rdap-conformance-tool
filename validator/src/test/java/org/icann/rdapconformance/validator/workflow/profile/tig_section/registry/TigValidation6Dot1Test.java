@@ -15,7 +15,7 @@ public class TigValidation6Dot1Test extends RegistrarEntityPublicIdsValidationTe
 
   @Override
   public RegistrarEntityPublicIdsValidation getProfileValidation() {
-    return new TigValidation6Dot1(jsonObject.toString(), results, queryType);
+    return new TigValidation6Dot1(jsonObject.toString(), results, config, queryType);
   }
 
   @Test

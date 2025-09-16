@@ -8,11 +8,13 @@ import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.util.FixturesGenerator;
@@ -31,6 +33,7 @@ public abstract class SchemaValidatorTest {
   protected String name;
   protected static final String WRONG_ENUM_VALUE = "wrong enum value";
   protected String validationName;
+  protected RDAPValidatorConfiguration config;
 
   public SchemaValidatorTest(
       String schemaName,
@@ -56,10 +59,11 @@ public abstract class SchemaValidatorTest {
     datasets = new RDAPDatasetServiceMock();
     datasets.download(true);
     results = RDAPValidatorResultsImpl.getInstance();
+    config = mock(RDAPValidatorConfiguration.class);
     results.clear();
     rdapContent = getResource(validJsonResourcePath);
     jsonObject = new JSONObject(rdapContent);
-    schemaValidator = new SchemaValidator(schemaName, results, datasets);
+    schemaValidator = new SchemaValidator(schemaName, results, config, datasets);
     name = schemaValidator.getSchema().getTitle();
   }
 

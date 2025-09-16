@@ -6,24 +6,23 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.TopMos
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-public final class ResponseValidation2Dot3Dot1Dot1 extends TopMostEventActionValidation {
+public final class ResponseValidation2Dot3Dot2_2024 extends TopMostEventActionValidation {
 
-  public ResponseValidation2Dot3Dot1Dot1(String rdapResponse, RDAPValidatorResults results,
-                                         RDAPValidatorConfiguration config, RDAPQueryType queryType) {
+  public ResponseValidation2Dot3Dot2_2024(String rdapResponse, RDAPValidatorResults results,
+                                          RDAPValidatorConfiguration config, RDAPQueryType queryType) {
     super(rdapResponse, results, queryType,
-        -46300,
-        "An eventAction of type registration does not exists in the topmost events data structure. "
-            + "See section 2.3.1.1 of the RDAP_Response_Profile_2_1.",
-        EventAction.REGISTRATION, config);
+        -65300,
+        "An eventAction of type 'registrar expiration' is expected.",
+        EventAction.EXPIRATION, config);
   }
 
   @Override
   public String getGroupName() {
-    return "rdapResponseProfile_2_3_1_1_Validation";
+    return "rdapResponseProfile_2_3_2_Validation";
   }
 
   @Override
   public boolean doLaunch() {
-    return queryType.equals(RDAPQueryType.DOMAIN);
+    return config.isGtldRegistrar() && queryType.equals(RDAPQueryType.DOMAIN);
   }
 }

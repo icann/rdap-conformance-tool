@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.JpathUtil;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 
@@ -11,8 +12,8 @@ public abstract class ProfileJsonValidation extends ProfileValidation {
   protected final JSONObject jsonObject;
   private final JpathUtil jpathUtil;
 
-  public ProfileJsonValidation(String rdapResponse, RDAPValidatorResults results) {
-    super(results);
+  public ProfileJsonValidation(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
+    super(results, config);
     // Use cached JSON parsing to avoid repeated parsing of the same RDAP response
     jsonObject = org.icann.rdapconformance.validator.workflow.JsonCacheUtil.getCachedJsonObject(rdapResponse);
     jpathUtil = new JpathUtil(); // ready to dependency injection if needed sometimes

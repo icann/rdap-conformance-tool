@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import org.everit.json.schema.ValidationException;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileVcardArrayValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -9,8 +10,8 @@ import org.json.JSONArray;
 
 public class TigValidation4Dot1 extends RDAPProfileVcardArrayValidation {
 
-  public TigValidation4Dot1(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
+  public TigValidation4Dot1(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
+    super(rdapResponse, results, config);
   }
 
   @Override

@@ -32,7 +32,7 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
   public TigValidation1Dot11Dot1(RDAPValidatorConfiguration config,
       RDAPValidatorResults results, RDAPDatasetService datasetService,
       RDAPQueryType queryType) {
-    super(results);
+    super(results, config);
     this.config = config;
     this.datasetService = datasetService;
     this.queryType = queryType;

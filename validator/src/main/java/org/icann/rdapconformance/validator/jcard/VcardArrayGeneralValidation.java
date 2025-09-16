@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.jcard;
 
 import org.everit.json.schema.ValidationException;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileVcardArrayValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -8,8 +9,8 @@ import org.json.JSONArray;
 
 public class VcardArrayGeneralValidation extends RDAPProfileVcardArrayValidation {
 
-  public VcardArrayGeneralValidation(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
+  public VcardArrayGeneralValidation(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
+    super(rdapResponse, results, config);
   }
 
   @Override

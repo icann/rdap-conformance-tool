@@ -11,6 +11,6 @@ public class ResponseValidation1Dot3Test extends RDAPConformanceValidationTest {
 
   @Override
   public RDAPConformanceValidation getProfileValidation() {
-    return new ResponseValidation1Dot3(jsonObject.toString(), results);
+    return new ResponseValidation1Dot3(jsonObject.toString(), results, config);
   }
 }

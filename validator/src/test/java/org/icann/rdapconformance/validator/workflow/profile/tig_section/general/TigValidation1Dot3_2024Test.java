@@ -13,7 +13,7 @@ public class TigValidation1Dot3_2024Test extends RDAPConformanceValidationTest {
 
     @Override
     public RDAPConformanceValidation getProfileValidation() {
-        return new TigValidation1Dot3_2024(jsonObject.toString(), results);
+        return new TigValidation1Dot3_2024(jsonObject.toString(), results, config);
     }
 
     @Override

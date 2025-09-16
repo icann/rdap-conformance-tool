@@ -21,7 +21,8 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
     public ProfileValidation getProfileValidation() {
         return new ResponseValidation2Dot7Dot6Dot2_2024(
                 jsonObject.toString(),
-                results);
+                results,
+                config);
     }
 
     @Test
@@ -41,7 +42,8 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
         public ProfileValidation getProfileValidation() {
             return new ResponseValidation2Dot7Dot6Dot2_2024(
                     jsonObject.toString(),
-                    results);
+                    results,
+                    config);
         }
 
         @Test
@@ -62,7 +64,8 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
         public ProfileValidation getProfileValidation() {
             return new ResponseValidation2Dot7Dot6Dot2_2024(
                     jsonObject.toString(),
-                    results);
+                    results,
+                    config);
         }
 
         @Test
@@ -83,7 +86,8 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
         public ProfileValidation getProfileValidation() {
             return new ResponseValidation2Dot7Dot6Dot2_2024(
                     jsonObject.toString(),
-                    results);
+                    results,
+                    config);
         }
 
         @Test

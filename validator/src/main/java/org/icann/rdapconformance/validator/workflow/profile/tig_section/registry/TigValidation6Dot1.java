@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPublicIdsValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -8,8 +9,9 @@ public final class TigValidation6Dot1 extends RegistrarEntityPublicIdsValidation
 
   public TigValidation6Dot1(String rdapResponse,
       RDAPValidatorResults results,
+    RDAPValidatorConfiguration config,
       RDAPQueryType queryType) {
-    super(rdapResponse, results, queryType, -23300);
+    super(rdapResponse, results, config, queryType, -23300);
   }
 
   @Override

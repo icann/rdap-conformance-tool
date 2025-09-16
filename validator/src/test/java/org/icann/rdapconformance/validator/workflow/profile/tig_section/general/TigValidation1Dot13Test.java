@@ -31,7 +31,7 @@ public class TigValidation1Dot13Test extends ProfileValidationTestBase {
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new TigValidation1Dot13(httpResponse, results);
+    return new TigValidation1Dot13(httpResponse, results, config);
   }
 
   @Test

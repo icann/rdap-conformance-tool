@@ -2,6 +2,8 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard
 
 import java.util.Objects;
 import java.util.Set;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -17,8 +19,8 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
     private static final String REDACTED_PATH = "$.redacted[*]";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot2_2024.class);
 
-    public ResponseValidation2Dot7Dot4Dot2_2024(String rdapResponse, RDAPValidatorResults results) {
-        super(rdapResponse, results);
+    public ResponseValidation2Dot7Dot4Dot2_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
+        super(rdapResponse, results, config);
     }
 
     @Override

@@ -32,7 +32,7 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
 
     public ResponseValidationTestInvalidRedirect_2024( RDAPValidatorConfiguration config,
                                                       RDAPValidatorResults results) {
-        super(results);
+        super(results, config);
         this.config = config;
     }
 

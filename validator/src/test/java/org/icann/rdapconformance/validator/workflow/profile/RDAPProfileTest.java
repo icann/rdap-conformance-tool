@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -486,7 +487,7 @@ public class RDAPProfileTest {
     // Tig validation test classes
     public static class TigValidation1Dot2Test extends ProfileValidation {
         public TigValidation1Dot2Test() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -496,7 +497,7 @@ public class RDAPProfileTest {
     
     public static class TigValidation1Dot3Test extends ProfileValidation {
         public TigValidation1Dot3Test() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -506,7 +507,7 @@ public class RDAPProfileTest {
     
     public static class TigValidation1Dot5_2024Test extends ProfileValidation {
         public TigValidation1Dot5_2024Test() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -516,7 +517,7 @@ public class RDAPProfileTest {
     
     public static class TigValidation1Dot6Test extends ProfileValidation {
         public TigValidation1Dot6Test() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -526,7 +527,7 @@ public class RDAPProfileTest {
     
     public static class TigValidation1Dot8Test extends ProfileValidation {
         public TigValidation1Dot8Test() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -536,7 +537,7 @@ public class RDAPProfileTest {
     
     public static class TigValidation1Dot11Dot1Test extends ProfileValidation {
         public TigValidation1Dot11Dot1Test() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -546,7 +547,7 @@ public class RDAPProfileTest {
     
     public static class TigValidation1Dot13Test extends ProfileValidation {
         public TigValidation1Dot13Test() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -557,7 +558,7 @@ public class RDAPProfileTest {
     // Response validation test classes
     public static class ResponseValidationHelp_2024Test extends ProfileValidation {
         public ResponseValidationHelp_2024Test() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -567,7 +568,7 @@ public class RDAPProfileTest {
     
     public static class ResponseValidationDomainInvalid_2024Test extends ProfileValidation {
         public ResponseValidationDomainInvalid_2024Test() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -577,7 +578,7 @@ public class RDAPProfileTest {
     
     public static class ResponseValidationTestInvalidRedirect_2024Test extends ProfileValidation {
         public ResponseValidationTestInvalidRedirect_2024Test() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -588,7 +589,7 @@ public class RDAPProfileTest {
     // Mock non-network validation
     public static class MockNonNetworkValidation extends ProfileValidation {
         public MockNonNetworkValidation() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -599,7 +600,7 @@ public class RDAPProfileTest {
     // Mock non-network validation that fails
     public static class MockNonNetworkValidationFail extends ProfileValidation {
         public MockNonNetworkValidationFail() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return false; }
@@ -612,7 +613,7 @@ public class RDAPProfileTest {
         private final MockConfig config = new MockConfig();
         
         public ValidationWithConfig() { 
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class)); 
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         @Override
         protected boolean doValidate() { return true; }
@@ -630,7 +631,7 @@ public class RDAPProfileTest {
     // Mock classes to help test network validation detection
     public static class MockNetworkValidation extends ProfileValidation {
         public MockNetworkValidation() {
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class));
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         
         @Override
@@ -646,7 +647,7 @@ public class RDAPProfileTest {
     
     public static class MockResponseValidation extends ProfileValidation {
         public MockResponseValidation() {
-            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class));
+            super(mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults.class), mock(RDAPValidatorConfiguration.class));
         }
         
         @Override

@@ -34,6 +34,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         return new ResponseValidationRegistrantHandle_2024(
                 jsonObject.toString(),
                 results,
+                config,
                 datasets);
     }
 

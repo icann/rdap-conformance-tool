@@ -3,6 +3,8 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.registr
 import com.jayway.jsonpath.DocumentContext;
 import java.util.List;
 import java.util.Set;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -24,9 +26,10 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
 
   public TigValidation1Dot12Dot1(String rdapResponse,
       RDAPValidatorResults results,
+      RDAPValidatorConfiguration config,
       RDAPDatasetService datasetService,
       RDAPQueryType queryType) {
-    super(rdapResponse, results);
+    super(rdapResponse, results, config);
     this.datasetService = datasetService;
     this.queryType = queryType;
   }

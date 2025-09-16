@@ -14,7 +14,7 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2_2024Test extends ProfileJso
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(jsonObject.toString(), results, RDAPQueryType.DOMAIN);
+        return new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(jsonObject.toString(), results, config, RDAPQueryType.DOMAIN);
     }
 
     @Test

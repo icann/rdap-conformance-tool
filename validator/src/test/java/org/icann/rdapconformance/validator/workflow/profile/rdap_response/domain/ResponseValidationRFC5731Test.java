@@ -45,7 +45,7 @@ public class ResponseValidationRFC5731Test extends ResponseDomainValidationTestB
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidationRFC5731(jsonObject.toString(), results, queryType);
+    return new ResponseValidationRFC5731(jsonObject.toString(), results, config, queryType);
   }
 
   @DataProvider(name = "validActiveStatus")

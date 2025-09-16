@@ -2,6 +2,8 @@ package org.icann.rdapconformance.validator.workflow.profile;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
@@ -19,8 +21,8 @@ public abstract class RDAPConformanceValidation extends ProfileJsonValidation {
   private final String requiredValue;
 
   public RDAPConformanceValidation(String rdapResponse, RDAPValidatorResults results,
-      String requiredValue, Integer code, String message) {
-    super(rdapResponse, results);
+                                   RDAPValidatorConfiguration config, String requiredValue, Integer code, String message) {
+    super(rdapResponse, results, config);
     this.requiredValue = requiredValue;
     this.code = code;
     this.message = message;

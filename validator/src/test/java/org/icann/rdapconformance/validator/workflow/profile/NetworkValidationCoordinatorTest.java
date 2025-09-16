@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile;
 
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -23,11 +24,13 @@ import static org.mockito.Mockito.times;
 public class NetworkValidationCoordinatorTest {
 
     private String originalParallelProperty;
+    private RDAPValidatorConfiguration config;
 
     @BeforeMethod
     public void setUp() {
         // Store original system property
         originalParallelProperty = System.getProperty("rdap.parallel.network");
+        config = mock(RDAPValidatorConfiguration.class);
     }
 
     @AfterMethod
@@ -631,7 +634,7 @@ public class NetworkValidationCoordinatorTest {
     // Mock classes for testing HTTP validation categorization
     private static class TigValidation1Dot2 extends ProfileValidation {
         public TigValidation1Dot2() {
-            super(null);
+            super(null, null);
         }
         
         @Override
@@ -647,7 +650,7 @@ public class NetworkValidationCoordinatorTest {
     
     private static class ResponseValidationHelp_2024 extends ProfileValidation {
         public ResponseValidationHelp_2024() {
-            super(null);
+            super(null, null);
         }
         
         @Override
@@ -663,7 +666,7 @@ public class NetworkValidationCoordinatorTest {
     
     private static class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
         public ResponseValidationDomainInvalid_2024() {
-            super(null);
+            super(null, null);
         }
         
         @Override
@@ -679,7 +682,7 @@ public class NetworkValidationCoordinatorTest {
     
     private static class RegularValidationMock extends ProfileValidation {
         public RegularValidationMock() {
-            super(null);
+            super(null, null);
         }
         
         @Override

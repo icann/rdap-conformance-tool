@@ -162,7 +162,7 @@ public class ProfileValidationTest {
     private static class TestProfileValidation extends ProfileValidation {
 
         public TestProfileValidation(RDAPValidatorResults results) {
-            super(results);
+            super(results, null);
         }
 
         @Override
@@ -183,7 +183,7 @@ public class ProfileValidationTest {
         private final Exception exceptionToThrow;
 
         public ExceptionThrowingValidation(RDAPValidatorResults results, Exception exceptionToThrow) {
-            super(results);
+            super(results, null);
             this.exceptionToThrow = exceptionToThrow;
         }
 

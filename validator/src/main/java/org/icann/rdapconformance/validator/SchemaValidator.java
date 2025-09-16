@@ -11,6 +11,7 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaClient;
 import org.everit.json.schema.loader.SchemaLoader;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,9 +58,11 @@ public class SchemaValidator {
   private Schema schema;
   private RDAPValidatorResults results;
   private SchemaNode schemaRootNode;
+  private RDAPValidatorConfiguration config;
 
   public SchemaValidator(String schemaName, RDAPValidatorResults results,
-      RDAPDatasetService datasetService) {
+                         RDAPValidatorConfiguration config,
+                        RDAPDatasetService datasetService) {
       this.jpathUtil = new JpathUtil();
     this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader(), datasetService),
         results);
@@ -155,11 +158,11 @@ public class SchemaValidator {
       verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
       if (content.contains("\"vcardArray\"")) {
-        new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
+        new VcardArrayGeneralValidation(jsonObject.toString(), results, config).validate();
       }
 
       if (content.contains("\"notices\"")) {
-        new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode).validate();
+        new NoticesTopMostValidation(jsonObject.toString(), results, config, schemaRootNode).validate();
       }
     } catch (Exception e) {
       logger.error("Exception during schema validation. This is likely caused by a schema deeply "

@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 import java.util.Objects;
 import java.util.Set;
 import org.icann.rdapconformance.validator.EventAction;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -16,8 +17,8 @@ public abstract class TopMostEventActionValidation extends ProfileJsonValidation
   private final EventAction eventAction;
 
   public TopMostEventActionValidation(String rdapResponse, RDAPValidatorResults results,
-      RDAPQueryType queryType, int code, String message, EventAction eventAction) {
-    super(rdapResponse, results);
+      RDAPQueryType queryType, int code, String message, EventAction eventAction, RDAPValidatorConfiguration config) {
+    super(rdapResponse, results, config);
     this.queryType = queryType;
     this.eventAction = eventAction;
     this.code = code;

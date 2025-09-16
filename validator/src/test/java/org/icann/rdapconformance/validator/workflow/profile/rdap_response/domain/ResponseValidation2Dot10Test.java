@@ -12,7 +12,7 @@ public class ResponseValidation2Dot10Test extends ResponseDomainValidationTestBa
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot10(jsonObject.toString(), results, queryType);
+    return new ResponseValidation2Dot10(jsonObject.toString(), results, config, queryType);
   }
 
   @Test
