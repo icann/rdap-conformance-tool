@@ -250,14 +250,14 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot4Dot1(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot4Dot5(rdapResponseData, results, queryType));
-        validations.add(new ResponseNameserverStatusValidation(rdapResponseData, results, config, queryType));
+        validations.add(new ResponseNameserverStatusValidation(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation4Dot1Handle(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation4Dot1Query(rdapResponseData, results, config, queryType));
         validations.add(new ResponseValidation4Dot3(rdapResponseData, results, datasetService, queryType));
 
         // 2024 specific validations
-        validations.add(new TigValidation1Dot3_2024(rdapResponseData, results, config));
-        validations.add(new ResponseValidation1Dot2_1_2024(rdapResponseData, results, config));
+        validations.add(new TigValidation1Dot3_2024(rdapResponseData, results));
+        validations.add(new ResponseValidation1Dot2_1_2024(rdapResponseData, results));
         validations.add(new ResponseValidation1Dot2_2_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot2_2024(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot2_1_2024(rdapResponseData, results, datasetService));
@@ -333,8 +333,8 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
         validations.add(new ResponseValidationNoticesIncluded(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidation2Dot6Dot3(rdapResponseData, results, config, queryType));
-        validations.add(new ResponseValidation2Dot11(rdapResponseData, results, config, queryType));
+        validations.add(new ResponseValidation2Dot6Dot3(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidation2Dot11(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot10(rdapResponseData, results, queryType));
         validations.add(new ResponseValidationRFC5731(rdapResponseData, results, queryType));
         validations.add(new ResponseValidationRFC3915(rdapResponseData, results, queryType));
@@ -353,7 +353,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot7Dot5Dot3(rdapResponseData, results, queryType, config));
         validations.add(new ResponseValidation3Dot1(rdapResponseData, results, queryType, config));
         validations.add(new ResponseValidation3Dot2(rdapResponseData, results, queryType, config));
-        validations.add(new ResponseNameserverStatusValidation(rdapResponseData, results, config, queryType));
+        validations.add(new ResponseNameserverStatusValidation(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation4Dot1Handle(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation4Dot1Query(rdapResponseData, results, config, queryType));
         validations.add(new ResponseValidation4Dot3(rdapResponseData, results, datasetService, queryType));

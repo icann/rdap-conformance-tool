@@ -177,7 +177,7 @@ public class RDAPHttpQueryTypeProcessorTest {
         new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
     
     org.icann.rdapconformance.validator.SchemaValidator validator = 
-        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, config, datasetService);
+        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, datasetService);
     
     String testJson = "{\"domain\": \"zz--main-1234\"}";
     boolean isValid = validator.validate(testJson);
@@ -340,7 +340,7 @@ public class RDAPHttpQueryTypeProcessorTest {
         new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
     
     org.icann.rdapconformance.validator.SchemaValidator validator = 
-        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, config, datasetService);
+        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, datasetService);
     
     // Create a label that's too long (over 63 characters)
     String longLabel = "a".repeat(64);
@@ -377,7 +377,7 @@ public class RDAPHttpQueryTypeProcessorTest {
         new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
     
     org.icann.rdapconformance.validator.SchemaValidator validator = 
-        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, config, datasetService);
+        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, datasetService);
     
     // Create a domain name that's too long (over 253 characters total)
     // Each label can be up to 63 chars, so we need multiple labels to exceed 253 total
@@ -417,7 +417,7 @@ public class RDAPHttpQueryTypeProcessorTest {
         new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
     
     org.icann.rdapconformance.validator.SchemaValidator validator = 
-        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, config, datasetService);
+        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, datasetService);
     
     // Test with single label (no dot)
     String testJson = "{\"domain\": \"singlelabel\"}";
@@ -453,7 +453,7 @@ public class RDAPHttpQueryTypeProcessorTest {
         new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
     
     org.icann.rdapconformance.validator.SchemaValidator validator = 
-        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, config, datasetService);
+        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, datasetService);
     
     // Use zz--main-1234 which triggers HYPHEN_3_4 rule violation
     String testJson = "{\"domain\": \"zz--main-1234\"}";
@@ -500,7 +500,7 @@ public class RDAPHttpQueryTypeProcessorTest {
           new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
       
       org.icann.rdapconformance.validator.SchemaValidator validator = 
-          new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, config, datasetService);
+          new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, datasetService);
       
       String testJson = "{\"domain\": \"" + domain + "\"}";
       boolean isValid = validator.validate(testJson);

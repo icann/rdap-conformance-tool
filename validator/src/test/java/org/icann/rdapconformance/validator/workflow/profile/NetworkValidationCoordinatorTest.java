@@ -1,8 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
-import org.icann.rdapconformance.validator.NetworkInfo;
-import org.icann.rdapconformance.validator.NetworkProtocol;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -13,7 +10,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -24,13 +20,11 @@ import static org.mockito.Mockito.times;
 public class NetworkValidationCoordinatorTest {
 
     private String originalParallelProperty;
-    private RDAPValidatorConfiguration config;
 
     @BeforeMethod
     public void setUp() {
         // Store original system property
         originalParallelProperty = System.getProperty("rdap.parallel.network");
-        config = mock(RDAPValidatorConfiguration.class);
     }
 
     @AfterMethod

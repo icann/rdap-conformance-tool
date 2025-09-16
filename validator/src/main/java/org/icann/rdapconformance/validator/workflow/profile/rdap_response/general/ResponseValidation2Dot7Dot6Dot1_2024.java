@@ -1,10 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
-import com.jayway.jsonpath.JsonPath;
 import java.util.Objects;
 import java.util.Set;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;

@@ -2,7 +2,6 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 
 import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.CommonUtils;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;

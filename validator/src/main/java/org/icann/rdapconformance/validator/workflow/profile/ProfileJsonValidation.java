@@ -3,7 +3,6 @@ package org.icann.rdapconformance.validator.workflow.profile;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.JpathUtil;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONObject;
 

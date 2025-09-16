@@ -48,7 +48,7 @@ public class ResponseNameserverStatusValidationTest extends ProfileJsonValidatio
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseNameserverStatusValidation(jsonObject.toString(), results, config, queryType);
+    return new ResponseNameserverStatusValidation(jsonObject.toString(), results, queryType);
   }
 
   @Test(dataProvider = "invalidStatus")
