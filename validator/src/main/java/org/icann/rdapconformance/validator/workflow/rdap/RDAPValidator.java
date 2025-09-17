@@ -151,7 +151,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             new DomainCaseFoldingValidation(rdapResponse, config, results, queryType).validate(); // Network calls
         }
 
-        // Issue additional queries (/help and /not-a-domain.invalid) when flag is true and profile 2024 is false
+        // Issue additional queries (/help and /not-a-domain.invalid) when flag is true regardless of profile
         if(config.isAdditionalConformanceQueries()) {
             logger.info("Validations for additional conformance queries");
 
