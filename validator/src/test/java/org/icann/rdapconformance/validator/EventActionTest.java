@@ -10,11 +10,12 @@ public class EventActionTest {
     public void testEnumValues() {
         EventAction[] values = EventAction.values();
         
-        assertThat(values).hasSize(3);
+        assertThat(values).hasSize(4);
         assertThat(values).contains(
             EventAction.LAST_UPDATE_OF_RDAP_DATABASE,
             EventAction.REGISTRATION,
-            EventAction.EXPIRATION
+            EventAction.EXPIRATION,
+            EventAction.REGISTRAR_EXPIRATION
         );
     }
     
@@ -71,7 +72,7 @@ public class EventActionTest {
     public void testEnumOrdinals() {
         assertThat(EventAction.LAST_UPDATE_OF_RDAP_DATABASE.ordinal()).isEqualTo(0);
         assertThat(EventAction.REGISTRATION.ordinal()).isEqualTo(1);
-        assertThat(EventAction.EXPIRATION.ordinal()).isEqualTo(2);
+        assertThat(EventAction.EXPIRATION.ordinal()).isEqualTo(3);
     }
     
     @Test

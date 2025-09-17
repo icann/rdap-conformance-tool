@@ -1,10 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-import com.jayway.jsonpath.DocumentContext;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import net.minidev.json.JSONArray;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;

@@ -25,7 +25,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
   private final RDAPDatasetService datasetService;
 
   public ResponseValidation2Dot2_1_2024(String rdapResponse, RDAPValidatorResults results,
-                                      RDAPDatasetService datasetService) {
+                                        RDAPDatasetService datasetService) {
     super(rdapResponse, results);
     this.datasetService = datasetService;
   }

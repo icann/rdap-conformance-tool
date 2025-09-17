@@ -124,6 +124,10 @@
     {
       "eventAction": "last update of RDAP database",
       "eventDate": "2021-03-18T09:24:18Z"
+    },
+    {
+      "eventAction": "registrar expiration",
+      "eventDate": "2021-03-18T09:24:18Z"
     }
   ],
   "secureDNS": {
