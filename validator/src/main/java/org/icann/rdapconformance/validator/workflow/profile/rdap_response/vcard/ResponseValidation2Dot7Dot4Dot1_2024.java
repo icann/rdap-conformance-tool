@@ -19,7 +19,6 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
     public static final String VCARD_FN_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1][?(@[0]=='fn')]";
     public static final String VCARD_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1]";
     private static final String REDACTED_PATH = "$.redacted[*]";
-    private Set<String> vcardFnPointersValue = null;
     private Set<String> vcardPointersValue = null;
     private Set<String> redactedPointersValue = null;
 
@@ -41,71 +40,50 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
         if(getPointerFromJPath(ENTITY_ROLE_PATH).isEmpty()) {
             return true;
         }
-        try {
-            vcardFnPointersValue = getPointerFromJPath(VCARD_FN_PATH);
-            vcardPointersValue = getPointerFromJPath(VCARD_PATH);
-            logger.info("vcardFnPointersValue size: {}", vcardFnPointersValue.size());
+        Set<String> vcardFnPointersValue = getPointerFromJPath(VCARD_FN_PATH);
+        vcardPointersValue = getPointerFromJPath(VCARD_PATH);
+        logger.info("vcardFnPointersValue size: {}", vcardFnPointersValue.size());
 
-            if(vcardFnPointersValue.isEmpty()) {
-                logger.info("fn in vcard does not have values, validate redaction object");
-                results.add(RDAPValidationResult.builder()
-                        .code(-63200)
-                        .value(getResultValue(vcardPointersValue))
-                        .message("The fn property is required on the vcard for the registrant.")
-                        .build());
-                return false;
-            } else {
-                for (String jsonPointer : vcardFnPointersValue) {
-                    JSONArray vcardFnArray = (JSONArray) jsonObject.query(jsonPointer);
-                    if(vcardFnArray.get(3) instanceof String fnValue) {
-                        if(StringUtils.isEmpty(fnValue)) {
-                            return validateRedactedArrayForFnValue();
-                        }
-                    }
-                }
-            }
-
-            return true;
-
-        } catch (Exception e) {
-            logger.info("vcard fn is not found, no validations for this case, Error: {}", e.getMessage());
+        if(vcardFnPointersValue.isEmpty()) {
+            logger.info("fn in vcard does not have values, validate redaction object");
             results.add(RDAPValidationResult.builder()
                     .code(-63200)
                     .value(getResultValue(vcardPointersValue))
                     .message("The fn property is required on the vcard for the registrant.")
                     .build());
             return false;
+        } else {
+            for (String jsonPointer : vcardFnPointersValue) {
+                JSONArray vcardFnArray = (JSONArray) jsonObject.query(jsonPointer);
+                if(vcardFnArray.get(3) instanceof String fnValue) {
+                    if(StringUtils.isEmpty(fnValue)) {
+                        return validateRedactedArrayForFnValue();
+                    } else {
+                        return validateRedactedArrayForNotEmptyFnValue();
+                    }
+                }
+            }
         }
+
+        return true;
+    }
+
+    private boolean validateRedactedArrayForNotEmptyFnValue() {
+        var redactedRegistrantName = extractRedactedRegistrantName();
+        if(Objects.nonNull(redactedRegistrantName)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63205)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registrant Name was found but registrant fn property was not redacted.")
+                    .build());
+            return false;
+        }
+
+        return true;
     }
 
     private boolean validateRedactedArrayForFnValue() {
-        JSONObject redactedRegistrantName = null;
-        redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
-        for (String redactedJsonPointer : redactedPointersValue) {
-            JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-            JSONObject name = (JSONObject) redacted.get("name");
-            try {
-                var nameValue = name.get("type");
-                if(nameValue instanceof String redactedName) {
-                    if(redactedName.trim().equalsIgnoreCase("Registrant Name")) {
-                        redactedRegistrantName = redacted;
-                        break; // Found the Registrant Name redaction, no need to continue
-                    }
-                }
-            } catch (Exception e) {
-                // FIXED: Don't fail immediately when encountering an exception
-                // Real-world redacted arrays contain mixed objects:
-                // - Some have name.type (e.g., "Registrant Name", "Registry Domain ID") 
-                // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
-                // - The exception occurs when trying to extract "type" from objects that only have "description"
-                // We should skip these objects and continue searching, not fail the entire validation
-                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}", 
-                           redactedJsonPointer, e.getMessage());
-                continue; // Continue checking other redacted objects instead of failing
-            }
-
-        }
-
+        var redactedRegistrantName = extractRedactedRegistrantName();
         if(Objects.isNull(redactedRegistrantName)) {
             results.add(RDAPValidationResult.builder()
                     .code(-63201)
@@ -117,6 +95,36 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
         }
 
         return validateRedactedProperties(redactedRegistrantName);
+    }
+
+    private JSONObject extractRedactedRegistrantName() {
+        JSONObject redactedRegistrantName = null;
+        redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+        for (String redactedJsonPointer : redactedPointersValue) {
+            JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
+            try {
+                JSONObject name = (JSONObject) redacted.get("name");
+                var nameValue = name.get("type");
+                if(nameValue instanceof String redactedName) {
+                    if(redactedName.trim().equalsIgnoreCase("Registrant Name")) {
+                        redactedRegistrantName = redacted;
+                        break; // Found the Registrant Name redaction, no need to continue
+                    }
+                }
+            } catch (Exception e) {
+                // FIXED: Don't fail immediately when encountering an exception
+                // Real-world redacted arrays contain mixed objects:
+                // - Some have name.type (e.g., "Registrant Name", "Registry Domain ID")
+                // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
+                // - The exception occurs when trying to extract "type" from objects that only have "description"
+                // We should skip these objects and continue searching, not fail the entire validation
+                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}",
+                           redactedJsonPointer, e.getMessage());
+                continue; // Continue checking other redacted objects instead of failing
+            }
+
+        }
+        return redactedRegistrantName;
     }
 
     private boolean validateRedactedProperties(JSONObject redactedRegistrantName) {
