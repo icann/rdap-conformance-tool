@@ -141,16 +141,6 @@
   "redacted": [
     {
       "name": {
-        "type": "Registrant Phone"
-      },
-      "prePath": "$.test",
-      "method": "removal",
-      "reason": {
-        "description": "Server policy"
-      }
-    },
-    {
-      "name": {
         "type": "Tech Phone"
       },
       "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]",

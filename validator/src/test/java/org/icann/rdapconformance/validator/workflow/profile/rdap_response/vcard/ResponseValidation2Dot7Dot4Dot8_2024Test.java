@@ -15,13 +15,13 @@ import java.util.Arrays;
 public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidationTestBase {
 
     static final String voicePointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"test\"},\"prePath\":\"$.test\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"test\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String pathLangBadPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$test\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$test\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String prePathExistingPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$.redacted[*]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$.redacted[*]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String methodPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"test2\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$.test\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"test2\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$.test\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
 
     public ResponseValidation2Dot7Dot4Dot8_2024Test() {
         super("/validators/profile/response_validations/vcard/valid_tel_voice.json",
@@ -70,6 +70,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         // Remove ALL tel properties from registrant entity to trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
 
         // Remove both tel properties (voice and fax) from registrant
         for (int i = vcardArray.length() - 1; i >= 0; i--) {
@@ -88,6 +89,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         // Remove ALL tel properties from registrant entity to trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
 
         // Remove both tel properties (voice and fax) from registrant
         for (int i = vcardArray.length() - 1; i >= 0; i--) {
@@ -107,6 +109,8 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         // Remove ALL tel properties from registrant entity to trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
+        redactedObject.put("prePath", "$.test");
 
         // Remove both tel properties (voice and fax) from registrant
         for (int i = vcardArray.length() - 1; i >= 0; i--) {
@@ -223,8 +227,12 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         // Test when there are tel properties but none have voice parameter
         
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
+        redactedObject.put("prePath", "$.test");
         JSONArray existingTel = vcardArray.getJSONArray(5); // Get existing tel property
         JSONObject telParams = existingTel.getJSONObject(1); // Get parameters object
+
         
         // Change voice to fax
         telParams.put("type", "fax");
@@ -240,12 +248,13 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
         
         tel.remove(1); // Remove voice parameter to trigger redaction validation
         redactedObject.put("prePath", "$invalid[syntax"); // Invalid JSONPath
         
         // Expected: Should trigger -63701 for invalid JSONPath
-        String expectedValue = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$invalid[syntax\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+        String expectedValue = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$invalid[syntax\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
         validate(-63701, expectedValue, "jsonpath is invalid for Registrant Phone.");
     }
 
@@ -255,12 +264,13 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
         
         tel.remove(1); // Remove voice parameter to trigger redaction validation
         redactedObject.put("prePath", "$.entities[*]"); // Valid JSONPath that returns results
         
         // Expected: Should trigger -63702 because prePath should evaluate to zero set for removal
-        String expectedValue = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$.entities[*]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+        String expectedValue = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$.entities[*]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
         validate(-63702, expectedValue, "jsonpath must evaluate to a zero set for redaction by removal of Registrant Phone.");
     }
 
@@ -270,6 +280,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
         
         tel.remove(1); // Remove voice parameter to trigger redaction validation
         redactedObject.put("prePath", "$.nonExistentProperty[*]"); // Valid JSONPath that returns no results
@@ -284,6 +295,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
         
         tel.remove(1); // Remove voice parameter to trigger redaction validation
         redactedObject.remove("prePath"); // Remove prePath property completely
@@ -298,12 +310,14 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
-        
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
+        redactedObject.put("prePath", "$.test");
+
         tel.remove(1); // Remove voice parameter to trigger redaction validation
         redactedObject.put("method", "emptyValue"); // Wrong method for phone validation
         
         // Expected: Should trigger -63703 because method must be "removal" for phone
-        String expectedValue = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$.test\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+        String expectedValue = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$.test\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
         validate(-63703, expectedValue, "Registrant Phone redaction method must be removal if present");
     }
 
@@ -313,6 +327,8 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         
         JSONArray tel = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
+        redactedObject.put("prePath", "$.test");
         
         tel.remove(1); // Remove voice parameter to trigger redaction validation
         redactedObject.remove("method"); // Remove method property completely
@@ -613,6 +629,41 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         validate(-63700, 
             "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"test\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')][3]\",\"pathLang\":\"jsonpath\",\"prePath\":\"book\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}",
             "a redaction of type Registrant Phone is required.");
+    }
+
+    @Test
+    public void testRegistrantPhoneRedactedButVoiceTelPresent_ShouldTrigger63704() {
+        // Ensure the registrant entity has a tel property with type "voice"
+        JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        // Make sure at least one tel property has type "voice"
+        boolean foundVoice = false;
+        for (int i = 0; i < vcardArray.length(); i++) {
+            JSONArray property = vcardArray.getJSONArray(i);
+            if (property.length() >= 2 && "tel".equals(property.getString(0))) {
+                JSONObject telParams = property.getJSONObject(1);
+                telParams.put("type", "voice");
+                foundVoice = true;
+                break;
+            }
+        }
+        if (!foundVoice) {
+            // Add a tel property with type voice if not present
+            JSONArray tel = new JSONArray();
+            tel.put("tel");
+            JSONObject telParams = new JSONObject();
+            telParams.put("type", "voice");
+            tel.put(telParams);
+            tel.put("uri");
+            tel.put("tel:+1.555.555.5555");
+            vcardArray.put(tel);
+        }
+        // Ensure the redacted array contains a Registrant Phone redaction object
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant Phone");
+        // Run validation and assert -63704 is triggered
+        validate(-63704,
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}",
+            "a redaction of type Registrant Phone was found but the phone was not redacted.");
     }
 
 }
