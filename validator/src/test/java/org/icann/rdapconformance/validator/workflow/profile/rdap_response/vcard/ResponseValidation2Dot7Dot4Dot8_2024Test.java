@@ -12,19 +12,6 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.util.Arrays;
 
-/*
-    {
-      "name": {
-        "type": "Registrant Phone"
-      },
-      "prePath": "$.test",
-      "method": "removal",
-      "reason": {
-        "description": "Server policy"
-      }
-    },
- */
-
 public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidationTestBase {
 
     static final String voicePointer =
