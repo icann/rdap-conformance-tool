@@ -8,7 +8,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 public final class ResponseValidation2Dot3Dot1Dot2 extends TopMostEventActionValidation {
 
   public ResponseValidation2Dot3Dot1Dot2(String rdapResponse, RDAPValidatorResults results,
-      RDAPQueryType queryType) {
+                                         RDAPQueryType queryType) {
     super(rdapResponse, results, queryType,
         -46400,
         "An eventAction of type expiration does not exists in the topmost events data structure. "
