@@ -9,7 +9,7 @@ public final class ResponseValidation2Dot3Dot2_2024 extends TopMostEventActionVa
 
   public ResponseValidation2Dot3Dot2_2024(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType) {
     super(rdapResponse, results, queryType,
-        -65300,
+        -65400,
         "An eventAction of type 'registrar expiration' is expected.",
         EventAction.REGISTRAR_EXPIRATION);
   }
