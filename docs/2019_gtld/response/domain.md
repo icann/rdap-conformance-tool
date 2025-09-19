@@ -81,7 +81,7 @@ The following steps should be used to test the RDAP protocol section 2.3.1.2 of 
 {
   "code": -46400,
   "value": "<events data structure>",
-  "message": "An eventAction of type expiration does not exists in the topmost events data structure. See section 2.3.1.2 of the RDAP_Response_Profile_2_1."
+  "message": "An eventAction of type expiration does not exist in the topmost events data structure. See section 2.3.1.2 of the RDAP_Response_Profile_2_1."
 }
 ```
 
