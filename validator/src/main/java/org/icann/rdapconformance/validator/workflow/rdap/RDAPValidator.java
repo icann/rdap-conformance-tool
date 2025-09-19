@@ -238,7 +238,6 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot1(rdapResponseData, results, config, queryType));
         validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType));
 
-        logger.info("Running ResponseValidation2Dot3Dot1Dot2 for gTLD registries: {}", config.isGtldRegistry());
          // Only run this validation if it's a gTLD registry
         if(config.isGtldRegistry()) {
             validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
@@ -329,7 +328,6 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot2(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType));
 
-        logger.info("Running ResponseValidation2Dot3Dot1Dot2 for gTLD registries: {}", config.isGtldRegistry());
         // Only run this validation if it's a gTLD registry
         if(config.isGtldRegistry()) {
             validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
