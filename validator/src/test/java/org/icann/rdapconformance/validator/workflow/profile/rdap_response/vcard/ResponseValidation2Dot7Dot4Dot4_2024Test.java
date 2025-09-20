@@ -31,20 +31,6 @@ public class ResponseValidation2Dot7Dot4Dot4_2024Test extends ProfileJsonValidat
                 "rdapResponseProfile_2_7_4_4_Validation");
     }
 
-    /*
-        {
-      "name": {
-        "type": "Registrant City"
-      },
-      "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]",
-      "pathLang": "jsonpath",
-      "method": "emptyValue",
-      "reason": {
-        "description": "Server policy"
-      }
-    },
-     */
-
     @BeforeMethod
     public void setUp() throws IOException {
         super.setUp();
