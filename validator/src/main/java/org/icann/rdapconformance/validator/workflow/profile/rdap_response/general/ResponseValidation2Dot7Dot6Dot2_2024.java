@@ -56,10 +56,10 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
 
     // Use custom method to properly detect voice tel properties
     boolean hasVoiceTel = hasTechnicalVoiceTelProperty();
-    logger.info("hasTechnicalVoiceTel: {}", hasVoiceTel);
+    logger.debug("hasTechnicalVoiceTel: {}", hasVoiceTel);
     
     if(!hasVoiceTel) {
-        logger.info("tel voice is not found for technical entity, validating redacted array");
+        logger.debug("tel voice is not found for technical entity, validating redacted array");
         return validateRedactedArrayForEmptyTelVoice();
     }
 
@@ -103,7 +103,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
 
     // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify prePath
     try {
-      logger.info("Extracting pathLang...");
+      logger.debug("Extracting pathLang...");
       pathLangValue = redactedHandleObject.registryRedacted().get("pathLang");
       if(pathLangValue instanceof String pathLang) {
         if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
@@ -125,7 +125,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
           return false;
       }
     } catch (Exception e) {
-      logger.info("pathLang is not found");
+      logger.debug("pathLang is not found");
       return validatePrePathBasedOnPathLang(redactedHandleObject.registryRedacted());
     }
  }
@@ -134,11 +134,11 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
  private boolean validatePrePathBasedOnPathLang(JSONObject registryRedacted) {
     try {
       var prePathValue = registryRedacted.get("prePath");
-      logger.info("pathPath property is found, so verify value");
+      logger.debug("pathPath property is found, so verify value");
       if(prePathValue instanceof String prePath) {
         try {
             var prePathPointer = getPointerFromJPath(prePath);
-            logger.info("prePath pointer with size {}", prePathPointer.size());
+            logger.debug("prePath pointer with size {}", prePathPointer.size());
             if(!prePathPointer.isEmpty()) {
                 results.add(RDAPValidationResult.builder()
                         .code(-65102)
@@ -158,7 +158,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
         }
       }
     } catch (Exception e) {
-      logger.info("prePath property is not found, so validation is true");
+      logger.debug("prePath property is not found, so validation is true");
     }
 
     return true;
@@ -168,7 +168,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
  private boolean validateMethodProperty(RedactedHandleObjectToValidate redactedHandleObject) {
       try {
         var methodValue = redactedHandleObject.registryRedacted().get("method");
-        logger.info("method property is found, so verify value");
+        logger.debug("method property is found, so verify value");
         if(methodValue instanceof String method) {
           if(!method.trim().equalsIgnoreCase("removal")) {
             results.add(RDAPValidationResult.builder()
@@ -180,7 +180,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
           }
         }
       } catch (Exception e) {
-        logger.info("method property is not found, so validation is true");
+        logger.debug("method property is not found, so validation is true");
       }
 
       return true;

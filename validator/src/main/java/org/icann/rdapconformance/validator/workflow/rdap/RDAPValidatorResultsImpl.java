@@ -165,7 +165,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
       ObjectMapper mapper = org.icann.rdapconformance.validator.workflow.JsonMapperUtil.getSharedMapper();
       tupleListJson = mapper.writeValueAsString(new ArrayList<>(uniqueTuples));
     } catch (JsonProcessingException e) {
-      logger.info("Error serializing tuple list to JSON", e);
+      logger.debug("Error serializing tuple list to JSON", e);
     }
 
 
@@ -178,7 +178,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
     // If not all the same, add the new error code
     if (statusCodes.size() > ONE) {
-      logger.info("Not all status codes are the same");
+      logger.debug("Not all status codes are the same");
       results.add(
           RDAPValidationResult.builder()
                               .acceptHeader(DASH)
@@ -191,7 +191,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
                               .build()
       );
     } else {
-      logger.info("All status codes are the same");
+      logger.debug("All status codes are the same");
     }
 
     // Return a Pretty Printed and filtered results

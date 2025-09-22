@@ -46,15 +46,15 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
         try {
             // Use custom method to find voice tel properties that handles both string and array types
             boolean hasVoiceTel = hasVoiceTelProperty();
-            logger.info("hasVoiceTel: {}", hasVoiceTel);
+            logger.debug("hasVoiceTel: {}", hasVoiceTel);
 
             if(!hasVoiceTel) {
-                logger.info("voice tel in vcard does not have values, validate redaction object");
+                logger.debug("voice tel in vcard does not have values, validate redaction object");
                 return validateRedactedArrayForNoVoiceValue();
             }
 
         } catch (Exception e) {
-            logger.info("vcard voice is not found, validations for this case");
+            logger.debug("vcard voice is not found, validations for this case");
             return validateRedactedArrayForNoVoiceValue();
         }
 
@@ -103,7 +103,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
 
     private boolean validateRedactedProperties(JSONObject redactedPhone) {
         if(Objects.isNull(redactedPhone)) {
-            logger.info("redactedPhone object is null");
+            logger.debug("redactedPhone object is null");
             return true;
         }
 
@@ -111,7 +111,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
 
         // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify prePath
         try {
-            logger.info("Extracting pathLang...");
+            logger.debug("Extracting pathLang...");
             pathLangValue = redactedPhone.get("pathLang");
             if(pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
@@ -128,17 +128,17 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
     // Verify that the prePath property is either absent or is present with a valid JSONPath expression.
     private boolean validatePrePathBasedOnPathLang(JSONObject redactedPhone) {
         if(Objects.isNull(redactedPhone)) {
-            logger.info("redactedPhone object for prePath validations is null");
+            logger.debug("redactedPhone object for prePath validations is null");
             return true;
         }
 
         try {
             var prePathValue = redactedPhone.get("prePath");
-            logger.info("prePath property is found, so verify value");
+            logger.debug("prePath property is found, so verify value");
             if(prePathValue instanceof String prePath) {
                 try {
                     var prePathPointer = getPointerFromJPath(prePath);
-                    logger.info("prePath pointer with size {}", prePathPointer.size());
+                    logger.debug("prePath pointer with size {}", prePathPointer.size());
                     if(!prePathPointer.isEmpty()) {
                         results.add(RDAPValidationResult.builder()
                                 .code(-63702)
@@ -168,13 +168,13 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
     // Verify that the method property is either absent or is present as is a JSON string of “removal”.
     private boolean validateMethodProperty(JSONObject redactedPhone) {
         if(Objects.isNull(redactedPhone)) {
-            logger.info("redactedPhone object for method validations is null");
+            logger.debug("redactedPhone object for method validations is null");
             return true;
         }
 
         try {
             var methodValue = redactedPhone.get("method");
-            logger.info("method property is found, so verify value");
+            logger.debug("method property is found, so verify value");
             if(methodValue instanceof String method) {
                 if(!method.trim().equalsIgnoreCase("removal")) {
                     results.add(RDAPValidationResult.builder()

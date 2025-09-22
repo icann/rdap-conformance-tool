@@ -83,7 +83,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             boolean isValid = validator.validate(domainNameJson);
             
             if (!isValid) {
-                logger.info("Domain name validation failed for: {} - errors captured in main results", domainName);
+                logger.debug("Domain name validation failed for: {} - errors captured in main results", domainName);
                 int newResultCount = mainResults.getResultCount();
                 logger.debug("Added {} domain validation errors to results", newResultCount - currentResultCount);
                 

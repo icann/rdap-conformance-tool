@@ -44,10 +44,10 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
         try {
             vcardFnPointersValue = getPointerFromJPath(VCARD_FN_PATH);
             vcardPointersValue = getPointerFromJPath(VCARD_PATH);
-            logger.info("vcardFnPointersValue size: {}", vcardFnPointersValue.size());
+            logger.debug("vcardFnPointersValue size: {}", vcardFnPointersValue.size());
 
             if(vcardFnPointersValue.isEmpty()) {
-                logger.info("fn in vcard does not have values, validate redaction object");
+                logger.debug("fn in vcard does not have values, validate redaction object");
                 results.add(RDAPValidationResult.builder()
                         .code(-63200)
                         .value(getResultValue(vcardPointersValue))
@@ -68,7 +68,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
             return true;
 
         } catch (Exception e) {
-            logger.info("vcard fn is not found, no validations for this case, Error: {}", e.getMessage());
+            logger.debug("vcard fn is not found, no validations for this case, Error: {}", e.getMessage());
             results.add(RDAPValidationResult.builder()
                     .code(-63200)
                     .value(getResultValue(vcardPointersValue))
@@ -121,7 +121,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
 
     private boolean validateRedactedProperties(JSONObject redactedRegistrantName) {
         if(Objects.isNull(redactedRegistrantName)) {
-            logger.info("redactedRegistrantName object is null");
+            logger.debug("redactedRegistrantName object is null");
             return true;
         }
 
@@ -129,7 +129,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
 
         // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify postPath
         try {
-            logger.info("Extracting pathLang...");
+            logger.debug("Extracting pathLang...");
             pathLangValue = redactedRegistrantName.get("pathLang");
             if(pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
@@ -146,17 +146,17 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
     // Verify that the postPath property is either absent or is present with a valid JSONPath expression.
     private boolean validatePostPathBasedOnPathLang(JSONObject redactedRegistrantName) {
         if(Objects.isNull(redactedRegistrantName)) {
-            logger.info("redactedRegistrantName object for postPath validations is null");
+            logger.debug("redactedRegistrantName object for postPath validations is null");
             return true;
         }
 
         try {
             var postPathValue = redactedRegistrantName.get("postPath");
-            logger.info("postPath property is found, so verify value");
+            logger.debug("postPath property is found, so verify value");
             if(postPathValue instanceof String postPath) {
                 try {
                     var postPathPointer = getPointerFromJPath(postPath);
-                    logger.info("postPath pointer with size {}", postPathPointer.size());
+                    logger.debug("postPath pointer with size {}", postPathPointer.size());
                     if(postPathPointer.isEmpty()) {
                         results.add(RDAPValidationResult.builder()
                                 .code(-63203)
@@ -166,7 +166,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
                         return false;
                     }
                 } catch (Exception e) {
-                    logger.info("postPath is not a valid JSONPath expression, Error: {}", e.getMessage());
+                    logger.debug("postPath is not a valid JSONPath expression, Error: {}", e.getMessage());
                     results.add(RDAPValidationResult.builder()
                             .code(-63202)
                             .value(getResultValue(redactedPointersValue))
@@ -185,13 +185,13 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
     // Verify that the method property is either absent or is present as is a JSON string of “emptyValue”.
     private boolean validateMethodProperty(JSONObject redactedRegistrantName) {
         if(Objects.isNull(redactedRegistrantName)) {
-            logger.info("redactedPhone object for method validations is null");
+            logger.debug("redactedPhone object for method validations is null");
             return true;
         }
 
         try {
             var methodValue = redactedRegistrantName.get("method");
-            logger.info("method property is found, so verify value");
+            logger.debug("method property is found, so verify value");
             if(methodValue instanceof String method) {
                 if(!method.trim().equalsIgnoreCase("emptyValue")) {
                     results.add(RDAPValidationResult.builder()

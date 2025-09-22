@@ -23,6 +23,39 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.xbill.DNS.Record;
 
+/**
+ * DNS resolution utility with caching capabilities for RDAP validation.
+ *
+ * <p>This class provides DNS resolution services with the following features:</p>
+ * <ul>
+ *   <li>Cached A and AAAA record lookups to improve performance</li>
+ *   <li>IPv4 and IPv6 address resolution and validation</li>
+ *   <li>Configurable timeouts and retry logic for DNS queries</li>
+ *   <li>Support for both system-configured and custom DNS resolvers</li>
+ *   <li>Thread-safe caching using ConcurrentHashMap</li>
+ *   <li>Validation of IPv4/IPv6 address availability for target hosts</li>
+ * </ul>
+ *
+ * <p>The resolver is initialized once using system DNS settings and configured with
+ * a 10-second timeout and 3 retries to balance reliability with performance. Results
+ * are cached in separate maps for IPv4 (A records) and IPv6 (AAAA records) to avoid
+ * repeated DNS lookups during validation.</p>
+ *
+ * <p>This class is essential for RDAP validation as it determines which IP protocols
+ * (IPv4/IPv6) are available for testing, and enables the tool to make informed
+ * decisions about which network stacks to use for validation queries.</p>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * DNSCacheResolver.initFromUrl("https://rdap.example.com/domain/test.com");
+ * boolean hasV4 = DNSCacheResolver.hasV4Addresses("https://rdap.example.com/domain/test.com");
+ * boolean hasV6 = DNSCacheResolver.hasV6Addresses("https://rdap.example.com/domain/test.com");
+ * </pre>
+ *
+ * @see ExtendedResolver
+ * @see InetAddress
+ * @since 1.0.0
+ */
 public class DNSCacheResolver {
 
     private static final Logger logger = LoggerFactory.getLogger(DNSCacheResolver.class);
@@ -44,8 +77,8 @@ public class DNSCacheResolver {
             extendedResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
             extendedResolver.setRetries(DNS_RETRIES);
             r = extendedResolver;
-            logger.info("DNS Resolver initialized using system DNS settings with {}s timeout and {} retries.", 
-                       DNS_TIMEOUT_SECONDS, DNS_RETRIES);
+            logger.info("DNS Resolver initialized");
+            logger.debug("sDNS settings: {} seconds timeout and {} retries.",  DNS_TIMEOUT_SECONDS, DNS_RETRIES);
         } catch (Exception e) {
             logger.error("Failed to initialize DNS resolver.", e);
         }
@@ -55,13 +88,23 @@ public class DNSCacheResolver {
     private DNSCacheResolver() {
     }
 
+    /**
+     * Initializes DNS resolution by performing lookups for the hostname in the given URL.
+     *
+     * <p>This method extracts the hostname from the URL and performs both A and AAAA
+     * record lookups, caching the results for subsequent use. This is typically called
+     * once at the beginning of validation to populate the DNS cache.</p>
+     *
+     * @param url the URL containing the hostname to resolve
+     * @throws URISyntaxException if the URL is malformed
+     */
     public static void initFromUrl(String url) {
-        logger.info("Trying to lookup FQDN for URL: {}", url);
+        logger.debug("Trying to lookup FQDN for URL: {}", url);
         try {
             URI uri = new URI(url);
             String host = uri.getHost();
             if (host == null || host.isEmpty()) {
-                logger.info("No host found in URL: {}", url);
+                logger.debug("No host found in URL: {}", url);
                 return;
             }
             String fqdn = ensureFQDN(host);
@@ -71,12 +114,24 @@ public class DNSCacheResolver {
         }
     }
 
+    /**
+     * Retrieves the first IPv4 address for the given fully qualified domain name.
+     *
+     * @param fqdn the fully qualified domain name to resolve
+     * @return the first IPv4 address found, or null if none available
+     */
     public static InetAddress getFirstV4Address(String fqdn) {
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
         return getFirst(CACHE_V4, name);
     }
 
+    /**
+     * Retrieves the first IPv6 address for the given fully qualified domain name.
+     *
+     * @param fqdn the fully qualified domain name to resolve
+     * @return the first IPv6 address found, or null if none available
+     */
     public static InetAddress getFirstV6Address(String fqdn) {
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
@@ -89,6 +144,12 @@ public class DNSCacheResolver {
         return Collections.unmodifiableList(CACHE_V4.getOrDefault(name, Collections.emptyList()));
     }
 
+    /**
+     * Checks if the hostname in the given URI has any IPv4 addresses.
+     *
+     * @param uri the URI containing the hostname to check
+     * @return true if IPv4 addresses are available, false otherwise
+     */
     public static boolean hasV4Addresses(String uri) {
         String fqdn = getHostnameFromUrl(uri);
         String name = ensureFQDN(fqdn);
@@ -97,6 +158,12 @@ public class DNSCacheResolver {
         return !addresses.isEmpty();
     }
 
+    /**
+     * Checks if the hostname in the given URI has any IPv6 addresses.
+     *
+     * @param uri the URI containing the hostname to check
+     * @return true if IPv6 addresses are available, false otherwise
+     */
     public static boolean hasV6Addresses(String uri) {
         String fqdn = getHostnameFromUrl(uri);
         String name = ensureFQDN(fqdn);
@@ -123,16 +190,16 @@ public class DNSCacheResolver {
 
     public static void resolveIfNeeded(String fqdn) {
         if (CACHE_V4.containsKey(fqdn) && CACHE_V6.containsKey(fqdn)) {
-            logger.info("Cache hit for {}", fqdn);
+            logger.debug("Cache hit for {}", fqdn);
             return;
         }
 
         if (fqdn.equals(LOCAL_IPv4 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
-            logger.info("Handling special-case loopback (IPv4) for {}", fqdn);
+            logger.debug("Handling special-case loopback (IPv4) for {}", fqdn);
             try {
                 CACHE_V4.put(fqdn, List.of(InetAddress.getByName(LOCAL_IPv4)));
             } catch (Exception e) {
-                logger.info("Failed to handle 127.0.0.1", e);
+                logger.debug("Failed to handle 127.0.0.1", e);
                 CACHE_V4.put(fqdn, List.of());
             }
         } else {
@@ -140,11 +207,11 @@ public class DNSCacheResolver {
         }
 
         if (fqdn.equals(LOCAL_IPv6 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
-            logger.info("Handling special-case loopback (IPv6) for {}", fqdn);
+            logger.debug("Handling special-case loopback (IPv6) for {}", fqdn);
             try {
                 CACHE_V6.put(fqdn, List.of(InetAddress.getByName(LOCAL_IPv6)));
             } catch (Exception e) {
-                logger.info("Failed to handle ::1", e);
+                logger.debug("Failed to handle ::1", e);
                 CACHE_V6.put(fqdn, List.of());
             }
         } else {
@@ -159,7 +226,7 @@ public class DNSCacheResolver {
 
         while (true) {
             if (!visited.add(currentName)) {
-                logger.info("Detected CNAME loop involving: {}", currentName);
+                logger.debug("Detected CNAME loop involving: {}", currentName);
                 break;
             }
 
@@ -180,7 +247,7 @@ public class DNSCacheResolver {
                         CNAMERecord cname = (CNAMERecord) answer;
                         currentName = cname.getTarget().toString();
                         foundCname = true;
-                        logger.info("Following CNAME: {} → {}", cname.getName(), currentName);
+                        logger.debug("Following CNAME: {} → {}", cname.getName(), currentName);
                         break; // loop with new name
                     }
                 }
@@ -195,10 +262,16 @@ public class DNSCacheResolver {
             }
         }
 
-        logger.info("Final resolved {} [{}] → {} record(s)", fqdn, Type.string(type), results.size());
+        logger.debug("Final resolved {} [{}] → {} record(s)", fqdn, Type.string(type), results.size());
         return results;
     }
 
+    /**
+     * Extracts the hostname from a URL string.
+     *
+     * @param url the URL to parse
+     * @return the hostname portion of the URL, or empty string if parsing fails
+     */
     public static String getHostnameFromUrl(String url) {
         try {
             URI uri = new URI(url);

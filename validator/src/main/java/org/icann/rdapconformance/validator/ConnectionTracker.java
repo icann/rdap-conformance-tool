@@ -17,6 +17,38 @@ import org.slf4j.LoggerFactory;
 
 import static org.icann.rdapconformance.validator.CommonUtils.*;
 
+/**
+ * Singleton class that tracks and monitors all HTTP connections made during RDAP validation.
+ *
+ * <p>This class provides comprehensive connection tracking functionality including:</p>
+ * <ul>
+ *   <li>Recording connection details (URI, IP address, protocol, timing)</li>
+ *   <li>Tracking connection status and HTTP response codes</li>
+ *   <li>Identifying 404 patterns for resource availability analysis</li>
+ *   <li>Generating detailed connection reports for debugging</li>
+ *   <li>Supporting both main queries and additional conformance queries</li>
+ * </ul>
+ *
+ * <p>Each connection is assigned a unique tracking ID (UUID) and stored as a
+ * {@link ConnectionRecord} containing timing information, network details, and
+ * HTTP response metadata.</p>
+ *
+ * <p>The tracker is thread-safe and uses synchronized collections to support
+ * concurrent validation operations.</p>
+ *
+ * <p>Usage example:</p>
+ * <pre>
+ * ConnectionTracker tracker = ConnectionTracker.getInstance();
+ * String trackingId = tracker.startTrackingNewConnection(uri, "GET", true);
+ * // ... perform HTTP request ...
+ * tracker.updateConnectionWithIpAddress(trackingId, "192.0.2.1");
+ * tracker.completeConnectionTracking(trackingId, 200, ConnectionStatus.SUCCESS);
+ * </pre>
+ *
+ * @see ConnectionRecord
+ * @see ConnectionStatus
+ * @since 1.0.0
+ */
 public class ConnectionTracker {
     private static final ConnectionTracker INSTANCE = new ConnectionTracker();
     private static final Logger logger = LoggerFactory.getLogger(ConnectionTracker.class);
@@ -31,6 +63,11 @@ public class ConnectionTracker {
         this.lastMainConnection = null;
     }
 
+    /**
+     * Returns the singleton instance of the ConnectionTracker.
+     *
+     * @return the singleton ConnectionTracker instance
+     */
     public static ConnectionTracker getInstance() {
         return INSTANCE;
     }
@@ -108,7 +145,7 @@ public class ConnectionTracker {
     public synchronized void updateCurrentConnection(ConnectionStatus status) {
         if (currentConnection != null) {
             currentConnection.setStatus(status);
-            logger.info("Updated current connection with status: {}", status);
+            logger.debug("Updated current connection with status: {}", status);
         } else {
             logger.warn("Attempted to update current connection, but no current connection exists");
         }
@@ -121,7 +158,7 @@ public class ConnectionTracker {
     public synchronized void updateIPAddressOnCurrentConnection(String remoteAddress) {
         if (currentConnection != null) {
             currentConnection.setIpAddress(remoteAddress);
-            logger.info("Updated current connection with ipAddress: {}", remoteAddress);
+            logger.debug("Updated current connection with ipAddress: {}", remoteAddress);
         } else {
             logger.warn("Attempted to update current connection, but no current connection exists");
         }
@@ -137,7 +174,7 @@ public class ConnectionTracker {
         ConnectionRecord record = connectionsByTrackingId.get(trackingId);
         if (record != null) {
             record.setIpAddress(remoteAddress);
-            logger.info("Updated connection {} with ipAddress: {}", trackingId, remoteAddress);
+            logger.debug("Updated connection {} with ipAddress: {}", trackingId, remoteAddress);
             return true;
         } else {
             logger.warn("Attempted to update connection {}, but no connection exists with that tracking ID", trackingId);
@@ -162,7 +199,7 @@ public class ConnectionTracker {
                 lastMainConnection = currentConnection;
             }
 
-            logger.info("Completed current connection with tracking id: {}", currentConnection.trackingId);
+            logger.debug("Completed current connection with tracking id: {}", currentConnection.trackingId);
             currentConnection = null;
         } else {
             logger.warn("Attempted to complete current connection, but no current connection exists");
@@ -249,7 +286,7 @@ public class ConnectionTracker {
                     currentConnection = null;
                 }
 
-                logger.info("Completed tracking connection: {}", record);
+                logger.debug("Completed tracking connection: {}", record);
                 return;
             }
         }
@@ -280,7 +317,7 @@ public class ConnectionTracker {
                 currentConnection = null;
             }
 
-            logger.info("Completed tracking connection by ID: {}", record);
+            logger.debug("Completed tracking connection by ID: {}", record);
             return true;
         }
         return false;
@@ -394,6 +431,14 @@ public class ConnectionTracker {
     }
 
 
+    /**
+     * Returns a detailed string representation of all tracked connections.
+     *
+     * <p>The output includes connection counts and individual connection details
+     * with timing, status, and network information for debugging purposes.</p>
+     *
+     * @return formatted string containing connection tracking summary
+     */
     @Override
     public synchronized String toString() {
         if (connections.isEmpty()) {
@@ -414,16 +459,31 @@ public class ConnectionTracker {
         return sb.toString();
     }
 
+    /**
+     * Updates the server IP address for a connection identified by tracking ID.
+     *
+     * @param trackingId the unique tracking ID of the connection
+     * @param hostAddress the server's IP address to set
+     */
     public synchronized void updateServerIpOnConnection(String trackingId, String hostAddress) {
         ConnectionRecord record = connectionsByTrackingId.get(trackingId);
         if (record != null) {
-            logger.info("Updating server IP address {} for tracking ID: {}", hostAddress, trackingId);
+            logger.debug("Updating server IP address {} for tracking ID: {}", hostAddress, trackingId);
             record.setIpAddress(hostAddress);
         } else {
-            logger.info("No connection found for tracking ID: {}", trackingId);
+            logger.debug("No connection found for tracking ID: {}", trackingId);
         }
     }
 
+    /**
+     * Determines if all HEAD and main queries returned 404 Not Found status codes.
+     *
+     * <p>This method is used to identify cases where a resource may be legitimately
+     * unavailable, which may require different validation handling or warning generation.</p>
+     *
+     * @param config the validator configuration containing query settings
+     * @return true if all relevant queries returned 404 status, false otherwise
+     */
     public synchronized boolean isResourceNotFoundNoteWarning(RDAPValidatorConfiguration config) {
         boolean foundRelevant = false;
         for (ConnectionRecord record : connections) {

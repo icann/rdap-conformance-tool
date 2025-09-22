@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
         @Override
         protected boolean doValidate() {
             if (getPointerFromJPath(ENTITY_ROLE_PATH).isEmpty()) {
-                logger.info("no entity has the registrant role, skip validation");
+                logger.debug("no entity has the registrant role, skip validation");
                 return true;
             }
 
@@ -58,19 +58,19 @@ import org.slf4j.LoggerFactory;
                 try {
                     pathLang = redactedPhoneExt.get("pathLang");
                 } catch (JSONException e) {
-                    logger.info("pathLang is absent: {}", e.getMessage());
+                    logger.debug("pathLang is absent: {}", e.getMessage());
                 }
 
                 if (pathLang == null || "jsonpath".equals(pathLang.toString())) {
-                    logger.info("pathLang is either absent or is 'jsonpath'");
+                    logger.debug("pathLang is either absent or is 'jsonpath'");
 
                     Object prePath = null;
                     try {
                         prePath = redactedPhoneExt.get("prePath");
                     } catch (JSONException e) {
-                        logger.info("prePath is absent: {}", e.getMessage());
+                        logger.debug("prePath is absent: {}", e.getMessage());
                     }
-                    logger.info("prePath: {}", prePath);
+                    logger.debug("prePath: {}", prePath);
 
                     if (prePath != null) {
                         // 63800 and 63801 validation
@@ -83,12 +83,12 @@ import org.slf4j.LoggerFactory;
                 try {
                     method = redactedPhoneExt.get("method");
                 } catch (JSONException e) {
-                    logger.info("method is absent: {}", e.getMessage());
+                    logger.debug("method is absent: {}", e.getMessage());
                 }
 
-                logger.info("method = {}", method);
+                logger.debug("method = {}", method);
                 if (method != null && !"removal".equals(method.toString())) {
-                    logger.info("adding 63802, value = {}", redactedPhoneExt);
+                    logger.debug("adding 63802, value = {}", redactedPhoneExt);
                     results.add(RDAPValidationResult.builder()
                         .code(-63802)
                         .value(redactedPhoneExt.toString())
@@ -107,7 +107,7 @@ import org.slf4j.LoggerFactory;
         private boolean validatePrePath(String prePath, String value) {
             if (!isValidJsonPath(prePath)) {
                 // prePath is null or not a valid JSONPath
-                logger.info("adding 63800, value = {}", value);
+                logger.debug("adding 63800, value = {}", value);
                 results.add(RDAPValidationResult.builder()
                     .code(-63800)
                     .value(value)
@@ -120,7 +120,7 @@ import org.slf4j.LoggerFactory;
             Set<String> pointers = getPointerFromJPath(prePath);
 
             if (pointers != null && !pointers.isEmpty()) {
-                logger.info("adding 63801, value = {}", value);
+                logger.debug("adding 63801, value = {}", value);
                 results.add(RDAPValidationResult.builder()
                     .code(-63801)
                     .value(value)

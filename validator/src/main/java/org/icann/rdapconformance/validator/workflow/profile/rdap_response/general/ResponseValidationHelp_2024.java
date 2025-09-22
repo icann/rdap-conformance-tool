@@ -57,7 +57,7 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
 
         String helpUriCleaned =  CommonUtils.cleanStringFromExtraSlash(helpUri);
 
-        logger.info("Making request to: {}", helpUriCleaned);
+        logger.debug("Making request to: {}", helpUriCleaned);
         HttpResponse<String> response = null;
 
         response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUriCleaned), this.config.getTimeout());
@@ -90,7 +90,7 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
     private boolean isHelpJsonValid(RDAPHttpQuery.JsonData jsonHelpResponse) {
         boolean propertyExists = true;
         if(!jsonHelpResponse.hasKey("rdapConformance") || !jsonHelpResponse.hasKey("notices")) {
-            logger.info("Validating rdapConformance and notices property in top level");
+            logger.debug("Validating rdapConformance and notices property in top level");
             propertyExists = false;
         }
 

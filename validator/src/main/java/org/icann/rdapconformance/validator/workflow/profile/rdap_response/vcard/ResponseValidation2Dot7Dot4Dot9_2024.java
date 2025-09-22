@@ -60,13 +60,13 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                     }
                 }
             } catch (Exception e) {
-                logger.info("type property with value “Registrant Email” does not exist in redacted array, no validations");
+                logger.debug("type property with value “Registrant Email” does not exist in redacted array, no validations");
                 return true;
             }
         }
 
         if(Objects.isNull(redactedRegistrantEmail)) {
-            logger.info("redactedRegistrantEmail does not exist in redacted array, email validations");
+            logger.debug("redactedRegistrantEmail does not exist in redacted array, email validations");
             return validateEmailPropertyAtLeastOneVCard();
         }
 
@@ -76,7 +76,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     private boolean validateEmailPropertyAtLeastOneVCard() {
         vcardPointersValue = getPointerFromJPath(VCARD_PATH);
         List<Map<String, String>> titles = new ArrayList<>();
-        logger.info("vcardVoicePointersValue size: {}", vcardPointersValue.size());
+        logger.debug("vcardVoicePointersValue size: {}", vcardPointersValue.size());
 
         for (String jsonPointer : vcardPointersValue) {
             JSONArray vcardArray = (JSONArray) jsonObject.query(jsonPointer);
@@ -112,7 +112,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
 
     private boolean validateVCardsNoBothValues() {
         vcardPointersValue = getPointerFromJPath(VCARD_PATH);
-        logger.info("vcardVoicePointersValue size: {}", vcardPointersValue.size());
+        logger.debug("vcardVoicePointersValue size: {}", vcardPointersValue.size());
 
         for (String jsonPointer : vcardPointersValue) {
             Set<String> titles = new HashSet<>();
@@ -140,7 +140,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     private boolean validateVCardAtLeastOne() {
         vcardPointersValue = getPointerFromJPath(VCARD_PATH);
         List<String> titles = new ArrayList<>();
-        logger.info("vcardVoicePointersValue size: {}", vcardPointersValue.size());
+        logger.debug("vcardVoicePointersValue size: {}", vcardPointersValue.size());
 
         for (String jsonPointer : vcardPointersValue) {
             JSONArray vcardArray = (JSONArray) jsonObject.query(jsonPointer);
@@ -168,13 +168,13 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     // Verify that the method property is present as is a JSON string of “replacementValue”.
     private boolean validateMethodProperty(List<String> titles) {
         if(Objects.isNull(redactedRegistrantEmail)) {
-            logger.info("redactedRegistrantEmail object for method validations is null");
+            logger.debug("redactedRegistrantEmail object for method validations is null");
             return true;
         }
 
         try {
             var methodValue = redactedRegistrantEmail.get("method");
-            logger.info("method property is found, so verify value");
+            logger.debug("method property is found, so verify value");
             if(methodValue instanceof String method) {
                 if(!method.trim().equalsIgnoreCase("replacementValue")) {
                     results.add(RDAPValidationResult.builder()
@@ -201,7 +201,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     // If email exists in any VCard, following validations run
     private boolean validateEmailRedactedProperties() {
         if(Objects.isNull(redactedRegistrantEmail)) {
-            logger.info("redactedRegistrantEmail object is null");
+            logger.debug("redactedRegistrantEmail object is null");
             return true;
         }
 
@@ -209,7 +209,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
 
         // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify postPath
         try {
-            logger.info("Extracting pathLang...");
+            logger.debug("Extracting pathLang...");
             pathLangValue = redactedRegistrantEmail.get("pathLang");
             if(pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
@@ -226,18 +226,18 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     // Verify that the prePath property is either absent or is present with a valid JSONPath expression.
     private boolean validatePostPathBasedOnPathLang() {
         if(Objects.isNull(redactedRegistrantEmail)) {
-            logger.info("redactedRegistrantEmail object for postPath validations is null");
+            logger.debug("redactedRegistrantEmail object for postPath validations is null");
             return true;
         }
 
         try {
             var postPathValue = redactedRegistrantEmail.get("postPath");
-            logger.info("postPath property is found, so verify value");
+            logger.debug("postPath property is found, so verify value");
             if(postPathValue instanceof String postPath) {
                 try {
                     isValidJsonPath(postPath);
                     var postPathPointer = getPointerFromJPath(postPath);
-                    logger.info("postPath pointer with size {}", postPathPointer.size());
+                    logger.debug("postPath pointer with size {}", postPathPointer.size());
                     if(postPathPointer.isEmpty()) {
                         results.add(RDAPValidationResult.builder()
                                 .code(-64104)
@@ -267,7 +267,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     private boolean validateContactRedactedProperties() {
         boolean replacementValidations;
         if(Objects.isNull(redactedRegistrantEmail)) {
-            logger.info("redactedRegistrantEmail object is null");
+            logger.debug("redactedRegistrantEmail object is null");
             return true;
         }
 
@@ -275,7 +275,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
 
         // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify replacementPath
         try {
-            logger.info("Extracting pathLang...");
+            logger.debug("Extracting pathLang...");
             pathLangValue = redactedRegistrantEmail.get("pathLang");
             if(pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
@@ -303,18 +303,18 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     // Verify that the prePath property is either absent or is present with a valid JSONPath expression.
     private boolean validateReplacementPathBasedOnPathLang() {
         if(Objects.isNull(redactedRegistrantEmail)) {
-            logger.info("redactedRegistrantEmail object for postPath validations is null");
+            logger.debug("redactedRegistrantEmail object for postPath validations is null");
             return true;
         }
 
         try {
             var replacementPathValue = redactedRegistrantEmail.get("replacementPath");
-            logger.info("replacementPath property is found, so verify value");
+            logger.debug("replacementPath property is found, so verify value");
             if(replacementPathValue instanceof String replacementPath) {
                 try {
                     isValidJsonPath(replacementPath);
                     var replacementPathPointer = getPointerFromJPath(replacementPath);
-                    logger.info("replacementPath pointer with size {}", replacementPathPointer.size());
+                    logger.debug("replacementPath pointer with size {}", replacementPathPointer.size());
                     if(replacementPathPointer.isEmpty()) {
                         results.add(RDAPValidationResult.builder()
                                 .code(-64107)
@@ -342,18 +342,18 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
 
     private boolean validatePrePathBasedOnPathLang() {
         if(Objects.isNull(redactedRegistrantEmail)) {
-            logger.info("redactedRegistrantEmail object for prePath validations is null");
+            logger.debug("redactedRegistrantEmail object for prePath validations is null");
             return true;
         }
 
         try {
             var prePathValue = redactedRegistrantEmail.get("prePath");
-            logger.info("prePathValue property is found, so verify value");
+            logger.debug("prePathValue property is found, so verify value");
             if(prePathValue instanceof String prePath) {
                 try {
                     isValidJsonPath(prePath);
                     var prePathPointer = getPointerFromJPath(prePath);
-                    logger.info("prePath pointer with size {}", prePathPointer.size());
+                    logger.debug("prePath pointer with size {}", prePathPointer.size());
                 } catch (Exception e) {
                     // prePath is not a valid JSONPath expression
                     results.add(RDAPValidationResult.builder()
