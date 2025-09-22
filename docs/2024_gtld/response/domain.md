@@ -156,7 +156,7 @@ Test group: [[rdapResponseProfile_2_10_Validation]][id-rdapResponseProfile_2_10_
 Test group: [[rdapResponseProfile2024_2_7_3_Validation]](#id-rdapResponseProfile2024_2_7_3_Validation){ #id-rdapResponseProfile2024_2_7_3_Validation }
 
 1. Test case [-47600](#id-testCase-47600){ #id-testCase-47600 }: 
-For every entity of the domain (i.e. the top-level entities of the domain, not entities subordinate to other entities) excluding entities with the roles “registrar”, “registrant”, or “technical”, verify the handle is of the format: "(\w|_){1,80}-\w{1,8}".
+For every entity of the domain (i.e. the top-level entities of the domain, not entities subordinate to other entities) excluding entities with the roles "reseller", “registrar”, “registrant”, or “technical”, verify the handle is of the format: "(\w|_){1,80}-\w{1,8}".
 ```json
 {
   "code": -47600,
