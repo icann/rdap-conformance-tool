@@ -1,7 +1,9 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidationTest;
@@ -86,5 +88,82 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
         jsonObject = new JSONObject(rdapContent);
         getProfileValidation();
         super.testValidate_ok();
+    }
+
+    @Test
+    public void testValidate_TopLevelResellerEntityExcluded_NoErrors() {
+        // Change the existing registrar entity to have "reseller" role with invalid handle
+        // This should NOT trigger -47600 because reseller entities are excluded
+        replaceValue("$['entities'][0]['roles']", new JSONArray().put("reseller"));
+        replaceValue("$['entities'][0]['handle']", "INVALID_HANDLE");
+        getProfileValidation();
+        super.testValidate_ok();
+    }
+
+    @Test
+    public void testValidate_TopLevelRegistrantEntityExcluded_NoErrors() {
+        // Change the existing registrar entity to have "registrant" role with invalid handle
+        // This should NOT trigger -47600 because registrant entities are excluded
+        replaceValue("$['entities'][0]['roles']", new JSONArray().put("registrant"));
+        replaceValue("$['entities'][0]['handle']", "INVALID_HANDLE");
+        getProfileValidation();
+        super.testValidate_ok();
+    }
+
+    @Test
+    public void testValidate_TopLevelTechnicalEntityExcluded_NoErrors() {
+        // Change the existing registrar entity to have "technical" role with invalid handle
+        // This should NOT trigger -47600 because technical entities are excluded
+        replaceValue("$['entities'][0]['roles']", new JSONArray().put("technical"));
+        replaceValue("$['entities'][0]['handle']", "INVALID_HANDLE");
+        getProfileValidation();
+        super.testValidate_ok();
+    }
+
+    @Test
+    public void testDoLaunch_NonDomainQuery_ReturnsFalse() {
+        // Test that validation does not launch for non-DOMAIN queries
+        doReturn(true).when(config).isGtldRegistry();
+        doReturn(false).when(config).isThin();
+
+        var validation = new ResponseValidation2Dot7Dot3_2024(config, rdapContent, results,
+            mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService.class), RDAPQueryType.ENTITY);
+        assertThat(validation.doLaunch()).isFalse();
+    }
+
+    @Test
+    public void testDoLaunch_GtldRegistryThinRegistry_ReturnsFalse() {
+        // Test that thin registries don't launch this validation
+        doReturn(true).when(config).isGtldRegistry();
+        doReturn(true).when(config).isThin();
+        doReturn(false).when(config).isGtldRegistrar();
+
+        var validation = new ResponseValidation2Dot7Dot3_2024(config, rdapContent, results,
+            mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService.class), RDAPQueryType.DOMAIN);
+        assertThat(validation.doLaunch()).isFalse();
+    }
+
+    @Test
+    public void testDoLaunch_GtldRegistrar_ReturnsTrue() {
+        // Test that gTLD registrars launch this validation
+        doReturn(false).when(config).isGtldRegistry();
+        doReturn(false).when(config).isThin();
+        doReturn(true).when(config).isGtldRegistrar();
+
+        var validation = new ResponseValidation2Dot7Dot3_2024(config, rdapContent, results,
+            mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService.class), RDAPQueryType.DOMAIN);
+        assertThat(validation.doLaunch()).isTrue();
+    }
+
+    @Test
+    public void testDoLaunch_NonGtldRegistryAndNonGtldRegistrar_ReturnsFalse() {
+        // Test that neither gTLD registry nor registrar doesn't launch
+        doReturn(false).when(config).isGtldRegistry();
+        doReturn(false).when(config).isThin();
+        doReturn(false).when(config).isGtldRegistrar();
+
+        var validation = new ResponseValidation2Dot7Dot3_2024(config, rdapContent, results,
+            mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService.class), RDAPQueryType.DOMAIN);
+        assertThat(validation.doLaunch()).isFalse();
     }
 }
