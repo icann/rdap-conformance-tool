@@ -53,14 +53,14 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                 JSONArray vcardAddressValuesArray = (JSONArray) vcardAddressArray.get(3);
                 if(vcardAddressValuesArray.get(3) instanceof String city) {
                     if(StringUtils.isEmpty(city)) {
-                        logger.info("Validate redacted array for empty city value");
+                        logger.debug("Validate redacted array for empty city value");
                         return validateRedactedArrayForEmptyCityValue();
                     } else {
-                        logger.info("Validate redacted array for not empty city value");
+                        logger.debug("Validate redacted array for not empty city value");
                         return validateRedactedArrayForNotEmptyCityValue();
                     }
                 } else {
-                    logger.info("city address is not present");
+                    logger.debug("city address is not present");
                     results.add(RDAPValidationResult.builder()
                             .code(-63500)
                             .value(getResultValue(vcardAddressPointersValue))
