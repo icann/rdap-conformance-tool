@@ -32,7 +32,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
 
     @Override
     public String getGroupName() {
-        return "rdapResponseProfile_2_7_4_8_Validation";
+        return "rdapResponseProfile_Registrant_Email_Validation";
     }
 
     @Override
@@ -70,7 +70,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
         if(Objects.nonNull(redactedEmail)) {
             results.add(RDAPValidationResult.builder()
                     .code(-65404)
-                    .value(getResultValue(REDACTED_PATH))
+                    .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Registrant Email was found but email was not redacted.")
                     .build());
             return false;
