@@ -81,7 +81,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
-        // Remove both tel properties (voice and fax) from registrant
+        // Remove both email from registrant
         for (int i = vcardArray.length() - 1; i >= 0; i--) {
             JSONArray property = vcardArray.getJSONArray(i);
             if (property.length() > 0 && "email".equals(property.getString(0))) {
@@ -147,7 +147,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
         jsonObject = new JSONObject(realWorldContent);
 
         // The real data has:
-        // 1. registrant entity with NO tel property with voice parameter
+        // 1. registrant entity with NO email property parameter
         // 2. redacted array with mixed objects:
         //    - Objects with name.type (e.g., "Registrant Phone", "Registry Domain ID") 
         //    - Objects with name.description (e.g., "Administrative Contact", "Technical Contact")
@@ -162,12 +162,12 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
     }
 
     @Test
-    public void testVoiceTelPresent_ShouldNotTriggerValidations() {
+    public void testEmailTelPresent_ShouldNotTriggerValidations() {
         when(config.isGtldRegistry()).thenReturn(true);
-        // Test that when voice tel property exists, no redaction validations are triggered
+        // Test that when email property exists, no redaction validations are triggered
 
-        // The base test data already has a voice tel property, so no modifications needed
-        // Expected: Since voice tel is present, no redaction validations should trigger
+        // The base test data already has a email property, so no modifications needed
+        // Expected: Since email is present, no redaction validations should trigger
         // Test should pass without any validation errors
         validate();
     }
@@ -213,7 +213,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
     @Test
     public void testNoEmailButOtherTelTypes_ShouldTriggerValidations() {
         when(config.isGtldRegistry()).thenReturn(true);
-        // Test when there are tel properties but none have voice parameter
+        // Test when there are email properties parameter
 
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
@@ -235,7 +235,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
         JSONArray email = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
-        email.remove(0); // Remove voice parameter to trigger redaction validation
+        email.remove(0); // Remove email parameter to trigger redaction validation
         redactedObject.put("prePath", "$invalid[syntax"); // Invalid JSONPath
 
         // Expected: Should trigger -63701 for invalid JSONPath

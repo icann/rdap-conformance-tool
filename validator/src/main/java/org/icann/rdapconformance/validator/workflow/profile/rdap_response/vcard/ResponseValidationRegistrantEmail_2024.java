@@ -37,10 +37,10 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
 
     @Override
     protected boolean doValidate() {
-        return validateVcardVoiceInTelPropertyObject();
+        return validateVcardEmailPropertyObject();
     }
 
-    private boolean validateVcardVoiceInTelPropertyObject() {
+    private boolean validateVcardEmailPropertyObject() {
         if(getPointerFromJPath(ENTITY_ROLE_PATH).isEmpty()) {
             return true;
         }
@@ -48,7 +48,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
         try {
             // Use custom method to find email properties that handles both string and array types
             boolean hasEmail = hasEmailProperty();
-            logger.info("hasEmail: {}", hasEmail);
+            logger.debug("hasEmail: {}", hasEmail);
 
             if(!hasEmail) {
                 logger.debug("email in vcard does not have values, validate redaction object needed");
@@ -59,7 +59,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
             }
 
         } catch (Exception e) {
-            logger.info("vcard email was not able to be extracted due to {}", e.getMessage());
+            logger.debug("vcard email was not able to be extracted due to {}", e.getMessage());
         }
 
         return true;
@@ -105,7 +105,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                 if(nameValue instanceof String redactedName) {
                     if(redactedName.trim().equalsIgnoreCase(REGISTRANT_EMAIL_TYPE)) {
                         redactedEmail = redacted;
-                        break; // Found the Registrant Phone redaction, no need to continue
+                        break; // Found the Registrant Email redaction, no need to continue
                     }
                 }
             } catch (Exception e) {
@@ -125,7 +125,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
 
     private boolean validateRedactedProperties(JSONObject redactedEmail) {
         if(Objects.isNull(redactedEmail)) {
-            logger.info("redactedEmail object is null");
+            logger.debug("redactedEmail object is null");
             return true;
         }
 
@@ -134,7 +134,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
         // if the pathLang property is either absent or is present as a JSON string of “jsonpath”,
         // then verify that the prePath property is either absent or is present with a valid JSONPath expression
         try {
-            logger.info("Extracting pathLang...");
+            logger.debug("Extracting pathLang...");
             pathLangValue = redactedEmail.get("pathLang");
             if(pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
@@ -151,16 +151,16 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
     // Verify that the prePath property is either absent or is present with a valid JSONPath expression.
     private boolean validatePrePathBasedOnPathLang(JSONObject redactedEmail) {
         if(Objects.isNull(redactedEmail)) {
-            logger.info("redactedEmail object for prePath validations is null");
+            logger.debug("redactedEmail object for prePath validations is null");
             return true;
         }
 
         try {
             var prePathValue = redactedEmail.get("prePath");
-            logger.info("prePath property is found, so verify value");
+            logger.debug("prePath property is found, so verify value");
             if(prePathValue instanceof String prePath) {
                 if(!isValidJsonPath(prePath)) {
-                    logger.info("prePath is not a valid JSONPath expression");
+                    logger.debug("prePath is not a valid JSONPath expression");
                     results.add(RDAPValidationResult.builder()
                             .code(-65401)
                             .value(getResultValue(redactedPointersValue))
@@ -170,7 +170,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                 }
 
                 var prePathPointer = getPointerFromJPath(prePath);
-                logger.info("prePath pointer with size {}", prePathPointer.size());
+                logger.debug("prePath pointer with size {}", prePathPointer.size());
                 if(!prePathPointer.isEmpty()) {
                     results.add(RDAPValidationResult.builder()
                             .code(-65402)
@@ -191,13 +191,13 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
     // Verify that the method property is either absent or is present as is a JSON string of “removal”.
     private boolean validateMethodProperty(JSONObject redactedEmail) {
         if(Objects.isNull(redactedEmail)) {
-            logger.info("redactedEmail object for method validations is null");
+            logger.debug("redactedEmail object for method validations is null");
             return true;
         }
 
         try {
             var methodValue = redactedEmail.get("method");
-            logger.info("method property is found, so verify value");
+            logger.debug("method property is found, so verify value");
             if(methodValue instanceof String method) {
                 if(!method.trim().equalsIgnoreCase("removal")) {
                     results.add(RDAPValidationResult.builder()
@@ -216,7 +216,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
     }
 
     /**
-     * Custom method to check if registrant entity has tel property with voice type.
+     * Custom method to check if registrant entity has email property.
      * This method properly handles both string and array type parameters.
      */
     private boolean hasEmailProperty() {
@@ -227,7 +227,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                 return false;
             }
 
-            // Check each registrant entity for voice tel properties
+            // Check each registrant entity with email properties
             for (String entityPointer : registrantEntities) {
                 JSONObject entity = (JSONObject) jsonObject.query(entityPointer);
                 JSONArray vcardArray = entity.optJSONArray("vcardArray");
