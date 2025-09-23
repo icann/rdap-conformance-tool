@@ -21,15 +21,15 @@ public class RDAPFileQuery implements RDAPQuery {
   private final RDAPValidatorConfiguration config;
   private final FileSystem fileSystem;
   private String data;
+  private ConformanceError errorStatus = null;
 
   public RDAPFileQuery(RDAPValidatorConfiguration config, RDAPDatasetService datasetService)  {
     this.config = config;
     this.fileSystem = new LocalFileSystem();
   }
 
-
   public ConformanceError getErrorStatus() {
-    return ToolResult.CONFIG_INVALID;
+    return errorStatus == null ? ToolResult.CONFIG_INVALID : errorStatus;
   }
 
   @Override
@@ -47,7 +47,7 @@ public class RDAPFileQuery implements RDAPQuery {
 
   @Override
   public void setErrorStatus(ConformanceError errorStatus) {
-    // TODO: would be nice to have something here for this.
+    this.errorStatus = errorStatus;
   }
 
   @Override
