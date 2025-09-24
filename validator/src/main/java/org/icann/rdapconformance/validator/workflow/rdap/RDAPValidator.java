@@ -22,6 +22,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.*;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.*;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.ResponseValidationTechEmail_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
@@ -265,6 +266,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot7Dot5Dot3_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot7Dot6Dot2_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot7Dot6Dot3_2024(rdapResponseData, results, config));
+        validations.add(new ResponseValidationTechEmail_2024(rdapResponseData, results, config));
         validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation4Dot1Handle_2024(rdapResponseData, results, queryType));
         validations.add(new ResponseValidationRegistrantHandle_2024(rdapResponseData, results, datasetService));
