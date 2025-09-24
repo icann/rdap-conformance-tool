@@ -1,11 +1,14 @@
 package org.icann.rdapconformance.validator;
 
+import java.net.URI;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.testng.annotations.Test;
 
 import static org.mockito.Mockito.*;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.Assert.assertThrows;
 
 public class CommonUtilsTest {
 
@@ -174,5 +177,123 @@ public class CommonUtilsTest {
         String input = "/";
         String result = CommonUtils.cleanStringFromExtraSlash(input);
         assertEquals("", result);
+    }
+
+    // ===== Tests for URI validation methods =====
+
+    @Test
+    public void testCreateUri_ValidHttps() {
+        String href = "https://example.com/path";
+        URI result = CommonUtils.createUri(href);
+        assertEquals("https", result.getScheme());
+        assertEquals("example.com", result.getHost());
+        assertEquals("/path", result.getPath());
+    }
+
+    @Test
+    public void testCreateUri_ValidHttp() {
+        String href = "http://test.org:8080/api";
+        URI result = CommonUtils.createUri(href);
+        assertEquals("http", result.getScheme());
+        assertEquals("test.org", result.getHost());
+        assertEquals(8080, result.getPort());
+        assertEquals("/api", result.getPath());
+    }
+
+    @Test
+    public void testCreateUri_ThrowsForMissingScheme() {
+        String href = "example.com/path";
+        assertThrows(IllegalArgumentException.class, () -> {
+            CommonUtils.createUri(href);
+        });
+    }
+
+    @Test
+    public void testCreateUri_ThrowsForMissingHost() {
+        String href = "https:///path";
+        assertThrows(IllegalArgumentException.class, () -> {
+            CommonUtils.createUri(href);
+        });
+    }
+
+    @Test
+    public void testCreateUri_ThrowsForMalformedUri() {
+        String href = "not a valid uri";
+        assertThrows(IllegalArgumentException.class, () -> {
+            CommonUtils.createUri(href);
+        });
+    }
+
+    @Test
+    public void testGetUriScheme_ValidUri() {
+        URI uri = URI.create("https://example.com");
+        String scheme = CommonUtils.getUriScheme(uri);
+        assertEquals("https", scheme);
+    }
+
+    @Test
+    public void testGetUriScheme_HttpUri() {
+        URI uri = URI.create("http://test.com");
+        String scheme = CommonUtils.getUriScheme(uri);
+        assertEquals("http", scheme);
+    }
+
+    @Test
+    public void testGetUriScheme_NullScheme() {
+        // Create a relative URI which has no scheme
+        URI uri = URI.create("/path/only");
+        String scheme = CommonUtils.getUriScheme(uri);
+        assertNull(scheme);
+    }
+
+    @Test
+    public void testGetUriHost_ValidUri() {
+        URI uri = URI.create("https://example.com:443/path");
+        String host = CommonUtils.getUriHost(uri);
+        assertEquals("example.com", host);
+    }
+
+    @Test
+    public void testGetUriHost_WithSubdomain() {
+        URI uri = URI.create("https://api.example.com/v1");
+        String host = CommonUtils.getUriHost(uri);
+        assertEquals("api.example.com", host);
+    }
+
+    @Test
+    public void testGetUriHost_NullHost() {
+        // Create a URI without host (like a relative path)
+        URI uri = URI.create("/path/only");
+        String host = CommonUtils.getUriHost(uri);
+        assertNull(host);
+    }
+
+    @Test
+    public void testCreateUri_EdgeCaseIpv6() {
+        String href = "https://[::1]:8080/path";
+        URI result = CommonUtils.createUri(href);
+        assertEquals("https", result.getScheme());
+        assertEquals("[::1]", result.getHost());
+        assertEquals(8080, result.getPort());
+    }
+
+    @Test
+    public void testCreateUri_WithQuery() {
+        String href = "https://example.com/search?q=test&limit=10";
+        URI result = CommonUtils.createUri(href);
+        assertEquals("https", result.getScheme());
+        assertEquals("example.com", result.getHost());
+        assertEquals("/search", result.getPath());
+        assertEquals("q=test&limit=10", result.getQuery());
+    }
+
+    @Test
+    public void testCreateUri_WithFragment() {
+        String href = "https://example.com/page#section1";
+        URI result = CommonUtils.createUri(href);
+        assertEquals("https", result.getScheme());
+        assertEquals("example.com", result.getHost());
+        assertEquals("/page", result.getPath());
+        assertEquals("section1", result.getFragment());
     }
 }
