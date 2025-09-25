@@ -18,13 +18,13 @@ public class ResponseValidation2Dot7Dot4Dot4_2024Test extends ProfileJsonValidat
     static final String cityPointer =
             "#/entities/0/vcardArray/1/3:[\"adr\",{},\"text\",[\"\",\"Suite 1236\",\"4321 Rue Somewhere\",3,\"QC\",\"G1V 2M2\",\"Canada\"]]";
     static final String namePointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"test\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"test\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String pathLangBadPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant City\"},\"postPath\":\"$test\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant City\"},\"postPath\":\"$test\",\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String postPathNotExistingPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant City\"},\"postPath\":\"$.status[*]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant City\"},\"postPath\":\"$.status[*]\",\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String methodPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"test2\",\"name\":{\"type\":\"Registrant City\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"test2\",\"name\":{\"type\":\"Registrant City\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
 
     public ResponseValidation2Dot7Dot4Dot4_2024Test() {
         super("/validators/profile/response_validations/vcard/valid_address_city.json",
@@ -72,6 +72,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024Test extends ProfileJsonValidat
     public void ResponseValidation2Dot7Dot4Dot4_2024_63502_By_PathLang_NotValid() {
         JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant City");
 
         cityValue.put(3, StringUtils.EMPTY);
         redactedObject.put("postPath", "$test");
@@ -82,6 +83,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024Test extends ProfileJsonValidat
     public void ResponseValidation2Dot7Dot4Dot4_2024_63503_By_MissingPathLang_Bad_PrePath() {
         JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant City");
 
         cityValue.put(3, StringUtils.EMPTY);
         redactedObject.remove("pathLang");
@@ -93,6 +95,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024Test extends ProfileJsonValidat
     public void ResponseValidation2Dot7Dot4Dot4_2024_63504_By_Method() {
         JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant City");
 
         cityValue.put(3, StringUtils.EMPTY);
         redactedObject.put("method", "test2");
@@ -274,4 +277,253 @@ public class ResponseValidation2Dot7Dot4Dot4_2024Test extends ProfileJsonValidat
         // Should pass validation with multi-role registrant entity
         validate(); // Should pass - registrant entity correctly found
     }
+
+    @Test
+    public void testRedactedNameTypeMatches_ShouldExtractRedactedCity() {
+        // Add a redacted object with name.type matching "Registrant City"
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Registrant City"));
+        redactedObject.put("reason", new JSONObject().put("description", "Server policy"));
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        // City is empty to trigger redaction validation
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation, redactedCity is found
+        validate();
+    }
+
+    @Test
+    public void testRedactedNameTypeMatchesWithSpacesAndCase_ShouldExtractRedactedCity() {
+        // Add a redacted object with name.type matching "  registrant city  " (spaces, case-insensitive)
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "  registrant city  "));
+        redactedObject.put("reason", new JSONObject().put("description", "Server policy"));
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        // City is empty to trigger redaction validation
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation, redactedCity is found
+        validate();
+    }
+
+    @Test
+    public void testRedactedNameTypeDoesNotMatch_ShouldNotExtractRedactedCity() {
+        // Add a redacted object with name.type not matching
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Other Redaction"));
+        redactedObject.put("reason", new JSONObject().put("description", "Server policy"));
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        // City is empty to trigger redaction validation
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should trigger -63501 (no Registrant City redaction found)
+        validate(-63501, "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Other Redaction\"}}", "a redaction of type Registrant City is required.");
+    }
+
+    @Test
+    public void testRedactedNameTypeIsNonString_ShouldNotExtractRedactedCity() {
+        // Add a redacted object with name.type as integer
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", 123));
+        redactedObject.put("reason", new JSONObject().put("description", "Server policy"));
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        // City is empty to trigger redaction validation
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should trigger -63501 (no Registrant City redaction found)
+        validate(-63501, "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":123}}", "a redaction of type Registrant City is required.");
+    }
+
+    @Test
+    public void testRedactedNameTypeMissing_ShouldCatchExceptionAndContinue() {
+        // Add a redacted object with name missing type property
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject()); // no type property
+        redactedObject.put("reason", new JSONObject().put("description", "Server policy"));
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        // City is empty to trigger redaction validation
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should trigger -63501 (no Registrant City redaction found)
+        validate(-63501, "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{}}", "a redaction of type Registrant City is required.");
+    }
+
+    @Test
+    public void testRedactedArrayForNotEmptyCityValue_ShouldTrigger63505() {
+        // City is not empty and redacted object exists
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "New York"); // Non-empty city
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        redactedObject.getJSONObject("name").put("type", "Registrant City");
+        // Should trigger -63505
+        validate(-63505, "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant City\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}", "a redaction of type Registrant City was found but the city was not redacted.");
+    }
+
+    @Test
+    public void testMalformedVcardAddressArray_ShouldCatchExceptionAndReturnTrue() {
+        // Simulate a malformed vcard address array (missing index 3)
+        JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
+        JSONArray adrProperty = vcardArray.getJSONArray(3);
+        // Remove index 3 from adrProperty to cause get(3) to throw an exception
+        adrProperty.remove(3);
+        // Should not throw, should log and return true (no validation error)
+        validate();
+    }
+
+    @Test
+    public void testPathLangIsJsonpath_ShouldCallValidatePostPath() {
+        // pathLang is exactly "jsonpath"
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Registrant City"));
+        redactedObject.put("pathLang", "jsonpath");
+        redactedObject.put("postPath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]");
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation (postPath is valid and non-empty)
+        validate();
+    }
+
+    @Test
+    public void testPathLangIsJsonpathWithSpaces_ShouldCallValidatePostPath() {
+        // pathLang is " JSONPATH " (case-insensitive, with spaces)
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Registrant City"));
+        redactedObject.put("pathLang", " JSONPATH ");
+        redactedObject.put("postPath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]");
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation (postPath is valid and non-empty)
+        validate();
+    }
+
+    @Test
+    public void testPathLangIsOtherString_ShouldReturnTrue() {
+        // pathLang is a string but not "jsonpath"
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Registrant City"));
+        redactedObject.put("pathLang", "other");
+        redactedObject.put("postPath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]");
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation (returns true, does not call validatePostPathBasedOnPathLang)
+        validate();
+    }
+
+    @Test
+    public void testPathLangIsInteger_ShouldReturnTrue() {
+        // pathLang is an integer
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Registrant City"));
+        redactedObject.put("pathLang", 123);
+        redactedObject.put("postPath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]");
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation (returns true, does not call validatePostPathBasedOnPathLang)
+        validate();
+    }
+
+    @Test
+    public void testPathLangIsBoolean_ShouldReturnTrue() {
+        // pathLang is a boolean
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Registrant City"));
+        redactedObject.put("pathLang", true);
+        redactedObject.put("postPath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]");
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation (returns true, does not call validatePostPathBasedOnPathLang)
+        validate();
+    }
+
+    @Test
+    public void testPathLangIsJSONArray_ShouldReturnTrue() {
+        // pathLang is a JSONArray
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Registrant City"));
+        redactedObject.put("pathLang", new JSONArray());
+        redactedObject.put("postPath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]");
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation (returns true, does not call validatePostPathBasedOnPathLang)
+        validate();
+    }
+
+    @Test
+    public void testPathLangIsJSONObject_ShouldReturnTrue() {
+        // pathLang is a JSONObject
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Registrant City"));
+        redactedObject.put("pathLang", new JSONObject());
+        redactedObject.put("postPath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]");
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation (returns true, does not call validatePostPathBasedOnPathLang)
+        validate();
+    }
+
+    @Test
+    public void testPathLangIsNull_ShouldReturnTrue() {
+        // pathLang is null
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Registrant City"));
+        redactedObject.put("pathLang", JSONObject.NULL);
+        redactedObject.put("postPath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]");
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation (returns true, does not call validatePostPathBasedOnPathLang)
+        validate();
+    }
+
+    @Test
+    public void testPathLangMissing_ShouldCallValidatePostPathInCatch() {
+        // pathLang property is missing, should trigger catch block and call validatePostPathBasedOnPathLang
+        JSONObject redactedObject = new JSONObject();
+        redactedObject.put("name", new JSONObject().put("type", "Registrant City"));
+        // Do not set pathLang property
+        redactedObject.put("postPath", "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]");
+        redactedObject.put("method", "emptyValue");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+        JSONArray cityValue = jsonObject.getJSONArray("entities").getJSONObject(0)
+            .getJSONArray("vcardArray").getJSONArray(1).getJSONArray(3).getJSONArray(3);
+        cityValue.put(3, "");
+        // Should pass validation (postPath is valid and non-empty)
+        validate();
+    }
+
+
 }
