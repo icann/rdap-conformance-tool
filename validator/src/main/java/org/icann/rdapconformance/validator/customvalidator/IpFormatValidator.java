@@ -37,13 +37,13 @@ public abstract class IpFormatValidator implements FormatValidator {
     }
 
     if (ipAddressesValidator.isInvalid(subject)) {
-      logger.error("IP address " + subject + " is not part of a prefix categorized as ALLOCATED or "
+      logger.debug("IP address " + subject + " is not part of a prefix categorized as ALLOCATED or "
           + "LEGACY");
       return Optional.of(getNotAllocatedNorLegacyError());
     }
 
     if (specialIpAddresses.isInvalid(subject)) {
-      logger.error("IP address " + subject + " is part of the " + specialIpAddresses.getClass().getSimpleName());
+      logger.debug("IP address " + subject + " is part of the " + specialIpAddresses.getClass().getSimpleName());
       return Optional.of(getPartOfSpecialAddressesSpaceError());
     }
 

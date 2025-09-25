@@ -143,7 +143,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validator.validate(rdapResponseData);
         SimpleHttpResponse rdapResponse = (SimpleHttpResponse ) query.getRawResponse();
         if(rdapResponse != null) {
-            logger.info("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
+            logger.debug("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
         }
 
         // fold the name stuff and send out another query to that URL

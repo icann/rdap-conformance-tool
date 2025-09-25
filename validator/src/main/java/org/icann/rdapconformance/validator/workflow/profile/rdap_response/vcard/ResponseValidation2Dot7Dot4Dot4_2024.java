@@ -41,10 +41,10 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
 
         try {
             Set<String> vcardAddressPointersValue = getPointerFromJPath(VCARD_ADDRESS_PATH);
-            logger.info("vcardAddressPointersValue size: {}", vcardAddressPointersValue.size());
+            logger.debug("vcardAddressPointersValue size: {}", vcardAddressPointersValue.size());
 
             if(vcardAddressPointersValue.isEmpty()) {
-                logger.info("address in vcard does not have values, no validations");
+                logger.debug("address in vcard does not have values, no validations");
                 return true;
             }
 
@@ -73,7 +73,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
             return true;
 
         } catch (Exception e) {
-            logger.info("vcard address is not found, no validations for this case");
+            logger.debug("vcard address is not found, no validations for this case");
         }
 
         return true;
@@ -140,7 +140,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
 
     private boolean validateRedactedProperties(JSONObject redactedCity) {
         if(Objects.isNull(redactedCity)) {
-            logger.info("redactedCity object is null");
+            logger.debug("redactedCity object is null");
             return true;
         }
 
@@ -148,7 +148,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
 
         // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify postPath
         try {
-            logger.info("Extracting pathLang...");
+            logger.debug("Extracting pathLang...");
             pathLangValue = redactedCity.get("pathLang");
             if(pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
@@ -157,7 +157,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
             }
             return true;
         } catch (Exception e) {
-            logger.info("pathLang is not found");
+            logger.debug("pathLang is not found");
             return validatePostPathBasedOnPathLang(redactedCity);
         }
     }
@@ -165,17 +165,17 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
     // Verify that the postPath property is present with a valid JSONPath expression.
     private boolean validatePostPathBasedOnPathLang(JSONObject redactedCity) {
         if(Objects.isNull(redactedCity)) {
-            logger.info("redactedCity object for postPath validations is null");
+            logger.debug("redactedCity object for postPath validations is null");
             return true;
         }
 
         try {
             var postPathValue = redactedCity.get("postPath");
-            logger.info("postPath property is found, so verify value");
+            logger.debug("postPath property is found, so verify value");
             if(postPathValue instanceof String postPath) {
                 try {
                     var postPathPointer = getPointerFromJPath(postPath);
-                    logger.info("postPath pointer with size {}", postPathPointer.size());
+                    logger.debug("postPath pointer with size {}", postPathPointer.size());
                     if(postPathPointer.isEmpty()) {
                         results.add(RDAPValidationResult.builder()
                                 .code(-63503)
@@ -195,7 +195,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.info("postPath property is not found, so validation is true");
+            logger.debug("postPath property is not found, so validation is true");
         }
 
         return validateMethodProperty(redactedCity);
@@ -204,13 +204,13 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
     // Verify that the method property is present as is a JSON string of “emptyValue”.
     private boolean validateMethodProperty(JSONObject redactedCity) {
         if(Objects.isNull(redactedCity)) {
-            logger.info("redactedCity object for method validations is null");
+            logger.debug("redactedCity object for method validations is null");
             return true;
         }
 
         try {
             var methodValue = redactedCity.get("method");
-            logger.info("method property is found, so verify value");
+            logger.debug("method property is found, so verify value");
             if(methodValue instanceof String method) {
                 if(!method.trim().equalsIgnoreCase("emptyValue")) {
                     results.add(RDAPValidationResult.builder()
@@ -222,7 +222,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.info("method property is not found, so validation is true");
+            logger.debug("method property is not found, so validation is true");
         }
 
         return true;

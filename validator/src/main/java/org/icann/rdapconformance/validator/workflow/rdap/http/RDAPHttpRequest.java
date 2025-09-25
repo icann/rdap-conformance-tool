@@ -82,6 +82,45 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.util.Timeout;
 
+/**
+ * HTTP request handler for RDAP validation with comprehensive connection management and error handling.
+ *
+ * <p>This class provides the core HTTP functionality for RDAP validation, including connection pooling,
+ * SSL/TLS certificate validation, IPv4/IPv6 dual-stack support, retry logic, and detailed error
+ * classification. It handles all network communication aspects required for RDAP conformance testing.</p>
+ *
+ * <p>Key features include:</p>
+ * <ul>
+ *   <li>HTTP GET and HEAD request support with configurable timeouts</li>
+ *   <li>Automatic retry handling for 429 (Too Many Requests) responses</li>
+ *   <li>IPv4/IPv6 dual-stack networking with proper local address binding</li>
+ *   <li>Custom SSL/TLS certificate validation for RDAP requirements</li>
+ *   <li>Comprehensive error classification and reporting</li>
+ *   <li>Connection pooling and tracking for performance and debugging</li>
+ *   <li>SNI (Server Name Indication) support for proper hostname verification</li>
+ * </ul>
+ *
+ * <p>The class integrates tightly with the ConnectionTracker for monitoring connection
+ * state and the NetworkInfo singleton for protocol selection and header configuration.
+ * All requests are tracked with unique identifiers for debugging and correlation.</p>
+ *
+ * <p>SSL/TLS validation is customized to focus on leaf certificate validation while
+ * handling self-signed and untrusted root scenarios common in RDAP testing environments.
+ * The class also performs proper hostname verification using SNI.</p>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * URI rdapUri = URI.create("https://rdap.example.com/domain/test.com");
+ * HttpResponse&lt;String&gt; response = RDAPHttpRequest.makeHttpGetRequest(rdapUri, 30);
+ * int statusCode = response.statusCode();
+ * String responseBody = response.body();
+ * </pre>
+ *
+ * @see ConnectionTracker
+ * @see NetworkInfo
+ * @see HttpClientManager
+ * @since 1.0.0
+ */
 public class RDAPHttpRequest {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
@@ -99,22 +138,96 @@ public class RDAPHttpRequest {
     public static final String OUTGOING_IPV4 = "9.9.9.9";
     public static final String OUTGOING_V6 = "2620:fe::9";
 
+    /**
+     * Creates and executes an HTTP GET request to the specified URI.
+     *
+     * <p>This convenience method creates a GET request with the specified timeout
+     * and delegates to the main request method.</p>
+     *
+     * @param uri the URI to send the GET request to
+     * @param timeoutSeconds the timeout in seconds for both connection and response
+     * @return HttpResponse containing the response data and metadata
+     * @throws Exception if the request fails due to network or other issues
+     */
     public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeoutSeconds) throws Exception {
         return makeRequest(uri, timeoutSeconds, GET);
     }
 
+    /**
+     * Creates and executes an HTTP HEAD request to the specified URI.
+     *
+     * <p>This convenience method creates a HEAD request with the specified timeout
+     * and delegates to the main request method. HEAD requests return only headers
+     * without a response body.</p>
+     *
+     * @param uri the URI to send the HEAD request to
+     * @param timeoutSeconds the timeout in seconds for both connection and response
+     * @return HttpResponse containing the response headers and metadata (no body)
+     * @throws Exception if the request fails due to network or other issues
+     */
     public static HttpResponse<String> makeHttpHeadRequest(URI uri, int timeoutSeconds) throws Exception {
         return makeRequest(uri, timeoutSeconds, HEAD);
     }
 
+    /**
+     * Creates and executes an HTTP request with the specified method.
+     *
+     * <p>This method delegates to the main request handler with default settings
+     * for main request flag and error recording.</p>
+     *
+     * @param originalUri the URI to send the request to
+     * @param timeoutSeconds the timeout in seconds for both connection and response
+     * @param method the HTTP method to use (GET, HEAD, etc.)
+     * @return HttpResponse containing the response data and metadata
+     * @throws Exception if the request fails due to network or other issues
+     */
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method) throws Exception {
         return makeRequest(originalUri, timeoutSeconds, method, false);
     }
 
+    /**
+     * Creates and executes an HTTP request with the specified method and main request flag.
+     *
+     * <p>This method delegates to the full request handler with default error recording enabled.</p>
+     *
+     * @param originalUri the URI to send the request to
+     * @param timeoutSeconds the timeout in seconds for both connection and response
+     * @param method the HTTP method to use (GET, HEAD, etc.)
+     * @param isMain whether this is a main request (affects tracking and logging)
+     * @return HttpResponse containing the response data and metadata
+     * @throws Exception if the request fails due to network or other issues
+     */
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain) throws Exception {
         return makeRequest(originalUri, timeoutSeconds, method, isMain, true);
     }
 
+    /**
+     * Creates and executes an HTTP request with full configuration options.
+     *
+     * <p>This is the main request method that handles all aspects of HTTP communication
+     * including DNS resolution, IPv4/IPv6 selection, SSL/TLS validation, retry logic,
+     * and comprehensive error handling. The method automatically selects appropriate
+     * local and remote IP addresses based on the current network protocol configuration.</p>
+     *
+     * <p>Key processing steps:</p>
+     * <ul>
+     *   <li>DNS resolution using the configured network protocol (IPv4/IPv6)</li>
+     *   <li>Local bind address selection based on protocol and availability</li>
+     *   <li>SSL/TLS context creation with custom certificate validation</li>
+     *   <li>HTTP request execution with connection pooling</li>
+     *   <li>Automatic retry handling for 429 responses with backoff</li>
+     *   <li>Connection tracking and status reporting</li>
+     * </ul>
+     *
+     * @param originalUri the URI to send the request to (must not be null)
+     * @param timeoutSeconds the timeout in seconds for both connection and response
+     * @param method the HTTP method to use (GET, HEAD, etc.)
+     * @param isMain whether this is a main request (affects tracking and logging)
+     * @param canRecordError whether to record errors in the validation results
+     * @return HttpResponse containing the response data and metadata
+     * @throws Exception if the request fails due to network or other issues
+     * @throws IllegalArgumentException if originalUri is null
+     */
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
         if (originalUri == null) throw new IllegalArgumentException("The provided URI is null.");
 
@@ -129,7 +242,7 @@ public class RDAPHttpRequest {
         int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT) : originalUri.getPort();
 
         if (DNSCacheResolver.hasNoAddresses(host)) {
-            logger.info("No IP address found for host: " + host);
+            logger.debug("No IP address found for host: " + host);
             tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
             SimpleHttpResponse resp = new SimpleHttpResponse(trackingId,ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
             resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
@@ -168,7 +281,7 @@ public class RDAPHttpRequest {
 
         NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
         tracker.updateIPAddressById(trackingId, remoteAddress.getHostAddress());
-        logger.info("Connecting to: {} using {}", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
+        logger.debug("Connecting to: {} using {}", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
 
         HttpUriRequestBase request = method.equals(GET) ? new HttpGet(originalUri) : new HttpHead(originalUri);
         request.setHeader(HOST, host);
@@ -215,7 +328,7 @@ public class RDAPHttpRequest {
                 long backoffSeconds = getBackoffTime(response.getHeaders());
 
                 if (attempt >= MAX_RETRIES) {
-                    logger.info("Requeried using retry-after wait time but result was a 429.");
+                    logger.debug("Requeried using retry-after wait time but result was a 429.");
                     tracker.completeTrackingById(trackingId, statusCode, ConnectionStatus.TOO_MANY_REQUESTS);
 
                     SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
@@ -277,12 +390,41 @@ public class RDAPHttpRequest {
         };
     }
 
+    /**
+     * Executes an HTTP request using the provided client and request configuration.
+     *
+     * <p>This method performs the actual HTTP request execution using Apache HttpClient.
+     * It's separated out to allow for easier testing and potential customization of
+     * the request execution process.</p>
+     *
+     * @param client the HTTP client to use for the request
+     * @param request the configured HTTP request to execute
+     * @return the HTTP response from the server
+     * @throws IOException if the request execution fails due to I/O issues
+     */
     public static ClassicHttpResponse executeRequest(CloseableHttpClient client, HttpUriRequestBase request) throws IOException {
         return client.execute(request);
     }
 
     /**
-     * Handle exceptions that occur during the HTTP request.
+     * Handles and classifies exceptions that occur during HTTP request execution.
+     *
+     * <p>This method provides comprehensive exception handling and classification for
+     * all types of network, SSL/TLS, and HTTP protocol errors that can occur during
+     * RDAP validation. It maps specific exception types to appropriate ConnectionStatus
+     * values and optionally records errors in the validation results.</p>
+     *
+     * <p>Handled exception categories include:</p>
+     * <ul>
+     *   <li>HTTP protocol errors (malformed responses, protocol violations)</li>
+     *   <li>SSL/TLS certificate issues (expired, revoked, invalid, handshake failures)</li>
+     *   <li>Network connectivity problems (timeouts, connection refused, host unreachable)</li>
+     *   <li>DNS resolution failures (unknown host)</li>
+     * </ul>
+     *
+     * @param e the exception that occurred during request execution
+     * @param recordError whether to record the error in validation results
+     * @return ConnectionStatus representing the classified error type
      */
     public static ConnectionStatus handleRequestException(Exception e, boolean recordError) {
         String exceptionString = e.toString();
@@ -401,6 +543,17 @@ public class RDAPHttpRequest {
         return ConnectionStatus.CONNECTION_FAILED;
     }
 
+    /**
+     * Checks if an exception's cause chain contains a specific exception class.
+     *
+     * <p>This utility method traverses the exception cause chain to determine if
+     * any cause in the chain matches the specified class name. This is useful
+     * for identifying wrapped exceptions that may be buried several levels deep.</p>
+     *
+     * @param e the exception to examine
+     * @param causeClassName the fully qualified class name to search for
+     * @return true if the cause chain contains the specified exception class, false otherwise
+     */
     public static boolean hasCause(Throwable e, String causeClassName) {
         while (e.getCause() != null) {
             if (e.getCause().getClass().getName().equals(causeClassName)) {
@@ -411,13 +564,22 @@ public class RDAPHttpRequest {
         return false;
     }
 
-    // Add these two methods to determine the outbound IP address
+    /**
+     * Determines the default IPv4 address for outbound connections.
+     *
+     * <p>This method uses a dummy UDP connection to an external address to determine
+     * the local IPv4 address that would be used for outbound connections. This is
+     * essential for proper local address binding in dual-stack environments.</p>
+     *
+     * @return the default IPv4 address for outbound connections, or null if IPv4 is not available
+     * @throws IOException if the address determination fails
+     */
     public static InetAddress getDefaultIPv4Address() throws IOException {
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.connect(InetAddress.getByName(OUTGOING_IPV4), DNS_PORT);
             InetAddress localAddress = socket.getLocalAddress();
             if (localAddress instanceof Inet4Address) {
-                logger.info("using local IPv4 Address: {}", localAddress.getHostAddress());
+                logger.debug("using local IPv4 Address: {}", localAddress.getHostAddress());
                 return localAddress;
             } else {
                 throw new IOException("No IPv4 address found");
@@ -428,12 +590,22 @@ public class RDAPHttpRequest {
         }
     }
 
+ /**
+  * Determines the default IPv6 address for outbound connections.
+  *
+  * <p>This method uses a dummy UDP connection to an external IPv6 address to determine
+  * the local IPv6 address that would be used for outbound connections. This is
+  * essential for proper local address binding in dual-stack environments.</p>
+  *
+  * @return the default IPv6 address for outbound connections, or null if IPv6 is not available
+  * @throws IOException if the address determination fails
+  */
  public static InetAddress getDefaultIPv6Address() throws IOException {
      try (DatagramSocket socket = new DatagramSocket()) {
          socket.connect(InetAddress.getByName(OUTGOING_V6), DNS_PORT);
          InetAddress localAddress = socket.getLocalAddress();
          if (localAddress instanceof Inet6Address) {
-             logger.info("using local IPv6 Address: {}", localAddress.getHostAddress());
+             logger.debug("using local IPv6 Address: {}", localAddress.getHostAddress());
              return localAddress;
          } else {
              throw new IOException("No IPv6 address found");
@@ -459,15 +631,35 @@ public class RDAPHttpRequest {
                         value = MAX_RETRY_TIME; // Cap the retry-after to MAX_RETRY_TIME(120) seconds
                     }
                     value  = value + ONE; // no matter what, we add 1 second to the retry-after value
-                    logger.info("Received 429 with retry-after header. Waiting {} seconds to requery.", value);
+                    logger.debug("Received 429 with retry-after header. Waiting {} seconds to requery.", value);
                     return value;
                 }
             } catch (NumberFormatException ignored) {}
         }
-        logger.info("Received 429 but no retry-after header was offered. Waiting {} seconds.", DEFAULT_BACKOFF_SECS);
+        logger.debug("Received 429 but no retry-after header was offered. Waiting {} seconds.", DEFAULT_BACKOFF_SECS);
         return DEFAULT_BACKOFF_SECS;
     }
 
+    /**
+     * Creates a custom X.509 trust manager for RDAP certificate validation.
+     *
+     * <p>This trust manager is specifically designed for RDAP validation scenarios
+     * where leaf certificate validation is required but self-signed and untrusted
+     * root certificates should be handled gracefully. It performs comprehensive
+     * validation including expiration checks, revocation status, and SAN validation.</p>
+     *
+     * <p>Validation features:</p>
+     * <ul>
+     *   <li>Leaf certificate expiration validation</li>
+     *   <li>Certificate revocation checking when possible</li>
+     *   <li>Subject Alternative Name (SAN) extraction and logging</li>
+     *   <li>Graceful handling of self-signed certificates</li>
+     *   <li>Detailed certificate information logging for debugging</li>
+     * </ul>
+     *
+     * @return X509TrustManager configured for RDAP validation requirements
+     * @throws Exception if trust manager creation fails
+     */
     public static X509TrustManager createLeafValidatingTrustManager() throws Exception {
         // Get the default trust manager
         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -496,11 +688,11 @@ public class RDAPHttpRequest {
 
                 X509Certificate leaf = chain[0];
 
-                logger.info("---> Leaf Cert <---");
-                logger.info("Subject: " + leaf.getSubjectX500Principal());
-                logger.info("Issuer:  " + leaf.getIssuerX500Principal());
-                logger.info("Not Before: " + leaf.getNotBefore());
-                logger.info("Not After:  " + leaf.getNotAfter());
+                logger.debug("---> Leaf Cert <---");
+                logger.debug("Subject: " + leaf.getSubjectX500Principal());
+                logger.debug("Issuer:  " + leaf.getIssuerX500Principal());
+                logger.debug("Not Before: " + leaf.getNotBefore());
+                logger.debug("Not After:  " + leaf.getNotAfter());
 
                 // Check expiration
                 try {
@@ -515,11 +707,11 @@ public class RDAPHttpRequest {
                     Collection<List<?>> sans = leaf.getSubjectAlternativeNames();
                     if (sans != null) {
                         for (List<?> san : sans) {
-                            logger.info("SAN: " + san.get(1));
+                            logger.debug("SAN: " + san.get(1));
                         }
                     }
                 } catch (CertificateParsingException ex) {
-                    logger.info("Failed to parse SANs from leaf cert"); // don't care, log and move on
+                    logger.debug("Failed to parse SANs from leaf cert"); // don't care, log and move on
                 }
 
                 // Check revocation status, but catch and rethrow only revocation errors
@@ -564,6 +756,22 @@ public class RDAPHttpRequest {
         return result;
     }
 
+    /**
+     * Simple implementation of HttpResponse for RDAP validation requirements.
+     *
+     * <p>This class provides a lightweight HttpResponse implementation that captures
+     * all the essential information needed for RDAP validation including status code,
+     * response body, headers, and connection tracking information. It supports case-
+     * insensitive header handling and integrates with the connection tracking system.</p>
+     *
+     * <p>Key features:</p>
+     * <ul>
+     *   <li>Case-insensitive HTTP header handling</li>
+     *   <li>Connection status tracking integration</li>
+     *   <li>Support for all standard HttpResponse methods</li>
+     *   <li>Lightweight implementation optimized for RDAP validation</li>
+     * </ul>
+     */
     public static class SimpleHttpResponse implements HttpResponse<String> {
         private final int statusCode;
         private ConnectionStatus connectionStatus;
@@ -572,6 +780,15 @@ public class RDAPHttpRequest {
         private final Map<String, List<String>> headers;
         private final String trackingId;
 
+        /**
+         * Creates a new SimpleHttpResponse with the provided response information.
+         *
+         * @param trackingId the unique identifier for tracking this connection
+         * @param statusCode the HTTP status code from the response
+         * @param body the response body content
+         * @param uri the URI that was requested
+         * @param headers the HTTP headers from the response
+         */
         public SimpleHttpResponse(String trackingId, int statusCode, String body, URI uri, Header[] headers) {
             this.statusCode = statusCode;
             this.body = body;
@@ -589,12 +806,27 @@ public class RDAPHttpRequest {
             this.headers = headersMap;
         }
 
+        /**
+         * Returns the unique tracking identifier for this HTTP response.
+         *
+         * @return the tracking ID used for connection monitoring and correlation
+         */
         public String getTrackingId() { return trackingId; }
 
+        /**
+         * Sets the connection status for this response.
+         *
+         * @param status the ConnectionStatus indicating the result of the connection attempt
+         */
         public void setConnectionStatusCode(ConnectionStatus status) {
             this.connectionStatus = status;
         }
 
+        /**
+         * Returns the connection status for this response.
+         *
+         * @return the ConnectionStatus indicating the result of the connection attempt
+         */
         public ConnectionStatus getConnectionStatusCode() {
            return connectionStatus;
         }
@@ -642,19 +874,42 @@ public class RDAPHttpRequest {
         }
     }
 
+    /**
+     * Simple representation of an HTTP header name-value pair.
+     *
+     * <p>This class provides a basic container for HTTP header information
+     * used within the RDAP HTTP request/response handling. It stores the
+     * header name and value as immutable strings.</p>
+     */
     public static class Header {
         private final String name;
         private final String value;
 
+        /**
+         * Creates a new HTTP header with the specified name and value.
+         *
+         * @param name the header name
+         * @param value the header value
+         */
         public Header(String name, String value) {
             this.name = name;
             this.value = value;
         }
 
+        /**
+         * Returns the header name.
+         *
+         * @return the header name
+         */
         public String getName() {
             return name;
         }
 
+        /**
+         * Returns the header value.
+         *
+         * @return the header value
+         */
         public String getValue() {
             return value;
         }

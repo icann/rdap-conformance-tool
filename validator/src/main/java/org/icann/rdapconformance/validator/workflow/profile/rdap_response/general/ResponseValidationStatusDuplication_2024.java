@@ -61,7 +61,7 @@ public class ResponseValidationStatusDuplication_2024 extends ProfileValidation 
                 }
             }
         } catch (Exception e) {
-            logger.info("Exception during evaluation of status properties: {} \n\n details: {}", jsonObject, e);
+            logger.debug("Exception during evaluation of status properties: {} \n\n details: {}", jsonObject, e);
             isOK = false;
         }
         return isOK;

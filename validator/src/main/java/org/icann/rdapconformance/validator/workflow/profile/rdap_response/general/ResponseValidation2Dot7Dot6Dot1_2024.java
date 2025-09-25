@@ -68,7 +68,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
             }
 
             if (!hasFn) {
-                logger.info("adding 65000, value = {}", vcardArray);
+                logger.debug("adding 65000, value = {}", vcardArray);
                 results.add(RDAPValidationResult.builder()
                     .code(-65000)
                     .value(vcardArray.toString())
@@ -107,8 +107,8 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                 }
             }
 
-            if (needTechObjectExist && Objects.isNull(redactedTechName)) {
-                logger.info("adding 65001, value = {}", getResultValue(redactedPointersValue));
+            if (Objects.isNull(redactedTechName)) {
+                logger.debug("adding 65001, value = {}", getResultValue(redactedPointersValue));
                 results.add(RDAPValidationResult.builder()
                     .code(-65001)
                     .value(getResultValue(redactedPointersValue))
@@ -130,19 +130,19 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                 try {
                     pathLang = redactedTechName.get("pathLang");
                 } catch (JSONException e) {
-                    logger.info("pathLang is absent: {}", e.getMessage());
+                    logger.debug("pathLang is absent: {}", e.getMessage());
                 }
 
                 if (pathLang == null || "jsonpath".equals(pathLang.toString())) {
-                    logger.info("pathLang is either absent or is 'jsonpath'");
+                    logger.debug("pathLang is either absent or is 'jsonpath'");
 
                     Object postPath = null;
                     try {
                         postPath = redactedTechName.get("postPath");
                     } catch (JSONException e) {
-                        logger.info("postPath is absent: {}", e.getMessage());
+                        logger.debug("postPath is absent: {}", e.getMessage());
                     }
-                    logger.info("postPath: {}", postPath);
+                    logger.debug("postPath: {}", postPath);
                     // 65002 and 65003 validation
                     isValid = validatePostPath(postPath, redactedTechName.toString()) && isValid;
                 }
@@ -152,12 +152,12 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                 try {
                     method = redactedTechName.get("method");
                 } catch (JSONException e) {
-                    logger.info("method is absent: {}", e.getMessage());
+                    logger.debug("method is absent: {}", e.getMessage());
                 }
 
-                logger.info("method = {}", method);
+                logger.debug("method = {}", method);
                 if (method == null || !"emptyValue".equals(method.toString())) {
-                    logger.info("adding 65004, value = {}", redactedTechName);
+                    logger.debug("adding 65004, value = {}", redactedTechName);
                     results.add(RDAPValidationResult.builder()
                         .code(-65004)
                         .value(redactedTechName.toString())
@@ -175,7 +175,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
     private boolean validatePostPath(Object postPath, String value) {
         if (postPath == null || !isValidJsonPath(postPath.toString())) {
             // postPath is null or not a valid JSONPath
-            logger.info("adding 65002, value = {}", value);
+            logger.debug("adding 65002, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65002)
                 .value(value)
@@ -188,7 +188,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
         Set<String> pointers = getPointerFromJPath(postPath.toString());
 
         if (pointers == null || pointers.isEmpty()) {
-            logger.info("adding 65003, value = {}", value);
+            logger.debug("adding 65003, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65003)
                 .value(value)

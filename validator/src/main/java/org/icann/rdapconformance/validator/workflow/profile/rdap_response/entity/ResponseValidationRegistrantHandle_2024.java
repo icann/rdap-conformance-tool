@@ -163,7 +163,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
       }
       return true;
     } catch (Exception e) {
-      logger.error("pathLang is not found due to {}", e.getMessage());
+      logger.debug("pathLang is not found due to {}", e.getMessage());
       return validatePostPathBasedOnPathLang(redactedHandleName);
     }
   }
@@ -202,7 +202,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
           }
       }
     } catch (Exception e) {
-      logger.error("prePath property is not found, no validations defined. Error: {}", e.getMessage());
+      logger.debug("prePath property is not found, no validations defined. Error: {}", e.getMessage());
     }
 
 

@@ -160,17 +160,6 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
         return true;
     }
 
-    public static boolean isValidURL(String urlString) {
-        try {
-            URL url = new URL(urlString);
-            url.toURI();
-            return true;
-        } catch (MalformedURLException | URISyntaxException e) {
-            logger.info("url is invalid: {}", e.getMessage());
-            return false;
-        }
-    }
-
     public static List<String> convertJsonArrayToArrayListOfStrings(JSONArray jsonArray) {
         List<String> list = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
@@ -189,7 +178,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                         getStringOrDefault(jsonObject, "rel"),
                         getStringOrDefault(jsonObject, "href")));
             } catch (Exception e) {
-                logger.info("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
+                logger.debug("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
                 list.add(new LinksObjectToValidate(NOT_FOUND, NOT_FOUND, NOT_FOUND));
             }
         }
@@ -200,7 +189,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
         try {
             return obj.getString(key);
         } catch (JSONException e) {
-            logger.info("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
+            logger.debug("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
             return NOT_FOUND;
         }
     }

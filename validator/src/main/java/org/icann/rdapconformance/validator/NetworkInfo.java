@@ -3,6 +3,42 @@ package org.icann.rdapconformance.validator;
 import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import org.icann.rdapconformance.validator.workflow.profile.IPVersionContext;
 
+/**
+ * Singleton class that manages network configuration state for RDAP validation.
+ *
+ * <p>This class provides centralized management of network settings used during
+ * RDAP validation, including:</p>
+ * <ul>
+ *   <li>Accept header configuration (application/json vs application/rdap+json)</li>
+ *   <li>Network protocol selection (IPv4 vs IPv6)</li>
+ *   <li>HTTP method tracking for connection logging</li>
+ *   <li>Server IP address tracking for debugging</li>
+ * </ul>
+ *
+ * <p>The class uses static methods to provide global access to network configuration
+ * and maintains state that affects how HTTP requests are made and tracked during
+ * validation operations.</p>
+ *
+ * <p>Key features:</p>
+ * <ul>
+ *   <li>Thread-safe singleton pattern for global state management</li>
+ *   <li>Support for both standard JSON and RDAP-specific content types</li>
+ *   <li>IPv4/IPv6 protocol switching for dual-stack validation</li>
+ *   <li>Integration with connection tracking for detailed logging</li>
+ * </ul>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * NetworkInfo.setStackToV6();
+ * NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+ * String currentHeader = NetworkInfo.getAcceptHeader();
+ * NetworkProtocol protocol = NetworkInfo.getNetworkProtocol();
+ * </pre>
+ *
+ * @see NetworkProtocol
+ * @see ConnectionTracker
+ * @since 1.0.0
+ */
 public class NetworkInfo {
     private static final NetworkInfo instance = new NetworkInfo();
     
