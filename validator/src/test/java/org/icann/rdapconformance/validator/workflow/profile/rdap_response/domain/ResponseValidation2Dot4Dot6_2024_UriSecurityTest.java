@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
@@ -28,7 +29,8 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
         RDAPDatasetServiceMock datasets = new RDAPDatasetServiceMock();
         RDAPQueryType queryType = RDAPQueryType.DOMAIN;
         
-        validation = new ResponseValidation2Dot4Dot6_2024(mockJson, results, datasets, queryType);
+        RDAPValidatorConfiguration config = Mockito.mock(RDAPValidatorConfiguration.class);
+        validation = new ResponseValidation2Dot4Dot6_2024(mockJson, results, datasets, queryType, config);
     }
 
     // Null and empty input tests

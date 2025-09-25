@@ -10,6 +10,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.getUriHost;
 
 import java.net.URI;
 import java.util.Set;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -29,14 +30,17 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
 
     private final RDAPQueryType queryType;
     private final RDAPDatasetService datasetService;
+    private final RDAPValidatorConfiguration config;
 
     public ResponseValidation2Dot4Dot6_2024(String rdapResponse,
         RDAPValidatorResults results,
         RDAPDatasetService datasetService,
-        RDAPQueryType queryType) {
+        RDAPQueryType queryType,
+        RDAPValidatorConfiguration config) {
         super(rdapResponse, results);
         this.datasetService = datasetService;
         this.queryType = queryType;
+        this.config = config;
     }
 
 

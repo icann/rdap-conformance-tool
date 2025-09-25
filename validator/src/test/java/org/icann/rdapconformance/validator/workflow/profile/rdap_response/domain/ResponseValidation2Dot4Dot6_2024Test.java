@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 import static org.testng.Assert.assertFalse;
@@ -9,6 +10,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.net.URI;
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.mockito.MockedStatic;
 import org.json.JSONArray;
@@ -18,12 +20,15 @@ import org.testng.annotations.Test;
 
 public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidationTestBase {
 
+    private RDAPValidatorConfiguration config;
+
     public ResponseValidation2Dot4Dot6_2024Test() {
         super("rdapResponseProfile_2_4_6_Validation");
     }
 
     @BeforeMethod
     public void setup() throws Exception {
+        config = mock(RDAPValidatorConfiguration.class);
         // - value should now contain the IANA RDAP base URL (https://example.com/)
         // - href can be any valid URI
         // - config.getUri() is no longer used for value validation
@@ -47,7 +52,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot4Dot6_2024(jsonObject.toString(), results, datasets, queryType);
+        return new ResponseValidation2Dot4Dot6_2024(jsonObject.toString(), results, datasets, queryType, config);
     }
 
     @Test

@@ -19,6 +19,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
     public static final String VCARD_FN_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1][?(@[0]=='fn')]";
     public static final String VCARD_PATH = "$.entities[?(@.roles contains 'registrant')].vcardArray[1]";
     private static final String REDACTED_PATH = "$.redacted[*]";
+    private Set<String> vcardFnPointersValue = null;
     private Set<String> vcardPointersValue = null;
     private Set<String> redactedPointersValue = null;
 
@@ -64,10 +65,6 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
                     }
                 }
             }
-        }
-
-        return true;
-    }
         } catch (Exception e) {
             logger.debug("vcard fn is not found, no validations for this case, Error: {}", e.getMessage());
             results.add(RDAPValidationResult.builder()
