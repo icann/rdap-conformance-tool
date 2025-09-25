@@ -293,3 +293,208 @@ As SHA1 is deprected by [RFC 9155](https://datatracker.ietf.org/doc/rfc9155/), t
 will because SHA1 is considered insecure.
 
 Another tool to view TLS certificates used in HTTPS is <https://www.ssllabs.com/ssltest/index.html>.
+
+## 2024 Profile Redaction Requirements
+
+The 2024 Response Profile requires updates to the redaction mechanisms used in the RDAP response. 
+This is described in Sections 2.7.7 and 2.7.8 and Appendix E of the RDAP 
+[Response Profile](https://itp.cdn.icann.org/en/files/registry-operators/rdap-response-profile-21feb24-en.pdf). 
+This will require registrars and registry operators to implement RFC 9537 redaction mechanisms, 
+including redaction by replacement (for email values) and redaction by removal or empty value 
+(for other redacted registration data values).
+
+**The redaction remarks element previously required by Section 2.7.4.3 of the 2019 RDAP Response Profile is now obsolete.**
+
+### Registrant Name / Tech Name
+
+The "Registrant Name", and if applicable, "Tech Name" values are included in the fn property in accordance with 
+Section 2.7.4 of the RDAP Response Profile. Both values may be redacted pursuant to Sections 9.2.2.1.3 and 
+9.2.2.1.11 of the Registration Data Policy. 
+
+#### `fn` Property
+
+The `fn` property is required by RFC 6350. Because the fn property is required, when redacting the `fn` property, 
+registrars must use Redaction by Empty Value and the value of the `fn` property must be blank in the RDAP response.
+
+This is shown with an empty string, for example:
+
+```json
+[
+  "fn",
+  {},
+  "text",
+  ""
+]
+```
+
+In addition, the response must include the empty value redacted member, for example:
+
+```json
+"redacted": [
+  {
+    "name": {
+      "type": "Registrant Name"
+    },
+    "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+    "pathLang": "jsonpath",
+    "method": "emptyValue",
+    "reason": {
+      "description": "Server policy"
+    }
+  }
+]
+```
+
+### Registrant Postal Address
+
+#### Registrant State/Province and Country
+
+Registrars must collect the Registrant State/Province (if applicable to the respective country or 
+territory) and Registrant Country pursuant to Sections 6.1.12 and 6.1.14 of the Registration Data 
+Policy. Publication is required pursuant to Sections 9.1.4 and 9.1.5; redaction is not permitted under Section 9.2.
+
+#### Registrant Street, City, and Postal Code
+
+These elements are included in the adr property in accordance with Section 2.7.4 of the RDAP 
+Response Profile. The values may be redacted pursuant to Sections 9.2.2.1.4. 9.2.2.1.5 and 9.2.2.4 of the Registration Data Policy.
+
+#### `adr` Property
+
+To accommodate the required data elements in the Registrant postal address, 
+the RDAP response must include an adr property for the Registrant. Pursuant to Section 3.8.1, 
+the RDAP response must use a structured adr property. Because the adr property is required, 
+when redacting the Registrant Street, City and/or Postal Code, registrars must use Redaction by Empty Value 
+and the value of these data elements in the adr property must be blank in the RDAP response.
+
+This shows a partially redacted postal address of a structured adr property within the vCard: 
+
+```json
+[
+  "adr",
+  {
+    "cc": "CA"
+  },
+  "text",
+  [
+    "",   
+    "",    
+    "", 
+    "",        
+    "QC",            
+    "",       
+    ""
+  ]
+]
+
+```
+
+In addition, the response must include the empty value redacted members, for example (Registrant City):
+
+```json
+"redacted": [
+  {
+    "name": {
+      "type": "Registrant City"
+    },
+    "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]",
+    "pathLang": "jsonpath",
+    "method": "emptyValue",
+    "reason": {
+    "description": "Server policy"
+  }
+]
+```
+
+### Registrant Email / Tech Email
+
+When redacting registration data in RDAP, Section Section 9.2.3 of the Registration Data Policy requires 
+registrars to include an email address (email property) or a link to a web form (contact-uri) to 
+facilitate email communication with the relevant contact for the Email value. Registrars must use 
+the Redaction by Replacement Value Method in the RDAP response.
+
+#### `email` Property
+
+If the redacted Email value is an anonymized syntactically valid email, the RDAP response must 
+include an `email` property and not a `contact-uri` property.
+
+This is shown with the valid anonymized email, for example: 
+
+```json
+[
+  "email",
+  {},
+  "text",
+  "anonymized123@example.com"
+]
+```
+
+In addition, the response must include the replacement redacted member, for example:
+
+```json
+"redacted": [
+  {
+    "name": {
+      "type": "Registrant Email"
+    },
+    "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='email')][3]",
+    "pathLang": "jsonpath",
+    "method": "replacementValue",
+  }
+]
+```
+
+#### `contact-uri` Property
+
+If the redacted Email value is a web form, the RDAP response must include a `contact-uri` property and not an `email` property.
+ 
+This is shown with the valid HTTP URL, for example: 
+ 
+```json
+[
+  "contact-uri",
+  {},
+  "uri",
+  "https://email.example.com/123"
+]
+```
+ 
+In addition, the response must include the replacement redacted member, for example:
+ 
+```json
+"redacted": [
+  {
+    "name": {
+      "type": "Registrant Email"
+    },
+    "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='email')]",
+    "replacementPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='contact-uri')]",
+    "pathLang": "jsonpath",
+    "method": "replacementValue",
+  }
+]
+```
+
+### Additional Registration Data values 
+
+In some cases, it is permitted to redact an entire property in the RDAP response 
+(e.g., Repository Object Identifiers, Registrant Organization, and Registrant 
+and Tech Phone, Fax, Phone Ext and Fax Ext). These values will be removed entirely and 
+no corresponding property will appear in the RDAP response. Registrars must use the 
+Redaction by Removal Method in the RDAP response.
+
+The response must include the removal redacted member, for example:
+ 
+```json
+"redacted": [
+  {
+    "name": {
+      "type": "Registrant Organization"
+    },
+    "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]",
+    "method": "removal"
+  }
+]
+```
+
+Appendix E of the Response Profile provides the full list of required redaction members. 
+
