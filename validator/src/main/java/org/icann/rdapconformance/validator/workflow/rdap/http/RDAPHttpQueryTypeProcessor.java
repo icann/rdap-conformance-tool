@@ -70,28 +70,25 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
                 return false;
             }
 
-            // TEMPORARILY DISABLED - Domain validation block
-            // This will be re-enabled in a future release
-            /*
+            // Domain validation block - Re-enabled to capture input domain validation errors
             String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
-            
+
             // Store current results count to capture only domain validation errors
             RDAPValidatorResults mainResults = RDAPValidatorResultsImpl.getInstance();
             int currentResultCount = mainResults.getResultCount();
-            
+
             SchemaValidator validator = SchemaValidatorCache.getCachedValidator("rdap_domain_name.json", mainResults, datasetService);
             boolean isValid = validator.validate(domainNameJson);
-            
+
             if (!isValid) {
                 logger.info("Domain name validation failed for: {} - errors captured in main results", domainName);
                 int newResultCount = mainResults.getResultCount();
                 logger.debug("Added {} domain validation errors to results", newResultCount - currentResultCount);
-                
+
                 status = ToolResult.BAD_USER_INPUT; // it's not REALLY bad user input, but we need to flag an error so we save the results in the results file. This is a special case.
                 // Continue execution (return true) so that domain validation errors are included in final results
                 return true;
             }
-            */
             return true;
         }
 

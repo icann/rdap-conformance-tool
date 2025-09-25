@@ -251,8 +251,9 @@ public void setShowProgress(boolean showProgress) {
     resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
 
     // Get the queryType - bail out if it is not correct
+    RDAPHttpQueryTypeProcessor queryTypeProcessor = null;
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
-      RDAPHttpQueryTypeProcessor queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
+      queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
       if (!queryTypeProcessor.check(datasetService)) {
         logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
         return queryTypeProcessor.getErrorStatus().getCode();
@@ -355,6 +356,12 @@ public void setShowProgress(boolean showProgress) {
 
       // Complete progress tracking
       completeProgress();
+
+      // Check if domain validation found errors (even though we continued execution)
+      if (queryTypeProcessor != null && queryTypeProcessor.getErrorStatus() != null && queryTypeProcessor.getErrorStatus() != ToolResult.SUCCESS) {
+        logger.info("Domain validation errors detected - returning error status: {}", queryTypeProcessor.getErrorStatus().getCode());
+        return queryTypeProcessor.getErrorStatus().getCode();
+      }
 
       // if we made it to here, exit 0
       return ZERO;
