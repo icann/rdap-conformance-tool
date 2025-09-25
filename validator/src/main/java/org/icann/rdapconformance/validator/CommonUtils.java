@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator;
 
 import java.io.InputStream;
+import java.net.URI;
 
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
@@ -100,6 +101,41 @@ public class CommonUtils {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(CommonUtils.class);
 
     /**
+     * Create a URI from a string, with proper exception handling.
+     *
+     * @param href The URI string to parse
+     * @return The created URI
+     * @throws IllegalArgumentException if the URI is malformed
+     */
+    public static URI createUri(String href) {
+        URI uri = URI.create(href);
+        if (uri.getScheme() == null || uri.getHost() == null) {
+            throw new IllegalArgumentException("Missing scheme or host component");
+        }
+        return uri;
+    }
+
+    /**
+     * Get the scheme from a URI, with null safety.
+     *
+     * @param uri The URI to extract scheme from
+     * @return The URI scheme, or null if not present
+     */
+    public static String getUriScheme(URI uri) {
+        return uri.getScheme();
+    }
+
+    /**
+     * Get the host from a URI, with null safety.
+     *
+     * @param uri The URI to extract host from
+     * @return The URI host, or null if not present
+     */
+    public static String getUriHost(URI uri) {
+        return uri.getHost();
+    }
+
+
      * Adds a validation error to the results file without an HTTP status code.
      *
      * <p>This convenience method creates a validation result with the provided error

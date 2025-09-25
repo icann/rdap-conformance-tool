@@ -4,6 +4,9 @@ import static org.icann.rdapconformance.validator.CommonUtils.DOT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
+import static org.icann.rdapconformance.validator.CommonUtils.createUri;
+import static org.icann.rdapconformance.validator.CommonUtils.getUriScheme;
+import static org.icann.rdapconformance.validator.CommonUtils.getUriHost;
 
 import java.net.URI;
 import java.util.Set;
@@ -19,7 +22,10 @@ import org.slf4j.LoggerFactory;
 
 public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidation {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot4Dot6_2024.class);
+    protected static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot4Dot6_2024.class);
+
+    // Reserved registrar IDs for registries acting as registrars
+    private static final String[] EXCLUDED_REGISTRAR_IDS = {"9994", "9995", "9996", "9997", "9998", "9999"};
 
     private final RDAPQueryType queryType;
     private final RDAPDatasetService datasetService;
@@ -142,6 +148,12 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
             return false;
         }
 
+        // Skip IANA validation for reserved registrar IDs (9994-9999) when in gTLD registry mode
+        if (config.isGtldRegistry() && isExcludedRegistrarId(handle)) {
+            logger.debug("Skipping IANA validation for reserved registrar ID {} in gTLD registry mode", handle);
+            return true;
+        }
+
         RegistrarId registrarId = datasetService.get(RegistrarId.class);
         Record record = registrarId.getById(id);
         String rdapUrl = record.getRdapUrl();
@@ -184,10 +196,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         // Web URI validation - Step 1: Check URI syntax (equivalent to -10400)
         URI uri;
         try {
-            uri = URI.create(href);
-            if (uri.getScheme() == null || uri.getHost() == null) {
-                throw new IllegalArgumentException("Missing scheme or host component");
-            }
+            uri = createUri(href);
         } catch (Exception e) {
             logger.info("47703, href = {}, syntax error = {}", href, e.getMessage());
             results.add(RDAPValidationResult.builder()
@@ -201,7 +210,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
 
         // Web URI validation - Step 2: Check scheme is http or https (equivalent to -10401)
         // SECURITY FIX: Handle potential null scheme (should be caught by Step 1, but defense in depth)
-        String scheme = uri.getScheme();
+        String scheme = getUriScheme(uri);
         if (scheme == null) {
             logger.info("47703, href = {}, null scheme detected", href);
             results.add(RDAPValidationResult.builder()
@@ -226,7 +235,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         }
 
         // Web URI validation - Step 3: Check host validity (equivalent to -10402)
-        String host = uri.getHost();
+        String host = getUriHost(uri);
         if (host == null || host.trim().isEmpty()) {
             logger.info("47703, href = {}, invalid host = {}", href, host);
             results.add(RDAPValidationResult.builder()
@@ -254,6 +263,25 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         return true;
     }
 
+    /**
+     * Check if the registrar handle is in the list of excluded (reserved) registrar IDs.
+     * These IDs (9994-9999) are reserved for registries acting as registrars.
+     *
+     * @param handle The registrar handle to check
+     * @return true if the handle is in the excluded list, false otherwise
+     */
+    public boolean isExcludedRegistrarId(String handle) {
+        if (handle == null) {
+            return false;
+        }
+
+        for (String excludedId : EXCLUDED_REGISTRAR_IDS) {
+            if (excludedId.equals(handle.trim())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public boolean doLaunch() {
