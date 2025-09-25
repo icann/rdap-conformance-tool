@@ -252,6 +252,8 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-46202`: Handle validation (2024 profile) [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
 - `-46203`: Handle validation (2024 profile) [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
 - `-46204`: Handle validation (2024 profile) [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
+- `-46205`: Handle validation (2024 profile) - ICANN testing EPPROID [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_2024.java}
+- `-46206`: Handle validation (2024 profile) - Registry Domain ID redaction consistency [RFC 9537, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
 - `-46300`: Domain validation (section 2.3.1.1) [RDAP Response Profile Section 2.3.1.1] {ResponseValidation2Dot3Dot1Dot1.java}
 - `-46500`: Notices validation [RFC 9083 Section 4.3] {ResponseValidationNoticesIncluded.java}
 - `-46600`: Domain validation (section 2.6.3) [RDAP Response Profile Section 2.6.3] {ResponseValidation2Dot6Dot3.java}
@@ -539,6 +541,7 @@ The RDAP Conformance Tool uses a systematic numbering scheme for its 284 documen
 - **New help query validation** (-20701)
 - **Enhanced redirect validation** (-13005, -13006)
 - **Comprehensive vCard validation** covering administrative, technical, and billing contacts
-- **Enhanced domain validation** with new codes in the -46XXX and -47XXX ranges
 - **Technical contact redaction validation** (-65XXX range for name, phone, and email redaction requirements)
-- **Enhanced handle validation** with codes -46201 through -46204
+- **Special domain invalid validation** (-65300)
+- **Enhanced handle validation** with codes -46201 through -46206
+- **Enhanced domain validation** with new codes in the -46XXX and -47XXX ranges
