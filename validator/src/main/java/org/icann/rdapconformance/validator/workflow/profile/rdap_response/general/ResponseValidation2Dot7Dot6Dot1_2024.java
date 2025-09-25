@@ -39,11 +39,33 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
         }
 
         boolean isValid = true;
-        boolean needCheckRedacted = false;
-        boolean needTechObjectExist = true;
+
+        // First, check if "Tech Name" redaction exists globally
+        JSONObject redactedTechName = null;
+        Set<String> redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+        for (String redactedJsonPointer : redactedPointersValue) {
+            JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
+            try {
+                JSONObject name = (JSONObject) redacted.get("name");
+                if (name != null && name.get("type") instanceof String redactedName) {
+                    if (redactedName.trim().equalsIgnoreCase("Tech Name")) {
+                        redactedTechName = redacted;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Skipping malformed redacted object: {}", e.getMessage());
+                continue;
+            }
+        }
+
+        // Track validation state across all technical entities
+        boolean anyTechEntityHasEmptyFn = false;
+        boolean anyTechEntityHasNonEmptyFn = false;
+        boolean anyTechEntityMissingFn = false;
 
         for (String vcardArrayPointer : getPointerFromJPath(VCARD_ARRAY_PATH)) {
-          JSONArray vcardArray = (JSONArray) jsonObject.query(vcardArrayPointer);
+            JSONArray vcardArray = (JSONArray) jsonObject.query(vcardArrayPointer);
 
             boolean hasFn = false;
             boolean isFnEmpty = false;
@@ -76,38 +98,22 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                     .build());
 
                 isValid = false;
-            }
-
-            if (hasFn) {
-                needCheckRedacted = true;
-                if(isFnEmpty) {
-                    needTechObjectExist = true;
+                anyTechEntityMissingFn = true;
+            } else {
+                if (isFnEmpty) {
+                    anyTechEntityHasEmptyFn = true;
                 } else {
-                    needTechObjectExist = false;
+                    anyTechEntityHasNonEmptyFn = true;
                 }
             }
         } // end of vCard loop
 
-        if (needCheckRedacted) {
-            JSONObject redactedTechName = null;
-            Set<String> redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
-            for (String redactedJsonPointer : redactedPointersValue) {
-                JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-                try {
-                    JSONObject name = (JSONObject) redacted.get("name");
-                    if (name != null && name.get("type") instanceof String redactedName) {
-                        if (redactedName.trim().equalsIgnoreCase("Tech Name")) {
-                            redactedTechName = redacted;
-                            break;
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.debug("Skipping malformed redacted object: {}", e.getMessage());
-                    continue;
-                }
-            }
+        // Now validate redaction based on the collective state of all technical entities
+        if (!anyTechEntityMissingFn) {
+            // Only check redaction if all technical entities have fn property
 
-            if (Objects.isNull(redactedTechName)) {
+            if (anyTechEntityHasEmptyFn && Objects.isNull(redactedTechName)) {
+                // At least one entity has empty fn, so Tech Name redaction is required
                 logger.debug("adding 65001, value = {}", getResultValue(redactedPointersValue));
                 results.add(RDAPValidationResult.builder()
                     .code(-65001)
@@ -116,7 +122,8 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                     .build());
 
                 isValid = false;
-            } else if (!needTechObjectExist && Objects.nonNull(redactedTechName)) {
+            } else if (anyTechEntityHasNonEmptyFn && !anyTechEntityHasEmptyFn && Objects.nonNull(redactedTechName)) {
+                // All entities have non-empty fn, so Tech Name redaction should NOT exist
                 logger.info("adding 65005, value = {}", getResultValue(redactedPointersValue));
                 results.add(RDAPValidationResult.builder()
                         .code(-65005)
@@ -125,7 +132,8 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                         .build());
 
                 isValid = false;
-            } else if(needTechObjectExist){
+            } else if (anyTechEntityHasEmptyFn && Objects.nonNull(redactedTechName)) {
+                // Tech Name redaction exists and is needed, validate its properties
                 Object pathLang = null;
                 try {
                     pathLang = redactedTechName.get("pathLang");
