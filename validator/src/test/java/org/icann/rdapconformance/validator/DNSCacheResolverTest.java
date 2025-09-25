@@ -24,7 +24,7 @@ public class DNSCacheResolverTest {
         // Clear caches before each test
         clearDNSCaches();
         // Reset to default system DNS before each test
-        DNSCacheResolver.initFromUrl(null);
+        DNSCacheResolver.initializeResolver(null);
         // Clear validation results
         RDAPValidatorResultsImpl.getInstance().clear();
     }
@@ -47,12 +47,12 @@ public class DNSCacheResolverTest {
     }
 
     // ===========================================
-    // Tests for initFromUrl method
+    // Tests for initializeResolver method
     // ===========================================
 
     @Test
     public void testInitializeResolver_WithNullCustomServer_UsesExtendedResolver() {
-        DNSCacheResolver.initFromUrl(null);
+        DNSCacheResolver.initializeResolver(null);
         
         assertThat(DNSCacheResolver.resolver).isNotNull();
         assertThat(DNSCacheResolver.resolver).isInstanceOf(ExtendedResolver.class);
@@ -60,7 +60,7 @@ public class DNSCacheResolverTest {
 
     @Test
     public void testInitializeResolver_WithEmptyCustomServer_UsesExtendedResolver() {
-        DNSCacheResolver.initFromUrl("");
+        DNSCacheResolver.initializeResolver("");
         
         assertThat(DNSCacheResolver.resolver).isNotNull();
         assertThat(DNSCacheResolver.resolver).isInstanceOf(ExtendedResolver.class);
@@ -68,7 +68,7 @@ public class DNSCacheResolverTest {
 
     @Test
     public void testInitializeResolver_WithValidIPv4Address_UsesSimpleResolver() {
-        DNSCacheResolver.initFromUrl("8.8.8.8");
+        DNSCacheResolver.initializeResolver("8.8.8.8");
         
         assertThat(DNSCacheResolver.resolver).isNotNull();
         assertThat(DNSCacheResolver.resolver).isInstanceOf(SimpleResolver.class);
@@ -76,7 +76,7 @@ public class DNSCacheResolverTest {
 
     @Test
     public void testInitializeResolver_WithValidIPv6Address_UsesSimpleResolver() {
-        DNSCacheResolver.initFromUrl("2001:4860:4860::8888");
+        DNSCacheResolver.initializeResolver("2001:4860:4860::8888");
         
         assertThat(DNSCacheResolver.resolver).isNotNull();
         assertThat(DNSCacheResolver.resolver).isInstanceOf(SimpleResolver.class);
@@ -84,7 +84,7 @@ public class DNSCacheResolverTest {
 
     @Test
     public void testInitializeResolver_WithLocalhostIPv4_UsesSimpleResolver() {
-        DNSCacheResolver.initFromUrl("127.0.0.1");
+        DNSCacheResolver.initializeResolver("127.0.0.1");
         
         assertThat(DNSCacheResolver.resolver).isNotNull();
         assertThat(DNSCacheResolver.resolver).isInstanceOf(SimpleResolver.class);
@@ -92,7 +92,7 @@ public class DNSCacheResolverTest {
 
     @Test
     public void testInitializeResolver_WithLocalhostIPv6_UsesSimpleResolver() {
-        DNSCacheResolver.initFromUrl("::1");
+        DNSCacheResolver.initializeResolver("::1");
         
         assertThat(DNSCacheResolver.resolver).isNotNull();
         assertThat(DNSCacheResolver.resolver).isInstanceOf(SimpleResolver.class);
@@ -100,21 +100,21 @@ public class DNSCacheResolverTest {
 
     @Test
     public void testInitializeResolver_WithInvalidIPAddress_ThrowsException() {
-        assertThatThrownBy(() -> DNSCacheResolver.initFromUrl("invalid.dns.server"))
+        assertThatThrownBy(() -> DNSCacheResolver.initializeResolver("invalid.dns.server"))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Invalid DNS resolver configuration");
     }
 
     @Test
     public void testInitializeResolver_WithInvalidIPv4Format_ThrowsException() {
-        assertThatThrownBy(() -> DNSCacheResolver.initFromUrl("300.300.300.300"))
+        assertThatThrownBy(() -> DNSCacheResolver.initializeResolver("300.300.300.300"))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Invalid DNS resolver configuration");
     }
 
     @Test
     public void testInitializeResolver_WithInvalidIPv6Format_ThrowsException() {
-        assertThatThrownBy(() -> DNSCacheResolver.initFromUrl("gggg::1"))
+        assertThatThrownBy(() -> DNSCacheResolver.initializeResolver("gggg::1"))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Invalid DNS resolver configuration");
     }
@@ -236,7 +236,7 @@ public class DNSCacheResolverTest {
     }
 
     // ===========================================
-    // Tests for initFromUrl
+    // Tests for initializeResolver
     // ===========================================
 
     @Test
@@ -255,9 +255,9 @@ public class DNSCacheResolverTest {
 
     @Test
     public void testInitFromUrl_NullUrl() {
-        // This will throw NullPointerException as URI constructor doesn't handle null
-        assertThatThrownBy(() -> DNSCacheResolver.initFromUrl(null))
-            .isInstanceOf(NullPointerException.class);
+        // This should not throw an exception now
+        DNSCacheResolver.initFromUrl(null);
+        // The method should complete successfully
     }
 
     @Test

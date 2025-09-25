@@ -89,6 +89,34 @@ public class DNSCacheResolver {
     }
 
     /**
+     * Initializes the DNS resolver with an optional custom DNS server.
+     *
+     * @param customDnsServer the custom DNS server to use, or null to use system default
+     * @throws RuntimeException if the DNS resolver configuration is invalid
+     */
+    public static synchronized void initializeResolver(String customDnsServer) {
+        try {
+            if (customDnsServer != null && !customDnsServer.isEmpty()) {
+                SimpleResolver simpleResolver = new SimpleResolver(customDnsServer);
+                simpleResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
+                resolver = simpleResolver;
+                logger.debug("DNS Resolver configured with custom server: {} ({}s timeout)",
+                           customDnsServer, DNS_TIMEOUT_SECONDS);
+            } else {
+                ExtendedResolver extendedResolver = new ExtendedResolver(); // Uses system-configured resolvers
+                extendedResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
+                extendedResolver.setRetries(DNS_RETRIES);
+                resolver = extendedResolver;
+                logger.debug("DNS Resolver initialized using system DNS settings with {}s timeout and {} retries.",
+                           DNS_TIMEOUT_SECONDS, DNS_RETRIES);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to initialize DNS resolver with server: " + customDnsServer, e);
+            throw new RuntimeException("Invalid DNS resolver configuration", e);
+        }
+    }
+
+    /**
      * Initializes DNS resolution by performing lookups for the hostname in the given URL.
      *
      * <p>This method extracts the hostname from the URL and performs both A and AAAA
@@ -100,6 +128,10 @@ public class DNSCacheResolver {
      */
     public static void initFromUrl(String url) {
         logger.debug("Trying to lookup FQDN for URL: {}", url);
+        if (url == null) {
+            logger.debug("URL is null, skipping DNS lookup");
+            return;
+        }
         try {
             URI uri = new URI(url);
             String host = uri.getHost();

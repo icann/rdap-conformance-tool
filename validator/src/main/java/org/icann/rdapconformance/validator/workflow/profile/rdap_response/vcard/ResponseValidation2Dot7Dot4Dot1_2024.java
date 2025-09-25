@@ -45,6 +45,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
         try {
             vcardFnPointersValue = getPointerFromJPath(VCARD_FN_PATH);
             vcardPointersValue = getPointerFromJPath(VCARD_PATH);
+            redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
             logger.debug("vcardFnPointersValue size: {}", vcardFnPointersValue.size());
 
             if(vcardFnPointersValue.isEmpty()) {
@@ -61,12 +62,25 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
                     if(vcardFnArray.get(3) instanceof String fnValue) {
                         if(StringUtils.isEmpty(fnValue)) {
                             return validateRedactedArrayForFnValue();
+                        } else {
+                            return validateRedactedArrayForNotEmptyFnValue();
                         }
                     }
                 }
             }
         } catch (Exception e) {
             logger.debug("vcard fn is not found, no validations for this case, Error: {}", e.getMessage());
+            // If we can't find/parse the vcard fn property, we can't validate it
+            // This should not be treated as an error - just return true to skip validation
+            return true;
+        }
+
+        return true;
+    }
+
+    private boolean validateRedactedArrayForNotEmptyFnValue() {
+        var redactedRegistrantName = extractRedactedRegistrantName();
+        if(Objects.nonNull(redactedRegistrantName)) {
             results.add(RDAPValidationResult.builder()
                     .code(-63205)
                     .value(getResultValue(redactedPointersValue))
@@ -95,7 +109,9 @@ public class ResponseValidation2Dot7Dot4Dot1_2024 extends ProfileJsonValidation 
 
     private JSONObject extractRedactedRegistrantName() {
         JSONObject redactedRegistrantName = null;
-        redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+        if (redactedPointersValue == null) {
+            redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+        }
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
             try {
