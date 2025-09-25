@@ -190,7 +190,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
                         jsonObject.getString("rel"),
                         jsonObject.getString("href")));
             } catch (Exception e) {
-                logger.info("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
+                logger.debug("Exception trying to convert LinksObjectToValidate {}", e.getMessage());
                 list.add(new LinksObjectToValidate(NOT_FOUND, NOT_FOUND, NOT_FOUND));
             }
 

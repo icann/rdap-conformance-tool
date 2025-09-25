@@ -2,7 +2,6 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard
 
 import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation2Dot7Dot6Dot2_2024;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
@@ -42,10 +41,10 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
 
         try {
             Set<String> vcardAddressPointersValue = getPointerFromJPath(VCARD_ADDRESS_PATH);
-            logger.info("vcardAddressPointersValue size: {}", vcardAddressPointersValue.size());
+            logger.debug("vcardAddressPointersValue size: {}", vcardAddressPointersValue.size());
 
             if(vcardAddressPointersValue.isEmpty()) {
-                logger.info("address in vcard does not have values, no validations");
+                logger.debug("address in vcard does not have values, no validations");
                 return true;
             }
 
@@ -54,10 +53,14 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
                 JSONArray vcardAddressValuesArray = (JSONArray) vcardAddressArray.get(3);
                 if(vcardAddressValuesArray.get(5) instanceof String postalCode) {
                     if(StringUtils.isEmpty(postalCode)) {
+                        logger.info("postalCode address is present but empty, verify redacted array for empty value");
                         return validateRedactedArrayForEmptyPostalCodeValue();
+                    } else {
+                        logger.info("postalCode address is present and not empty, verify redacted array for not empty value");
+                        return validateRedactedArrayForNotEmptyPostalCodeValue();
                     }
                 } else {
-                    logger.info("postalCode address is not present");
+                    logger.debug("postalCode address is not present");
                     results.add(RDAPValidationResult.builder()
                             .code(-63600)
                             .value(getResultValue(vcardAddressPointersValue))
@@ -70,13 +73,42 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
             return true;
 
         } catch (Exception e) {
-            logger.info("vcard address is not found, no validations for this case");
+            logger.debug("vcard address is not found, no validations for this case");
         }
 
         return true;
     }
 
+    private boolean validateRedactedArrayForNotEmptyPostalCodeValue() {
+        JSONObject redactedPostalCode = extractRedactedPostalCodeObject();
+        if(Objects.nonNull(redactedPostalCode)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63605)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registrant Postal Code was found but the postal code was not redacted.")
+                    .build());
+
+            return false;
+        }
+        return true;
+    }
+
     private boolean validateRedactedArrayForEmptyPostalCodeValue() {
+        JSONObject redactedPostalCode = extractRedactedPostalCodeObject();
+        if(Objects.isNull(redactedPostalCode)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63601)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registrant Postal Code is required.")
+                    .build());
+
+            return false;
+        }
+
+        return validateRedactedProperties(redactedPostalCode);
+    }
+
+    private JSONObject extractRedactedPostalCodeObject() {
         JSONObject redactedPostalCode = null;
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
@@ -93,32 +125,21 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
             } catch (Exception e) {
                 // FIXED: Don't fail immediately when encountering an exception
                 // Real-world redacted arrays contain mixed objects:
-                // - Some have name.type (e.g., "Registrant Postal Code", "Registry Domain ID") 
+                // - Some have name.type (e.g., "Registrant Postal Code", "Registry Domain ID")
                 // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
                 // - The exception occurs when trying to extract "type" from objects that only have "description"
                 // We should skip these objects and continue searching, not fail the entire validation
-                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}", 
+                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}",
                            redactedJsonPointer, e.getMessage());
                 continue; // Continue checking other redacted objects instead of failing
             }
         }
-
-        if(Objects.isNull(redactedPostalCode)) {
-            results.add(RDAPValidationResult.builder()
-                    .code(-63601)
-                    .value(getResultValue(redactedPointersValue))
-                    .message("a redaction of type Registrant Postal Code is required.")
-                    .build());
-
-            return false;
-        }
-
-        return validateRedactedProperties(redactedPostalCode);
+        return redactedPostalCode;
     }
 
     private boolean validateRedactedProperties(JSONObject redactedPostalCode) {
         if(Objects.isNull(redactedPostalCode)) {
-            logger.info("redactedPostalCode object is null");
+            logger.debug("redactedPostalCode object is null");
             return true;
         }
 
@@ -126,7 +147,7 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
 
         // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify postPath
         try {
-            logger.info("Extracting pathLang...");
+            logger.debug("Extracting pathLang...");
             pathLangValue = redactedPostalCode.get("pathLang");
             if(pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
@@ -135,7 +156,7 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
             }
             return true;
         } catch (Exception e) {
-            logger.error("pathLang is not found due to {}", e.getMessage());
+            logger.debug("pathLang is not found due to {}", e.getMessage());
             return validatePostPathBasedOnPathLang(redactedPostalCode);
         }
     }
@@ -143,17 +164,17 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
     // Verify that the postPath property is present with a valid JSONPath expression.
     private boolean validatePostPathBasedOnPathLang(JSONObject redactedPostalCode) {
         if(Objects.isNull(redactedPostalCode)) {
-            logger.info("redactedPostalCode object for postPath validations is null");
+            logger.debug("redactedPostalCode object for postPath validations is null");
             return true;
         }
 
         try {
             var postPathValue = redactedPostalCode.get("postPath");
-            logger.info("postPath property is found, so verify value");
+            logger.debug("postPath property is found, so verify value");
             if(postPathValue instanceof String postPath) {
                 try {
                     var postPathPointer = getPointerFromJPath(postPath);
-                    logger.info("postPath pointer with size {}", postPathPointer.size());
+                    logger.debug("postPath pointer with size {}", postPathPointer.size());
                     if(postPathPointer.isEmpty()) {
                         results.add(RDAPValidationResult.builder()
                                 .code(-63603)
@@ -173,7 +194,7 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("postPath property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("postPath property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return validateMethodProperty(redactedPostalCode);
@@ -182,13 +203,13 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
     // Verify that the method property is present as is a JSON string of “emptyValue”.
     private boolean validateMethodProperty(JSONObject redactedPostalCode) {
         if(Objects.isNull(redactedPostalCode)) {
-            logger.info("redactedPostalCode object for method validations is null");
+            logger.debug("redactedPostalCode object for method validations is null");
             return true;
         }
 
         try {
             var methodValue = redactedPostalCode.get("method");
-            logger.info("method property is found, so verify value");
+            logger.debug("method property is found, so verify value");
             if(methodValue instanceof String method) {
                 if(!method.trim().equalsIgnoreCase("emptyValue")) {
                     results.add(RDAPValidationResult.builder()
@@ -200,7 +221,7 @@ public class ResponseValidation2Dot7Dot4Dot6_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("message property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("message property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return true;

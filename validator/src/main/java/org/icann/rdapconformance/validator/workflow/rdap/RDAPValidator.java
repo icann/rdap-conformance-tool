@@ -22,6 +22,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.*;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.*;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.ResponseValidationTechEmail_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
@@ -143,7 +144,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validator.validate(rdapResponseData);
         SimpleHttpResponse rdapResponse = (SimpleHttpResponse ) query.getRawResponse();
         if(rdapResponse != null) {
-            logger.info("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
+            logger.debug("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
         }
 
         // fold the name stuff and send out another query to that URL
@@ -237,10 +238,19 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidationLastUpdateEvent(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot1(rdapResponseData, results, config, queryType));
         validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+         // Only run this validation if it's a gTLD registry
+        if(config.isGtldRegistry()) {
+            validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+        }
+// old code - what's up with this?
+//         validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+//         // Only add the validation if it's a gTLD registrar
+//         if (config.isGtldRegistrar()) {
+//             validations.add(new ResponseValidation2Dot3Dot2_2024(rdapResponseData, results, queryType));
+//         }
         validations.add(new ResponseValidation2Dot10(rdapResponseData, results, queryType));
         validations.add(new ResponseValidationRFC5731(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidationRFC3915(rdapResponseData, results,queryType));
+        validations.add(new ResponseValidationRFC3915(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot6Dot1(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot4Dot1(rdapResponseData, results, queryType));
@@ -257,7 +267,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation1Dot2_2_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot2_2024(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot2_1_2024(rdapResponseData, results, datasetService));
-        validations.add(new ResponseValidation2Dot4Dot6_2024(rdapResponseData, results, datasetService,queryType, config));
+        validations.add(new ResponseValidation2Dot4Dot6_2024(rdapResponseData, results, datasetService,queryType));
         validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(rdapResponseData, results, queryType, config));
         validations.add(new ResponseValidation2Dot7Dot3_2024(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot7Dot5Dot1_2024(rdapResponseData, results));
@@ -265,6 +275,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot7Dot5Dot3_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot7Dot6Dot2_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot7Dot6Dot3_2024(rdapResponseData, results, config));
+        validations.add(new ResponseValidationTechEmail_2024(rdapResponseData, results, config));
         validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation4Dot1Handle_2024(rdapResponseData, results, queryType));
         validations.add(new ResponseValidationRegistrantHandle_2024(rdapResponseData, results, datasetService));
@@ -277,6 +288,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot7Dot4Dot6_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot7Dot4Dot8_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot7Dot4Dot9_2024(rdapResponseData, results, config));
+        validations.add(new ResponseValidationRegistrantEmail_2024(rdapResponseData, results, config));
         validations.add(new ResponseValidationStatusDuplication_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot7Dot6Dot1_2024(rdapResponseData, results));
         validations.add(new StdRdapConformanceValidation_2024(rdapResponseData, results));
@@ -322,7 +334,12 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot1(rdapResponseData, results, config, queryType));
         validations.add(new ResponseValidation2Dot2(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+
+        // Only run this validation if it's a gTLD registry
+        if(config.isGtldRegistry()) {
+            validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+        }
+
         validations.add(new ResponseValidationNoticesIncluded(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot6Dot3(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot11(rdapResponseData, results, queryType));

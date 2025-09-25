@@ -8,7 +8,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 /**
- * 9.4.4 Exclude entities with roles “registrar”, “registrant”, or “technical” validation
+ * 9.4.4 Exclude entities with roles "reseller", "registrar", "registrant", or "technical" validation
  */
 public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
     public ResponseValidation2Dot7Dot3_2024(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
@@ -32,6 +32,7 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
     @Override
     protected boolean doValidate() {
         Set<String> entityJsonPointers = getPointerFromJPath("$.entities[?("
+            + "        !(@.roles[*] =~ /reseller/) &&"
             + "        !(@.roles[*] =~ /registrar/) &&"
             + "        !(@.roles[*] =~ /registrant/) &&"
             + "        !(@.roles[*] =~ /technical/)"

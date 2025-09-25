@@ -66,10 +66,12 @@ public class ResponseValidation2Dot7Dot6Dot1_2024Test extends ProfileJsonValidat
         String malformedContent = getResource("/validators/profile/response_validations/vcard/malformed_redacted_test.json");
         jsonObject = new org.json.JSONObject(malformedContent);
         
-        // This should pass validation because "Tech Name" redaction exists at index 2,
+        // This should not pass validation because "Tech Name" redaction exists at index 2,
         // even though index 0 has malformed "name": null. The fn property is preserved
         // since the "Tech Name" redaction uses emptyValue method, not removal.
-        validate(); // Should NOT generate -65001 error
+        validate(-65005,
+                "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":null,\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Tech Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='technical')]\",\"pathLang\":\"jsonpath\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Email\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='work')]\"}",
+                "a redaction of type Tech Name was found but tech name was not redacted.");
     }
 
     @Test
@@ -130,5 +132,87 @@ public class ResponseValidation2Dot7Dot6Dot1_2024Test extends ProfileJsonValidat
         
         // Expected: Should fail with -65002 because validation logic runs and finds invalid JSONPath
         validate(-65002, techNameRedaction.toString(), "jsonpath is invalid for Tech Name");
+    }
+
+    @Test
+    public void test65005_TechNameRedactionPresentButFnNotEmpty() throws java.io.IOException {
+        // Setup: technical entity with non-empty fn and Tech Name redaction present
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        // Ensure fn is non-empty
+        JSONArray fnValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(1);
+        fnValue.put(3, "Multi Role User");
+        // Add Tech Name redaction
+        JSONArray redactedArray = jsonObject.getJSONArray("redacted");
+        JSONObject techNameRedaction = new JSONObject();
+        techNameRedaction.put("reason", new JSONObject().put("description", "Server policy"));
+        techNameRedaction.put("method", "emptyValue");
+        techNameRedaction.put("name", new JSONObject().put("type", "Tech Name"));
+        techNameRedaction.put("postPath", "$.entities[?(@.roles[0]=='technical')]");
+        redactedArray.put(techNameRedaction);
+        // Should trigger -65005
+        validate(-65005, "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')][3]\",\"pathLang\":\"jsonpath\",\"prePath\":\"book\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Tech Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='technical')]\"}", "a redaction of type Tech Name was found but tech name was not redacted.");
+    }
+
+    @Test
+    public void testNoRedactionNeededWhenFnNotEmpty() throws java.io.IOException {
+        // Setup: technical entity with non-empty fn and NO Tech Name redaction
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        // Ensure fn is non-empty
+        JSONArray fnValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(1);
+        fnValue.put(3, "Multi Role User");
+        // Remove any Tech Name redaction if present
+        JSONArray redactedArray = jsonObject.getJSONArray("redacted");
+        for (int i = redactedArray.length() - 1; i >= 0; i--) {
+            JSONObject red = redactedArray.getJSONObject(i);
+            if (red.has("name") && red.getJSONObject("name").optString("type").equalsIgnoreCase("Tech Name")) {
+                redactedArray.remove(i);
+            }
+        }
+        // Should pass validation (no error)
+        validate();
+    }
+
+    @Test
+    public void testNoTechnicalRoleEntities() throws Exception {
+        // Setup: Remove all technical roles from entities
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        JSONArray entities = jsonObject.getJSONArray("entities");
+        for (int i = 0; i < entities.length(); i++) {
+            JSONObject entity = entities.getJSONObject(i);
+            JSONArray roles = entity.optJSONArray("roles");
+            if (roles != null) {
+                for (int j = roles.length() - 1; j >= 0; j--) {
+                    if (roles.optString(j).equalsIgnoreCase("technical")) {
+                        roles.remove(j);
+                    }
+                }
+            }
+        }
+        // Should pass validation (doValidate returns true immediately)
+        validate();
+    }
+
+    @Test
+    public void testTechNameRedactionWithNonJsonPathPathLangAndNoMethod() throws Exception {
+        // Setup: technical entity with empty fn, Tech Name redaction present, pathLang != 'jsonpath', and no method
+        String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
+        jsonObject = new org.json.JSONObject(multiRoleContent);
+        // Make fn empty
+        JSONArray fnValue = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(1);
+        fnValue.put(3, "");
+        // Add Tech Name redaction with pathLang != 'jsonpath' and no method
+        JSONArray redactedArray = jsonObject.getJSONArray("redacted");
+        JSONObject techNameRedaction = new JSONObject();
+        techNameRedaction.put("reason", new JSONObject().put("description", "Server policy"));
+        techNameRedaction.put("name", new JSONObject().put("type", "Tech Name"));
+        techNameRedaction.put("pathLang", "other"); // Not 'jsonpath'
+        techNameRedaction.put("postPath", "$.entities[?(@.roles[0]=='technical')]");
+        // Do NOT set 'method' property
+        redactedArray.put(techNameRedaction);
+        // Should trigger -65004 (method is absent)
+        validate(-65004, techNameRedaction.toString(), "Tech Name redaction method must be emptyValue");
     }
 }

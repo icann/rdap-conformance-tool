@@ -15,17 +15,22 @@ import java.io.IOException;
 public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidationTestBase {
 
     static final String telPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"test\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"test\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
     static final String pathLangPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"pathLang\":\"test\",\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"test\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Tech Phone\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"test\"}";
     static final String pathLangObjectPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"pathLang\":{},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Tech Phone\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":{}}";
     static final String pathLangMissingPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$test\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Tech Phone\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"prePath\":\"$test\"}";
     static final String prePathExistingPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.redacted[*]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Tech Phone\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"prePath\":\"$.redacted[*]\"}";
     static final String methodPointer =
-            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"test\",\"name\":{\"type\":\"Tech Phone\"},\"prePath\":\"$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+            "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/3:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"test\",\"name\":{\"type\":\"Tech Phone\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}";
+    static final String telPointer1 = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/3:{\"name\":{\"type\":\"Tech Phone\"}}";
+    static final String telPointer2 = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/3:{\"name\":{\"type\":\"Other\"}}, #/redacted/4:{\"name\":{\"type\":\"Tech Phone\"}}";
+    static final String telPointer3 = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/3:{\"extra\":\"value\",\"name\":{\"type\":\"Tech Phone\"}}";
+    static final String telPointer4 = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registrant Organization\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Street\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\"pathLang\":\"jsonpath\"}, #/redacted/3:{\"name\":{\"type\":\"TECH PHONE\"}}, #/redacted/4:{\"name\":{\"type\":\"tech phone\"}}";
+
 
     public ResponseValidation2Dot7Dot6Dot2_2024Test() {
         super("/validators/profile/response_validations/vcard/valid.json",
@@ -42,6 +47,7 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
         return new ResponseValidation2Dot7Dot6Dot2_2024(
                 jsonObject.toString(),
                 results);
+
     }
 
     @Test
@@ -101,6 +107,7 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
     public void testTechnicalEntity_WithVoiceTypeAsArray_MultipleValues() {
         // Test case where type is an array with multiple values including "voice"
         JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        jsonObject.getJSONArray("redacted").remove(0);
         technicalEntity.getJSONArray("roles").put(0, "technical");
         
         JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -153,6 +160,7 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
     public void testTechnicalEntity_WithNonStringInTypeArray() {
         // Test case where type array contains non-string elements (exception handling)
         JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        jsonObject.getJSONArray("redacted").remove(0);
         technicalEntity.getJSONArray("roles").put(0, "technical");
         
         JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -293,8 +301,21 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot6Dot2_2024_65101() {
+        String redactedTechPhone = "{\n" +
+                "  \"reason\" : {\n" +
+                "    \"description\" : \"Server policy\"\n" +
+                "  },\n" +
+                "  \"method\" : \"emptyValue\",\n" +
+                "  \"name\" : {\n" +
+                "    \"type\" : \"Tech Phone\"\n" +
+                "  },\n" +
+                "  \"postPath\" : \"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\n" +
+                "  \"pathLang\" : \"jsonpath\"\n" +
+                "}";
         JSONObject telVoiceObject = jsonObject.getJSONArray("entities").getJSONObject(1).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4).getJSONObject(1);
-        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        jsonObject.getJSONArray("redacted").put(new JSONObject(redactedTechPhone));
+        jsonObject.getJSONArray("redacted").getJSONObject(0).getJSONObject("name").put("type", "test");
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
 
         telVoiceObject.remove("type");
         redactedObject.put("pathLang", "test");
@@ -303,8 +324,20 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot6Dot2_2024_65101_By_PathLangObject() {
+        String redactedTechPhone = "{\n" +
+                "  \"reason\" : {\n" +
+                "    \"description\" : \"Server policy\"\n" +
+                "  },\n" +
+                "  \"method\" : \"emptyValue\",\n" +
+                "  \"name\" : {\n" +
+                "    \"type\" : \"Tech Phone\"\n" +
+                "  },\n" +
+                "  \"postPath\" : \"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\n" +
+                "  \"pathLang\" : \"jsonpath\"\n" +
+                "}";
         JSONObject telVoiceObject = jsonObject.getJSONArray("entities").getJSONObject(1).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4).getJSONObject(1);
-        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        jsonObject.getJSONArray("redacted").put(new JSONObject(redactedTechPhone));
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
 
         telVoiceObject.remove("type");
         redactedObject.put("pathLang", new JSONObject());
@@ -313,8 +346,20 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot6Dot2_2024_65101_By_MissingPathLang_Bad_PrePath() {
+        String redactedTechPhone = "{\n" +
+                "  \"reason\" : {\n" +
+                "    \"description\" : \"Server policy\"\n" +
+                "  },\n" +
+                "  \"method\" : \"emptyValue\",\n" +
+                "  \"name\" : {\n" +
+                "    \"type\" : \"Tech Phone\"\n" +
+                "  },\n" +
+                "  \"postPath\" : \"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\n" +
+                "  \"pathLang\" : \"jsonpath\"\n" +
+                "}";
         JSONObject telVoiceObject = jsonObject.getJSONArray("entities").getJSONObject(1).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4).getJSONObject(1);
-        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        jsonObject.getJSONArray("redacted").put(new JSONObject(redactedTechPhone));
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
 
         telVoiceObject.remove("type");
         redactedObject.remove("pathLang");
@@ -324,8 +369,20 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot6Dot2_2024_65102_By_MissingPathLang_Bad_PrePath() {
+        String redactedTechPhone = "{\n" +
+                "  \"reason\" : {\n" +
+                "    \"description\" : \"Server policy\"\n" +
+                "  },\n" +
+                "  \"method\" : \"emptyValue\",\n" +
+                "  \"name\" : {\n" +
+                "    \"type\" : \"Tech Phone\"\n" +
+                "  },\n" +
+                "  \"postPath\" : \"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\n" +
+                "  \"pathLang\" : \"jsonpath\"\n" +
+                "}";
         JSONObject telVoiceObject = jsonObject.getJSONArray("entities").getJSONObject(1).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4).getJSONObject(1);
-        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        jsonObject.getJSONArray("redacted").put(new JSONObject(redactedTechPhone));
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
 
         telVoiceObject.remove("type");
         redactedObject.remove("pathLang");
@@ -335,8 +392,20 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot6Dot2_2024_65103_By_Method() {
+        String redactedTechPhone = "{\n" +
+                "  \"reason\" : {\n" +
+                "    \"description\" : \"Server policy\"\n" +
+                "  },\n" +
+                "  \"method\" : \"emptyValue\",\n" +
+                "  \"name\" : {\n" +
+                "    \"type\" : \"Tech Phone\"\n" +
+                "  },\n" +
+                "  \"postPath\" : \"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]\",\n" +
+                "  \"pathLang\" : \"jsonpath\"\n" +
+                "}";
         JSONObject telVoiceObject = jsonObject.getJSONArray("entities").getJSONObject(1).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4).getJSONObject(1);
-        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
+        jsonObject.getJSONArray("redacted").put(new JSONObject(redactedTechPhone));
+        JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(3);
 
         telVoiceObject.remove("type");
         redactedObject.put("method", "test");
@@ -359,14 +428,115 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
     public void testMultiRoleTechnical() throws java.io.IOException {
         // REGRESSION TEST: Verify multi-role entities are handled correctly after RCT-345 fix
         // Changed from @.roles[0]=='technical' to @.roles contains 'technical'
-        
+
         String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
         jsonObject = new org.json.JSONObject(multiRoleContent);
-        
+        jsonObject.getJSONArray("redacted").remove(2);
+
         // Test JSON has entity with roles: ["technical", "registrant"]
         // Now correctly found with 'contains' operator regardless of role position
-        
         // Should pass validation with multi-role technical entity
         validate(); // Should pass - technical entity correctly found
+    }
+
+    @Test
+    public void testTechnicalVoiceTel_NoRedactedTechPhone_ShouldPass() {
+        // Technical entity with voice tel, no redacted Tech Phone
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        // Ensure tel property with type "voice" exists
+        JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        JSONObject params = telProperty.getJSONObject(1);
+        params.put("type", "voice");
+        // Remove any redacted Tech Phone
+        JSONArray redacted = jsonObject.optJSONArray("redacted");
+        if (redacted != null) {
+            for (int i = redacted.length() - 1; i >= 0; i--) {
+                JSONObject obj = redacted.getJSONObject(i);
+                if (obj.has("name") && obj.getJSONObject("name").optString("type").equalsIgnoreCase("Tech Phone")) {
+                    redacted.remove(i);
+                }
+            }
+        }
+        validate(); // Should pass, no error
+    }
+
+    @Test
+    public void testTechnicalVoiceTel_WithRedactedTechPhone_ShouldFail65104() {
+        // Technical entity with voice tel, redacted Tech Phone present
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        JSONObject params = telProperty.getJSONObject(1);
+        params.put("type", "voice");
+        // Add a redacted Tech Phone
+        JSONArray redacted = jsonObject.optJSONArray("redacted");
+        if (redacted == null) {
+            redacted = new JSONArray();
+            jsonObject.put("redacted", redacted);
+        }
+        JSONObject techPhoneRedaction = new JSONObject();
+        techPhoneRedaction.put("name", new JSONObject().put("type", "Tech Phone"));
+        redacted.put(techPhoneRedaction);
+        validate(-65104, telPointer1, "a redaction of type Tech Phone was found but tech phone was not redacted.");
+    }
+
+    @Test
+    public void testTechnicalVoiceTel_MultipleRedactedEntries_OneTechPhone_ShouldFail65104() {
+        // Technical entity with voice tel, multiple redacted entries, one is Tech Phone
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        JSONObject params = telProperty.getJSONObject(1);
+        params.put("type", "voice");
+        JSONArray redacted = jsonObject.optJSONArray("redacted");
+        if (redacted == null) {
+            redacted = new JSONArray();
+            jsonObject.put("redacted", redacted);
+        }
+        // Add unrelated redacted
+        redacted.put(new JSONObject().put("name", new JSONObject().put("type", "Other")));
+        // Add valid Tech Phone redacted
+        redacted.put(new JSONObject().put("name", new JSONObject().put("type", "Tech Phone")));
+        validate(-65104, telPointer2, "a redaction of type Tech Phone was found but tech phone was not redacted.");
+    }
+
+    @Test
+    public void testTechnicalVoiceTel_RedactedTechPhoneWithExtraFields_ShouldFail65104() {
+        // Technical entity with voice tel, redacted Tech Phone with extra/malformed fields
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        JSONObject params = telProperty.getJSONObject(1);
+        params.put("type", "voice");
+        JSONArray redacted = jsonObject.optJSONArray("redacted");
+        if (redacted == null) {
+            redacted = new JSONArray();
+            jsonObject.put("redacted", redacted);
+        }
+        JSONObject techPhoneRedaction = new JSONObject();
+        techPhoneRedaction.put("name", new JSONObject().put("type", "Tech Phone"));
+        techPhoneRedaction.put("extra", "value"); // extra field
+        redacted.put(techPhoneRedaction);
+        validate(-65104, telPointer3, "a redaction of type Tech Phone was found but tech phone was not redacted.");
+    }
+
+    @Test
+    public void testTechnicalVoiceTel_RedactedTechPhoneTypeCaseInsensitive_ShouldFail65104() {
+        // Technical entity with voice tel, redacted Tech Phone with type case variations
+        JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        technicalEntity.getJSONArray("roles").put(0, "technical");
+        JSONArray telProperty = technicalEntity.getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
+        JSONObject params = telProperty.getJSONObject(1);
+        params.put("type", "voice");
+        JSONArray redacted = jsonObject.optJSONArray("redacted");
+        if (redacted == null) {
+            redacted = new JSONArray();
+            jsonObject.put("redacted", redacted);
+        }
+        // Add Tech Phone with different case
+        redacted.put(new JSONObject().put("name", new JSONObject().put("type", "TECH PHONE")));
+        redacted.put(new JSONObject().put("name", new JSONObject().put("type", "tech phone")));
+        validate(-65104, telPointer4, "a redaction of type Tech Phone was found but tech phone was not redacted.");
     }
 }

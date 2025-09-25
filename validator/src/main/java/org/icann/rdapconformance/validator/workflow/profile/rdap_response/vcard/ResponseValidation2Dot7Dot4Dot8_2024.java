@@ -46,22 +46,52 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
         try {
             // Use custom method to find voice tel properties that handles both string and array types
             boolean hasVoiceTel = hasVoiceTelProperty();
-            logger.info("hasVoiceTel: {}", hasVoiceTel);
+            logger.debug("hasVoiceTel: {}", hasVoiceTel);
 
             if(!hasVoiceTel) {
-                logger.info("voice tel in vcard does not have values, validate redaction object");
+                logger.debug("voice tel in vcard does not have values, validate redaction object");
                 return validateRedactedArrayForNoVoiceValue();
+            } else {
+                logger.info("voice tel in vcard has values, validate no redaction object");
+                return validateRedactedArrayForVoiceValue();
             }
 
         } catch (Exception e) {
-            logger.info("vcard voice is not found, validations for this case");
+            logger.debug("vcard voice is not found, validations for this case");
             return validateRedactedArrayForNoVoiceValue();
         }
+    }
+    
+    private boolean validateRedactedArrayForVoiceValue() {
+        JSONObject redactedPhone = extractRedactedPhoneObject();
+        if(Objects.nonNull(redactedPhone)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63704)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registrant Phone was found but the phone was not redacted.")
+                    .build());
 
+            return false;
+        }
         return true;
     }
 
     private boolean validateRedactedArrayForNoVoiceValue() {
+        JSONObject redactedPhone = extractRedactedPhoneObject();
+        if(Objects.isNull(redactedPhone)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63700)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registrant Phone is required.")
+                    .build());
+
+            return false;
+        }
+
+        return validateRedactedProperties(redactedPhone);
+    }
+
+    private JSONObject extractRedactedPhoneObject() {
         JSONObject redactedPhone = null;
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
@@ -78,32 +108,21 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
             } catch (Exception e) {
                 // FIXED: Don't fail immediately when encountering an exception
                 // Real-world redacted arrays contain mixed objects:
-                // - Some have name.type (e.g., "Registrant Phone", "Registry Domain ID") 
+                // - Some have name.type (e.g., "Registrant Phone", "Registry Domain ID")
                 // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
                 // - The exception occurs when trying to extract "type" from objects that only have "description"
                 // We should skip these objects and continue searching, not fail the entire validation
-                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}", 
+                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}",
                            redactedJsonPointer, e.getMessage());
                 continue; // Continue checking other redacted objects instead of failing
             }
         }
-
-        if(Objects.isNull(redactedPhone)) {
-            results.add(RDAPValidationResult.builder()
-                    .code(-63700)
-                    .value(getResultValue(redactedPointersValue))
-                    .message("a redaction of type Registrant Phone is required.")
-                    .build());
-
-            return false;
-        }
-
-        return validateRedactedProperties(redactedPhone);
+        return redactedPhone;
     }
 
     private boolean validateRedactedProperties(JSONObject redactedPhone) {
         if(Objects.isNull(redactedPhone)) {
-            logger.info("redactedPhone object is null");
+            logger.debug("redactedPhone object is null");
             return true;
         }
 
@@ -111,7 +130,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
 
         // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify prePath
         try {
-            logger.info("Extracting pathLang...");
+            logger.debug("Extracting pathLang...");
             pathLangValue = redactedPhone.get("pathLang");
             if(pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
@@ -120,7 +139,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
             }
             return true;
         } catch (Exception e) {
-            logger.error("pathLang is not found due to {}", e.getMessage());
+            logger.debug("pathLang is not found due to {}", e.getMessage());
             return validatePrePathBasedOnPathLang(redactedPhone);
         }
     }
@@ -128,17 +147,17 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
     // Verify that the prePath property is either absent or is present with a valid JSONPath expression.
     private boolean validatePrePathBasedOnPathLang(JSONObject redactedPhone) {
         if(Objects.isNull(redactedPhone)) {
-            logger.info("redactedPhone object for prePath validations is null");
+            logger.debug("redactedPhone object for prePath validations is null");
             return true;
         }
 
         try {
             var prePathValue = redactedPhone.get("prePath");
-            logger.info("prePath property is found, so verify value");
+            logger.debug("prePath property is found, so verify value");
             if(prePathValue instanceof String prePath) {
                 try {
                     var prePathPointer = getPointerFromJPath(prePath);
-                    logger.info("prePath pointer with size {}", prePathPointer.size());
+                    logger.debug("prePath pointer with size {}", prePathPointer.size());
                     if(!prePathPointer.isEmpty()) {
                         results.add(RDAPValidationResult.builder()
                                 .code(-63702)
@@ -159,7 +178,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("prePath property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("prePath property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return validateMethodProperty(redactedPhone);
@@ -168,13 +187,13 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
     // Verify that the method property is either absent or is present as is a JSON string of “removal”.
     private boolean validateMethodProperty(JSONObject redactedPhone) {
         if(Objects.isNull(redactedPhone)) {
-            logger.info("redactedPhone object for method validations is null");
+            logger.debug("redactedPhone object for method validations is null");
             return true;
         }
 
         try {
             var methodValue = redactedPhone.get("method");
-            logger.info("method property is found, so verify value");
+            logger.debug("method property is found, so verify value");
             if(methodValue instanceof String method) {
                 if(!method.trim().equalsIgnoreCase("removal")) {
                     results.add(RDAPValidationResult.builder()
@@ -186,7 +205,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("method property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("method property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return isValid;
@@ -233,7 +252,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                 }
             }
         } catch (Exception e) {
-            logger.error("Error checking for voice tel property: {}", e.getMessage());
+            logger.debug("Error checking for voice tel property: {}", e.getMessage());
             return false;
         }
 

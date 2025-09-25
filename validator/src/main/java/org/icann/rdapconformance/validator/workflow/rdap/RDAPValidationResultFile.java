@@ -26,6 +26,56 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Singleton service for managing RDAP validation results and generating formatted output files.
+ *
+ * <p>This class is responsible for collecting, processing, and formatting RDAP validation results
+ * into structured JSON output files. It handles result aggregation, filtering, formatting, and
+ * file generation with comprehensive metadata about the validation process.</p>
+ *
+ * <p>Key responsibilities include:</p>
+ * <ul>
+ *   <li>Collecting and aggregating validation results from multiple sources</li>
+ *   <li>Filtering results based on configuration (errors, warnings, ignored codes)</li>
+ *   <li>Detecting and handling duplicate IP address validation errors</li>
+ *   <li>Ensuring consistent HTTP status codes across queries</li>
+ *   <li>Formatting results into structured JSON with proper metadata</li>
+ *   <li>Writing timestamped result files to the filesystem</li>
+ * </ul>
+ *
+ * <p>The class operates as a singleton to ensure consistent result aggregation across
+ * the entire validation process. It must be initialized once with the required
+ * dependencies before use, and provides various methods for result manipulation
+ * and output generation.</p>
+ *
+ * <p>Result formatting includes comprehensive metadata such as:</p>
+ * <ul>
+ *   <li>Definition identifier and tested URI information</li>
+ *   <li>Test execution timestamp and configuration flags</li>
+ *   <li>Tool version and build information</li>
+ *   <li>Categorized results (errors, warnings, ignored items)</li>
+ *   <li>Network and protocol-specific validation outcomes</li>
+ * </ul>
+ *
+ * <p>The generated JSON files follow a standardized format suitable for
+ * automated processing, reporting, and compliance verification.</p>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+ * resultFile.initialize(results, config, configFile, fileSystem);
+ * boolean success = resultFile.build();
+ * if (success) {
+ *     String path = resultFile.getResultsPath();
+ *     // Process generated result file
+ * }
+ * </pre>
+ *
+ * @see RDAPValidationResult
+ * @see RDAPValidatorConfiguration
+ * @see ConfigurationFile
+ * @since 1.0.0
+ */
 public class RDAPValidationResultFile {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPValidationResultFile.class);
@@ -42,9 +92,21 @@ public class RDAPValidationResultFile {
     // Track if already initialized
     private boolean isInitialized = false;
 
+    /**
+     * Private constructor to enforce singleton pattern.
+     */
     private RDAPValidationResultFile() {
     }
 
+    /**
+     * Returns the singleton instance of the validation result file manager.
+     *
+     * <p>This method provides thread-safe access to the singleton instance,
+     * creating it if it doesn't exist. The instance must be initialized
+     * before use through the initialize method.</p>
+     *
+     * @return the singleton RDAPValidationResultFile instance
+     */
     public static synchronized RDAPValidationResultFile getInstance() {
         if (instance == null) {
             instance = new RDAPValidationResultFile();
@@ -52,6 +114,18 @@ public class RDAPValidationResultFile {
         return instance;
     }
 
+    /**
+     * Initializes the result file manager with required dependencies.
+     *
+     * <p>This method must be called once before using other methods. It sets up
+     * the necessary dependencies for result processing and file generation.
+     * Subsequent calls to this method are ignored to prevent reinitialization.</p>
+     *
+     * @param results the validation results collection
+     * @param config the validator configuration
+     * @param configurationFile the configuration file with validation rules
+     * @param fileSystem the file system abstraction for file operations
+     */
     public void initialize(RDAPValidatorResults results,
                            RDAPValidatorConfiguration config,
                            ConfigurationFile configurationFile,
@@ -66,7 +140,12 @@ public class RDAPValidationResultFile {
         this.fileSystem = fileSystem;
     }
 
-    // For testing purposes
+    /**
+     * Resets the singleton instance for testing purposes.
+     *
+     * <p>This method is intended for use in unit tests to ensure a clean
+     * state between test runs. It should not be used in production code.</p>
+     */
     public static void reset() {
         instance = null;
     }
@@ -78,7 +157,19 @@ public class RDAPValidationResultFile {
     }
 
     /**
-     * Fill and save the result file.
+     * Builds and saves the validation results to a JSON file.
+     *
+     * <p>This method processes all collected validation results, applies filtering
+     * and formatting rules, and generates a comprehensive JSON output file containing
+     * structured validation results with metadata. The file includes categorized
+     * results (errors, warnings, ignored), configuration information, and test
+     * execution details.</p>
+     *
+     * <p>The output file is saved to either a configured path or a timestamped
+     * default location in the results directory. The JSON format is standardized
+     * and suitable for automated processing and reporting.</p>
+     *
+     * @return true if the result file was successfully created and written, false otherwise
      */
     public boolean build() {
         Map<String, Object> fileMap = new HashMap<>();
@@ -120,7 +211,7 @@ public class RDAPValidationResultFile {
             fileSystem.write(path.toString(), object.toString(4));
             return true;
         } catch (IOException e) {
-            logger.info("Failed to write results into {}", path, e);
+            logger.debug("Failed to write results into {}", path, e);
             return false;
         }
     }
@@ -139,6 +230,24 @@ public class RDAPValidationResultFile {
         }
     }
 
+    /**
+     * Creates a structured map of validation results categorized by type.
+     *
+     * <p>This method processes all validation results and organizes them into
+     * errors, warnings, and ignored categories based on the configuration file
+     * definitions. It also applies filtering to remove duplicates and adds
+     * consistency checks for HTTP status codes across queries.</p>
+     *
+     * <p>The returned map contains:</p>
+     * <ul>
+     *   <li>error: List of error results with full details</li>
+     *   <li>warning: List of warning results with full details</li>
+     *   <li>ignore: List of ignored error codes</li>
+     *   <li>notes: Configuration notes and explanations</li>
+     * </ul>
+     *
+     * @return structured map containing categorized validation results
+     */
     public Map<String, Object> createResultsMap() {
         Map<String, Object> resultsMap = new HashMap<>();
         List<Map<String, Object>> errors = new ArrayList<>();
@@ -222,13 +331,13 @@ public class RDAPValidationResultFile {
 
         // If not all the same, add the new error code
         if (statusCodes.size() > ONE) {
-            logger.info("Not all status codes are the same");
+            logger.debug("Not all status codes are the same");
             String tupleListJson = "[]";
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 tupleListJson = mapper.writeValueAsString(new ArrayList<>(uniqueTuples));
             } catch (JsonProcessingException e) {
-                logger.info("Error serializing tuple list to JSON", e);
+                logger.debug("Error serializing tuple list to JSON", e);
                 // we can't parse them so just add the empty array
             }
 
@@ -242,7 +351,7 @@ public class RDAPValidationResultFile {
                                                    .message("Queries do not produce the same HTTP status code.")
                                                    .build());
         } else {
-            logger.info("All status codes are the same");
+            logger.debug("All status codes are the same");
         }
         return updatedResults;
     }
@@ -273,10 +382,29 @@ public class RDAPValidationResultFile {
         return results;
     }
 
+    /**
+     * Returns the total count of validation errors.
+     *
+     * <p>This method counts all results that are classified as errors based on
+     * the configuration file definitions. This includes explicitly defined errors
+     * and results that are not categorized as warnings or ignored.</p>
+     *
+     * @return the number of validation errors found
+     */
     public int getErrorCount() {
         return getErrors().size();
     }
 
+    /**
+     * Returns a list of all validation results classified as errors.
+     *
+     * <p>This method filters the complete result set to return only those results
+     * that are considered errors based on the configuration file definitions.
+     * Results are classified as errors if they are explicitly defined as errors
+     * or if they are not categorized as warnings or ignored codes.</p>
+     *
+     * @return list of validation results that are classified as errors
+     */
     public List<RDAPValidationResult> getErrors() {
         return this.results.getAll()
                            .stream()
@@ -286,6 +414,14 @@ public class RDAPValidationResultFile {
                            .collect(Collectors.toList());
     }
 
+    /**
+     * Removes error results from the result set, keeping only warnings and response format errors.
+     *
+     * <p>This method filters the results to retain only warnings and specific response
+     * format validation errors that should be preserved regardless of the overall
+     * response status. This is typically used when processing 404 responses where
+     * most errors are expected but response format validation should still apply.</p>
+     */
     public void removeErrors() {
         Set<RDAPValidationResult> filteredResults = this.results.getAll()
                 .stream()
@@ -319,14 +455,38 @@ public class RDAPValidationResultFile {
         return code >= -10303 && code <= -10300;
     }
 
+     * Removes result groups from the validation results.
+     *
+     * <p>This method clears any grouped results from the result set, typically
+     * used to reset or clean up the results collection during processing.</p>
+     */
     public void removeResultGroups() {
         this.results.removeGroups();
     }
 
+    /**
+     * Returns a list of all validation results.
+     *
+     * <p>This method provides access to the complete set of validation results
+     * without any filtering or categorization. The returned list is a copy
+     * to prevent external modification of the internal result set.</p>
+     *
+     * @return list containing all validation results
+     */
     public List<RDAPValidationResult> getAllResults() {
         return new ArrayList<>(this.results.getAll());
     }
 
+    /**
+     * Returns the file path where the validation results were written.
+     *
+     * <p>This method provides access to the actual file path used for the
+     * generated results file. The path is set during the build process and
+     * reflects either the configured output path or the automatically
+     * generated timestamped filename.</p>
+     *
+     * @return the file path of the generated results file, or null if not yet built
+     */
     public String getResultsPath() {
         return resultPath;
     }

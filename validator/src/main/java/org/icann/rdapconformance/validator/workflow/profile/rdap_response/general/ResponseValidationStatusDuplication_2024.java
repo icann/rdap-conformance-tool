@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.JpathUtil;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -60,7 +61,7 @@ public class ResponseValidationStatusDuplication_2024 extends ProfileValidation 
                 }
             }
         } catch (Exception e) {
-            logger.info("Exception during evaluation of status properties: {} \n\n details: {}", jsonObject, e);
+            logger.debug("Exception during evaluation of status properties: {} \n\n details: {}", jsonObject, e);
             isOK = false;
         }
         return isOK;

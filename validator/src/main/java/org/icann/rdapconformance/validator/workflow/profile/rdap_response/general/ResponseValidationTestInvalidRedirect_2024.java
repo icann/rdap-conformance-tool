@@ -46,11 +46,11 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
             return true;
         }
 
-            logger.info("Sending a GET request to: {}", createTestInvalidURI());
+            logger.debug("Sending a GET request to: {}", createTestInvalidURI());
             HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(),
                 config.getTimeout());
             int status = response.statusCode();
-            logger.info("Status code for test.invalid: {}", status);
+            logger.debug("Status code for test.invalid: {}", status);
             if (status == HTTP_OK) { // if it returns a 200 - that is an error
                 results.add(RDAPValidationResult.builder()
                                                 .queriedURI(response.uri().toString())
@@ -69,12 +69,12 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
 
     public boolean handleRedirect(HttpResponse<String> response) {
         String locationHeader = response.headers().firstValue(LOCATION).orElse(EMPTY_STRING);
-        logger.info("Received redirect -> Location header: {}", locationHeader);
+        logger.debug("Received redirect -> Location header: {}", locationHeader);
 
         try {
             // Normalize the Location header to a full URL
             URI locationUri = normalizeLocationUri(locationHeader, createTestInvalidURI());
-            logger.info("Normalized Location URI: {}", locationUri);
+            logger.debug("Normalized Location URI: {}", locationUri);
 
             // Check if the redirect points to itself
             if (locationUri.equals(createTestInvalidURI())) {
@@ -89,7 +89,7 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
                 return false;
             }
         } catch (Exception e) {
-            logger.info("Error normalizing Location header: {}", locationHeader, e);
+            logger.debug("Error normalizing Location header: {}", locationHeader, e);
             return false;
         }
 

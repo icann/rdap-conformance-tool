@@ -18,7 +18,7 @@ public class LocalBindRoutePlanner implements HttpRoutePlanner {
 
     @Override
     public HttpRoute determineRoute(HttpHost target, HttpContext context) throws HttpException {
-        logger.info("[ROUTE] Determining route for host: " + target + " with local address: " + localAddress);
+        logger.debug("[ROUTE] Determining route for host: " + target + " with local address: " + localAddress);
 
         // Create a proper HttpHost from the target if needed
         HttpHost host = target;

@@ -111,10 +111,19 @@ public class RDAPFileQueryTest {
 
     @Test
     public void testSetErrorStatus_NoException() {
-        // Method has TODO comment but should not throw exception
         fileQuery.setErrorStatus(ToolResult.FILE_READ_ERROR);
-        
-        // No exception expected - method currently does nothing
+    }
+
+    @Test
+    public void testSetErrorStatus_SetsErrorStatus() {
+        fileQuery.setErrorStatus(ToolResult.FILE_READ_ERROR);
+        assertThat(fileQuery.getErrorStatus()).isEqualTo(ToolResult.FILE_READ_ERROR);
+    }
+
+    @Test
+    public void testSetErrorStatus_WithNull_ReturnsConfigInvalid() {
+        fileQuery.setErrorStatus(null);
+        assertThat(fileQuery.getErrorStatus()).isEqualTo(ToolResult.CONFIG_INVALID);
     }
 
     @Test
@@ -154,5 +163,35 @@ public class RDAPFileQueryTest {
         
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> query.run())
             .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    public void testRun_InvalidFileUri_SetsErrorStatus() {
+        when(mockConfig.getUri()).thenReturn(URI.create("file:///nonexistent/file.json"));
+        fileQuery = new RDAPFileQuery(mockConfig, mockDatasetService);
+        fileQuery.run();
+        assertThat(fileQuery.getErrorStatus()).isEqualTo(ToolResult.FILE_READ_ERROR);
+    }
+
+    @Test
+    public void testRun_ValidFileExists_ReturnsTrue() throws Exception {
+        // Create a temporary file to test successful reading
+        java.io.File tempFile = java.io.File.createTempFile("rdap_test", ".json");
+        tempFile.deleteOnExit();
+
+        // Write some test content to the file
+        java.nio.file.Files.write(tempFile.toPath(), "{\"test\": \"data\"}".getBytes());
+
+        // Configure mock to return the temp file URI
+        when(mockConfig.getUri()).thenReturn(tempFile.toURI());
+        fileQuery = new RDAPFileQuery(mockConfig, mockDatasetService);
+
+        // Run the query
+        boolean result = fileQuery.run();
+
+        // Should return true since the file exists and can be read
+        assertThat(result).isTrue();
+        assertThat(fileQuery.getData()).isEqualTo("{\"test\": \"data\"}");
+        assertThat(fileQuery.getErrorStatus()).isEqualTo(ToolResult.CONFIG_INVALID); // No error set
     }
 }

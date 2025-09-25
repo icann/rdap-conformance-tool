@@ -31,7 +31,7 @@ public final class ResponseValidation2Dot7Dot2_2024 extends ProfileJsonValidatio
     @Override
     protected boolean doValidate() {
         if(getPointerFromJPath(ENTITY_REGISTRANT_ROLE_PATH).isEmpty()) {
-            logger.info("adding 63000, domain does not have a registrant role in entities");
+            logger.debug("adding -63000, domain does not have a registrant role in entities");
             results.add(RDAPValidationResult.builder()
                     .code(-63000)
                     .value(getResultValue(getPointerFromJPath("$")))

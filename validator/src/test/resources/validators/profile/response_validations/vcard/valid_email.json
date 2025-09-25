@@ -1,0 +1,174 @@
+{
+  "rdapConformance": [
+    "rdap_level_0",
+    "icann_rdap_technical_implementation_guide_0",
+    "icann_rdap_response_profile_0"
+  ],
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "handle": "ZZZZ",
+      "roles": [
+        "registrant"
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "Administrative User"
+          ],
+          [
+            "org",
+            {},
+            "text",
+            "Example Inc."
+          ],
+          [
+            "adr",
+            {},
+            "text",
+            [
+              "",
+              "Suite 1236",
+              "4321 Rue Somewhere",
+              "Quebec",
+              "QC",
+              "G1V 2M2",
+              "Canada"
+            ]
+          ],
+          [
+            "email",
+            {},
+            "text",
+            "administrative.user@example.com"
+          ],
+          [
+            "tel",
+            {
+              "type": "voice"
+            },
+            "uri",
+            "tel:+1-555-555-1236;ext=789"
+          ],
+          [
+            "tel",
+            {
+              "type": "fax"
+            },
+            "uri",
+            "tel:+1-555-555-6321"
+          ]
+        ]
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "handle": "123",
+      "roles": [
+        "technical"
+      ],
+      "publicIds": [
+        {
+          "type": "IANA Registrar ID",
+          "identifier": "1"
+        }
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "Example Registrar Inc."
+          ],
+          [
+            "adr",
+            {},
+            "text",
+            [
+              "",
+              "Suite 100",
+              "123 Example Dr.",
+              "Dulles",
+              "VA",
+              "20166-6503",
+              "US"
+            ]
+          ],
+          [
+            "email",
+            {},
+            "text",
+            "contact@organization.example"
+          ],
+          [
+            "tel",
+            {
+              "type": "voice"
+            },
+            "uri",
+            "tel:+1.7035555555;ext=1234"
+          ],
+          [
+            "tel",
+            {
+              "type": "fax"
+            },
+            "uri",
+            "tel:+1.7035555556"
+          ]
+        ]
+      ]
+    }
+  ],
+  "redacted": [
+    {
+      "name": {
+        "type": "Registrant Phone"
+      },
+      "prePath": "$.test",
+      "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Tech Phone"
+      },
+      "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]",
+      "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Registrant Street"
+      },
+      "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][:3]",
+      "pathLang": "jsonpath",
+      "method": "emptyValue",
+      "reason": {
+        "description": "Server policy"
+      }
+    }
+  ]
+}

@@ -18,7 +18,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonValidation {
   private static final Logger logger = LoggerFactory.getLogger(ResponseValidationRegistrantHandle_2024.class);
   public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'registrant')]";
-  public static final String ENTITY_REGISTRANT_PATH = "$.entities[?(@.roles contains 'registrant')]";
+    public static final String ENTITY_REGISTRANT_HANDLE_PATH = "$.entities[?(@.roles contains 'registrant')].handle";
   private static final String REDACTED_PATH = "$.redacted[*]";
   private Set<String> redactedPointersValue = null;
   private final RDAPDatasetService datasetService;
@@ -45,10 +45,11 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
       return true;
     }
 
+    boolean isValid = true;
     try {
-      Set<String> entityHandleJsonPointers = getPointerFromJPath(ENTITY_REGISTRANT_PATH);
+      Set<String> entityHandleJsonPointers = getPointerFromJPath(ENTITY_ROLE_PATH);
 
-      if(entityHandleJsonPointers.isEmpty()) {
+      if(getPointerFromJPath(ENTITY_REGISTRANT_HANDLE_PATH).isEmpty()) {
         logger.info("Handle is NOT in the entity object with the registrant, redacted validations");
         return validateRedactedArrayForHandle();
       }
@@ -63,7 +64,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
                     .message("The handle of the registrant does not comply with the format "
                             + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.")
                     .build());
-            return false;
+              isValid = false;
           } else {
             String roid = handle.substring(handle.indexOf(DASH) + 1);
             EPPRoid eppRoid = datasetService.get(EPPRoid.class);
@@ -73,48 +74,34 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
                       .value(getResultValue(entityHandleJsonPointers))
                       .message("The globally unique identifier in the registrant handle is not registered in EPPROID.")
                       .build());
-              return false;
+              isValid = false;
             }
           }
         }
       }
+
+        JSONObject redactedHandleName = extractRedactedHandle();
+        if(Objects.nonNull(redactedHandleName)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63106)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registry Registrant ID was found but the registrant handle was not redacted.")
+                    .build());
+
+            isValid = false;
+        }
     } catch (Exception e) {
       logger.info("Entity handle is not found, next validations, Error: {}", e.getMessage());
       return validateRedactedArrayForHandle();
     }
 
-    return true;
+    return isValid;
   }
 
   private boolean validateRedactedArrayForHandle() {
-    JSONObject redactedHandleName = null;
-    redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
-    for (String redactedJsonPointer : redactedPointersValue) {
-      JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-      JSONObject name = (JSONObject) redacted.get("name");
-      try {
-        var nameValue = name.get("type");
-        if(nameValue instanceof String redactedName) {
-          if(redactedName.trim().equalsIgnoreCase("Registry Registrant ID")) {
-            redactedHandleName = redacted;
-            break; // Found the Registry Registrant ID redaction, no need to continue
-          }
-        }
-      } catch (Exception e) {
-        // FIXED: Don't fail immediately when encountering an exception
-        // Real-world redacted arrays contain mixed objects:
-        // - Some have name.type (e.g., "Registry Registrant ID", "Registrant Phone") 
-        // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
-        // - The exception occurs when trying to extract "type" from objects that only have "description"
-        // We should skip these objects and continue searching, not fail the entire validation
-        logger.debug("Redacted object at {} does not have extractable type property, skipping: {}", 
-                   redactedJsonPointer, e.getMessage());
-        continue; // Continue checking other redacted objects instead of failing
-      }
+      JSONObject redactedHandleName = extractRedactedHandle();
 
-    }
-
-    if(Objects.isNull(redactedHandleName)) {
+      if(Objects.isNull(redactedHandleName)) {
       results.add(RDAPValidationResult.builder()
               .code(-63102)
               .value(getResultValue(redactedPointersValue))
@@ -127,7 +114,37 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
     return validateRedactedProperties(redactedHandleName);
   }
 
-  private boolean validateRedactedProperties(JSONObject redactedHandleName) {
+    private JSONObject extractRedactedHandle() {
+        JSONObject redactedHandleName = null;
+        redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+        for (String redactedJsonPointer : redactedPointersValue) {
+          JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
+          JSONObject name = (JSONObject) redacted.get("name");
+          try {
+            var nameValue = name.get("type");
+            if(nameValue instanceof String redactedName) {
+              if(redactedName.trim().equalsIgnoreCase("Registry Registrant ID")) {
+                redactedHandleName = redacted;
+                break; // Found the Registry Registrant ID redaction, no need to continue
+              }
+            }
+          } catch (Exception e) {
+            // FIXED: Don't fail immediately when encountering an exception
+            // Real-world redacted arrays contain mixed objects:
+            // - Some have name.type (e.g., "Registry Registrant ID", "Registrant Phone")
+            // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
+            // - The exception occurs when trying to extract "type" from objects that only have "description"
+            // We should skip these objects and continue searching, not fail the entire validation
+            logger.debug("Redacted object at {} does not have extractable type property, skipping: {}",
+                       redactedJsonPointer, e.getMessage());
+            continue; // Continue checking other redacted objects instead of failing
+          }
+
+        }
+        return redactedHandleName;
+    }
+
+    private boolean validateRedactedProperties(JSONObject redactedHandleName) {
     if(Objects.isNull(redactedHandleName)) {
       logger.info("redactedHandleName object is null");
       return true;
@@ -146,13 +163,13 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
       }
       return true;
     } catch (Exception e) {
-      logger.error("pathLang is not found due to {}", e.getMessage());
+      logger.debug("pathLang is not found due to {}", e.getMessage());
       return validatePostPathBasedOnPathLang(redactedHandleName);
     }
   }
 
   // Verify that the prePath property is either absent or is present with a valid JSONPath expression.
-  private boolean validatePostPathBasedOnPathLang(JSONObject redactedRegistrantName) {
+  public boolean validatePostPathBasedOnPathLang(JSONObject redactedRegistrantName) {
     if(Objects.isNull(redactedRegistrantName)) {
       logger.info("redactedRegistrantName object for postPath validations is null");
       return true;
@@ -162,7 +179,6 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
       var prePathValue = redactedRegistrantName.get("prePath");
       logger.info("prePath property is found, so verify value");
       if(prePathValue instanceof String prePath) {
-        try {
           if(!isValidJsonPath(prePath)) {
             logger.info("prePath is not a valid JSONPath expression");
             results.add(RDAPValidationResult.builder()
@@ -176,10 +192,6 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
           var prePathPointer = getPointerFromJPath(prePath);
           logger.info("prePath pointer with size {}", prePathPointer.size());
 
-          // TODO: Test case -63104: JSONPath must evaluate to empty set for Registry Registrant ID redaction
-          // Currently commented out due to evaluation logic issues - needs investigation
-          // The getPointerFromJPath() method may not be correctly evaluating empty results
-          /*
           if (prePathPointer != null && !prePathPointer.isEmpty()) {
             results.add(RDAPValidationResult.builder()
                     .code(-63104)
@@ -188,25 +200,12 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
                     .build());
             return false;
           }
-          */
-
-        } catch (Exception e) {
-          logger.info("prePath is not a valid JSONPath expression, Error: {}", e.getMessage());
-          results.add(RDAPValidationResult.builder()
-                  .code(-63103)
-                  .value(getResultValue(redactedPointersValue))
-                  .message("jsonpath is invalid for Registry Registrant ID.")
-                  .build());
-          return false;
-        }
       }
     } catch (Exception e) {
-      logger.error("prePath property is not found, no validations defined. Error: {}", e.getMessage());
+      logger.debug("prePath property is not found, no validations defined. Error: {}", e.getMessage());
     }
 
-    // TODO: Test case -63105: Registry Registrant ID redaction method must be removal if present
-    // Currently commented out pending proper implementation and testing
-    /*
+
     Object method = null;
     try {
       method = redactedRegistrantName.get("method");
@@ -222,7 +221,6 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
               .build());
       return false;
     }
-    */
 
     return true;
   }

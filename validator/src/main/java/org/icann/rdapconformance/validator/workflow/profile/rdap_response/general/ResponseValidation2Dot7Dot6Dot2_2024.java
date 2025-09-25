@@ -40,10 +40,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
     if(isValid && Objects.nonNull(redactedObject.registryRedacted())) {
         isValid = validateRedactedProperties(redactedObject);
         if(isValid) {
-            isValid = validateRedactedProperties(redactedObject);
-            if(isValid) {
-                isValid = validateMethodProperty(redactedObject);
-            }
+            isValid = validateMethodProperty(redactedObject);
         }
     }
     return isValid;
@@ -56,36 +53,37 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
 
     // Use custom method to properly detect voice tel properties
     boolean hasVoiceTel = hasTechnicalVoiceTelProperty();
-    logger.info("hasTechnicalVoiceTel: {}", hasVoiceTel);
+    logger.debug("hasTechnicalVoiceTel: {}", hasVoiceTel);
     
     if(!hasVoiceTel) {
-        logger.info("tel voice is not found for technical entity, validating redacted array");
+        logger.debug("tel voice is not found for technical entity, validating redacted array");
         return validateRedactedArrayForEmptyTelVoice();
+    } else {
+        logger.info("tel voice is found for technical entity, validating there is no redacted array");
+        return validateNotRedactedArrayForTelVoice();
     }
-
-    return new RedactedHandleObjectToValidate(null, true);
  }
 
- private RedactedHandleObjectToValidate validateRedactedArrayForEmptyTelVoice() {
-     JSONObject redactedTechPhone = null;
-     redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
-     for (String redactedJsonPointer : redactedPointersValue) {
-         JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-         try {
-             JSONObject name = (JSONObject) redacted.get("name");
-             if (name != null && name.get("type") instanceof String redactedName) {
-                 if(redactedName.trim().equalsIgnoreCase(TECH_PHONE_TYPE)) {
-                     redactedTechPhone = redacted;
-                     break;
-                 }
-             }
-         } catch (Exception e) {
-             logger.debug("Skipping malformed redacted object: {}", e.getMessage());
-             continue;
-         }
-     }
+ private RedactedHandleObjectToValidate validateNotRedactedArrayForTelVoice() {
+     JSONObject redactedTechPhone = findRedactedTechPhone();
 
-     if(Objects.isNull(redactedTechPhone)) {
+     if(Objects.nonNull(redactedTechPhone)) {
+             results.add(RDAPValidationResult.builder()
+                     .code(-65104)
+                     .value(getResultValue(redactedPointersValue))
+                     .message("a redaction of type Tech Phone was found but tech phone was not redacted.")
+                     .build());
+
+             return new RedactedHandleObjectToValidate(redactedTechPhone, false);
+         }
+
+     return new RedactedHandleObjectToValidate(null, true);
+ }
+
+    private RedactedHandleObjectToValidate validateRedactedArrayForEmptyTelVoice() {
+        JSONObject redactedTechPhone = findRedactedTechPhone();
+
+        if(Objects.isNull(redactedTechPhone)) {
          results.add(RDAPValidationResult.builder()
                  .code(-65100)
                  .value(getResultValue(redactedPointersValue))
@@ -98,12 +96,32 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
      return new RedactedHandleObjectToValidate(redactedTechPhone, true);
  }
 
+    private JSONObject findRedactedTechPhone() {
+        JSONObject redactedTechPhone = null;
+        redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+        for (String redactedJsonPointer : redactedPointersValue) {
+            JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
+            try {
+                JSONObject name = (JSONObject) redacted.get("name");
+                if (name != null && name.get("type") instanceof String redactedName) {
+                    if (redactedName.trim().equalsIgnoreCase(TECH_PHONE_TYPE)) {
+                        redactedTechPhone = redacted;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Skipping malformed redacted object: {}", e.getMessage());
+            }
+        }
+        return redactedTechPhone;
+    }
+
  private boolean validateRedactedProperties(RedactedHandleObjectToValidate redactedHandleObject) {
     Object pathLangValue;
 
     // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify prePath
     try {
-      logger.info("Extracting pathLang...");
+      logger.debug("Extracting pathLang...");
       pathLangValue = redactedHandleObject.registryRedacted().get("pathLang");
       if(pathLangValue instanceof String pathLang) {
         if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
@@ -125,7 +143,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
           return false;
       }
     } catch (Exception e) {
-      logger.info("pathLang is not found");
+      logger.debug("pathLang is not found");
       return validatePrePathBasedOnPathLang(redactedHandleObject.registryRedacted());
     }
  }
@@ -134,11 +152,11 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
  private boolean validatePrePathBasedOnPathLang(JSONObject registryRedacted) {
     try {
       var prePathValue = registryRedacted.get("prePath");
-      logger.info("pathPath property is found, so verify value");
+      logger.debug("pathPath property is found, so verify value");
       if(prePathValue instanceof String prePath) {
         try {
             var prePathPointer = getPointerFromJPath(prePath);
-            logger.info("prePath pointer with size {}", prePathPointer.size());
+            logger.debug("prePath pointer with size {}", prePathPointer.size());
             if(!prePathPointer.isEmpty()) {
                 results.add(RDAPValidationResult.builder()
                         .code(-65102)
@@ -158,7 +176,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
         }
       }
     } catch (Exception e) {
-      logger.info("prePath property is not found, so validation is true");
+      logger.debug("prePath property is not found, so validation is true");
     }
 
     return true;
@@ -168,7 +186,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
  private boolean validateMethodProperty(RedactedHandleObjectToValidate redactedHandleObject) {
       try {
         var methodValue = redactedHandleObject.registryRedacted().get("method");
-        logger.info("method property is found, so verify value");
+        logger.debug("method property is found, so verify value");
         if(methodValue instanceof String method) {
           if(!method.trim().equalsIgnoreCase("removal")) {
             results.add(RDAPValidationResult.builder()
@@ -180,7 +198,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
           }
         }
       } catch (Exception e) {
-        logger.info("method property is not found, so validation is true");
+        logger.debug("method property is not found, so validation is true");
       }
 
       return true;
@@ -228,7 +246,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
                 }
             }
         } catch (Exception e) {
-            logger.error("Error checking for technical voice tel property: {}", e.getMessage());
+            logger.debug("Error checking for technical voice tel property: {}", e.getMessage());
             return false;
         }
 

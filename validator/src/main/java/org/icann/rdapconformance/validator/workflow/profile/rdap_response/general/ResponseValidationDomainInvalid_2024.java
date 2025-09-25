@@ -57,7 +57,7 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
         }
         String domainInvalidUriCleaned = CommonUtils.cleanStringFromExtraSlash(domainInvalidUri);
 
-        logger.info("Making request to: {}", domainInvalidUriCleaned);
+        logger.debug("Making request to: {}", domainInvalidUriCleaned);
         HttpResponse<String> response = null;
 
         response = RDAPHttpRequest.makeHttpGetRequest(new URI(domainInvalidUriCleaned), this.config.getTimeout());
@@ -105,7 +105,7 @@ boolean validateDomainInvalidQuery(HttpResponse<String> domainInvalidResponse, b
         if(!jsonDomainInvalidResponse.hasKey("rdapConformance")
                 || !jsonDomainInvalidResponse.hasKey("errorCode")
                 ||  errorCode != 404) {
-            logger.info("Validating rdapConformance and errorCode property in top level");
+            logger.debug("Validating rdapConformance and errorCode property in top level");
             propertyExists = false;
         }
 

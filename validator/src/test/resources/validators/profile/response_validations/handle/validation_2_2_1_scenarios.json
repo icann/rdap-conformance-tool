@@ -1,0 +1,460 @@
+{
+  "scenarios": {
+    "baseline_valid": {
+      "description": "Basic valid RDAP response with Registry Domain ID redaction, no handle present",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "redacted": [
+          {
+            "name": {
+              "type": "Registry Domain ID"
+            },
+            "prePath": "$.handle",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Name"
+            },
+            "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+            "pathLang": "jsonpath",
+            "method": "emptyValue",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Organization"
+            },
+            "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+    
+    "handle_present_valid": {
+      "description": "Valid handle present, no Registry Domain ID redaction (no inconsistency)",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "handle": "DOM123-IANA",
+        "redacted": [
+          {
+            "name": {
+              "type": "Registrant Name"
+            },
+            "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+            "pathLang": "jsonpath",
+            "method": "emptyValue",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+    
+    "redaction_consistency_violation": {
+      "description": "Handle present BUT Registry Domain ID redaction declared - triggers -46206",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "handle": "123456-TEST",
+        "redacted": [
+          {
+            "name": {
+              "type": "Registry Domain ID"
+            },
+            "prePath": "$.handle",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+    
+    "invalid_handle_format": {
+      "description": "Handle with invalid format - triggers -46200",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "handle": "2138514test",
+        "redacted": [
+          {
+            "name": {
+              "type": "Registrant Name"
+            },
+            "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+            "pathLang": "jsonpath",
+            "method": "emptyValue",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+    
+    "invalid_epproid": {
+      "description": "Valid format handle but invalid EPPROID - triggers -46201",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "handle": "DOM123-INVALID"
+      }
+    },
+    
+    "malformed_redaction_type": {
+      "description": "Redacted object with non-Registry Domain ID type - triggers -46202",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "redacted": [
+          {
+            "name": {
+              "type": "test"
+            },
+            "prePath": "$.handle",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Name"
+            },
+            "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+            "pathLang": "jsonpath",
+            "method": "emptyValue",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Organization"
+            },
+            "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+    
+    "invalid_pathlang": {
+      "description": "Invalid pathLang value - triggers -46203",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "redacted": [
+          {
+            "name": {
+              "type": "Registry Domain ID"
+            },
+            "prePath": "$.handle",
+            "pathLang": "test",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Name"
+            },
+            "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+            "pathLang": "jsonpath",
+            "method": "emptyValue",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Organization"
+            },
+            "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+    
+    "pathlang_as_object": {
+      "description": "pathLang as object instead of string - triggers -46203",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "redacted": [
+          {
+            "name": {
+              "type": "Registry Domain ID"
+            },
+            "prePath": "$.handle",
+            "pathLang": {},
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Name"
+            },
+            "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+            "pathLang": "jsonpath",
+            "method": "emptyValue",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Organization"
+            },
+            "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+    
+    "missing_pathlang": {
+      "description": "Missing pathLang property - triggers -46204",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "redacted": [
+          {
+            "name": {
+              "type": "Registry Domain ID"
+            },
+            "prePath": "test",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Name"
+            },
+            "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+            "pathLang": "jsonpath",
+            "method": "emptyValue",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Organization"
+            },
+            "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+    
+    "invalid_method": {
+      "description": "Invalid method value - triggers -46205",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "redacted": [
+          {
+            "name": {
+              "type": "Registry Domain ID"
+            },
+            "prePath": "$.handle",
+            "pathLang": "jsonpath",
+            "method": "test",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Name"
+            },
+            "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+            "pathLang": "jsonpath",
+            "method": "emptyValue",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registrant Organization"
+            },
+            "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+    
+    "empty_redacted_array": {
+      "description": "Empty redacted array - triggers -46202",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "redacted": []
+      }
+    },
+    
+    "mixed_redacted_objects_valid": {
+      "description": "Mixed redacted objects with valid Registry Domain ID",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "redacted": [
+          {
+            "name": {
+              "type": "Other Type"
+            },
+            "prePath": "$.other",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registry Domain ID"
+            },
+            "prePath": "$.handle",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Another Type"
+            },
+            "postPath": "$.another",
+            "pathLang": "jsonpath",
+            "method": "emptyValue",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+    
+    "malformed_handle_object": {
+      "description": "Handle as object instead of string - should fail silently",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "handle": {
+          "invalid": "not a string"
+        }
+      }
+    },
+    
+    "method_property_missing": {
+      "description": "Missing method property - should pass (optional property)",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "redacted": [
+          {
+            "name": {
+              "type": "Registry Domain ID"
+            },
+            "prePath": "$.handle",
+            "pathLang": "jsonpath",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

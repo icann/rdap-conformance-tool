@@ -9,6 +9,15 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import java.util.HashMap;
+import java.util.Map;
+import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
+import org.icann.rdapconformance.validator.DNSCacheResolver;
+import org.icann.rdapconformance.validator.NetworkInfo;
+import org.icann.rdapconformance.validator.NetworkProtocol;
+import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +35,10 @@ public class NetworkValidationCoordinator {
     // Opt-in mechanism - user must explicitly enable parallel networking
     private static final boolean PARALLEL_NETWORK_ENABLED = 
         "true".equals(System.getProperty("rdap.parallel.network", "false"));
+        
+    // Feature flag for IP version parallelization
+    private static final boolean PARALLEL_IP_VERSIONS_ENABLED = 
+        "true".equals(System.getProperty("rdap.parallel.ipversions", "false"));
     
     // Thread pool for network validations
     private static final ExecutorService networkExecutor = 
@@ -44,6 +57,14 @@ public class NetworkValidationCoordinator {
                 t.setDaemon(true);
                 return t;
             });
+            
+    // Thread pool specifically for IP version parallelization
+    private static final ExecutorService ipVersionExecutor = 
+        Executors.newFixedThreadPool(2, r -> {
+            Thread t = new Thread(r, "IPVersion-" + System.currentTimeMillis());
+            t.setDaemon(true);
+            return t;
+        });
     
     // Semaphore for rate limiting
     private static final Semaphore rateLimitSemaphore = new Semaphore(MAX_CONCURRENT_NETWORK_VALIDATIONS);
@@ -120,16 +141,16 @@ public class NetworkValidationCoordinator {
                                 validation.getGroupName(), result);
                             return result;
                         } catch (Exception validationError) {
-                            logger.error("Network validation failed: {}", validation.getGroupName(), validationError);
+                            logger.debug("Network validation failed: {}", validation.getGroupName(), validationError);
                             return false;
                         }
                         
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        logger.error("Network validation interrupted: {}", validation.getGroupName(), e);
+                        logger.debug("Network validation interrupted: {}", validation.getGroupName(), e);
                         return false;
                     } catch (Exception e) {
-                        logger.error("Network validation failed: {}", validation.getGroupName(), e);
+                        logger.debug("Network validation failed: {}", validation.getGroupName(), e);
                         return false;
                     } finally {
                         // Release rate limit permit
@@ -164,7 +185,7 @@ public class NetworkValidationCoordinator {
                         allPassed = false;
                     }
                 } catch (Exception e) {
-                    logger.error("Error getting validation result", e);
+                    logger.debug("Error getting validation result", e);
                     allPassed = false;
                 }
             }
@@ -174,7 +195,7 @@ public class NetworkValidationCoordinator {
             return allPassed;
             
         } catch (Exception e) {
-            logger.error("Error executing network validations", e);
+            logger.debug("Error executing network validations", e);
             return false;
         }
     }
@@ -311,7 +332,7 @@ public class NetworkValidationCoordinator {
                                    validation.getGroupName(), result);
                         return result;
                     } catch (Exception e) {
-                        logger.error("Timeout-prone validation failed: {}", validation.getGroupName(), e);
+                        logger.debug("Timeout-prone validation failed: {}", validation.getGroupName(), e);
                         return false;
                     }
                 }, httpExecutor);
@@ -389,12 +410,12 @@ public class NetworkValidationCoordinator {
                             allPassed = false;
                             // Don't cancel - let it complete naturally to avoid "in progress" connections
                         } catch (Exception e) {
-                            logger.error("Error during final future check", e);
+                            logger.debug("Error during final future check", e);
                             allPassed = false;
                         }
                     }
                 } catch (Exception e) {
-                    logger.error("Error getting validation result", e);
+                    logger.debug("Error getting validation result", e);
                     allPassed = false;
                 }
             }
@@ -404,7 +425,7 @@ public class NetworkValidationCoordinator {
             return allPassed;
             
         } catch (Exception e) {
-            logger.error("Error executing timeout-prone/normal validations", e);
+            logger.debug("Error executing timeout-prone/normal validations", e);
             // Cancel all futures to prevent hanging connections
             for (CompletableFuture<Boolean> future : allFutures) {
                 future.cancel(true);
@@ -414,12 +435,215 @@ public class NetworkValidationCoordinator {
     }
     
     /**
+     * Results container for IP version validation execution.
+     */
+    public static class IPVersionValidationResults {
+        private final Map<String, Integer> results = new ConcurrentHashMap<>();
+        
+        public void addResult(String key, int validationResult) {
+            results.put(key, validationResult);
+        }
+        
+        public int getResult(String key) {
+            return results.getOrDefault(key, -1);
+        }
+        
+        public Map<String, Integer> getAllResults() {
+            return new HashMap<>(results);
+        }
+        
+        public boolean allSuccessful() {
+            return results.values().stream().allMatch(result -> result == 0);
+        }
+    }
+    
+    /**
+     * Execute validations for both IP versions in parallel if enabled.
+     * This method coordinates the high-level IPv4/IPv6 split.
+     */
+    public static IPVersionValidationResults executeIPVersionValidations(
+            ValidatorWorkflow validator,
+            URI uri,
+            boolean executeIPv4,
+            boolean executeIPv6,
+            BiConsumer<String, String> progressCallback) {
+        
+        if (!PARALLEL_IP_VERSIONS_ENABLED) {
+            logger.info("IP version parallelization disabled, falling back to sequential execution");
+            return executeIPVersionsSequentially(validator, uri, executeIPv4, executeIPv6, progressCallback);
+        }
+        
+        logger.info("Executing IPv4 and IPv6 validations in parallel");
+        
+        IPVersionValidationResults allResults = new IPVersionValidationResults();
+        List<CompletableFuture<Void>> ipVersionFutures = new ArrayList<>();
+        
+        // IPv6 execution
+        if (executeIPv6 && DNSCacheResolver.hasV6Addresses(uri.toString())) {
+            CompletableFuture<Void> ipv6Future = CompletableFuture.runAsync(() -> {
+                IPVersionContext ipv6Context = new IPVersionContext(NetworkProtocol.IPv6);
+                
+                try {
+                    ipv6Context.activate();
+                    NetworkInfo.setStackToV6();
+                    logger.info("Starting IPv6 validations in parallel thread");
+                    
+                    // Execute JSON validation
+                    progressCallback.accept("IPv6", "JSON");
+                    NetworkInfo.setAcceptHeaderToApplicationJson();
+                    int jsonResult = validator.validate();
+                    allResults.addResult("IPv6-JSON", jsonResult);
+                    logger.debug("IPv6 JSON validation result: {}", jsonResult);
+                    
+                    // Execute RDAP+JSON validation
+                    progressCallback.accept("IPv6", "RDAP+JSON");
+                    NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+                    int rdapJsonResult = validator.validate();
+                    allResults.addResult("IPv6-RDAP+JSON", rdapJsonResult);
+                    logger.debug("IPv6 RDAP+JSON validation result: {}", rdapJsonResult);
+                    
+                    logger.info("Completed IPv6 validations in parallel thread");
+                    
+                } catch (Exception e) {
+                    logger.error("Error during IPv6 parallel validation", e);
+                    allResults.addResult("IPv6-JSON", -1);
+                    allResults.addResult("IPv6-RDAP+JSON", -1);
+                } finally {
+                    ipv6Context.deactivate();
+                }
+            }, ipVersionExecutor);
+            
+            ipVersionFutures.add(ipv6Future);
+        }
+        
+        // IPv4 execution
+        if (executeIPv4 && DNSCacheResolver.hasV4Addresses(uri.toString())) {
+            CompletableFuture<Void> ipv4Future = CompletableFuture.runAsync(() -> {
+                IPVersionContext ipv4Context = new IPVersionContext(NetworkProtocol.IPv4);
+                
+                try {
+                    ipv4Context.activate();
+                    NetworkInfo.setStackToV4();
+                    logger.info("Starting IPv4 validations in parallel thread");
+                    
+                    // Execute JSON validation
+                    progressCallback.accept("IPv4", "JSON");
+                    NetworkInfo.setAcceptHeaderToApplicationJson();
+                    int jsonResult = validator.validate();
+                    allResults.addResult("IPv4-JSON", jsonResult);
+                    logger.debug("IPv4 JSON validation result: {}", jsonResult);
+                    
+                    // Execute RDAP+JSON validation
+                    progressCallback.accept("IPv4", "RDAP+JSON");
+                    NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+                    int rdapJsonResult = validator.validate();
+                    allResults.addResult("IPv4-RDAP+JSON", rdapJsonResult);
+                    logger.debug("IPv4 RDAP+JSON validation result: {}", rdapJsonResult);
+                    
+                    logger.info("Completed IPv4 validations in parallel thread");
+                    
+                } catch (Exception e) {
+                    logger.error("Error during IPv4 parallel validation", e);
+                    allResults.addResult("IPv4-JSON", -1);
+                    allResults.addResult("IPv4-RDAP+JSON", -1);
+                } finally {
+                    ipv4Context.deactivate();
+                }
+            }, ipVersionExecutor);
+            
+            ipVersionFutures.add(ipv4Future);
+        }
+        
+        if (!ipVersionFutures.isEmpty()) {
+            // Wait for all IP version validations to complete
+            CompletableFuture<Void> allVersions = CompletableFuture.allOf(
+                ipVersionFutures.toArray(new CompletableFuture[0]));
+            
+            try {
+                allVersions.get(300, TimeUnit.SECONDS); // 5 minute timeout
+                logger.info("All parallel IP version validations completed successfully");
+            } catch (Exception e) {
+                logger.error("Error during parallel IP version execution", e);
+                ipVersionFutures.forEach(f -> f.cancel(true));
+            }
+        }
+        
+        return allResults;
+    }
+    
+    /**
+     * Sequential execution fallback for IP version validations.
+     */
+    private static IPVersionValidationResults executeIPVersionsSequentially(
+            ValidatorWorkflow validator,
+            URI uri,
+            boolean executeIPv4,
+            boolean executeIPv6,
+            BiConsumer<String, String> progressCallback) {
+        
+        IPVersionValidationResults results = new IPVersionValidationResults();
+        
+        // IPv6 execution
+        if (executeIPv6 && DNSCacheResolver.hasV6Addresses(uri.toString())) {
+            NetworkInfo.setStackToV6();
+            
+            try {
+                progressCallback.accept("IPv6", "JSON");
+                NetworkInfo.setAcceptHeaderToApplicationJson();
+                int v6JsonResult = validator.validate();
+                results.addResult("IPv6-JSON", v6JsonResult);
+            } catch (Exception e) {
+                logger.error("Error during IPv6 JSON validation in sequential mode", e);
+                results.addResult("IPv6-JSON", -1);
+            }
+            
+            try {
+                progressCallback.accept("IPv6", "RDAP+JSON");
+                NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+                int v6RdapResult = validator.validate();
+                results.addResult("IPv6-RDAP+JSON", v6RdapResult);
+            } catch (Exception e) {
+                logger.error("Error during IPv6 RDAP+JSON validation in sequential mode", e);
+                results.addResult("IPv6-RDAP+JSON", -1);
+            }
+        }
+        
+        // IPv4 execution
+        if (executeIPv4 && DNSCacheResolver.hasV4Addresses(uri.toString())) {
+            NetworkInfo.setStackToV4();
+            
+            try {
+                progressCallback.accept("IPv4", "JSON");
+                NetworkInfo.setAcceptHeaderToApplicationJson();
+                int v4JsonResult = validator.validate();
+                results.addResult("IPv4-JSON", v4JsonResult);
+            } catch (Exception e) {
+                logger.error("Error during IPv4 JSON validation in sequential mode", e);
+                results.addResult("IPv4-JSON", -1);
+            }
+            
+            try {
+                progressCallback.accept("IPv4", "RDAP+JSON");
+                NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+                int v4RdapResult = validator.validate();
+                results.addResult("IPv4-RDAP+JSON", v4RdapResult);
+            } catch (Exception e) {
+                logger.error("Error during IPv4 RDAP+JSON validation in sequential mode", e);
+                results.addResult("IPv4-RDAP+JSON", -1);
+            }
+        }
+        
+        return results;
+    }
+    
+    /**
      * Shutdown the network validation executors.
      * Should be called when the application is shutting down.
      */
     public static void shutdown() {
         networkExecutor.shutdown();
         httpExecutor.shutdown();
+        ipVersionExecutor.shutdown();
         try {
             if (!networkExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
                 networkExecutor.shutdownNow();
@@ -427,10 +651,14 @@ public class NetworkValidationCoordinator {
             if (!httpExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
                 httpExecutor.shutdownNow();
             }
+            if (!ipVersionExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
+                ipVersionExecutor.shutdownNow();
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             networkExecutor.shutdownNow();
             httpExecutor.shutdownNow();
+            ipVersionExecutor.shutdownNow();
         }
     }
 }
