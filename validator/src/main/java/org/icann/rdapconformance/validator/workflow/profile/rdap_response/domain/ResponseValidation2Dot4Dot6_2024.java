@@ -10,7 +10,6 @@ import static org.icann.rdapconformance.validator.CommonUtils.getUriHost;
 
 import java.net.URI;
 import java.util.Set;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -29,18 +28,15 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
     private static final String[] EXCLUDED_REGISTRAR_IDS = {"9994", "9995", "9996", "9997", "9998", "9999"};
 
     private final RDAPQueryType queryType;
-    private final RDAPValidatorConfiguration config;
     private final RDAPDatasetService datasetService;
 
     public ResponseValidation2Dot4Dot6_2024(String rdapResponse,
         RDAPValidatorResults results,
         RDAPDatasetService datasetService,
-        RDAPQueryType queryType,
-        RDAPValidatorConfiguration config) {
+        RDAPQueryType queryType) {
         super(rdapResponse, results);
         this.datasetService = datasetService;
         this.queryType = queryType;
-        this.config = config;
     }
 
 

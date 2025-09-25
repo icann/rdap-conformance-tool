@@ -2,6 +2,8 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard
 
 import java.util.Objects;
 import java.util.Set;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -29,12 +31,78 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
     @Override
     protected boolean doValidate() {
         if (getPointerFromJPath(ENTITY_ROLE_PATH).isEmpty()) {
-            logger.info("entity with the role of registrant is not present, skip validation");
+            logger.debug("entity with the role of registrant is not present, skip validation");
             return true;
         }
 
+        JSONObject redactedOrg = findRedactedOrganization();
         boolean isValid = true;
 
+        if(CollectionUtils.isNotEmpty(getPointerFromJPath(VCARD_ORG_PATH))) {
+            logger.info("Registrant Organization is present, should not be redacted");
+            if (Objects.nonNull(redactedOrg)) {
+                results.add(RDAPValidationResult.builder()
+                    .code(-63304)
+                    .value(redactedOrg.toString())
+                    .message("a redaction of type Registrant Organization was found but organization name was not redacted.")
+                    .build());
+                return false;
+            }
+        }
+
+        if (Objects.isNull(redactedOrg)) {
+            logger.debug("No 'Registrant Organization' redaction found, skip validation (natural person)");
+            return true;
+        } else {
+            Object pathLang = null;
+            try {
+                pathLang = redactedOrg.get("pathLang");
+            } catch (JSONException e) {
+                logger.debug("pathLang is absent: {}", e.getMessage());
+            }
+
+            if (pathLang == null || "jsonpath".equals(pathLang.toString())) {
+                logger.debug("pathLang is either absent or is 'jsonpath'");
+
+                Object prePath = null;
+                try {
+                    prePath = redactedOrg.get("prePath");
+                } catch (JSONException e) {
+                    logger.debug("prePath is absent: {}", e.getMessage());
+                }
+                logger.debug("prePath: {}", prePath);
+
+                if (prePath != null) {
+                    // 63301 and 63302 validation
+                    isValid = validatePrePath(prePath.toString(), redactedOrg.toString());
+                }
+            }
+
+            // 63303 validation
+            Object method = null;
+            try {
+                method = redactedOrg.get("method");
+            } catch (JSONException e) {
+                logger.debug("method is absent: {}", e.getMessage());
+            }
+
+            logger.debug("method = {}", method);
+            if (method != null && !"removal".equals(method.toString())) {
+                logger.debug("adding 63303, value = {}", redactedOrg);
+                results.add(RDAPValidationResult.builder()
+                    .code(-63303)
+                    .value(redactedOrg.toString())
+                    .message("Registrant Organization redaction method must be removal if present")
+                    .build());
+
+                isValid = false;
+            }
+        }
+
+        return isValid;
+}
+
+    private JSONObject findRedactedOrganization() {
         JSONObject redactedOrg = null;
         Set<String> redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
 
@@ -53,65 +121,14 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
                 continue;
             }
         }
-
-        if (Objects.isNull(redactedOrg)) {
-            logger.info("No 'Registrant Organization' redaction found, skip validation (natural person)");
-            return true;
-        } else {
-            Object pathLang = null;
-            try {
-                pathLang = redactedOrg.get("pathLang");
-            } catch (JSONException e) {
-                logger.info("pathLang is absent: {}", e.getMessage());
-            }
-
-            if (pathLang == null || "jsonpath".equals(pathLang.toString())) {
-                logger.info("pathLang is either absent or is 'jsonpath'");
-
-                Object prePath = null;
-                try {
-                    prePath = redactedOrg.get("prePath");
-                } catch (JSONException e) {
-                    logger.info("prePath is absent: {}", e.getMessage());
-                }
-                logger.info("prePath: {}", prePath);
-
-                if (prePath != null) {
-                    // 63301 and 63302 validation
-                    isValid = validatePrePath(prePath.toString(), redactedOrg.toString());
-                }
-            }
-
-            // 63303 validation
-            Object method = null;
-            try {
-                method = redactedOrg.get("method");
-            } catch (JSONException e) {
-                logger.info("method is absent: {}", e.getMessage());
-            }
-
-            logger.info("method = {}", method);
-            if (method != null && !"removal".equals(method.toString())) {
-                logger.info("adding 63303, value = {}", redactedOrg);
-                results.add(RDAPValidationResult.builder()
-                    .code(-63303)
-                    .value(redactedOrg.toString())
-                    .message("Registrant Organization redaction method must be removal if present")
-                    .build());
-
-                isValid = false;
-            }
-        }
-
-        return isValid;
-}
-
+        return redactedOrg;
+    }
 
 
     private boolean validatePrePath(String prePath, String value) {
         if (!isValidJsonPath(prePath)) {
             // prePath is null or not a valid JSONPath
-            logger.info("adding 63301, value = {}", value);
+            logger.debug("adding 63301, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-63301)
                 .value(value)
@@ -124,7 +141,7 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
         Set<String> pointers = getPointerFromJPath(prePath);
 
         if (pointers != null && !pointers.isEmpty()) {
-            logger.info("adding 63302, value = {}", value);
+            logger.debug("adding 63302, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-63302)
                 .value(value)

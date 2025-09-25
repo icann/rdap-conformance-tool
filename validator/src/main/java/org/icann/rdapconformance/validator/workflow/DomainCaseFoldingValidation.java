@@ -61,7 +61,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
 
     URI uri = URI.create(rdapResponse.uri().toString().replace(domainName, newDomain));
     try {
-      HttpResponse<String> httpResponse = RDAPHttpRequest.makeHttpGetRequest(uri, config.getTimeout());
+      HttpResponse<String> httpResponse = RDAPHttpRequest.makeHttpGetRequestWithRedirects(uri, config.getTimeout(), config.getMaxRedirects());
 
       // Check if we got a non-200 response first
       if (httpResponse.statusCode() != rdapResponse.statusCode()) {
@@ -92,7 +92,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
         return false;
       }
     } catch (JsonProcessingException e) {
-      logger.error(
+      logger.debug(
           "Exception when processing JSON in [domainCaseFoldingValidation]",
           e);
       results.add(RDAPValidationResult.builder()

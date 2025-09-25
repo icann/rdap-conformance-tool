@@ -95,7 +95,7 @@ public class DefaultSSLValidator implements SSLValidator {
                 
                 String protocol = sslSession.getProtocol();
                 String cipher = sslSession.getCipherSuite();
-                logger.info("cipher for protocol {} is {}", protocol, cipher);
+                logger.debug("cipher for protocol {} is {}", protocol, cipher);
                 
                 return CipherValidationResult.success(protocol, cipher);
             }

@@ -24,7 +24,7 @@
     </distributionManagement>
 
     <properties>
-        <rdap-conformance.version>3.0.0</rdap-conformance.version>
+        <rdap-conformance.version>3.0.1</rdap-conformance.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -38,7 +38,7 @@
         <icu4j.version>69.1</icu4j.version>
         <json-path.version>2.9.0</json-path.version>
         <json-smart.version>2.5.2</json-smart.version>
-        <dnsjava.version>3.6.2</dnsjava.version>
+        <dnsjava.version>3.6.3</dnsjava.version>
         <commons-text.version>1.10.0</commons-text.version>
         <testng.version>7.9.0</testng.version>
         <assertj-core.version>3.19.0</assertj-core.version>

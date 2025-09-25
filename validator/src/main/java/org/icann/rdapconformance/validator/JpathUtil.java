@@ -57,7 +57,7 @@ public class JpathUtil {
     try {
       JsonPath.compile(jsonPath);
     } catch (Exception e) {
-      logger.info("Invalid JSON path: {} with error: {}", jsonPath, e.getMessage());
+      logger.debug("Invalid JSON path: {} with error: {}", jsonPath, e.getMessage());
       return false;
     }
 

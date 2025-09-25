@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
-import com.jayway.jsonpath.JsonPath;
 import java.util.Objects;
 import java.util.Set;
+
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -12,12 +12,16 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.icann.rdapconformance.validator.CommonUtils.THREE;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+
 public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation {
 
     public static final String ENTITY_TECHNICAL_ROLE_PATH = "$.entities[?(@.roles contains 'technical')]";
     public static final String VCARD_ARRAY_PATH = "$.entities[?(@.roles contains 'technical')].vcardArray";
     private static final String REDACTED_PATH = "$.redacted[*]";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot1_2024.class);
+    public static final String FN = "fn";
 
     public ResponseValidation2Dot7Dot6Dot1_2024(String rdapResponse, RDAPValidatorResults results) {
         super(rdapResponse, results);
@@ -36,6 +40,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
 
         boolean isValid = true;
         boolean needCheckRedacted = false;
+        boolean needTechObjectExist = true;
 
         for (String vcardArrayPointer : getPointerFromJPath(VCARD_ARRAY_PATH)) {
           JSONArray vcardArray = (JSONArray) jsonObject.query(vcardArrayPointer);
@@ -47,13 +52,13 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
 
             for (int i = 0; i < vcard.length(); i++) {
                 JSONArray categoryArray = (JSONArray) vcard.get(i);
-                String property = categoryArray.get(0).toString();
+                String property = categoryArray.get(ZERO).toString();
 
-                if ("fn".equals(property)) {
+                if (FN.equals(property)) {
                     hasFn = true;
 
                     try {
-                        isFnEmpty = categoryArray.get(3).toString().isEmpty();
+                        isFnEmpty = categoryArray.get(THREE).toString().isEmpty();
                     } catch (Exception e) {
                         isFnEmpty = true;
                     }
@@ -63,7 +68,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
             }
 
             if (!hasFn) {
-                logger.info("adding 65000, value = {}", vcardArray);
+                logger.debug("adding 65000, value = {}", vcardArray);
                 results.add(RDAPValidationResult.builder()
                     .code(-65000)
                     .value(vcardArray.toString())
@@ -73,8 +78,13 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                 isValid = false;
             }
 
-            if (hasFn && isFnEmpty) {
+            if (hasFn) {
                 needCheckRedacted = true;
+                if(isFnEmpty) {
+                    needTechObjectExist = true;
+                } else {
+                    needTechObjectExist = false;
+                }
             }
         } // end of vCard loop
 
@@ -98,7 +108,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
             }
 
             if (Objects.isNull(redactedTechName)) {
-                logger.info("adding 65001, value = {}", getResultValue(redactedPointersValue));
+                logger.debug("adding 65001, value = {}", getResultValue(redactedPointersValue));
                 results.add(RDAPValidationResult.builder()
                     .code(-65001)
                     .value(getResultValue(redactedPointersValue))
@@ -106,24 +116,33 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                     .build());
 
                 isValid = false;
-            } else {
+            } else if (!needTechObjectExist && Objects.nonNull(redactedTechName)) {
+                logger.info("adding 65005, value = {}", getResultValue(redactedPointersValue));
+                results.add(RDAPValidationResult.builder()
+                        .code(-65005)
+                        .value(getResultValue(redactedPointersValue))
+                        .message("a redaction of type Tech Name was found but tech name was not redacted.")
+                        .build());
+
+                isValid = false;
+            } else if(needTechObjectExist){
                 Object pathLang = null;
                 try {
                     pathLang = redactedTechName.get("pathLang");
                 } catch (JSONException e) {
-                    logger.info("pathLang is absent: {}", e.getMessage());
+                    logger.debug("pathLang is absent: {}", e.getMessage());
                 }
 
                 if (pathLang == null || "jsonpath".equals(pathLang.toString())) {
-                    logger.info("pathLang is either absent or is 'jsonpath'");
+                    logger.debug("pathLang is either absent or is 'jsonpath'");
 
                     Object postPath = null;
                     try {
                         postPath = redactedTechName.get("postPath");
                     } catch (JSONException e) {
-                        logger.info("postPath is absent: {}", e.getMessage());
+                        logger.debug("postPath is absent: {}", e.getMessage());
                     }
-                    logger.info("postPath: {}", postPath);
+                    logger.debug("postPath: {}", postPath);
                     // 65002 and 65003 validation
                     isValid = validatePostPath(postPath, redactedTechName.toString()) && isValid;
                 }
@@ -133,12 +152,12 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                 try {
                     method = redactedTechName.get("method");
                 } catch (JSONException e) {
-                    logger.info("method is absent: {}", e.getMessage());
+                    logger.debug("method is absent: {}", e.getMessage());
                 }
 
-                logger.info("method = {}", method);
+                logger.debug("method = {}", method);
                 if (method == null || !"emptyValue".equals(method.toString())) {
-                    logger.info("adding 65004, value = {}", redactedTechName);
+                    logger.debug("adding 65004, value = {}", redactedTechName);
                     results.add(RDAPValidationResult.builder()
                         .code(-65004)
                         .value(redactedTechName.toString())
@@ -156,7 +175,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
     private boolean validatePostPath(Object postPath, String value) {
         if (postPath == null || !isValidJsonPath(postPath.toString())) {
             // postPath is null or not a valid JSONPath
-            logger.info("adding 65002, value = {}", value);
+            logger.debug("adding 65002, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65002)
                 .value(value)
@@ -169,7 +188,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
         Set<String> pointers = getPointerFromJPath(postPath.toString());
 
         if (pointers == null || pointers.isEmpty()) {
-            logger.info("adding 65003, value = {}", value);
+            logger.debug("adding 65003, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65003)
                 .value(value)

@@ -68,9 +68,9 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
             try {
                 method = redactedTechEmail.get("method");
             } catch (JSONException e) {
-                logger.info("method is absent: {}", e.getMessage());
+                logger.debug("method is absent: {}", e.getMessage());
             }
-            logger.info("method = {}", method);
+            logger.debug("method = {}", method);
             if (method == null || !"replacementValue".equals(method.toString())) {
                 results.add(RDAPValidationResult.builder()
                     .code(-65202)
@@ -85,12 +85,12 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
             try {
                 pathLang = redactedTechEmail.get("pathLang");
             } catch (JSONException e) {
-                logger.info("pathLang is absent: {}", e.getMessage());
+                logger.debug("pathLang is absent: {}", e.getMessage());
             }
 
-            logger.info("pathLang: {}", pathLang);
+            logger.debug("pathLang: {}", pathLang);
             if (pathLang == null || "jsonpath".equals(pathLang.toString())) {
-                logger.info("pathLang is either absent or is 'jsonpath'");
+                logger.debug("pathLang is either absent or is 'jsonpath'");
 
                 if (emailExists) {
                     // 65203 and 65204 validation
@@ -98,9 +98,9 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                     try {
                         postPath = redactedTechEmail.get("postPath");
                     } catch (JSONException e) {
-                        logger.info("postPath is absent: {}", e.getMessage());
+                        logger.debug("postPath is absent: {}", e.getMessage());
                     }
-                    logger.info("postPath: {}", postPath);
+                    logger.debug("postPath: {}", postPath);
                     if (postPath != null) {
                         isValid = validatePostPath(postPath.toString(), redactedTechEmail.toString()) && isValid;
                     }
@@ -112,9 +112,9 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                     try {
                         prePath = redactedTechEmail.get("prePath");
                     } catch (JSONException e) {
-                        logger.info("prePath is absent: {}", e.getMessage());
+                        logger.debug("prePath is absent: {}", e.getMessage());
                     }
-                    logger.info("prePath: {}", prePath);
+                    logger.debug("prePath: {}", prePath);
                     if (prePath != null) {
                         isValid = validatePrePath(prePath.toString(), redactedTechEmail.toString()) && isValid;
                     }
@@ -124,17 +124,17 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                     try {
                         replacementPath = redactedTechEmail.get("replacementPath");
                     } catch (JSONException e) {
-                        logger.info("replacementPath is absent: {}", e.getMessage());
+                        logger.debug("replacementPath is absent: {}", e.getMessage());
                     }
 
-                    logger.info("replacementPath: {}", replacementPath);
+                    logger.debug("replacementPath: {}", replacementPath);
                     if (replacementPath != null) {
                         isValid = validateReplacementPath(replacementPath.toString(), redactedTechEmail.toString()) && isValid;
                     }
                 }
             }
         } else {
-            logger.info("there is no Tech Email redaction, skip all validations for 2_7_6_3_Validation");
+            logger.debug("there is no Tech Email redaction, skip all validations for 2_7_6_3_Validation");
         }
 
         return isValid;
@@ -145,7 +145,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
         boolean isValid = true;
 
         for (String vcardArrayPointer : vcardArrayPointerValue) {
-            logger.info("vcardArrayPointer: {}", vcardArrayPointer);
+            logger.debug("vcardArrayPointer: {}", vcardArrayPointer);
 
             JSONArray vcardArray = (JSONArray) jsonObject.query(vcardArrayPointer);
 
@@ -170,7 +170,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
             }
 
             if (hasEmail && hasContactUri) {
-                logger.info("adding 65200, value = {}", vcardArray);
+                logger.debug("adding 65200, value = {}", vcardArray);
                 results.add(RDAPValidationResult.builder()
                     .code(-65200)
                     .value(vcardArray.toString())
@@ -181,7 +181,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
             }
 
             if (!hasEmail && !hasContactUri) {
-                logger.info("adding 65201, value = {}", vcardArray);
+                logger.debug("adding 65201, value = {}", vcardArray);
                 results.add(RDAPValidationResult.builder()
                     .code(-65201)
                     .value(vcardArray.toString())
@@ -198,7 +198,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     private boolean validatePostPath(String postPath, String value) {
         if (!isValidJsonPath(postPath)) {
             // postPath is not a valid JSONPath
-            logger.info("adding 65203, value = {}", value);
+            logger.debug("adding 65203, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65203)
                 .value(value)
@@ -211,7 +211,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
         Set<String> pointers = getPointerFromJPath(postPath);
 
         if (pointers == null || pointers.isEmpty()) {
-            logger.info("adding 65204, value = {}", value);
+            logger.debug("adding 65204, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65204)
                 .value(value)
@@ -226,7 +226,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     private boolean validateReplacementPath(String replacementPath, String value) {
         if (!isValidJsonPath(replacementPath)) {
             // replacementPath is not a valid JSONPath
-            logger.info("adding 65205, value = {}", value);
+            logger.debug("adding 65205, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65205)
                 .value(value)
@@ -238,7 +238,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
         Set<String> pointers = getPointerFromJPath(replacementPath);
 
         if (pointers == null || pointers.isEmpty()) {
-            logger.info("adding 65207, value = {}", value);
+            logger.debug("adding 65207, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65207)
                 .value(value)
@@ -254,7 +254,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     private boolean validatePrePath(String prePath, String value) {
         if (!isValidJsonPath(prePath)) {
             // prePath is not a valid JSONPath
-            logger.info("adding 65206, value = {}", value);
+            logger.debug("adding 65206, value = {}", value);
             results.add(RDAPValidationResult.builder()
                 .code(-65206)
                 .value(value)

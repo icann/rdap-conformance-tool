@@ -47,7 +47,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot4Dot6_2024(jsonObject.toString(), results, datasets, queryType, config);
+        return new ResponseValidation2Dot4Dot6_2024(jsonObject.toString(), results, datasets, queryType);
     }
 
     @Test

@@ -59,7 +59,7 @@ public class SchemaValidator {
   private SchemaNode schemaRootNode;
 
   public SchemaValidator(String schemaName, RDAPValidatorResults results,
-      RDAPDatasetService datasetService) {
+                        RDAPDatasetService datasetService) {
       this.jpathUtil = new JpathUtil();
     this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader(), datasetService),
         results);
@@ -162,7 +162,7 @@ public class SchemaValidator {
         new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode).validate();
       }
     } catch (Exception e) {
-      logger.error("Exception during schema validation. This is likely caused by a schema deeply "
+      logger.debug("Exception during schema validation. This is likely caused by a schema deeply "
           + "non-compliant \n details", e);
     }
 
@@ -198,7 +198,7 @@ public class SchemaValidator {
           i++;
         }
       } catch (Exception e) {
-        logger.error("Exception during evaluation of eventAction String: {} \n\n details: {}",
+        logger.debug("Exception during evaluation of eventAction String: {} \n\n details: {}",
             jsonObject.query(jsonPointer), e);
       }
     }
@@ -246,7 +246,7 @@ public class SchemaValidator {
     for (ValidationExceptionNode validationException : validationExceptions) {
       if (exceptionParsers.stream()
           .noneMatch(exceptionParser -> exceptionParser.matches(validationException))) {
-        logger.error(
+        logger.debug(
             "We found this error with no exception parser {}", validationException.getMessage());
       }
     }

@@ -2,6 +2,8 @@ package org.icann.rdapconformance.tool;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
 
 import java.io.File;
 import java.net.URI;
@@ -23,6 +25,7 @@ import picocli.CommandLine.Parameters;
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
+import org.icann.rdapconformance.validator.workflow.profile.NetworkValidationCoordinator;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.ToolResult;
@@ -39,9 +42,46 @@ import org.json.JSONObject;
 
 import static org.icann.rdapconformance.validator.CommonUtils.*;
 
-
+/**
+ * Main entry point and orchestrator for the RDAP Conformance Tool.
+ *
+ * <p>This class serves as the primary command-line interface and coordination hub for RDAP
+ * (Registration Data Access Protocol) validation. It handles:</p>
+ *
+ * <ul>
+ *   <li>Command-line argument parsing using picocli</li>
+ *   <li>Configuration of logging levels and verbose mode</li>
+ *   <li>Initialization of IANA datasets required for validation</li>
+ *   <li>Coordination of IPv4 and IPv6 validation rounds</li>
+ *   <li>Progress tracking and user feedback</li>
+ *   <li>Results file generation and output</li>
+ * </ul>
+ *
+ * <p>The tool can validate RDAP responses from live servers via HTTP or from local JSON files.
+ * It supports both gTLD registry and registrar profiles, with options for different RDAP
+ * profile versions (February 2019 and February 2024).</p>
+ *
+ * <p>Usage example:</p>
+ * <pre>
+ * java -jar rdapct.jar -v -c config.json --gtld-registrar
+ *      --use-rdap-profile-february-2024 https://rdap.example.com/domain/example.com
+ * </pre>
+ *
+ * @see RDAPValidatorConfiguration
+ * @see RDAPHttpValidator
+ * @see RDAPFileValidator
+ * @since 1.0.0
+ */
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
+
+  // Static initializer to set default log level before any logger initialization
+  static {
+    // Set a fallback default that will be overridden by the call() method if needed
+    if (System.getProperty("defaultLogLevel") == null) {
+      System.setProperty("defaultLogLevel", "ERROR");
+    }
+  }
 
   // Create a logger
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RdapConformanceTool.class);
@@ -99,6 +139,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
 
+  @Option(names = {"--dns-resolver"}, 
+          description = "Custom DNS resolver IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888)")
+  private String customDnsResolver;
+
   // Progress tracking
   private ProgressTracker progressTracker;
   private boolean showProgress = true; // Default to true for CLI usage
@@ -114,26 +158,57 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
     private boolean noIPv6Queries;
   }
 
+/**
+ * Sets the configuration file path for validation rules and settings.
+ *
+ * @param configurationFile the path to the configuration file
+ */
 public void setConfigurationFile(String configurationFile) {
     this.configurationFile = configurationFile;
 }
 
+/**
+ * Sets the timeout for HTTP connections in seconds.
+ *
+ * @param timeout the connection timeout in seconds
+ */
 public void setTimeout(int timeout) {
     this.timeout = timeout;
 }
 
+/**
+ * Sets the maximum number of HTTP redirects to follow.
+ *
+ * @param maxRedirects the maximum number of redirects (default: 3)
+ */
 public void setMaxRedirects(int maxRedirects) {
     this.maxRedirects = maxRedirects;
 }
 
+/**
+ * Configures whether to use locally cached datasets instead of downloading from IANA.
+ *
+ * @param useLocalDatasets true to use local datasets, false to download fresh data
+ */
 public void setUseLocalDatasets(boolean useLocalDatasets) {
     this.useLocalDatasets = useLocalDatasets;
 }
 
+/**
+ * Sets the path for the validation results file.
+ *
+ * @param resultsFile the file path where results will be written
+ */
 public void setResultsFile(String resultsFile) {
     this.resultsFile = resultsFile;
 }
 
+/**
+ * Configures whether to execute validation queries over IPv4.
+ * Automatically enables IPv6 if both protocols would be disabled.
+ *
+ * @param executeIPv4Queries true to enable IPv4 queries, false to disable
+ */
 public void setExecuteIPv4Queries(boolean executeIPv4Queries) {
     this.executeIPv4Queries = executeIPv4Queries;
     // Ensure at least one protocol is enabled - if disabling IPv4, enable IPv6
@@ -142,6 +217,12 @@ public void setExecuteIPv4Queries(boolean executeIPv4Queries) {
     }
 }
 
+/**
+ * Configures whether to execute validation queries over IPv6.
+ * Automatically enables IPv4 if both protocols would be disabled.
+ *
+ * @param executeIPv6Queries true to enable IPv6 queries, false to disable
+ */
 public void setExecuteIPv6Queries(boolean executeIPv6Queries) {
     this.executeIPv6Queries = executeIPv6Queries;
     // Ensure at least one protocol is enabled - if disabling IPv6, enable IPv4
@@ -150,39 +231,184 @@ public void setExecuteIPv6Queries(boolean executeIPv6Queries) {
     }
 }
 
+/**
+ * Configures whether to execute additional conformance queries (/help and invalid domain).
+ *
+ * @param additionalConformanceQueries true to enable additional queries
+ */
 public void setAdditionalConformanceQueries(boolean additionalConformanceQueries) {
     this.additionalConformanceQueries = additionalConformanceQueries;
 }
 
+/**
+ * Sets whether to use the RDAP Profile February 2024 specification.
+ *
+ * @param value true to use February 2024 profile
+ */
 public void setUseRdapProfileFeb2024(boolean value) {
     this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2024 = value;
 }
 
+/**
+ * Sets whether to use the RDAP Profile February 2019 specification.
+ *
+ * @param value true to use February 2019 profile
+ */
 public void setUseRdapProfileFeb2019(boolean value) {
     this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2019 = value;
 }
 
+/**
+ * Configures validation for gTLD registry responses.
+ *
+ * @param value true to validate as gTLD registry
+ */
 public void setGtldRegistry(boolean value) {
     this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.dependantRegistryThin.gtldRegistry = value;
 }
 
+/**
+ * Configures validation for gTLD registrar responses.
+ *
+ * @param value true to validate as gTLD registrar
+ */
 public void setGtldRegistrar(boolean value) {
     this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.gtldRegistrar = value;
 }
 
+/**
+ * Sets whether the TLD uses the thin registry model.
+ *
+ * @param value true if using thin model, false for thick model
+ */
 public void setThin(boolean value) {
     this.dependantRdapProfileGtld.exclusiveRdapProfile.exclusiveGtldType.dependantRegistryThin.thin = value;
 }
 
+/**
+ * Configures verbose output mode. When enabled, shows DEBUG level logs and disables progress bar.
+ *
+ * @param isVerbose true to enable verbose output
+ */
 public void setVerbose(boolean isVerbose) {
     this.isVerbose = isVerbose;
 }
 
+/**
+ * Sets whether to display progress information during validation.
+ *
+ * @param showProgress true to show progress bar/updates
+ */
 public void setShowProgress(boolean showProgress) {
     this.showProgress = showProgress;
 }
+
+
+  /**
+   * Main execution method for the RDAP Conformance Tool.
+   *
+   * <p>This method orchestrates the complete validation workflow:</p>
+   * <ol>
+   *   <li>Configures logging based on verbose flag and system properties</li>
+   *   <li>Initializes IANA datasets required for validation</li>
+   *   <li>Performs DNS resolution for target hostnames</li>
+   *   <li>Executes validation queries over IPv4 and/or IPv6</li>
+   *   <li>Generates and writes validation results</li>
+   * </ol>
+   *
+   * <p>The tool validates RDAP responses against the appropriate specification profile
+   * (February 2019 or February 2024) and generates a comprehensive results file containing
+   * errors, warnings, and validation details.</p>
+   *
+   * @return exit code: 0 for success, non-zero for various error conditions
+   * @throws Exception if validation cannot be completed due to configuration or system errors
+   * @see ToolResult for possible exit codes
+   */
+
+  public void setCustomDnsResolver(String customDnsResolver) {
+      this.customDnsResolver = customDnsResolver;
+  }
+
+  public String getCustomDnsResolver() {
+      return this.customDnsResolver;
+  }
+
   @Override
   public Integer call() throws Exception {
+    // Determine if user wants logging output vs progress bar
+    boolean hasSystemLogProperty = (System.getProperty("logging.level.root") != null ||
+                                   System.getProperty("logLevel") != null);
+
+
+    if (isVerbose) {
+      // Verbose mode always forces DEBUG level, overriding any system properties
+      System.setProperty("defaultLogLevel", "DEBUG");
+      // Clear any user-provided overrides when verbose is set
+      System.clearProperty("logging.level.root");
+      System.clearProperty("logLevel");
+      // Disable progress bar when verbose
+      showProgress = false;
+    } else if (hasSystemLogProperty) {
+      // System properties provided - show logs instead of progress bar
+      showProgress = false;
+      // Copy the system property to our defaultLogLevel and clear originals (same as verbose mode)
+      String systemLevel = System.getProperty("logging.level.root");
+      if (systemLevel == null) {
+        systemLevel = System.getProperty("logLevel");
+      }
+      if (systemLevel != null) {
+        System.setProperty("defaultLogLevel", systemLevel);
+        // Clear the original properties so logback uses our defaultLogLevel
+        System.clearProperty("logging.level.root");
+        System.clearProperty("logLevel");
+      }
+    } else {
+      // No flags - show progress bar with ERROR level only
+      System.setProperty("defaultLogLevel", "ERROR");
+      showProgress = true;
+    }
+
+    // Force logback reconfiguration to pick up the new property
+    try {
+      LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+      JoranConfigurator configurator = new JoranConfigurator();
+      configurator.setContext(context);
+      context.reset();
+      // Use the default logback.xml from classpath
+      configurator.doConfigure(getClass().getClassLoader().getResourceAsStream("logback.xml"));
+
+      // Also programmatically set the root logger level to ensure it takes effect
+      Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+      String targetLevel = isVerbose ? "DEBUG" :
+                          (hasSystemLogProperty ? System.getProperty("defaultLogLevel", "ERROR") : "ERROR");
+
+      if ("DEBUG".equals(targetLevel)) {
+        root.setLevel(Level.DEBUG);
+      } else if ("INFO".equals(targetLevel)) {
+        root.setLevel(Level.INFO);
+      } else if ("WARN".equals(targetLevel)) {
+        root.setLevel(Level.WARN);
+      } else {
+        root.setLevel(Level.ERROR);
+      }
+
+    } catch (Exception e) {
+      // Fall back to programmatic setting if reconfiguration fails
+      Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+      String targetLevel = isVerbose ? "DEBUG" :
+                          (hasSystemLogProperty ? System.getProperty("defaultLogLevel", "ERROR") : "ERROR");
+
+      if ("DEBUG".equals(targetLevel)) {
+        root.setLevel(Level.DEBUG);
+      } else if ("INFO".equals(targetLevel)) {
+        root.setLevel(Level.INFO);
+      } else if ("WARN".equals(targetLevel)) {
+        root.setLevel(Level.WARN);
+      } else {
+        root.setLevel(Level.ERROR);
+      }
+    }
+
     // these must be set before we do anything else
     System.setProperty("com.sun.net.ssl.checkRevocation", "true");
     System.setProperty("com.sun.security.enableCRLDP", "true");
@@ -196,7 +422,8 @@ public void setShowProgress(boolean showProgress) {
     //  System.setProperty("javax.net.debug", "ssl:handshake:verbose");
     //  System.setProperty("java.net.debug", "all");
 
-    if (!isVerbose) {
+    // Only reset to ERROR if user provided no logging flags at all
+    if (!isVerbose && !hasSystemLogProperty) {
       Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
       root.setLevel(Level.ERROR);
     }
@@ -216,6 +443,12 @@ public void setShowProgress(boolean showProgress) {
     // we should never reach this point ... paranoid check
     if (!executeIPv4Queries && !executeIPv6Queries) {
       logger.error(ToolResult.BAD_USER_INPUT.getDescription());
+      return ToolResult.BAD_USER_INPUT.getCode();
+    }
+
+    // Validate custom DNS resolver if provided
+    if (customDnsResolver != null && !customDnsResolver.isEmpty() && !isValidIpAddress(customDnsResolver)) {
+      logger.error(ToolResult.BAD_USER_INPUT.getDescription() + ": Invalid DNS resolver IP address format: " + customDnsResolver);
       return ToolResult.BAD_USER_INPUT.getCode();
     }
 
@@ -277,6 +510,9 @@ public void setShowProgress(boolean showProgress) {
 
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
+      // Initialize DNS resolver with custom server if specified
+      DNSCacheResolver.initializeResolver(customDnsResolver);
+      
       // Initialize our DNS lookups with this.
       updateProgressPhase("DNS-Resolving");
       DNSCacheResolver.initFromUrl(uri.toString());
@@ -288,34 +524,71 @@ public void setShowProgress(boolean showProgress) {
       // Start network validation phase
       updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
 
-      // do v6
-      if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
-        updateProgressPhase("IPv6-JSON");
-        NetworkInfo.setStackToV6();
-        NetworkInfo.setAcceptHeaderToApplicationJson();
-        int v6ret = validator.validate();
-        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+      // Check if parallel IP version execution is enabled
+      boolean parallelIPVersions = Boolean.parseBoolean(
+          System.getProperty("rdap.parallel.ipversions", "false"));
 
-        // set the header to RDAP+JSON and redo the validations
-        updateProgressPhase("IPv6-RDAP+JSON");
-        NetworkInfo.setAcceptHeaderToApplicationRdapJson();
-        int v6ret2 = validator.validate();
-        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
-      }
+      if (parallelIPVersions) {
+        logger.info("Executing IPv4 and IPv6 validations in parallel");
+        
+        // Execute IP versions in parallel using NetworkValidationCoordinator
+        NetworkValidationCoordinator.IPVersionValidationResults results = 
+            NetworkValidationCoordinator.executeIPVersionValidations(
+                validator, 
+                uri, 
+                executeIPv4Queries, 
+                executeIPv6Queries,
+                (version, header) -> {
+                    updateProgressPhase(version + "-" + header);
+                    incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND);
+                }
+            );
+        
+        // Log results summary
+        Map<String, Integer> allResults = results.getAllResults();
+        logger.info("Parallel IP version validation results: {}", allResults);
+        
+        if (!results.allSuccessful()) {
+            logger.warn("Some parallel validations failed: {}", 
+                allResults.entrySet().stream()
+                    .filter(e -> e.getValue() != 0)
+                    .collect(java.util.stream.Collectors.toMap(
+                        Map.Entry::getKey, Map.Entry::getValue)));
+        }
+        
+      } else {
+        // Original sequential execution
+        logger.info("Executing IPv4 and IPv6 validations sequentially");
+        
+        // do v6
+        if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
+          updateProgressPhase("IPv6-JSON");
+          NetworkInfo.setStackToV6();
+          NetworkInfo.setAcceptHeaderToApplicationJson();
+          int v6ret = validator.validate();
+          incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
-      // do v4
-      if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
-        updateProgressPhase("IPv4-JSON");
-        NetworkInfo.setStackToV4();
-        NetworkInfo.setAcceptHeaderToApplicationJson();
-        int v4ret = validator.validate();
-        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+          // set the header to RDAP+JSON and redo the validations
+          updateProgressPhase("IPv6-RDAP+JSON");
+          NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+          int v6ret2 = validator.validate();
+          incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+        }
 
-        // set the header to RDAP+JSON and redo the validations
-        updateProgressPhase("IPv4-RDAP+JSON");
-        NetworkInfo.setAcceptHeaderToApplicationRdapJson();
-        int v4ret2 = validator.validate();
-        incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+        // do v4
+        if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
+          updateProgressPhase("IPv4-JSON");
+          NetworkInfo.setStackToV4();
+          NetworkInfo.setAcceptHeaderToApplicationJson();
+          int v4ret = validator.validate();
+          incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+
+          // set the header to RDAP+JSON and redo the validations
+          updateProgressPhase("IPv4-RDAP+JSON");
+          NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+          int v4ret2 = validator.validate();
+          incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+        }
       }
 
       if(DNSCacheResolver.hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
@@ -325,11 +598,11 @@ public void setShowProgress(boolean showProgress) {
 
       // Removing extra errors to avoid discrepancies between profiles when 404 status code is returned
       if(ConnectionTracker.getInstance().isResourceNotFoundNoteWarning(this)) {
-        logger.info("All HEAD and Main queries returned a 404 Not Found response code.");
+        logger.debug("All HEAD and Main queries returned a 404 Not Found response code.");
         resultFile.removeErrors();
         resultFile.removeResultGroups();
       } else {
-        logger.info("At least one HEAD or Main query returned a non-404 Not Found response code.");
+        logger.debug("At least one HEAD or Main query returned a non-404 Not Found response code.");
       }
 
       // Build the result file
@@ -351,7 +624,7 @@ public void setShowProgress(boolean showProgress) {
 
 
       // Having network issues? You WILL need this.
-      logger.info("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+      logger.debug("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
 
       // Complete progress tracking
       completeProgress();
@@ -364,7 +637,17 @@ public void setShowProgress(boolean showProgress) {
     return validateWithoutNetwork(resultFile, validator);
   }
 
-
+  /**
+   * Validates a local RDAP JSON file without network access.
+   *
+   * <p>This method is used when the input URI points to a local file rather than
+   * an HTTP URL. It performs the same validation logic as network-based validation
+   * but skips DNS resolution and HTTP requests.</p>
+   *
+   * @param resultFile the results file handler for collecting validation outcomes
+   * @param validator the file validator workflow to execute
+   * @return exit code indicating validation result
+   */
   int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
     // If network is not enabled or ipv4 AND ipv6 flags are off, validate and return
     updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
@@ -816,6 +1099,18 @@ public void setShowProgress(boolean showProgress) {
         completedOperations++;
         progressTracker.setCurrentStep(completedOperations);
       }
+    }
+  }
+
+  /**
+   * Validate if the given string is a valid IP address (IPv4 or IPv6).
+   */
+  private boolean isValidIpAddress(String ip) {
+    try {
+      java.net.InetAddress.getByName(ip);
+      return true;
+    } catch (java.net.UnknownHostException e) {
+      return false;
     }
   }
 }
