@@ -384,6 +384,11 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-64106`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-64107`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-64108`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
+- `-65400`: vCard validation (2024 profile) [RFC 9537 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidationRegistrantEmail_2024.java}
+- `-65401`: vCard validation (2024 profile) [RFC 9537 Section 5.1, RFC 6350, RDAP Response Profile 2024]
+- `-65402`: vCard validation (2024 profile) [RFC 9537 Section 5.1, RFC 6350, RDAP Response Profile 2024]
+- `-65403`: vCard validation (2024 profile) [RFC 9537 Section 5.1, RFC 6350, RDAP Response Profile 2024]
+- `-65404`: vCard validation (2024 profile) [RFC 9537 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 
 ## Source File Mappings
 

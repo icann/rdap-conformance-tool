@@ -13,6 +13,7 @@ import static org.mockito.Mockito.mockStatic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.InetAddress;
 import java.net.URI;
@@ -61,6 +62,9 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
         .dynamicHttpsPort()
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
+
+    // Fix for CI Build
+      WireMock.configureFor(WIREMOCK_HOST, wireMockServer.port());
 
     try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
       mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
