@@ -242,12 +242,10 @@ public class RDAPValidator implements ValidatorWorkflow {
         if(config.isGtldRegistry()) {
             validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
         }
-// old code - what's up with this?
-//         validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
-//         // Only add the validation if it's a gTLD registrar
-//         if (config.isGtldRegistrar()) {
-//             validations.add(new ResponseValidation2Dot3Dot2_2024(rdapResponseData, results, queryType));
-//         }
+        // Only add the validation if it's a gTLD registrar
+        if (config.isGtldRegistrar()) {
+            validations.add(new ResponseValidation2Dot3Dot2_2024(rdapResponseData, results, queryType));
+        }
         validations.add(new ResponseValidation2Dot10(rdapResponseData, results, queryType));
         validations.add(new ResponseValidationRFC5731(rdapResponseData, results, queryType));
         validations.add(new ResponseValidationRFC3915(rdapResponseData, results, queryType));
