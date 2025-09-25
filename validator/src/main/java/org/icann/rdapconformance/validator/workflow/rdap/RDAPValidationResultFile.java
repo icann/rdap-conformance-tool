@@ -455,6 +455,7 @@ public class RDAPValidationResultFile {
         return code >= -10303 && code <= -10300;
     }
 
+    /**
      * Removes result groups from the validation results.
      *
      * <p>This method clears any grouped results from the result set, typically

@@ -135,7 +135,7 @@ public class CommonUtils {
         return uri.getHost();
     }
 
-
+    /**
      * Adds a validation error to the results file without an HTTP status code.
      *
      * <p>This convenience method creates a validation result with the provided error

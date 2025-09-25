@@ -512,7 +512,7 @@ public void setShowProgress(boolean showProgress) {
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
       // Initialize DNS resolver with custom server if specified
-      DNSCacheResolver.initializeResolver(customDnsResolver);
+      DNSCacheResolver.initFromUrl(customDnsResolver);
       
       // Initialize our DNS lookups with this.
       updateProgressPhase("DNS-Resolving");
