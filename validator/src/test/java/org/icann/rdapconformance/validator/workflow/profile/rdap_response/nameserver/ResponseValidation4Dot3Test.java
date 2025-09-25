@@ -18,8 +18,7 @@ public class ResponseValidation4Dot3Test extends
 
   @Override
   public RegistrarEntityPublicIdsValidation getProfileValidation() {
-    return new ResponseValidation4Dot3(jsonObject.toString(), results,
-        datasetService, queryType);
+    return new ResponseValidation4Dot3(jsonObject.toString(), results, datasetService, queryType);
   }
 
   @Test

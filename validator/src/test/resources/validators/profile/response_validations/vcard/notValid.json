@@ -136,6 +136,72 @@
           ]
         ]
       ]
+    },
+    {
+      "objectClassName": "entity",
+      "handle": "ZZZZ",
+      "roles": [
+        "administrative"
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "Administrative User"
+          ],
+          [
+            "org",
+            {},
+            "text",
+            "Example Inc."
+          ],
+          [
+            "adr",
+            {},
+            "text",
+            [
+              "",
+              "Suite 1236",
+              "4321 Rue Somewhere",
+              "Quebec",
+              "QC",
+              "G1V 2M2",
+              "Canada"
+            ]
+          ],
+          [
+            "email",
+            {},
+            "text",
+            "administrative.user@example.com"
+          ],
+          [
+            "tel",
+            {
+              "type": "voice"
+            },
+            "uri",
+            "tel:+1-555-555-1236;ext=789"
+          ],
+          [
+            "tel",
+            {
+              "type": "fax"
+            },
+            "uri",
+            "tel:+1-555-555-6321"
+          ]
+        ]
+      ]
     }
   ],
   "redacted": [
@@ -144,6 +210,28 @@
         "type": "Tech Phone"
       },
       "prePath": "$.entities[?(@.roles[0]=='technical')].vcardArray[1][?(@[1].type=='voice')]",
+      "method": "removal",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Registrant Name"
+      },
+      "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
+      "pathLang": "jsonpath",
+      "method": "emptyValue",
+      "reason": {
+        "description": "Server policy"
+      }
+    },
+    {
+      "name": {
+        "type": "Registrant Organization"
+      },
+      "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='org')]",
+      "pathLang": "jsonpath",
       "method": "removal",
       "reason": {
         "description": "Server policy"

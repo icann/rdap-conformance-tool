@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 
 import java.util.Set;
+
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;

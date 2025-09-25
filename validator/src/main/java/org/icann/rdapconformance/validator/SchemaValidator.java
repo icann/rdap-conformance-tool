@@ -59,7 +59,7 @@ public class SchemaValidator {
   private SchemaNode schemaRootNode;
 
   public SchemaValidator(String schemaName, RDAPValidatorResults results,
-      RDAPDatasetService datasetService) {
+                        RDAPDatasetService datasetService) {
       this.jpathUtil = new JpathUtil();
     this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader(), datasetService),
         results);

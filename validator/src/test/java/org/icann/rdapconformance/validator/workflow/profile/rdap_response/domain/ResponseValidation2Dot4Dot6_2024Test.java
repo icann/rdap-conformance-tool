@@ -3,7 +3,6 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 import static org.mockito.Mockito.doReturn;
 
 import java.net.URI;
-import java.util.List;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -42,7 +41,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot4Dot6_2024(jsonObject.toString(), results, datasets, queryType, config);
+        return new ResponseValidation2Dot4Dot6_2024(jsonObject.toString(), results, datasets, queryType);
     }
 
     @Test

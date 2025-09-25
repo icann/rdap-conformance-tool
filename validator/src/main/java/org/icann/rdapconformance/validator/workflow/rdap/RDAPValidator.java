@@ -237,15 +237,19 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidationLastUpdateEvent(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot1(rdapResponseData, results, config, queryType));
         validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType));
-
          // Only run this validation if it's a gTLD registry
         if(config.isGtldRegistry()) {
             validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
         }
-
+// old code - what's up with this?
+//         validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+//         // Only add the validation if it's a gTLD registrar
+//         if (config.isGtldRegistrar()) {
+//             validations.add(new ResponseValidation2Dot3Dot2_2024(rdapResponseData, results, queryType));
+//         }
         validations.add(new ResponseValidation2Dot10(rdapResponseData, results, queryType));
         validations.add(new ResponseValidationRFC5731(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidationRFC3915(rdapResponseData, results,queryType));
+        validations.add(new ResponseValidationRFC3915(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot6Dot1(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot4Dot1(rdapResponseData, results, queryType));
@@ -262,7 +266,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation1Dot2_2_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot2_2024(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot2_1_2024(rdapResponseData, results, datasetService));
-        validations.add(new ResponseValidation2Dot4Dot6_2024(rdapResponseData, results, datasetService,queryType, config));
+        validations.add(new ResponseValidation2Dot4Dot6_2024(rdapResponseData, results, datasetService,queryType));
         validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(rdapResponseData, results, queryType, config));
         validations.add(new ResponseValidation2Dot7Dot3_2024(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot7Dot5Dot1_2024(rdapResponseData, results));
