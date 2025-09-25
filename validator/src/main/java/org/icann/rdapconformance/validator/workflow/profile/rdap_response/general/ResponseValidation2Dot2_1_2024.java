@@ -40,7 +40,9 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
     boolean isValid = true;
       var handleObject = validateHandleInTopMostObject();
       isValid = handleObject.isValid();
+      
       if(StringUtils.isBlank(handleObject.handleValue()) && isValid) {
+          // Handle is absent - check for -46202, -46203, -46204
           var redactedObject = validateHandleInRedactedObject();
           isValid = redactedObject.isValid();
           if(isValid) {
@@ -49,6 +51,9 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
                   isValid = validateMethodProperty(redactedObject);
               }
           }
+      } else if(!StringUtils.isBlank(handleObject.handleValue()) && isValid) {
+          // Handle is present - check for -46206 (Registry Domain ID declared but handle not redacted)
+          isValid = validateRedactionConsistency(handleObject.handleValue());
       }
 
     return isValid;
@@ -207,6 +212,36 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
   }
 
    return true;
+ }
+
+ // Validate -46206: Registry Domain ID redaction declared but handle not actually redacted
+ private boolean validateRedactionConsistency(String handleValue) {
+   redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+   for (String redactedJsonPointer : redactedPointersValue) {
+     JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
+     JSONObject name = (JSONObject) redacted.get("name");
+
+     try {
+         var nameValue = name.get("type");
+         if(nameValue instanceof String redactedName) {
+             if(redactedName.trim().equalsIgnoreCase("Registry Domain ID")) {
+                 // Found Registry Domain ID redaction but handle exists!
+                 results.add(RDAPValidationResult.builder()
+                   .code(-46206)
+                   .value(getResultValue(redactedPointersValue))
+                   .message("a redaction of type Registry Domain ID was found but the domain handle was not redacted.")
+                   .build());
+                 return false;
+             }
+         }
+     } catch (Exception e) {
+         logger.debug("Redacted object at {} does not have extractable type property, skipping: {}", 
+                    redactedJsonPointer, e.getMessage());
+         continue;
+     }
+   }
+   
+   return true; // No Registry Domain ID redaction found, so no inconsistency
  }
 }
 

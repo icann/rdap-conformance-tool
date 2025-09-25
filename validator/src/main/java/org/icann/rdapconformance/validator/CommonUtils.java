@@ -51,6 +51,7 @@ public class CommonUtils {
     public static final int ZERO = 0;
     public static final int ONE = 1;
     public static final int TWO = 2;
+    public static final int THREE = 3;
     public static final int HTTP_NOT_FOUND = 404;
     public static final int HTTP_TOO_MANY_REQUESTS = 429;
     public static final String HANDLE_PATTERN = "(\\w|_){1,80}-\\w{1,8}";

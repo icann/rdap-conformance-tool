@@ -112,4 +112,68 @@ public class SpecialIPv6AddressesTest extends BaseUnmarshallingTest<SpecialIPv6A
             .as("2001:500:7967::30 should be valid (not in special-purpose registry)")
             .isFalse();
     }
+    
+    @Test
+    public void testIsInvalid_QADiscoveredAddresses() {
+        // Test the specific addresses that QA discovered triggering false positives
+        // These are all legitimate Global Unicast addresses that should NOT be flagged as special-purpose
+        String[] validGlobalUnicastAddresses = {
+            "2001:df0:8::a153",        // ns1.nic.jprs - working correctly
+            "2001:df0:8::a253",        // ns2.nic.jprs - working correctly
+            "2001:218:3001::a153",     // ns3.nic.jprs - was triggering false positive with -10202
+            "2001:218:3001::a253"      // ns4.nic.jprs - was triggering false positive with -10202
+        };
+        
+        for (String addr : validGlobalUnicastAddresses) {
+            assertThat(ipAddressSpecialRegistry.isInvalid(addr))
+                .as("Address " + addr + " should be valid (legitimate Global Unicast, not special-purpose)")
+                .isFalse();
+        }
+    }
+    
+    @Test
+    public void testIsInvalid_Slash28PrefixBoundaryEdgeCases() {
+        // Test edge cases for /28 prefix boundaries that were affected by IPAddressString library bug
+        // See: https://github.com/seancfoley/IPAddress/issues/13
+        // These addresses should be VALID (not in special-purpose ranges) but were incorrectly matched
+        //
+        // Note: 2001::/23 (IETF Protocol Assignments) covers 2001:0:: to 2001:1ff::
+        // So we need to test addresses outside that broader range
+        
+        // Test addresses that should be valid but were causing false positives due to /28 boundary bugs
+        // These are similar to the QA-discovered cases but test different /28 boundary scenarios
+        String[] validAddressesOutsideSpecialRanges = {
+            "2001:200::1",             // Outside 2001::/23, was incorrectly matching 2001:20::/28 
+            "2001:300::1",             // Outside 2001::/23, was incorrectly matching 2001:30::/28
+            "2001:400::1",             // Well outside any /28 special ranges
+            "2001:500::1",             // Similar to the real ICANN case (2001:500:7967::30)
+            "2001:2000::1",            // Much further out, but similar pattern
+            "2400:cb00::1",            // Completely different prefix (Cloudflare)
+            "2600:1f00::1",            // Different prefix entirely
+        };
+        
+        // Test that these legitimate addresses are not flagged as special-purpose
+        for (String addr : validAddressesOutsideSpecialRanges) {
+            assertThat(ipAddressSpecialRegistry.isInvalid(addr))
+                .as("Address " + addr + " should be valid (not in special-purpose registry)")
+                .isFalse();
+        }
+        
+        // Also verify that addresses that SHOULD be invalid still are detected correctly
+        String[] shouldBeInvalid = {
+            "2001:20::1",              // ORCHIDv2 (2001:20::/28)
+            "2001:2f::1",              // Still within ORCHIDv2 range
+            "2001:30::1",              // Drone Remote ID (2001:30::/28)  
+            "2001:3f::1",              // Still within Drone Remote ID range
+            "2001:db8::1",             // Documentation (2001:db8::/32)
+            "::1",                     // Loopback
+            "fc00::1"                  // Unique-Local
+        };
+        
+        for (String addr : shouldBeInvalid) {
+            assertThat(ipAddressSpecialRegistry.isInvalid(addr))
+                .as("Address " + addr + " should be invalid (in special-purpose registry)")
+                .isTrue();
+        }
+    }
 }
