@@ -204,34 +204,32 @@ public class RDAPHttpQueryTypeProcessorTest {
     }
   }
 
-  /*
   @Test
   public void testSchemaValidationFailure_NowHasProperStatus() {
     // Clear singleton state before test
     org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance().clear();
-    
+
     // Test that schema validation failure now sets proper ToolResult status (fixes the NPE bug)
     URI uri = URI.create("http://rdap.server.example/domain/zz--main-1234");
     doReturn(uri).when(config).getUri();
-    
+
     // Create fresh processor instance to avoid state pollution
     RDAPQueryTypeProcessor freshProcessor = RDAPHttpQueryTypeProcessor.getInstance(config);
-    
+
     // Domain validation now continues execution (returns true) to capture errors in final results
     boolean checkResult = freshProcessor.check(datasetService);
     assertThat(checkResult).isTrue();
-    
+
     // After the fix: getErrorStatus() should now return BAD_USER_INPUT instead of null
     ToolResult errorStatus = freshProcessor.getErrorStatus();
     assertThat(errorStatus).isNotNull();
     assertThat(errorStatus).isEqualTo(ToolResult.BAD_USER_INPUT);
-    
+
     // This should no longer throw NPE
     int errorCode = errorStatus.getCode();
     assertThat(errorCode).isEqualTo(25); // BAD_USER_INPUT code
     System.out.println("NPE bug fixed - got error code: " + errorCode);
   }
-  */
 
   @Test
   public void testIdnHostNameValidator_DebugZzMain() {

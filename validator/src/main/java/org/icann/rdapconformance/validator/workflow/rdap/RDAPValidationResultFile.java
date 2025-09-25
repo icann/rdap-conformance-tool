@@ -425,8 +425,9 @@ public class RDAPValidationResultFile {
     public void removeErrors() {
         Set<RDAPValidationResult> filteredResults = this.results.getAll()
                 .stream()
-                .filter(result -> this.configurationFile.isWarning(result.getCode()) 
-                                  || isResponseFormatError(result.getCode()))
+                .filter(result -> this.configurationFile.isWarning(result.getCode())
+                                  || isResponseFormatError(result.getCode())
+                                  || isDomainValidationError(result.getCode()))
                 .collect(Collectors.toSet());
 
         this.results.addAll(filteredResults);
@@ -444,6 +445,16 @@ public class RDAPValidationResultFile {
     }
 
     /**
+     * Determines if an error code represents domain validation.
+     * Domain validation errors should be preserved even when filtering errors for
+     * 404 responses, as they validate the input domain name provided by the user
+     * rather than the server response.
+     */
+    private boolean isDomainValidationError(int code) {
+        // Domain validation error codes: -10300 to -10303
+        return code >= -10303 && code <= -10300;
+    }
+
      * Removes result groups from the validation results.
      *
      * <p>This method clears any grouped results from the result set, typically
