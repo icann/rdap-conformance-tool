@@ -151,8 +151,8 @@ public class RDAPValidator implements ValidatorWorkflow {
             new DomainCaseFoldingValidation(rdapResponse, config, results, queryType).validate(); // Network calls
         }
 
-        // Issue additional queries (/help and /not-a-domain.invalid) when flag is true and profile 2024 is false
-        if(config.isAdditionalConformanceQueries() && !config.useRdapProfileFeb2024()) {
+        // Issue additional queries (/help and /not-a-domain.invalid) when flag is true regardless of profile
+        if(config.isAdditionalConformanceQueries()) {
             logger.info("Validations for additional conformance queries");
 
             boolean aggressiveNetworkParallel = "true".equals(System.getProperty("rdap.parallel.network", "false"));
@@ -294,11 +294,6 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // URL-based validation
             validations.add(new TigValidation1Dot5_2024(rdapResponse, config, results)); // SSL Network connection
             validations.add(new ResponseValidationTestInvalidRedirect_2024(config, results)); // Network connection
-
-            if(!config.isAdditionalConformanceQueries()) {
-                validations.add(new ResponseValidationHelp_2024(config, results)); // Network connection
-                validations.add(new ResponseValidationDomainInvalid_2024(config, results)); // Network connection
-            }
         }
 
         return validations;
