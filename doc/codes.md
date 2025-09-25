@@ -237,6 +237,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-23102`: Registry URL structure validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot11Dot1.java}
 - `-23200`: Registry TIG 3.2 validation [TIG Section 3.2] {TigValidation3Dot2.java}
 - `-23201`: Registry TIG 3.2 validation (2024 profile) [TIG Section 3.2, RDAP Response Profile 2024] {TigValidation3Dot2_2024.java}
+- `-23202`: Registry href domain query validation (2024 profile) - "the href property must be domain query as defined by Section 3.1.3 of RFC 9082." [RFC 9082 Section 3.1.3, TIG Section 3.2, RDAP Response Profile 2024] {TigValidation3Dot2_2024.java}
 
 ### Registrar-Specific Errors (-26XXX)
 - `-26100`: Registrar URL validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot12Dot1.java}
@@ -481,7 +482,7 @@ The following 5 parsers are test files or do not generate error codes:
   - Help Response Validation (-125XX): 5 codes
   - Nameserver Search Validation (-126XX): 11 codes
 - **TIG Validation (-20XXX):** 11 codes
-- **Registry-Specific (-23XXX):** 5 codes
+- **Registry-Specific (-23XXX):** 6 codes
 - **Registrar-Specific (-26XXX):** 3 codes
 - **Handle/Domain Validation (-4XXXX):** 44 codes
 - **Entity Validation (-5XXXX):** 8 codes
