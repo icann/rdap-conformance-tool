@@ -7,7 +7,6 @@ import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
 
 import java.net.URI;
 import java.util.Set;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -23,18 +22,15 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot4Dot6_2024.class);
 
     private final RDAPQueryType queryType;
-    private final RDAPValidatorConfiguration config;
     private final RDAPDatasetService datasetService;
 
     public ResponseValidation2Dot4Dot6_2024(String rdapResponse,
         RDAPValidatorResults results,
         RDAPDatasetService datasetService,
-        RDAPQueryType queryType,
-        RDAPValidatorConfiguration config) {
+        RDAPQueryType queryType) {
         super(rdapResponse, results);
         this.datasetService = datasetService;
         this.queryType = queryType;
-        this.config = config;
     }
 
 

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import java.util.Set;
+
 import org.icann.rdapconformance.validator.workflow.profile.RDAPConformanceValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 

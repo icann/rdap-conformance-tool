@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver;
 
 import java.util.Set;
+
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.RegistrarEntityValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
