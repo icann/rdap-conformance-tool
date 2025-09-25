@@ -40,10 +40,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
     if(isValid && Objects.nonNull(redactedObject.registryRedacted())) {
         isValid = validateRedactedProperties(redactedObject);
         if(isValid) {
-            isValid = validateRedactedProperties(redactedObject);
-            if(isValid) {
-                isValid = validateMethodProperty(redactedObject);
-            }
+            isValid = validateMethodProperty(redactedObject);
         }
     }
     return isValid;
@@ -61,31 +58,32 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
     if(!hasVoiceTel) {
         logger.debug("tel voice is not found for technical entity, validating redacted array");
         return validateRedactedArrayForEmptyTelVoice();
+    } else {
+        logger.info("tel voice is found for technical entity, validating there is no redacted array");
+        return validateNotRedactedArrayForTelVoice();
     }
-
-    return new RedactedHandleObjectToValidate(null, true);
  }
 
- private RedactedHandleObjectToValidate validateRedactedArrayForEmptyTelVoice() {
-     JSONObject redactedTechPhone = null;
-     redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
-     for (String redactedJsonPointer : redactedPointersValue) {
-         JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-         try {
-             JSONObject name = (JSONObject) redacted.get("name");
-             if (name != null && name.get("type") instanceof String redactedName) {
-                 if(redactedName.trim().equalsIgnoreCase(TECH_PHONE_TYPE)) {
-                     redactedTechPhone = redacted;
-                     break;
-                 }
-             }
-         } catch (Exception e) {
-             logger.debug("Skipping malformed redacted object: {}", e.getMessage());
-             continue;
-         }
-     }
+ private RedactedHandleObjectToValidate validateNotRedactedArrayForTelVoice() {
+     JSONObject redactedTechPhone = findRedactedTechPhone();
 
-     if(Objects.isNull(redactedTechPhone)) {
+     if(Objects.nonNull(redactedTechPhone)) {
+             results.add(RDAPValidationResult.builder()
+                     .code(-65104)
+                     .value(getResultValue(redactedPointersValue))
+                     .message("a redaction of type Tech Phone was found but tech phone was not redacted.")
+                     .build());
+
+             return new RedactedHandleObjectToValidate(redactedTechPhone, false);
+         }
+
+     return new RedactedHandleObjectToValidate(null, true);
+ }
+
+    private RedactedHandleObjectToValidate validateRedactedArrayForEmptyTelVoice() {
+        JSONObject redactedTechPhone = findRedactedTechPhone();
+
+        if(Objects.isNull(redactedTechPhone)) {
          results.add(RDAPValidationResult.builder()
                  .code(-65100)
                  .value(getResultValue(redactedPointersValue))
@@ -97,6 +95,26 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
 
      return new RedactedHandleObjectToValidate(redactedTechPhone, true);
  }
+
+    private JSONObject findRedactedTechPhone() {
+        JSONObject redactedTechPhone = null;
+        redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+        for (String redactedJsonPointer : redactedPointersValue) {
+            JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
+            try {
+                JSONObject name = (JSONObject) redacted.get("name");
+                if (name != null && name.get("type") instanceof String redactedName) {
+                    if (redactedName.trim().equalsIgnoreCase(TECH_PHONE_TYPE)) {
+                        redactedTechPhone = redacted;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Skipping malformed redacted object: {}", e.getMessage());
+            }
+        }
+        return redactedTechPhone;
+    }
 
  private boolean validateRedactedProperties(RedactedHandleObjectToValidate redactedHandleObject) {
     Object pathLangValue;

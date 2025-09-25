@@ -355,6 +355,9 @@ public class RDAPHttpQuery implements RDAPQuery {
             if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
                 addErrorToResultsFile(-12107, rdapResponse, "The errorCode value is required in an error response.");
                 isQuerySuccessful = false;
+            } else if (!validateErrorCodeMatchesHttpStatus(httpStatusCode, rdapResponse)) {
+                addErrorToResultsFile(-12108, rdapResponse, "The errorCode value does not match the HTTP status code.");
+                isQuerySuccessful = false;
             }
         }
 
@@ -617,6 +620,47 @@ public class RDAPHttpQuery implements RDAPQuery {
      * @param status the HTTP status code to check
      * @return true if the status code indicates a redirect, false otherwise
      */
+
+    public boolean validateErrorCodeMatchesHttpStatus(int httpStatusCode, String rdapResponse) {
+        if (httpStatusCode == HTTP_OK) {
+            return true; // No need to check errorCode for successful responses
+        }
+
+        if (rdapResponse == null || rdapResponse.isBlank()) {
+            logger.info("Empty response body for HTTP status code: {}", httpStatusCode);
+            return false;
+        }
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> responseMap = mapper.readValue(rdapResponse, new TypeReference<Map<String, Object>>() {
+            });
+            
+            Object errorCodeObj = responseMap.get(ERROR_CODE);
+            if (errorCodeObj == null) {
+                // If errorCode doesn't exist, we can't validate it matches
+                // This case is handled by the -12107 validation
+                return true;
+            }
+            
+            // Convert errorCode to integer for comparison
+            int errorCode;
+            if (errorCodeObj instanceof Number) {
+                errorCode = ((Number) errorCodeObj).intValue();
+            } else if (errorCodeObj instanceof String) {
+                errorCode = Integer.parseInt((String) errorCodeObj);
+            } else {
+                logger.info("Invalid errorCode type in response: {}", errorCodeObj.getClass());
+                return false;
+            }
+            
+            return errorCode == httpStatusCode;
+        } catch (Exception e) {
+            logger.info("Error parsing JSON response for error code match check", e);
+            return false;
+        }
+    }
+
     public static boolean isRedirectStatus(int status) {
         return switch (status) {
             case 301, 302, 303, 307, 308 -> true;

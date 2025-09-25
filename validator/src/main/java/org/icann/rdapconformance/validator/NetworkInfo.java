@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator;
 
 import static org.icann.rdapconformance.validator.CommonUtils.DASH;
+import org.icann.rdapconformance.validator.workflow.profile.IPVersionContext;
 
 /**
  * Singleton class that manages network configuration state for RDAP validation.
@@ -40,6 +41,14 @@ import static org.icann.rdapconformance.validator.CommonUtils.DASH;
  */
 public class NetworkInfo {
     private static final NetworkInfo instance = new NetworkInfo();
+    
+    // Thread-local storage for parallel execution
+    private static final ThreadLocal<NetworkInfo> threadLocalInstance = 
+        ThreadLocal.withInitial(NetworkInfo::new);
+    
+    // Feature flag to enable thread-local mode
+    private static final boolean USE_THREAD_LOCAL = 
+        "true".equals(System.getProperty("rdap.parallel.ipversions", "false"));
 
     private AcceptHeader acceptHeader = AcceptHeader.APPLICATION_JSON;
     private String httpMethod;
@@ -49,6 +58,12 @@ public class NetworkInfo {
     private NetworkInfo() {}
 
     public static NetworkInfo getInstance() {
+        if (USE_THREAD_LOCAL) {
+            IPVersionContext context = IPVersionContext.current();
+            if (context != null) {
+                return threadLocalInstance.get();
+            }
+        }
         return instance;
     }
 
@@ -70,59 +85,54 @@ public class NetworkInfo {
 
     // Static Getters
     public static String getAcceptHeader() {
-        return instance.acceptHeader.getValue();
+        return getInstance().acceptHeader.getValue();
     }
 
     public static String getHttpMethod() {
-        return (instance.httpMethod == null || instance.httpMethod.isEmpty()) ? DASH : instance.httpMethod;
+        NetworkInfo info = getInstance();
+        return (info.httpMethod == null || info.httpMethod.isEmpty()) ? DASH : info.httpMethod;
     }
 
     public static String getServerIpAddress() {
-        return (instance.serverIpAddress == null || instance.serverIpAddress.isEmpty()) ? DASH : instance.serverIpAddress;
+        NetworkInfo info = getInstance();
+        return (info.serverIpAddress == null || info.serverIpAddress.isEmpty()) ? DASH : info.serverIpAddress;
     }
 
     public static NetworkProtocol getNetworkProtocol() {
-        return instance.networkProtocol;
+        return getInstance().networkProtocol;
     }
 
     public static String getNetworkProtocolAsString() {
-        return (instance.networkProtocol == null) ? DASH : instance.networkProtocol.name();
+        NetworkInfo info = getInstance();
+        return (info.networkProtocol == null) ? DASH : info.networkProtocol.name();
     }
 
     // Static Setters
     public static void setAcceptHeaderToApplicationJson() {
-        instance.acceptHeader = AcceptHeader.APPLICATION_JSON;
+        getInstance().acceptHeader = AcceptHeader.APPLICATION_JSON;
     }
 
     public static void setAcceptHeaderToApplicationRdapJson() {
-        instance.acceptHeader = AcceptHeader.APPLICATION_RDAP_JSON;
+        getInstance().acceptHeader = AcceptHeader.APPLICATION_RDAP_JSON;
     }
 
     public static void setHttpMethod(String httpMethod) {
-        instance.httpMethod = httpMethod;
+        getInstance().httpMethod = httpMethod;
     }
 
     public static void setServerIpAddress(String serverIpAddress) {
-        instance.serverIpAddress = serverIpAddress;
+        getInstance().serverIpAddress = serverIpAddress;
     }
 
     public static void setNetworkProtocol(NetworkProtocol protocol) {
-        instance.networkProtocol = protocol;
+        getInstance().networkProtocol = protocol;
     }
 
     public static void setStackToV6() {
         setNetworkProtocol(NetworkProtocol.IPv6);
-        System.setProperty("java.net.preferIPv4Addresses", "false");
-        System.setProperty("java.net.preferIPv4Stack", "false");
-        System.setProperty("java.net.preferIPv6Addresses", "true");
-        System.setProperty("java.net.preferIPv6Stack", "true");
     }
 
     public static void setStackToV4() {
         setNetworkProtocol(NetworkProtocol.IPv4);
-        System.setProperty("java.net.preferIPv6Addresses", "false");
-        System.setProperty("java.net.preferIPv6Stack", "false");
-        System.setProperty("java.net.preferIPv4Addresses", "true");
-        System.setProperty("java.net.preferIPv4Stack", "true");
     }
 }

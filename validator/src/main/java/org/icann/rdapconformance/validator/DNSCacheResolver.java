@@ -67,7 +67,7 @@ public class DNSCacheResolver {
     private static final int DNS_TIMEOUT_SECONDS = 10;
     private static final int DNS_RETRIES = 3;
 
-    public static final Resolver resolver;
+    public static Resolver resolver;
 
     static {
         Resolver r = null;

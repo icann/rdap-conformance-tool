@@ -53,7 +53,11 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                 JSONArray vcardAddressValuesArray = (JSONArray) vcardAddressArray.get(3);
                 if(vcardAddressValuesArray.get(3) instanceof String city) {
                     if(StringUtils.isEmpty(city)) {
+                        logger.debug("Validate redacted array for empty city value");
                         return validateRedactedArrayForEmptyCityValue();
+                    } else {
+                        logger.debug("Validate redacted array for not empty city value");
+                        return validateRedactedArrayForNotEmptyCityValue();
                     }
                 } else {
                     logger.debug("city address is not present");
@@ -75,7 +79,37 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
         return true;
     }
 
+    private boolean validateRedactedArrayForNotEmptyCityValue() {
+        JSONObject redactedCity = extractRedactedCityObject();
+        if(Objects.nonNull(redactedCity)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63505)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registrant City was found but the city was not redacted.")
+                    .build());
+
+            return false;
+        }
+
+        return true;
+    }
+
     private boolean validateRedactedArrayForEmptyCityValue() {
+        JSONObject redactedCity = extractRedactedCityObject();
+        if(Objects.isNull(redactedCity)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63501)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registrant City is required.")
+                    .build());
+
+            return false;
+        }
+
+        return validateRedactedProperties(redactedCity);
+    }
+
+    private JSONObject extractRedactedCityObject() {
         JSONObject redactedCity = null;
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
@@ -92,27 +126,16 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
             } catch (Exception e) {
                 // FIXED: Don't fail immediately when encountering an exception
                 // Real-world redacted arrays contain mixed objects:
-                // - Some have name.type (e.g., "Registrant City", "Registry Domain ID") 
+                // - Some have name.type (e.g., "Registrant City", "Registry Domain ID")
                 // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
                 // - The exception occurs when trying to extract "type" from objects that only have "description"
                 // We should skip these objects and continue searching, not fail the entire validation
-                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}", 
+                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}",
                            redactedJsonPointer, e.getMessage());
                 continue; // Continue checking other redacted objects instead of failing
             }
         }
-
-        if(Objects.isNull(redactedCity)) {
-            results.add(RDAPValidationResult.builder()
-                    .code(-63501)
-                    .value(getResultValue(redactedPointersValue))
-                    .message("a redaction of type Registrant City is required.")
-                    .build());
-
-            return false;
-        }
-
-        return validateRedactedProperties(redactedCity);
+        return redactedCity;
     }
 
     private boolean validateRedactedProperties(JSONObject redactedCity) {

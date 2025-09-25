@@ -6,6 +6,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +27,9 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   // Static instance for the singleton
   private static RDAPValidatorResultsImpl instance;
 
-  private final Set<RDAPValidationResult> results = new HashSet<>();
-  private final Set<String> groups = new HashSet<>();
-  private final Set<String> groupErrorWarning = new HashSet<>();
+  private final Set<RDAPValidationResult> results = ConcurrentHashMap.newKeySet();
+  private final Set<String> groups = ConcurrentHashMap.newKeySet();
+  private final Set<String> groupErrorWarning = ConcurrentHashMap.newKeySet();
 
   // Private constructor to prevent instantiation
   private RDAPValidatorResultsImpl() {}

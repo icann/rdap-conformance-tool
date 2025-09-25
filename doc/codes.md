@@ -181,6 +181,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-12105`: Error response description validation [RFC 9083 Section 6]
 - `-12106`: Description format validation [RFC 9083 Section 6] {rdap_error.json}
 - `-12107`: Missing errorCode in error response (2024 profile) - "The errorCode value is required in an error response." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
+- `-12108`: ErrorCode value mismatch (2024 profile) - "The errorCode value does not match the HTTP status code." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
 
 #### Domain Validation (-122XX)
 - `-12203`: Domain objectClassName validation [RFC 9083 Section 5.3] {rdap_domain.json}
@@ -236,6 +237,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-23102`: Registry URL structure validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot11Dot1.java}
 - `-23200`: Registry TIG 3.2 validation [TIG Section 3.2] {TigValidation3Dot2.java}
 - `-23201`: Registry TIG 3.2 validation (2024 profile) [TIG Section 3.2, RDAP Response Profile 2024] {TigValidation3Dot2_2024.java}
+- `-23202`: Registry href domain query validation (2024 profile) - "the href property must be domain query as defined by Section 3.1.3 of RFC 9082." [RFC 9082 Section 3.1.3, TIG Section 3.2, RDAP Response Profile 2024] {TigValidation3Dot2_2024.java}
 
 ### Registrar-Specific Errors (-26XXX)
 - `-26100`: Registrar URL validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot12Dot1.java}
@@ -250,6 +252,8 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-46202`: Handle validation (2024 profile) [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
 - `-46203`: Handle validation (2024 profile) [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
 - `-46204`: Handle validation (2024 profile) [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
+- `-46205`: Handle validation (2024 profile) - ICANN testing EPPROID [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_2024.java}
+- `-46206`: Handle validation (2024 profile) - Registry Domain ID redaction consistency [RFC 9537, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
 - `-46300`: Domain validation (section 2.3.1.1) [RDAP Response Profile Section 2.3.1.1] {ResponseValidation2Dot3Dot1Dot1.java}
 - `-46500`: Notices validation [RFC 9083 Section 4.3] {ResponseValidationNoticesIncluded.java}
 - `-46600`: Domain validation (section 2.6.3) [RDAP Response Profile Section 2.6.3] {ResponseValidation2Dot6Dot3.java}
@@ -307,7 +311,24 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-61100`: SSL/TLS validation (2024 profile) - "The RDAP server must only use TLS 1.2 or TLS 1.3" [RFC 7481 Section 3, RDAP Response Profile 2024] {TigValidation1Dot5_2024.java}
 - `-61101`: SSL/TLS certificate validation (2024 profile) - "The RDAP server must use one of the following cipher suites when using TLS 1.2: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384." [RFC 7481 Section 3, RDAP Response Profile 2024] {TigValidation1Dot5_2024.java}
 
-### Special Validation Errors (-65XXX)
+### Redaction Validation Errors (2024 Profile) (-65XXX)
+- `-65000`: Technical contact fn property validation (2024 profile) - "The fn property is required on the vcard for the technical contact." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
+- `-65001`: Technical contact name redaction validation (2024 profile) - "a redaction of type Tech Name is required." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
+- `-65002`: Technical name JSONPath validation (2024 profile) - "jsonpath is invalid for Tech Name" [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
+- `-65003`: Technical name redaction path validation (2024 profile) - "jsonpath must evaluate to a non-empty set for redaction by empty value of Tech Name." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
+- `-65004`: Technical name redaction method validation (2024 profile) - "Tech Name redaction method must be emptyValue" [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
+- `-65100`: Technical contact phone redaction validation (2024 profile) - "a redaction of type Tech Phone is required." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot2_2024.java}
+- `-65101`: Technical phone JSONPath validation (2024 profile) - "jsonpath is invalid for Tech Phone." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot2_2024.java}
+- `-65102`: Technical phone redaction path validation (2024 profile) - "jsonpath must evaluate to a zero set for redaction by removal of Tech Phone." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot2_2024.java}
+- `-65103`: Technical phone redaction method validation (2024 profile) - "Tech Phone redaction method must be removal if present" [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot2_2024.java}
+- `-65200`: Technical email contact validation (2024 profile) - "a redaction of Tech Email may not have both the email and contact-uri" [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
+- `-65201`: Technical email requirement validation (2024 profile) - "a redaction of Tech Email must have either the email or contact-uri" [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
+- `-65202`: Technical email redaction method validation (2024 profile) - "Tech Email redaction method must be replacementValue" [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
+- `-65203`: Technical email postPath validation (2024 profile) - "jsonpath is invalid for Tech Email postPath" [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
+- `-65204`: Technical email postPath evaluation validation (2024 profile) - "jsonpath must evaluate to a non-empty set for redaction by replacementValue of Tech Email." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
+- `-65205`: Technical email replacementPath validation (2024 profile) - "jsonpath is invalid for Tech Email replacementPath" [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
+- `-65206`: Technical email prePath validation (2024 profile) - "jsonpath is invalid for Tech Email prePath" [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
+- `-65207`: Technical email replacementPath evaluation validation (2024 profile) - "jsonpath must evaluate to a non-empty set for redaction by replacementValue of Tech Email in replacementPath" [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
 - `-65300`: Domain invalid validation (2024 profile) [RDAP Response Profile 2024] {ResponseValidationDomainInvalid_2024.java, RDAPValidatorResultsImpl.java, RDAPValidationResultFile.java}
 
 ### vCard Validation Errors (2024 Profile) (-63XXX)
@@ -433,7 +454,7 @@ The following 5 parsers are test files or do not generate error codes:
 ## Analysis Summary
 
 ### Error Code Statistics
-- **Total Error Codes Documented:** 266 codes
+- **Total Error Codes Documented:** 284 codes
 - **HTTP Protocol Errors (-13XXX):** 10 codes
 - **Network and Address Validation (-10XXX):** 29 codes total
   - IPv4 Address Validation (-101XX): 3 codes  
@@ -454,25 +475,25 @@ The following 5 parsers are test files or do not generate error codes:
   - Variant Validation (-115XX): 4 codes
   - Unicode/LDH Name Validation (-116XX, -117XX): 4 codes
   - Roles Validation (-118XX): 4 codes
-- **JSON Structure Validation (-12XXX):** 52 codes (organized by subcategory)
+- **JSON Structure Validation (-12XXX):** 53 codes (organized by subcategory)
   - Secure DNS Validation (-120XX): 15 codes
-  - Error Response Validation (-121XX): 8 codes
+  - Error Response Validation (-121XX): 9 codes
   - Domain Validation (-122XX): 2 codes
   - Entity Validation (-123XX): 3 codes
   - Nameserver Validation (-124XX): 2 codes
   - Help Response Validation (-125XX): 5 codes
   - Nameserver Search Validation (-126XX): 11 codes
 - **TIG Validation (-20XXX):** 11 codes
-- **Registry-Specific (-23XXX):** 5 codes
+- **Registry-Specific (-23XXX):** 6 codes
 - **Registrar-Specific (-26XXX):** 3 codes
 - **Handle/Domain Validation (-4XXXX):** 44 codes
 - **Entity Validation (-5XXXX):** 8 codes
 - **Contact Validation (-58XXX):** 2 codes
 - **Security and vCard Validation (-6XXXX):** 58 codes (heavily used in 2024 profile)
-- **Special Validation (-65XXX):** 1 code
+- **Redaction Validation (-65XXX):** 18 codes (2024 profile technical contact redaction)
 
 ### Error Code Numbering Convention
-The RDAP Conformance Tool uses a systematic numbering scheme for its 266 documented error codes:
+The RDAP Conformance Tool uses a systematic numbering scheme for its 284 documented error codes:
 
 - **-10XXX:** Network and address validation
   - **-101XX:** IPv4 address validation
@@ -508,18 +529,19 @@ The RDAP Conformance Tool uses a systematic numbering scheme for its 266 documen
 - **-4XXXX:** Handle and domain validation (including 2024 profile enhancements)
 - **-5XXXX:** Entity validation (high-level entity structure)
 - **-58XXX:** Contact validation (contact-specific rules)
-- **-6XXXX:** Security and vCard validation (SSL/TLS, certificates, vCard structure)
-- **-65XXX:** Special validation cases (domain invalid scenarios)
+- **-6XXXX:** Security and vCard validation (SSL/TLS, certificates, vCard structure)  
+- **-65XXX:** Redaction validation (2024 profile technical contact redaction requirements)
 
 ### Profile Differences Summary
 
 #### 2019 Profile vs 2024 Profile
-- **2024 Profile introduces 100+ new error codes** primarily in the -63XXX and -64XXX ranges for vCard validation
+- **2024 Profile introduces 118+ new error codes** primarily in the -63XXX, -64XXX, and -65XXX ranges for vCard and redaction validation
 - **Enhanced SSL/TLS validation** with specific cipher suite requirements (-61100, -61101)
-- **Stricter error response requirements** (-12107 for mandatory errorCode)
+- **Stricter error response requirements** (-12107 for mandatory errorCode, -12108 for errorCode matching HTTP status)
 - **New help query validation** (-20701)
 - **Enhanced redirect validation** (-13005, -13006)
 - **Comprehensive vCard validation** covering administrative, technical, and billing contacts
-- **Enhanced domain validation** with new codes in the -46XXX and -47XXX ranges
+- **Technical contact redaction validation** (-65XXX range for name, phone, and email redaction requirements)
 - **Special domain invalid validation** (-65300)
-- **Enhanced handle validation** with codes -46201 through -46204
+- **Enhanced handle validation** with codes -46201 through -46206
+- **Enhanced domain validation** with new codes in the -46XXX and -47XXX ranges

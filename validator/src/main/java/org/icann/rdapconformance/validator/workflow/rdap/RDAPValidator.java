@@ -151,8 +151,8 @@ public class RDAPValidator implements ValidatorWorkflow {
             new DomainCaseFoldingValidation(rdapResponse, config, results, queryType).validate(); // Network calls
         }
 
-        // Issue additional queries (/help and /not-a-domain.invalid) when flag is true and profile 2024 is false
-        if(config.isAdditionalConformanceQueries() && !config.useRdapProfileFeb2024()) {
+        // Issue additional queries (/help and /not-a-domain.invalid) when flag is true regardless of profile
+        if(config.isAdditionalConformanceQueries()) {
             logger.info("Validations for additional conformance queries");
 
             boolean aggressiveNetworkParallel = "true".equals(System.getProperty("rdap.parallel.network", "false"));
@@ -237,10 +237,19 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidationLastUpdateEvent(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot1(rdapResponseData, results, config, queryType));
         validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+         // Only run this validation if it's a gTLD registry
+        if(config.isGtldRegistry()) {
+            validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+        }
+// old code - what's up with this?
+//         validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+//         // Only add the validation if it's a gTLD registrar
+//         if (config.isGtldRegistrar()) {
+//             validations.add(new ResponseValidation2Dot3Dot2_2024(rdapResponseData, results, queryType));
+//         }
         validations.add(new ResponseValidation2Dot10(rdapResponseData, results, queryType));
         validations.add(new ResponseValidationRFC5731(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidationRFC3915(rdapResponseData, results,queryType));
+        validations.add(new ResponseValidationRFC3915(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot6Dot1(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot4Dot1(rdapResponseData, results, queryType));
@@ -257,7 +266,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation1Dot2_2_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot2_2024(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot2_1_2024(rdapResponseData, results, datasetService));
-        validations.add(new ResponseValidation2Dot4Dot6_2024(rdapResponseData, results, datasetService,queryType, config));
+        validations.add(new ResponseValidation2Dot4Dot6_2024(rdapResponseData, results, datasetService,queryType));
         validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(rdapResponseData, results, queryType, config));
         validations.add(new ResponseValidation2Dot7Dot3_2024(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot7Dot5Dot1_2024(rdapResponseData, results));
@@ -294,11 +303,6 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // URL-based validation
             validations.add(new TigValidation1Dot5_2024(rdapResponse, config, results)); // SSL Network connection
             validations.add(new ResponseValidationTestInvalidRedirect_2024(config, results)); // Network connection
-
-            if(!config.isAdditionalConformanceQueries()) {
-                validations.add(new ResponseValidationHelp_2024(config, results)); // Network connection
-                validations.add(new ResponseValidationDomainInvalid_2024(config, results)); // Network connection
-            }
         }
 
         return validations;
@@ -327,7 +331,12 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot1(rdapResponseData, results, config, queryType));
         validations.add(new ResponseValidation2Dot2(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidation2Dot3Dot1Dot1(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+
+        // Only run this validation if it's a gTLD registry
+        if(config.isGtldRegistry()) {
+            validations.add(new ResponseValidation2Dot3Dot1Dot2(rdapResponseData, results, queryType));
+        }
+
         validations.add(new ResponseValidationNoticesIncluded(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot6Dot3(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation2Dot11(rdapResponseData, results, queryType));
