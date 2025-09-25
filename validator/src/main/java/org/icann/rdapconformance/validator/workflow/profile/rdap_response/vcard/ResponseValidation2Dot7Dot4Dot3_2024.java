@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.icann.rdapconformance.validator.CommonUtils.TWO;
+
 public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot3_2024.class);
@@ -51,13 +53,17 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
             for (String jsonPointer : vcardAddressPointersValue) {
                 JSONArray vcardAddressArray = (JSONArray) jsonObject.query(jsonPointer);
                 JSONArray vcardAddressValuesArray = (JSONArray) vcardAddressArray.get(3);
-                if(vcardAddressValuesArray.get(2) instanceof String street) {
+                if(vcardAddressValuesArray.get(TWO) instanceof String street) {
                     if(StringUtils.isEmpty(street)) {
                         return validateRedactedArrayForEmptyStreetValue();
+                    } else {
+                        return validateRedactedArrayForNonEmptyStreetValue();
                     }
-                } else if(vcardAddressValuesArray.get(2) instanceof JSONArray streetArray) {
+                } else if(vcardAddressValuesArray.get(TWO) instanceof JSONArray streetArray) {
                     if(streetArray.isEmpty()) {
                         return validateRedactedArrayForEmptyStreetValue();
+                    } else {
+                        return validateRedactedArrayForNonEmptyStreetValue();
                     }
                 } else {
                     logger.info("street address is not present");
@@ -78,8 +84,38 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
 
         return true;
     }
+    
+    private boolean validateRedactedArrayForNonEmptyStreetValue() {
+        var redactedStreet = extractRegistrantStreet();
+        if(Objects.nonNull(redactedStreet)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63405)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registrant Street was found but the registrant street was not redacted.")
+                    .build());
+
+            return false;
+        }
+
+        return true;
+    }
 
     private boolean validateRedactedArrayForEmptyStreetValue() {
+        var redactedStreet = extractRegistrantStreet();
+        if(Objects.isNull(redactedStreet)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-63401)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registrant Street is required.")
+                    .build());
+
+            return false;
+        }
+
+        return validateRedactedProperties(redactedStreet);
+    }
+
+    private JSONObject extractRegistrantStreet() {
         JSONObject redactedStreet = null;
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
@@ -96,27 +132,16 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
             } catch (Exception e) {
                 // FIXED: Don't fail immediately when encountering an exception
                 // Real-world redacted arrays contain mixed objects:
-                // - Some have name.type (e.g., "Registrant Street", "Registry Domain ID") 
+                // - Some have name.type (e.g., "Registrant Street", "Registry Domain ID")
                 // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
                 // - The exception occurs when trying to extract "type" from objects that only have "description"
                 // We should skip these objects and continue searching, not fail the entire validation
-                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}", 
+                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}",
                            redactedJsonPointer, e.getMessage());
                 continue; // Continue checking other redacted objects instead of failing
             }
         }
-
-        if(Objects.isNull(redactedStreet)) {
-            results.add(RDAPValidationResult.builder()
-                    .code(-63401)
-                    .value(getResultValue(redactedPointersValue))
-                    .message("a redaction of type Registrant Street is required.")
-                    .build());
-
-            return false;
-        }
-
-        return validateRedactedProperties(redactedStreet);
+        return redactedStreet;
     }
 
     private boolean validateRedactedProperties(JSONObject redactedStreet) {

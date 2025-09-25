@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.UUID;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.slf4j.Logger;
@@ -400,8 +402,26 @@ public class ConnectionTracker {
 
         StringBuilder sb = new StringBuilder("Connection Tracking Report:\n");
 
+        // Track which connections have been displayed as redirect follows
+        Set<String> displayedAsFollows = new HashSet<>();
+        
         for (ConnectionRecord record : connections) {
-            sb.append(record.toString()).append("\n");
+            // Skip connections that are redirect follows - they'll be displayed under their parent
+            if (record.isRedirectFollow() && displayedAsFollows.contains(record.getTrackingId())) {
+                continue;
+            }
+            
+            // Display the main connection
+            sb.append(record.toStringWithoutRedirectStatus()).append(getRedirectStatusForDisplay(record)).append("\n");
+            
+            // If this connection redirected, show the follow-up indented
+            if (record.getRedirectedToId() != null) {
+                ConnectionRecord followUp = connectionsByTrackingId.get(record.getRedirectedToId());
+                if (followUp != null) {
+                    sb.append("  └─► ").append(followUp.toStringWithoutRedirectStatus()).append(" [REDIRECT_FOLLOW]").append("\n");
+                    displayedAsFollows.add(followUp.getTrackingId());
+                }
+            }
         }
 
         sb.append("Summary: ")
@@ -410,6 +430,15 @@ public class ConnectionTracker {
                 .append(getErrorCount()).append(" errors.");
 
         return sb.toString();
+    }
+    
+    private String getRedirectStatusForDisplay(ConnectionRecord record) {
+        if (record.getRedirectedToId() != null) {
+            return " [REDIRECTED]";
+        } else if (record.isRedirectFollow()) {
+            return " [REDIRECT_FOLLOW]";
+        }
+        return "";
     }
 
     public synchronized void updateServerIpOnConnection(String trackingId, String hostAddress) {
@@ -466,6 +495,11 @@ public class ConnectionTracker {
         private Instant startTime;
         private final String trackingId;
         private final boolean mainConnection;
+        
+        // Redirect tracking fields
+        private String parentTrackingId;     // ID of the request that caused this redirect
+        private String redirectedToId;      // ID of the request this redirected to
+        private boolean isRedirectFollow;   // True if this request was following a redirect
 
         public ConnectionRecord(URI uri, String ipAddress, NetworkProtocol protocol,
                                 int statusCode, Duration duration,
@@ -554,8 +588,32 @@ public class ConnectionTracker {
             return mainConnection;
         }
 
-        @Override
-        public String toString() {
+        // Redirect tracking getters and setters
+        public String getParentTrackingId() {
+            return parentTrackingId;
+        }
+
+        public void setParentTrackingId(String parentTrackingId) {
+            this.parentTrackingId = parentTrackingId;
+        }
+
+        public String getRedirectedToId() {
+            return redirectedToId;
+        }
+
+        public void setRedirectedToId(String redirectedToId) {
+            this.redirectedToId = redirectedToId;
+        }
+
+        public boolean isRedirectFollow() {
+            return isRedirectFollow;
+        }
+
+        public void setRedirectFollow(boolean redirectFollow) {
+            isRedirectFollow = redirectFollow;
+        }
+
+        public String toStringWithoutRedirectStatus() {
             return String.format(
                     "[%s] %s %s to %s (%s) over %s with ID %s - Status: %d, Duration: %s, Result: %s",
                     timestamp,
@@ -569,6 +627,19 @@ public class ConnectionTracker {
                     duration != null ? duration.toMillis() + "ms" : "unknown",
                     status != null ? status.name() : "in progress"
             );
+        }
+
+        @Override
+        public String toString() {
+            // Build redirect status indicators
+            String redirectStatus = "";
+            if (redirectedToId != null) {
+                redirectStatus = " [REDIRECTED]";
+            } else if (isRedirectFollow) {
+                redirectStatus = " [REDIRECT_FOLLOW]";
+            }
+            
+            return toStringWithoutRedirectStatus() + redirectStatus;
         }
     }
 }
