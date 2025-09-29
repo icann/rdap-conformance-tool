@@ -372,13 +372,17 @@ public class RDAPHttpQueryStatusCodeTest {
             {"2024: HTTP 503 with errorCode 503 - Match", true, 503, "503", false, false},
             
             // Non-matching errorCode and HTTP status - should trigger -12108
-            // NOTE: Only 5xx codes tested for mismatch because 4xx codes cause early termination
+            // Both 4xx and 5xx codes are now tested because -12108 validation happens BEFORE early termination
             {"2024: HTTP 500 with errorCode 404 - Mismatch", true, 500, "404", true, false},
             {"2024: HTTP 503 with errorCode 500 - Mismatch", true, 503, "500", true, false},
             {"2024: HTTP 502 with errorCode 404 - Mismatch", true, 502, "404", true, false},
-            
-            // NOTE: 4xx codes (except 404) cause early termination, preventing -12108 validation
-            // This is expected behavior - 4xx indicates client errors where further validation isn't meaningful
+
+            // 4xx codes with mismatched errorCode - should trigger -12108 BEFORE early termination
+            {"2024: HTTP 400 with errorCode 500 - Mismatch", true, 400, "500", true, false},
+            {"2024: HTTP 403 with errorCode 500 - Mismatch", true, 403, "500", true, false},
+            {"2024: HTTP 422 with errorCode 404 - Mismatch", true, 422, "404", true, false},
+
+            // NOTE: 4xx codes still cause early termination, but -12108 is checked first for precedence
             
             // HTTP 200 responses - should NOT trigger -12108 regardless of errorCode
             {"2024: HTTP 200 with errorCode 404 - Success Response", true, 200, "404", false, false},
@@ -605,44 +609,44 @@ public class RDAPHttpQueryStatusCodeTest {
 
     @Test
     public void testClientError4xxEarlyTermination() {
-        System.out.println("\n=== Test: 4xx Client Errors Cause Early Termination ===");
-        
+        System.out.println("\n=== Test: 4xx Client Errors - -12108 Precedence + Early Termination ===");
+
         doReturn(true).when(config).useRdapProfileFeb2024();
-        
-        // Test that 422 (client error) causes early termination and prevents -12108 validation
-        String testPath = "/rdap/domain/client-error.com";  
+
+        // Test that 422 (client error) allows -12108 validation BEFORE early termination
+        String testPath = "/rdap/domain/client-error.com";
         String baseUrl = "http://localhost:" + wireMockServer.port();
         URI testUri = URI.create(baseUrl + testPath);
         doReturn(testUri).when(config).getUri();
-        
-        // Response with mismatched errorCode that would normally trigger -12108
+
+        // Response with mismatched errorCode that should trigger -12108 before early termination
         String responseBody = "{\"rdapConformance\": [\"rdap_level_0\"], \"errorCode\": 404}";
-        
+
         stubFor(get(urlEqualTo(testPath))
             .willReturn(aResponse()
-                .withStatus(422) // Client error - should cause early termination
+                .withStatus(422) // Client error - triggers -12108 then early termination
                 .withHeader("Content-Type", "application/rdap+json")
                 .withBody(responseBody)));
 
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
-        
+
         Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
-        
+
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
         boolean has13002 = allResults.stream().anyMatch(r -> r.getCode() == -13002);
-        
+
         System.out.println("Has -12108: " + has12108);
-        System.out.println("Has -12107: " + has12107);  
+        System.out.println("Has -12107: " + has12107);
         System.out.println("Has -13002: " + has13002);
-        
-        // 4xx client errors cause early termination, so no 2024 profile validation occurs
-        assertFalse(has12108, "4xx client error should prevent -12108 validation");
-        assertFalse(has12107, "4xx client error should prevent -12107 validation");  
+
+        // -12108 gets precedence and is checked BEFORE early termination for 4xx errors
+        assertTrue(has12108, "4xx client error should still allow -12108 validation (precedence)");
+        assertFalse(has12107, "4xx client error should prevent -12107 validation");
         assertTrue(has13002, "4xx client error should still trigger -13002");
-        
-        System.out.println("SUCCESS: 4xx early termination behavior confirmed");
+
+        System.out.println("SUCCESS: 4xx precedence + early termination behavior confirmed");
     }
 
     @Test

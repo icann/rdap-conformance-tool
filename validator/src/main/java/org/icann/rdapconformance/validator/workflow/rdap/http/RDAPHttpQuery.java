@@ -329,14 +329,30 @@ public class RDAPHttpQuery implements RDAPQuery {
             String statusValue =
                 httpResponse == null ? "no response available" : String.valueOf(httpResponse.statusCode());
             addErrorToResultsFile(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
-            
-            // Early termination for client errors (4xx) - these indicate issues with the request itself
-            // and further validation is not meaningful
-            if (httpResponse != null && httpResponse.statusCode() >= 400 && httpResponse.statusCode() < 500) {
-                logger.debug("Client error {} detected, stopping validation early", httpResponse.statusCode());
-                isQuerySuccessful = false;
-                return;
+        }
+
+        // Check 2024 profile validations BEFORE early termination to ensure -12108 precedence
+        if (isQuerySuccessful() && httpResponse != null && config.useRdapProfileFeb2024()) {
+            int httpStatusCode = httpResponse.statusCode();
+            String rdapResponse = httpResponse.body();
+
+            if (httpStatusCode != HTTP_OK) {
+                if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
+                    addErrorToResultsFile(-12107, rdapResponse, "The errorCode value is required in an error response.");
+                    isQuerySuccessful = false;
+                } else if (!validateErrorCodeMatchesHttpStatus(httpStatusCode, rdapResponse)) {
+                    addErrorToResultsFile(-12108, rdapResponse, "The errorCode value does not match the HTTP status code.");
+                    isQuerySuccessful = false;
+                }
             }
+        }
+
+        // Early termination for client errors (4xx) - these indicate issues with the request itself
+        // and further validation is not meaningful (but we check -12108 first above)
+        if (!isValidStatusCode && httpResponse != null && httpResponse.statusCode() >= 400 && httpResponse.statusCode() < 500) {
+            logger.debug("Client error {} detected, stopping validation early", httpResponse.statusCode());
+            isQuerySuccessful = false;
+            return;
         }
 
         // If it wasn't successful, early return, we don't need to validate
@@ -350,16 +366,6 @@ public class RDAPHttpQuery implements RDAPQuery {
         HttpHeaders headers = httpResponse.headers();
         String rdapResponse = httpResponse.body();
         logger.debug("http Status code: {}", httpStatusCode);
-
-        if (config.useRdapProfileFeb2024()) {
-            if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
-                addErrorToResultsFile(-12107, rdapResponse, "The errorCode value is required in an error response.");
-                isQuerySuccessful = false;
-            } else if (!validateErrorCodeMatchesHttpStatus(httpStatusCode, rdapResponse)) {
-                addErrorToResultsFile(-12108, rdapResponse, "The errorCode value does not match the HTTP status code.");
-                isQuerySuccessful = false;
-            }
-        }
 
         // dump headers
         headers.map().forEach((k, v) -> logger.debug("Header: {} = {}", k, v));
