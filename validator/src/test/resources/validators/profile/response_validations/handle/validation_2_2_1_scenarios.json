@@ -132,6 +132,31 @@
         "handle": "DOM123-INVALID"
       }
     },
+
+    "invalid_epproid_with_redaction": {
+      "description": "REGRESSION TEST: Invalid EPPROID AND Registry Domain ID redaction - triggers BOTH -46201 AND -46206",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "handle": "DOM123-INVALID",
+        "redacted": [
+          {
+            "name": {
+              "type": "Registry Domain ID"
+            },
+            "prePath": "$.handle",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
     
     "malformed_redaction_type": {
       "description": "Redacted object with non-Registry Domain ID type - triggers -46202",
@@ -449,6 +474,51 @@
             },
             "prePath": "$.handle",
             "pathLang": "jsonpath",
+            "reason": {
+              "description": "Server policy"
+            }
+          }
+        ]
+      }
+    },
+
+    "redaction_consistency_with_malformed_objects": {
+      "description": "Handle present with malformed redacted objects alongside valid Registry Domain ID redaction - triggers -46206 and covers exception handling",
+      "data": {
+        "rdapConformance": [
+          "rdap_level_0",
+          "icann_rdap_technical_implementation_guide_0",
+          "icann_rdap_response_profile_0"
+        ],
+        "handle": "DOM123-IANA",
+        "redacted": [
+          {
+            "name": {
+              "description": "Administrative Contact"
+            },
+            "prePath": "$.entities[?(@.roles[0]=='administrative')]",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {},
+            "prePath": "$.other",
+            "pathLang": "jsonpath",
+            "method": "removal",
+            "reason": {
+              "description": "Server policy"
+            }
+          },
+          {
+            "name": {
+              "type": "Registry Domain ID"
+            },
+            "prePath": "$.handle",
+            "pathLang": "jsonpath",
+            "method": "removal",
             "reason": {
               "description": "Server policy"
             }

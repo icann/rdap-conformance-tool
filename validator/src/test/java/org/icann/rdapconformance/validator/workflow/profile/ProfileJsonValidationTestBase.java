@@ -89,25 +89,17 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
   protected void loadScenario(String scenariosFile, String scenarioKey) throws IOException {
     String scenariosContent = getResource(scenariosFile);
     JSONObject scenarios = new JSONObject(scenariosContent);
-    
+
     if (!scenarios.has("scenarios") || !scenarios.getJSONObject("scenarios").has(scenarioKey)) {
       throw new IllegalArgumentException("Scenario '" + scenarioKey + "' not found in " + scenariosFile);
     }
-    
+
     JSONObject scenario = scenarios.getJSONObject("scenarios").getJSONObject(scenarioKey);
     JSONObject scenarioData = scenario.getJSONObject("data");
-    
+
     // Replace current jsonObject with the scenario data
     jsonObject = new JSONObject(scenarioData.toString());
     rdapContent = jsonObject.toString();
-  }
-
-  /**
-   * Load a scenario specifically for validation 2.2.1 tests
-   * @param scenarioKey The scenario key to load
-   */
-  protected void loadValidation221Scenario(String scenarioKey) throws IOException {
-    loadScenario("/validators/profile/response_validations/handle/validation_2_2_1_scenarios.json", scenarioKey);
   }
 
   @AfterMethod
