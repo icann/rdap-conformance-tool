@@ -48,6 +48,14 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
                 datasets);
     }
 
+    /**
+     * Load a scenario specifically for validation 2.2.1 tests
+     * @param scenarioKey The scenario key to load
+     */
+    private void loadValidation221Scenario(String scenarioKey) throws IOException {
+        loadScenario("/validators/profile/response_validations/handle/validation_2_2_1_scenarios.json", scenarioKey);
+    }
+
     @Test
     public void ResponseValidation2Dot2_1_2024_46200() throws IOException {
         loadValidation221Scenario("invalid_handle_format");
@@ -180,9 +188,10 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
     @Test
     public void testInvalidHandleFormat_ShouldTrigger46200() {
         // Test when handle exists but has invalid format
-        
+
         jsonObject.put("handle", "invalid_format"); // Invalid format - no dash
-        
+        jsonObject.remove("redacted"); // Remove redacted array to avoid -46206
+
         // Expected: Should trigger -46200 for invalid handle format
         validate(-46200, "#/handle:invalid_format", "The handle in the domain object does not comply with the format (\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
     }
@@ -350,13 +359,33 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
     public void testInvalidEPPROID_ShouldTrigger46201() throws IOException {
         // Test the missing branch: invalid EPPROID scenario (line 79)
         loadValidation221Scenario("invalid_epproid");
-        
+
         // Mock EPPRoid to return invalid for specific ROID
         EPPRoid eppRoid = datasets.get(EPPRoid.class);
         when(eppRoid.isInvalid("INVALID")).thenReturn(true);
-        
+
         // Expected: -46201 error for invalid EPPROID
         String expectedPointer = "#/handle:DOM123-INVALID";
         validate(-46201, expectedPointer, "The globally unique identifier in the domain object handle is not registered in EPPROID.");
+    }
+
+    // NOTE: The fix for the bug (removing && isValid from line 54) is verified by the fact that
+    // testInvalidHandleFormat_ShouldTrigger46200() now requires removing the redacted array.
+    // Before the fix, that test would pass with the redacted array present because -46206 was never checked.
+    // After the fix, -46206 IS checked even when the handle is invalid, so the test needs the redacted array removed.
+    // The scenario "invalid_epproid_with_redaction" in validation_2_2_1_scenarios.json documents the test case.
+
+    @Test
+    public void testRedactionConsistencyWithMalformedObjects_ShouldTrigger46206() throws IOException {
+        // Test that validateRedactionConsistency properly handles malformed redacted objects
+        // This test covers the exception handling at lines 238-241 in ResponseValidation2Dot2_1_2024.java
+        // Scenario: Handle is present, redacted array contains malformed objects (missing name.type)
+        // alongside valid Registry Domain ID redaction
+        loadValidation221Scenario("redaction_consistency_with_malformed_objects");
+
+        // Expected: -46206 error because handle exists but Registry Domain ID redaction is declared
+        // The method should skip malformed redacted objects and still find the Registry Domain ID
+        String expectedPointer = "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"description\":\"Administrative Contact\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.entities[?(@.roles[0]=='administrative')]\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{},\"pathLang\":\"jsonpath\",\"prePath\":\"$.other\"}, #/redacted/2:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registry Domain ID\"},\"pathLang\":\"jsonpath\",\"prePath\":\"$.handle\"}";
+        validate(-46206, expectedPointer, "a redaction of type Registry Domain ID was found but the domain handle was not redacted.");
     }
 }

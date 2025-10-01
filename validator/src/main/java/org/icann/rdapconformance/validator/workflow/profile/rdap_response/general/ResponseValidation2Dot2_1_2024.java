@@ -40,7 +40,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
     boolean isValid = true;
       var handleObject = validateHandleInTopMostObject();
       isValid = handleObject.isValid();
-      
+
       if(StringUtils.isBlank(handleObject.handleValue()) && isValid) {
           // Handle is absent - check for -46202, -46203, -46204
           var redactedObject = validateHandleInRedactedObject();
@@ -51,9 +51,10 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
                   isValid = validateMethodProperty(redactedObject);
               }
           }
-      } else if(!StringUtils.isBlank(handleObject.handleValue()) && isValid) {
+      } else if(!StringUtils.isBlank(handleObject.handleValue())) {
           // Handle is present - check for -46206 (Registry Domain ID declared but handle not redacted)
-          isValid = validateRedactionConsistency(handleObject.handleValue());
+          // Use AND to preserve any previous validation failures (e.g., -46201, -46200)
+          isValid = validateRedactionConsistency(handleObject.handleValue()) && isValid;
       }
 
     return isValid;
