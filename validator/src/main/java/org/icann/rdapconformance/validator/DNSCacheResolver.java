@@ -161,8 +161,11 @@ public class DNSCacheResolver {
                 logger.debug("DNS Resolver initialized using system DNS settings with {}s timeout and {} retries.",
                            DNS_TIMEOUT_SECONDS, DNS_RETRIES);
             }
+        } catch (RuntimeException e) {
+            // Re-throw RuntimeException (from health check failure) as-is
+            throw e;
         } catch (Exception e) {
-            logger.error("Failed to initialize DNS resolver with server '{}': {}. The value must be a valid IPv4 or IPv6 address.",
+            logger.error("Failed to initialize DNS resolver with server '{}': {}",
                        customDnsServer, e.getMessage());
             throw new RuntimeException("Invalid DNS resolver configuration", e);
         }
