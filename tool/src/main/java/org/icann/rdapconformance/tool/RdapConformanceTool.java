@@ -452,8 +452,27 @@ public void setShowProgress(boolean showProgress) {
       return ToolResult.BAD_USER_INPUT.getCode();
     }
 
-    // Initialize progress tracking if not in verbose mode
+    // Initialize progress tracking if not in verbose mode (before DNS check so progress is visible)
     initializeProgressTracking();
+
+    // Initialize DNS resolver early (before dataset download) if we're doing network validation
+    // This ensures the custom DNS resolver is configured for all network operations
+    if (networkEnabled) {
+      updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
+      try {
+        DNSCacheResolver.initializeResolver(customDnsResolver);
+      } catch (RuntimeException e) {
+        logger.error("Failed to initialize DNS resolver: {}", e.getMessage());
+        if (e.getMessage().contains("not responding")) {
+            logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
+                         ": DNS server is not reachable: " + customDnsResolver);
+        } else {
+            logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
+                         ": Invalid DNS resolver IP address: " + customDnsResolver);
+        }
+        return ToolResult.BAD_USER_INPUT.getCode();
+      }
+    }
 
     // No matter which validator, we need to initialize the dataset service
     RDAPDatasetService datasetService = initializeDataSetWithProgress();
@@ -511,10 +530,8 @@ public void setShowProgress(boolean showProgress) {
 
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
-      // Initialize DNS resolver with custom server if specified
-      DNSCacheResolver.initializeResolver(customDnsResolver);
-      
-      // Initialize our DNS lookups with this.
+      // DNS resolver was already initialized earlier (before dataset download)
+      // Now perform the actual DNS lookups for the target host
       updateProgressPhase("DNS-Resolving");
       DNSCacheResolver.initFromUrl(uri.toString());
       incrementProgress(); // DNS initialization step
@@ -1111,13 +1128,54 @@ public void setShowProgress(boolean showProgress) {
 
   /**
    * Validate if the given string is a valid IP address (IPv4 or IPv6).
+   * This method ensures the input is a literal IP address, not a hostname.
    */
   private boolean isValidIpAddress(String ip) {
+    if (ip == null || ip.trim().isEmpty()) {
+      return false;
+    }
+
     try {
-      java.net.InetAddress.getByName(ip);
-      return true;
+      // Use getByName but verify the result is not a hostname lookup
+      java.net.InetAddress addr = java.net.InetAddress.getByName(ip);
+
+      // getByName() performs DNS resolution on hostnames.
+      // We need to ensure the input was actually an IP address, not a hostname.
+      // We do this by checking if the input equals the result's host address.
+      String normalized = addr.getHostAddress();
+
+      // For IPv6, we need to handle bracket notation and zone IDs
+      String inputNormalized = ip.replaceAll(CommonUtils.IP_BRACKET_ZONE_PATTERN, "");
+
+      // Check if input matches the parsed address (handles IPv4 and IPv6)
+      return normalized.equals(inputNormalized) ||
+             normalized.equals(ip) ||
+             isLiteralIPAddress(ip);
     } catch (java.net.UnknownHostException e) {
       return false;
     }
+  }
+
+  /**
+   * Checks if the string is a literal IP address (IPv4 or IPv6) without DNS resolution.
+   */
+  private boolean isLiteralIPAddress(String ip) {
+    // IPv4 regex: 4 octets of 0-255
+    if (ip.matches(CommonUtils.IPV4_PATTERN)) {
+      return true;
+    }
+
+    // IPv6: Contains colons and valid hex characters
+    if (ip.contains(":")) {
+      try {
+        // If it parses as IPv6 and the input contains no dots (not IPv4-mapped), it's valid IPv6
+        java.net.InetAddress addr = java.net.InetAddress.getByName(ip);
+        return addr instanceof java.net.Inet6Address;
+      } catch (Exception e) {
+        return false;
+      }
+    }
+
+    return false;
   }
 }

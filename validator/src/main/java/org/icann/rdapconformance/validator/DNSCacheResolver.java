@@ -89,6 +89,44 @@ public class DNSCacheResolver {
     }
 
     /**
+     * Tests if the custom DNS resolver is reachable and responding.
+     * Performs a quick health check query for icann.org.
+     *
+     * @param resolver the resolver to test
+     * @return true if resolver responds within timeout, false otherwise
+     */
+    private static boolean checkResolverReachability(Resolver resolver) {
+        try {
+            // Test with icann.org - a well-known domain maintained by ICANN
+            Name testName = Name.fromString(CommonUtils.ICANN_ORG_FQDN);
+            Record question = Record.newRecord(testName, Type.A, DClass.IN);
+            Message query = Message.newQuery(question);
+
+            // Set a short timeout just for the health check (2 seconds)
+            Duration originalTimeout = null;
+            if (resolver instanceof SimpleResolver) {
+                SimpleResolver sr = (SimpleResolver) resolver;
+                originalTimeout = sr.getTimeout();
+                sr.setTimeout(Duration.ofSeconds(2));
+            }
+
+            try {
+                Message response = resolver.send(query);
+                // If we got any response (even NXDOMAIN), the server is reachable
+                return response != null;
+            } finally {
+                // Restore original timeout
+                if (originalTimeout != null && resolver instanceof SimpleResolver) {
+                    ((SimpleResolver) resolver).setTimeout(originalTimeout);
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("DNS resolver health check failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Initializes the DNS resolver with an optional custom DNS server.
      *
      * @param customDnsServer the custom DNS server to use, or null to use system default
@@ -99,6 +137,19 @@ public class DNSCacheResolver {
             if (customDnsServer != null && !customDnsServer.isEmpty()) {
                 SimpleResolver simpleResolver = new SimpleResolver(customDnsServer);
                 simpleResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
+
+                // Skip health check for localhost IPs (used for testing)
+                boolean isLocalhost = customDnsServer.equals(CommonUtils.LOCAL_IPv4) ||
+                                     customDnsServer.equals(CommonUtils.LOCAL_IPv6_COMPRESSED) ||
+                                     customDnsServer.equals(CommonUtils.LOCALHOST);
+
+                // IMPORTANT: Test if the resolver is actually reachable (unless it's localhost)
+                if (!isLocalhost && !checkResolverReachability(simpleResolver)) {
+                    throw new RuntimeException(
+                        "DNS server " + customDnsServer + " is not responding. " +
+                        "Please verify the IP address is correct and the server is reachable.");
+                }
+
                 resolver = simpleResolver;
                 logger.debug("DNS Resolver configured with custom server: {} ({}s timeout)",
                            customDnsServer, DNS_TIMEOUT_SECONDS);
@@ -111,7 +162,8 @@ public class DNSCacheResolver {
                            DNS_TIMEOUT_SECONDS, DNS_RETRIES);
             }
         } catch (Exception e) {
-            logger.error("Failed to initialize DNS resolver with server: " + customDnsServer, e);
+            logger.error("Failed to initialize DNS resolver with server '{}': {}. The value must be a valid IPv4 or IPv6 address.",
+                       customDnsServer, e.getMessage());
             throw new RuntimeException("Invalid DNS resolver configuration", e);
         }
     }
@@ -229,9 +281,9 @@ public class DNSCacheResolver {
         if (fqdn.equals(LOCAL_IPv4 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
             logger.debug("Handling special-case loopback (IPv4) for {}", fqdn);
             try {
-                CACHE_V4.put(fqdn, List.of(InetAddress.getByName(LOCAL_IPv4)));
+                CACHE_V4.put(fqdn, List.of(InetAddress.getByName(CommonUtils.LOCAL_IPv4)));
             } catch (Exception e) {
-                logger.debug("Failed to handle 127.0.0.1", e);
+                logger.debug("Failed to handle {}", CommonUtils.LOCAL_IPv4, e);
                 CACHE_V4.put(fqdn, List.of());
             }
         } else {
@@ -241,9 +293,9 @@ public class DNSCacheResolver {
         if (fqdn.equals(LOCAL_IPv6 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
             logger.debug("Handling special-case loopback (IPv6) for {}", fqdn);
             try {
-                CACHE_V6.put(fqdn, List.of(InetAddress.getByName(LOCAL_IPv6)));
+                CACHE_V6.put(fqdn, List.of(InetAddress.getByName(CommonUtils.LOCAL_IPv6_COMPRESSED)));
             } catch (Exception e) {
-                logger.debug("Failed to handle ::1", e);
+                logger.debug("Failed to handle {}", CommonUtils.LOCAL_IPv6_COMPRESSED, e);
                 CACHE_V6.put(fqdn, List.of());
             }
         } else {

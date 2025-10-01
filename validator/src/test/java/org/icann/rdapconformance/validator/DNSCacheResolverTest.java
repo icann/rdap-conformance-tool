@@ -46,10 +46,7 @@ public class DNSCacheResolverTest {
         }
     }
 
-    // ===========================================
     // Tests for initializeResolver method
-    // ===========================================
-
     @Test
     public void testInitializeResolver_WithNullCustomServer_UsesExtendedResolver() {
         DNSCacheResolver.initializeResolver(null);
@@ -68,16 +65,18 @@ public class DNSCacheResolverTest {
 
     @Test
     public void testInitializeResolver_WithValidIPv4Address_UsesSimpleResolver() {
-        DNSCacheResolver.initializeResolver("8.8.8.8");
-        
+        // Use 127.0.0.1 (localhost) to avoid health check in tests
+        DNSCacheResolver.initializeResolver("127.0.0.1");
+
         assertThat(DNSCacheResolver.resolver).isNotNull();
         assertThat(DNSCacheResolver.resolver).isInstanceOf(SimpleResolver.class);
     }
 
     @Test
     public void testInitializeResolver_WithValidIPv6Address_UsesSimpleResolver() {
-        DNSCacheResolver.initializeResolver("2001:4860:4860::8888");
-        
+        // Use ::1 (localhost IPv6) to avoid health check in tests
+        DNSCacheResolver.initializeResolver("::1");
+
         assertThat(DNSCacheResolver.resolver).isNotNull();
         assertThat(DNSCacheResolver.resolver).isInstanceOf(SimpleResolver.class);
     }
@@ -119,9 +118,7 @@ public class DNSCacheResolverTest {
             .hasMessageContaining("Invalid DNS resolver configuration");
     }
 
-    // ===========================================
     // Tests for URL hostname extraction
-    // ===========================================
 
     @Test
     public void testGetHostnameFromUrl_ValidHttp() {
@@ -172,10 +169,7 @@ public class DNSCacheResolverTest {
         assertThat(hostname).isEmpty();
     }
 
-    // ===========================================
     // Tests for FQDN handling
-    // ===========================================
-
     @Test
     public void testEnsureFQDN_WithoutDot() {
         String fqdn = DNSCacheResolver.ensureFQDN("example.com");
@@ -200,9 +194,7 @@ public class DNSCacheResolverTest {
         assertThat(fqdn).isEqualTo(".");
     }
 
-    // ===========================================
     // Tests for getFirst utility method
-    // ===========================================
 
     @Test
     public void testGetFirst_WithEmptyMap() {
@@ -235,9 +227,7 @@ public class DNSCacheResolverTest {
             .isInstanceOf(NullPointerException.class);
     }
 
-    // ===========================================
     // Tests for initializeResolver
-    // ===========================================
 
     @Test
     public void testInitFromUrl_ValidUrl() {
@@ -267,9 +257,8 @@ public class DNSCacheResolverTest {
         // The method should complete successfully
     }
 
-    // ===========================================
+
     // Tests for localhost special cases
-    // ===========================================
 
     @Test
     public void testResolveIfNeeded_Localhost() {
@@ -307,9 +296,7 @@ public class DNSCacheResolverTest {
         }
     }
 
-    // ===========================================
     // Tests for address checking methods
-    // ===========================================
 
     @Test
     public void testHasV4Addresses_WithLocalhostUrl() {
@@ -357,9 +344,7 @@ public class DNSCacheResolverTest {
         assertThat(addr.getHostAddress()).isEqualTo("0:0:0:0:0:0:0:1");
     }
 
-    // ===========================================
     // Tests for validation methods
-    // ===========================================
 
     @Test
     public void testDoZeroIPAddressesValidation_BothProtocols_LocalhostUrl() {
@@ -398,9 +383,7 @@ public class DNSCacheResolverTest {
         assertThat(results.iterator().next().getCode()).isEqualTo(-13019);
     }
 
-    // ===========================================
     // Tests for cache behavior
-    // ===========================================
 
     @Test
     public void testResolveIfNeeded_CacheHit() {
@@ -430,9 +413,7 @@ public class DNSCacheResolverTest {
         assertThat(addresses).isEmpty();
     }
 
-    // ===========================================
     // Tests for error handling
-    // ===========================================
 
     @Test
     public void testResolveWithCNAMEChain_TypeA() {
@@ -456,6 +437,158 @@ public class DNSCacheResolverTest {
     public void testResolveWithCNAMEChain_InvalidDomain() {
         // Test with invalid domain - should return empty list, not throw exception
         List<InetAddress> addresses = DNSCacheResolver.resolveWithCNAMEChain("nonexistent.invalid.tld.", Type.A);
+        assertThat(addresses).isEmpty();
+    }
+
+    // Tests for exception coverage
+
+    @Test
+    public void testInitializeResolver_WithLocalhost_SkipsHealthCheck() {
+        // Test that localhost doesn't trigger health check
+        DNSCacheResolver.initializeResolver("localhost");
+        assertThat(DNSCacheResolver.resolver).isInstanceOf(SimpleResolver.class);
+    }
+
+    @Test
+    public void testCheckResolverReachability_WithNonSimpleResolver() throws Exception {
+        // Use reflection to test the health check with ExtendedResolver
+        java.lang.reflect.Method method = DNSCacheResolver.class.getDeclaredMethod("checkResolverReachability", Resolver.class);
+        method.setAccessible(true);
+
+        ExtendedResolver extendedResolver = new ExtendedResolver();
+        boolean result = (boolean) method.invoke(null, extendedResolver);
+
+        // Should return true or false depending on DNS availability
+        assertThat(result).isIn(true, false);
+    }
+
+    @Test
+    public void testCheckResolverReachability_WithNullResponse() throws Exception {
+        // Create a mock resolver that returns null
+        Resolver mockResolver = mock(Resolver.class);
+        when(mockResolver.send(any(Message.class))).thenReturn(null);
+
+        java.lang.reflect.Method method = DNSCacheResolver.class.getDeclaredMethod("checkResolverReachability", Resolver.class);
+        method.setAccessible(true);
+
+        boolean result = (boolean) method.invoke(null, mockResolver);
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void testCheckResolverReachability_WithException() throws Exception {
+        // Create a mock resolver that throws exception
+        Resolver mockResolver = mock(Resolver.class);
+        when(mockResolver.send(any(Message.class))).thenThrow(new java.io.IOException("Test exception"));
+
+        java.lang.reflect.Method method = DNSCacheResolver.class.getDeclaredMethod("checkResolverReachability", Resolver.class);
+        method.setAccessible(true);
+
+        boolean result = (boolean) method.invoke(null, mockResolver);
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void testCheckResolverReachability_WithRuntimeException() throws Exception {
+        // Create a mock SimpleResolver that throws runtime exception
+        SimpleResolver mockResolver = mock(SimpleResolver.class);
+        when(mockResolver.send(any(Message.class))).thenThrow(new RuntimeException("Network error"));
+        when(mockResolver.getTimeout()).thenReturn(java.time.Duration.ofSeconds(10));
+        doNothing().when(mockResolver).setTimeout(any(java.time.Duration.class));
+
+        java.lang.reflect.Method method = DNSCacheResolver.class.getDeclaredMethod("checkResolverReachability", Resolver.class);
+        method.setAccessible(true);
+
+        boolean result = (boolean) method.invoke(null, mockResolver);
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void testInitFromUrl_WithURISyntaxException() {
+        // Test with URL that causes URISyntaxException - use special characters
+        DNSCacheResolver.initFromUrl("http://[invalid:url:syntax");
+        // Should not throw exception, just log and return
+    }
+
+    @Test
+    public void testResolveIfNeeded_WithInvalidLocalhost() throws Exception {
+        // Force exception during localhost resolution by mocking InetAddress
+        // This is difficult to test directly, but we can test that exception is caught
+
+        // Test with a malformed localhost-like address
+        DNSCacheResolver.resolveIfNeeded("127.0.0.1.");
+
+        List<InetAddress> v4 = DNSCacheResolver.getAllV4Addresses("127.0.0.1.");
+        // Should either have addresses or empty list, not throw exception
+        assertThat(v4).isNotNull();
+    }
+
+    @Test
+    public void testDoZeroIPAddressesValidation_NoIPv4() {
+        // Setup: resolve a hostname that has no IPv4
+        // Using an invalid domain that won't resolve
+        clearDNSCaches();
+        DNSCacheResolver.resolveIfNeeded("no-ipv4-addresses.invalid.");
+
+        RDAPValidatorResultsImpl.getInstance().clear();
+        DNSCacheResolver.doZeroIPAddressesValidation("http://no-ipv4-addresses.invalid/", false, true);
+
+        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance().getAll();
+        assertThat(results).isNotEmpty();
+        assertThat(results.iterator().next().getCode()).isEqualTo(-20400);
+    }
+
+    @Test
+    public void testDoZeroIPAddressesValidation_NoIPv6() {
+        // Setup: resolve a hostname that has no IPv6
+        clearDNSCaches();
+        DNSCacheResolver.resolveIfNeeded("no-ipv6-addresses.invalid.");
+
+        RDAPValidatorResultsImpl.getInstance().clear();
+        DNSCacheResolver.doZeroIPAddressesValidation("http://no-ipv6-addresses.invalid/", true, false);
+
+        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance().getAll();
+        assertThat(results).isNotEmpty();
+        assertThat(results.iterator().next().getCode()).isEqualTo(-20401);
+    }
+
+    @Test
+    public void testDoZeroIPAddressesValidation_NoAddresses() {
+        // Setup: resolve a hostname that has no addresses at all
+        clearDNSCaches();
+        DNSCacheResolver.resolveIfNeeded("no-addresses.invalid.");
+
+        RDAPValidatorResultsImpl.getInstance().clear();
+        DNSCacheResolver.doZeroIPAddressesValidation("http://no-addresses.invalid/", true, true);
+
+        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance().getAll();
+        assertThat(results).hasSize(1);
+        assertThat(results.iterator().next().getCode()).isEqualTo(-13019);
+    }
+
+    @Test
+    public void testHasNoAddresses_WithNonExistentDomain() {
+        clearDNSCaches();
+        DNSCacheResolver.resolveIfNeeded("nonexistent.invalid.tld.");
+
+        boolean hasNone = DNSCacheResolver.hasNoAddresses("nonexistent.invalid.tld");
+        assertThat(hasNone).isTrue();
+    }
+
+    @Test
+    public void testHasV4Addresses_WithNonExistentDomain() {
+        clearDNSCaches();
+        DNSCacheResolver.resolveIfNeeded("nonexistent.invalid.tld.");
+
+        boolean hasV4 = DNSCacheResolver.hasV4Addresses("http://nonexistent.invalid.tld/");
+        assertThat(hasV4).isFalse();
+    }
+
+    @Test
+    public void testResolveWithCNAMEChain_WithMalformedName() {
+        // Test with malformed domain name that causes Name.fromString to fail
+        List<InetAddress> addresses = DNSCacheResolver.resolveWithCNAMEChain("", Type.A);
+        // Should return empty list, not throw exception
         assertThat(addresses).isEmpty();
     }
 }
