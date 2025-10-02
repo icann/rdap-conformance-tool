@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.everit.json.schema.internal.IPV4Validator;
+import org.everit.json.schema.internal.IPV6Validator;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 import org.slf4j.LoggerFactory;
 import org.icann.rdapconformance.tool.progress.ProgressTracker;
@@ -452,8 +454,27 @@ public void setShowProgress(boolean showProgress) {
       return ToolResult.BAD_USER_INPUT.getCode();
     }
 
-    // Initialize progress tracking if not in verbose mode
+    // Initialize progress tracking if not in verbose mode (before DNS check so progress is visible)
     initializeProgressTracking();
+
+    // Initialize DNS resolver early (before dataset download) if we're doing network validation
+    // This ensures the custom DNS resolver is configured for all network operations
+    if (networkEnabled) {
+      updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
+      try {
+        DNSCacheResolver.initializeResolver(customDnsResolver);
+      } catch (RuntimeException e) {
+        logger.error("Failed to initialize DNS resolver: {}", e.getMessage());
+        if (e.getMessage().contains("not responding")) {
+            logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
+                         ": DNS server is not reachable: " + customDnsResolver);
+        } else {
+            logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
+                         ": Invalid DNS resolver IP address: " + customDnsResolver);
+        }
+        return ToolResult.BAD_USER_INPUT.getCode();
+      }
+    }
 
     // No matter which validator, we need to initialize the dataset service
     RDAPDatasetService datasetService = initializeDataSetWithProgress();
@@ -511,10 +532,8 @@ public void setShowProgress(boolean showProgress) {
 
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
-      // Initialize DNS resolver with custom server if specified
-      DNSCacheResolver.initializeResolver(customDnsResolver);
-      
-      // Initialize our DNS lookups with this.
+      // DNS resolver was already initialized earlier (before dataset download)
+      // Now perform the actual DNS lookups for the target host
       updateProgressPhase("DNS-Resolving");
       DNSCacheResolver.initFromUrl(uri.toString());
       incrementProgress(); // DNS initialization step
@@ -1111,13 +1130,24 @@ public void setShowProgress(boolean showProgress) {
 
   /**
    * Validate if the given string is a valid IP address (IPv4 or IPv6).
+   * Uses existing IP validators from the Everit JSON Schema library.
+   * This method ensures the input is a literal IP address, not a hostname.
    */
   private boolean isValidIpAddress(String ip) {
-    try {
-      java.net.InetAddress.getByName(ip);
-      return true;
-    } catch (java.net.UnknownHostException e) {
+    if (ip == null || ip.trim().isEmpty()) {
       return false;
     }
+
+    // Try IPv4 validation using Everit validator
+    if (new IPV4Validator().validate(ip).isEmpty()) {
+      return true;
+    }
+
+    // Try IPv6 validation using Everit validator
+    if (new IPV6Validator().validate(ip).isEmpty()) {
+      return true;
+    }
+
+    return false;
   }
 }

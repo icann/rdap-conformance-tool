@@ -70,8 +70,9 @@ public class CommonUtils {
     public static final String SEP = "://";
     public static final String LOCALHOST = "localhost";
     public static final String LOCAL_IPv4 = "127.0.0.1";
-
     public static final String LOCAL_IPv6 = "0000:0000:0000:0000:0000:0000:0000:0001";
+    public static final String LOCAL_IPv6_COMPRESSED = "::1";
+    public static final String ICANN_ORG_FQDN = "icann.org.";
     public static final String GET = "GET";
     public static final String HEAD = "HEAD";
     public static final String SEMI_COLON = ";";
@@ -97,6 +98,10 @@ public class CommonUtils {
     public static final int HTTP_NOT_FOUND = 404;
     public static final int HTTP_TOO_MANY_REQUESTS = 429;
     public static final String HANDLE_PATTERN = "(\\w|_){1,80}-\\w{1,8}";
+
+    // IP Address validation patterns
+    public static final String IPV4_PATTERN = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
+    public static final String IP_BRACKET_ZONE_PATTERN = "[\\[\\]%.*]";
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(CommonUtils.class);
 

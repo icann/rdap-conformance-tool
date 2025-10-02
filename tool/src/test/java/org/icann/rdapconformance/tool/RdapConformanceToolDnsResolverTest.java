@@ -97,9 +97,49 @@ public class RdapConformanceToolDnsResolverTest {
         tool.uri = URI.create("https://example.com");
         tool.setUseRdapProfileFeb2024(true);
         tool.setGtldRegistry(true);
-        
+
         Integer result = tool.call();
-        
+
         assertThat(result).isEqualTo(ToolResult.BAD_USER_INPUT.getCode());
     }
+
+    @Test
+    public void testIsValidIpAddress_NonIPString() throws Exception {
+        // Test that "123" is not a valid IP address
+        java.lang.reflect.Method method = RdapConformanceTool.class.getDeclaredMethod("isValidIpAddress", String.class);
+        method.setAccessible(true);
+
+        boolean result = (boolean) method.invoke(tool, "123");
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void testIsValidIpAddress_Hostname() throws Exception {
+        // Test that hostnames are not treated as IP addresses
+        java.lang.reflect.Method method = RdapConformanceTool.class.getDeclaredMethod("isValidIpAddress", String.class);
+        method.setAccessible(true);
+
+        boolean result = (boolean) method.invoke(tool, "google.com");
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void testCall_WithInvalidDnsResolver123_ReturnsBadUserInput() throws Exception {
+        // Test the specific case from the bug report: --dns-resolver=123
+        tool.setCustomDnsResolver("123");
+        tool.setConfigurationFile("tool/bin/rdapct_config.json");
+        tool.uri = URI.create("https://rdap.verisign.com/com/v1/domain/verisign.com");
+        tool.setUseRdapProfileFeb2024(true);
+        tool.setGtldRegistry(true);
+
+        Integer result = tool.call();
+
+        assertThat(result).isEqualTo(25); // BAD_USER_INPUT
+    }
+
+    // NOTE: The non-responsive DNS server test is covered by DNSCacheResolverTest.testInitializeResolver_WithInvalidIPAddress_ThrowsException
+    // Testing it here would require network access and is environment-dependent, so we test the DNS validation logic
+    // at the validator layer instead. The integration behavior is verified manually via:
+    // java -jar tool/target/rdapct-3.0.1.jar -c tool/bin/rdapct_config.json --gtld-registry --use-rdap-profile-february-2024 --dns-resolver=123.123.122.222 https://rdap.verisign.com/com/v1/domain/verisign.com
+    // Expected: Exit code 25, completes in ~4 seconds
 }
