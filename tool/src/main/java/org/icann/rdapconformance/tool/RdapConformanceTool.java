@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.everit.json.schema.internal.IPV4Validator;
+import org.everit.json.schema.internal.IPV6Validator;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 import org.slf4j.LoggerFactory;
 import org.icann.rdapconformance.tool.progress.ProgressTracker;
@@ -1128,6 +1130,7 @@ public void setShowProgress(boolean showProgress) {
 
   /**
    * Validate if the given string is a valid IP address (IPv4 or IPv6).
+   * Uses existing IP validators from the Everit JSON Schema library.
    * This method ensures the input is a literal IP address, not a hostname.
    */
   private boolean isValidIpAddress(String ip) {
@@ -1135,45 +1138,14 @@ public void setShowProgress(boolean showProgress) {
       return false;
     }
 
-    try {
-      // Use getByName but verify the result is not a hostname lookup
-      java.net.InetAddress addr = java.net.InetAddress.getByName(ip);
-
-      // getByName() performs DNS resolution on hostnames.
-      // We need to ensure the input was actually an IP address, not a hostname.
-      // We do this by checking if the input equals the result's host address.
-      String normalized = addr.getHostAddress();
-
-      // For IPv6, we need to handle bracket notation and zone IDs
-      String inputNormalized = ip.replaceAll(CommonUtils.IP_BRACKET_ZONE_PATTERN, "");
-
-      // Check if input matches the parsed address (handles IPv4 and IPv6)
-      return normalized.equals(inputNormalized) ||
-             normalized.equals(ip) ||
-             isLiteralIPAddress(ip);
-    } catch (java.net.UnknownHostException e) {
-      return false;
-    }
-  }
-
-  /**
-   * Checks if the string is a literal IP address (IPv4 or IPv6) without DNS resolution.
-   */
-  private boolean isLiteralIPAddress(String ip) {
-    // IPv4 regex: 4 octets of 0-255
-    if (ip.matches(CommonUtils.IPV4_PATTERN)) {
+    // Try IPv4 validation using Everit validator
+    if (new IPV4Validator().validate(ip).isEmpty()) {
       return true;
     }
 
-    // IPv6: Contains colons and valid hex characters
-    if (ip.contains(":")) {
-      try {
-        // If it parses as IPv6 and the input contains no dots (not IPv4-mapped), it's valid IPv6
-        java.net.InetAddress addr = java.net.InetAddress.getByName(ip);
-        return addr instanceof java.net.Inet6Address;
-      } catch (Exception e) {
-        return false;
-      }
+    // Try IPv6 validation using Everit validator
+    if (new IPV6Validator().validate(ip).isEmpty()) {
+      return true;
     }
 
     return false;
