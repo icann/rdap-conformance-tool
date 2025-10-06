@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
@@ -21,11 +22,13 @@ import java.util.Set;
 public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
 
     private final RDAPValidatorConfiguration config;
+    private final RDAPQueryType queryType;
     private static final String NOT_FOUND = "not_found";
 
-    public ResponseValidation2Dot10_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
+    public ResponseValidation2Dot10_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config, RDAPQueryType queryType) {
         super(rdapResponse, results);
         this.config = config;
+        this.queryType = queryType;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot10_2024.class);
@@ -36,6 +39,11 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
     @Override
     public String getGroupName() {
         return "rdapResponseProfile_2_10_Validation";
+    }
+
+    @Override
+    public boolean doLaunch() {
+        return queryType.equals(RDAPQueryType.DOMAIN);
     }
 
     @Override
