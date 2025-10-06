@@ -111,13 +111,15 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
     // Use a thread pool size based on available processors but cap it to avoid overwhelming the system
     int threadPoolSize = Math.min(Runtime.getRuntime().availableProcessors() * THREADS_PER_CORE, MAX_THREAD_POOL_SIZE);
     ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize);
-    
+
+    logger.info("Starting dataset download and parse operations...");
+
     try {
       // Create CompletableFutures for each dataset download and parse operation
       List<CompletableFuture<Boolean>> datasetFutures = this.datasets.values().stream()
           .map(dataset -> CompletableFuture
               .supplyAsync(() -> {
-                logger.info("Starting download for dataset: {}", dataset.getName());
+                logger.debug("Starting download for dataset: {}", dataset.getName());
                 if (progressCallback != null) {
                   progressCallback.onDatasetDownloadStarted(dataset.getName());
                 }
@@ -129,7 +131,7 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
                   }
                   return false;
                 }
-                logger.info("Download completed for dataset: {}", dataset.getName());
+                logger.debug("Download completed for dataset: {}", dataset.getName());
                 if (progressCallback != null) {
                   progressCallback.onDatasetDownloadCompleted(dataset.getName());
                 }
@@ -139,7 +141,7 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
                 if (!downloadSuccess) {
                   return false;
                 }
-                logger.info("Starting parse for dataset: {}", dataset.getName());
+                logger.debug("Starting parse for dataset: {}", dataset.getName());
                 if (progressCallback != null) {
                   progressCallback.onDatasetParseStarted(dataset.getName());
                 }
@@ -151,7 +153,7 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
                   }
                   return false;
                 }
-                logger.info("Parse completed for dataset: {}", dataset.getName());
+                logger.debug("Parse completed for dataset: {}", dataset.getName());
                 if (progressCallback != null) {
                   progressCallback.onDatasetParseCompleted(dataset.getName());
                 }
