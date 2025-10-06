@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
@@ -51,7 +52,8 @@ public class ResponseValidation2Dot10_2024Test extends ProfileJsonValidationTest
         return new ResponseValidation2Dot10_2024(
                 jsonObject.toString(),
                 results,
-                this.config);
+                this.config,
+                RDAPQueryType.DOMAIN);
     }
 
     @Test
@@ -109,5 +111,38 @@ public class ResponseValidation2Dot10_2024Test extends ProfileJsonValidationTest
 
         link.put("value", "test");
         validate(-46706, valuePointer, "The notice for RDDS Inaccuracy Complaint Form does not have a link value of the request URL.");
+    }
+
+    @Test
+    public void testDoLaunch_DomainQueryType_ReturnsTrue() {
+        ResponseValidation2Dot10_2024 validation = new ResponseValidation2Dot10_2024(
+                jsonObject.toString(),
+                results,
+                this.config,
+                RDAPQueryType.DOMAIN);
+
+        assert validation.doLaunch() : "doLaunch should return true for DOMAIN query type";
+    }
+
+    @Test
+    public void testDoLaunch_HelpQueryType_ReturnsFalse() {
+        ResponseValidation2Dot10_2024 validation = new ResponseValidation2Dot10_2024(
+                jsonObject.toString(),
+                results,
+                this.config,
+                RDAPQueryType.HELP);
+
+        assert !validation.doLaunch() : "doLaunch should return false for HELP query type";
+    }
+
+    @Test
+    public void testDoLaunch_EntityQueryType_ReturnsFalse() {
+        ResponseValidation2Dot10_2024 validation = new ResponseValidation2Dot10_2024(
+                jsonObject.toString(),
+                results,
+                this.config,
+                RDAPQueryType.ENTITY);
+
+        assert !validation.doLaunch() : "doLaunch should return false for ENTITY query type";
     }
 }
