@@ -326,39 +326,71 @@ public class RDAPHttpQueryTypeProcessorTest {
   }
 
   @Test
-  public void testErrorCode_10300_LabelTooLong() {
-    // Test that a domain with label too long generates -10300 error with correct message
-    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results = 
+  public void testErrorCode_10300_Label63CharsValid() {
+    // Test that a domain with exactly 63 characters in a label is VALID (boundary test)
+    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results =
         org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance();
-    
+
     // Clear any previous results to avoid test pollution
     results.clear();
-    
-    org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock datasetService = 
+
+    org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock datasetService =
         new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
-    
-    org.icann.rdapconformance.validator.SchemaValidator validator = 
+
+    org.icann.rdapconformance.validator.SchemaValidator validator =
         new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, datasetService);
-    
+
+    // Create a label with exactly 63 characters (maximum valid length)
+    String validMaxLabel = "a".repeat(63);
+    String testJson = "{\"domain\": \"" + validMaxLabel + ".example.com\"}";
+    boolean isValid = validator.validate(testJson);
+
+    assertThat(isValid).isTrue();
+    assertThat(results.getAll().size()).isEqualTo(0);
+
+    // Ensure NO -10300 error was generated
+    boolean hasLabelTooLongError = results.getAll().stream()
+        .anyMatch(result -> result.getCode() == -10300);
+
+    assertThat(hasLabelTooLongError).isFalse();
+
+    System.out.println("63-char label validation: PASSED (no errors, as expected)");
+  }
+
+  @Test
+  public void testErrorCode_10300_LabelTooLong() {
+    // Test that a domain with label too long generates -10300 error with correct message
+    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results =
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance();
+
+    // Clear any previous results to avoid test pollution
+    results.clear();
+
+    org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock datasetService =
+        new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+
+    org.icann.rdapconformance.validator.SchemaValidator validator =
+        new org.icann.rdapconformance.validator.SchemaValidator("rdap_domain_name.json", results, datasetService);
+
     // Create a label that's too long (over 63 characters)
     String longLabel = "a".repeat(64);
     String testJson = "{\"domain\": \"" + longLabel + ".example.com\"}";
     boolean isValid = validator.validate(testJson);
-    
+
     assertThat(isValid).isFalse();
     assertThat(results.getAll().size()).isGreaterThan(0);
-    
+
     // Find the -10300 error
-    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult labelTooLongError = 
+    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult labelTooLongError =
         results.getAll().stream()
             .filter(result -> result.getCode() == -10300)
             .findFirst()
             .orElse(null);
-    
+
     assertThat(labelTooLongError).isNotNull();
     assertThat(labelTooLongError.getMessage()).isEqualTo("A DNS label with length not between 1 and 63 was found.");
     assertThat(labelTooLongError.getValue()).contains("#/domain:");
-    
+
     System.out.println("Error -10300: " + labelTooLongError.getMessage());
   }
 
@@ -432,7 +464,7 @@ public class RDAPHttpQueryTypeProcessorTest {
             .orElse(null);
     
     assertThat(lessThanTwoLabelsError).isNotNull();
-    assertThat(lessThanTwoLabelsError.getMessage()).isEqualTo("A domain name with less than two labels was found. See RDAP_Technical_Implementation_Guide_2_1 section 1.10.");
+    assertThat(lessThanTwoLabelsError.getMessage()).isEqualTo("A domain name with less than two labels was found.");
     assertThat(lessThanTwoLabelsError.getValue()).contains("#/domain:singlelabel");
     
     System.out.println("Error -10302: " + lessThanTwoLabelsError.getMessage());
@@ -468,8 +500,7 @@ public class RDAPHttpQueryTypeProcessorTest {
             .orElse(null);
     
     assertThat(invalidLabelError).isNotNull();
-    assertThat(invalidLabelError.getMessage()).contains("A label not being a valid \"U-label\"/\"A-label\" or \"NR-LDH label\" was found.");
-    assertThat(invalidLabelError.getMessage()).contains("Reasons:");
+    assertThat(invalidLabelError.getMessage()).isEqualTo("A DNS label not being a valid 'A-label', 'U-label', or 'NR-LDH label' was found.");
     assertThat(invalidLabelError.getValue()).contains("#/domain:zz--main-1234");
     
     System.out.println("Error -10303: " + invalidLabelError.getMessage());

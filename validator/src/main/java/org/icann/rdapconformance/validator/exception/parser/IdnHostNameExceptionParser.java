@@ -37,16 +37,14 @@ public class IdnHostNameExceptionParser extends StringFormatExceptionParser<IdnH
       results.add(RDAPValidationResult.builder()
           .code(parseErrorCode(() -> (int) e.getPropertyFromViolatedSchema("lessThanTwoLabels")))
           .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-          .message("A domain name with less than two labels was found. See "
-              + "RDAP_Technical_Implementation_Guide_2_1 section 1.10.")
+          .message("A domain name with less than two labels was found.")
           .build());
     }
 
     results.add(RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message(e.getMessage("A label not being a valid \"U-label\"/\"A-label\" or \"NR-LDH label\" was "
-            + "found. " + e.getMessage().replace(e.getPointerToViolation(), "Reasons")))
+        .message(e.getMessage("A DNS label not being a valid 'A-label', 'U-label', or 'NR-LDH label' was found."))
         .build());
   }
 }
