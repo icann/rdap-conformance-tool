@@ -46,14 +46,12 @@ public abstract class SchemaValidatorIdnaTest extends SchemaValidatorTest {
   protected void domainWithLessThan2Labels(int errorCode) {
     jsonObject.put(name, label);
     validate(errorCode, "#/" + name + ":" + label,
-        "A domain name with less than two labels was found. See "
-            + "RDAP_Technical_Implementation_Guide_2_1 section 1.10.");
+        "A domain name with less than two labels was found.");
   }
 
   protected void labelInvalid(int errorCode) {
     jsonObject.put(name, "xn---viagénie.ca");
     validate(errorCode, "#/" + name + ":xn---viagénie.ca",
-        "A label not being a valid \"U-label\"/\"A-label\" or \"NR-LDH label\" was found. "
-            + "Reasons: [PUNYCODE]");
+        "A DNS label not being a valid 'A-label', 'U-label', or 'NR-LDH label' was found.");
   }
 }
