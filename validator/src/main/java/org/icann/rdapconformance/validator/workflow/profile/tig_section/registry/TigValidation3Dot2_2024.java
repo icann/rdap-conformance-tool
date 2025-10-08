@@ -13,7 +13,7 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
 
     private final RDAPValidatorConfiguration config;
     private final RDAPQueryType queryType;
-    private static final Pattern DOMAIN_QUERY_PATTERN = Pattern.compile("^https?://[^/]+/rdap/domain/.+$");
+    private static final Pattern DOMAIN_QUERY_PATTERN = Pattern.compile("^https?://[^/]+/.*/domain/.+$");
     
     // Error messages
     private static final String ERROR_23201_MESSAGE = "a value property must be specified and it must match the URI of the query.";
