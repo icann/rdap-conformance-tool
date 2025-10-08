@@ -125,7 +125,35 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         link1.put("rel", "related");
         link1.put("href", "https://rdap.example.com/rdap/domain/example.com");
         links.put(link1);
-        
+
+        jsonObject.put("links", links);
+        validate(); // Should not generate any -23202 errors
+    }
+
+    @Test
+    public void testValidate_VersionedUrlDomainQuery_NoError() {
+        // Valid case: href contains versioned domain query (testing flexible pattern)
+        JSONArray links = new JSONArray();
+        JSONObject link1 = new JSONObject();
+        link1.put("value", config.getUri().toString()); // Must match for -23201 to pass
+        link1.put("rel", "related");
+        link1.put("href", "https://rdap.example.com/rdap/v2/test_code/domain/example.org");
+        links.put(link1);
+
+        jsonObject.put("links", links);
+        validate(); // Should not generate any -23202 errors
+    }
+
+    @Test
+    public void testValidate_ApiVersionedDomainQuery_NoError() {
+        // Valid case: href contains API versioned domain query
+        JSONArray links = new JSONArray();
+        JSONObject link1 = new JSONObject();
+        link1.put("value", config.getUri().toString()); // Must match for -23201 to pass
+        link1.put("rel", "related");
+        link1.put("href", "https://api.registry.net/v1/rdap/domain/test.com");
+        links.put(link1);
+
         jsonObject.put("links", links);
         validate(); // Should not generate any -23202 errors
     }
