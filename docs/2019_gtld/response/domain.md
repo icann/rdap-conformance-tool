@@ -29,7 +29,8 @@ Test group: [[rdapResponseProfile_2_2_Validation]](#id-rdapResponseProfile_2_2_V
 
 The following steps should be used to test the RDAP protocol section 2.2 of the RDAP Response Profile 2.1:
 
-1. Test case [-46200](#id-testCase-46200){ #id-testCase-46200 }: The handle in the topmost _domain_ object shall comply with the following format specified in RFC5730: "(\w|_){1,80}-\w{1,8}".
+1. Test case [-46200](#id-testCase-46200){ #id-testCase-46200 }: The handle in the topmost _domain_ object shall comply with the 
+following format specified in RFC5730: "(\w|_){1,80}-\w{1,8}".
 ``` json
 {
   "code": -46200,
@@ -37,7 +38,8 @@ The following steps should be used to test the RDAP protocol section 2.2 of the 
   "message": "The handle in the domain object does not comply with the format (\\w|_){1,80}-\\w{1,8} specified in RFC5730."
 }
 ```
-2. Test case [-46201](#id-testCase-46201){ #id-testCase-46201 }: If the handle in the topmost _domain_ object comply with the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is registered in EPPROID.
+2. Test case [-46201](#id-testCase-46201){ #id-testCase-46201 }: If the handle in the topmost _domain_ object comply with the 
+format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is registered in EPPROID.
 ``` json
 {
   "code": -46201,
@@ -45,7 +47,8 @@ The following steps should be used to test the RDAP protocol section 2.2 of the 
   "message": "The globally unique identifier in the domain object handle is not registered in EPPROID."
 }
 ```
-3. Test case [-46205](#id-testCase-46205){ #id-testCase-46205 }: If the handle in the topmost domain object comply with the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is not “ICANNRST”.
+3. Test case [-46205](#id-testCase-46205){ #id-testCase-46205 }: If the handle in the topmost _domain_ object comply with the 
+format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is not “ICANNRST”.
 ``` json
 {
   "code": -46205,
