@@ -1,7 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.icann.rdapconformance.validator.CommonUtils.ENTITY;
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
+import static org.icann.rdapconformance.validator.CommonUtils.ONE;
+import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
 import static org.icann.rdapconformance.validator.CommonUtils.TIMEOUT_IN_5SECS;
 
@@ -92,11 +95,11 @@ public class EntityRegistryLookupService {
 
         String domain = domainName.trim().toLowerCase();
         int lastDot = domain.lastIndexOf('.');
-        if (lastDot == -1 || lastDot == domain.length() - 1) {
+        if (lastDot == -1 || lastDot == domain.length() - ONE) {
             return null; // No TLD or ends with dot
         }
 
-        return domain.substring(lastDot + 1);
+        return domain.substring(lastDot + ONE);
     }
 
     /**
@@ -114,7 +117,7 @@ public class EntityRegistryLookupService {
             logger.debug("Checking entity {} at URL: {}", entityHandle, entityUrl);
 
             // Make HTTP request with short timeout
-            java.net.http.HttpResponse<String> response = RDAPHttpRequest.makeRequest(entityUri, TIMEOUT_IN_5SECS / 1000, GET);
+            java.net.http.HttpResponse<String> response = RDAPHttpRequest.makeRequest(entityUri, TIMEOUT_IN_5SECS / PAUSE, GET);
 
             // Return true only for 200 OK
             boolean exists = response.statusCode() == HTTP_OK;
@@ -145,6 +148,6 @@ public class EntityRegistryLookupService {
         }
 
         // Add entity path
-        return baseUrl + "entity" + SLASH + entityHandle;
+        return baseUrl + ENTITY + SLASH + entityHandle;
     }
 }

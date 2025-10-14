@@ -58,7 +58,7 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
     String identifier = publicId.optString("identifier", "");
     if (!isPositiveInteger(identifier)) {
       results.add(RDAPValidationResult.builder()
-          .code(code - 1)
+          .code(code - 1)  // CalculatedCode: -23301 (TigValidation6Dot1)
           .value(getResultValue(publicIdJsonPointer))
           .message("The identifier of the publicIds member of the entity with the registrar role "
               + "is not a positive integer.")

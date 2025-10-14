@@ -238,6 +238,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-23200`: Registry TIG 3.2 validation [TIG Section 3.2] {TigValidation3Dot2.java}
 - `-23201`: Registry TIG 3.2 validation (2024 profile) [TIG Section 3.2, RDAP Response Profile 2024] {TigValidation3Dot2_2024.java}
 - `-23202`: Registry href domain query validation (2024 profile) - "the href property must be domain query as defined by Section 3.1.3 of RFC 9082." [RFC 9082 Section 3.1.3, TIG Section 3.2, RDAP Response Profile 2024] {TigValidation3Dot2_2024.java}
+- `-23301`: Registry entity public IDs identifier validation [RFC 9083 Section 4.8, TIG Section 6.1] {TigValidation6Dot1.java}
 
 ### Registrar-Specific Errors (-26XXX)
 - `-26100`: Registrar URL validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot12Dot1.java}
@@ -247,6 +248,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 ### Handle and Domain Validation Errors (-4XXXX)
 - `-40400`: General response validation [RFC 9083 Section 4] {ResponseValidation1Dot4.java}
 - `-46100`: Domain validation (section 2.1) [RDAP Response Profile Section 2.1] {ResponseValidation2Dot1.java}
+- `-46101`: Domain validation (unicode name) [RDAP Response Profile Section 2.1] {ResponseValidation2Dot1.java}
 - `-46200`: Handle validation - "Handle format violation" [RFC 9083 Section 3.1] {ResponseValidation2Dot2.java, ResponseValidation2Dot2_1_2024.java}
 - `-46201`: Handle validation (2024 profile) [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
 - `-46202`: Handle validation (2024 profile) [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
@@ -282,12 +284,15 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-47302`: Domain validation [RFC 9083 Section 5.3] {ResponseValidation2Dot4Dot1.java}
 - `-47500`: Domain validation (section 2.4.5) [RDAP Response Profile Section 2.4.5] {ResponseValidation2Dot4Dot5.java}
 - `-47600`: Domain entity validation (2024 profile) [RFC 9083 Section 5.3, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot3_2024.java}
+- `-47601`: Domain entity handle EPPROID validation (2024 profile) [RFC 9083 Section 5.3, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot3_2024.java}
 - `-47700`: Domain validation (section 2.4.6, 2024 profile) [RDAP Response Profile 2024 Section 2.4.6] {ResponseValidation2Dot4Dot6_2024.java}
 - `-47701`: Domain validation (section 2.4.6, 2024 profile) [RDAP Response Profile 2024 Section 2.4.6] {ResponseValidation2Dot4Dot6_2024.java}
 - `-47702`: Domain validation (section 2.4.6, 2024 profile) [RDAP Response Profile 2024 Section 2.4.6] {ResponseValidation2Dot4Dot6_2024.java}
 - `-47703`: Domain validation (section 2.4.6, 2024 profile) [RDAP Response Profile 2024 Section 2.4.6] {ResponseValidation2Dot4Dot6_2024.java}
 - `-49100`: Nameserver query validation (section 4.1) [RDAP Response Profile Section 4.1] {ResponseValidation4Dot1Query.java}
+- `-49101`: Nameserver query validation (unicode name) [RDAP Response Profile Section 4.1] {ResponseValidation4Dot1Query.java}
 - `-49102`: Nameserver handle validation [RFC 9083 Section 5.2] {ResponseValidation4Dot1Handle.java}
+- `-49103`: Nameserver handle EPPROID validation [RFC 9083 Section 5.2] {ResponseValidation4Dot1Handle.java}
 - `-49104`: Nameserver handle validation (2024 profile) [RFC 9083 Section 5.2, RDAP Response Profile 2024] {ResponseValidation4Dot1Handle_2024.java}
 - `-49200`: Nameserver validation (section 4.3) [RDAP Response Profile Section 4.3] {ResponseValidation4Dot3.java}
 - `-49205`: Nameserver validation [RFC 9083 Section 5.2] {ResponseValidation4Dot3.java}
