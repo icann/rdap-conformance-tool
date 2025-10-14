@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 import static org.icann.rdapconformance.validator.CommonUtils.DOT;
 import static org.icann.rdapconformance.validator.CommonUtils.ENTITY;
 import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.util.Set;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -164,6 +165,50 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
      * @return JSONPath expression e.g., "$.entities[0].handle"
      */
     private String convertJsonPointerToJsonPath(String jsonPointer) {
-        return jsonPointer.replace(JSON_POINTER_PREFIX, JSON_PATH_PREFIX).replace(SLASH, DOT);
+        if (jsonPointer == null || !jsonPointer.startsWith(JSON_POINTER_PREFIX)) {
+            return jsonPointer;
+        }
+
+        // Remove the JSON pointer prefix (#/)
+        String path = jsonPointer.substring(JSON_POINTER_PREFIX.length());
+
+        // Split by slash and rebuild with proper JSONPath syntax
+        String[] segments = path.split(SLASH);
+        StringBuilder jsonPath = new StringBuilder(JSON_PATH_PREFIX);
+
+        for (int i = ZERO; i < segments.length; i++) {
+            String segment = segments[i];
+
+            // Check if this segment is a numeric array index
+            if (isNumeric(segment)) {
+                // Use bracket notation for array indices
+                jsonPath.append("[").append(segment).append("]");
+            } else {
+                // Use dot notation for object properties
+                if (i > ZERO) {
+                    jsonPath.append(DOT);
+                }
+                jsonPath.append(segment);
+            }
+        }
+
+        return jsonPath.toString();
+    }
+
+    /**
+     * Checks if a string represents a numeric value (array index).
+     * @param str the string to check
+     * @return true if the string is numeric, false otherwise
+     */
+    private boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }

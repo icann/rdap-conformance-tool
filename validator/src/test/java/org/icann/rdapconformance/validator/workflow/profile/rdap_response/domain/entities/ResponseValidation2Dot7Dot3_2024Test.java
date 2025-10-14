@@ -238,4 +238,25 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
             "The handle in the entity object does not comply with the format "
                 + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
     }
+
+    @Test
+    public void testValidate_EntityWithArrayIndex_ProperJsonPointerConversion() {
+        // Test that JSON pointer conversion handles array indices correctly
+        // This exercises the convertJsonPointerToJsonPath method with array indices
+        doReturn(true).when(config).isGtldRegistry();
+        doReturn(false).when(config).isThin();
+
+        // Set the first entity to have billing role (not excluded) and invalid handle
+        // This will trigger validation and test the JSON pointer conversion:
+        // #/entities/0/handle should convert to $.entities[0].handle (not $.entities.0.handle)
+        replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
+        replaceValue("$['entities'][0]['handle']", "INVALID_HANDLE");
+
+        getProfileValidation();
+
+        // The validation should find the error and use proper array notation in JSON pointer conversion
+        validate(-47600, "#/entities/0/handle:INVALID_HANDLE",
+            "The handle in the entity object does not comply with the format "
+                + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
+    }
 }

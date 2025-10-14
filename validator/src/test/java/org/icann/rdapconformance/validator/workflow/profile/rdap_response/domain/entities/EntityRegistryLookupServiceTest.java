@@ -184,9 +184,35 @@ public class EntityRegistryLookupServiceTest {
         lookupService.isEntityInThickRegistry(entityHandle, "sub.example.net");
         verify(bootstrap).getUrlsForTld("net");
 
-        // Test with trailing dot
+        // Test with trailing dot (FQDN)
         when(bootstrap.getUrlsForTld("org")).thenReturn(Set.of());
         lookupService.isEntityInThickRegistry(entityHandle, "example.org.");
-        // This might not work as expected, depending on implementation
+        verify(bootstrap).getUrlsForTld("org");
+    }
+
+    @Test
+    public void testIsEntityInThickRegistry_FqdnDomains() {
+        // Test FQDN (Fully Qualified Domain Name) handling
+        String entityHandle = "12345-EXAMPLE";
+
+        // Test simple FQDN
+        when(bootstrap.getUrlsForTld("com")).thenReturn(Set.of());
+        lookupService.isEntityInThickRegistry(entityHandle, "example.com.");
+        verify(bootstrap).getUrlsForTld("com");
+
+        // Test complex FQDN with subdomain
+        when(bootstrap.getUrlsForTld("net")).thenReturn(Set.of());
+        lookupService.isEntityInThickRegistry(entityHandle, "subdomain.example.net.");
+        verify(bootstrap).getUrlsForTld("net");
+
+        // Test multi-level TLD FQDN
+        when(bootstrap.getUrlsForTld("uk")).thenReturn(Set.of());
+        lookupService.isEntityInThickRegistry(entityHandle, "example.co.uk.");
+        verify(bootstrap).getUrlsForTld("uk");
+
+        // Test uppercase FQDN
+        when(bootstrap.getUrlsForTld("org")).thenReturn(Set.of());
+        lookupService.isEntityInThickRegistry(entityHandle, "EXAMPLE.ORG.");
+        verify(bootstrap).getUrlsForTld("org");
     }
 }

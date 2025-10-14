@@ -1,12 +1,14 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.icann.rdapconformance.validator.CommonUtils.DOT;
 import static org.icann.rdapconformance.validator.CommonUtils.ENTITY;
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
 import static org.icann.rdapconformance.validator.CommonUtils.TIMEOUT_IN_5SECS;
+import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -85,7 +87,7 @@ public class EntityRegistryLookupService {
 
     /**
      * Extracts the TLD from a domain name.
-     * @param domainName e.g., "example.com" or "test.co.uk"
+     * @param domainName e.g., "example.com", "test.co.uk", or "example.com." (FQDN)
      * @return TLD e.g., "com" or "co.uk", null if invalid
      */
     private String extractTld(String domainName) {
@@ -94,9 +96,15 @@ public class EntityRegistryLookupService {
         }
 
         String domain = domainName.trim().toLowerCase();
+
+        // Trim trailing dot if present (FQDN)
+        if (domain.endsWith(DOT)) {
+            domain = domain.substring(ZERO, domain.length() - ONE);
+        }
+
         int lastDot = domain.lastIndexOf('.');
-        if (lastDot == -1 || lastDot == domain.length() - ONE) {
-            return null; // No TLD or ends with dot
+        if (lastDot == -1) {
+            return null; // No TLD
         }
 
         return domain.substring(lastDot + ONE);
