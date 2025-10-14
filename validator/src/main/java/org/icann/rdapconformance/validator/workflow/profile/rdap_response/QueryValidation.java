@@ -69,7 +69,7 @@ public abstract class QueryValidation extends ProfileJsonValidation {
       // URI contains one or more U-label
       if (NULL.equals(jsonObject.opt("unicodeName"))) {
         results.add(RDAPValidationResult.builder()
-            .code(code - 1)
+            .code(code - 1)  // CalculatedCode(s): -46101 (domain), -49101 (nameserver)
             .value(jsonObject.toString())
             .message(String.format("The RDAP Query URI contains one or more U-label, the topmost "
                     + "%s object does not contain a unicodeName member. "
