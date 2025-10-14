@@ -1,8 +1,11 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity;
 
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.EntityRegistryLookupService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
@@ -22,12 +25,20 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
   private static final String REDACTED_PATH = "$.redacted[*]";
   private Set<String> redactedPointersValue = null;
   private final RDAPDatasetService datasetService;
+  private final RDAPValidatorConfiguration config;
+  private final RDAPQueryType queryType;
+  private final EntityRegistryLookupService entityLookupService;
 
-  public ResponseValidationRegistrantHandle_2024(String rdapResponse,
+  public ResponseValidationRegistrantHandle_2024(RDAPValidatorConfiguration config,
+                                                 String rdapResponse,
                                                  RDAPValidatorResults results,
-                                                 RDAPDatasetService datasetService) {
+                                                 RDAPDatasetService datasetService,
+                                                 RDAPQueryType queryType) {
     super(rdapResponse, results);
+    this.config = config;
     this.datasetService = datasetService;
+    this.queryType = queryType;
+    this.entityLookupService = new EntityRegistryLookupService(datasetService, config);
   }
 
 
@@ -36,6 +47,12 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
     return "rdapResponseProfile_registrant_handle_Validation";
   }
 
+  @Override
+  public boolean doLaunch() {
+    return queryType.equals(RDAPQueryType.DOMAIN);
+  }
+
+  @Override
   public boolean doValidate() {
     return validateEntityPropertyObject();
   }
@@ -57,6 +74,26 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
       for (String jsonPointer : entityHandleJsonPointers) {
         JSONObject entity = (JSONObject) jsonObject.query(jsonPointer);
         if(entity.get("handle") instanceof String handle) {
+
+          // RCT-423: For registrars: Only validate entities that exist in the domain registry
+          if (config.isGtldRegistrar()) {
+            String domainName = getDomainName();
+
+            if (domainName != null) {
+              // Check if entity exists in registry (thick registry check)
+              boolean entityExistsInRegistry = entityLookupService.isEntityInThickRegistry(handle, domainName);
+
+              if (!entityExistsInRegistry) {
+                logger.debug("Skipping validation for registrant entity {} - not found in registry for domain {}",
+                           handle, domainName);
+                continue; // Skip validation for this entity
+              }
+
+              logger.debug("Registrant entity {} found in registry for domain {} - proceeding with validation",
+                         handle, domainName);
+            }
+          }
+
           if (!handle.matches(CommonUtils.HANDLE_PATTERN)) {
             results.add(RDAPValidationResult.builder()
                     .code(-63100)
@@ -223,5 +260,27 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
     }
 
     return true;
+  }
+
+  /**
+   * Extracts the domain name from the RDAP response.
+   * @return Domain name (ldhName or unicodeName), or null if not found
+   */
+  private String getDomainName() {
+    try {
+      // Try ldhName first, then unicodeName as fallback
+      if (jsonObject.has("ldhName")) {
+        return jsonObject.getString("ldhName");
+      }
+
+      if (jsonObject.has("unicodeName")) {
+        return jsonObject.getString("unicodeName");
+      }
+
+      return null;
+    } catch (Exception e) {
+      logger.debug("Error extracting domain name from response: {}", e.getMessage());
+      return null;
+    }
   }
 }
