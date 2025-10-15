@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.security.Security;
 import org.mockito.Mockito;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Ignore;
@@ -603,6 +604,11 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     @Test(dataProvider = "tlsErrors")
     public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,
                                                                              ConnectionStatus expectedStatus) {
+        // Skip in CI due to external dependency and network restrictions
+        if (System.getenv("GITHUB_ACTIONS") != null || System.getenv("CI") != null) {
+            throw new SkipException("Skipping external SSL test in CI environment");
+        }
+
         // These need to be set before the first call to RDAPHttpQuery.run()
         System.setProperty("com.sun.net.ssl.checkRevocation", "true");
         System.setProperty("com.sun.security.enableCRLDP", "true");
