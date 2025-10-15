@@ -276,7 +276,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidationTechEmail_2024(rdapResponseData, results, config));
         validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(rdapResponseData, results, queryType));
         validations.add(new ResponseValidation4Dot1Handle_2024(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidationRegistrantHandle_2024(rdapResponseData, results, datasetService));
+        validations.add(new ResponseValidationRegistrantHandle_2024(config, rdapResponseData, results, datasetService, queryType));
         validations.add(new ResponseValidationLinkElements_2024(rdapResponseData, results));
         validations.add(new ResponseValidation2Dot7Dot2_2024(config, queryType, rdapResponseData, results));
         validations.add(new ResponseValidation2Dot7Dot4Dot1_2024(rdapResponseData, results));
