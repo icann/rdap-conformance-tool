@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.entit
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.testng.Assert.*;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
@@ -508,8 +509,8 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
 
         // Verify our custom mock works
         EPPRoid customEppRoid = customDatasets.get(EPPRoid.class);
-        assert customEppRoid.isInvalid("INVALID8") : "Expected INVALID8 to be marked as invalid";
-        assert !customEppRoid.isInvalid("OTHER") : "Expected OTHER to be valid";
+        assertTrue(customEppRoid.isInvalid("INVALID8"), "Expected INVALID8 to be marked as invalid");
+        assertFalse(customEppRoid.isInvalid("OTHER"), "Expected OTHER to be valid");
 
         // Create validator with custom datasets that will mark INVALID8 as invalid
         ResponseValidationRegistrantHandle_2024 validator = new ResponseValidationRegistrantHandle_2024(
@@ -517,7 +518,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
 
         // Verify handle format is valid before validation
         String handle = registrantEntity.optString("handle");
-        assert handle.matches(org.icann.rdapconformance.validator.CommonUtils.HANDLE_PATTERN) : "Handle should match expected pattern";
+        assertTrue(handle.matches(org.icann.rdapconformance.validator.CommonUtils.HANDLE_PATTERN), "Handle should match expected pattern");
 
         // Call validation
         boolean result = validator.doValidate();
@@ -529,7 +530,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
 
         // In this test scenario, validation might not record error due to exception handling
         // but the important thing is that the validation logic executes without throwing exceptions
-        assert !result || results.getAll().isEmpty() : "Validation should either fail or handle gracefully";
+        assertTrue(!result || results.getAll().isEmpty(), "Validation should either fail or handle gracefully");
     }
 
     @Test
@@ -645,13 +646,13 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
                 // This might trigger the exception in getPointerFromJPath
                 boolean result = validator.validatePostPathBasedOnPathLang(redactedRegistrantName);
                 // We expect the method to handle these gracefully and return a result
-                assert result == true || result == false : "Method should return a boolean result";
+                assertNotNull(result, "Method should return a valid boolean result");
             }
 
         } catch (Exception e) {
             // If any exception occurs during setup or execution, that's what we want to test
             // Exceptions during JSONPath evaluation should be handled gracefully
-            assert e.getMessage() != null : "Exception should have a message";
+            assertNotNull(e.getMessage(), "Exception should have a message");
         }
     }
 
@@ -801,7 +802,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         ResponseValidationRegistrantHandle_2024 validator = new ResponseValidationRegistrantHandle_2024(
                 config, jsonObject.toString(), results, customDatasets, RDAPQueryType.DOMAIN);
         var validation = validator.doValidate();
-        assert validation == false : "Expected validation to fail";
+        assertFalse(validation, "Expected validation to fail");
     }
 
     // Helper for expected value in -63106
@@ -814,14 +815,14 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
     public void testDoLaunch_NonDomainQuery_ReturnsFalse() {
         // Test that validation does not launch for non-DOMAIN queries
         var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.ENTITY);
-        assert !validation.doLaunch() : "Expected doLaunch to return false for non-DOMAIN queries";
+        assertFalse(validation.doLaunch(), "Expected doLaunch to return false for non-DOMAIN queries");
     }
 
     @Test
     public void testDoLaunch_DomainQuery_ReturnsTrue() {
         // Test that validation launches for DOMAIN queries
         var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
-        assert validation.doLaunch() : "Expected doLaunch to return true for DOMAIN queries";
+        assertTrue(validation.doLaunch(), "Expected doLaunch to return true for DOMAIN queries");
     }
 
     @Test
@@ -847,7 +848,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         // For this unit test, validation runs since we can't easily mock the HTTP lookup
         // The key is that the registrar mode logic is in place - integration tests verify skip behavior
         // We expect the validation to complete without throwing exceptions
-        assert result == true || result == false : "Validation should return a boolean result";
+        assertNotNull(result, "Validation should return a valid boolean result");
     }
 
     @Test
@@ -890,7 +891,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
         // We can't directly test getDomainName() as it's private, but it's tested indirectly through registrar mode logic
         // Integration tests would verify the domain extraction works correctly
-        assert validation.doLaunch() : "Validation should launch for domain queries";
+        assertTrue(validation.doLaunch(), "Validation should launch for domain queries");
     }
 
     @Test
@@ -913,7 +914,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         // This will trigger getDomainName() and test the unicodeName fallback path
         validation.doValidate();
 
-        assert validation.doLaunch() : "Validation should launch for domain queries";
+        assertTrue(validation.doLaunch(), "Validation should launch for domain queries");
     }
 
     @Test
@@ -924,7 +925,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
 
         var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
         // Domain extraction logic is tested indirectly - integration tests verify correct precedence
-        assert validation.doLaunch() : "Validation should launch for domain queries";
+        assertTrue(validation.doLaunch(), "Validation should launch for domain queries");
     }
 
     @Test
@@ -943,7 +944,8 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         } catch (Exception e) {
             // Expected - malformed JSON should be handled gracefully
             // We expect the exception to have a meaningful message
-            assert e.getMessage() != null && !e.getMessage().isEmpty() : "Exception should have a descriptive message";
+            assertNotNull(e.getMessage(), "Exception should have a non-null message");
+            assertFalse(e.getMessage().isEmpty(), "Exception should have a descriptive message");
         }
     }
 
@@ -967,7 +969,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         // This will trigger getDomainName() and test the null return path
         validation.doValidate();
 
-        assert validation.doLaunch() : "Validation should launch for domain queries";
+        assertTrue(validation.doLaunch(), "Validation should launch for domain queries");
     }
 
     @Test
@@ -996,7 +998,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         // Call the method directly with null to test the null check branch
         boolean result = validation.validatePostPathBasedOnPathLang(null);
 
-        assert result : "Should return true for null input";
+        assertTrue(result, "Should return true for null input");
     }
 
     @Test
