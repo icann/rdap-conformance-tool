@@ -156,7 +156,8 @@ Test group: [[rdapResponseProfile_2_10_Validation]][id-rdapResponseProfile_2_10_
 Test group: [[rdapResponseProfile2024_2_7_3_Validation]](#id-rdapResponseProfile2024_2_7_3_Validation){ #id-rdapResponseProfile2024_2_7_3_Validation }
 
 1. Test case [-47600](#id-testCase-47600){ #id-testCase-47600 }: 
-For every entity of the domain (i.e. the top-level entities of the domain, not entities subordinate to other entities) excluding entities with the roles "reseller", “registrar”, “registrant”, or “technical”, verify the handle is of the format: "(\w|_){1,80}-\w{1,8}".
+For every entity of the domain (i.e. the top-level entities of the domain, not entities subordinate to other entities) 
+excluding entities with the roles "reseller", “registrar”, “registrant”, or “technical”, verify the handle is of the format: "(\w|_){1,80}-\w{1,8}".
 ```json
 {
   "code": -47600,
@@ -207,5 +208,17 @@ Test group: [[rdapResponseProfile2024_2_4_6_Validation]](#id-rdapResponseProfile
   "code": -47703,
   "value": "<link structure>",
   "message": "The ‘value’ property is not a valid Web URI according to [webUriValidation]."
+}
+```
+
+## Registrar Expiration
+
+1. Test case [-65500](#id-testCase-65500){ #id-testCase-65500 }: If the query is of a gTLD Registrar (e.g., --gtld-registrar), 
+validate that an eventAction type “registrar expiration” exists in the topmost events structure.
+```json
+{
+  "code": -65500,
+  "value": "<events data structure>",
+  "message": "An eventAction of type 'registrar expiration' is expected."
 }
 ```
