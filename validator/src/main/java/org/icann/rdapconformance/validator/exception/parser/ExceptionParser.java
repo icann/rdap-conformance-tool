@@ -50,7 +50,14 @@ public abstract class ExceptionParser {
       parsers.add(new MissingKeyExceptionParser(basicException, schema, object, results));
       parsers.add(new ConstExceptionParser(basicException, schema, object, results));
       parsers.add(new ContainsConstExceptionParser(basicException, schema, object, results));
+
+      // IPv4-specific parsers MUST come before RegexExceptionParser to handle -11406 pattern failures
+      parsers.add(new Ipv4PatternExceptionParser(basicException, schema, object, results));
+      parsers.add(new Ipv4ValidationExceptionParser(basicException, schema, object, results));
+
+      // General regex parser comes after IPv4-specific parsers
       parsers.add(new RegexExceptionParser(basicException, schema, object, results));
+
       parsers.add(new DatetimeExceptionParser(basicException, schema, object, results));
       parsers.add(new DependenciesExceptionParser(basicException, schema, object, results));
       parsers.add(new HostNameInUriExceptionParser(basicException, schema, object, results));
@@ -62,7 +69,6 @@ public abstract class ExceptionParser {
       parsers.add(new RdapExtensionsExceptionParser(basicException, schema, object, results));
       parsers.add(new DatasetExceptionParser(basicException, schema, object, results));
       parsers.add(new VcardExceptionParser(basicException, schema, object, results));
-      parsers.add(new Ipv4ValidationExceptionParser(basicException, schema, object, results));
     }
 
     return parsers;
