@@ -1,0 +1,44 @@
+{
+  "objectClassName": "domain",
+  "handle": "HHGAMES.COM_DOMAIN_ID-VRSN",
+  "ldhName": "hhgames.com",
+  "unicodeName": "hhgames.com",
+  "nameservers": [
+    {
+      "objectClassName": "nameserver",
+      "handle": "NS1.MYDNSPLANET.COM_HOST_ID-VRSN",
+      "ldhName": "ns1.mydnsplanet.com",
+      "ipAddresses": {
+        "v4": ["10.10.1.16"]
+      }
+    },
+    {
+      "objectClassName": "nameserver",
+      "handle": "NS2.MYDNSPLANET.COM_HOST_ID-VRSN",
+      "ldhName": "ns2.mydnsplanet.com",
+      "ipAddresses": {
+        "v4": ["192.168.1.1"]
+      }
+    }
+  ],
+  "status": ["clientDeleteProhibited", "clientTransferProhibited"],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventDate": "2011-01-01T01:01:01Z"
+    },
+    {
+      "eventAction": "last changed",
+      "eventDate": "2023-01-01T01:01:01Z"
+    },
+    {
+      "eventAction": "expiration",
+      "eventDate": "2024-01-01T01:01:01Z"
+    },
+    {
+      "eventAction": "last update of RDAP database",
+      "eventDate": "2023-12-05T21:08:28Z"
+    }
+  ],
+  "rdapConformance": ["rdap_level_0"]
+}
