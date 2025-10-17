@@ -104,7 +104,7 @@ public class CommonUtils {
     public static final String HANDLE_PATTERN = "(\\w|_){1,80}-\\w{1,8}";
     // IP Address validation pattern
     public static final String IPV4_DOT_DECIMAL_PATTERN = "^([0-9]{1,3}\\.){3}[0-9]{1,3}$";
-    
+
     // Logger
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(CommonUtils.class);
 
