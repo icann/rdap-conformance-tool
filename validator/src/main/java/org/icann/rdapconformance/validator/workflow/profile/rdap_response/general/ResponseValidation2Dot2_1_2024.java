@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
@@ -23,16 +24,23 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
   private static final String REDACTED_PATH = "$.redacted[*]";
   private Set<String> redactedPointersValue = null;
   private final RDAPDatasetService datasetService;
+  private final RDAPQueryType queryType;
 
   public ResponseValidation2Dot2_1_2024(String rdapResponse, RDAPValidatorResults results,
-                                        RDAPDatasetService datasetService) {
+                                        RDAPDatasetService datasetService, RDAPQueryType queryType) {
     super(rdapResponse, results);
     this.datasetService = datasetService;
+    this.queryType = queryType;
   }
 
   @Override
   public String getGroupName() {
     return "rdapResponseProfile_2_2_1_Validation";
+  }
+
+  @Override
+  public boolean doLaunch() {
+    return queryType.equals(RDAPQueryType.DOMAIN);
   }
 
   @Override

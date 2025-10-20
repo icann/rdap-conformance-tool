@@ -1,0 +1,62 @@
+{
+  "rdapConformance": [
+    "rdap_level_0",
+    "redacted",
+    "icann_rdap_response_profile_1",
+    "icann_rdap_technical_implementation_guide_1"
+  ],
+  "notices": [
+    {
+      "title": "Terms of service",
+      "description": [
+        "Service subject to Terms of Use."
+      ],
+      "links": [
+        {
+          "value": "https://example.com/entity/1",
+          "rel": "terms-of-service",
+          "href": "https://example.com/terms",
+          "type": "text/html"
+        }
+      ]
+    }
+  ],
+  "objectClassName": "entity",
+  "handle": "1",
+  "links": [
+    {
+      "value": "https://example.com/entity/1",
+      "rel": "self",
+      "href": "https://example.com/entity/1",
+      "type": "application/rdap+json"
+    }
+  ],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventDate": "2024-01-01T00:00:00Z"
+    },
+    {
+      "eventAction": "last update of RDAP database",
+      "eventDate": "2024-12-01T00:00:00Z"
+    }
+  ],
+  "vcardArray": [
+    "vcard",
+    [
+      ["version", {}, "text", "4.0"],
+      ["fn", {}, "text", "Test Entity"],
+      ["adr", {"cc": "US"}, "text", ["", "", "123 Test St", "Test City", "CA", "12345", ""]],
+      ["tel", {"type": "voice"}, "uri", "tel:+1.555.0123"],
+      ["email", {}, "text", "test@example.com"],
+      ["url", {}, "uri", "https://example.com"]
+    ]
+  ],
+  "roles": ["registrar"],
+  "publicIds": [
+    {
+      "type": "IANA Registrar ID",
+      "identifier": "1"
+    }
+  ]
+}

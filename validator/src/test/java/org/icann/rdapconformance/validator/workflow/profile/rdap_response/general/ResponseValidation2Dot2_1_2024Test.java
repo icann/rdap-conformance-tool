@@ -5,6 +5,7 @@ import java.io.IOException;
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 
 import org.json.JSONArray;
@@ -45,7 +46,8 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
         return new ResponseValidation2Dot2_1_2024(
                 jsonObject.toString(),
                 results,
-                datasets);
+                datasets,
+                RDAPQueryType.DOMAIN);
     }
 
     /**
@@ -156,7 +158,7 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
         // This should fail validation silently (no specific error message, just returns false)
         // The validation logic returns HandleObjectToValidate with isValid=false but doesn't add error
         ResponseValidation2Dot2_1_2024 validation = new ResponseValidation2Dot2_1_2024(
-            jsonObject.toString(), results, datasets);
+            jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
         
         boolean result = validation.validate();
         assertThat(result).isFalse(); // Validation should fail
