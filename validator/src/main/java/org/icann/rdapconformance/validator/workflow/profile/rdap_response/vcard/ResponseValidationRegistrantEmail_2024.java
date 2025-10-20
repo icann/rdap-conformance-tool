@@ -143,7 +143,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
             }
             return true;
         } catch (Exception e) {
-            logger.error("pathLang is not found due to {}", e.getMessage());
+            logger.debug("pathLang is not found due to {}", e.getMessage());
             return validatePrePathBasedOnPathLang(redactedEmail);
         }
     }
@@ -182,7 +182,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                 }
             }
         } catch (Exception e) {
-            logger.error("prePath property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("prePath property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return validateMethodProperty(redactedEmail);
@@ -209,7 +209,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                 }
             }
         } catch (Exception e) {
-            logger.error("method property is not found, no validations defined. Error: {}", e.getMessage());
+            logger.debug("method property is not found, no validations defined. Error: {}", e.getMessage());
         }
 
         return isValid;
@@ -251,7 +251,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                 }
             }
         } catch (Exception e) {
-            logger.error("Error checking for email property: {}", e.getMessage());
+            logger.debug("Error checking for email property: {}", e.getMessage());
             return false;
         }
 
