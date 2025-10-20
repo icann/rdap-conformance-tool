@@ -60,6 +60,7 @@ import org.slf4j.LoggerFactory;
  */
 public class CommonUtils {
 
+    // Strings
     public static final String DOT = ".";
     public static final String HTTP = "http";
     public static final String HTTPS = "https";
@@ -87,6 +88,7 @@ public class CommonUtils {
     public static final String IP = "ip";
     public static final String NAMESERVERS = "nameservers";
 
+    // Numbers
     public static final int PAUSE = 1000;
     public static final int TIMEOUT_IN_5SECS = 5000;
     public static final int HTTPS_PORT = 443;
@@ -97,12 +99,13 @@ public class CommonUtils {
     public static final int THREE = 3;
     public static final int HTTP_NOT_FOUND = 404;
     public static final int HTTP_TOO_MANY_REQUESTS = 429;
+
+    // Regex patterns
     public static final String HANDLE_PATTERN = "(\\w|_){1,80}-\\w{1,8}";
+    // IP Address validation pattern
+    public static final String IPV4_DOT_DECIMAL_PATTERN = "^([0-9]{1,3}\\.){3}[0-9]{1,3}$";
 
-    // IP Address validation patterns
-    public static final String IPV4_PATTERN = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
-    public static final String IP_BRACKET_ZONE_PATTERN = "[\\[\\]%.*]";
-
+    // Logger
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(CommonUtils.class);
 
     /**

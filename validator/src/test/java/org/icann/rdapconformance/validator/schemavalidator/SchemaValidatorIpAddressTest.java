@@ -61,8 +61,8 @@ public class SchemaValidatorIpAddressTest extends SchemaValidatorTest {
   @Test
   public void v4Invalid() {
     jsonObject.getJSONObject("ipAddress").put("v4", List.of("0.0.0.wrong-ipv4"));
-    validate(-11404, "#/ipAddress/v4/0:0.0.0.wrong-ipv4",
-        "The v4 structure is not syntactically valid.");
+    validate(-10100, "#/ipAddress/v4/0:0.0.0.wrong-ipv4",
+        "The IPv4 address is not syntactically valid in dot-decimal notation.");
   }
 
   /**
@@ -80,7 +80,7 @@ public class SchemaValidatorIpAddressTest extends SchemaValidatorTest {
   @Test
   public void v4NotDotDecimal() {
     jsonObject.getJSONObject("ipAddress").put("v4", List.of("999"));
-    validate(-11406, "#/ipAddress/v4/0:999",
+    validate(-10100, "#/ipAddress/v4/0:999",
         "The IPv4 address is not syntactically valid in dot-decimal notation.");
   }
 
