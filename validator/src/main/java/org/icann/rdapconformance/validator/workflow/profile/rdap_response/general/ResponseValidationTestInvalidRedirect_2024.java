@@ -48,7 +48,7 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
 
             logger.debug("Sending a GET request to: {}", createTestInvalidURI());
             HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(),
-                config.getTimeout());
+                config.getTimeout(), config.getSessionId());
             int status = response.statusCode();
             logger.debug("Status code for test.invalid: {}", status);
             if (status == HTTP_OK) { // if it returns a 200 - that is an error

@@ -1076,24 +1076,29 @@ public void testCreateResultsMap() {
     }
     
     @Test
-    public void testGetResultsPath() {
+    public void testGetResultsPath() throws Exception {
         RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        
-        // Set a test path
-        resultFile.resultPath = "/test/path/results.json";
-        
-        String path = resultFile.getResultsPath();
+        String testSessionId = "test-session-123";
+
+        // Use reflection to set the test path in the session map
+        java.lang.reflect.Field sessionResultPathsField = RDAPValidationResultFile.class.getDeclaredField("sessionResultPaths");
+        sessionResultPathsField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.concurrent.ConcurrentHashMap<String, String> sessionResultPaths =
+            (java.util.concurrent.ConcurrentHashMap<String, String>) sessionResultPathsField.get(null);
+        sessionResultPaths.put(testSessionId, "/test/path/results.json");
+
+        String path = resultFile.getResultsPath(testSessionId);
         assertEquals("/test/path/results.json", path);
     }
-    
+
     @Test
     public void testGetResultsPath_Null() {
         RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        
-        // Clear the path
-        resultFile.resultPath = null;
-        
-        String path = resultFile.getResultsPath();
+        String testSessionId = "test-session-null";
+
+        // Test with non-existent session (should return null)
+        String path = resultFile.getResultsPath(testSessionId);
         assertThat(path).isNull();
     }
     

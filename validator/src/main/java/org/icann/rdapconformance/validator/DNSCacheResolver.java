@@ -379,15 +379,24 @@ public class DNSCacheResolver {
         return host.endsWith(DOT) ? host : host + DOT;
     }
 
+    /**
+     * Legacy version for backward compatibility
+     * @deprecated Use doZeroIPAddressesValidation(String, boolean, boolean, String) instead
+     */
+    @Deprecated
     public static void doZeroIPAddressesValidation(String url, boolean executeIPv6Queries, boolean executeIPv4Queries) {
+        doZeroIPAddressesValidation(url, executeIPv6Queries, executeIPv4Queries, "default");
+    }
+
+    public static void doZeroIPAddressesValidation(String url, boolean executeIPv6Queries, boolean executeIPv4Queries, String sessionId) {
         String hostname = getHostnameFromUrl(url);
         if (hostname.isEmpty()) {
             addErrorToResultsFile(-13019, "no response available",
-                "Unable to resolve an IP address endpoint using DNS.");
+                "Unable to resolve an IP address endpoint using DNS.", sessionId);
             return;
         }
 
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance(sessionId);
         boolean hasV4 = hasV4Addresses(url);
         boolean hasV6 = hasV6Addresses(url);
 

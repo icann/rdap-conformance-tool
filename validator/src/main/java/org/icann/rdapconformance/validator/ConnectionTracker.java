@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,26 +51,91 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  * @since 1.0.0
  */
 public class ConnectionTracker {
-    private static final ConnectionTracker INSTANCE = new ConnectionTracker();
     private static final Logger logger = LoggerFactory.getLogger(ConnectionTracker.class);
-    private final List<ConnectionRecord> connections;
-    private final Map<String, ConnectionRecord> connectionsByTrackingId;
-    private ConnectionRecord currentConnection;
-    private ConnectionRecord lastMainConnection;
 
-    private ConnectionTracker() {
-        this.connections = Collections.synchronizedList(new ArrayList<>());
-        this.connectionsByTrackingId = Collections.synchronizedMap(new HashMap<>());
-        this.lastMainConnection = null;
+    // Session-keyed storage for concurrent validation requests
+    private static final ConcurrentHashMap<String, ConnectionTracker> sessionInstances = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, List<ConnectionRecord>> sessionConnections = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Map<String, ConnectionRecord>> sessionConnectionsByTrackingId = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, ConnectionRecord> sessionCurrentConnection = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, ConnectionRecord> sessionLastMainConnection = new ConcurrentHashMap<>();
+
+    // Instance holds its session ID for accessing the correct session data
+    private final String sessionId;
+
+    private ConnectionTracker(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     /**
-     * Returns the singleton instance of the ConnectionTracker.
+     * Returns the session ID for this ConnectionTracker instance.
      *
-     * @return the singleton ConnectionTracker instance
+     * @return the session identifier
      */
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    /**
+     * Returns the singleton instance for a specific session.
+     *
+     * @param sessionId the session identifier
+     * @return the singleton ConnectionTracker instance for this session
+     */
+    public static synchronized ConnectionTracker getInstance(String sessionId) {
+        return sessionInstances.computeIfAbsent(sessionId, k -> {
+            // Initialize session data when creating new instance
+            sessionConnections.put(k, Collections.synchronizedList(new ArrayList<>()));
+            sessionConnectionsByTrackingId.put(k, Collections.synchronizedMap(new HashMap<>()));
+            sessionCurrentConnection.remove(k); // Ensure no current connection initially
+            sessionLastMainConnection.remove(k); // Ensure no last main connection initially
+            return new ConnectionTracker(k);
+        });
+    }
+
+    /**
+     * Returns the singleton instance (deprecated - uses default session).
+     *
+     * @deprecated Use getInstance(String sessionId) instead
+     * @return the singleton ConnectionTracker instance for default session
+     */
+    @Deprecated
     public static ConnectionTracker getInstance() {
-        return INSTANCE;
+        return getInstance("default");
+    }
+
+    /**
+     * Resets the singleton instance for a specific session.
+     *
+     * @param sessionId the session to reset
+     */
+    public static void reset(String sessionId) {
+        sessionInstances.remove(sessionId);
+        sessionConnections.remove(sessionId);
+        sessionConnectionsByTrackingId.remove(sessionId);
+        sessionCurrentConnection.remove(sessionId);
+        sessionLastMainConnection.remove(sessionId);
+    }
+
+    /**
+     * Resets all sessions (primarily for testing).
+     */
+    public static void resetAll() {
+        sessionInstances.clear();
+        sessionConnections.clear();
+        sessionConnectionsByTrackingId.clear();
+        sessionCurrentConnection.clear();
+        sessionLastMainConnection.clear();
+    }
+
+    /**
+     * Reset the connection tracker (deprecated - resets default session).
+     *
+     * @deprecated Use reset(String sessionId) or resetAll() instead
+     */
+    @Deprecated
+    public synchronized void reset() {
+        reset("default");
     }
 
     /**
@@ -88,7 +154,8 @@ public class ConnectionTracker {
      * @return The connection record, or null if not found
      */
     public synchronized ConnectionRecord getConnectionByTrackingId(String trackingId) {
-        return connectionsByTrackingId.get(trackingId);
+        Map<String, ConnectionRecord> connectionsByTrackingId = sessionConnectionsByTrackingId.get(sessionId);
+        return connectionsByTrackingId != null ? connectionsByTrackingId.get(trackingId) : null;
     }
 
     /**
@@ -98,8 +165,12 @@ public class ConnectionTracker {
      * @return The status code, or 0 if the connection is not found
      */
     public synchronized int getStatusCodeByTrackingId(String trackingId) {
-        ConnectionRecord record = connectionsByTrackingId.get(trackingId);
-        return record != null ? record.getStatusCode() : 0;
+        Map<String, ConnectionRecord> connectionsByTrackingId = sessionConnectionsByTrackingId.get(sessionId);
+        if (connectionsByTrackingId != null) {
+            ConnectionRecord record = connectionsByTrackingId.get(trackingId);
+            return record != null ? record.getStatusCode() : ZERO;
+        }
+        return ZERO;
     }
 
 
@@ -124,15 +195,24 @@ public class ConnectionTracker {
                 isMainConnection
         );
         record.setStartTime(Instant.now());
-        connections.add(record);
-        connectionsByTrackingId.put(trackingId, record);
-        currentConnection = record;
+
+        // Get session-based collections
+        List<ConnectionRecord> connections = sessionConnections.get(sessionId);
+        Map<String, ConnectionRecord> connectionsByTrackingId = sessionConnectionsByTrackingId.get(sessionId);
+
+        if (connections != null) {
+            connections.add(record);
+        }
+        if (connectionsByTrackingId != null) {
+            connectionsByTrackingId.put(trackingId, record);
+        }
+        sessionCurrentConnection.put(sessionId, record);
 
         if (isMainConnection) {
-            lastMainConnection = record;
-            logger.debug("Started tracking main connection: {}", trackingId);
+            sessionLastMainConnection.put(sessionId, record);
+            logger.debug("Started tracking main connection: {} for session {}", trackingId, sessionId);
         } else {
-            logger.debug("Started tracking connection: {}", trackingId);
+            logger.debug("Started tracking connection: {} for session {}", trackingId, sessionId);
         }
 
         return trackingId;
@@ -143,11 +223,12 @@ public class ConnectionTracker {
      * @param status The connection status to set
      */
     public synchronized void updateCurrentConnection(ConnectionStatus status) {
+        ConnectionRecord currentConnection = sessionCurrentConnection.get(sessionId);
         if (currentConnection != null) {
             currentConnection.setStatus(status);
-            logger.debug("Updated current connection with status: {}", status);
+            logger.debug("Updated current connection with status: {} for session {}", status, sessionId);
         } else {
-            logger.warn("Attempted to update current connection, but no current connection exists");
+            logger.warn("Attempted to update current connection, but no current connection exists for session {}", sessionId);
         }
     }
 
@@ -156,11 +237,12 @@ public class ConnectionTracker {
      * @param remoteAddress The new remote IP address to set
      */
     public synchronized void updateIPAddressOnCurrentConnection(String remoteAddress) {
+        ConnectionRecord currentConnection = sessionCurrentConnection.get(sessionId);
         if (currentConnection != null) {
             currentConnection.setIpAddress(remoteAddress);
-            logger.debug("Updated current connection with ipAddress: {}", remoteAddress);
+            logger.debug("Updated current connection with ipAddress: {} for session {}", remoteAddress, sessionId);
         } else {
-            logger.warn("Attempted to update current connection, but no current connection exists");
+            logger.warn("Attempted to update current connection, but no current connection exists for session {}", sessionId);
         }
     }
 
@@ -171,15 +253,17 @@ public class ConnectionTracker {
      * @return true if the connection was found and updated, false otherwise
      */
     public synchronized boolean updateIPAddressById(String trackingId, String remoteAddress) {
-        ConnectionRecord record = connectionsByTrackingId.get(trackingId);
-        if (record != null) {
-            record.setIpAddress(remoteAddress);
-            logger.debug("Updated connection {} with ipAddress: {}", trackingId, remoteAddress);
-            return true;
-        } else {
-            logger.warn("Attempted to update connection {}, but no connection exists with that tracking ID", trackingId);
-            return false;
+        Map<String, ConnectionRecord> connectionsByTrackingId = sessionConnectionsByTrackingId.get(sessionId);
+        if (connectionsByTrackingId != null) {
+            ConnectionRecord record = connectionsByTrackingId.get(trackingId);
+            if (record != null) {
+                record.setIpAddress(remoteAddress);
+                logger.debug("Updated connection {} with ipAddress: {} for session {}", trackingId, remoteAddress, sessionId);
+                return true;
+            }
         }
+        logger.warn("Attempted to update connection {}, but no connection exists with that tracking ID for session {}", trackingId, sessionId);
+        return false;
     }
 
     /**
@@ -188,6 +272,7 @@ public class ConnectionTracker {
      * @param status The connection status
      */
     public synchronized void completeCurrentConnection(int statusCode, ConnectionStatus status) {
+        ConnectionRecord currentConnection = sessionCurrentConnection.get(sessionId);
         if (currentConnection != null) {
             Duration duration = Duration.between(currentConnection.getStartTime(), Instant.now());
             currentConnection.setStatusCode(statusCode);
@@ -196,13 +281,13 @@ public class ConnectionTracker {
 
             // If this was a main connection that's being completed, keep track of it
             if (currentConnection.isMainConnection()) {
-                lastMainConnection = currentConnection;
+                sessionLastMainConnection.put(sessionId, currentConnection);
             }
 
-            logger.debug("Completed current connection with tracking id: {}", currentConnection.trackingId);
-            currentConnection = null;
+            logger.debug("Completed current connection with tracking id: {} for session {}", currentConnection.getTrackingId(), sessionId);
+            sessionCurrentConnection.remove(sessionId);
         } else {
-            logger.warn("Attempted to complete current connection, but no current connection exists");
+            logger.warn("Attempted to complete current connection, but no current connection exists for session {}", sessionId);
         }
     }
 
@@ -231,15 +316,24 @@ public class ConnectionTracker {
                 isMainConnection
         );
         record.setStartTime(Instant.now());
-        connections.add(record);
-        connectionsByTrackingId.put(trackingId, record);
-        currentConnection = record;
+
+        // Get session-based collections
+        List<ConnectionRecord> connections = sessionConnections.get(sessionId);
+        Map<String, ConnectionRecord> connectionsByTrackingId = sessionConnectionsByTrackingId.get(sessionId);
+
+        if (connections != null) {
+            connections.add(record);
+        }
+        if (connectionsByTrackingId != null) {
+            connectionsByTrackingId.put(trackingId, record);
+        }
+        sessionCurrentConnection.put(sessionId, record);
 
         if (isMainConnection) {
-            lastMainConnection = record;
-            logger.debug("Started tracking main connection: {}", trackingId);
+            sessionLastMainConnection.put(sessionId, record);
+            logger.debug("Started tracking main connection: {} for session {}", trackingId, sessionId);
         } else {
-            logger.debug("Started tracking connection: {}", trackingId);
+            logger.debug("Started tracking connection: {} for session {}", trackingId, sessionId);
         }
 
         return trackingId;
@@ -266,28 +360,33 @@ public class ConnectionTracker {
      */
     public synchronized void completeTracking(URI uri, String ipAddress,
                                               int statusCode, ConnectionStatus status) {
-        for (int i = connections.size() - ONE; i >= ZERO; i--) {
-            ConnectionRecord record = connections.get(i);
-            if (record.getUri().equals(uri) && record.getIpAddress().equals(ipAddress) &&
-                    record.getStartTime() != null && record.getDuration() == null) {
+        List<ConnectionRecord> connections = sessionConnections.get(sessionId);
+        ConnectionRecord currentConnection = sessionCurrentConnection.get(sessionId);
 
-                Duration duration = Duration.between(record.getStartTime(), Instant.now());
-                record.setStatusCode(statusCode);
-                record.setDuration(duration);
-                record.setStatus(status);
+        if (connections != null) {
+            for (int i = connections.size() - ONE; i >= ZERO; i--) {
+                ConnectionRecord record = connections.get(i);
+                if (record.getUri().equals(uri) && record.getIpAddress().equals(ipAddress) &&
+                        record.getStartTime() != null && record.getDuration() == null) {
 
-                // If this was a main connection that's being completed, keep track of it
-                if (record.isMainConnection()) {
-                    lastMainConnection = record;
+                    Duration duration = Duration.between(record.getStartTime(), Instant.now());
+                    record.setStatusCode(statusCode);
+                    record.setDuration(duration);
+                    record.setStatus(status);
+
+                    // If this was a main connection that's being completed, keep track of it
+                    if (record.isMainConnection()) {
+                        sessionLastMainConnection.put(sessionId, record);
+                    }
+
+                    // If this was the current connection, clear it
+                    if (currentConnection == record) {
+                        sessionCurrentConnection.remove(sessionId);
+                    }
+
+                    logger.debug("Completed tracking connection: {} for session {}", record, sessionId);
+                    return;
                 }
-
-                // If this was the current connection, clear it
-                if (currentConnection == record) {
-                    currentConnection = null;
-                }
-
-                logger.debug("Completed tracking connection: {}", record);
-                return;
             }
         }
     }
@@ -300,25 +399,30 @@ public class ConnectionTracker {
      * @return true if the connection was found and completed, false otherwise
      */
     public synchronized boolean completeTrackingById(String trackingId, int statusCode, ConnectionStatus status) {
-        ConnectionRecord record = connectionsByTrackingId.get(trackingId);
-        if (record != null && record.getDuration() == null) {
-            Duration duration = Duration.between(record.getStartTime(), Instant.now());
-            record.setStatusCode(statusCode);
-            record.setDuration(duration);
-            record.setStatus(status);
+        Map<String, ConnectionRecord> connectionsByTrackingId = sessionConnectionsByTrackingId.get(sessionId);
+        ConnectionRecord currentConnection = sessionCurrentConnection.get(sessionId);
 
-            // If this was a main connection that's being completed, keep track of it
-            if (record.isMainConnection()) {
-                lastMainConnection = record;
+        if (connectionsByTrackingId != null) {
+            ConnectionRecord record = connectionsByTrackingId.get(trackingId);
+            if (record != null && record.getDuration() == null) {
+                Duration duration = Duration.between(record.getStartTime(), Instant.now());
+                record.setStatusCode(statusCode);
+                record.setDuration(duration);
+                record.setStatus(status);
+
+                // If this was a main connection that's being completed, keep track of it
+                if (record.isMainConnection()) {
+                    sessionLastMainConnection.put(sessionId, record);
+                }
+
+                // If this was the current connection, clear it
+                if (currentConnection == record) {
+                    sessionCurrentConnection.remove(sessionId);
+                }
+
+                logger.debug("Completed tracking connection by ID: {} for session {}", record, sessionId);
+                return true;
             }
-
-            // If this was the current connection, clear it
-            if (currentConnection == record) {
-                currentConnection = null;
-            }
-
-            logger.debug("Completed tracking connection by ID: {}", record);
-            return true;
         }
         return false;
     }
@@ -328,7 +432,7 @@ public class ConnectionTracker {
      * @return The current connection record
      */
     public synchronized ConnectionRecord getCurrentConnection() {
-        return currentConnection;
+        return sessionCurrentConnection.get(sessionId);
     }
 
     /**
@@ -336,7 +440,8 @@ public class ConnectionTracker {
      * @return A copy of the connections list
      */
     public synchronized List<ConnectionRecord> getConnections() {
-        return new ArrayList<>(connections);
+        List<ConnectionRecord> connections = sessionConnections.get(sessionId);
+        return connections != null ? new ArrayList<>(connections) : new ArrayList<>();
     }
 
     /**
@@ -344,7 +449,8 @@ public class ConnectionTracker {
      * @return The last connection record
      */
     public synchronized ConnectionRecord getLastConnection() {
-        if (connections.isEmpty()) {
+        List<ConnectionRecord> connections = sessionConnections.get(sessionId);
+        if (connections == null || connections.isEmpty()) {
             return null;
         }
         return connections.get(connections.size() - 1);
@@ -355,7 +461,7 @@ public class ConnectionTracker {
      * @return The last main connection record
      */
     public synchronized ConnectionRecord getLastMainConnection() {
-        return lastMainConnection;
+        return sessionLastMainConnection.get(sessionId);
     }
 
     /**
@@ -364,9 +470,12 @@ public class ConnectionTracker {
      */
     public synchronized int getErrorCount() {
         int count = ZERO;
-        for (ConnectionRecord record : connections) {
-            if (record.getStatus() != null && record.getStatus() != ConnectionStatus.SUCCESS) {
-                count++;
+        List<ConnectionRecord> connections = sessionConnections.get(sessionId);
+        if (connections != null) {
+            for (ConnectionRecord record : connections) {
+                if (record.getStatus() != null && record.getStatus() != ConnectionStatus.SUCCESS) {
+                    count++;
+                }
             }
         }
         return count;
@@ -378,23 +487,18 @@ public class ConnectionTracker {
      */
     public synchronized int getSuccessCount() {
         int count = 0;
-        for (ConnectionRecord record : connections) {
-            if (record.getStatus() == ConnectionStatus.SUCCESS) {
-                count++;
+        List<ConnectionRecord> connections = sessionConnections.get(sessionId);
+        if (connections != null) {
+            for (ConnectionRecord record : connections) {
+                if (record.getStatus() == ConnectionStatus.SUCCESS) {
+                    count++;
+                }
             }
         }
         return count;
     }
 
-    /**
-     * Reset the connection tracker
-     */
-    public synchronized void reset() {
-        connections.clear();
-        connectionsByTrackingId.clear();
-        currentConnection = null;
-        lastMainConnection = null;
-    }
+    // Note: reset() method moved to static resetAll() and reset(sessionId) methods above
 
     /**
      * Get the current status code of the last connection
@@ -441,26 +545,29 @@ public class ConnectionTracker {
      */
     @Override
     public synchronized String toString() {
-        if (connections.isEmpty()) {
-            return "No connections tracked";
+        List<ConnectionRecord> connections = sessionConnections.get(sessionId);
+        Map<String, ConnectionRecord> connectionsByTrackingId = sessionConnectionsByTrackingId.get(sessionId);
+
+        if (connections == null || connections.isEmpty()) {
+            return "No connections tracked for session " + sessionId;
         }
 
-        StringBuilder sb = new StringBuilder("Connection Tracking Report:\n");
+        StringBuilder sb = new StringBuilder("Connection Tracking Report (Session: " + sessionId + "):\n");
 
         // Track which connections have been displayed as redirect follows
         Set<String> displayedAsFollows = new HashSet<>();
-        
+
         for (ConnectionRecord record : connections) {
             // Skip connections that are redirect follows - they'll be displayed under their parent
             if (record.isRedirectFollow() && displayedAsFollows.contains(record.getTrackingId())) {
                 continue;
             }
-            
+
             // Display the main connection
             sb.append(record.toStringWithoutRedirectStatus()).append(getRedirectStatusForDisplay(record)).append("\n");
-            
+
             // If this connection redirected, show the follow-up indented
-            if (record.getRedirectedToId() != null) {
+            if (record.getRedirectedToId() != null && connectionsByTrackingId != null) {
                 ConnectionRecord followUp = connectionsByTrackingId.get(record.getRedirectedToId());
                 if (followUp != null) {
                     sb.append("  └─► ").append(followUp.toStringWithoutRedirectStatus()).append(" [REDIRECT_FOLLOW]").append("\n");
@@ -493,12 +600,15 @@ public class ConnectionTracker {
      * @param hostAddress the server's IP address to set
      */
     public synchronized void updateServerIpOnConnection(String trackingId, String hostAddress) {
-        ConnectionRecord record = connectionsByTrackingId.get(trackingId);
-        if (record != null) {
-            logger.debug("Updating server IP address {} for tracking ID: {}", hostAddress, trackingId);
-            record.setIpAddress(hostAddress);
-        } else {
-            logger.debug("No connection found for tracking ID: {}", trackingId);
+        Map<String, ConnectionRecord> connectionsByTrackingId = sessionConnectionsByTrackingId.get(sessionId);
+        if (connectionsByTrackingId != null) {
+            ConnectionRecord record = connectionsByTrackingId.get(trackingId);
+            if (record != null) {
+                logger.debug("Updating server IP address {} for tracking ID: {} in session {}", hostAddress, trackingId, sessionId);
+                record.setIpAddress(hostAddress);
+            } else {
+                logger.debug("No connection found for tracking ID: {} in session {}", trackingId, sessionId);
+            }
         }
     }
 
@@ -513,7 +623,9 @@ public class ConnectionTracker {
      */
     public synchronized boolean isResourceNotFoundNoteWarning(RDAPValidatorConfiguration config) {
         boolean foundRelevant = false;
-        for (ConnectionRecord record : connections) {
+        List<ConnectionRecord> connections = sessionConnections.get(sessionId);
+        if (connections != null) {
+            for (ConnectionRecord record : connections) {
             if (record.isMainConnection() || HEAD.equalsIgnoreCase(record.getHttpMethod())) {
                 foundRelevant = true;
                 if (record.getStatusCode() != HTTP_NOT_FOUND) {
@@ -536,6 +648,7 @@ public class ConnectionTracker {
                             + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
                 }
             }
+        }
         }
         return foundRelevant;
     }

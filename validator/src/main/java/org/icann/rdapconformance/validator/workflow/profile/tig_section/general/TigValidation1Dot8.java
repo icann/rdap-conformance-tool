@@ -82,7 +82,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
     // If we are validating over v4
     if(!config.isNoIpv4Queries()) {
-      if (ipv4Addresses.isEmpty() || containsInvalidIPAddress(ipv4Addresses, datasetService)) {
+      if (ipv4Addresses.isEmpty() || containsInvalidIPAddress(ipv4Addresses, datasetService, results)) {
         results.add(RDAPValidationResult.builder()
                                         .acceptHeader(DASH)
                                         .queriedURI(DASH)
@@ -102,7 +102,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     Set<InetAddress> ipv6Addresses = new HashSet<>(DNSCacheResolver.getAllV6Addresses(host));
     // If we are validating over v6
     if(!config.isNoIpv6Queries()) {
-      if (ipv6Addresses.isEmpty() || containsInvalidIPAddress(ipv6Addresses, datasetService)) {
+      if (ipv6Addresses.isEmpty() || containsInvalidIPAddress(ipv6Addresses, datasetService, results)) {
         results.add(RDAPValidationResult.builder()
                                         .acceptHeader(DASH)
                                         .queriedURI(DASH)
@@ -122,9 +122,9 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   }
 
   private static boolean containsInvalidIPAddress(Set<InetAddress> addresses,
-      RDAPDatasetService datasetService) {
+      RDAPDatasetService datasetService, RDAPValidatorResults results) {
     for (InetAddress address : addresses) {
-      if (ipValidator.isInvalid(address, datasetService)) {
+      if (ipValidator.isInvalid(address, datasetService, results)) {
         return true;
       }
     }
@@ -147,7 +147,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   }
 
   static class IPValidator {
-    boolean isInvalid(InetAddress ipAddress, RDAPDatasetService datasetService) {
+    boolean isInvalid(InetAddress ipAddress, RDAPDatasetService datasetService, RDAPValidatorResults results) {
       IPSchema schema;
       if (ipAddress instanceof Inet4Address) {
         schema = IPSchema.V4;
@@ -158,8 +158,8 @@ public final class TigValidation1Dot8 extends ProfileValidation {
       }
 
       String ipAddressJson = String.format("{\"ip\": \"%s\"}", ipAddress.getHostAddress());
-      SchemaValidator validator = SchemaValidatorCache.getCachedValidator(schema.path(),  
-          RDAPValidatorResultsImpl.getInstance(), datasetService);
+      SchemaValidator validator = SchemaValidatorCache.getCachedValidator(schema.path(),
+          results, datasetService);
       boolean isValid = validator.validate(ipAddressJson);
       logger.info("IP address  {} is {} according to the schema {}", ipAddress.getHostAddress(), isValid ? "VALID" : "<INVALID>", schema.path());
       return !isValid;

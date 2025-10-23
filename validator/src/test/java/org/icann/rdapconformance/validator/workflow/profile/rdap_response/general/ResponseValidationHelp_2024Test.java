@@ -30,7 +30,8 @@ public class ResponseValidationHelp_2024Test {
   @BeforeMethod
   public void setup() {
     mockConfig = mock(RDAPValidatorConfiguration.class);
-    results = RDAPValidatorResultsImpl.getInstance();
+    when(mockConfig.getSessionId()).thenReturn("default");
+    results = RDAPValidatorResultsImpl.getInstance("default");
     results.clear();
     responseValidator = new ResponseValidationHelp_2024(mockConfig, results);
   }
@@ -60,7 +61,7 @@ public class ResponseValidationHelp_2024Test {
     when(mockResponse.uri()).thenReturn(URI.create("http://example.com/help"));
 
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt(), anyString())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
@@ -90,7 +91,7 @@ public class ResponseValidationHelp_2024Test {
     when(mockResponse.uri()).thenReturn(URI.create("http://example.com/help"));
 
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt(), anyString())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
@@ -109,7 +110,7 @@ public class ResponseValidationHelp_2024Test {
     when(response.uri()).thenReturn(URI.create("http://example.com/help"));
 
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt(), anyString())).thenReturn(response);
 
     assertThat(responseValidator.doValidate()).isFalse();
 

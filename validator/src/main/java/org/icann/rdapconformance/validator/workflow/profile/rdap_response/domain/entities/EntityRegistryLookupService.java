@@ -125,7 +125,7 @@ public class EntityRegistryLookupService {
             logger.debug("Checking entity {} at URL: {}", entityHandle, entityUrl);
 
             // Make HTTP request with short timeout
-            java.net.http.HttpResponse<String> response = RDAPHttpRequest.makeRequest(entityUri, TIMEOUT_IN_5SECS / PAUSE, GET);
+            java.net.http.HttpResponse<String> response = RDAPHttpRequest.makeRequest(entityUri, TIMEOUT_IN_5SECS / PAUSE, GET, false, true, config.getSessionId());
 
             // Return true only for 200 OK
             boolean exists = response.statusCode() == HTTP_OK;

@@ -60,7 +60,7 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
         logger.debug("Making request to: {}", domainInvalidUriCleaned);
         HttpResponse<String> response = null;
 
-        response = RDAPHttpRequest.makeHttpGetRequest(new URI(domainInvalidUriCleaned), this.config.getTimeout());
+        response = RDAPHttpRequest.makeHttpGetRequest(new URI(domainInvalidUriCleaned), this.config.getTimeout(), this.config.getSessionId());
 
         // final response
         return validateDomainInvalidQuery(response, isValid);

@@ -43,6 +43,14 @@ public interface RDAPValidatorConfiguration {
   boolean isNetworkEnabled();
   boolean isAdditionalConformanceQueries();
 
+  /**
+   * Gets the session ID for this validation session.
+   * Session IDs are used to isolate concurrent validation requests.
+   *
+   * @return the session ID for this validation session
+   */
+  String getSessionId();
+
   default boolean check() {
     if (getUri().getScheme() != null && getUri().getScheme().startsWith("http")) {
       if (getQueryType() != null) {

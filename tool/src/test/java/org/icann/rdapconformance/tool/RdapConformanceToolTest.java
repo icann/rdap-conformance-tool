@@ -145,7 +145,7 @@ public class RdapConformanceToolTest {
 
     RDAPHttpQueryTypeProcessor mockProcessor = mock(RDAPHttpQueryTypeProcessor.class);
     when(mockProcessor.check(any())).thenReturn(false);
-    when(mockProcessor.getErrorStatus()).thenReturn(ToolResult.UNSUPPORTED_QUERY);
+    when(mockProcessor.getErrorStatus(any(String.class))).thenReturn(ToolResult.UNSUPPORTED_QUERY);
 
     try (MockedStatic<CommonUtils> mockedCommonUtils = Mockito.mockStatic(CommonUtils.class);
          MockedStatic<RDAPHttpQueryTypeProcessor> mockedProcessor = Mockito.mockStatic(RDAPHttpQueryTypeProcessor.class)) {
@@ -154,7 +154,7 @@ public class RdapConformanceToolTest {
       mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class), nullable(ProgressCallback.class))).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.configFileExists(any(), any())).thenReturn(true);
       mockedCommonUtils.when(() -> CommonUtils.verifyConfigFile(any(), any())).thenReturn(mockConfigFile);
-      mockedProcessor.when(() -> RDAPHttpQueryTypeProcessor.getInstance(any())).thenReturn(mockProcessor);
+      mockedProcessor.when(() -> RDAPHttpQueryTypeProcessor.getInstance(any(String.class))).thenReturn(mockProcessor);
 
       int result = tool.call();
       assertThat(result).isEqualTo(ToolResult.UNSUPPORTED_QUERY.getCode());
@@ -188,7 +188,7 @@ public class RdapConformanceToolTest {
       mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class))).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.initializeDataSet(any(RDAPValidatorConfiguration.class), nullable(ProgressCallback.class))).thenReturn(mockDatasetService);
       mockedCommonUtils.when(() -> CommonUtils.verifyConfigFile(any(), any())).thenReturn(mockConfigFile);
-      mockedProcessor.when(() -> RDAPHttpQueryTypeProcessor.getInstance(any())).thenReturn(mockProcessor);
+      mockedProcessor.when(() -> RDAPHttpQueryTypeProcessor.getInstance(any(RDAPValidatorConfiguration.class))).thenReturn(mockProcessor);
 
       int result = thinTool.call();
       assertThat(result).isEqualTo(ToolResult.USES_THIN_MODEL.getCode());
@@ -328,12 +328,21 @@ public void testGetErrorsWithMockedResults() throws Exception {
     when(mockConfigFile.isError(-11111)).thenReturn(false);
     when(mockConfigFile.isWarning(-11111)).thenReturn(true);
     when(mockConfigFile.getDefinitionIgnore()).thenReturn(List.of());
-    
-    // Initialize the RDAPValidationResultFile singleton with mock data
-    RDAPValidationResultFile.reset();
+
+    // Initialize the RDAPValidationResultFile singleton with mock data using session-based API
+    String testSessionId = "test-session-123";
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-    resultFile.initialize(mockResults, tool, mockConfigFile, mock(org.icann.rdapconformance.validator.workflow.FileSystem.class));
-    
+    resultFile.initialize(testSessionId, mockResults, tool, mockConfigFile, mock(org.icann.rdapconformance.validator.workflow.FileSystem.class));
+
+    // Set the tool's sessionId to match our test session using reflection
+    try {
+        java.lang.reflect.Field sessionIdField = tool.getClass().getDeclaredField("sessionId");
+        sessionIdField.setAccessible(true);
+        sessionIdField.set(tool, testSessionId);
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to set sessionId for test", e);
+    }
+
     // Test getErrors - should return only the errors, not warnings
     List<RDAPValidationResult> errors = tool.getErrors();
     assertThat(errors).hasSize(2);
@@ -352,20 +361,21 @@ public void testGetErrorsWithMockedResults() throws Exception {
 
 @Test
 public void testGetErrorsWithRealValidationResults() throws Exception {
-    // Use real RDAPValidatorResultsImpl for more realistic testing
-    RDAPValidatorResultsImpl realResults = RDAPValidatorResultsImpl.getInstance();
-    realResults.clear();
+    // Use real RDAPValidatorResultsImpl for more realistic testing with session-based API
+    String testSessionId = "test-session-456";
+    RDAPValidatorResultsImpl realResults = RDAPValidatorResultsImpl.getInstance(testSessionId);
+    realResults.clear(testSessionId);
     
-    // Add some test results
-    realResults.add(RDAPValidationResult.builder()
+    // Add some test results using session-based API
+    realResults.add(testSessionId, RDAPValidationResult.builder()
         .code(-46200)
         .message("Handle format violation")
         .value("INVALID-HANDLE")
         .httpStatusCode(200)
         .queriedURI("https://example.com/entity/INVALID")
         .build());
-        
-    realResults.add(RDAPValidationResult.builder()
+
+    realResults.add(testSessionId, RDAPValidationResult.builder()
         .code(-20900)
         .message("Tel property without voice or fax type")
         .value("tel-property-data")
@@ -379,12 +389,20 @@ public void testGetErrorsWithRealValidationResults() throws Exception {
     when(mockConfigFile.isError(-20900)).thenReturn(true);
     when(mockConfigFile.isWarning(any(Integer.class))).thenReturn(false);
     when(mockConfigFile.getDefinitionIgnore()).thenReturn(List.of());
-    
-    // Initialize the RDAPValidationResultFile singleton
-    RDAPValidationResultFile.reset();
+
+    // Initialize the RDAPValidationResultFile singleton using session-based API
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-    resultFile.initialize(realResults, tool, mockConfigFile, mock(org.icann.rdapconformance.validator.workflow.FileSystem.class));
-    
+    resultFile.initialize(testSessionId, realResults, tool, mockConfigFile, mock(org.icann.rdapconformance.validator.workflow.FileSystem.class));
+
+    // Set the tool's sessionId to match our test session using reflection
+    try {
+        java.lang.reflect.Field sessionIdField = tool.getClass().getDeclaredField("sessionId");
+        sessionIdField.setAccessible(true);
+        sessionIdField.set(tool, testSessionId);
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to set sessionId for test", e);
+    }
+
     // Test the new methods
     List<RDAPValidationResult> errors = tool.getErrors();
     assertThat(errors).hasSize(2);
@@ -475,12 +493,21 @@ public void testJsonMethodsWithMockedResults() throws Exception {
     when(mockConfigFile.getAlertNotes(-12345)).thenReturn("Error note");
     when(mockConfigFile.getAlertNotes(-11111)).thenReturn("Warning note");
     when(mockConfigFile.getDefinitionNotes()).thenReturn(List.of("General note"));
-    
-    // Initialize the RDAPValidationResultFile singleton with mock data
-    RDAPValidationResultFile.reset();
+
+    // Initialize the RDAPValidationResultFile singleton with mock data using session-based API
+    String testSessionId = "test-session-789";
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-    resultFile.initialize(mockResults, tool, mockConfigFile, mock(org.icann.rdapconformance.validator.workflow.FileSystem.class));
-    
+    resultFile.initialize(testSessionId, mockResults, tool, mockConfigFile, mock(org.icann.rdapconformance.validator.workflow.FileSystem.class));
+
+    // Set the tool's sessionId to match our test session using reflection
+    try {
+        java.lang.reflect.Field sessionIdField = tool.getClass().getDeclaredField("sessionId");
+        sessionIdField.setAccessible(true);
+        sessionIdField.set(tool, testSessionId);
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to set sessionId for test", e);
+    }
+
     // Test getErrorsAsJson
     String errorsJson = tool.getErrorsAsJson();
     assertThat(errorsJson).contains("-12345");
@@ -515,10 +542,11 @@ public void testJsonMethodsWithMockedResults() throws Exception {
 @Test  
 public void testJsonMethodsReturnValidJson() throws Exception {
     // Test that JSON methods return properly formatted JSON
-    RDAPValidatorResultsImpl realResults = RDAPValidatorResultsImpl.getInstance();
-    realResults.clear();
-    
-    realResults.add(RDAPValidationResult.builder()
+    String testSessionId = "test-session-101";
+    RDAPValidatorResultsImpl realResults = RDAPValidatorResultsImpl.getInstance(testSessionId);
+    realResults.clear(testSessionId);
+
+    realResults.add(testSessionId, RDAPValidationResult.builder()
         .code(-46200)
         .message("Handle format violation")
         .value("INVALID-HANDLE")
@@ -532,11 +560,19 @@ public void testJsonMethodsReturnValidJson() throws Exception {
     when(mockConfigFile.getDefinitionIgnore()).thenReturn(List.of());
     when(mockConfigFile.getAlertNotes(-46200)).thenReturn("Handle violation note");
     when(mockConfigFile.getDefinitionNotes()).thenReturn(List.of());
-    
-    RDAPValidationResultFile.reset();
+
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-    resultFile.initialize(realResults, tool, mockConfigFile, mock(org.icann.rdapconformance.validator.workflow.FileSystem.class));
-    
+    resultFile.initialize(testSessionId, realResults, tool, mockConfigFile, mock(org.icann.rdapconformance.validator.workflow.FileSystem.class));
+
+    // Set the tool's sessionId to match our test session using reflection
+    try {
+        java.lang.reflect.Field sessionIdField = tool.getClass().getDeclaredField("sessionId");
+        sessionIdField.setAccessible(true);
+        sessionIdField.set(tool, testSessionId);
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to set sessionId for test", e);
+    }
+
     // Test that all JSON methods return valid JSON strings
     String errorsJson = tool.getErrorsAsJson();
     assertThat(errorsJson).startsWith("[");

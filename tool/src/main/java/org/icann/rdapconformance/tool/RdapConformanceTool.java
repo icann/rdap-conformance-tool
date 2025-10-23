@@ -10,12 +10,14 @@ import java.net.URI;
 import java.security.Security;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.everit.json.schema.internal.IPV4Validator;
 import org.everit.json.schema.internal.IPV6Validator;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
+import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileQueryTypeProcessor;
 import org.slf4j.LoggerFactory;
 import org.icann.rdapconformance.tool.progress.ProgressTracker;
 import org.icann.rdapconformance.tool.progress.ProgressPhase;
@@ -150,6 +152,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private boolean showProgress = true; // Default to true for CLI usage
 
   private boolean networkEnabled  = true;
+
+  // Session ID for isolating concurrent validation requests
+  private String sessionId;
 
   // IP version query options as mutually exclusive group
   private static class IpVersionQueriesOptions {
@@ -337,6 +342,14 @@ public void setShowProgress(boolean showProgress) {
 
   @Override
   public Integer call() throws Exception {
+    // Use external session ID if set, otherwise generate unique session ID for this validation run
+    if (sessionId == null) {
+      sessionId = UUID.randomUUID().toString();
+      logger.debug("Generated new session ID: {}", sessionId);
+    } else {
+      logger.debug("Using external session ID: {}", sessionId);
+    }
+
     // Determine if user wants logging output vs progress bar
     boolean hasSystemLogProperty = (System.getProperty("logging.level.root") != null ||
                                    System.getProperty("logLevel") != null);
@@ -502,15 +515,16 @@ public void setShowProgress(boolean showProgress) {
     // get the results file ready
     clean();
     RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-    resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
+    resultFile.initialize(sessionId, RDAPValidatorResultsImpl.getInstance(sessionId), this, configFile, fileSystem);
 
     // Get the queryType - bail out if it is not correct
     RDAPHttpQueryTypeProcessor queryTypeProcessor = null;
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
-      queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
+      queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(sessionId);
+      queryTypeProcessor.setConfiguration(sessionId, this);
       if (!queryTypeProcessor.check(datasetService)) {
         logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
-        return queryTypeProcessor.getErrorStatus().getCode();
+        return queryTypeProcessor.getErrorStatus(sessionId).getCode();
       }
     } else {
       // we are not using HTTP, we should be using a file
@@ -538,7 +552,7 @@ public void setShowProgress(boolean showProgress) {
       DNSCacheResolver.initFromUrl(uri.toString());
       incrementProgress(); // DNS initialization step
       updateProgressPhase("DNS-Validation");
-      DNSCacheResolver.doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
+      DNSCacheResolver.doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries, sessionId);
       incrementProgress(); // DNS validation step
       
       // Start network validation phase
@@ -617,7 +631,7 @@ public void setShowProgress(boolean showProgress) {
 
 
       // Removing extra errors to avoid discrepancies between profiles when 404 status code is returned
-      if(ConnectionTracker.getInstance().isResourceNotFoundNoteWarning(this)) {
+      if(ConnectionTracker.getInstance(sessionId).isResourceNotFoundNoteWarning(this)) {
         logger.debug("All HEAD and Main queries returned a 404 Not Found response code.");
         resultFile.removeErrors();
         resultFile.removeResultGroups();
@@ -627,7 +641,7 @@ public void setShowProgress(boolean showProgress) {
 
       // Build the result file
       updateProgressPhase(ProgressPhase.RESULTS_GENERATION);
-       if(!resultFile.build()) {
+       if(!resultFile.build(sessionId)) {
           logger.error("Unable to write to results file: " + validator.getResultsPath());
           return ToolResult.FILE_WRITE_ERROR.getCode();
         }
@@ -644,15 +658,15 @@ public void setShowProgress(boolean showProgress) {
 
 
       // Having network issues? You WILL need this.
-      logger.debug("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+      logger.debug("ConnectionTracking: " + ConnectionTracker.getInstance(sessionId).toString());
 
       // Complete progress tracking
       completeProgress();
 
       // Check if domain validation found errors (even though we continued execution)
-      if (queryTypeProcessor != null && queryTypeProcessor.getErrorStatus() != null && queryTypeProcessor.getErrorStatus() != ToolResult.SUCCESS) {
-        logger.info("Domain validation errors detected - returning error status: {}", queryTypeProcessor.getErrorStatus().getCode());
-        return queryTypeProcessor.getErrorStatus().getCode();
+      if (queryTypeProcessor != null && queryTypeProcessor.getErrorStatus(sessionId) != null && queryTypeProcessor.getErrorStatus(sessionId) != ToolResult.SUCCESS) {
+        logger.info("Domain validation errors detected - returning error status: {}", queryTypeProcessor.getErrorStatus(sessionId).getCode());
+        return queryTypeProcessor.getErrorStatus(sessionId).getCode();
       }
 
       // if we made it to here, exit 0
@@ -687,7 +701,7 @@ public void setShowProgress(boolean showProgress) {
     }
 
     updateProgressPhase(ProgressPhase.RESULTS_GENERATION);
-    if(!resultFile.build()) {
+    if(!resultFile.build(sessionId)) {
       logger.error("Unable to write to results file: " + validator.getResultsPath());
       return ToolResult.FILE_WRITE_ERROR.getCode();
     }
@@ -768,6 +782,22 @@ public void setShowProgress(boolean showProgress) {
     return queryType;
   }
 
+  public String getSessionId() {
+    return sessionId;
+  }
+
+  /**
+   * Set the session ID for this validation run.
+   * This allows external users to control session isolation for concurrent usage.
+   * If not set, a UUID will be generated automatically when call() is invoked.
+   *
+   * @param sessionId the session identifier to use for this validation
+   */
+  public void setSessionId(String sessionId) {
+    this.sessionId = sessionId;
+    logger.debug("Session ID explicitly set to: {}", sessionId);
+  }
+
   @Override
   public URI getUri() {
     return this.uri;
@@ -799,11 +829,40 @@ public void setShowProgress(boolean showProgress) {
 
   @Override
   public void clean() {
-    var resultsImpl = RDAPValidatorResultsImpl.getInstance();
-    var connectionTracker = ConnectionTracker.getInstance();
-    RDAPValidationResultFile.reset();
-    resultsImpl.clear();
-    connectionTracker.reset();
+    // Reset all sessions in all singleton classes to ensure clean state
+    // Note: RDAPValidationResultFile uses traditional singleton + clearSession, not resetAll
+    // This will be handled per-session during validation
+    RDAPValidatorResultsImpl.resetAll();
+    ConnectionTracker.resetAll();
+    RDAPHttpQueryTypeProcessor.resetAll();
+    // Note: RDAPFileQueryTypeProcessor doesn't need reset for HTTP validations
+  }
+
+  /**
+   * Clean up resources for a specific session.
+   * This allows selective cleanup in concurrent environments where multiple sessions may be running.
+   *
+   * @param sessionId the session to clean up
+   */
+  public void clean(String sessionId) {
+    if (sessionId == null) {
+      logger.warn("Attempted to clean null session ID, falling back to clean all sessions");
+      clean();
+      return;
+    }
+
+    logger.debug("Cleaning up session: {}", sessionId);
+
+    // Clean up session-specific data in all singleton classes
+    RDAPValidationResultFile.clearSession(sessionId);
+    ConnectionTracker.reset(sessionId);
+    RDAPHttpQueryTypeProcessor.reset(sessionId);
+    RDAPFileQueryTypeProcessor.reset(sessionId);
+
+    // Clean up the session from RDAPValidatorResultsImpl
+    RDAPValidatorResultsImpl.reset(sessionId);
+
+    logger.debug("Session cleanup completed: {}", sessionId);
   }
 
   /**
@@ -812,8 +871,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public List<RDAPValidationResult> getErrors() {
     try {
+      if (sessionId == null) {
+        return new java.util.ArrayList<>();
+      }
       RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      return resultFile.getErrors();
+      return resultFile.getErrors(sessionId);
     } catch (Exception e) {
       // Return empty list if validation hasn't run yet or failed
       return new java.util.ArrayList<>();
@@ -826,8 +888,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public List<RDAPValidationResult> getAllResults() {
     try {
+      if (sessionId == null) {
+        return new java.util.ArrayList<>();
+      }
       RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      return resultFile.getAllResults();
+      return resultFile.getAllResults(sessionId);
     } catch (Exception e) {
       // Return empty list if validation hasn't run yet or failed
       return new java.util.ArrayList<>();
@@ -840,8 +905,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public int getErrorCount() {
     try {
+      if (sessionId == null) {
+        return 0;
+      }
       RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      return resultFile.getErrorCount();  
+      return resultFile.getErrorCount(sessionId);
     } catch (Exception e) {
       // Return 0 if validation hasn't run yet or failed
       return 0;
@@ -854,8 +922,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public String getErrorsAsJson() {
     try {
+      if (sessionId == null) {
+        return new JSONArray().toString();
+      }
       RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      Map<String, Object> resultsMap = resultFile.createResultsMap();
+      Map<String, Object> resultsMap = resultFile.createResultsMap(sessionId);
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> errors = (List<Map<String, Object>>) resultsMap.get("error");
       JSONArray jsonArray = new JSONArray(errors);
@@ -872,8 +943,16 @@ public void setShowProgress(boolean showProgress) {
    */
   public String getAllResultsAsJson() {
     try {
+      if (sessionId == null) {
+        JSONObject fallbackObject = new JSONObject();
+        fallbackObject.put("error", new JSONArray());
+        fallbackObject.put("warning", new JSONArray());
+        fallbackObject.put("ignore", new JSONArray());
+        fallbackObject.put("notes", new JSONArray());
+        return fallbackObject.toString(PRETTY_PRINT_INDENT);
+      }
       RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      Map<String, Object> resultsMap = resultFile.createResultsMap();
+      Map<String, Object> resultsMap = resultFile.createResultsMap(sessionId);
       JSONObject jsonObject = new JSONObject(resultsMap);
       return jsonObject.toString(PRETTY_PRINT_INDENT);
     } catch (Exception e) {
@@ -893,8 +972,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public String getWarningsAsJson() {
     try {
+      if (sessionId == null) {
+        return new JSONArray().toString();
+      }
       RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      Map<String, Object> resultsMap = resultFile.createResultsMap();
+      Map<String, Object> resultsMap = resultFile.createResultsMap(sessionId);
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> warnings = (List<Map<String, Object>>) resultsMap.get("warning");
       JSONArray jsonArray = new JSONArray(warnings);

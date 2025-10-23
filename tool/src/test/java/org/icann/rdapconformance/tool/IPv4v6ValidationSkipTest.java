@@ -25,7 +25,7 @@ public class IPv4v6ValidationSkipTest {
 
     @BeforeMethod
     public void setUp() {
-        results = RDAPValidatorResultsImpl.getInstance();
+        results = RDAPValidatorResultsImpl.getInstance("test-session");
         results.clear();
     }
 
@@ -33,6 +33,7 @@ public class IPv4v6ValidationSkipTest {
     public void shouldRecordError20400AndSkipValidation_whenNoIPv4AddressesAvailable() throws Exception {
         try (TempFileResource configFile = new TempFileResource(createTempConfigFile())) {
             RdapConformanceTool tool = spy(new RdapConformanceTool());
+            tool.setSessionId("test-session");
             tool.setConfigurationFile(configFile.toString());
             tool.setUri(new URI(TEST_URI));
             tool.setExecuteIPv4Queries(true);
@@ -49,7 +50,7 @@ public class IPv4v6ValidationSkipTest {
     public void shouldRecordError20401AndSkipValidation_whenNoIPv6AddressesAvailable() throws Exception {
         try (TempFileResource configFile = new TempFileResource(createTempConfigFile())) {
             RdapConformanceTool tool = spy(new RdapConformanceTool());
-
+            tool.setSessionId("test-session");
             tool.setConfigurationFile(configFile.toString());
             tool.setUri(new URI(TEST_URI));
             tool.setExecuteIPv4Queries(false);

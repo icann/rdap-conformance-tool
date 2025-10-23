@@ -121,7 +121,7 @@ public class RDAPFileQueryTypeProcessorTest {
 
     @Test
     public void testGetInstance_WithNullConfig() {
-        RDAPFileQueryTypeProcessor processor = RDAPFileQueryTypeProcessor.getInstance(null);
+        RDAPFileQueryTypeProcessor processor = RDAPFileQueryTypeProcessor.getInstance((RDAPValidatorConfiguration) null);
         
         assertThat(processor).isNotNull();
         

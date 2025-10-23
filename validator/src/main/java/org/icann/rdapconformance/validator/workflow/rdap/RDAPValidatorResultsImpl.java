@@ -24,125 +24,353 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   public static final String HTTP_STATUS_CODE = ", httpStatusCode=";
   public static final String BRACKETS = "[]";
 
-  // Static instance for the singleton
-  private static RDAPValidatorResultsImpl instance;
+  // Session-keyed storage for concurrent validation requests
+  private static final ConcurrentHashMap<String, RDAPValidatorResultsImpl> sessionInstances = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<String, Set<RDAPValidationResult>> sessionResults = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<String, Set<String>> sessionGroups = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<String, Set<String>> sessionGroupErrorWarning = new ConcurrentHashMap<>();
 
-  private final Set<RDAPValidationResult> results = ConcurrentHashMap.newKeySet();
-  private final Set<String> groups = ConcurrentHashMap.newKeySet();
-  private final Set<String> groupErrorWarning = ConcurrentHashMap.newKeySet();
+  // Instance holds its session ID for accessing the correct session data
+  private final String sessionId;
 
-  // Private constructor to prevent instantiation
-  private RDAPValidatorResultsImpl() {}
+  // Private constructor to prevent external instantiation
+  private RDAPValidatorResultsImpl(String sessionId) {
+    this.sessionId = sessionId;
+  }
 
   /**
-   * Gets the singleton instance of RDAPValidatorResultsImpl
+   * Gets the singleton instance for a specific session
    *
-   * @return the singleton instance
+   * @param sessionId the session identifier
+   * @return the singleton instance for this session
    */
-  public static synchronized RDAPValidatorResultsImpl getInstance() {
-    if (instance == null) {
-      instance = new RDAPValidatorResultsImpl();
-    }
-    return instance;
+  public static synchronized RDAPValidatorResultsImpl getInstance(String sessionId) {
+    return sessionInstances.computeIfAbsent(sessionId, k -> {
+      // Initialize session data when creating new instance
+      sessionResults.put(k, ConcurrentHashMap.newKeySet());
+      sessionGroups.put(k, ConcurrentHashMap.newKeySet());
+      sessionGroupErrorWarning.put(k, ConcurrentHashMap.newKeySet());
+      return new RDAPValidatorResultsImpl(k);
+    });
   }
 
   /**
-   * Resets the singleton instance (primarily for testing)
+   * Gets the singleton instance (deprecated - uses default session)
+   *
+   * @deprecated Use getInstance(String sessionId) instead
+   * @return the singleton instance for default session
    */
-  public static void reset() {
-    instance = null;
+  @Deprecated
+  public static synchronized RDAPValidatorResultsImpl getInstance() {
+    return getInstance("default");
   }
 
+  /**
+   * Resets the singleton instance for a specific session
+   *
+   * @param sessionId the session to reset
+   */
+  public static void reset(String sessionId) {
+    sessionInstances.remove(sessionId);
+    sessionResults.remove(sessionId);
+    sessionGroups.remove(sessionId);
+    sessionGroupErrorWarning.remove(sessionId);
+  }
+
+  /**
+   * Resets all sessions (primarily for testing)
+   */
+  public static void resetAll() {
+    sessionInstances.clear();
+    sessionResults.clear();
+    sessionGroups.clear();
+    sessionGroupErrorWarning.clear();
+  }
+
+  /**
+   * Resets the singleton instance (deprecated - resets default session)
+   *
+   * @deprecated Use reset(String sessionId) or resetAll() instead
+   */
+  @Deprecated
+  public static void reset() {
+    reset("default");
+  }
+
+  /**
+   * Gets the results count for a specific session
+   *
+   * @param sessionId the session identifier
+   * @return the number of results for this session
+   */
+  public int getResultCount(String sessionId) {
+    Set<RDAPValidationResult> results = sessionResults.get(sessionId);
+    return results != null ? results.size() : 0;
+  }
+
+  /**
+   * Gets the results count (deprecated - uses default session)
+   *
+   * @deprecated Use getResultCount(String sessionId) instead
+   * @return the number of results for default session
+   */
+  @Deprecated
   public int getResultCount() {
-    return results.size();
+    return getResultCount("default");
+  }
+
+  /**
+   * Adds a validation result to a specific session
+   *
+   * @param sessionId the session identifier
+   * @param result the validation result to add
+   */
+  public void add(String sessionId, RDAPValidationResult result) {
+    Set<RDAPValidationResult> results = sessionResults.computeIfAbsent(sessionId, k -> ConcurrentHashMap.newKeySet());
+    if (results.add(result)) {
+      logger.debug("adding error result {} for session {}", result, sessionId);
+    }
   }
 
   @Override
   public void add(RDAPValidationResult result) {
-    if (this.results.add(result)) {
-      logger.debug("adding error result {}", result);
-    }
+    add(this.sessionId, result);
+  }
+
+  /**
+   * Replaces all results for a specific session
+   *
+   * @param sessionId the session identifier
+   * @param results the new results set
+   */
+  public void addAll(String sessionId, Set<RDAPValidationResult> results) {
+    Set<RDAPValidationResult> sessionResultsSet = sessionResults.computeIfAbsent(sessionId, k -> ConcurrentHashMap.newKeySet());
+    sessionResultsSet.clear();
+    sessionResultsSet.addAll(results);
   }
 
   @Override
   public void addAll(Set<RDAPValidationResult> results) {
-    this.results.clear();
-    this.results.addAll(results);
+    addAll(this.sessionId, results);
+  }
+
+  /**
+   * Removes all groups for a specific session
+   *
+   * @param sessionId the session identifier
+   */
+  public void removeGroups(String sessionId) {
+    Set<String> groups = sessionGroups.get(sessionId);
+    Set<String> groupErrorWarning = sessionGroupErrorWarning.get(sessionId);
+    if (groups != null) {
+      groups.clear();
+    }
+    if (groupErrorWarning != null) {
+      groupErrorWarning.clear();
+    }
   }
 
   @Override
   public void removeGroups() {
-    this.groups.clear();
-    this.groupErrorWarning.clear();
+    removeGroups(this.sessionId);
+  }
+
+  /**
+   * Gets all results for a specific session
+   *
+   * @param sessionId the session identifier
+   * @return the results set for this session
+   */
+  public Set<RDAPValidationResult> getAll(String sessionId) {
+    return sessionResults.getOrDefault(sessionId, ConcurrentHashMap.newKeySet());
   }
 
   @Override
   public Set<RDAPValidationResult> getAll() {
-    return results;
+    return getAll(this.sessionId);
+  }
+
+  /**
+   * Checks if results are empty for a specific session
+   *
+   * @param sessionId the session identifier
+   * @return true if no results exist for this session
+   */
+  public boolean isEmpty(String sessionId) {
+    Set<RDAPValidationResult> results = sessionResults.get(sessionId);
+    return results == null || results.isEmpty();
   }
 
   @Override
   public boolean isEmpty() {
-    return results.isEmpty();
+    return isEmpty(this.sessionId);
   }
 
-  @Override
-  public Set<String> getGroupOk() {
+  /**
+   * Gets the OK groups for a specific session (groups without errors/warnings)
+   *
+   * @param sessionId the session identifier
+   * @return the set of OK groups for this session
+   */
+  public Set<String> getGroupOk(String sessionId) {
+    Set<String> groups = sessionGroups.getOrDefault(sessionId, ConcurrentHashMap.newKeySet());
+    Set<String> groupErrorWarning = sessionGroupErrorWarning.getOrDefault(sessionId, ConcurrentHashMap.newKeySet());
     Set<String> groupsCopy = new HashSet<>(groups);
     groupsCopy.removeAll(groupErrorWarning);
     return groupsCopy;
   }
 
   @Override
+  public Set<String> getGroupOk() {
+    return getGroupOk(this.sessionId);
+  }
+
+  /**
+   * Adds multiple groups to a specific session
+   *
+   * @param sessionId the session identifier
+   * @param groups the groups to add
+   */
+  public void addGroups(String sessionId, Set<String> groups) {
+    Set<String> sessionGroupsSet = sessionGroups.computeIfAbsent(sessionId, k -> ConcurrentHashMap.newKeySet());
+    sessionGroupsSet.addAll(groups);
+  }
+
+  @Override
   public void addGroups(Set<String> groups) {
-    this.groups.addAll(groups);
+    addGroups(this.sessionId, groups);
+  }
+
+  /**
+   * Gets the error/warning groups for a specific session
+   *
+   * @param sessionId the session identifier
+   * @return the set of error/warning groups for this session
+   */
+  public Set<String> getGroupErrorWarning(String sessionId) {
+    return sessionGroupErrorWarning.getOrDefault(sessionId, ConcurrentHashMap.newKeySet());
   }
 
   @Override
   public Set<String> getGroupErrorWarning() {
-    return groupErrorWarning;
+    return getGroupErrorWarning(this.sessionId);
+  }
+
+  /**
+   * Adds a single group to a specific session
+   *
+   * @param sessionId the session identifier
+   * @param group the group to add
+   */
+  public void addGroup(String sessionId, String group) {
+    Set<String> groups = sessionGroups.computeIfAbsent(sessionId, k -> ConcurrentHashMap.newKeySet());
+    groups.add(group);
   }
 
   @Override
   public void addGroup(String group) {
-    this.groups.add(group);
+    addGroup(this.sessionId, group);
+  }
+
+  /**
+   * Adds a group as an error/warning group to a specific session
+   *
+   * @param sessionId the session identifier
+   * @param group the group to add as error/warning
+   */
+  public void addGroupErrorWarning(String sessionId, String group) {
+    this.addGroup(sessionId, group);
+    Set<String> groupErrorWarning = sessionGroupErrorWarning.computeIfAbsent(sessionId, k -> ConcurrentHashMap.newKeySet());
+    groupErrorWarning.add(group);
   }
 
   @Override
   public void addGroupErrorWarning(String group) {
-    this.addGroup(group);
-    this.groupErrorWarning.add(group);
+    addGroupErrorWarning(this.sessionId, group);
+  }
+
+  /**
+   * Gets all groups for a specific session
+   *
+   * @param sessionId the session identifier
+   * @return the set of all groups for this session
+   */
+  public Set<String> getGroups(String sessionId) {
+    return sessionGroups.getOrDefault(sessionId, ConcurrentHashMap.newKeySet());
   }
 
   @Override
   public Set<String> getGroups() {
-    return groups;
+    return getGroups(this.sessionId);
   }
 
   /**
-   * Clears all results and groups from the instance
-   *  should only be used in testing as well
+   * Clears all results and groups for a specific session
+   *
+   * @param sessionId the session to clear
    */
+  public void clear(String sessionId) {
+    Set<RDAPValidationResult> results = sessionResults.get(sessionId);
+    Set<String> groups = sessionGroups.get(sessionId);
+    Set<String> groupErrorWarning = sessionGroupErrorWarning.get(sessionId);
+
+    if (results != null) {
+      results.clear();
+    }
+    if (groups != null) {
+      groups.clear();
+    }
+    if (groupErrorWarning != null) {
+      groupErrorWarning.clear();
+    }
+  }
+
+  /**
+   * Clears all results and groups from the instance (deprecated - uses default session)
+   *
+   * @deprecated Use clear(String sessionId) instead
+   */
+  @Deprecated
   public void clear() {
-    results.clear();
-    groups.clear();
-    groupErrorWarning.clear();
+    clear("default");
   }
 
   /**
-   * Returns a pretty-printed string of all results
-   *  Unused but keep for debugging purposes
+   * Returns a pretty-printed string of all results for a specific session
+   *
+   * @param sessionId the session identifier
+   * @return formatted string of results for debugging
    */
-  public String prettyPrintResults() {
+  public String prettyPrintResults(String sessionId) {
     StringBuilder sb = new StringBuilder();
+    Set<RDAPValidationResult> results = sessionResults.getOrDefault(sessionId, ConcurrentHashMap.newKeySet());
     for (RDAPValidationResult result : results) {
       sb.append(result.toString()).append(System.lineSeparator());
     }
     return sb.toString();
   }
 
-  public String analyzeResultsWithStatusCheck() {
+  /**
+   * Returns a pretty-printed string of all results (deprecated - uses default session)
+   *
+   * @deprecated Use prettyPrintResults(String sessionId) instead
+   * @return formatted string of results for debugging
+   */
+  @Deprecated
+  public String prettyPrintResults() {
+    return prettyPrintResults("default");
+  }
+
+  /**
+   * Analyzes results with status check for a specific session
+   *
+   * @param sessionId the session identifier
+   * @return analysis string
+   */
+  public String analyzeResultsWithStatusCheck(String sessionId) {
     StringBuilder sb = new StringBuilder();
+    Set<RDAPValidationResult> results = sessionResults.getOrDefault(sessionId, ConcurrentHashMap.newKeySet());
+
     // Filter relevant results
     List<RDAPValidationResult> filtered = new ArrayList<>();
     for (RDAPValidationResult result : results) {
@@ -169,7 +397,6 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
       logger.debug("Error serializing tuple list to JSON", e);
     }
 
-
     // Collect httpStatusCodes - normalize null to 0
     Set<Integer> statusCodes = new HashSet<>();
     for (RDAPValidationResult result : filtered) {
@@ -179,7 +406,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
     // If not all the same, add the new error code
     if (statusCodes.size() > ONE) {
-      logger.debug("Not all status codes are the same");
+      logger.debug("Not all status codes are the same for session {}", sessionId);
       results.add(
           RDAPValidationResult.builder()
                               .acceptHeader(DASH)
@@ -192,7 +419,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
                               .build()
       );
     } else {
-      logger.debug("All status codes are the same");
+      logger.debug("All status codes are the same for session {}", sessionId);
     }
 
     // Return a Pretty Printed and filtered results
@@ -204,8 +431,24 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     return sb.toString();
   }
 
-  // New culling function
-  public void cullDuplicateIPAddressErrors() {
+  /**
+   * Analyzes results with status check (deprecated - uses default session)
+   *
+   * @deprecated Use analyzeResultsWithStatusCheck(String sessionId) instead
+   * @return analysis string
+   */
+  @Deprecated
+  public String analyzeResultsWithStatusCheck() {
+    return analyzeResultsWithStatusCheck("default");
+  }
+
+  /**
+   * Culls duplicate IP address errors for a specific session
+   *
+   * @param sessionId the session identifier
+   */
+  public void cullDuplicateIPAddressErrors(String sessionId) {
+    Set<RDAPValidationResult> results = sessionResults.getOrDefault(sessionId, ConcurrentHashMap.newKeySet());
     int ipv4Count = ZERO;
     int ipv6Count = ZERO;
     Set<RDAPValidationResult> toRemove = new HashSet<>();
@@ -227,5 +470,15 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
     // Remove duplicates
     results.removeAll(toRemove);
+  }
+
+  /**
+   * Culls duplicate IP address errors (deprecated - uses default session)
+   *
+   * @deprecated Use cullDuplicateIPAddressErrors(String sessionId) instead
+   */
+  @Deprecated
+  public void cullDuplicateIPAddressErrors() {
+    cullDuplicateIPAddressErrors("default");
   }
 }

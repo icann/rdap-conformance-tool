@@ -20,9 +20,11 @@ import java.net.ConnectException;
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.net.http.HttpTimeoutException;
+import javax.net.ssl.SSLHandshakeException;
 
 import java.security.KeyStore;
 import java.security.SecureRandom;
@@ -153,6 +155,10 @@ public class RDAPHttpRequest {
         return makeRequest(uri, timeoutSeconds, GET);
     }
 
+    public static HttpResponse<String> makeHttpGetRequest(URI uri, int timeoutSeconds, String sessionId) throws Exception {
+        return makeRequest(uri, timeoutSeconds, GET, sessionId);
+    }
+
     /**
      * Creates and executes an HTTP HEAD request to the specified URI.
      *
@@ -167,6 +173,10 @@ public class RDAPHttpRequest {
      */
     public static HttpResponse<String> makeHttpHeadRequest(URI uri, int timeoutSeconds) throws Exception {
         return makeRequest(uri, timeoutSeconds, HEAD);
+    }
+
+    public static HttpResponse<String> makeHttpHeadRequest(URI uri, int timeoutSeconds, String sessionId) throws Exception {
+        return makeRequest(uri, timeoutSeconds, HEAD, sessionId);
     }
 
     /**
@@ -185,6 +195,10 @@ public class RDAPHttpRequest {
         return makeRequest(originalUri, timeoutSeconds, method, false);
     }
 
+    public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, String sessionId) throws Exception {
+        return makeRequest(originalUri, timeoutSeconds, method, false, sessionId);
+    }
+
     /**
      * Creates and executes an HTTP request with the specified method and main request flag.
      *
@@ -199,6 +213,10 @@ public class RDAPHttpRequest {
      */
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain) throws Exception {
         return makeRequest(originalUri, timeoutSeconds, method, isMain, true);
+    }
+
+    public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, String sessionId) throws Exception {
+        return makeRequest(originalUri, timeoutSeconds, method, isMain, true, sessionId);
     }
 
     /**
@@ -229,9 +247,13 @@ public class RDAPHttpRequest {
      * @throws IllegalArgumentException if originalUri is null
      */
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
+        return makeRequest(originalUri, timeoutSeconds, method, isMain, canRecordError, null);
+    }
+
+    public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError, String sessionId) throws Exception {
         if (originalUri == null) throw new IllegalArgumentException("The provided URI is null.");
 
-        ConnectionTracker tracker = ConnectionTracker.getInstance();
+        ConnectionTracker tracker = ConnectionTracker.getInstance(sessionId != null ? sessionId : "default");
         String trackingId = tracker.startTrackingNewConnection(originalUri, method, isMain);
 
         String host = originalUri.getHost();
@@ -315,7 +337,7 @@ public class RDAPHttpRequest {
                 statusCode = response.getCode();
                 body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
             } catch (Exception e) {
-                ConnectionStatus status = handleRequestException(e, canRecordError);
+                ConnectionStatus status = handleRequestException(e, canRecordError, tracker);
                 tracker.completeTrackingById(trackingId, statusCode, status);
                 SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
                     trackingId, statusCode, body, originalUri, new Header[ZERO]
@@ -540,6 +562,150 @@ public class RDAPHttpRequest {
             addErrorToResultsFile(ZERO,-13007, "no response available", "Failed to connect to server.");
         }
         ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
+        return ConnectionStatus.CONNECTION_FAILED;
+    }
+
+    /**
+     * Session-aware version of handleRequestException.
+     *
+     * @param e the exception that occurred during request execution
+     * @param recordError whether to record the error in validation results
+     * @param tracker the ConnectionTracker instance for this session
+     * @return ConnectionStatus representing the classified error type
+     */
+    public static ConnectionStatus handleRequestException(Exception e, boolean recordError, ConnectionTracker tracker) {
+        String exceptionString = e.toString();
+
+        if (e instanceof NoHttpResponseException ||
+            e instanceof ProtocolException ||
+            e instanceof MalformedChunkCodingException ||
+            e instanceof MessageConstraintException ||
+            e instanceof TruncatedChunkException ||
+            // Also check causes for wrapped exceptions
+            (e.getCause() instanceof ProtocolException) ||
+            (e.getCause() instanceof MalformedChunkCodingException) ||
+            (e.getCause() instanceof MessageConstraintException) ||
+            (e.getCause() instanceof TruncatedChunkException)) {
+            if (recordError) {
+                addErrorToResultsFile(ZERO, -13014, "no response available", "HTTP error.", tracker.getSessionId());
+            }
+            tracker.updateCurrentConnection(ConnectionStatus.HTTP_ERROR);
+            return ConnectionStatus.HTTP_ERROR;
+        }
+
+        if (e instanceof UnknownHostException) {
+            tracker.updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
+            return ConnectionStatus.UNKNOWN_HOST;
+        }
+
+        if (exceptionString.contains("Connection refused")) {
+            if (recordError) {
+                addErrorToResultsFile(ZERO, -13021, "no response available", "Connection refused by host.", tracker.getSessionId());
+            }
+            tracker.updateCurrentConnection(ConnectionStatus.CONNECTION_REFUSED);
+            return ConnectionStatus.CONNECTION_REFUSED;
+        }
+
+        if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
+                if(recordError) {
+                    addErrorToResultsFile(ZERO, -13007, "no response available", "Failed to connect to server.", tracker.getSessionId());
+                }
+            tracker.updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
+            return ConnectionStatus.CONNECTION_FAILED;
+        }
+
+        // SSL and TLS related exceptions
+        if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13011, "no response available", "Expired certificate.", tracker.getSessionId());
+            }
+            tracker.updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
+            return ConnectionStatus.EXPIRED_CERTIFICATE;
+        } else if (hasCause(e, "java.security.cert.CertificateRevokedException") || exceptionString.contains("CertificateRevokedException") ||  exceptionString.contains("Certificate revoked")) {
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13010, "no response available", "Revoked TLS certificate.", tracker.getSessionId());
+            }
+            tracker.updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
+            return ConnectionStatus.REVOKED_CERTIFICATE;
+        }
+        else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
+            if(recordError) {
+                addErrorToResultsFile(ZERO, -13008, "no response available", "TLS handshake failed.", tracker.getSessionId());
+            }
+            tracker.updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
+            return ConnectionStatus.HANDSHAKE_FAILED;
+        }
+        else if (hasCause(e, "javax.net.ssl.SSLPeerUnverifiedException") || e.toString().contains("SSLPeerUnverifiedException")) {
+                if(recordError) {
+                    addErrorToResultsFile(ZERO, -13009, "no response available", "Invalid TLS certificate.", tracker.getSessionId());
+                }
+                tracker.updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
+                return ConnectionStatus.INVALID_CERTIFICATE;
+        } else if (hasCause(e, "sun.security.validator.ValidatorException") || hasCause(e, "java.security.cert.CertificateException") ) {
+            tracker.updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
+            return ConnectionStatus.CERTIFICATE_ERROR;
+        }
+
+        // Check for specific network errors
+        if (e instanceof SocketTimeoutException) {
+            SocketTimeoutException ste = (SocketTimeoutException) e;
+            String message = ste.getMessage();
+            if (message != null) {
+                if (message.toLowerCase().contains("read")) {
+                    if(recordError) {
+                        addErrorToResultsFile(ZERO,-13017, "no response available", "Network receive fail", tracker.getSessionId());
+                    }
+                    tracker.updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+                    return ConnectionStatus.NETWORK_RECEIVE_FAIL;
+                } else if (message.toLowerCase().contains("connect")) {
+                    if(recordError) {
+                        addErrorToResultsFile(ZERO,-13016, "no response available", "Network send fail", tracker.getSessionId());
+                    }
+                    tracker.updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
+                    return ConnectionStatus.NETWORK_SEND_FAIL;
+                }
+            }
+        }
+
+        // Special handling for SocketException with specific messages
+        if (e instanceof SocketException) {
+            String message = e.getMessage();
+            if (message != null && message.toLowerCase().contains("connection reset")) {
+                if(recordError) {
+                    addErrorToResultsFile(ZERO,-13010, "no response available", "Connection reset by peer.", tracker.getSessionId());
+                }
+                tracker.updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+                return ConnectionStatus.NETWORK_RECEIVE_FAIL;
+            }
+        }
+
+        // IOException with specific patterns
+        if (e instanceof IOException) {
+            String message = e.getMessage();
+            if (message != null && (message.toLowerCase().contains("connection closed") ||
+                                  message.toLowerCase().contains("connection reset"))) {
+                if(recordError) {
+                    addErrorToResultsFile(ZERO,-13017, "no response available", "Network receive fail", tracker.getSessionId());
+                }
+                tracker.updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+                return ConnectionStatus.NETWORK_RECEIVE_FAIL;
+            }
+        }
+
+        // EOFException handling
+        if (e instanceof EOFException || (e.getCause() instanceof EOFException)) {
+            if(recordError) {
+                addErrorToResultsFile(ZERO,-13011, "no response available", "Connection terminated unexpectedly.", tracker.getSessionId());
+            }
+            tracker.updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+            return ConnectionStatus.NETWORK_RECEIVE_FAIL;
+        }
+
+        // we are at the fall through point, which means we have not identified a specific cause, and it gets classified as a connection failure
+        if(recordError) {
+            addErrorToResultsFile(ZERO,-13007, "no response available", "Failed to connect to server.", tracker.getSessionId());
+        }
+        tracker.updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
         return ConnectionStatus.CONNECTION_FAILED;
     }
 
@@ -924,6 +1090,14 @@ public class RDAPHttpRequest {
     }
 
     /**
+     * Session-aware version of makeHttpGetRequestWithRedirects.
+     * This is specifically for case folding validation where redirects need to be followed.
+     */
+    public static HttpResponse<String> makeHttpGetRequestWithRedirects(URI uri, int timeoutSeconds, int maxRedirects, String sessionId) throws Exception {
+        return makeRequestWithRedirects(uri, timeoutSeconds, GET, false, true, maxRedirects, sessionId);
+    }
+
+    /**
      * Makes an HTTP request with optional redirect following.
      * This preserves ALL existing connection tracking and error handling.
      */
@@ -999,14 +1173,101 @@ public class RDAPHttpRequest {
     }
 
     /**
+     * Session-aware version of makeRequestWithRedirects.
+     * Makes an HTTP request with optional redirect following, using session-based connection tracking.
+     */
+    public static HttpResponse<String> makeRequestWithRedirects(URI originalUri, int timeoutSeconds, String method,
+                                                               boolean isMain, boolean canRecordError, int maxRedirects, String sessionId) throws Exception {
+        // If maxRedirects is 0, use existing behavior exactly
+        if (maxRedirects <= ZERO) {
+            return makeRequest(originalUri, timeoutSeconds, method, isMain, canRecordError, sessionId);
+        }
+
+        // For redirects, we need to handle the redirect chain while preserving connection tracking
+        URI currentUri = originalUri;
+        int remainingRedirects = maxRedirects;
+        String previousTrackingId = null; // Track the previous request in the chain
+
+        while (remainingRedirects > 0) {
+            // Make the request using existing infrastructure - this preserves ALL tracking
+            HttpResponse<String> response = makeRequest(currentUri, timeoutSeconds, method, isMain, canRecordError, sessionId);
+
+            // Get the tracking ID of this response
+            String currentTrackingId = null;
+            if (response instanceof SimpleHttpResponse) {
+                currentTrackingId = ((SimpleHttpResponse) response).getTrackingId();
+            }
+
+            // Link to previous request if this is a redirect follow
+            if (previousTrackingId != null && currentTrackingId != null) {
+                linkRedirectConnections(previousTrackingId, currentTrackingId, sessionId);
+            }
+
+            // If not a redirect, return the response
+            if (!RDAPHttpQuery.isRedirectStatus(response.statusCode())) {
+                return response;
+            }
+
+            // Get redirect location
+            var location = response.headers().firstValue("Location");
+            if (location.isEmpty()) {
+                logger.warn("Redirect response without Location header");
+                return response; // Return the redirect response as-is
+            }
+
+            // Parse the redirect URI
+            URI redirectUri;
+            try {
+                redirectUri = URI.create(location.get());
+                // Handle relative redirects
+                if (!redirectUri.isAbsolute()) {
+                    redirectUri = currentUri.resolve(redirectUri);
+                }
+            } catch (Exception e) {
+                logger.warn("Invalid redirect Location header: {}", location.get(), e);
+                return response; // Return the redirect response as-is
+            }
+
+            // Security check: only allow same-host redirects for case folding
+            if (!currentUri.getHost().equalsIgnoreCase(redirectUri.getHost())) {
+                logger.warn("Cross-host redirect rejected: {} -> {}", currentUri.getHost(), redirectUri.getHost());
+                return response; // Return the redirect response as-is
+            }
+
+            logger.info("Following redirect for case folding: {} -> {}", currentUri, redirectUri);
+
+            // Prepare for next iteration
+            previousTrackingId = currentTrackingId; // This redirect will be the parent of the next request
+            currentUri = redirectUri;
+            remainingRedirects--;
+
+            // For subsequent requests in the redirect chain, treat as non-main connections
+            isMain = false;
+        }
+
+        // If we've exhausted redirects, make one final request
+        return makeRequest(currentUri, timeoutSeconds, method, isMain, canRecordError, sessionId);
+    }
+
+    /**
      * Link two connections to show redirect relationship
      * @param redirectTrackingId The tracking ID of the request that returned a redirect
      * @param followUpTrackingId The tracking ID of the request that followed the redirect
      */
     private static void linkRedirectConnections(String redirectTrackingId, String followUpTrackingId) {
+        linkRedirectConnections(redirectTrackingId, followUpTrackingId, "default");
+    }
+
+    /**
+     * Session-aware version to link two connections to show redirect relationship
+     * @param redirectTrackingId The tracking ID of the request that returned a redirect
+     * @param followUpTrackingId The tracking ID of the request that followed the redirect
+     * @param sessionId The session ID for the connection tracker
+     */
+    private static void linkRedirectConnections(String redirectTrackingId, String followUpTrackingId, String sessionId) {
         try {
-            ConnectionTracker tracker = ConnectionTracker.getInstance();
-            
+            ConnectionTracker tracker = ConnectionTracker.getInstance(sessionId);
+
             // Get both connection records
             ConnectionTracker.ConnectionRecord redirectRecord = tracker.getConnectionByTrackingId(redirectTrackingId);
             ConnectionTracker.ConnectionRecord followUpRecord = tracker.getConnectionByTrackingId(followUpTrackingId);

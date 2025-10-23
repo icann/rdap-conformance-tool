@@ -32,7 +32,7 @@ public final class TigValidation1Dot6 extends ProfileValidation {
   public boolean doValidate() {
     try {
       HttpResponse<String> httpResponse = RDAPHttpRequest
-          .makeHttpHeadRequest(config.getUri(), config.getTimeout());
+          .makeHttpHeadRequest(config.getUri(), config.getTimeout(), config.getSessionId());
       if (httpResponse.statusCode() != rdapResponseStatusCode) {
         results.add(RDAPValidationResult.builder()
             .httpStatusCode(httpResponse.statusCode())

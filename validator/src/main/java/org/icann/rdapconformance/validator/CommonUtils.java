@@ -161,6 +161,15 @@ public class CommonUtils {
     }
 
     /**
+     * Session-aware version of addErrorToResultsFile.
+     */
+    public static void addErrorToResultsFile(int code, String value, String message, String sessionId) {
+        RDAPValidatorResultsImpl.getInstance(sessionId)
+                                .add(RDAPValidationResult.builder().code(code).value(value).message(message).build());
+
+    }
+
+    /**
      * Adds a validation error to the results file with an HTTP status code.
      *
      * <p>This method creates a validation result with the provided HTTP status code,
@@ -174,6 +183,20 @@ public class CommonUtils {
      */
     public static void addErrorToResultsFile(int httpStatusCode, int code, String value, String message) {
         RDAPValidatorResultsImpl.getInstance()
+                                .add(RDAPValidationResult.builder()
+                                                         .httpStatusCode(httpStatusCode)
+                                                         .code(code)
+                                                         .value(value)
+                                                         .message(message)
+                                                         .build());
+
+    }
+
+    /**
+     * Session-aware version of addErrorToResultsFile with HTTP status code.
+     */
+    public static void addErrorToResultsFile(int httpStatusCode, int code, String value, String message, String sessionId) {
+        RDAPValidatorResultsImpl.getInstance(sessionId)
                                 .add(RDAPValidationResult.builder()
                                                          .httpStatusCode(httpStatusCode)
                                                          .code(code)

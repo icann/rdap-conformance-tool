@@ -54,6 +54,7 @@ public abstract class HttpTestingUtils {
   public void setUp() {
     doReturn(10).when(config).getTimeout();
     doReturn(3).when(config).getMaxRedirects();
+    doReturn("default").when(config).getSessionId();
   }
 
   @AfterMethod

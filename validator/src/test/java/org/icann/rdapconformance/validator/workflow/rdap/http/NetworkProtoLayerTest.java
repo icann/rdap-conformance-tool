@@ -19,7 +19,7 @@ public class NetworkProtoLayerTest {
     @Test
     public void testProtoV6() throws Exception {
         NetworkInfo.setStackToV6();
-        HttpResponse<String> response =  RDAPHttpRequest.makeHttpGetRequest(URI.create(EXTERNAL_SITE), TIMEOUT);
+        HttpResponse<String> response =  RDAPHttpRequest.makeHttpGetRequest(URI.create(EXTERNAL_SITE), TIMEOUT, "test");
         System.out.println(response.statusCode());
         System.out.println(response.body());
         assertThat(true); // this isn't a true assertion, but a placeholder for something to test, but how?
@@ -30,7 +30,7 @@ public class NetworkProtoLayerTest {
     @Test
     public void testProtoV4() throws Exception {
         NetworkInfo.setStackToV4();
-        HttpResponse<String> response  = RDAPHttpRequest.makeHttpGetRequest(URI.create(EXTERNAL_SITE), TIMEOUT);
+        HttpResponse<String> response  = RDAPHttpRequest.makeHttpGetRequest(URI.create(EXTERNAL_SITE), TIMEOUT, "test");
         System.out.println(response.statusCode());
         System.out.println(response.body());
         assertThat(true); // this isn't a true assertion, but a placeholder for something to test, but how?

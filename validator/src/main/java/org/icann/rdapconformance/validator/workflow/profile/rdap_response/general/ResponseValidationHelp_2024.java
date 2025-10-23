@@ -60,7 +60,7 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
         logger.debug("Making request to: {}", helpUriCleaned);
         HttpResponse<String> response = null;
 
-        response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUriCleaned), this.config.getTimeout());
+        response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUriCleaned), this.config.getTimeout(), this.config.getSessionId());
 
         // final response
         return validateHelpQuery(response, isValid);

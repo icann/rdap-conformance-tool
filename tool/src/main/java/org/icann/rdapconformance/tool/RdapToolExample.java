@@ -5,11 +5,21 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 public class RdapToolExample {
 
     public static void main(String[] args) throws Exception {
+        // Create a unique session ID for this validation run
+        // This is especially important for concurrent environments (web apps, services)
+        String sessionId = UUID.randomUUID().toString();
+        System.out.println("Starting validation with session ID: " + sessionId);
+
         RdapConformanceTool tool = new RdapConformanceTool();
+
+        // Set the session ID BEFORE configuring and running the tool
+        // This ensures that all validation results are properly isolated to this session
+        tool.setSessionId(sessionId);
 
         // Required parameters
         tool.setUri(URI.create("https://rdap.arin.net/registry/entity/GOGL"));
@@ -93,5 +103,24 @@ public class RdapToolExample {
         System.out.println("\nComplete results structure available via getAllResultsAsJson()");
         System.out.println("Contains: errors, warnings, ignore list, and notes");
         System.out.println("Full JSON size: " + allResultsJson.length() + " characters");
+
+        // Clean up this specific session when done
+        // This is crucial for long-running applications to prevent memory leaks
+        // and session cross-contamination in concurrent environments
+        System.out.println("\nCleaning up session: " + sessionId);
+        tool.clean(sessionId);
+
+        System.out.println("\n=== SESSION MANAGEMENT NOTES ===");
+        System.out.println("This example demonstrates external session management:");
+        System.out.println("1. Create unique session ID before tool setup");
+        System.out.println("2. Set session ID on tool before calling validation");
+        System.out.println("3. All results are isolated to this session");
+        System.out.println("4. Clean up specific session when done");
+        System.out.println("");
+        System.out.println("Benefits:");
+        System.out.println("- Prevents race conditions in concurrent environments");
+        System.out.println("- Avoids session cross-contamination in web applications");
+        System.out.println("- Allows selective cleanup without affecting other sessions");
+        System.out.println("- Enables proper resource management in long-running services");
     }
 }

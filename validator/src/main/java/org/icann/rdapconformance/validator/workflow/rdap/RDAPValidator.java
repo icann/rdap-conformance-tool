@@ -72,6 +72,7 @@ public class RDAPValidator implements ValidatorWorkflow {
     public RDAPQueryTypeProcessor queryTypeProcessor;
     private final RDAPQuery query;
     private final RDAPValidatorResults results;
+    private final String sessionId;
     private static RDAPDatasetService datasetService;
 
     public RDAPValidator(
@@ -86,13 +87,20 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         // TODO: find a cleaner way to do this.
+        String sessionId = config.getSessionId();
+        if (sessionId == null) {
+            sessionId = "default"; // Fallback for tests and legacy usage
+        }
+        this.sessionId = sessionId;
         if(config.isNetworkEnabled()) {
-            this.queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance();
+            this.queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(sessionId);
+            ((RDAPHttpQueryTypeProcessor) this.queryTypeProcessor).setConfiguration(sessionId, config);
         } else {
-            this.queryTypeProcessor = RDAPFileQueryTypeProcessor.getInstance(config);
+            this.queryTypeProcessor = RDAPFileQueryTypeProcessor.getInstance(sessionId);
+            ((RDAPFileQueryTypeProcessor) this.queryTypeProcessor).setConfiguration(sessionId, config);
         }
 
-        this.results = RDAPValidatorResultsImpl.getInstance();
+        this.results = RDAPValidatorResultsImpl.getInstance(sessionId);
         RDAPValidator.datasetService = datasetService;
     }
 
@@ -102,7 +110,17 @@ public class RDAPValidator implements ValidatorWorkflow {
         Map<RDAPQueryType, String> schemaMap = getDomainMap();
 
         // create this here so we don't call it multiple times
-        RDAPQueryType queryType  = queryTypeProcessor.getQueryType();
+        String sessionId = config.getSessionId();
+        if (sessionId == null) {
+            sessionId = "default"; // Fallback for tests and legacy usage
+        }
+
+        // Call check() to validate and populate the query type
+        if (!queryTypeProcessor.check(datasetService)) {
+            return queryTypeProcessor.getErrorStatus().getCode();
+        }
+
+        RDAPQueryType queryType = queryTypeProcessor.getQueryType();
 
         // if the query can't run, return the error code
         if (!query.run()) {
@@ -216,7 +234,7 @@ public class RDAPValidator implements ValidatorWorkflow {
     // the Front-End needs this to get the results path
     @Override
     public String getResultsPath() {
-        return RDAPValidationResultFile.getInstance().getResultsPath();
+        return RDAPValidationResultFile.getInstance().getResultsPath(this.sessionId);
     }
 
 

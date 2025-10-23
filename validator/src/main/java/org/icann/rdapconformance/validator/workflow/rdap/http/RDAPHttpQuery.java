@@ -261,7 +261,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
-                response = RDAPHttpRequest.makeRequest(currentUri, this.config.getTimeout(), GET, true);
+                response = RDAPHttpRequest.makeRequest(currentUri, this.config.getTimeout(), GET, true, this.config.getSessionId());
                 int httpStatusCode = response.statusCode();
                 ConnectionStatus st = ((SimpleHttpResponse) response).getConnectionStatusCode();
                 this.setErrorStatus(((SimpleHttpResponse) response).getConnectionStatusCode());   // ensure this is set

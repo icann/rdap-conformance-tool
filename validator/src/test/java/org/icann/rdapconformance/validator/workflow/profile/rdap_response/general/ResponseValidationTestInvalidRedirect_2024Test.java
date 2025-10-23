@@ -30,11 +30,12 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
 
     @BeforeMethod
     public void setUp() {
-        results = RDAPValidatorResultsImpl.getInstance();
+        results = RDAPValidatorResultsImpl.getInstance("default");
         results.clear();
         config = mock(RDAPValidatorConfiguration.class);
         when(config.getTimeout()).thenReturn(5000);
         when(config.getUri()).thenReturn(URI.create("http://example.com/rdap"));
+        when(config.getSessionId()).thenReturn("default");
         when(config.isGtldRegistrar()).thenReturn(true);
         when(config.isGtldRegistry()).thenReturn(true);
         when(config.useRdapProfileFeb2024()).thenReturn(true);
@@ -50,7 +51,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         when(headers.firstValue(LOCATION)).thenReturn(Optional.of("http://example.com/rdap/domain/test.invalid"));
 
         MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-        mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+        mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt(), anyString())).thenReturn(response);
 
         assertThat(validation.doValidate()).isFalse();
 
@@ -69,7 +70,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         when(response.statusCode()).thenReturn(404);  // Change to 404 Not Found instead of 200 OK
 
         MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-        mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+        mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt(), anyString())).thenReturn(response);
 
         assertThat(validation.doValidate()).isTrue();
         assertThat(results.getAll()).isEmpty();
@@ -126,7 +127,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         when(response.uri()).thenReturn(URI.create("http://example.com/rdap/domain/test.invalid"));
 
         MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-        mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+        mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt(), anyString())).thenReturn(response);
 
         assertThat(validation.doValidate()).isFalse();
 
@@ -144,7 +145,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         when(response.statusCode()).thenReturn(404);
 
         MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
-        mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+        mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt(), anyString())).thenReturn(response);
 
         assertThat(validation.doValidate()).isTrue();
         assertThat(results.getAll()).isEmpty();

@@ -76,7 +76,7 @@ public class TigValidation1Dot8Test {
 
       TigValidation1Dot8.IPValidator ipValidator = mock(TigValidation1Dot8.IPValidator.class);
       TigValidation1Dot8.ipValidator = ipValidator;
-      when(ipValidator.isInvalid(any(), any())).thenReturn(false);
+      when(ipValidator.isInvalid(any(), any(), any())).thenReturn(false);
 
       TigValidation1Dot8 validation = new TigValidation1Dot8(response, results, datasetService, config);
       assertThat(validation.doValidate()).isTrue();
@@ -101,7 +101,7 @@ public class TigValidation1Dot8Test {
 
       TigValidation1Dot8.IPValidator ipValidator = mock(TigValidation1Dot8.IPValidator.class);
       TigValidation1Dot8.ipValidator = ipValidator;
-      when(ipValidator.isInvalid(ipv4, datasetService)).thenReturn(true);
+      when(ipValidator.isInvalid(eq(ipv4), eq(datasetService), any())).thenReturn(true);
 
       TigValidation1Dot8 validation = new TigValidation1Dot8(response, results, datasetService, config);
       assertThat(validation.doValidate()).isFalse();
@@ -137,7 +137,7 @@ public class TigValidation1Dot8Test {
 
       TigValidation1Dot8.IPValidator ipValidator = mock(TigValidation1Dot8.IPValidator.class);
       TigValidation1Dot8.ipValidator = ipValidator;
-      when(ipValidator.isInvalid(ipv6, datasetService)).thenReturn(true);
+      when(ipValidator.isInvalid(eq(ipv6), eq(datasetService), any())).thenReturn(true);
 
       TigValidation1Dot8 validation = new TigValidation1Dot8(response, results, datasetService, config);
       assertThat(validation.doValidate()).isFalse();
@@ -263,14 +263,14 @@ public class TigValidation1Dot8Test {
   public void testIPValidator_isInvalid_UnknownType() {
     TigValidation1Dot8.IPValidator validator = new TigValidation1Dot8.IPValidator();
     InetAddress unknown = mock(InetAddress.class);
-    assertThat(validator.isInvalid(unknown, datasetService)).isTrue();
+    assertThat(validator.isInvalid(unknown, datasetService, results)).isTrue();
   }
 
   @Test
   public void testIPValidator_isInvalid_UnknownTypeAgain() {
     // Test the first case where it's neither IPv4 nor IPv6
     InetAddress unknown = mock(InetAddress.class);
-    assertThat(new IPValidator().isInvalid(unknown, datasetService)).isTrue();
+    assertThat(new IPValidator().isInvalid(unknown, datasetService, results)).isTrue();
   }
 
   @Test
@@ -280,7 +280,7 @@ public class TigValidation1Dot8Test {
     RDAPDatasetService realDatasetService = mock(RDAPDatasetService.class);
     // Test with the real validator
     IPValidator ipValidator = new IPValidator();
-    assertThat(ipValidator.isInvalid(ipv4, realDatasetService)).isFalse();
+    assertThat(ipValidator.isInvalid(ipv4, realDatasetService, results)).isFalse();
   }
 
   @Test
@@ -290,6 +290,6 @@ public class TigValidation1Dot8Test {
 
     // Test with real validator
     IPValidator ipValidator = new IPValidator();
-    assertThat(ipValidator.isInvalid(ipv6, realDatasetService)).isFalse();
+    assertThat(ipValidator.isInvalid(ipv6, realDatasetService, results)).isFalse();
   }
 }

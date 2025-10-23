@@ -61,7 +61,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
 
     URI uri = URI.create(rdapResponse.uri().toString().replace(domainName, newDomain));
     try {
-      HttpResponse<String> httpResponse = RDAPHttpRequest.makeHttpGetRequestWithRedirects(uri, config.getTimeout(), config.getMaxRedirects());
+      HttpResponse<String> httpResponse = RDAPHttpRequest.makeHttpGetRequestWithRedirects(uri, config.getTimeout(), config.getMaxRedirects(), config.getSessionId());
 
       // Check if we got a non-200 response first
       if (httpResponse.statusCode() != rdapResponse.statusCode()) {

@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.icann.rdapconformance.validator.ToolResult;
@@ -20,53 +21,130 @@ import org.slf4j.LoggerFactory;
 public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQueryTypeProcessor.class);
-    private static RDAPHttpQueryTypeProcessor instance;
-    private RDAPValidatorConfiguration config;
-    private ToolResult status = null;
-    private RDAPHttpQueryType queryType = null;
+
+    // Session-keyed storage for concurrent validation requests
+    private static final ConcurrentHashMap<String, RDAPHttpQueryTypeProcessor> sessionInstances = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, RDAPValidatorConfiguration> sessionConfigs = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, ToolResult> sessionStatus = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, RDAPHttpQueryType> sessionQueryTypes = new ConcurrentHashMap<>();
+
+    // Instance holds its session ID for accessing the correct session data
+    private final String sessionId;
 
     // Private constructor for singleton
-    private RDAPHttpQueryTypeProcessor() {
+    private RDAPHttpQueryTypeProcessor(String sessionId) {
+        this.sessionId = sessionId;
     }
 
-    public static synchronized RDAPHttpQueryTypeProcessor getInstance() {
-        if (instance == null) {
-            instance = new RDAPHttpQueryTypeProcessor();
-        }
-        return instance;
+    /**
+     * Gets the singleton instance for a specific session
+     *
+     * @param sessionId the session identifier
+     * @return the singleton instance for this session
+     */
+    public static synchronized RDAPHttpQueryTypeProcessor getInstance(String sessionId) {
+        return sessionInstances.computeIfAbsent(sessionId, k -> {
+            // Initialize session data when creating new instance
+            sessionConfigs.remove(k); // Ensure clean state
+            sessionStatus.remove(k);
+            sessionQueryTypes.remove(k);
+            return new RDAPHttpQueryTypeProcessor(k);
+        });
     }
-    // Static method to get the singleton instance with configuration
+
+    /**
+     * Gets the singleton instance (deprecated - uses default session)
+     *
+     * @deprecated Use getInstance(String sessionId) instead
+     * @return the singleton instance for default session
+     */
+    @Deprecated
+    public static synchronized RDAPHttpQueryTypeProcessor getInstance() {
+        return getInstance("default");
+    }
+
+    /**
+     * Static method to get the singleton instance with configuration (deprecated)
+     *
+     * @deprecated Use getInstance(String sessionId) and setConfiguration(String sessionId, config) instead
+     */
+    @Deprecated
     public static synchronized RDAPHttpQueryTypeProcessor getInstance(RDAPValidatorConfiguration config) {
-        if (instance == null) {
-            instance = new RDAPHttpQueryTypeProcessor();
-        }
+        RDAPHttpQueryTypeProcessor instance = getInstance("default");
         instance.setConfiguration(config);
         return instance;
     }
 
-    // Method to set the configuration
+    /**
+     * Resets the singleton instance for a specific session
+     *
+     * @param sessionId the session to reset
+     */
+    public static void reset(String sessionId) {
+        sessionInstances.remove(sessionId);
+        sessionConfigs.remove(sessionId);
+        sessionStatus.remove(sessionId);
+        sessionQueryTypes.remove(sessionId);
+    }
+
+    /**
+     * Resets all sessions (primarily for testing)
+     */
+    public static void resetAll() {
+        sessionInstances.clear();
+        sessionConfigs.clear();
+        sessionStatus.clear();
+        sessionQueryTypes.clear();
+    }
+
+    /**
+     * Sets the configuration for a specific session
+     *
+     * @param sessionId the session identifier
+     * @param config the validator configuration
+     */
+    public void setConfiguration(String sessionId, RDAPValidatorConfiguration config) {
+        sessionConfigs.put(sessionId, config);
+        sessionStatus.remove(sessionId);
+        sessionQueryTypes.remove(sessionId);
+    }
+
+    /**
+     * Method to set the configuration (deprecated - uses default session)
+     *
+     * @deprecated Use setConfiguration(String sessionId, config) instead
+     */
+    @Deprecated
     public void setConfiguration(RDAPValidatorConfiguration config) {
-        this.config = config;
-        this.status = null;
-        this.queryType = null;
+        setConfiguration("default", config);
     }
 
     @Override
     public boolean check(RDAPDatasetService datasetService) {
-        queryType = RDAPHttpQueryType.getType(this.config.getUri().toString());
-        if (queryType == null) {
-            logger.error("Unknown RDAP query type for URI {}", this.config.getUri());
-            status = ToolResult.UNSUPPORTED_QUERY;
+        RDAPValidatorConfiguration config = sessionConfigs.get(sessionId);
+        if (config == null) {
+            logger.error("Configuration not set for session {}", sessionId);
+            sessionStatus.put(sessionId, ToolResult.CONFIG_INVALID);
             return false;
         }
 
+        RDAPHttpQueryType queryType = RDAPHttpQueryType.getType(config.getUri().toString());
+
+        if (queryType == null) {
+            logger.error("Unknown RDAP query type for URI {} in session {}", config.getUri(), sessionId);
+            sessionStatus.put(sessionId, ToolResult.UNSUPPORTED_QUERY);
+            return false;
+        }
+
+        sessionQueryTypes.put(sessionId, queryType);
+
         if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
-            String domainName = queryType.getValue(this.config.getUri().toString());
+            String domainName = queryType.getValue(config.getUri().toString());
 
             // Check for mixed labels first
             if (hasMixedLabels(domainName)) {
-                logger.error("Mixed label format detected in domain name: {}", domainName);
-                status = ToolResult.MIXED_LABEL_FORMAT;
+                logger.error("Mixed label format detected in domain name: {} in session {}", domainName, sessionId);
+                sessionStatus.put(sessionId, ToolResult.MIXED_LABEL_FORMAT);
                 return false;
             }
 
@@ -74,7 +152,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
 
             // Store current results count to capture only domain validation errors
-            RDAPValidatorResults mainResults = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResults mainResults = RDAPValidatorResultsImpl.getInstance(sessionId);
             int currentResultCount = mainResults.getResultCount();
 
             SchemaValidator validator = SchemaValidatorCache.getCachedValidator("rdap_domain_name.json", mainResults, datasetService);
@@ -85,7 +163,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
                 int newResultCount = mainResults.getResultCount();
                 logger.debug("Added {} domain validation errors to results", newResultCount - currentResultCount);
 
-                status = ToolResult.BAD_USER_INPUT; // it's not REALLY bad user input, but we need to flag an error so we save the results in the results file. This is a special case.
+                sessionStatus.put(sessionId, ToolResult.BAD_USER_INPUT); // it's not REALLY bad user input, but we need to flag an error so we save the results in the results file. This is a special case.
                 // Continue execution (return true) so that domain validation errors are included in final results
                 return true;
             }
@@ -95,18 +173,51 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         return true;
     }
 
-    @Override
-    public ToolResult getErrorStatus() {
-        return this.status;
+    /**
+     * Gets the error status for a specific session
+     *
+     * @param sessionId the session identifier
+     * @return the error status for this session
+     */
+    public ToolResult getErrorStatus(String sessionId) {
+        return sessionStatus.get(sessionId);
     }
 
+    /**
+     * Gets the error status (deprecated - uses default session)
+     *
+     * @deprecated Use getErrorStatus(String sessionId) instead
+     */
     @Override
-    public RDAPQueryType getQueryType() {
+    @Deprecated
+    public ToolResult getErrorStatus() {
+        return getErrorStatus(this.sessionId);
+    }
+
+    /**
+     * Gets the query type for a specific session
+     *
+     * @param sessionId the session identifier
+     * @return the query type for this session
+     */
+    public RDAPQueryType getQueryType(String sessionId) {
+        RDAPHttpQueryType queryType = sessionQueryTypes.get(sessionId);
         if (queryType == null) {
-            logger.error("Query type is null, check() must be called first or returned false");
+            logger.error("Query type is null for session {}, check() must be called first or returned false", sessionId);
             return null;
         }
         return queryType.getQueryType();
+    }
+
+    /**
+     * Gets the query type (deprecated - uses default session)
+     *
+     * @deprecated Use getQueryType(String sessionId) instead
+     */
+    @Override
+    @Deprecated
+    public RDAPQueryType getQueryType() {
+        return getQueryType(this.sessionId);
     }
 
     /**
