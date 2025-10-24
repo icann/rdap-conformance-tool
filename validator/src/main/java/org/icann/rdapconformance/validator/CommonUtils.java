@@ -155,8 +155,9 @@ public class CommonUtils {
      * @param message descriptive message explaining the validation failure
      */
     public static void addErrorToResultsFile(int code, String value, String message) {
-        RDAPValidatorResultsImpl.getInstance()
-                                .add(RDAPValidationResult.builder().code(code).value(value).message(message).build());
+        String sessionId = org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID;
+        RDAPValidatorResultsImpl.getInstance(sessionId)
+                                .add(RDAPValidationResult.builder(sessionId).code(code).value(value).message(message).build());
 
     }
 
@@ -165,7 +166,7 @@ public class CommonUtils {
      */
     public static void addErrorToResultsFile(int code, String value, String message, String sessionId) {
         RDAPValidatorResultsImpl.getInstance(sessionId)
-                                .add(RDAPValidationResult.builder().code(code).value(value).message(message).build());
+                                .add(RDAPValidationResult.builder(sessionId).code(code).value(value).message(message).build());
 
     }
 
@@ -182,8 +183,9 @@ public class CommonUtils {
      * @param message descriptive message explaining the validation failure
      */
     public static void addErrorToResultsFile(int httpStatusCode, int code, String value, String message) {
-        RDAPValidatorResultsImpl.getInstance()
-                                .add(RDAPValidationResult.builder()
+        String sessionId = org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID;
+        RDAPValidatorResultsImpl.getInstance(sessionId)
+                                .add(RDAPValidationResult.builder(sessionId)
                                                          .httpStatusCode(httpStatusCode)
                                                          .code(code)
                                                          .value(value)
@@ -197,7 +199,7 @@ public class CommonUtils {
      */
     public static void addErrorToResultsFile(int httpStatusCode, int code, String value, String message, String sessionId) {
         RDAPValidatorResultsImpl.getInstance(sessionId)
-                                .add(RDAPValidationResult.builder()
+                                .add(RDAPValidationResult.builder(sessionId)
                                                          .httpStatusCode(httpStatusCode)
                                                          .code(code)
                                                          .value(value)

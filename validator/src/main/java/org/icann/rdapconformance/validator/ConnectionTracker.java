@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,27 +83,29 @@ public class ConnectionTracker {
      * @param sessionId the session identifier
      * @return the singleton ConnectionTracker instance for this session
      */
-    public static synchronized ConnectionTracker getInstance(String sessionId) {
-        return sessionInstances.computeIfAbsent(sessionId, k -> {
-            // Initialize session data when creating new instance
-            sessionConnections.put(k, Collections.synchronizedList(new ArrayList<>()));
-            sessionConnectionsByTrackingId.put(k, Collections.synchronizedMap(new HashMap<>()));
-            sessionCurrentConnection.remove(k); // Ensure no current connection initially
-            sessionLastMainConnection.remove(k); // Ensure no last main connection initially
-            return new ConnectionTracker(k);
-        });
+    public static ConnectionTracker getInstance(String sessionId) {
+        return sessionInstances.computeIfAbsent(sessionId, ConnectionTracker::createNewInstance);
     }
 
     /**
-     * Returns the singleton instance (deprecated - uses default session).
+     * Creates a new instance and initializes session data atomically.
+     * This method is called by computeIfAbsent() which ensures thread-safety.
      *
-     * @deprecated Use getInstance(String sessionId) instead
-     * @return the singleton ConnectionTracker instance for default session
+     * @param sessionId the session identifier
+     * @return a new ConnectionTracker instance
      */
-    @Deprecated
-    public static ConnectionTracker getInstance() {
-        return getInstance("default");
+    private static ConnectionTracker createNewInstance(String sessionId) {
+        // Initialize session data when creating new instance
+        // ConcurrentHashMap.computeIfAbsent() ensures this initialization is atomic
+        // Use CopyOnWriteArrayList for connections (read-heavy, write-light workload)
+        // Use ConcurrentHashMap for tracking IDs (high-performance concurrent access)
+        sessionConnections.put(sessionId, new CopyOnWriteArrayList<>());
+        sessionConnectionsByTrackingId.put(sessionId, new ConcurrentHashMap<>());
+        sessionCurrentConnection.remove(sessionId); // Ensure no current connection initially
+        sessionLastMainConnection.remove(sessionId); // Ensure no last main connection initially
+        return new ConnectionTracker(sessionId);
     }
+
 
     /**
      * Resets the singleton instance for a specific session.
@@ -128,15 +131,6 @@ public class ConnectionTracker {
         sessionLastMainConnection.clear();
     }
 
-    /**
-     * Reset the connection tracker (deprecated - resets default session).
-     *
-     * @deprecated Use reset(String sessionId) or resetAll() instead
-     */
-    @Deprecated
-    public synchronized void reset() {
-        reset("default");
-    }
 
     /**
      * Generates a unique tracking ID
@@ -501,11 +495,12 @@ public class ConnectionTracker {
     // Note: reset() method moved to static resetAll() and reset(sessionId) methods above
 
     /**
-     * Get the current status code of the last connection
+     * Get the current status code of the last connection for a specific session
+     * @param sessionId the session identifier
      * @return The status code, or null if not available
      */
-    public static Integer getCurrentStatusCode() {
-        ConnectionTracker tracker = getInstance();
+    public static Integer getCurrentStatusCode(String sessionId) {
+        ConnectionTracker tracker = getInstance(sessionId);
         if(tracker.getCurrentConnection() != null) {
             return tracker.getCurrentConnection().getStatusCode();
         }
@@ -520,11 +515,12 @@ public class ConnectionTracker {
     }
 
     /**
-     * Get the status code of the last main connection
+     * Get the status code of the last main connection for a specific session
+     * @param sessionId the session identifier
      * @return The status code, or null if not available
      */
-    public static Integer getMainStatusCode() {
-        ConnectionRecord mainConnection = getInstance().getLastMainConnection();
+    public static Integer getMainStatusCode(String sessionId) {
+        ConnectionRecord mainConnection = getInstance(sessionId).getLastMainConnection();
 
         if (mainConnection == null || mainConnection.getStatusCode() == ZERO || mainConnection.getStatus() == null) {
             return ZERO; // force to zero

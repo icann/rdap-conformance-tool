@@ -81,8 +81,8 @@ public class RDAPValidationResultFile {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPValidationResultFile.class);
 
-    // Singleton instance
-    private static RDAPValidationResultFile instance;
+    // Singleton instance - using volatile for thread-safe lazy initialization
+    private static volatile RDAPValidationResultFile instance;
 
     // Session-keyed storage for concurrent validation requests
     private static final ConcurrentHashMap<String, RDAPValidatorResults> sessionResults = new ConcurrentHashMap<>();
@@ -101,17 +101,25 @@ public class RDAPValidationResultFile {
     /**
      * Returns the singleton instance of the validation result file manager.
      *
-     * <p>This method provides thread-safe access to the singleton instance,
-     * creating it if it doesn't exist. The instance must be initialized
-     * before use through the initialize method.</p>
+     * <p>This method provides thread-safe access to the singleton instance using
+     * double-checked locking pattern for optimal performance under high concurrency.
+     * The instance must be initialized before use through the initialize method.</p>
      *
      * @return the singleton RDAPValidationResultFile instance
      */
-    public static synchronized RDAPValidationResultFile getInstance() {
-        if (instance == null) {
-            instance = new RDAPValidationResultFile();
+    public static RDAPValidationResultFile getInstance() {
+        // First check without synchronization for performance
+        RDAPValidationResultFile result = instance;
+        if (result == null) {
+            synchronized (RDAPValidationResultFile.class) {
+                // Second check with synchronization for safety
+                result = instance;
+                if (result == null) {
+                    instance = result = new RDAPValidationResultFile();
+                }
+            }
         }
-        return instance;
+        return result;
     }
 
     /**

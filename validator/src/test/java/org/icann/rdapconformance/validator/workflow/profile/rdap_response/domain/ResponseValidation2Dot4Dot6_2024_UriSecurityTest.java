@@ -21,14 +21,14 @@ public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
 
     @BeforeMethod
     public void setup() {
-        results = RDAPValidatorResultsImpl.getInstance();
+        results = RDAPValidatorResultsImpl.getInstance("ResponseValidation2Dot4Dot6_2024_UriSecurityTest");
         results.clear();
-        
+
         // Create validation instance
         String mockJson = "{}";
         RDAPDatasetServiceMock datasets = new RDAPDatasetServiceMock();
         RDAPQueryType queryType = RDAPQueryType.DOMAIN;
-        
+
         RDAPValidatorConfiguration config = Mockito.mock(RDAPValidatorConfiguration.class);
         validation = new ResponseValidation2Dot4Dot6_2024(mockJson, results, datasets, queryType, config);
     }

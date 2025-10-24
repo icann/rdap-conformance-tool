@@ -928,7 +928,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
     @Test
     public void testHandleRequestException_UnknownHostExceptionNotRecorded() {
         try (MockedStatic<CommonUtils> commonUtilsMock = mockStatic(CommonUtils.class)) {
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             // Test with recordError = true
@@ -956,7 +956,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
     @Test
     public void testHandleRequestException_ConnectException() {
         try (MockedStatic<CommonUtils> commonUtilsMock = mockStatic(CommonUtils.class)) {
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             ConnectException ex = new ConnectException("Connection refused");
@@ -981,7 +981,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
     @Test
     public void testHandleRequestException_HttpTimeoutException() {
         try (MockedStatic<CommonUtils> commonUtilsMock = mockStatic(CommonUtils.class)) {
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             java.net.http.HttpTimeoutException ex = new java.net.http.HttpTimeoutException("Request timed out");
@@ -1007,7 +1007,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
                     return null;
                 })) {
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             // Create a chain of exceptions for expired certificate
@@ -1051,7 +1051,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
                     return null;
                 })) {
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             // Create an IOException with the right cause chain -> SSL w/ Revocation
@@ -1087,7 +1087,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
                     return null;
                 })) {
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             // Create the exception with correct message
@@ -1120,7 +1120,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
                     return null;
                 })) {
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             // Create an exception for a General Certificate Error
@@ -1153,7 +1153,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
                     return null;
                 })) {
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             // Create an exception for SSL handshake failure
@@ -1187,7 +1187,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
                     return null;
                 })) {
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             // Create an exception with ValidatorException in the chain
@@ -1210,7 +1210,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
     @Test
     public void testHandleRequestException_SocketTimeoutReadTimeout() {
         try (MockedStatic<CommonUtils> commonUtilsMock = mockStatic(CommonUtils.class)) {
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             SocketTimeoutException ex = new SocketTimeoutException("Read timed out");
@@ -1228,7 +1228,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
     @Test
     public void testHandleRequestException_SocketTimeoutConnectTimeout() {
         try (MockedStatic<CommonUtils> commonUtilsMock = mockStatic(CommonUtils.class)) {
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             SocketTimeoutException ex = new SocketTimeoutException("Connect timed out");
@@ -1246,7 +1246,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
     @Test
     public void testHandleRequestException_EOFException() {
         try (MockedStatic<CommonUtils> commonUtilsMock = mockStatic(CommonUtils.class)) {
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             EOFException ex = new EOFException("Unexpected end of file");
@@ -1264,7 +1264,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
     @Test
     public void testHandleRequestException_ConnectionReset() {
         try (MockedStatic<CommonUtils> commonUtilsMock = mockStatic(CommonUtils.class)) {
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             IOException ex = new IOException("Connection reset");
@@ -1282,7 +1282,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
     @Test
     public void testHandleRequestException_ConnectionClosedByPeer() {
         try (MockedStatic<CommonUtils> commonUtilsMock = mockStatic(CommonUtils.class)) {
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             IOException ex = new IOException("Connection closed by peer");
@@ -1301,7 +1301,7 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
     public void testHandleRequestException_GenericIOException() {
         try (MockedStatic<CommonUtils> commonUtilsMock = mockStatic(CommonUtils.class)) {
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPHttpRequestTest");
             results.clear();
 
             IOException ex = new IOException("Some other IO error");
@@ -1829,7 +1829,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             // Clear connection tracker for this specific test session
             String testSessionId = "testLinkRedirectConnections";
             ConnectionTracker tracker = ConnectionTracker.getInstance(testSessionId);
-            tracker.reset();
+            tracker.reset(testSessionId);
             
             // Setup redirect
             wireMock.stubFor(get(urlEqualTo("/original"))
@@ -1881,7 +1881,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             
             String testSessionId = "testRedirectConnectionTracking_TreeDisplayFormat";
             ConnectionTracker tracker = ConnectionTracker.getInstance(testSessionId);
-            tracker.reset();
+            tracker.reset(testSessionId);
             
             // Setup redirect chain: original -> intermediate -> final
             wireMock.stubFor(get(urlEqualTo("/chain/original"))

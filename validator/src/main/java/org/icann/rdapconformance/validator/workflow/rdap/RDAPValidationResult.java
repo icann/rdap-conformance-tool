@@ -31,7 +31,12 @@ public class RDAPValidationResult {
   }
 
   public static Builder builder() {
-    return new Builder();
+    // For backward compatibility, use default session - but this should be avoided
+    return new Builder(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID);
+  }
+
+  public static Builder builder(String sessionId) {
+    return new Builder(sessionId);
   }
 
   public int getCode() {
@@ -102,6 +107,7 @@ public class RDAPValidationResult {
 
   public static class Builder {
 
+    private final String sessionId;
     private int code;
     private String value;
     private String message;
@@ -110,6 +116,10 @@ public class RDAPValidationResult {
     private Integer httpStatusCode;
     private String queriedURI;
     private String serverIpAddress;
+
+    public Builder(String sessionId) {
+      this.sessionId = sessionId;
+    }
 
     public Builder code(int code) {
       this.code = code;
@@ -152,7 +162,7 @@ public class RDAPValidationResult {
     }
 
     public RDAPValidationResult build() {
-      Integer statusCodeFromCurrent = ConnectionTracker.getMainStatusCode();
+      Integer statusCodeFromCurrent = ConnectionTracker.getMainStatusCode(this.sessionId);
 
       return new RDAPValidationResult(
           this.code,

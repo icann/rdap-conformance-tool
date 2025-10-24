@@ -26,7 +26,7 @@ public class DNSCacheResolverTest {
         // Reset to default system DNS before each test
         DNSCacheResolver.initializeResolver(null);
         // Clear validation results
-        RDAPValidatorResultsImpl.getInstance().clear();
+        RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").clear();
     }
 
     private void clearDNSCaches() {
@@ -351,7 +351,7 @@ public class DNSCacheResolverTest {
         DNSCacheResolver.doZeroIPAddressesValidation("http://localhost/", true, true);
         
         // Should not add any validation errors since localhost has both IPv4 and IPv6
-        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").getAll();
         assertThat(results).isEmpty();
     }
 
@@ -360,7 +360,7 @@ public class DNSCacheResolverTest {
         DNSCacheResolver.doZeroIPAddressesValidation("http://localhost/", false, true);
         
         // Should not add validation errors since localhost has IPv4
-        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").getAll();
         assertThat(results).isEmpty();
     }
 
@@ -369,7 +369,7 @@ public class DNSCacheResolverTest {
         DNSCacheResolver.doZeroIPAddressesValidation("http://localhost/", true, false);
         
         // Should not add validation errors since localhost has IPv6
-        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").getAll();
         assertThat(results).isEmpty();
     }
 
@@ -378,7 +378,7 @@ public class DNSCacheResolverTest {
         DNSCacheResolver.doZeroIPAddressesValidation("not-a-url", true, true);
         
         // Should add validation error for unable to resolve
-        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").getAll();
         assertThat(results).hasSize(1);
         assertThat(results.iterator().next().getCode()).isEqualTo(-13019);
     }
@@ -530,10 +530,10 @@ public class DNSCacheResolverTest {
         clearDNSCaches();
         DNSCacheResolver.resolveIfNeeded("no-ipv4-addresses.invalid.");
 
-        RDAPValidatorResultsImpl.getInstance().clear();
+        RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").clear();
         DNSCacheResolver.doZeroIPAddressesValidation("http://no-ipv4-addresses.invalid/", false, true);
 
-        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").getAll();
         assertThat(results).isNotEmpty();
         assertThat(results.iterator().next().getCode()).isEqualTo(-20400);
     }
@@ -544,10 +544,10 @@ public class DNSCacheResolverTest {
         clearDNSCaches();
         DNSCacheResolver.resolveIfNeeded("no-ipv6-addresses.invalid.");
 
-        RDAPValidatorResultsImpl.getInstance().clear();
+        RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").clear();
         DNSCacheResolver.doZeroIPAddressesValidation("http://no-ipv6-addresses.invalid/", true, false);
 
-        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").getAll();
         assertThat(results).isNotEmpty();
         assertThat(results.iterator().next().getCode()).isEqualTo(-20401);
     }
@@ -558,10 +558,10 @@ public class DNSCacheResolverTest {
         clearDNSCaches();
         DNSCacheResolver.resolveIfNeeded("no-addresses.invalid.");
 
-        RDAPValidatorResultsImpl.getInstance().clear();
+        RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").clear();
         DNSCacheResolver.doZeroIPAddressesValidation("http://no-addresses.invalid/", true, true);
 
-        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> results = RDAPValidatorResultsImpl.getInstance("DNSCacheResolverTest").getAll();
         assertThat(results).hasSize(1);
         assertThat(results.iterator().next().getCode()).isEqualTo(-13019);
     }

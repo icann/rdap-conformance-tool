@@ -34,7 +34,7 @@ public class TigValidation1Dot8Test {
 
   @BeforeMethod
   public void setUp() {
-    results = RDAPValidatorResultsImpl.getInstance();
+    results = RDAPValidatorResultsImpl.getInstance("TigValidation1Dot8Test");
     results.clear();
     datasetService = mock(RDAPDatasetService.class);
     config = mock(RDAPValidatorConfiguration.class);

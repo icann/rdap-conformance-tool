@@ -253,7 +253,10 @@ public class RDAPHttpRequest {
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError, String sessionId) throws Exception {
         if (originalUri == null) throw new IllegalArgumentException("The provided URI is null.");
 
-        ConnectionTracker tracker = ConnectionTracker.getInstance(sessionId != null ? sessionId : "default");
+        // Use SessionContext to handle session ID validation and backward compatibility
+        String validatedSessionId = org.icann.rdapconformance.validator.session.SessionContext.validateSessionId(sessionId);
+
+        ConnectionTracker tracker = ConnectionTracker.getInstance(validatedSessionId);
         String trackingId = tracker.startTrackingNewConnection(originalUri, method, isMain);
 
         String host = originalUri.getHost();
@@ -464,12 +467,12 @@ public class RDAPHttpRequest {
             if (recordError) {
                 addErrorToResultsFile(ZERO, -13014, "no response available", "HTTP error.");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HTTP_ERROR);
+            ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.HTTP_ERROR);
             return ConnectionStatus.HTTP_ERROR;
         }
 
         if (e instanceof UnknownHostException) {
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
+            ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
         }
 
@@ -477,7 +480,7 @@ public class RDAPHttpRequest {
             if (recordError) {
                 addErrorToResultsFile(ZERO, -13021, "no response available", "Connection refused by host.");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_REFUSED);
+            ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.CONNECTION_REFUSED);
             return ConnectionStatus.CONNECTION_REFUSED;
         }
 
@@ -485,7 +488,7 @@ public class RDAPHttpRequest {
                 if(recordError) {
                     addErrorToResultsFile(ZERO, -13007, "no response available", "Failed to connect to server.");
                 }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
+                ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
                 return ConnectionStatus.CONNECTION_FAILED;
         }
 
@@ -494,32 +497,32 @@ public class RDAPHttpRequest {
             if(recordError) {
                 addErrorToResultsFile(ZERO, -13011, "no response available", "Expired certificate.");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
+            ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
             return ConnectionStatus.EXPIRED_CERTIFICATE;
         } else if (hasCause(e, "java.security.cert.CertificateRevokedException") || exceptionString.contains("CertificateRevokedException") ||  exceptionString.contains("Certificate revoked")) {
             if(recordError) {
                 addErrorToResultsFile(ZERO, -13010, "no response available", "Revoked TLS certificate.");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
+            ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
             return ConnectionStatus.REVOKED_CERTIFICATE;
         }
         else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
             if(recordError) {
                 addErrorToResultsFile(ZERO, -13008, "no response available", "TLS handshake failed.");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
+            ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
             return ConnectionStatus.HANDSHAKE_FAILED;
         }
         else if (hasCause(e, "javax.net.ssl.SSLPeerUnverifiedException") || e.toString().contains("SSLPeerUnverifiedException")) {
                 if(recordError) {
                     addErrorToResultsFile(ZERO, -13009, "no response available", "Invalid TLS certificate.");
                 }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
+                ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
                 return ConnectionStatus.INVALID_CERTIFICATE;
         } else if (hasCause(e, "sun.security.validator.ValidatorException") || hasCause(e, "java.security.cert.CertificateException") ) {
             // else it's just a generic certificate error and falls under the certificate error category
             addErrorToResultsFile(ZERO,-13012, "no response available", "TLS certificate error.");
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
+            ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
             return ConnectionStatus.CERTIFICATE_ERROR;
         }
 
@@ -532,14 +535,14 @@ public class RDAPHttpRequest {
                 if (recordError) {
                     addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
                 }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+                ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
                 return ConnectionStatus.NETWORK_RECEIVE_FAIL;
             } else {
                 // Other socket timeouts = network send failure (-13016)
                 if (recordError) {
                     addErrorToResultsFile(ZERO, -13016, "no response available", "Network send fail");
                 }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
+                ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
                 return ConnectionStatus.NETWORK_SEND_FAIL;
             }
         }
@@ -554,14 +557,14 @@ public class RDAPHttpRequest {
             if (recordError) {
                 addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+            ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
             return ConnectionStatus.NETWORK_RECEIVE_FAIL;
         }
         // we are at the fall through point, which means we have not identified a specific cause, and it gets classified as a connection failure
         if(recordError) {
             addErrorToResultsFile(ZERO,-13007, "no response available", "Failed to connect to server.");
         }
-        ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
+        ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
         return ConnectionStatus.CONNECTION_FAILED;
     }
 

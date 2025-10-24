@@ -137,7 +137,7 @@ public class RDAPHttpQueryTypeProcessorTest {
   @Test
   public void testSchemaValidationFailure_DebugZzMainDomain() {
     // Clear singleton state before test
-    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance().clear();
+    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryTypeProcessorTest").clear();
     
     // Debug test to understand why schema validation fails for zz--main-1234
     URI uri = URI.create("http://rdap.server.example/domain/zz--main-1234");
@@ -167,8 +167,8 @@ public class RDAPHttpQueryTypeProcessorTest {
   @Test
   public void testSchemaValidationErrorCodes_ZzMain_NewCodes() {
     // Test to verify the new error codes are generated instead of -999
-    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results = 
-        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance();
+    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results =
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryTypeProcessorTest");
     
     // Clear any previous results to avoid test pollution
     results.clear();
@@ -207,7 +207,7 @@ public class RDAPHttpQueryTypeProcessorTest {
   @Test
   public void testSchemaValidationFailure_NowHasProperStatus() {
     // Clear singleton state before test
-    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance().clear();
+    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryTypeProcessorTest").clear();
 
     // Test that schema validation failure now sets proper ToolResult status (fixes the NPE bug)
     URI uri = URI.create("http://rdap.server.example/domain/zz--main-1234");
@@ -329,7 +329,7 @@ public class RDAPHttpQueryTypeProcessorTest {
   public void testErrorCode_10300_Label63CharsValid() {
     // Test that a domain with exactly 63 characters in a label is VALID (boundary test)
     org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results =
-        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance();
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryTypeProcessorTest");
 
     // Clear any previous results to avoid test pollution
     results.clear();
@@ -361,7 +361,7 @@ public class RDAPHttpQueryTypeProcessorTest {
   public void testErrorCode_10300_LabelTooLong() {
     // Test that a domain with label too long generates -10300 error with correct message
     org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results =
-        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance();
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryTypeProcessorTest");
 
     // Clear any previous results to avoid test pollution
     results.clear();
@@ -397,8 +397,8 @@ public class RDAPHttpQueryTypeProcessorTest {
   @Test
   public void testErrorCode_10301_DomainTooLong() {
     // Test that a domain name longer than 253 characters generates -10301 error with correct message
-    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results = 
-        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance();
+    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results =
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryTypeProcessorTest");
     
     // Clear any previous results to avoid test pollution
     results.clear();
@@ -437,8 +437,8 @@ public class RDAPHttpQueryTypeProcessorTest {
   @Test
   public void testErrorCode_10302_LessThanTwoLabels() {
     // Test that a domain with less than two labels generates -10302 error with correct message
-    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results = 
-        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance();
+    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results =
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryTypeProcessorTest");
     
     // Clear any previous results to avoid test pollution
     results.clear();
@@ -473,8 +473,8 @@ public class RDAPHttpQueryTypeProcessorTest {
   @Test
   public void testErrorCode_10303_InvalidLabel() {
     // Test that a domain with invalid label generates -10303 error with correct message
-    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results = 
-        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance();
+    org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results =
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryTypeProcessorTest");
     
     // Clear any previous results to avoid test pollution
     results.clear();
@@ -521,8 +521,8 @@ public class RDAPHttpQueryTypeProcessorTest {
     };
     
     for (String domain : testCases) {
-      org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results = 
-          org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance();
+      org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl results =
+          org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryTypeProcessorTest");
       results.clear();
       
       org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock datasetService = 

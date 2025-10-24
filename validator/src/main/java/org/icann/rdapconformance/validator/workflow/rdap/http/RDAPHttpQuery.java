@@ -303,7 +303,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             if (remainingRedirects == ZERO) {
                 status = ConnectionStatus.TOO_MANY_REDIRECTS;
                 addErrorToResultsFile(-13013, "no response available", "Too many HTTP redirects.");
-                ConnectionTracker.getInstance().updateCurrentConnection(status);
+                ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(status);
             }
 
             // if we exit the loop without a redirect, we have a final response

@@ -27,11 +27,11 @@ public class RDAPValidationResultFile12107ScenarioTest {
     public void setUp() {
         // Reset the singleton for clean tests
         RDAPValidationResultFile.reset();
-        
+
         // Clear results
-        results = RDAPValidatorResultsImpl.getInstance();
+        results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFile12107ScenarioTest");
         results.clear();
-        
+
         // Mock configuration for Feb 2024 profile
         config = mock(RDAPValidatorConfiguration.class);
         when(config.useRdapProfileFeb2024()).thenReturn(true);

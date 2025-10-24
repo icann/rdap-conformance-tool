@@ -50,7 +50,7 @@ public class RDAPHttpQueryStatusCodeTest {
         // Start WireMock server on dynamic port
         wireMockServer = new WireMockServer(wireMockConfig().dynamicPort());
         wireMockServer.start();
-        
+
         // Configure WireMock client to use our server
         configureFor("localhost", wireMockServer.port());
 
@@ -59,9 +59,9 @@ public class RDAPHttpQueryStatusCodeTest {
         doReturn(5000).when(config).getTimeout();
         doReturn(5).when(config).getMaxRedirects();
         doReturn(true).when(config).useRdapProfileFeb2024(); // Enable Feb 2024 profile for -12107 testing
-        
+
         // Clear any previous results
-        RDAPValidatorResultsImpl.getInstance().clear();
+        RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").clear();
     }
 
     @AfterMethod
@@ -69,7 +69,7 @@ public class RDAPHttpQueryStatusCodeTest {
         if (wireMockServer != null && wireMockServer.isRunning()) {
             wireMockServer.stop();
         }
-        RDAPValidatorResultsImpl.getInstance().clear();
+        RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").clear();
     }
 
     @DataProvider(name = "statusCodeScenarios")
@@ -126,16 +126,16 @@ public class RDAPHttpQueryStatusCodeTest {
                 .withBody(responseBody)));
 
         // Clear previous results
-        RDAPValidatorResultsImpl.getInstance().clear();
+        RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").clear();
 
         // Execute: Run the actual RDAPHttpQuery
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         boolean queryResult = query.run();
-        
+
         System.out.println("Query result: " + queryResult);
 
         // Get all validation results
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         System.out.println("Total results: " + allResults.size());
         
         // Print all results for debugging
@@ -192,12 +192,12 @@ public class RDAPHttpQueryStatusCodeTest {
                 .withHeader("Content-Type", "application/json")
                 .withBody("{\"rdapConformance\":[\"rdap_level_0\"]}")));
 
-        RDAPValidatorResultsImpl.getInstance().clear();
+        RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").clear();
         
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         boolean queryResult = query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         System.out.println("404 Query result: " + queryResult);
         System.out.println("404 Total results: " + allResults.size());
@@ -244,12 +244,12 @@ public class RDAPHttpQueryStatusCodeTest {
                 .withHeader("Content-Type", "application/json")
                 .withBody(body)));
 
-        RDAPValidatorResultsImpl.getInstance().clear();
+        RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").clear();
         
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         boolean queryResult = query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         boolean has13002 = allResults.stream().anyMatch(r -> r.getCode() == -13002);
         
         System.out.println(description + " → Result: " + queryResult + 
@@ -273,12 +273,12 @@ public class RDAPHttpQueryStatusCodeTest {
                 .withStatus(testStatusCode)
                 .withBody("I'm a teapot!")));
 
-        RDAPValidatorResultsImpl.getInstance().clear();
+        RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").clear();
         
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
 
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         RDAPValidationResult error13002 = allResults.stream()
             .filter(r -> r.getCode() == -13002)
             .findFirst()
@@ -315,12 +315,12 @@ public class RDAPHttpQueryStatusCodeTest {
                     .withHeader("Content-Type", "application/json")
                     .withBody("Status " + statusCode + " response")));
 
-            RDAPValidatorResultsImpl.getInstance().clear();
+            RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").clear();
             
             RDAPHttpQuery query = new RDAPHttpQuery(config);
             boolean result = query.run();
             
-            Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+            Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
             
             System.out.println("Status " + statusCode + " → Query result: " + result + 
                              ", Total results: " + allResults.size());
@@ -432,7 +432,7 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean queryResult = query.run();
         
         // Analyze results
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -493,7 +493,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -527,7 +527,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -561,7 +561,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -596,7 +596,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -631,7 +631,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
 
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
 
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -670,7 +670,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -703,7 +703,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -736,7 +736,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -771,7 +771,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -806,7 +806,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
@@ -841,7 +841,7 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.run();
         
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance().getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);

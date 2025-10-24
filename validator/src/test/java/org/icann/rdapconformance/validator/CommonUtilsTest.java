@@ -24,7 +24,7 @@ public class CommonUtilsTest {
     public void testAddErrorToResultsFile() {
         try (var mockedStatic = mockStatic(RDAPValidatorResultsImpl.class)) {
             var mockResults = mock(RDAPValidatorResultsImpl.class);
-            mockedStatic.when(RDAPValidatorResultsImpl::getInstance).thenReturn(mockResults);
+            mockedStatic.when(() -> RDAPValidatorResultsImpl.getInstance("default-legacy-session")).thenReturn(mockResults);
 
             int code = 404;
             String value = "someValue";
@@ -114,7 +114,7 @@ public class CommonUtilsTest {
     public void testAddErrorToResultsFileWithHttpStatus() {
         try (var mockedStatic = mockStatic(RDAPValidatorResultsImpl.class)) {
             var mockResults = mock(RDAPValidatorResultsImpl.class);
-            mockedStatic.when(RDAPValidatorResultsImpl::getInstance).thenReturn(mockResults);
+            mockedStatic.when(() -> RDAPValidatorResultsImpl.getInstance("default-legacy-session")).thenReturn(mockResults);
 
             int httpStatusCode = 404;
             int code = -12345;

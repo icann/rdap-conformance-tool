@@ -131,12 +131,10 @@ public class WebAppConcurrentSessionExample {
         tool.setUseLocalDatasets(false);
         tool.setVerbose(false);
 
-        // Set results file to temp location
-        tool.setResultsFile("/tmp/results-session-" + sessionId + ".json");
+        // Let tool use default timestamp-based filename (results-20241023140530.json format)
 
         // Use Path API for config file (like RdapToolExample does)
-        Path currentDir = Paths.get(System.getProperty("user.dir"));
-        Path configFilePath = currentDir.resolve("tool/bin/rdapct_config.json");
+        Path configFilePath = Paths.get("/tmp/rdapct_config.json");
         tool.setConfigurationFile(configFilePath.toString());
 
         // Different configurations for different tasks

@@ -44,26 +44,26 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
    * @param sessionId the session identifier
    * @return the singleton instance for this session
    */
-  public static synchronized RDAPValidatorResultsImpl getInstance(String sessionId) {
-    return sessionInstances.computeIfAbsent(sessionId, k -> {
-      // Initialize session data when creating new instance
-      sessionResults.put(k, ConcurrentHashMap.newKeySet());
-      sessionGroups.put(k, ConcurrentHashMap.newKeySet());
-      sessionGroupErrorWarning.put(k, ConcurrentHashMap.newKeySet());
-      return new RDAPValidatorResultsImpl(k);
-    });
+  public static RDAPValidatorResultsImpl getInstance(String sessionId) {
+    return sessionInstances.computeIfAbsent(sessionId, RDAPValidatorResultsImpl::createNewInstance);
   }
 
   /**
-   * Gets the singleton instance (deprecated - uses default session)
+   * Creates a new instance and initializes session data atomically.
+   * This method is called by computeIfAbsent() which ensures thread-safety.
    *
-   * @deprecated Use getInstance(String sessionId) instead
-   * @return the singleton instance for default session
+   * @param sessionId the session identifier
+   * @return a new RDAPValidatorResultsImpl instance
    */
-  @Deprecated
-  public static synchronized RDAPValidatorResultsImpl getInstance() {
-    return getInstance("default");
+  private static RDAPValidatorResultsImpl createNewInstance(String sessionId) {
+    // Initialize session data when creating new instance
+    // ConcurrentHashMap.computeIfAbsent() ensures this initialization is atomic
+    sessionResults.put(sessionId, ConcurrentHashMap.newKeySet());
+    sessionGroups.put(sessionId, ConcurrentHashMap.newKeySet());
+    sessionGroupErrorWarning.put(sessionId, ConcurrentHashMap.newKeySet());
+    return new RDAPValidatorResultsImpl(sessionId);
   }
+
 
   /**
    * Resets the singleton instance for a specific session
@@ -87,15 +87,6 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     sessionGroupErrorWarning.clear();
   }
 
-  /**
-   * Resets the singleton instance (deprecated - resets default session)
-   *
-   * @deprecated Use reset(String sessionId) or resetAll() instead
-   */
-  @Deprecated
-  public static void reset() {
-    reset("default");
-  }
 
   /**
    * Gets the results count for a specific session
@@ -108,16 +99,6 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     return results != null ? results.size() : 0;
   }
 
-  /**
-   * Gets the results count (deprecated - uses default session)
-   *
-   * @deprecated Use getResultCount(String sessionId) instead
-   * @return the number of results for default session
-   */
-  @Deprecated
-  public int getResultCount() {
-    return getResultCount("default");
-  }
 
   /**
    * Adds a validation result to a specific session
@@ -138,15 +119,17 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   }
 
   /**
-   * Replaces all results for a specific session
+   * Replaces all results for a specific session atomically
    *
    * @param sessionId the session identifier
    * @param results the new results set
    */
   public void addAll(String sessionId, Set<RDAPValidationResult> results) {
-    Set<RDAPValidationResult> sessionResultsSet = sessionResults.computeIfAbsent(sessionId, k -> ConcurrentHashMap.newKeySet());
-    sessionResultsSet.clear();
-    sessionResultsSet.addAll(results);
+    // Create a new concurrent set with the provided results to ensure atomicity
+    // This avoids the race condition between clear() and addAll() operations
+    Set<RDAPValidationResult> newResultsSet = ConcurrentHashMap.newKeySet();
+    newResultsSet.addAll(results);
+    sessionResults.put(sessionId, newResultsSet);
   }
 
   @Override
@@ -325,15 +308,11 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     }
   }
 
-  /**
-   * Clears all results and groups from the instance (deprecated - uses default session)
-   *
-   * @deprecated Use clear(String sessionId) instead
-   */
-  @Deprecated
+  @Override
   public void clear() {
-    clear("default");
+    clear(this.sessionId);
   }
+
 
   /**
    * Returns a pretty-printed string of all results for a specific session
@@ -350,16 +329,6 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     return sb.toString();
   }
 
-  /**
-   * Returns a pretty-printed string of all results (deprecated - uses default session)
-   *
-   * @deprecated Use prettyPrintResults(String sessionId) instead
-   * @return formatted string of results for debugging
-   */
-  @Deprecated
-  public String prettyPrintResults() {
-    return prettyPrintResults("default");
-  }
 
   /**
    * Analyzes results with status check for a specific session
@@ -431,16 +400,6 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     return sb.toString();
   }
 
-  /**
-   * Analyzes results with status check (deprecated - uses default session)
-   *
-   * @deprecated Use analyzeResultsWithStatusCheck(String sessionId) instead
-   * @return analysis string
-   */
-  @Deprecated
-  public String analyzeResultsWithStatusCheck() {
-    return analyzeResultsWithStatusCheck("default");
-  }
 
   /**
    * Culls duplicate IP address errors for a specific session
@@ -472,13 +431,19 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     results.removeAll(toRemove);
   }
 
-  /**
-   * Culls duplicate IP address errors (deprecated - uses default session)
-   *
-   * @deprecated Use cullDuplicateIPAddressErrors(String sessionId) instead
-   */
-  @Deprecated
+  @Override
   public void cullDuplicateIPAddressErrors() {
-    cullDuplicateIPAddressErrors("default");
+    cullDuplicateIPAddressErrors(this.sessionId);
   }
+
+  @Override
+  public String analyzeResultsWithStatusCheck() {
+    return analyzeResultsWithStatusCheck(this.sessionId);
+  }
+
+  @Override
+  public int getResultCount() {
+    return getResultCount(this.sessionId);
+  }
+
 }

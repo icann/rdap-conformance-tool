@@ -46,7 +46,7 @@ public class PrivateIpv4NameserverBugTest {
             throw new RuntimeException("Failed to download real datasets for integration testing");
         }
 
-        results = RDAPValidatorResultsImpl.getInstance();
+        results = RDAPValidatorResultsImpl.getInstance("PrivateIpv4NameserverBugTest");
         results.clear();
 
         // Load the test JSON file that contains private IPv4 addresses in nameservers

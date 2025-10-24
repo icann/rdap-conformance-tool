@@ -47,7 +47,7 @@ public class RDAPValidationResultFileTest {
     public void setUp() {
         RDAPValidationResultFile.reset();
 
-        results = RDAPValidatorResultsImpl.getInstance();
+        results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
         results.clear();
         fileSystem = mock(FileSystem.class);
         results.addGroups(Set.of("firstGroup"));
@@ -208,7 +208,7 @@ public class RDAPValidationResultFileTest {
 @Test
 public void testAllCodesThatShouldBeIgnored() {
     // Create results with codes that should be filtered
-    RDAPValidatorResultsImpl resultsImpl = RDAPValidatorResultsImpl.getInstance();
+    RDAPValidatorResultsImpl resultsImpl = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
     resultsImpl.clear();
     resultsImpl.add(RDAPValidationResult.builder().code(-13004).httpStatusCode(200).build());
     resultsImpl.add(RDAPValidationResult.builder().code(-13005).httpStatusCode(404).build());
@@ -237,7 +237,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testBuggyIgnoredCodes() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
         results.clear();
 
         results.add(RDAPValidationResult.builder().code(-130004).httpStatusCode(200).build());
@@ -250,7 +250,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testAllNonIgnoredCodesSameStatus() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
         results.clear();
         results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(200).build());
@@ -264,7 +264,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testAllNonIgnoredCodesDifferentStatus() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
         results.clear();
         results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
@@ -284,7 +284,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testMixedIgnoredAndNonIgnoredCodes() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
         results.clear();
         results.add(RDAPValidationResult.builder().code(-130004).httpStatusCode(200).build());
         results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
@@ -298,7 +298,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testNonIgnoredCodeWithZeroStatus() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
         results.clear();
         results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(0).build());
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(200).build());
@@ -315,7 +315,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testEmptyResults() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
         results.clear();
 
         String output = results.analyzeResultsWithStatusCheck();
@@ -326,9 +326,9 @@ public void testAllCodesThatShouldBeIgnored() {
     @Test
     public void testNullAndZeroStatusCodesAreEquivalent() {
         try (MockedStatic<ConnectionTracker> mocked = org.mockito.Mockito.mockStatic(ConnectionTracker.class)) {
-            mocked.when(ConnectionTracker::getMainStatusCode).thenReturn(0);
+            mocked.when(() -> ConnectionTracker.getMainStatusCode("RDAPValidationResultFileTest")).thenReturn(0);
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
             results.clear();
 
             results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
@@ -344,9 +344,9 @@ public void testAllCodesThatShouldBeIgnored() {
     @Test
     public void testMixedNullZeroAndOtherStatusCodes() {
         try (MockedStatic<ConnectionTracker> mocked = org.mockito.Mockito.mockStatic(ConnectionTracker.class)) {
-            mocked.when(ConnectionTracker::getMainStatusCode).thenReturn(0);
+            mocked.when(() -> ConnectionTracker.getMainStatusCode("RDAPValidationResultFileTest")).thenReturn(0);
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
             results.clear();
             results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
             results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
@@ -370,7 +370,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testNoDuplicateTuplesInJson() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance("RDAPValidationResultFileTest");
         results.clear();
 
         // Add duplicate results deliberately
