@@ -154,12 +154,6 @@ public class CommonUtils {
      * @param value the value that caused the validation error (e.g., domain name, IP address)
      * @param message descriptive message explaining the validation failure
      */
-    public static void addErrorToResultsFile(int code, String value, String message) {
-        String sessionId = org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID;
-        RDAPValidatorResultsImpl.getInstance(sessionId)
-                                .add(RDAPValidationResult.builder(sessionId).code(code).value(value).message(message).build());
-
-    }
 
     /**
      * Session-aware version of addErrorToResultsFile.
@@ -182,17 +176,6 @@ public class CommonUtils {
      * @param value the value that caused the validation error (e.g., domain name, IP address)
      * @param message descriptive message explaining the validation failure
      */
-    public static void addErrorToResultsFile(int httpStatusCode, int code, String value, String message) {
-        String sessionId = org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID;
-        RDAPValidatorResultsImpl.getInstance(sessionId)
-                                .add(RDAPValidationResult.builder(sessionId)
-                                                         .httpStatusCode(httpStatusCode)
-                                                         .code(code)
-                                                         .value(value)
-                                                         .message(message)
-                                                         .build());
-
-    }
 
     /**
      * Session-aware version of addErrorToResultsFile with HTTP status code.

@@ -30,10 +30,6 @@ public class RDAPValidationResult {
     this.queriedURI = queriedURI;
   }
 
-  public static Builder builder() {
-    // For backward compatibility, use default session - but this should be avoided
-    return new Builder(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID);
-  }
 
   public static Builder builder(String sessionId) {
     return new Builder(sessionId);

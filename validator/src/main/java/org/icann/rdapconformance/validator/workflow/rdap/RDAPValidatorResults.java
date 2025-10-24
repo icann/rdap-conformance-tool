@@ -34,4 +34,6 @@ public interface RDAPValidatorResults {
   String analyzeResultsWithStatusCheck();
 
   void cullDuplicateIPAddressErrors();
+
+  String getSessionId();
 }

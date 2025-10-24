@@ -81,6 +81,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     private List<URI> redirects = new ArrayList<>();
     private final RDAPValidatorConfiguration config;
+    private final String sessionId;
     private HttpResponse<String> httpResponse = null;
 
     private JsonData jsonResponse = null;
@@ -90,12 +91,14 @@ public class RDAPHttpQuery implements RDAPQuery {
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
     /**
-     * Creates a new RDAP HTTP query with the specified configuration.
+     * Creates a new RDAP HTTP query with the specified configuration and session ID.
      *
      * @param config the validator configuration containing URI, timeout, and other settings
+     * @param sessionId the session identifier for this validation context
      */
-    public RDAPHttpQuery(RDAPValidatorConfiguration config) {
+    public RDAPHttpQuery(RDAPValidatorConfiguration config, String sessionId) {
         this.config = config;
+        this.sessionId = sessionId;
     }
 
     /**
@@ -152,17 +155,17 @@ public class RDAPHttpQuery implements RDAPQuery {
             if (queryType.isLookupQuery() && !jsonResponseValid()) {
                 logger.debug("objectClassName was not found in the topmost object");
                 addErrorToResultsFile(-13003, httpResponse.body(),
-                    "The response does not have an objectClassName string.");
+                    "The response does not have an objectClassName string.", this.sessionId);
                 structureValid = false;
             } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !hasNameserverSearchResults()) {
                 logger.debug("No JSON array in answer");
                 if (config.useRdapProfileFeb2024()) {
                     addErrorToResultsFile(-12610, httpResponse.body(),
-                        "The nameserverSearchResults structure is required.");
+                        "The nameserverSearchResults structure is required.", this.sessionId);
                     structureValid = false;
                 } else {
                     addErrorToResultsFile(-13003, httpResponse.body(),
-                        "The response does not have an objectClassName string.");
+                        "The response does not have an objectClassName string.", this.sessionId);
                     structureValid = false;
                 }
             }
@@ -302,8 +305,8 @@ public class RDAPHttpQuery implements RDAPQuery {
             // check for the redirects
             if (remainingRedirects == ZERO) {
                 status = ConnectionStatus.TOO_MANY_REDIRECTS;
-                addErrorToResultsFile(-13013, "no response available", "Too many HTTP redirects.");
-                ConnectionTracker.getInstance(org.icann.rdapconformance.validator.session.SessionContext.DEFAULT_SESSION_ID).updateCurrentConnection(status);
+                addErrorToResultsFile(-13013, "no response available", "Too many HTTP redirects.", this.sessionId);
+                ConnectionTracker.getInstance(this.sessionId).updateCurrentConnection(status);
             }
 
             // if we exit the loop without a redirect, we have a final response
@@ -328,7 +331,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         if (!isValidStatusCode) {
             String statusValue =
                 httpResponse == null ? "no response available" : String.valueOf(httpResponse.statusCode());
-            addErrorToResultsFile(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
+            addErrorToResultsFile(-13002, statusValue, "The HTTP status code was neither 200 nor 404.", this.sessionId);
         }
 
         // Check 2024 profile validations BEFORE early termination to ensure -12108 precedence
@@ -338,10 +341,10 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             if (httpStatusCode != HTTP_OK) {
                 if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
-                    addErrorToResultsFile(-12107, rdapResponse, "The errorCode value is required in an error response.");
+                    addErrorToResultsFile(-12107, rdapResponse, "The errorCode value is required in an error response.", this.sessionId);
                     isQuerySuccessful = false;
                 } else if (!validateErrorCodeMatchesHttpStatus(httpStatusCode, rdapResponse)) {
-                    addErrorToResultsFile(-12108, rdapResponse, "The errorCode value does not match the HTTP status code.");
+                    addErrorToResultsFile(-12108, rdapResponse, "The errorCode value does not match the HTTP status code.", this.sessionId);
                     isQuerySuccessful = false;
                 }
             }
@@ -374,13 +377,13 @@ public class RDAPHttpQuery implements RDAPQuery {
         if (Arrays.stream(String.join(SEMI_COLON, headers.allValues(CONTENT_TYPE)).split(SEMI_COLON))
                   .noneMatch(s -> s.equalsIgnoreCase(APPLICATION_RDAP_JSON))) {
             addErrorToResultsFile(-13000, headers.firstValue(CONTENT_TYPE).orElse("missing"),
-                "The content-type header does not contain the application/rdap+json media type.");
+                "The content-type header does not contain the application/rdap+json media type.", this.sessionId);
         }
 
         // If a response is available to the tool, but it's not syntactically valid JSON object, error code -13001 added in results file.
         jsonResponse = new JsonData(rdapResponse);
         if (!jsonResponse.isValid()) {
-            addErrorToResultsFile(-13001, "response body not given", "The response was not valid JSON.");
+            addErrorToResultsFile(-13001, "response body not given", "The response was not valid JSON.", this.sessionId);
             isQuerySuccessful = false;
         }
     }
@@ -408,7 +411,7 @@ public class RDAPHttpQuery implements RDAPQuery {
             // They copied the query over, this is bad
             if (originalQuery != null && originalQuery.equals(locationQuery)) {
                 addErrorToResultsFile(-13004, "<location header value>",
-                    "Response redirect contained query parameters copied from the request.");
+                    "Response redirect contained query parameters copied from the request.", this.sessionId);
                 return true;
             }
         }

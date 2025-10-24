@@ -377,7 +377,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     if (statusCodes.size() > ONE) {
       logger.debug("Not all status codes are the same for session {}", sessionId);
       results.add(
-          RDAPValidationResult.builder()
+          RDAPValidationResult.builder(sessionId)
                               .acceptHeader(DASH)
                               .queriedURI(DASH)
                               .httpMethod(DASH)
@@ -444,6 +444,11 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   @Override
   public int getResultCount() {
     return getResultCount(this.sessionId);
+  }
+
+  @Override
+  public String getSessionId() {
+    return this.sessionId;
   }
 
 }

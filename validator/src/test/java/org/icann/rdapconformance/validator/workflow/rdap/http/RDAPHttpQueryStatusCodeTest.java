@@ -273,12 +273,13 @@ public class RDAPHttpQueryStatusCodeTest {
                 .withStatus(testStatusCode)
                 .withBody("I'm a teapot!")));
 
-        RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").clear();
-        
-        RDAPHttpQuery query = new RDAPHttpQuery(config);
+        String testSessionId = "RDAPHttpQueryStatusCodeTest-testErrorMessageContent";
+        RDAPValidatorResultsImpl.getInstance(testSessionId).clear();
+
+        RDAPHttpQuery query = new RDAPHttpQuery(config, testSessionId);
         query.run();
 
-        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance("RDAPHttpQueryStatusCodeTest").getAll();
+        Set<RDAPValidationResult> allResults = RDAPValidatorResultsImpl.getInstance(testSessionId).getAll();
         RDAPValidationResult error13002 = allResults.stream()
             .filter(r -> r.getCode() == -13002)
             .findFirst()
