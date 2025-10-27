@@ -3,8 +3,10 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
@@ -44,9 +46,16 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot7Dot6Dot2_2024(
-                jsonObject.toString(),
-                results);
+        QueryContext generalContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        generalContext.setRdapResponseData(queryContext.getRdapResponseData());
+        return new ResponseValidation2Dot7Dot6Dot2_2024(generalContext);
 
     }
 

@@ -14,9 +14,7 @@ public class ResponseValidation2Dot7Dot5Dot3_2024Test extends ProfileJsonValidat
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot7Dot5Dot3_2024(
-            jsonObject.toString(),
-            results);
+        return new ResponseValidation2Dot7Dot5Dot3_2024(queryContext);
     }
 
     @Test

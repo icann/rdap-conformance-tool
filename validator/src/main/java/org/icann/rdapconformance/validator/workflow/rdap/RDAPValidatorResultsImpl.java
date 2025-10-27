@@ -24,18 +24,19 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   public static final String HTTP_STATUS_CODE = ", httpStatusCode=";
   public static final String BRACKETS = "[]";
 
-  // Static instance for the singleton
+  // Static instance for the singleton (TEMPORARY - to be removed after full refactor)
   private static RDAPValidatorResultsImpl instance;
 
   private final Set<RDAPValidationResult> results = ConcurrentHashMap.newKeySet();
   private final Set<String> groups = ConcurrentHashMap.newKeySet();
   private final Set<String> groupErrorWarning = ConcurrentHashMap.newKeySet();
 
-  // Private constructor to prevent instantiation
-  private RDAPValidatorResultsImpl() {}
+  // Public constructor for QueryContext usage
+  public RDAPValidatorResultsImpl() {}
 
   /**
    * Gets the singleton instance of RDAPValidatorResultsImpl
+   * TEMPORARY - to be removed after full singleton elimination
    *
    * @return the singleton instance
    */
@@ -48,6 +49,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
   /**
    * Resets the singleton instance (primarily for testing)
+   * TEMPORARY - to be removed after full singleton elimination
    */
   public static void reset() {
     instance = null;

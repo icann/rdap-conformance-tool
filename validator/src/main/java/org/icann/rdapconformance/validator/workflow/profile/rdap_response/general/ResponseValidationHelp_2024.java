@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -23,10 +24,18 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
     public static final String HELP = "/help";
 
     private final RDAPValidatorConfiguration config;
+    private final QueryContext queryContext;
 
     public ResponseValidationHelp_2024(RDAPValidatorConfiguration config, RDAPValidatorResults results) {
         super(results);
         this.config = config;
+        this.queryContext = null; // Legacy constructor for backward compatibility
+    }
+
+    public ResponseValidationHelp_2024(QueryContext queryContext) {
+        super(queryContext.getResults());
+        this.config = queryContext.getConfig();
+        this.queryContext = queryContext;
     }
 
     @Override
@@ -60,7 +69,13 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
         logger.debug("Making request to: {}", helpUriCleaned);
         HttpResponse<String> response = null;
 
-        response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUriCleaned), this.config.getTimeout());
+        if (queryContext != null) {
+            // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
+            response = RDAPHttpRequest.makeRequest(queryContext, new URI(helpUriCleaned), this.config.getTimeout(), GET);
+        } else {
+            // Fallback to legacy singleton-based request
+            response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUriCleaned), this.config.getTimeout());
+        }
 
         // final response
         return validateHelpQuery(response, isValid);

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.utils.EmailValidator;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -27,9 +28,9 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     private Set<String> redactedPointersValue = null;
     private JSONObject redactedRegistrantEmail = null;
 
-    public ResponseValidation2Dot7Dot4Dot9_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results);
-        this.config = config;
+    public ResponseValidation2Dot7Dot4Dot9_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.config = qctx.getConfig();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import java.util.List;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.testng.annotations.Test;
@@ -14,7 +15,7 @@ public class StdRdapConformanceValidation_2024Test  extends ProfileJsonValidatio
 
     @Override
     public ProfileJsonValidation getProfileValidation() {
-        return new StdRdapConformanceValidation_2024(jsonObject.toString(), results);
+        return new StdRdapConformanceValidation_2024(queryContext);
     }
 
     @Test

@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.entit
 
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.EntityRegistryLookupService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -29,16 +30,12 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
   private final RDAPQueryType queryType;
   private final EntityRegistryLookupService entityLookupService;
 
-  public ResponseValidationRegistrantHandle_2024(RDAPValidatorConfiguration config,
-                                                 String rdapResponse,
-                                                 RDAPValidatorResults results,
-                                                 RDAPDatasetService datasetService,
-                                                 RDAPQueryType queryType) {
-    super(rdapResponse, results);
-    this.config = config;
-    this.datasetService = datasetService;
-    this.queryType = queryType;
-    this.entityLookupService = new EntityRegistryLookupService(datasetService, config);
+  public ResponseValidationRegistrantHandle_2024(QueryContext qctx) {
+    super(qctx.getRdapResponseData(), qctx.getResults());
+    this.config = qctx.getConfig();
+    this.datasetService = qctx.getDatasetService();
+    this.queryType = qctx.getQueryType();
+    this.entityLookupService = new EntityRegistryLookupService(qctx.getDatasetService(), qctx.getConfig());
   }
 
 

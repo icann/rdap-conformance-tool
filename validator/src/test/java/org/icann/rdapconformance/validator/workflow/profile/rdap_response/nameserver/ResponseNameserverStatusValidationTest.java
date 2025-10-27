@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.Set;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -12,8 +13,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class ResponseNameserverStatusValidationTest extends ProfileJsonValidationTestBase {
-
-  private RDAPQueryType queryType;
 
   public ResponseNameserverStatusValidationTest() {
     super("/validators/nameserver/valid.json", "nameserver_status");
@@ -42,13 +41,20 @@ public class ResponseNameserverStatusValidationTest extends ProfileJsonValidatio
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
-    queryType = RDAPQueryType.NAMESERVER;
   }
-
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseNameserverStatusValidation(jsonObject.toString(), results, queryType);
+    QueryContext nameserverContext = new QueryContext(
+        queryContext.getQueryId(),
+        queryContext.getConfig(),
+        queryContext.getDatasetService(),
+        queryContext.getQuery(),
+        queryContext.getResults(),
+        RDAPQueryType.NAMESERVER
+    );
+    nameserverContext.setRdapResponseData(queryContext.getRdapResponseData());
+    return new ResponseNameserverStatusValidation(nameserverContext);
   }
 
   @Test(dataProvider = "invalidStatus")
@@ -67,15 +73,69 @@ public class ResponseNameserverStatusValidationTest extends ProfileJsonValidatio
 
   @Test
   public void testDoLaunch() {
-    queryType = RDAPQueryType.HELP;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVERS;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.DOMAIN;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.ENTITY;
-    assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVER;
-    assertThat(getProfileValidation().doLaunch()).isTrue();
+    // Test HELP query type
+    QueryContext helpContext = new QueryContext(
+        queryContext.getQueryId(),
+        queryContext.getConfig(),
+        queryContext.getDatasetService(),
+        queryContext.getQuery(),
+        queryContext.getResults(),
+        RDAPQueryType.HELP
+    );
+    helpContext.setRdapResponseData(queryContext.getRdapResponseData());
+    ResponseNameserverStatusValidation helpValidation = new ResponseNameserverStatusValidation(helpContext);
+    assertThat(helpValidation.doLaunch()).isFalse();
+
+    // Test NAMESERVERS query type
+    QueryContext nameserversContext = new QueryContext(
+        queryContext.getQueryId(),
+        queryContext.getConfig(),
+        queryContext.getDatasetService(),
+        queryContext.getQuery(),
+        queryContext.getResults(),
+        RDAPQueryType.NAMESERVERS
+    );
+    nameserversContext.setRdapResponseData(queryContext.getRdapResponseData());
+    ResponseNameserverStatusValidation nameserversValidation = new ResponseNameserverStatusValidation(nameserversContext);
+    assertThat(nameserversValidation.doLaunch()).isFalse();
+
+    // Test DOMAIN query type
+    QueryContext domainContext = new QueryContext(
+        queryContext.getQueryId(),
+        queryContext.getConfig(),
+        queryContext.getDatasetService(),
+        queryContext.getQuery(),
+        queryContext.getResults(),
+        RDAPQueryType.DOMAIN
+    );
+    domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+    ResponseNameserverStatusValidation domainValidation = new ResponseNameserverStatusValidation(domainContext);
+    assertThat(domainValidation.doLaunch()).isFalse();
+
+    // Test ENTITY query type
+    QueryContext entityContext = new QueryContext(
+        queryContext.getQueryId(),
+        queryContext.getConfig(),
+        queryContext.getDatasetService(),
+        queryContext.getQuery(),
+        queryContext.getResults(),
+        RDAPQueryType.ENTITY
+    );
+    entityContext.setRdapResponseData(queryContext.getRdapResponseData());
+    ResponseNameserverStatusValidation entityValidation = new ResponseNameserverStatusValidation(entityContext);
+    assertThat(entityValidation.doLaunch()).isFalse();
+
+    // Test NAMESERVER query type (should return true)
+    QueryContext nameserverContext = new QueryContext(
+        queryContext.getQueryId(),
+        queryContext.getConfig(),
+        queryContext.getDatasetService(),
+        queryContext.getQuery(),
+        queryContext.getResults(),
+        RDAPQueryType.NAMESERVER
+    );
+    nameserverContext.setRdapResponseData(queryContext.getRdapResponseData());
+    ResponseNameserverStatusValidation nameserverValidation = new ResponseNameserverStatusValidation(nameserverContext);
+    assertThat(nameserverValidation.doLaunch()).isTrue();
   }
 }

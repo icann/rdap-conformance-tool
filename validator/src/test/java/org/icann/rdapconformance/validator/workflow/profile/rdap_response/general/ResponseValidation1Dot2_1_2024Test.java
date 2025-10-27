@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import java.util.List;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPConformanceValidation;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPConformanceValidationTest;
 
@@ -18,6 +19,6 @@ public class ResponseValidation1Dot2_1_2024Test extends RDAPConformanceValidatio
 
     @Override
     public RDAPConformanceValidation getProfileValidation() {
-        return new ResponseValidation1Dot2_1_2024(jsonObject.toString(), results);
+        return new ResponseValidation1Dot2_1_2024(queryContext);
     }
 }

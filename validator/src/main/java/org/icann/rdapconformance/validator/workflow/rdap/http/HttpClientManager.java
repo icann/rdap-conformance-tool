@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -22,12 +23,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Singleton HTTP client manager providing optimized connection pooling for RDAP validation.
+ * HTTP client manager providing optimized connection pooling for RDAP validation.
  *
  * <p>This class manages a pool of HTTP clients configured for RDAP-specific requirements
  * including custom SSL/TLS contexts, local IP address binding, and timeout configurations.
  * It provides significant performance improvements over creating new clients for each
  * request while maintaining full compatibility with existing RDAP validation logic.</p>
+ *
+ * <p>Now integrated into the QueryContext architecture for thread-safe operation in
+ * concurrent validation environments. Each QueryContext has its own HttpClientManager
+ * instance to ensure complete isolation between validation sessions.</p>
  *
  * <p>Key features include:</p>
  * <ul>
@@ -36,7 +41,7 @@ import java.util.concurrent.TimeUnit;
  *   <li>Automatic cleanup of idle and expired connections</li>
  *   <li>SNI (Server Name Indication) support for proper hostname verification</li>
  *   <li>Local IP address binding for dual-stack IPv4/IPv6 testing</li>
- *   <li>Thread-safe singleton implementation with low-contention caching</li>
+ *   <li>Thread-safe implementation with low-contention caching</li>
  * </ul>
  *
  * <p>The manager automatically handles connection lifecycle management including
@@ -44,13 +49,9 @@ import java.util.concurrent.TimeUnit;
  * and reused for subsequent requests with identical parameters, reducing overhead
  * and improving performance for repeated RDAP queries.</p>
  *
- * <p>Connection pool configuration is optimized for RDAP validation workloads
- * with reasonable defaults for maximum connections, idle timeouts, and validation
- * intervals. The background cleanup thread ensures optimal resource utilization.</p>
- *
  * <p>Example usage:</p>
  * <pre>
- * HttpClientManager manager = HttpClientManager.getInstance();
+ * HttpClientManager manager = queryContext.getHttpClientManager();
  * CloseableHttpClient client = manager.getClient(host, sslContext, localBindIp, timeoutSeconds);
  * // Use client for HTTP requests
  * </pre>
@@ -62,10 +63,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpClientManager {
     private static final Logger logger = LoggerFactory.getLogger(HttpClientManager.class);
-    
+
+    // Legacy singleton for backward compatibility
     private static volatile HttpClientManager instance;
     private static final Object lock = new Object();
-    
+
     // Connection pool configuration
     private static final int MAX_TOTAL_CONNECTIONS = 50;
     private static final int MAX_CONNECTIONS_PER_ROUTE = 10;
@@ -77,12 +79,12 @@ public class HttpClientManager {
     private final PoolingHttpClientConnectionManager defaultConnectionManager;
 
     /**
-     * Private constructor to initialize the singleton HTTP client manager.
+     * Constructor to initialize the HTTP client manager.
      *
      * <p>Sets up the client cache, default connection manager, and background
      * cleanup thread for optimal connection pool management.</p>
      */
-    private HttpClientManager() {
+    public HttpClientManager() {
         this.clientCache = new ConcurrentHashMap<>(16, 0.75f, 1);
         this.defaultConnectionManager = createDefaultConnectionManager();
         
@@ -91,13 +93,16 @@ public class HttpClientManager {
     }
 
     /**
-     * Returns the singleton instance of the HTTP client manager.
+     * Returns the legacy singleton HTTP client manager instance.
      *
-     * <p>Uses double-checked locking pattern for thread-safe lazy initialization
-     * while avoiding synchronization overhead on subsequent calls.</p>
+     * <p>This method is provided for backward compatibility with code that hasn't
+     * been migrated to the QueryContext architecture. New code should obtain
+     * HttpClientManager through QueryContext.getHttpClientManager().</p>
      *
-     * @return the singleton HttpClientManager instance
+     * @return the legacy singleton HttpClientManager instance
+     * @deprecated Use QueryContext.getHttpClientManager() instead
      */
+    @Deprecated
     public static HttpClientManager getInstance() {
         if (instance == null) {
             synchronized (lock) {
@@ -107,6 +112,24 @@ public class HttpClientManager {
             }
         }
         return instance;
+    }
+
+    /**
+     * No-op bridge method for backward compatibility.
+     * @deprecated Bridge pattern removed - use QueryContext directly
+     */
+    @Deprecated
+    public static void setCurrentQueryContext(QueryContext qctx) {
+        // No-op - bridge pattern removed
+    }
+
+    /**
+     * No-op bridge method for backward compatibility.
+     * @deprecated Bridge pattern removed - use QueryContext directly
+     */
+    @Deprecated
+    public static void clearCurrentQueryContext() {
+        // No-op - bridge pattern removed
     }
 
     /**

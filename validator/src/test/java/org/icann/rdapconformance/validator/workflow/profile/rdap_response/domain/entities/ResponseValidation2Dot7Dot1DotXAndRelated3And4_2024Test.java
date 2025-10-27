@@ -1,7 +1,9 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
 import java.io.IOException;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -17,8 +19,16 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024Test extends
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(jsonObject.toString(), results,
-            queryType, config);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        return new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(domainContext);
     }
 
     @Test

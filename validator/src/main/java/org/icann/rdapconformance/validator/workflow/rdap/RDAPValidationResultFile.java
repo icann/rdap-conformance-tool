@@ -93,9 +93,9 @@ public class RDAPValidationResultFile {
     private boolean isInitialized = false;
 
     /**
-     * Private constructor to enforce singleton pattern.
+     * Public constructor for QueryContext usage (no longer singleton).
      */
-    private RDAPValidationResultFile() {
+    public RDAPValidationResultFile() {
     }
 
     /**

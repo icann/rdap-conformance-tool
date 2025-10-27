@@ -87,6 +87,9 @@ public class RDAPHttpQuery implements RDAPQuery {
     private boolean isQuerySuccessful = true;
     private ConnectionStatus status = null;
 
+    // QueryContext for thread-safe network operations
+    private org.icann.rdapconformance.validator.QueryContext queryContext;
+
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
     /**
@@ -96,6 +99,16 @@ public class RDAPHttpQuery implements RDAPQuery {
      */
     public RDAPHttpQuery(RDAPValidatorConfiguration config) {
         this.config = config;
+    }
+
+    /**
+     * Sets the QueryContext for this query. This is called after construction
+     * to provide access to thread-safe network operations.
+     *
+     * @param queryContext the QueryContext to use for network operations
+     */
+    public void setQueryContext(org.icann.rdapconformance.validator.QueryContext queryContext) {
+        this.queryContext = queryContext;
     }
 
     /**
@@ -261,7 +274,14 @@ public class RDAPHttpQuery implements RDAPQuery {
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
-                response = RDAPHttpRequest.makeRequest(currentUri, this.config.getTimeout(), GET, true);
+                // Use QueryContext version of makeRequest if available, otherwise fall back to singleton
+                if (queryContext != null) {
+                    logger.debug("Using QueryContext makeRequest - protocol: {}", queryContext.getNetworkProtocol());
+                    response = RDAPHttpRequest.makeRequest(queryContext, currentUri, this.config.getTimeout(), GET, true);
+                } else {
+                    logger.debug("Using singleton makeRequest - queryContext is null");
+                    response = RDAPHttpRequest.makeRequest(currentUri, this.config.getTimeout(), GET, true);
+                }
                 int httpStatusCode = response.statusCode();
                 ConnectionStatus st = ((SimpleHttpResponse) response).getConnectionStatusCode();
                 this.setErrorStatus(((SimpleHttpResponse) response).getConnectionStatusCode());   // ensure this is set

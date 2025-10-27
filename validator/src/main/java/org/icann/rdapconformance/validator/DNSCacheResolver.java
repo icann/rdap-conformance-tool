@@ -85,7 +85,8 @@ public class DNSCacheResolver {
         resolver = r;
     }
 
-    private DNSCacheResolver() {
+    // Public constructor for QueryContext usage (no longer singleton)
+    public DNSCacheResolver() {
     }
 
     /**

@@ -2,14 +2,15 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public class StdRdapConformanceValidation_2024 extends ProfileJsonValidation {
-    public StdRdapConformanceValidation_2024(String rdapResponse, RDAPValidatorResults results) {
-        super(rdapResponse, results);
+    public StdRdapConformanceValidation_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
     }
 
     @Override

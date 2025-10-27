@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPublicIdsValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.RegistrarEntityValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -14,7 +15,15 @@ public class ResponseValidation2Dot4Dot2And2Dot4Dot3Test extends
 
   @Override
   public RegistrarEntityPublicIdsValidation getProfileValidation() {
-    return new ResponseValidation2Dot4Dot2And2Dot4Dot3(jsonObject.toString(), results,
-        datasetService, queryType);
+    QueryContext domainContext = new QueryContext(
+        queryContext.getQueryId(),
+        queryContext.getConfig(),
+        queryContext.getDatasetService(),
+        queryContext.getQuery(),
+        queryContext.getResults(),
+        RDAPQueryType.DOMAIN
+    );
+    domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+    return new ResponseValidation2Dot4Dot2And2Dot4Dot3(domainContext);
   }
 }

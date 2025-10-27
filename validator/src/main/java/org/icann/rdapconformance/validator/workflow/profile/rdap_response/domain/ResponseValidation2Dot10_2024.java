@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -25,10 +26,10 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
     private final RDAPQueryType queryType;
     private static final String NOT_FOUND = "not_found";
 
-    public ResponseValidation2Dot10_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config, RDAPQueryType queryType) {
-        super(rdapResponse, results);
-        this.config = config;
-        this.queryType = queryType;
+    public ResponseValidation2Dot10_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.config = qctx.getConfig();
+        this.queryType = qctx.getQueryType();
     }
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot10_2024.class);

@@ -9,6 +9,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.SEP;
 import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -28,12 +29,20 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationTestInvalidRedirect_2024.class);
     public static final int PARTS = 2;
     private final RDAPValidatorConfiguration config;
+    private final QueryContext queryContext;
     public static final String DOMAIN_TEST_INVALID_WITH_SLASH = "/domain/test.invalid"; // with the slash
 
     public ResponseValidationTestInvalidRedirect_2024( RDAPValidatorConfiguration config,
                                                       RDAPValidatorResults results) {
         super(results);
         this.config = config;
+        this.queryContext = null; // Legacy constructor for backward compatibility
+    }
+
+    public ResponseValidationTestInvalidRedirect_2024(QueryContext queryContext) {
+        super(queryContext.getResults());
+        this.config = queryContext.getConfig();
+        this.queryContext = queryContext;
     }
 
     @Override
@@ -47,8 +56,16 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
         }
 
             logger.debug("Sending a GET request to: {}", createTestInvalidURI());
-            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(),
-                config.getTimeout());
+            HttpResponse<String> response = null;
+
+            if (queryContext != null) {
+                // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
+                response = RDAPHttpRequest.makeRequest(queryContext, createTestInvalidURI(), config.getTimeout(), GET);
+            } else {
+                // Fallback to legacy singleton-based request
+                response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(), config.getTimeout());
+            }
+
             int status = response.statusCode();
             logger.debug("Status code for test.invalid: {}", status);
             if (status == HTTP_OK) { // if it returns a 200 - that is an error

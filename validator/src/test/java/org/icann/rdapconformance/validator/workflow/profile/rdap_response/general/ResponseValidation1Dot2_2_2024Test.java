@@ -18,6 +18,6 @@ public class ResponseValidation1Dot2_2_2024Test extends RDAPConformanceValidatio
 
     @Override
     public RDAPConformanceValidation getProfileValidation() {
-        return new ResponseValidation1Dot2_2_2024(jsonObject.toString(), results);
+        return new ResponseValidation1Dot2_2_2024(queryContext);
     }
 }

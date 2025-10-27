@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard
 
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -24,9 +25,9 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
     private boolean isValid = true;
     private final RDAPValidatorConfiguration configuration;
 
-    public ResponseValidationTechEmail_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration configuration) {
-        super(rdapResponse, results);
-        this.configuration = configuration;
+    public ResponseValidationTechEmail_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.configuration = qctx.getConfig();
     }
 
     @Override

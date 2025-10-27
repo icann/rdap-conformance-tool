@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -9,10 +10,10 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 public final class ResponseValidation4Dot1Handle_2024 extends ProfileJsonValidation {
     private final RDAPQueryType queryType;
 
-    public ResponseValidation4Dot1Handle_2024(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType) {
-        super(rdapResponse, results);
+    public ResponseValidation4Dot1Handle_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
 
-        this.queryType = queryType;
+        this.queryType = qctx.getQueryType();
     }
 
     @Override

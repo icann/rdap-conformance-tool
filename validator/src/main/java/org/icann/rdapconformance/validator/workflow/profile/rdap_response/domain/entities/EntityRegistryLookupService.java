@@ -10,6 +10,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
 import static org.icann.rdapconformance.validator.CommonUtils.TIMEOUT_IN_5SECS;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.BootstrapDomainNameSpace;
@@ -34,10 +35,18 @@ public class EntityRegistryLookupService {
 
     private final RDAPDatasetService datasetService;
     private final RDAPValidatorConfiguration config;
+    private final QueryContext qctx;
 
     public EntityRegistryLookupService(RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
         this.datasetService = datasetService;
         this.config = config;
+        this.qctx = null; // Legacy constructor
+    }
+
+    public EntityRegistryLookupService(QueryContext qctx) {
+        this.qctx = qctx;
+        this.datasetService = qctx.getDatasetService();
+        this.config = qctx.getConfig();
     }
 
     /**
@@ -125,7 +134,14 @@ public class EntityRegistryLookupService {
             logger.debug("Checking entity {} at URL: {}", entityHandle, entityUrl);
 
             // Make HTTP request with short timeout
-            java.net.http.HttpResponse<String> response = RDAPHttpRequest.makeRequest(entityUri, TIMEOUT_IN_5SECS / PAUSE, GET);
+            java.net.http.HttpResponse<String> response;
+            if (qctx != null) {
+                // Use QueryContext-enabled HTTP request for thread-safe operation
+                response = RDAPHttpRequest.makeRequest(qctx, entityUri, TIMEOUT_IN_5SECS / PAUSE, GET);
+            } else {
+                // Fallback to legacy method for backward compatibility
+                response = RDAPHttpRequest.makeRequest(entityUri, TIMEOUT_IN_5SECS / PAUSE, GET);
+            }
 
             // Return true only for 200 OK
             boolean exists = response.statusCode() == HTTP_OK;

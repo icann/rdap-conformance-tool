@@ -16,6 +16,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.everit.json.schema.internal.IPV4Validator;
 import org.everit.json.schema.internal.IPV6Validator;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
 import org.slf4j.LoggerFactory;
 import org.icann.rdapconformance.tool.progress.ProgressTracker;
 import org.icann.rdapconformance.tool.progress.ProgressPhase;
@@ -501,8 +502,6 @@ public void setShowProgress(boolean showProgress) {
 
     // get the results file ready
     clean();
-    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-    resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
 
     // Get the queryType - bail out if it is not correct
     RDAPHttpQueryTypeProcessor queryTypeProcessor = null;
@@ -528,6 +527,18 @@ public void setShowProgress(boolean showProgress) {
     } else {
       networkEnabled = false;
       validator = new RDAPFileValidator(this, datasetService);
+    }
+
+    // Initialize the result file from the validator's QueryContext instead of singleton
+    RDAPValidationResultFile resultFile;
+    if (validator instanceof RDAPValidator) {
+        RDAPValidator rdapValidator = (RDAPValidator) validator;
+        resultFile = rdapValidator.getQueryContext().getResultFile();
+        resultFile.initialize(rdapValidator.getQueryContext().getResults(), this, configFile, fileSystem);
+    } else {
+        // Fallback to singleton for non-RDAP validators
+        resultFile = RDAPValidationResultFile.getInstance();
+        resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
     }
 
     // Are we querying over the network or is this a file on our system?
@@ -581,31 +592,68 @@ public void setShowProgress(boolean showProgress) {
         logger.info("Executing IPv4 and IPv6 validations sequentially");
         
         // do v6
+        logger.debug("IPv6 check: executeIPv6Queries={}, hasV6Addresses={}", executeIPv6Queries, DNSCacheResolver.hasV6Addresses(uri.toString()));
         if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
+          logger.debug("Starting IPv6 validations...");
           updateProgressPhase("IPv6-JSON");
-          NetworkInfo.setStackToV6();
-          NetworkInfo.setAcceptHeaderToApplicationJson();
+
+          // Use QueryContext's NetworkInfo instead of singleton
+          if (validator instanceof RDAPValidator) {
+              RDAPValidator rdapValidator = (RDAPValidator) validator;
+              rdapValidator.getQueryContext().setStackToV6();
+              rdapValidator.getQueryContext().setAcceptHeaderToApplicationJson();
+          }
+          // Note: NetworkInfo static calls removed - bridge pattern will delegate to QueryContext
+
+          logger.debug("About to run IPv6-JSON validation");
           int v6ret = validator.validate();
+          logger.debug("IPv6-JSON validation completed with result: {}", v6ret);
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
           // set the header to RDAP+JSON and redo the validations
           updateProgressPhase("IPv6-RDAP+JSON");
-          NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+
+          // Use QueryContext's NetworkInfo instead of singleton
+          if (validator instanceof RDAPValidator) {
+              RDAPValidator rdapValidator = (RDAPValidator) validator;
+              rdapValidator.getQueryContext().setAcceptHeaderToApplicationRdapJson();
+          }
+          // Note: NetworkInfo static calls removed - bridge pattern will delegate to QueryContext
+
+          logger.debug("About to run IPv6-RDAP+JSON validation");
           int v6ret2 = validator.validate();
+          logger.debug("IPv6-RDAP+JSON validation completed with result: {}", v6ret2);
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+          logger.debug("IPv6 validations completed");
+        } else {
+          logger.debug("Skipping IPv6 validations - executeIPv6Queries={}, hasV6Addresses={}", executeIPv6Queries, DNSCacheResolver.hasV6Addresses(uri.toString()));
         }
 
         // do v4
         if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
           updateProgressPhase("IPv4-JSON");
-          NetworkInfo.setStackToV4();
-          NetworkInfo.setAcceptHeaderToApplicationJson();
+
+          // Use QueryContext's NetworkInfo instead of singleton
+          if (validator instanceof RDAPValidator) {
+              RDAPValidator rdapValidator = (RDAPValidator) validator;
+              rdapValidator.getQueryContext().setStackToV4();
+              rdapValidator.getQueryContext().setAcceptHeaderToApplicationJson();
+          }
+          // Note: NetworkInfo static calls removed - bridge pattern will delegate to QueryContext
+
           int v4ret = validator.validate();
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
           // set the header to RDAP+JSON and redo the validations
           updateProgressPhase("IPv4-RDAP+JSON");
-          NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+
+          // Use QueryContext's NetworkInfo instead of singleton
+          if (validator instanceof RDAPValidator) {
+              RDAPValidator rdapValidator = (RDAPValidator) validator;
+              rdapValidator.getQueryContext().setAcceptHeaderToApplicationRdapJson();
+          }
+          // Note: NetworkInfo static calls removed - bridge pattern will delegate to QueryContext
+
           int v4ret2 = validator.validate();
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
         }
@@ -617,7 +665,16 @@ public void setShowProgress(boolean showProgress) {
 
 
       // Removing extra errors to avoid discrepancies between profiles when 404 status code is returned
-      if(ConnectionTracker.getInstance().isResourceNotFoundNoteWarning(this)) {
+      // Use QueryContext's ConnectionTracker instead of singleton
+      boolean isResourceNotFound = false;
+      if (validator instanceof RDAPValidator) {
+          RDAPValidator rdapValidator = (RDAPValidator) validator;
+          isResourceNotFound = rdapValidator.getQueryContext().getConnectionTracker().isResourceNotFoundNoteWarning(this);
+      } else {
+          isResourceNotFound = ConnectionTracker.getInstance().isResourceNotFoundNoteWarning(this);
+      }
+
+      if(isResourceNotFound) {
         logger.debug("All HEAD and Main queries returned a 404 Not Found response code.");
         resultFile.removeErrors();
         resultFile.removeResultGroups();
@@ -644,7 +701,13 @@ public void setShowProgress(boolean showProgress) {
 
 
       // Having network issues? You WILL need this.
-      logger.debug("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+      // Use QueryContext's ConnectionTracker instead of singleton
+      if (validator instanceof RDAPValidator) {
+          RDAPValidator rdapValidator = (RDAPValidator) validator;
+          logger.debug("ConnectionTracking: " + rdapValidator.getQueryContext().getConnectionTracker().toString());
+      } else {
+          logger.debug("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+      }
 
       // Complete progress tracking
       completeProgress();

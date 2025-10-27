@@ -1,7 +1,9 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
 import java.util.Set;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -45,7 +47,16 @@ public class ResponseValidationRFC5731Test extends ResponseDomainValidationTestB
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidationRFC5731(jsonObject.toString(), results, queryType);
+    QueryContext domainContext = new QueryContext(
+        queryContext.getQueryId(),
+        queryContext.getConfig(),
+        queryContext.getDatasetService(),
+        queryContext.getQuery(),
+        queryContext.getResults(),
+        RDAPQueryType.DOMAIN
+    );
+    domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+    return new ResponseValidationRFC5731(domainContext);
   }
 
   @DataProvider(name = "validActiveStatus")

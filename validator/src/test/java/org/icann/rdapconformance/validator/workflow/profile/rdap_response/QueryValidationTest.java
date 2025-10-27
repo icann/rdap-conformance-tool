@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -19,7 +20,6 @@ public abstract class QueryValidationTest extends
   private final RDAPQueryType baseQueryType;
   private final String baseUri;
   protected RDAPQueryType queryType;
-  protected RDAPValidatorConfiguration config;
 
   public QueryValidationTest(String validJsonResourcePath, String testGroupName,
       RDAPQueryType baseQueryType) {
@@ -32,8 +32,18 @@ public abstract class QueryValidationTest extends
   public void setUp() throws IOException {
     super.setUp();
     this.queryType = baseQueryType;
-    config = mock(RDAPValidatorConfiguration.class);
-    doReturn(URI.create(baseUri + "/test.example")).when(config).getUri();
+
+    // Create a new QueryContext with the specific query type for this test
+    queryContext = new QueryContext("test-" + java.util.UUID.randomUUID().toString(),
+                                   queryContext.getConfig(),
+                                   queryContext.getDatasetService(),
+                                   queryContext.getQuery(),
+                                   queryContext.getResults(),
+                                   baseQueryType);
+    queryContext.setRdapResponseData(rdapContent);
+
+    // Update the QueryContext's config with the specific URI for this test
+    doReturn(URI.create(baseUri + "/test.example")).when(queryContext.getConfig()).getUri();
   }
 
   private QueryValidation getQueryValidation() {
@@ -43,20 +53,20 @@ public abstract class QueryValidationTest extends
   @Test
   public void testValidate_UriContainsOnlyALabelOrNrLdhName_Ok() {
     replaceValue("ldhName", "toto");
-    doReturn(URI.create(baseUri + "/test.xn--viagnie-eya.example")).when(config).getUri();
+    doReturn(URI.create(baseUri + "/test.xn--viagnie-eya.example")).when(queryContext.getConfig()).getUri();
     validate();
   }
 
   @Test
   public void testValidate_URIContainsULabel_Ok() {
-    doReturn(URI.create(baseUri + "/test.viagénie.example")).when(config).getUri();
+    doReturn(URI.create(baseUri + "/test.viagénie.example")).when(queryContext.getConfig()).getUri();
     jsonObject.put("unicodeName", "test.viagénie.example");
     validate();
   }
 
   @Test
   public void testValidate_UriContainsOnlyALabelButNoLdhName_AddResults46100() {
-    doReturn(URI.create(baseUri + "/test.xn--viagnie-eya.example")).when(config).getUri();
+    doReturn(URI.create(baseUri + "/test.xn--viagnie-eya.example")).when(queryContext.getConfig()).getUri();
     removeKey("ldhName");
     QueryValidation validation = getQueryValidation();
     validate(validation.code, jsonObject.toString(),
@@ -68,7 +78,7 @@ public abstract class QueryValidationTest extends
 
   @Test
   public void testValidate_UriContainsULabelButNoUnicodeName_AddResults46101() {
-    doReturn(URI.create(baseUri + "/test.viagénie.example")).when(config).getUri();
+    doReturn(URI.create(baseUri + "/test.viagénie.example")).when(queryContext.getConfig()).getUri();
     QueryValidation validation = getQueryValidation();
     validate(validation.code - 1, jsonObject.toString(),
         String.format("The RDAP Query URI contains one or more U-label, the topmost %s object does "

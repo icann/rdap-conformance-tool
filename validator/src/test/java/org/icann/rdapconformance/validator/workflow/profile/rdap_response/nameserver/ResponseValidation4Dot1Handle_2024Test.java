@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -13,7 +14,16 @@ public class ResponseValidation4Dot1Handle_2024Test extends ProfileJsonValidatio
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation4Dot1Handle_2024(jsonObject.toString(), results, RDAPQueryType.NAMESERVER);
+        QueryContext nameserverContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.NAMESERVER
+        );
+        nameserverContext.setRdapResponseData(queryContext.getRdapResponseData());
+        return new ResponseValidation4Dot1Handle_2024(nameserverContext);
     }
 
     protected String givenReservedICANNHandle() {

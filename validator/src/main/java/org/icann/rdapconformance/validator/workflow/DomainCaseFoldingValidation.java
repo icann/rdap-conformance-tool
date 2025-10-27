@@ -13,6 +13,7 @@ import com.ibm.icu.lang.UCharacter;
 import java.net.URI;
 import java.net.http.HttpResponse;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2.RDAPJsonComparator;
@@ -33,6 +34,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
   private final RDAPValidatorConfiguration config;
   private final String domainName;
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
   public DomainCaseFoldingValidation(HttpResponse<String> rdapResponse,
       RDAPValidatorConfiguration config,
@@ -42,6 +44,19 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
     this.rdapResponse = rdapResponse;
     this.config = config;
     this.queryType = queryType;
+    this.queryContext = null; // Legacy constructor for backward compatibility
+    String path = this.rdapResponse.uri().getPath();
+    domainName = path.substring(path.lastIndexOf(SLASH) + ONE);
+  }
+
+  public DomainCaseFoldingValidation(HttpResponse<String> rdapResponse,
+      QueryContext queryContext,
+      RDAPQueryType queryType) {
+    super(queryContext.getResults());
+    this.rdapResponse = rdapResponse;
+    this.config = queryContext.getConfig();
+    this.queryType = queryType;
+    this.queryContext = queryContext;
     String path = this.rdapResponse.uri().getPath();
     domainName = path.substring(path.lastIndexOf(SLASH) + ONE);
   }
@@ -61,7 +76,15 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
 
     URI uri = URI.create(rdapResponse.uri().toString().replace(domainName, newDomain));
     try {
-      HttpResponse<String> httpResponse = RDAPHttpRequest.makeHttpGetRequestWithRedirects(uri, config.getTimeout(), config.getMaxRedirects());
+      HttpResponse<String> httpResponse = null;
+
+      if (queryContext != null) {
+        // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
+        httpResponse = RDAPHttpRequest.makeRequest(queryContext, uri, config.getTimeout(), GET);
+      } else {
+        // Fallback to legacy singleton-based request
+        httpResponse = RDAPHttpRequest.makeHttpGetRequestWithRedirects(uri, config.getTimeout(), config.getMaxRedirects());
+      }
 
       // Check if we got a non-200 response first
       if (httpResponse.statusCode() != rdapResponse.statusCode()) {

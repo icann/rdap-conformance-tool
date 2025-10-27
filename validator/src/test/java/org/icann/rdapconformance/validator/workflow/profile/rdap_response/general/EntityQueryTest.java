@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -16,8 +17,16 @@ public class EntityQueryTest extends ProfileJsonValidationTestBase {
     @Override
     public ProfileValidation getProfileValidation() {
         // This won't be used in our specific tests
-        return new ResponseValidation2Dot2_1_2024(
-            jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        return new ResponseValidation2Dot2_1_2024(domainContext);
     }
 
     @Override
@@ -30,8 +39,16 @@ public class EntityQueryTest extends ProfileJsonValidationTestBase {
     @Test
     public void testEntityQuery_DoLaunchReturnsFalse() {
         // Test that ResponseValidation2Dot2_1_2024 doesn't run on entity queries
-        ResponseValidation2Dot2_1_2024 validation = new ResponseValidation2Dot2_1_2024(
-            jsonObject.toString(), results, datasets, RDAPQueryType.ENTITY);
+        QueryContext entityContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.ENTITY
+        );
+        entityContext.setRdapResponseData(queryContext.getRdapResponseData());
+        ResponseValidation2Dot2_1_2024 validation = new ResponseValidation2Dot2_1_2024(entityContext);
 
         // Check that doLaunch() returns false for entity queries
         assertThat(validation.doLaunch()).isFalse();
@@ -40,8 +57,16 @@ public class EntityQueryTest extends ProfileJsonValidationTestBase {
     @Test
     public void testDomainQuery_DoLaunchReturnsTrue() {
         // Test that ResponseValidation2Dot2_1_2024 runs on domain queries
-        ResponseValidation2Dot2_1_2024 validation = new ResponseValidation2Dot2_1_2024(
-            jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        ResponseValidation2Dot2_1_2024 validation = new ResponseValidation2Dot2_1_2024(domainContext);
 
         // Check that doLaunch() returns true for domain queries
         assertThat(validation.doLaunch()).isTrue();
@@ -52,16 +77,25 @@ public class EntityQueryTest extends ProfileJsonValidationTestBase {
         // Test other query types also return false
         ResponseValidation2Dot2_1_2024 validation;
 
-        validation = new ResponseValidation2Dot2_1_2024(
-            jsonObject.toString(), results, datasets, RDAPQueryType.NAMESERVER);
+        QueryContext nameserverContext = new QueryContext(
+            queryContext.getQueryId(), queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.NAMESERVER);
+        nameserverContext.setRdapResponseData(queryContext.getRdapResponseData());
+        validation = new ResponseValidation2Dot2_1_2024(nameserverContext);
         assertThat(validation.doLaunch()).isFalse();
 
-        validation = new ResponseValidation2Dot2_1_2024(
-            jsonObject.toString(), results, datasets, RDAPQueryType.AUTNUM);
+        QueryContext autnumContext = new QueryContext(
+            queryContext.getQueryId(), queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.AUTNUM);
+        autnumContext.setRdapResponseData(queryContext.getRdapResponseData());
+        validation = new ResponseValidation2Dot2_1_2024(autnumContext);
         assertThat(validation.doLaunch()).isFalse();
 
-        validation = new ResponseValidation2Dot2_1_2024(
-            jsonObject.toString(), results, datasets, RDAPQueryType.IP_NETWORK);
+        QueryContext ipNetworkContext = new QueryContext(
+            queryContext.getQueryId(), queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.IP_NETWORK);
+        ipNetworkContext.setRdapResponseData(queryContext.getRdapResponseData());
+        validation = new ResponseValidation2Dot2_1_2024(ipNetworkContext);
         assertThat(validation.doLaunch()).isFalse();
     }
 }

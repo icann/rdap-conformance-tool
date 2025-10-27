@@ -10,8 +10,10 @@ import static org.testng.Assert.assertTrue;
 
 import java.net.URI;
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.mockito.MockedStatic;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -20,15 +22,13 @@ import org.testng.annotations.Test;
 
 public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidationTestBase {
 
-    private RDAPValidatorConfiguration config;
-
     public ResponseValidation2Dot4Dot6_2024Test() {
         super("rdapResponseProfile_2_4_6_Validation");
     }
 
     @BeforeMethod
     public void setup() throws Exception {
-        config = mock(RDAPValidatorConfiguration.class);
+        super.setUp();
         // - value should now contain the IANA RDAP base URL (https://example.com/)
         // - href can be any valid URI
         // - config.getUri() is no longer used for value validation
@@ -46,13 +46,22 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
             .put("links", links);
 
         // Config URI no longer used for value validation in new implementation
-        doReturn(new URI("https://icann.org/wicf")).when(config).getUri();
+        doReturn(new URI("https://icann.org/wicf")).when(queryContext.getConfig()).getUri();
     }
 
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot4Dot6_2024(jsonObject.toString(), results, datasets, queryType, config);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        return new ResponseValidation2Dot4Dot6_2024(domainContext);
     }
 
     @Test
@@ -145,7 +154,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
     @Test
     public void testValidate_ReservedRegistrarId9999_GtldRegistryMode_Passes() {
         // Test: Reserved registrar ID 9999 should pass when gTLD registry mode is enabled
-        doReturn(true).when(config).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
         replaceValue("$['entities'][0]['handle']", "9999");
         replaceValue("$['entities'][0]['publicIds'][0]['identifier']", "9999");
         replaceValue("$['entities'][0]['links'][0]['value']", "https://any-invalid-url.com/");
@@ -155,7 +164,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
     @Test
     public void testValidate_ReservedRegistrarId9994_GtldRegistryMode_Passes() {
         // Test: Reserved registrar ID 9994 should pass when gTLD registry mode is enabled
-        doReturn(true).when(config).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
         replaceValue("$['entities'][0]['handle']", "9994");
         replaceValue("$['entities'][0]['publicIds'][0]['identifier']", "9994");
         replaceValue("$['entities'][0]['links'][0]['value']", "https://any-invalid-url.com/");
@@ -165,7 +174,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
     @Test
     public void testValidate_ReservedRegistrarId9995_GtldRegistryMode_Passes() {
         // Test: Reserved registrar ID 9995 should pass when gTLD registry mode is enabled
-        doReturn(true).when(config).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
         replaceValue("$['entities'][0]['handle']", "9995");
         replaceValue("$['entities'][0]['publicIds'][0]['identifier']", "9995");
         replaceValue("$['entities'][0]['links'][0]['value']", "https://any-invalid-url.com/");
@@ -175,7 +184,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
     @Test
     public void testValidate_ReservedRegistrarId9999_NotGtldRegistryMode_FailsValidation() {
         // Test: Reserved registrar ID 9999 should still validate against IANA when NOT in gTLD registry mode
-        doReturn(false).when(config).isGtldRegistry();
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistry();
         replaceValue("$['entities'][0]['handle']", "9999");
         replaceValue("$['entities'][0]['publicIds'][0]['identifier']", "9999");
         replaceValue("$['entities'][0]['links'][0]['value']", "https://invalid-iana-url.com/");
@@ -187,7 +196,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
     @Test
     public void testValidate_RegularRegistrarId292_GtldRegistryMode_StillValidatesIANA() {
         // Test: Regular registrar IDs should still validate against IANA even in gTLD registry mode
-        doReturn(true).when(config).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
         // Keep the default handle "292" and test with invalid URL
         replaceValue("$['entities'][0]['links'][0]['value']", "https://invalid-iana-url.com/");
         validate(-47701,
@@ -198,7 +207,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
     @Test
     public void testValidate_EdgeCaseId9993_GtldRegistryMode_StillValidatesIANA() {
         // Test: ID 9993 (just below reserved range) should still validate against IANA
-        doReturn(true).when(config).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
         replaceValue("$['entities'][0]['handle']", "9993");
         replaceValue("$['entities'][0]['publicIds'][0]['identifier']", "9993");
         replaceValue("$['entities'][0]['links'][0]['value']", "https://invalid-iana-url.com/");
@@ -210,7 +219,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
     @Test
     public void testValidate_EdgeCaseId10000_GtldRegistryMode_StillValidatesIANA() {
         // Test: ID 10000 (just above reserved range) should still validate against IANA
-        doReturn(true).when(config).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
         replaceValue("$['entities'][0]['handle']", "10000");
         replaceValue("$['entities'][0]['publicIds'][0]['identifier']", "10000");
         replaceValue("$['entities'][0]['links'][0]['value']", "https://invalid-iana-url.com/");

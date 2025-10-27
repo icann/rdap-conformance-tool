@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
 
 import java.net.http.HttpResponse;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -16,12 +17,21 @@ public final class TigValidation1Dot6 extends ProfileValidation {
   private static final Logger logger = LoggerFactory.getLogger(TigValidation1Dot6.class);
   private final int rdapResponseStatusCode;
   private final RDAPValidatorConfiguration config;
+  private final QueryContext queryContext;
 
   public TigValidation1Dot6(int rdapResponseStatusCode, RDAPValidatorConfiguration config,
       RDAPValidatorResults results) {
     super(results);
     this.rdapResponseStatusCode = rdapResponseStatusCode;
     this.config = config;
+    this.queryContext = null; // Legacy constructor for backward compatibility
+  }
+
+  public TigValidation1Dot6(int rdapResponseStatusCode, QueryContext queryContext) {
+    super(queryContext.getResults());
+    this.rdapResponseStatusCode = rdapResponseStatusCode;
+    this.config = queryContext.getConfig();
+    this.queryContext = queryContext;
   }
 
   @Override
@@ -31,8 +41,16 @@ public final class TigValidation1Dot6 extends ProfileValidation {
 
   public boolean doValidate() {
     try {
-      HttpResponse<String> httpResponse = RDAPHttpRequest
-          .makeHttpHeadRequest(config.getUri(), config.getTimeout());
+      HttpResponse<String> httpResponse = null;
+
+      if (queryContext != null) {
+        // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
+        httpResponse = RDAPHttpRequest.makeRequest(queryContext, config.getUri(), config.getTimeout(), HEAD);
+      } else {
+        // Fallback to legacy singleton-based request
+        httpResponse = RDAPHttpRequest.makeHttpHeadRequest(config.getUri(), config.getTimeout());
+      }
+
       if (httpResponse.statusCode() != rdapResponseStatusCode) {
         results.add(RDAPValidationResult.builder()
             .httpStatusCode(httpResponse.statusCode())

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -23,8 +24,8 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
   private static final String VCARD_ARRAY = "vcardArray";
   private Set<String> redactedPointersValue = null;
 
-  public ResponseValidation2Dot7Dot6Dot2_2024(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
+  public ResponseValidation2Dot7Dot6Dot2_2024(QueryContext qctx) {
+    super(qctx.getRdapResponseData(), qctx.getResults());
   }
 
   @Override

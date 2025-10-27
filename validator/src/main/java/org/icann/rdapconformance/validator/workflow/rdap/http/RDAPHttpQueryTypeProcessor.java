@@ -2,6 +2,8 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 
+import org.icann.rdapconformance.validator.QueryContext;
+
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,16 +22,47 @@ import org.slf4j.LoggerFactory;
 public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQueryTypeProcessor.class);
+
+    // BRIDGE PATTERN: ThreadLocal QueryContext for gradual migration
+    private static final ThreadLocal<QueryContext> currentQueryContext = new ThreadLocal<>();
+
     private static RDAPHttpQueryTypeProcessor instance;
     private RDAPValidatorConfiguration config;
     private ToolResult status = null;
     private RDAPHttpQueryType queryType = null;
 
-    // Private constructor for singleton
-    private RDAPHttpQueryTypeProcessor() {
+    // Constructor - now public for regular class usage
+    public RDAPHttpQueryTypeProcessor() {
+    }
+
+    // Constructor with configuration
+    public RDAPHttpQueryTypeProcessor(RDAPValidatorConfiguration config) {
+        this.config = config;
+    }
+
+    /**
+     * BRIDGE METHOD: Set QueryContext for current thread.
+     * This allows processing to access QueryContext's RDAPHttpQueryTypeProcessor.
+     */
+    public static void setCurrentQueryContext(QueryContext qctx) {
+        currentQueryContext.set(qctx);
+    }
+
+    /**
+     * BRIDGE METHOD: Clear QueryContext for current thread.
+     * Should be called after processing is complete.
+     */
+    public static void clearCurrentQueryContext() {
+        currentQueryContext.remove();
     }
 
     public static synchronized RDAPHttpQueryTypeProcessor getInstance() {
+        QueryContext qctx = currentQueryContext.get();
+        if (qctx != null) {
+            return qctx.getHttpQueryTypeProcessor();
+        }
+
+        // Fallback to singleton for backward compatibility
         if (instance == null) {
             instance = new RDAPHttpQueryTypeProcessor();
         }
@@ -37,6 +70,14 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     }
     // Static method to get the singleton instance with configuration
     public static synchronized RDAPHttpQueryTypeProcessor getInstance(RDAPValidatorConfiguration config) {
+        QueryContext qctx = currentQueryContext.get();
+        if (qctx != null) {
+            RDAPHttpQueryTypeProcessor processor = qctx.getHttpQueryTypeProcessor();
+            processor.setConfiguration(config);
+            return processor;
+        }
+
+        // Fallback to singleton for backward compatibility
         if (instance == null) {
             instance = new RDAPHttpQueryTypeProcessor();
         }

@@ -19,9 +19,7 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot7Dot6Dot2_2024(
-                jsonObject.toString(),
-                results);
+        return new ResponseValidation2Dot7Dot6Dot2_2024(queryContext);
     }
 
     @Test
@@ -39,9 +37,7 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
 
         @Override
         public ProfileValidation getProfileValidation() {
-            return new ResponseValidation2Dot7Dot6Dot2_2024(
-                    jsonObject.toString(),
-                    results);
+            return new ResponseValidation2Dot7Dot6Dot2_2024(queryContext);
         }
 
         @Test
@@ -60,9 +56,7 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
 
         @Override
         public ProfileValidation getProfileValidation() {
-            return new ResponseValidation2Dot7Dot6Dot2_2024(
-                    jsonObject.toString(),
-                    results);
+            return new ResponseValidation2Dot7Dot6Dot2_2024(queryContext);
         }
 
         @Test
@@ -81,9 +75,7 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
 
         @Override
         public ProfileValidation getProfileValidation() {
-            return new ResponseValidation2Dot7Dot6Dot2_2024(
-                    jsonObject.toString(),
-                    results);
+            return new ResponseValidation2Dot7Dot6Dot2_2024(queryContext);
         }
 
         @Test

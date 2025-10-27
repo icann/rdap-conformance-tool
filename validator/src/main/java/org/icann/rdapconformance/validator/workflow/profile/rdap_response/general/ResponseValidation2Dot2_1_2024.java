@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 
 import org.apache.commons.lang3.StringUtils;
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -26,11 +27,10 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
   private final RDAPDatasetService datasetService;
   private final RDAPQueryType queryType;
 
-  public ResponseValidation2Dot2_1_2024(String rdapResponse, RDAPValidatorResults results,
-                                        RDAPDatasetService datasetService, RDAPQueryType queryType) {
-    super(rdapResponse, results);
-    this.datasetService = datasetService;
-    this.queryType = queryType;
+  public ResponseValidation2Dot2_1_2024(QueryContext qctx) {
+    super(qctx.getRdapResponseData(), qctx.getResults());
+    this.datasetService = qctx.getDatasetService();
+    this.queryType = qctx.getQueryType();
   }
 
   @Override

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import static org.icann.rdapconformance.validator.CommonUtils.*;
 
 /**
- * Singleton class that tracks and monitors all HTTP connections made during RDAP validation.
+ * Connection tracker that monitors all HTTP connections made during RDAP validation.
  *
  * <p>This class provides comprehensive connection tracking functionality including:</p>
  * <ul>
@@ -33,12 +33,13 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  * {@link ConnectionRecord} containing timing information, network details, and
  * HTTP response metadata.</p>
  *
- * <p>The tracker is thread-safe and uses synchronized collections to support
- * concurrent validation operations.</p>
+ * <p>Now integrated into the QueryContext architecture for thread-safe operation in
+ * concurrent validation environments. Each QueryContext has its own ConnectionTracker
+ * instance to ensure complete isolation between validation sessions.</p>
  *
  * <p>Usage example:</p>
  * <pre>
- * ConnectionTracker tracker = ConnectionTracker.getInstance();
+ * ConnectionTracker tracker = queryContext.getConnectionTracker();
  * String trackingId = tracker.startTrackingNewConnection(uri, "GET", true);
  * // ... perform HTTP request ...
  * tracker.updateConnectionWithIpAddress(trackingId, "192.0.2.1");
@@ -57,19 +58,44 @@ public class ConnectionTracker {
     private ConnectionRecord currentConnection;
     private ConnectionRecord lastMainConnection;
 
-    private ConnectionTracker() {
+    // Public constructor for QueryContext usage (no longer singleton)
+    public ConnectionTracker() {
         this.connections = Collections.synchronizedList(new ArrayList<>());
         this.connectionsByTrackingId = Collections.synchronizedMap(new HashMap<>());
         this.lastMainConnection = null;
     }
 
     /**
-     * Returns the singleton instance of the ConnectionTracker.
+     * Returns the legacy singleton instance of the ConnectionTracker.
      *
-     * @return the singleton ConnectionTracker instance
+     * <p>This method is provided for backward compatibility with code that hasn't
+     * been migrated to the QueryContext architecture. New code should obtain
+     * ConnectionTracker through QueryContext.getConnectionTracker().</p>
+     *
+     * @return the legacy singleton ConnectionTracker instance
+     * @deprecated Use QueryContext.getConnectionTracker() instead
      */
+    @Deprecated
     public static ConnectionTracker getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * No-op bridge method for backward compatibility.
+     * @deprecated Bridge pattern removed - use QueryContext directly
+     */
+    @Deprecated
+    public static void setCurrentQueryContext(QueryContext qctx) {
+        // No-op - bridge pattern removed
+    }
+
+    /**
+     * No-op bridge method for backward compatibility.
+     * @deprecated Bridge pattern removed - use QueryContext directly
+     */
+    @Deprecated
+    public static void clearCurrentQueryContext() {
+        // No-op - bridge pattern removed
     }
 
     /**
@@ -133,6 +159,43 @@ public class ConnectionTracker {
             logger.debug("Started tracking main connection: {}", trackingId);
         } else {
             logger.debug("Started tracking connection: {}", trackingId);
+        }
+
+        return trackingId;
+    }
+
+    /**
+     * Start tracking a new connection with explicit protocol (QueryContext-aware)
+     * @param uri The URI being requested
+     * @param httpMethod The HTTP method being used
+     * @param isMainConnection Whether this is a main connection
+     * @param protocol The network protocol being used
+     * @return The tracking ID of the new connection
+     */
+    public synchronized String startTrackingNewConnection(URI uri, String httpMethod, boolean isMainConnection, NetworkProtocol protocol) {
+        String trackingId = generateTrackingId();
+        ConnectionRecord record = new ConnectionRecord(
+                uri,
+                "UNKNOWN", // IP address will be set later
+                protocol,  // Use provided protocol instead of singleton
+                ZERO,  // Status code not yet known
+                null,  // Duration not yet known
+                null,  // Status not yet known
+                httpMethod,
+                Instant.now(),
+                trackingId,
+                isMainConnection
+        );
+        record.setStartTime(Instant.now());
+        connections.add(record);
+        connectionsByTrackingId.put(trackingId, record);
+        currentConnection = record;
+
+        if (isMainConnection) {
+            lastMainConnection = record;
+            logger.debug("Started tracking main connection: {} using protocol: {}", trackingId, protocol);
+        } else {
+            logger.debug("Started tracking connection: {} using protocol: {}", trackingId, protocol);
         }
 
         return trackingId;

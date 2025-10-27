@@ -5,6 +5,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.*;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
@@ -21,7 +22,6 @@ import java.io.IOException;
 
 public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonValidationTestBase {
 
-    private RDAPValidatorConfiguration config;
 
     static final String handlePointer =
             "#/entities/0:{\"objectClassName\":\"entity\",\"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Administrative User\"],[\"org\",{},\"text\",\"Example Inc.\"],[\"adr\",{},\"text\",[\"\",\"Suite 1236\",\"4321 Rue Somewhere\",\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]],[\"email\",{},\"text\",\"administrative.user@example.com\"],[\"tel\",{\"type\":\"voice\"},\"uri\",\"tel:+1-555-555-1236;ext=789\"],[\"tel\",{\"type\":\"fax\"},\"uri\",\"tel:+1-555-555-6321\"]]],\"roles\":[\"registrant\"],\"handle\":\"2138514test\"}";
@@ -40,20 +40,14 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         super.setUp();
 
         // Mock configuration for registry mode by default
-        config = mock(RDAPValidatorConfiguration.class);
-        doReturn(true).when(config).isGtldRegistry();
-        doReturn(false).when(config).isGtldRegistrar();
-        doReturn(false).when(config).isThin();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistrar();
+        doReturn(false).when(queryContext.getConfig()).isThin();
     }
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidationRegistrantHandle_2024(
-                config,
-                jsonObject.toString(),
-                results,
-                datasets,
-                RDAPQueryType.DOMAIN);
+        return new ResponseValidationRegistrantHandle_2024(queryContext);
     }
 
     @Test
@@ -513,8 +507,16 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         assertFalse(customEppRoid.isInvalid("OTHER"), "Expected OTHER to be valid");
 
         // Create validator with custom datasets that will mark INVALID8 as invalid
-        ResponseValidationRegistrantHandle_2024 validator = new ResponseValidationRegistrantHandle_2024(
-                config, jsonObject.toString(), results, customDatasets, RDAPQueryType.DOMAIN);
+        QueryContext testContext = new QueryContext(
+            queryContext.getQueryId(),
+            config,
+            customDatasets,
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        testContext.setRdapResponseData(jsonObject.toString());
+        ResponseValidationRegistrantHandle_2024 validator = new ResponseValidationRegistrantHandle_2024(testContext);
 
         // Verify handle format is valid before validation
         String handle = registrantEntity.optString("handle");
@@ -626,8 +628,16 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
 
         try {
             // Create a validator with potentially problematic JSON
-            ResponseValidationRegistrantHandle_2024 validator = new ResponseValidationRegistrantHandle_2024(
-                    config, corruptedJson, results, datasets, RDAPQueryType.DOMAIN);
+            QueryContext testContext = new QueryContext(
+                queryContext.getQueryId(),
+                config,
+                datasets,
+                queryContext.getQuery(),
+                queryContext.getResults(),
+                RDAPQueryType.DOMAIN
+            );
+            testContext.setRdapResponseData(corruptedJson);
+            ResponseValidationRegistrantHandle_2024 validator = new ResponseValidationRegistrantHandle_2024(testContext);
 
             // Create a redacted object with various problematic prePaths
             JSONObject redactedRegistrantName = new JSONObject();
@@ -799,8 +809,16 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         redactedObject.put("method", "removal");
         // Use a custom dataset that marks INVALIDROID as invalid
         RDAPDatasetServiceTestMock customDatasets = new RDAPDatasetServiceTestMock(java.util.Set.of("INVALIDROID"));
-        ResponseValidationRegistrantHandle_2024 validator = new ResponseValidationRegistrantHandle_2024(
-                config, jsonObject.toString(), results, customDatasets, RDAPQueryType.DOMAIN);
+        QueryContext testContext = new QueryContext(
+            queryContext.getQueryId(),
+            config,
+            customDatasets,
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        testContext.setRdapResponseData(jsonObject.toString());
+        ResponseValidationRegistrantHandle_2024 validator = new ResponseValidationRegistrantHandle_2024(testContext);
         var validation = validator.doValidate();
         assertFalse(validation, "Expected validation to fail");
     }
@@ -814,14 +832,16 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
     @Test
     public void testDoLaunch_NonDomainQuery_ReturnsFalse() {
         // Test that validation does not launch for non-DOMAIN queries
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.ENTITY);
+        QueryContext entityQueryContext = new QueryContext("test-entity", queryContext.getConfig(), queryContext.getDatasetService(), queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.ENTITY);
+        entityQueryContext.setRdapResponseData(jsonObject.toString());
+        var validation = new ResponseValidationRegistrantHandle_2024(entityQueryContext);
         assertFalse(validation.doLaunch(), "Expected doLaunch to return false for non-DOMAIN queries");
     }
 
     @Test
     public void testDoLaunch_DomainQuery_ReturnsTrue() {
         // Test that validation launches for DOMAIN queries
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
         assertTrue(validation.doLaunch(), "Expected doLaunch to return true for DOMAIN queries");
     }
 
@@ -839,7 +859,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         // Add domain name to trigger lookup
         jsonObject.put("ldhName", "example.com");
 
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
 
         // In this test scenario without mocking the HTTP service, validation will run
         // Integration tests would mock the EntityRegistryLookupService to test skip behavior
@@ -888,7 +908,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         jsonObject.put("ldhName", "example.com");
         jsonObject.remove("unicodeName");
 
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
         // We can't directly test getDomainName() as it's private, but it's tested indirectly through registrar mode logic
         // Integration tests would verify the domain extraction works correctly
         assertTrue(validation.doLaunch(), "Validation should launch for domain queries");
@@ -909,7 +929,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         registrantEntity.put("handle", "TEST-HANDLE");
         jsonObject.getJSONArray("redacted").remove(0);
 
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
 
         // This will trigger getDomainName() and test the unicodeName fallback path
         validation.doValidate();
@@ -923,7 +943,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         jsonObject.put("ldhName", "example.com");
         jsonObject.put("unicodeName", "exámple.com");
 
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
         // Domain extraction logic is tested indirectly - integration tests verify correct precedence
         assertTrue(validation.doLaunch(), "Validation should launch for domain queries");
     }
@@ -938,7 +958,16 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         String malformedJson = "{ \"entities\": [{ \"roles\": [\"registrant\"], \"handle\": \"TEST-HANDLE\" }], \"ldhName\": }";
 
         try {
-            var validation = new ResponseValidationRegistrantHandle_2024(config, malformedJson, results, datasets, RDAPQueryType.DOMAIN);
+            QueryContext testContext = new QueryContext(
+                queryContext.getQueryId(),
+                config,
+                datasets,
+                queryContext.getQuery(),
+                queryContext.getResults(),
+                RDAPQueryType.DOMAIN
+            );
+            testContext.setRdapResponseData(malformedJson);
+            var validation = new ResponseValidationRegistrantHandle_2024(testContext);
             // The constructor will parse the malformed JSON and the validation will handle exceptions gracefully
             validation.doValidate();
         } catch (Exception e) {
@@ -964,7 +993,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         registrantEntity.put("handle", "TEST-HANDLE");
         jsonObject.getJSONArray("redacted").remove(0);
 
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
 
         // This will trigger getDomainName() and test the null return path
         validation.doValidate();
@@ -984,7 +1013,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         // Clear redacted array to make extractRedactedHandle return null
         jsonObject.put("redacted", new JSONArray());
 
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
 
         // This will trigger validateRedactedProperties with null input
         validation.doValidate();
@@ -993,7 +1022,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
     @Test
     public void testValidatePostPathBasedOnPathLang_NullInput() {
         // Test validatePostPathBasedOnPathLang with null input
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
 
         // Call the method directly with null to test the null check branch
         boolean result = validation.validatePostPathBasedOnPathLang(null);
@@ -1015,7 +1044,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         redactedObject.put("pathLang", 12345); // Non-string value
         redactedObject.put("method", "removal");
 
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
         validation.doValidate();
     }
 
@@ -1031,7 +1060,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         jsonObject.getJSONArray("redacted").remove(0);
         jsonObject.put("ldhName", "example.com");
 
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
 
         // This will test the entity lookup branch - in test environment it may not find entity
         // but at least we exercise the code path
@@ -1048,7 +1077,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         registrantEntity.put("handle", 12345); // Non-string handle
         jsonObject.getJSONArray("redacted").remove(0);
 
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
         validation.doValidate();
     }
 
@@ -1064,7 +1093,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.getJSONObject("name").put("type", 12345); // Non-string type
 
-        var validation = new ResponseValidationRegistrantHandle_2024(config, jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        var validation = new ResponseValidationRegistrantHandle_2024(queryContext);
         validation.doValidate();
     }
 }

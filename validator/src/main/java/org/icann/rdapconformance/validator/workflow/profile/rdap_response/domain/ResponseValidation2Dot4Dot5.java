@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -12,11 +13,9 @@ public final class ResponseValidation2Dot4Dot5 extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
 
-  public ResponseValidation2Dot4Dot5(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType) {
-    super(rdapResponse, results);
-    this.queryType = queryType;
+  public ResponseValidation2Dot4Dot5(QueryContext qctx) {
+    super(qctx.getRdapResponseData(), qctx.getResults());
+    this.queryType = qctx.getQueryType();
   }
 
 

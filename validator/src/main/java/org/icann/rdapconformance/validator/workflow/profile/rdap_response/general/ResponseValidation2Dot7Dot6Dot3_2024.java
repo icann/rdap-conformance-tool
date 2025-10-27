@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -23,9 +24,9 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     private boolean contactUrlExists = false;
     private final RDAPValidatorConfiguration config;
 
-    public ResponseValidation2Dot7Dot6Dot3_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results);
-        this.config = config;
+    public ResponseValidation2Dot7Dot6Dot3_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.config = qctx.getConfig();
     }
 
     @Override

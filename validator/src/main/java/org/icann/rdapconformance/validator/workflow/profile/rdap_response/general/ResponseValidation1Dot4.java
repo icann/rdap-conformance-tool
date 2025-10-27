@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileVcardArrayValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -8,8 +9,8 @@ import org.json.JSONArray;
 
 public class ResponseValidation1Dot4 extends RDAPProfileVcardArrayValidation {
 
-  public ResponseValidation1Dot4(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
+  public ResponseValidation1Dot4(QueryContext qctx) {
+    super(qctx.getRdapResponseData(), qctx.getResults());
   }
 
   @Override

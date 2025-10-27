@@ -17,7 +17,6 @@ import java.util.Map;
 
 public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidationTestBase {
 
-    private RDAPValidatorConfiguration config;
     static final String vcardPointer =
             "#/entities/0/vcardArray/1:[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Administrative User\"],[\"org\",{},\"text\",\"Example Inc.\"],[\"adr\",{},\"text\",[\"\",\"Suite 1236\",\"4321 Rue Somewhere\",\"Quebec\",\"QC\",\"G1V 2M2\",\"Canada\"]],[\"email\",{},\"text\",\"administrative.user@example.com\"],[\"contact-uri\",{\"type\":\"voice\"},\"uri\",\"tel:+1-555-555-1236;ext=789\"],[\"tel\",{\"type\":\"fax\"},\"uri\",\"tel:+1-555-555-6321\"]]";
     static final String vcardNoReqPointer =
@@ -59,21 +58,17 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
     @BeforeMethod
     public void setUp() throws IOException {
         super.setUp();
-        config = mock(RDAPValidatorConfiguration.class);
     }
 
     @Override
     public ProfileValidation getProfileValidation() {
-        when(config.isGtldRegistrar()).thenReturn(true);
-        return new ResponseValidation2Dot7Dot4Dot9_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
+        return new ResponseValidation2Dot7Dot4Dot9_2024(queryContext);
     }
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_No_Registrant() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("roles");
         roles.put(0, "registrar");
         validate();
@@ -81,7 +76,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64100() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(5);
 
         vArray.put(0, "contact-uri");
@@ -90,7 +85,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64101() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
 
         vArray.put(0, "test");
@@ -99,7 +94,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64102() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
         redactedObject.put("method", "test");
@@ -108,7 +103,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64103() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
         redactedObject.put("postPath", "$test");
@@ -117,7 +112,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64104() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
         redactedObject.put("postPath", "$.test");
@@ -126,7 +121,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64105() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
@@ -137,7 +132,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64106() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
@@ -148,7 +143,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot9_2024_64107() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
 
@@ -161,7 +156,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
     public void testMultiRoleRegistrant() throws java.io.IOException {
         // REGRESSION TEST: Verify multi-role entities are handled correctly after RCT-345 fix
         // Changed from @.roles[0]=='registrant' to @.roles contains 'registrant'
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         
         String multiRoleContent = getResource("/validators/profile/response_validations/vcard/valid_org_multi_role.json");
         jsonObject = new org.json.JSONObject(multiRoleContent);
@@ -181,14 +176,14 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testNoRedactedArray() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         jsonObject.remove("redacted");
         validate();
     }
 
     @Test
     public void testRedactedArrayNoRegistrantEmail() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray redacted = jsonObject.getJSONArray("redacted");
         JSONObject obj = redacted.getJSONObject(0);
         JSONObject name = obj.getJSONObject("name");
@@ -198,7 +193,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailNoMethod() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.remove("method");
         validate();
@@ -206,7 +201,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailMethodNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.put("method", 12345);
         validate();
@@ -214,7 +209,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailNoPathLang() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.remove("pathLang");
         validate();
@@ -222,21 +217,21 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testVcardArrayMissing() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         jsonObject.getJSONArray("entities").getJSONObject(0).remove("vcardArray");
         validate();
     }
 
     @Test
     public void testVcardArrayMalformed() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         jsonObject.getJSONArray("entities").getJSONObject(0).put("vcardArray", new JSONArray());
         validate();
     }
 
     @Test
     public void testRedactedRegistrantEmailPostPathNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.put("postPath", 12345); // Not a string
         validate();
@@ -244,7 +239,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailPostPathMissing() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.remove("postPath");
         validate();
@@ -252,7 +247,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailReplacementPathNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.put("replacementPath", 12345); // Not a string
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -262,7 +257,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailReplacementPathMissing() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.remove("replacementPath");
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -272,7 +267,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailPrePathNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.put("prePath", 12345); // Not a string
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -282,7 +277,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailPrePathMissing() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.remove("prePath");
         JSONArray vArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -292,7 +287,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailPathLangNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.put("pathLang", 12345); // Not a string
         validate();
@@ -300,7 +295,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailPathLangNotJsonPath() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.put("pathLang", "notjsonpath");
         validate();
@@ -308,7 +303,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidPostPathAndReplacementPathAndPrePath() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         // Use valid JSONPath expressions that point to a non-empty set
         redactedObject.put("postPath", "$.entities[?(@.roles contains 'registrant')].vcardArray[1][?(@[0]=='email')]");
@@ -321,21 +316,21 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testEntitiesArrayEmpty() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         jsonObject.put("entities", new JSONArray());
         validate();
     }
 
     @Test
     public void testVcardArrayIsNull() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         jsonObject.getJSONArray("entities").getJSONObject(0).put("vcardArray", JSONObject.NULL);
         validate();
     }
 
     @Test
     public void testDoLaunchTrue() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         ProfileValidation validation = getProfileValidation();
         validation.doLaunch();
     }
@@ -349,7 +344,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testMultipleRedactedEntriesOnlyLastRegistrantEmailUsed() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray redacted = jsonObject.getJSONArray("redacted");
         JSONObject irrelevant = new JSONObject();
         irrelevant.put("name", new JSONObject().put("type", "Other"));
@@ -363,7 +358,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedEntryMissingName() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray redacted = jsonObject.getJSONArray("redacted");
         JSONObject obj = new JSONObject();
         // No 'name' property
@@ -373,7 +368,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedEntryNameNotObject() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray redacted = jsonObject.getJSONArray("redacted");
         JSONObject obj = new JSONObject();
         obj.put("name", "notAnObject");
@@ -383,7 +378,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedEntryTypeNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray redacted = jsonObject.getJSONArray("redacted");
         JSONObject obj = new JSONObject();
         obj.put("name", new JSONObject().put("type", 12345));
@@ -393,14 +388,14 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedArrayEmpty() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         jsonObject.put("redacted", new JSONArray());
         validate();
     }
 
     @Test
     public void testRedactedArrayAllIrrelevant() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray redacted = new JSONArray();
         JSONObject obj = new JSONObject();
         obj.put("name", new JSONObject().put("type", "Other"));
@@ -411,21 +406,21 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testEntitiesArrayMissing() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         jsonObject.remove("entities");
         validate();
     }
 
     @Test
     public void testEntitiesArrayNull() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         jsonObject.put("entities", Map.of());
         validate();
     }
 
     @Test
     public void testRedactedNameTypeThrowsException() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray redacted = jsonObject.getJSONArray("redacted");
         JSONObject obj = redacted.getJSONObject(0);
         // Replace 'name' with an object that throws on get("type")
@@ -440,7 +435,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testVcardElementZeroNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         // Replace first vcard element with an array whose first element is not a String
         JSONArray nonStringVcard = new JSONArray();
@@ -451,7 +446,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testRedactedRegistrantEmailNullInMethodValidation() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove all Registrant Email entries so redactedRegistrantEmail is null
         JSONArray redacted = jsonObject.getJSONArray("redacted");
         for (int i = 0; i < redacted.length(); i++) {
@@ -466,7 +461,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateMethodPropertyException() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove 'method' property to force exception in try/catch
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.remove("method");
@@ -475,7 +470,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailRedactedPropertiesException() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove 'pathLang' property to force exception in try/catch
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.remove("pathLang");
@@ -486,7 +481,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateContactRedactedPropertiesException() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove 'pathLang' property to force exception in try/catch
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.remove("pathLang");
@@ -497,7 +492,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateReplacementPathBasedOnPathLangException() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove 'replacementPath' property to force exception in try/catch
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.remove("replacementPath");
@@ -508,7 +503,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidatePrePathBasedOnPathLangException() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove 'prePath' property to force exception in try/catch
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.remove("prePath");
@@ -519,7 +514,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testVcardArrayElementIsNull() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         vcardArray.put(JSONObject.NULL);
         validate();
@@ -527,14 +522,14 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testVcardArrayElementIsObject() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         vcardArray.put(new JSONObject().put("foo", "bar"));
     }
 
     @Test
     public void testMethodNotStringAndTitlesNoEmailOrContactUri() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.put("method", 12345); // Not a String
 
@@ -553,7 +548,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testContactRedactedProperties_nullRedactedRegistrantEmail() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove all redacted objects
         jsonObject.remove("redacted");
         validate(); // Should pass, nothing to validate
@@ -561,7 +556,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testContactRedactedProperties_pathLangJsonPath_replacementPathValid_prePathValid() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("method", "replacementValue");
         redacted.put("name", new JSONObject().put("type", "Registrant Email"));
@@ -582,7 +577,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testContactRedactedProperties_pathLangJsonPath_replacementPathValid_prePathInvalid() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("method", "replacementValue");
         redacted.put("name", new JSONObject().put("type", "Registrant Email"));
@@ -603,7 +598,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testContactRedactedProperties_pathLangJsonPath_replacementPathInvalid() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("method", "replacementValue");
         redacted.put("name", new JSONObject().put("type", "Registrant Email"));
@@ -623,7 +618,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testContactRedactedProperties_pathLangJsonPath_replacementPathValid_prePathMissing() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("method", "replacementValue");
         redacted.put("name", new JSONObject().put("type", "Registrant Email"));
@@ -644,7 +639,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testContactRedactedProperties_pathLangNotJsonPath() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("method", "replacementValue");
         redacted.put("name", new JSONObject().put("type", "Registrant Email"));
@@ -663,7 +658,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testContactRedactedProperties_pathLangMissing_replacementPathValid_prePathValid() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("method", "replacementValue");
         redacted.put("name", new JSONObject().put("type", "Registrant Email"));
@@ -684,7 +679,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testContactRedactedProperties_pathLangMissing_replacementPathInvalid() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("method", "replacementValue");
         redacted.put("name", new JSONObject().put("type", "Registrant Email"));
@@ -704,7 +699,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testContactRedactedProperties_pathLangMissing_replacementPathValid_prePathInvalid() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("method", "replacementValue");
         redacted.put("name", new JSONObject().put("type", "Registrant Email"));
@@ -725,7 +720,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testContactRedactedProperties_pathLangMissing_replacementPathValid_prePathMissing() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("method", "replacementValue");
         redacted.put("name", new JSONObject().put("type", "Registrant Email"));
@@ -746,7 +741,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateMethodProperty_nullRedactedRegistrantEmail() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove all Registrant Email entries so redactedRegistrantEmail is null
         JSONArray redacted = jsonObject.getJSONArray("redacted");
         for (int i = 0; i < redacted.length(); i++) {
@@ -761,7 +756,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateMethodProperty_methodNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("method", 12345); // Not a String
         validate();
@@ -769,7 +764,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateMethodProperty_methodMissing() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.remove("method");
         validate();
@@ -777,7 +772,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateMethodProperty_titlesContainsNeither() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove both email and contact-uri from vcard
         JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         vcard.remove(4); // Remove email
@@ -786,7 +781,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailRedactedProperties_pathLangNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("pathLang", 12345); // Not a String
         validate();
@@ -794,7 +789,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidatePostPathBasedOnPathLang_postPathNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("postPath", 12345); // Not a String
         validate();
@@ -802,7 +797,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateReplacementPathBasedOnPathLang_notString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("replacementPath", 12345); // Not a String
         // Remove email from vcard, add contact-uri
@@ -819,7 +814,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateReplacementPathBasedOnPathLang_missing() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.remove("replacementPath");
         // Remove email from vcard, add contact-uri
@@ -836,7 +831,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidatePrePathBasedOnPathLang_notString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.put("prePath", 12345); // Not a String
         // Remove email from vcard, add contact-uri
@@ -853,7 +848,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidatePrePathBasedOnPathLang_missing() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONObject redacted = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redacted.remove("prePath");
         // Remove email from vcard, add contact-uri
@@ -870,7 +865,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailRedactedProperties_pathLangJsonpath() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Set up the redactedRegistrantEmail with pathLang as a String with spaces and mixed case
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
         redactedObject.put("pathLang", "  JsOnPaTh");
@@ -884,7 +879,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailPropertyAtLeastOneVCard_noVCardPointers() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove registrant role so VCARD_PATH returns empty
         JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("roles");
         roles.put(0, "other");
@@ -894,7 +889,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailPropertyAtLeastOneVCard_vCardArrayEmpty() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Set vcardArray[1] to empty array
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray");
         vcardArray.put(1, new JSONArray());
@@ -904,7 +899,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailPropertyAtLeastOneVCard_noEmailEntry() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Remove email entry from vcardArray[1]
         JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         vcard.remove(4); // Remove email
@@ -914,7 +909,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailPropertyAtLeastOneVCard_emailEntryEmptyValue() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Set email value to empty string
         JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
         vcard.put(3, "");
@@ -924,7 +919,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailPropertyAtLeastOneVCard_emailEntryInvalidValue() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Set email value to invalid email
         JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
         vcard.put(3, "invalid-email");
@@ -934,7 +929,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailPropertyAtLeastOneVCard_emailEntryValidValue() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Set email value to valid email
         JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
         vcard.put(3, "valid.email@example.com");
@@ -944,7 +939,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailPropertyAtLeastOneVCard_firstElementNotString() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Add vcard entry with first element not a String
         JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         JSONArray nonStringEntry = new JSONArray();
@@ -959,7 +954,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailPropertyAtLeastOneVCard_exceptionInQuery() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Simulate exception by removing vcardArray so query fails
         jsonObject.getJSONArray("entities").getJSONObject(0).remove("vcardArray");
         jsonObject.remove("redacted");
@@ -972,7 +967,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
 
     @Test
     public void testValidateEmailPropertyAtLeastOneVCard_multipleEmailsAtLeastOneValid() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         // Multiple email entries to vcardArray, one invalid, one valid
         JSONArray vcard = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         // First email: invalid

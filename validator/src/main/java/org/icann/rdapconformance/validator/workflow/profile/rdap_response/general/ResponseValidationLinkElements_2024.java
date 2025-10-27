@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 
 import java.util.Set;
 import org.icann.rdapconformance.validator.JpathUtil;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -14,14 +15,12 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationLinkElements_2024.class);
     private final JpathUtil jpathUtil;
-    private JSONObject jsonObject = null;
-    private RDAPValidatorResults results = null;
+    private final JSONObject jsonObject;
 
-    public ResponseValidationLinkElements_2024(String  rdapResponse, RDAPValidatorResults results) {
-        super(results);
+    public ResponseValidationLinkElements_2024(QueryContext qctx) {
+        super(qctx.getResults());
         this.jpathUtil = new JpathUtil();
-        this.jsonObject =   new JSONObject(rdapResponse);
-        this.results = results;
+        this.jsonObject = new JSONObject(qctx.getRdapResponseData());
     }
 
     @Override

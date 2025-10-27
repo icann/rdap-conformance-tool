@@ -13,6 +13,6 @@ public class ResponseValidation2Dot1Test extends QueryValidationTest {
 
   @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot1(jsonObject.toString(), results, config, queryType);
+    return new ResponseValidation2Dot1(queryContext);
   }
 }

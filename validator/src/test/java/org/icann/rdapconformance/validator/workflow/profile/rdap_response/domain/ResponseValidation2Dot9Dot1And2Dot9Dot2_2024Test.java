@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -14,7 +15,16 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2_2024Test extends ProfileJso
 
     @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(jsonObject.toString(), results, RDAPQueryType.DOMAIN);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        return new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(domainContext);
     }
 
     @Test

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import java.util.List;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPConformanceValidation;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPConformanceValidationTest;
 import org.testng.annotations.Test;
@@ -13,7 +14,7 @@ public class TigValidation1Dot3_2024Test extends RDAPConformanceValidationTest {
 
     @Override
     public RDAPConformanceValidation getProfileValidation() {
-        return new TigValidation1Dot3_2024(jsonObject.toString(), results);
+        return new TigValidation1Dot3_2024(queryContext);
     }
 
     @Override
