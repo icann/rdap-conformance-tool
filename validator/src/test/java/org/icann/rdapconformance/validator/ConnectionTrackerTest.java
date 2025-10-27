@@ -69,7 +69,7 @@ public class ConnectionTrackerTest {
         }
 
         // Add a main connection with 404 status
-        tracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true);
+        tracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);
         tracker.completeCurrentConnection(404, ConnectionStatus.SUCCESS);
         boolean result = tracker.isResourceNotFoundNoteWarning(config);
 
@@ -87,7 +87,7 @@ public class ConnectionTrackerTest {
         ConfigurationFile configFile = mock(ConfigurationFile.class);
 
         // Add a main connection with 200 status (not 404)
-        tracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true);
+        tracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);
         tracker.completeCurrentConnection(200, ConnectionStatus.SUCCESS);
         boolean result = tracker.isResourceNotFoundNoteWarning(config);
 

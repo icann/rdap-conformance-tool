@@ -274,14 +274,12 @@ public class RDAPHttpQuery implements RDAPQuery {
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
-                // Use QueryContext version of makeRequest if available, otherwise fall back to singleton
-                if (queryContext != null) {
-                    logger.debug("Using QueryContext makeRequest - protocol: {}", queryContext.getNetworkProtocol());
-                    response = RDAPHttpRequest.makeRequest(queryContext, currentUri, this.config.getTimeout(), GET, true);
-                } else {
-                    logger.debug("Using singleton makeRequest - queryContext is null");
-                    response = RDAPHttpRequest.makeRequest(currentUri, this.config.getTimeout(), GET, true);
+                // QueryContext is required for proper network protocol handling
+                if (queryContext == null) {
+                    throw new IllegalStateException("QueryContext must be set before running RDAPHttpQuery. Call setQueryContext() first.");
                 }
+                logger.debug("Using QueryContext makeRequest - protocol: {}", queryContext.getNetworkProtocol());
+                response = RDAPHttpRequest.makeRequest(queryContext, currentUri, this.config.getTimeout(), GET, true);
                 int httpStatusCode = response.statusCode();
                 ConnectionStatus st = ((SimpleHttpResponse) response).getConnectionStatusCode();
                 this.setErrorStatus(((SimpleHttpResponse) response).getConnectionStatusCode());   // ensure this is set

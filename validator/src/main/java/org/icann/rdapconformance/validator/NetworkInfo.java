@@ -24,9 +24,6 @@ import static org.icann.rdapconformance.validator.CommonUtils.DASH;
  * @since 1.0.0
  */
 public class NetworkInfo {
-    // Simple QueryContext bridge for singleton compatibility
-    private static final ThreadLocal<QueryContext> currentQueryContext = new ThreadLocal<>();
-
     private AcceptHeader acceptHeader = AcceptHeader.APPLICATION_JSON;
     private String httpMethod;
     private String serverIpAddress;
@@ -37,18 +34,6 @@ public class NetworkInfo {
      */
     public NetworkInfo() {}
 
-    /**
-     * Bridge method for singleton compatibility with QueryContext.
-     * Returns the NetworkInfo from the current QueryContext if available.
-     */
-    public static NetworkInfo getInstance() {
-        QueryContext qctx = currentQueryContext.get();
-        if (qctx != null) {
-            return qctx.getNetworkInfo(); // Bridge to QueryContext instance
-        }
-        // Simple fallback for legacy code (testing/edge cases)
-        return new NetworkInfo();
-    }
 
     // Enum for AcceptHeader
     public enum AcceptHeader {
@@ -115,70 +100,4 @@ public class NetworkInfo {
         setNetworkProtocolValue(NetworkProtocol.IPv4);
     }
 
-    // Legacy static methods for backward compatibility with non-QueryContext code
-    // These delegate to instance methods on the legacy singleton
-    public static String getAcceptHeader() {
-        return getInstance().getAcceptHeaderValue();
-    }
-
-    public static String getHttpMethod() {
-        return getInstance().getHttpMethodValue();
-    }
-
-    public static String getServerIpAddress() {
-        return getInstance().getServerIpAddressValue();
-    }
-
-    public static NetworkProtocol getNetworkProtocol() {
-        return getInstance().getNetworkProtocolValue();
-    }
-
-    public static String getNetworkProtocolAsString() {
-        return getInstance().getNetworkProtocolAsStringValue();
-    }
-
-    public static void setAcceptHeaderToApplicationJson() {
-        getInstance().setAcceptHeaderToApplicationJsonValue();
-    }
-
-    public static void setAcceptHeaderToApplicationRdapJson() {
-        getInstance().setAcceptHeaderToApplicationRdapJsonValue();
-    }
-
-    public static void setHttpMethod(String httpMethod) {
-        getInstance().setHttpMethodValue(httpMethod);
-    }
-
-    public static void setServerIpAddress(String serverIpAddress) {
-        getInstance().setServerIpAddressValue(serverIpAddress);
-    }
-
-    public static void setNetworkProtocol(NetworkProtocol protocol) {
-        getInstance().setNetworkProtocolValue(protocol);
-    }
-
-    public static void setStackToV6() {
-        getInstance().setStackToV6Value();
-    }
-
-    public static void setStackToV4() {
-        getInstance().setStackToV4Value();
-    }
-
-    // Bridge methods that were removed but are still being called
-    /**
-     * Sets the current QueryContext for bridge pattern compatibility.
-     * This allows singleton calls to delegate to the correct QueryContext instance.
-     */
-    public static void setCurrentQueryContext(QueryContext qctx) {
-        currentQueryContext.set(qctx);
-    }
-
-    /**
-     * Clears the current QueryContext to prevent memory leaks.
-     * Should be called when validation completes.
-     */
-    public static void clearCurrentQueryContext() {
-        currentQueryContext.remove();
-    }
 }

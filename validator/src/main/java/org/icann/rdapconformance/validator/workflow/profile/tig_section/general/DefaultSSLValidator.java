@@ -23,8 +23,23 @@ import org.slf4j.LoggerFactory;
  * and validation against real servers.
  */
 public class DefaultSSLValidator implements SSLValidator {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(DefaultSSLValidator.class);
+    private final NetworkProtocol networkProtocol;
+
+    /**
+     * Default constructor using IPv4 protocol for backward compatibility.
+     */
+    public DefaultSSLValidator() {
+        this(NetworkProtocol.IPv4);
+    }
+
+    /**
+     * Constructor that allows specifying the network protocol to use.
+     */
+    public DefaultSSLValidator(NetworkProtocol networkProtocol) {
+        this.networkProtocol = networkProtocol;
+    }
     
     @Override
     public SSLValidationResult validateSSL(String hostname, int port) {
@@ -55,7 +70,7 @@ public class DefaultSSLValidator implements SSLValidator {
     }
     
     private InetAddress resolveHostname(String hostname) {
-        if (NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) {
+        if (networkProtocol == NetworkProtocol.IPv6) {
             InetAddress ipAddress = DNSCacheResolver.getFirstV6Address(hostname);
             logger.info("Using IPv6 address {} for host {}", ipAddress, hostname);
             return ipAddress;

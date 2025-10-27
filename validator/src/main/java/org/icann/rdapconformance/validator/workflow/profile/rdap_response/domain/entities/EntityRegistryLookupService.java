@@ -133,15 +133,11 @@ public class EntityRegistryLookupService {
 
             logger.debug("Checking entity {} at URL: {}", entityHandle, entityUrl);
 
-            // Make HTTP request with short timeout
-            java.net.http.HttpResponse<String> response;
-            if (qctx != null) {
-                // Use QueryContext-enabled HTTP request for thread-safe operation
-                response = RDAPHttpRequest.makeRequest(qctx, entityUri, TIMEOUT_IN_5SECS / PAUSE, GET);
-            } else {
-                // Fallback to legacy method for backward compatibility
-                response = RDAPHttpRequest.makeRequest(entityUri, TIMEOUT_IN_5SECS / PAUSE, GET);
+            // Make HTTP request with short timeout using QueryContext
+            if (qctx == null) {
+                throw new IllegalStateException("QueryContext is required for EntityRegistryLookupService operations");
             }
+            java.net.http.HttpResponse<String> response = RDAPHttpRequest.makeRequest(qctx, entityUri, TIMEOUT_IN_5SECS / PAUSE, GET);
 
             // Return true only for 200 OK
             boolean exists = response.statusCode() == HTTP_OK;

@@ -17,11 +17,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.util.FixturesGenerator;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
+import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.json.JSONObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public abstract class SchemaValidatorTest {
 
   protected final String validJsonResourcePath;
+  protected QueryContext queryContext;
+  protected RDAPValidatorConfiguration config;
   protected JSONObject jsonObject;
   protected RDAPValidatorResults results;
   protected String rdapContent;
@@ -53,13 +59,20 @@ public abstract class SchemaValidatorTest {
 
   @BeforeMethod
   public void setUp() throws IOException {
+    // Create mock configuration for testing
+    config = mock(RDAPValidatorConfiguration.class);
+    when(config.isGtldRegistrar()).thenReturn(true);
+
+    // Create QueryContext for thread-safe operations
+    queryContext = QueryContext.forTesting(config);
+    results = queryContext.getResults();
+    results.clear();
+
     datasets = new RDAPDatasetServiceMock();
     datasets.download(true);
-    results = RDAPValidatorResultsImpl.getInstance();
-    results.clear();
     rdapContent = getResource(validJsonResourcePath);
     jsonObject = new JSONObject(rdapContent);
-    schemaValidator = new SchemaValidator(schemaName, results, datasets);
+    schemaValidator = new SchemaValidator(schemaName, results, datasets, queryContext);
     name = schemaValidator.getSchema().getTitle();
   }
 
@@ -87,7 +100,7 @@ public abstract class SchemaValidatorTest {
             .code(errorCode)
             .value(value)
             .message(msg)
-            .build());
+            .build(queryContext));
   }
 
   protected void validate(int errorCode, String value, String msg) {
@@ -158,7 +171,7 @@ public abstract class SchemaValidatorTest {
             .value(value)
             .message("The value for the JSON name value does not pass "
                 + key + " validation [" + validationName + "].")
-            .build()
+            .build(queryContext)
     );
     assertThat(results.getGroupErrorWarning()).contains(validationName);
   }

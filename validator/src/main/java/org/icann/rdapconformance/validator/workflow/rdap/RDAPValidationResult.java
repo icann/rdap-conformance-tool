@@ -151,20 +151,6 @@ public class RDAPValidationResult {
       return this;
     }
 
-    public RDAPValidationResult build() {
-      Integer statusCodeFromCurrent = ConnectionTracker.getMainStatusCode();
-
-      return new RDAPValidationResult(
-          this.code,
-          this.value,
-          this.message,
-          this.acceptHeader != null ? this.acceptHeader : NetworkInfo.getAcceptHeader(),  // the default is the current accept header
-          this.httpMethod != null ? this.httpMethod : GET, // the default is GET unless you explicitly set it
-          this.serverIpAddress != null ? this.serverIpAddress :  NetworkInfo.getServerIpAddress(), // the default is the current server IP address
-          this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
-          this.queriedURI
-      );
-    }
 
     /**
      * Build RDAPValidationResult using QueryContext for proper status code and network info.
@@ -194,13 +180,33 @@ public class RDAPValidationResult {
           this.value,
           this.message,
           this.acceptHeader != null ? this.acceptHeader :
-              (queryContext != null ? queryContext.getNetworkInfo().getAcceptHeader() : NetworkInfo.getAcceptHeader()),
+              (queryContext != null ? queryContext.getNetworkInfo().getAcceptHeaderValue() : "application/json"),
           this.httpMethod != null ? this.httpMethod : GET,
           this.serverIpAddress != null ? this.serverIpAddress :
-              (queryContext != null ? queryContext.getNetworkInfo().getServerIpAddress() : NetworkInfo.getServerIpAddress()),
+              (queryContext != null ? queryContext.getNetworkInfo().getServerIpAddressValue() : "-"),
           this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
           this.queriedURI
       );
+    }
+
+    /**
+     * TEMPORARY BRIDGE: Deprecated build method temporarily kept during migration to QueryContext.
+     * This method provides backward compatibility while callers are updated.
+     * @deprecated Use build(QueryContext) instead for proper HTTP status code handling.
+     */
+    @Deprecated
+    public RDAPValidationResult build() {
+        // Preserve old behavior for test compatibility: null HTTP values
+        return new RDAPValidationResult(
+            this.code,
+            this.value,
+            this.message,
+            this.acceptHeader,
+            this.httpMethod,
+            this.serverIpAddress,
+            this.httpStatusCode,
+            this.queriedURI
+        );
     }
   }
 }

@@ -102,6 +102,7 @@ public class TigValidation1Dot8Test {
       TigValidation1Dot8.IPValidator ipValidator = mock(TigValidation1Dot8.IPValidator.class);
       TigValidation1Dot8.ipValidator = ipValidator;
       when(ipValidator.isInvalid(ipv4, datasetService)).thenReturn(true);
+      when(ipValidator.isInvalid(ipv4, datasetService, null)).thenReturn(true);
 
       TigValidation1Dot8 validation = new TigValidation1Dot8(response, results, datasetService, config);
       assertThat(validation.doValidate()).isFalse();
@@ -138,6 +139,7 @@ public class TigValidation1Dot8Test {
       TigValidation1Dot8.IPValidator ipValidator = mock(TigValidation1Dot8.IPValidator.class);
       TigValidation1Dot8.ipValidator = ipValidator;
       when(ipValidator.isInvalid(ipv6, datasetService)).thenReturn(true);
+      when(ipValidator.isInvalid(ipv6, datasetService, null)).thenReturn(true);
 
       TigValidation1Dot8 validation = new TigValidation1Dot8(response, results, datasetService, config);
       assertThat(validation.doValidate()).isFalse();
@@ -246,17 +248,17 @@ public class TigValidation1Dot8Test {
   public void testValidateHost_AllBranches() {
     // Host is null
     assertThat(TigValidation1Dot8.validateHost(
-        URI.create("file:///"), results, datasetService, config)).isTrue();
+        URI.create("file:///"), results, datasetService, config, null)).isTrue();
 
     URI uri = mock(URI.class);
     when(uri.getHost()).thenReturn("");
-    assertThat(TigValidation1Dot8.validateHost(uri, results, datasetService, config)).isTrue();
+    assertThat(TigValidation1Dot8.validateHost(uri, results, datasetService, config, null)).isTrue();
 
     // Valid host, no queries
     when(config.isNoIpv4Queries()).thenReturn(true);
     when(config.isNoIpv6Queries()).thenReturn(true);
     URI uri2 = URI.create("http://example.com");
-    assertThat(TigValidation1Dot8.validateHost(uri2, results, datasetService, config)).isTrue();
+    assertThat(TigValidation1Dot8.validateHost(uri2, results, datasetService, config, null)).isTrue();
   }
 
   @Test

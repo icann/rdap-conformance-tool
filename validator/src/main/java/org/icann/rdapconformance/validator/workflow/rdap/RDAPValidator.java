@@ -93,27 +93,23 @@ public class RDAPValidator implements ValidatorWorkflow {
 
     @Override
     public int validate() {
-        // Set up QueryContext bridge for NetworkInfo singleton compatibility
-        NetworkInfo.setCurrentQueryContext(queryContext);
+        SchemaValidator validator = null;
+        Map<RDAPQueryType, String> schemaMap = getDomainMap();
 
-        try {
-            SchemaValidator validator = null;
-            Map<RDAPQueryType, String> schemaMap = getDomainMap();
+        // create this here so we don't call it multiple times
+        RDAPQueryType queryType = queryContext.getQueryType();
 
-            // create this here so we don't call it multiple times
-            RDAPQueryType queryType = queryContext.getQueryType();
-
-            // if the query can't run, return the error code
-            if (!queryContext.getQuery().run()) {
-                if (queryContext.getQuery().getErrorStatus() == null || queryContext.getQuery().getErrorStatus() == ToolResult.SUCCESS) {
-                    return ToolResult.SUCCESS.getCode();
-                }
-               ConformanceError errorCode = queryContext.getQuery().getErrorStatus();
-                return errorCode.getCode();
+        // if the query can't run, return the error code
+        if (!queryContext.getQuery().run()) {
+            if (queryContext.getQuery().getErrorStatus() == null || queryContext.getQuery().getErrorStatus() == ToolResult.SUCCESS) {
+                return ToolResult.SUCCESS.getCode();
             }
+            ConformanceError errorCode = queryContext.getQuery().getErrorStatus();
+            return errorCode.getCode();
+        }
 
-            // check the query type and log their errors to the results file if they have any
-            queryContext.getQuery().validateStructureByQueryType(queryType);
+        // check the query type and log their errors to the results file if they have any
+        queryContext.getQuery().validateStructureByQueryType(queryType);
 
         if (queryContext.getQuery().isErrorContent()) {
             // if they return a 404 then we need a schema validator that checks the error response content itself
@@ -122,10 +118,10 @@ public class RDAPValidator implements ValidatorWorkflow {
             // else we check the schema of the data pertaining to the query type
             String schemaFile = schemaMap.get(queryType);
             if (schemaFile != null) {
-                   if (RDAPQueryType.ENTITY.equals(queryType) && queryContext.getConfig().isThin()) {
+                if (RDAPQueryType.ENTITY.equals(queryType) && queryContext.getConfig().isThin()) {
                     logger.error("Thin flag is set while validating entity");
                     return ToolResult.USES_THIN_MODEL.getCode();
-                   }
+                }
                 validator = SchemaValidatorCache.getCachedValidator(schemaFile, queryContext.getResults(), queryContext.getDatasetService(), queryContext);
             }
         }
@@ -194,7 +190,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         // Log URI, IP address, and redirects
-        String ipAddress = NetworkInfo.getServerIpAddress();
+        String ipAddress = queryContext.getNetworkInfo().getServerIpAddressValue();
         List<URI> redirects = (queryContext.getQuery() instanceof RDAPHttpQuery httpQuery) ? httpQuery.getRedirects() : List.of();
 
 
@@ -205,10 +201,6 @@ public class RDAPValidator implements ValidatorWorkflow {
 
             // if we made it this far without an error, return success
             return ToolResult.SUCCESS.getCode();
-        } finally {
-            // Clean up QueryContext bridge to prevent memory leaks
-            NetworkInfo.clearCurrentQueryContext();
-        }
     }
 
     public static Map<RDAPQueryType, String> getDomainMap() {
@@ -318,7 +310,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), queryContext)); // HTTP head request
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(queryContext)); // SSL Network connection
-            validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService, config)); // DNS queries
+            validations.add(new TigValidation1Dot8(queryContext)); // DNS queries
             validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // URL-based validation
             validations.add(new TigValidation1Dot5_2024(rdapResponse, config, results)); // SSL Network connection
             validations.add(new ResponseValidationTestInvalidRedirect_2024(queryContext)); // Network connection
@@ -388,7 +380,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), queryContext)); // HTTP head request
             validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(queryContext)); // SSL Network connection
-            validations.add(new TigValidation1Dot8(rdapResponse, results, datasetService, config)); // DNS queries
+            validations.add(new TigValidation1Dot8(queryContext)); // DNS queries
             validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // URL-based validation
         }
 

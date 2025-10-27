@@ -238,14 +238,14 @@ public class SchemaValidator {
               "duplicateKeys")))
           .value(key + ":" + value)
           .message("The name in the name/value pair of a link structure was found more than once.")
-          .build();
+          .build(queryContext);
     }
 
     return RDAPValidationResult.builder()
         .code(getErrorCode("structureInvalid"))
         .value(content)
         .message("The " + schema.getTitle() + " structure is not syntactically valid.")
-        .build();
+        .build(queryContext);
   }
 
   private void parseException(ValidationException e, JSONObject jsonObject) {

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -27,6 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.BuildInfo;
 import org.icann.rdapconformance.validator.ConnectionTracker;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -325,14 +327,25 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testNullAndZeroStatusCodesAreEquivalent() {
+        // Create QueryContext for proper status code handling
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        when(config.isGtldRegistrar()).thenReturn(true);
+        QueryContext queryContext = QueryContext.forTesting(config);
+
+        // Mock QueryContext to return 0 for status code
         try (MockedStatic<ConnectionTracker> mocked = org.mockito.Mockito.mockStatic(ConnectionTracker.class)) {
-            mocked.when(ConnectionTracker::getMainStatusCode).thenReturn(0);
+            ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+            ConnectionTracker.ConnectionRecord mockConnection = mock(ConnectionTracker.ConnectionRecord.class);
+            when(mockConnection.getStatusCode()).thenReturn(0);
+            when(mockTracker.getLastMainConnection()).thenReturn(mockConnection);
+            mocked.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
             RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
             results.clear();
 
-            results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
-            results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
+            // Use QueryContext to properly normalize null to 0
+            results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build(queryContext));
+            results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build(queryContext));
 
             String output = results.analyzeResultsWithStatusCheck();
             assertTrue(output.contains("code=1001, httpStatusCode=0"));
@@ -343,14 +356,23 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testMixedNullZeroAndOtherStatusCodes() {
+        // Create QueryContext for proper status code handling
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        when(config.isGtldRegistrar()).thenReturn(true);
+        QueryContext queryContext = QueryContext.forTesting(config);
+
         try (MockedStatic<ConnectionTracker> mocked = org.mockito.Mockito.mockStatic(ConnectionTracker.class)) {
-            mocked.when(ConnectionTracker::getMainStatusCode).thenReturn(0);
+            ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+            ConnectionTracker.ConnectionRecord mockConnection = mock(ConnectionTracker.ConnectionRecord.class);
+            when(mockConnection.getStatusCode()).thenReturn(0);
+            when(mockTracker.getLastMainConnection()).thenReturn(mockConnection);
+            mocked.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
             RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
             results.clear();
-            results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
-            results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
-            results.add(RDAPValidationResult.builder().code(1003).httpStatusCode(200).build());
+            results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build(queryContext));
+            results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build(queryContext));
+            results.add(RDAPValidationResult.builder().code(1003).httpStatusCode(200).build(queryContext));
 
             results.analyzeResultsWithStatusCheck();
 
@@ -943,17 +965,22 @@ public void testCreateResultsMap() {
     
     @Test
     public void testStatusCodeComparisonWithNullStatus() {
+        // Create QueryContext for proper status code handling
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        when(config.isGtldRegistrar()).thenReturn(true);
+        QueryContext queryContext = QueryContext.forTesting(config);
+
         // Add results with null HTTP status codes to test null handling
         results.add(RDAPValidationResult.builder()
                    .code(-12107)
                    .httpStatusCode(null) // Null status code
                    .message("Test 1")
-                   .build());
+                   .build(queryContext));
         results.add(RDAPValidationResult.builder()
-                   .code(-12108)  
+                   .code(-12108)
                    .httpStatusCode(404)
                    .message("Test 2")
-                   .build());
+                   .build(queryContext));
         
         RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
         

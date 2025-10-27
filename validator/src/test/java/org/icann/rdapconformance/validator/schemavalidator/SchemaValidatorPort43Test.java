@@ -28,17 +28,17 @@ public class SchemaValidatorPort43Test extends SchemaValidatorTest {
                 .code(-11100)
                 .value("#/port43:-wrong")
                 .message("The value for the JSON name value does not pass #/port43 validation [IPv4Validation].")
-                .build(),
+                .build(queryContext),
             RDAPValidationResult.builder()
                 .code(-11100)
                 .value("#/port43:-wrong")
                 .message("The value for the JSON name value does not pass #/port43 validation [IPv6Validation].")
-                .build(),
+                .build(queryContext),
             RDAPValidationResult.builder()
                 .code(-11100)
                 .value("#/port43:-wrong")
                 .message("The value for the JSON name value does not pass #/port43 validation [DomainNameValidation].")
-                .build()
+                .build(queryContext)
         );
     assertThat(results.getGroupErrorWarning()).contains(
         "IPv4Validation",

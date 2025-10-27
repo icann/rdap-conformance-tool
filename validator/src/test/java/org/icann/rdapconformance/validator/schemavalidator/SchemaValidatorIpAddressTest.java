@@ -46,12 +46,12 @@ public class SchemaValidatorIpAddressTest extends SchemaValidatorTest {
                 .code(-11403)
                 .value("{\"ipAddress\":{}}")
                 .message("The v4 element does not exist.")
-                .build(),
+                .build(queryContext),
             RDAPValidationResult.builder()
                 .code(-11403)
                 .value("{\"ipAddress\":{}}")
                 .message("The v6 element does not exist.")
-                .build()
+                .build(queryContext)
         );
   }
 

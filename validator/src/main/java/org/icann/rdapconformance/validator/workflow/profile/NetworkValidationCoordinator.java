@@ -33,12 +33,17 @@ public class NetworkValidationCoordinator {
     private static final long RATE_LIMIT_DELAY_MS = 200; // 200ms between network operations (conservative)
     
     // Opt-in mechanism - user must explicitly enable parallel networking
-    private static final boolean PARALLEL_NETWORK_ENABLED = 
+    private static final boolean PARALLEL_NETWORK_ENABLED =
         "true".equals(System.getProperty("rdap.parallel.network", "false"));
-        
+
     // Feature flag for IP version parallelization
-    private static final boolean PARALLEL_IP_VERSIONS_ENABLED = 
+    private static final boolean PARALLEL_IP_VERSIONS_ENABLED =
         "true".equals(System.getProperty("rdap.parallel.ipversions", "false"));
+
+    // Temporary: Network state defaults for bridge pattern removal
+    // TODO: Replace with QueryContext when migrating this coordinator
+    private static final NetworkProtocol DEFAULT_PROTOCOL = NetworkProtocol.IPv4;
+    private static final String DEFAULT_ACCEPT_HEADER = "application/json";
     
     // Thread pool for network validations
     private static final ExecutorService networkExecutor = 
@@ -90,8 +95,8 @@ public class NetworkValidationCoordinator {
         }
         
         // Get network context for logging (define at method level for scope)
-        String currentProtocol = org.icann.rdapconformance.validator.NetworkInfo.getNetworkProtocol().toString();
-        String currentAcceptHeader = org.icann.rdapconformance.validator.NetworkInfo.getAcceptHeader();
+        String currentProtocol = DEFAULT_PROTOCOL.toString(); // TODO: Replace with QueryContext
+        String currentAcceptHeader = DEFAULT_ACCEPT_HEADER; // TODO: Replace with QueryContext
         
         // Fallback to sequential execution if parallel networking is disabled
         if (!PARALLEL_NETWORK_ENABLED) {
@@ -311,8 +316,8 @@ public class NetworkValidationCoordinator {
         }
         
         // Log current network context for debugging
-        String currentProtocol = org.icann.rdapconformance.validator.NetworkInfo.getNetworkProtocol().toString();
-        String currentAcceptHeader = org.icann.rdapconformance.validator.NetworkInfo.getAcceptHeader();
+        String currentProtocol = DEFAULT_PROTOCOL.toString(); // TODO: Replace with QueryContext
+        String currentAcceptHeader = DEFAULT_ACCEPT_HEADER; // TODO: Replace with QueryContext
         
         logger.info("[{}|{}] Executing {} timeout-prone validations async, {} normal validations sync", 
                    currentProtocol, currentAcceptHeader,
@@ -485,19 +490,19 @@ public class NetworkValidationCoordinator {
                 
                 try {
                     ipv6Context.activate();
-                    NetworkInfo.setStackToV6();
+                    // TODO: Replace with QueryContext-based network configuration
                     logger.info("Starting IPv6 validations in parallel thread");
-                    
+
                     // Execute JSON validation
                     progressCallback.accept("IPv6", "JSON");
-                    NetworkInfo.setAcceptHeaderToApplicationJson();
+                    // TODO: Replace with QueryContext accept header configuration
                     int jsonResult = validator.validate();
                     allResults.addResult("IPv6-JSON", jsonResult);
                     logger.debug("IPv6 JSON validation result: {}", jsonResult);
                     
                     // Execute RDAP+JSON validation
                     progressCallback.accept("IPv6", "RDAP+JSON");
-                    NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+                    // TODO: Replace with QueryContext accept header configuration
                     int rdapJsonResult = validator.validate();
                     allResults.addResult("IPv6-RDAP+JSON", rdapJsonResult);
                     logger.debug("IPv6 RDAP+JSON validation result: {}", rdapJsonResult);
@@ -523,19 +528,19 @@ public class NetworkValidationCoordinator {
                 
                 try {
                     ipv4Context.activate();
-                    NetworkInfo.setStackToV4();
+                    // TODO: Replace with QueryContext-based network configuration
                     logger.info("Starting IPv4 validations in parallel thread");
-                    
+
                     // Execute JSON validation
                     progressCallback.accept("IPv4", "JSON");
-                    NetworkInfo.setAcceptHeaderToApplicationJson();
+                    // TODO: Replace with QueryContext accept header configuration
                     int jsonResult = validator.validate();
                     allResults.addResult("IPv4-JSON", jsonResult);
                     logger.debug("IPv4 JSON validation result: {}", jsonResult);
                     
                     // Execute RDAP+JSON validation
                     progressCallback.accept("IPv4", "RDAP+JSON");
-                    NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+                    // TODO: Replace with QueryContext accept header configuration
                     int rdapJsonResult = validator.validate();
                     allResults.addResult("IPv4-RDAP+JSON", rdapJsonResult);
                     logger.debug("IPv4 RDAP+JSON validation result: {}", rdapJsonResult);
@@ -585,11 +590,11 @@ public class NetworkValidationCoordinator {
         
         // IPv6 execution
         if (executeIPv6 && DNSCacheResolver.hasV6Addresses(uri.toString())) {
-            NetworkInfo.setStackToV6();
-            
+            // TODO: Replace with QueryContext-based network configuration
+
             try {
                 progressCallback.accept("IPv6", "JSON");
-                NetworkInfo.setAcceptHeaderToApplicationJson();
+                // TODO: Replace with QueryContext accept header configuration
                 int v6JsonResult = validator.validate();
                 results.addResult("IPv6-JSON", v6JsonResult);
             } catch (Exception e) {
@@ -599,7 +604,7 @@ public class NetworkValidationCoordinator {
             
             try {
                 progressCallback.accept("IPv6", "RDAP+JSON");
-                NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+                // TODO: Replace with QueryContext accept header configuration
                 int v6RdapResult = validator.validate();
                 results.addResult("IPv6-RDAP+JSON", v6RdapResult);
             } catch (Exception e) {
@@ -610,11 +615,11 @@ public class NetworkValidationCoordinator {
         
         // IPv4 execution
         if (executeIPv4 && DNSCacheResolver.hasV4Addresses(uri.toString())) {
-            NetworkInfo.setStackToV4();
-            
+            // TODO: Replace with QueryContext-based network configuration
+
             try {
                 progressCallback.accept("IPv4", "JSON");
-                NetworkInfo.setAcceptHeaderToApplicationJson();
+                // TODO: Replace with QueryContext accept header configuration
                 int v4JsonResult = validator.validate();
                 results.addResult("IPv4-JSON", v4JsonResult);
             } catch (Exception e) {
@@ -624,7 +629,7 @@ public class NetworkValidationCoordinator {
             
             try {
                 progressCallback.accept("IPv4", "RDAP+JSON");
-                NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+                // TODO: Replace with QueryContext accept header configuration
                 int v4RdapResult = validator.validate();
                 results.addResult("IPv4-RDAP+JSON", v4RdapResult);
             } catch (Exception e) {

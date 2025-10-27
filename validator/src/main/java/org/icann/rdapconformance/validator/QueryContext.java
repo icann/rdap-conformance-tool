@@ -49,7 +49,7 @@ public class QueryContext {
     private final RDAPValidatorConfiguration config;
     private final RDAPDatasetService datasetService;
     private final RDAPQuery query;
-    private final RDAPQueryType queryType;
+    private RDAPQueryType queryType; // Made mutable for testing purposes
 
     // MUTABLE: Runtime State Holders (objects that accumulate state during validation)
     private final RDAPValidatorResults results;
@@ -219,6 +219,14 @@ public class QueryContext {
 
     public RDAPQueryType getQueryType() {
         return queryType;
+    }
+
+    /**
+     * Set the query type for testing purposes.
+     * @param queryType the new query type
+     */
+    public void setQueryType(RDAPQueryType queryType) {
+        this.queryType = queryType;
     }
 
     // ============================

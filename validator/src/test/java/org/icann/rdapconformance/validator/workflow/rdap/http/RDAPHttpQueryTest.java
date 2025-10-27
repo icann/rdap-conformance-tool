@@ -50,6 +50,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -94,6 +95,10 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         prepareWiremock(wmConfig);
 
         rdapHttpQuery = new RDAPHttpQuery(config);
+
+        // Create QueryContext for thread-safe operations
+        QueryContext queryContext = QueryContext.forTesting(config);
+        rdapHttpQuery.setQueryContext(queryContext);
     }
 
     @Test
@@ -291,11 +296,11 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                 HttpHeaders.of(Map.of(LOCATION, List.of(uri4.toString())), (k, v) -> true));
             when(response3.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
 
-            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(eq(uri1), anyInt(), eq("GET"), eq(true)))
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
                         .thenReturn(response1);
-            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(eq(uri2), anyInt(), eq("GET"), eq(true)))
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), eq(uri2), anyInt(), eq("GET"), eq(true)))
                         .thenReturn(response2);
-            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(eq(uri3), anyInt(), eq("GET"), eq(true)))
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), eq(uri3), anyInt(), eq("GET"), eq(true)))
                         .thenReturn(response3);
 
             boolean result = rdapHttpQuery.run();
@@ -314,6 +319,11 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     public void testIsBlindlyCopyingParams() {
         RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
         RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+
+        // Create QueryContext for thread-safe operations
+        QueryContext queryContext = QueryContext.forTesting(config);
+        rdapHttpQuery.setQueryContext(queryContext);
+
         RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
         results.clear();
 
@@ -338,6 +348,11 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     public void testIsBlindlyCopyingParams_NotCopied() {
         RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
         RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+
+        // Create QueryContext for thread-safe operations
+        QueryContext queryContext = QueryContext.forTesting(config);
+        rdapHttpQuery.setQueryContext(queryContext);
+
         RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
         results.clear();
         HttpHeaders headers = mock(HttpHeaders.class);
@@ -381,7 +396,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         when(response1.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
 
         try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(eq(uri1), anyInt(), eq("GET"), eq(true)))
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
                         .thenReturn(response1);
 
             rdapHttpQuery.run();
@@ -441,7 +456,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             when(response.headers()).thenReturn(HttpHeaders.of(headers, (k, v) -> true));
             when(response.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString(), anyBoolean()))
                            .thenReturn(response);
 
             RDAPHttpQuery query = new RDAPHttpQuery(config);
@@ -888,11 +903,11 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         when(headers3.allValues("Content-Type")).thenReturn(List.of("application/rdap+JSON"));
 
         try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(uri1, config.getTimeout(), "GET", true))
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), uri1, config.getTimeout(), "GET", true))
                         .thenReturn(response1);
-            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(uri2, config.getTimeout(), "GET", true))
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), uri2, config.getTimeout(), "GET", true))
                         .thenReturn(response2);
-            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(uri3, config.getTimeout(), "GET", true))
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), uri3, config.getTimeout(), "GET", true))
                         .thenReturn(response3);
 
             rdapHttpQuery.run();
@@ -914,7 +929,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             when(timeoutResponse.getConnectionStatusCode()).thenReturn(ConnectionStatus.CONNECTION_FAILED);
 
             mockedStatic.when(
-                            () -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), any(String.class), any(Boolean.class)))
+                            () -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), any(String.class), any(Boolean.class)))
                         .thenReturn(timeoutResponse);
 
             rdapHttpQuery.run();
@@ -935,7 +950,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             when(expiredCertResponse.getConnectionStatusCode()).thenReturn(ConnectionStatus.EXPIRED_CERTIFICATE);
 
             mockedStatic.when(
-                            () -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), any(String.class), any(Boolean.class)))
+                            () -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), any(String.class), any(Boolean.class)))
                         .thenReturn(expiredCertResponse);
 
             rdapHttpQuery.run();

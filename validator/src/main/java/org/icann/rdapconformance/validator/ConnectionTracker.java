@@ -65,38 +65,6 @@ public class ConnectionTracker {
         this.lastMainConnection = null;
     }
 
-    /**
-     * Returns the legacy singleton instance of the ConnectionTracker.
-     *
-     * <p>This method is provided for backward compatibility with code that hasn't
-     * been migrated to the QueryContext architecture. New code should obtain
-     * ConnectionTracker through QueryContext.getConnectionTracker().</p>
-     *
-     * @return the legacy singleton ConnectionTracker instance
-     * @deprecated Use QueryContext.getConnectionTracker() instead
-     */
-    @Deprecated
-    public static ConnectionTracker getInstance() {
-        return INSTANCE;
-    }
-
-    /**
-     * No-op bridge method for backward compatibility.
-     * @deprecated Bridge pattern removed - use QueryContext directly
-     */
-    @Deprecated
-    public static void setCurrentQueryContext(QueryContext qctx) {
-        // No-op - bridge pattern removed
-    }
-
-    /**
-     * No-op bridge method for backward compatibility.
-     * @deprecated Bridge pattern removed - use QueryContext directly
-     */
-    @Deprecated
-    public static void clearCurrentQueryContext() {
-        // No-op - bridge pattern removed
-    }
 
     /**
      * Generates a unique tracking ID
@@ -129,40 +97,6 @@ public class ConnectionTracker {
     }
 
 
-    /**
-     * Start tracking a new connection using the current NetworkInfo state
-     * @param uri The URI being requested
-     * @param isMainConnection Whether this is a main connection
-     * @return The tracking ID of the new connection
-     */
-    public synchronized String startTrackingNewConnection(URI uri, String httpMethod, boolean isMainConnection) {
-        String trackingId = generateTrackingId();
-        ConnectionRecord record = new ConnectionRecord(
-                uri,
-                "UNKNOWN", // was NetworkInfo.getServerIpAddress(),
-                NetworkInfo.getNetworkProtocol(),
-                ZERO,  // Status code not yet known
-                null,  // Duration not yet known
-                null,  // Status not yet known
-                httpMethod,
-                Instant.now(),
-                trackingId,
-                isMainConnection
-        );
-        record.setStartTime(Instant.now());
-        connections.add(record);
-        connectionsByTrackingId.put(trackingId, record);
-        currentConnection = record;
-
-        if (isMainConnection) {
-            lastMainConnection = record;
-            logger.debug("Started tracking main connection: {}", trackingId);
-        } else {
-            logger.debug("Started tracking connection: {}", trackingId);
-        }
-
-        return trackingId;
-    }
 
     /**
      * Start tracking a new connection with explicit protocol (QueryContext-aware)
@@ -459,39 +393,7 @@ public class ConnectionTracker {
         lastMainConnection = null;
     }
 
-    /**
-     * Get the current status code of the last connection
-     * @return The status code, or null if not available
-     */
-    public static Integer getCurrentStatusCode() {
-        ConnectionTracker tracker = getInstance();
-        if(tracker.getCurrentConnection() != null) {
-            return tracker.getCurrentConnection().getStatusCode();
-        }
-        // else
-        ConnectionRecord currentConnection = tracker.getLastConnection(); // Given the way it works, the _last_ connection is the one we want. Current would be set to null.
 
-        if (currentConnection == null || currentConnection.getStatusCode() == ZERO || currentConnection.getStatus() == null) {
-            return null;
-        }
-
-        return currentConnection.getStatusCode();
-    }
-
-    /**
-     * Get the status code of the last main connection
-     * @return The status code, or null if not available
-     */
-    public static Integer getMainStatusCode() {
-        ConnectionRecord mainConnection = getInstance().getLastMainConnection();
-
-        if (mainConnection == null || mainConnection.getStatusCode() == ZERO || mainConnection.getStatus() == null) {
-            return ZERO; // force to zero
-        }
-
-        // otherwise it's good and return it
-        return mainConnection.getStatusCode();
-    }
 
 
     /**
@@ -765,4 +667,13 @@ public class ConnectionTracker {
             return toStringWithoutRedirectStatus() + redirectStatus;
         }
     }
+
+    /**
+     * TEMPORARY: This method is added back temporarily to support deprecated RDAPHttpRequest methods.
+     * Will be removed once all callers are migrated to QueryContext.
+     */
+    public static ConnectionTracker getInstance() {
+        return INSTANCE;
+    }
+
 }

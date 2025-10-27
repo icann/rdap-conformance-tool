@@ -22,6 +22,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
@@ -34,6 +35,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   private final RDAPDatasetService datasetService;
 
   private final RDAPValidatorConfiguration config;
+  private final QueryContext queryContext;
 
   public TigValidation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
       RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
@@ -41,6 +43,15 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     this.rdapResponse = rdapResponse;
     this.datasetService = datasetService;
     this.config = config;
+    this.queryContext = null; // Legacy constructor for backward compatibility
+  }
+
+  public TigValidation1Dot8(QueryContext qctx) {
+    super(qctx.getResults());
+    this.rdapResponse = (HttpResponse<String>) qctx.getQuery().getRawResponse();
+    this.datasetService = qctx.getDatasetService();
+    this.config = qctx.getConfig();
+    this.queryContext = qctx;
   }
 
   @Override
@@ -59,7 +70,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     Optional<HttpResponse<String>> responseOpt = Optional.of(rdapResponse);
     while (responseOpt.isPresent()) {
       HttpResponse<String> response = responseOpt.get();
-      if (!validateHost(response.uri(), results, datasetService, config)) {
+      if (!validateHost(response.uri(), results, datasetService, config, queryContext)) {
         isValid = false;
       }
       responseOpt = response.previousResponse(); // there never should be a previous
@@ -68,7 +79,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   }
 
   public static boolean validateHost(URI uri, RDAPValidatorResults results,
-                                     RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
+                                     RDAPDatasetService datasetService, RDAPValidatorConfiguration config, QueryContext queryContext) {
     boolean isValid = true;
     String host = uri.getHost();
     if (host == null || host.isEmpty()) {
@@ -82,7 +93,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
     // If we are validating over v4
     if(!config.isNoIpv4Queries()) {
-      if (ipv4Addresses.isEmpty() || containsInvalidIPAddress(ipv4Addresses, datasetService)) {
+      if (ipv4Addresses.isEmpty() || containsInvalidIPAddress(ipv4Addresses, datasetService, queryContext)) {
         results.add(RDAPValidationResult.builder()
                                         .acceptHeader(DASH)
                                         .queriedURI(DASH)
@@ -93,7 +104,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
                                         .value(host)
                                         .message("The RDAP service is not provided over IPv4 or contains invalid addresses. See section 1.8 of the "
                                             + "RDAP_Technical_Implementation_Guide_2_1.")
-                                        .build());
+                                        .build(queryContext));
         isValid = false;
       }
     }
@@ -102,7 +113,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     Set<InetAddress> ipv6Addresses = new HashSet<>(DNSCacheResolver.getAllV6Addresses(host));
     // If we are validating over v6
     if(!config.isNoIpv6Queries()) {
-      if (ipv6Addresses.isEmpty() || containsInvalidIPAddress(ipv6Addresses, datasetService)) {
+      if (ipv6Addresses.isEmpty() || containsInvalidIPAddress(ipv6Addresses, datasetService, queryContext)) {
         results.add(RDAPValidationResult.builder()
                                         .acceptHeader(DASH)
                                         .queriedURI(DASH)
@@ -113,7 +124,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
                                         .value(host)
                                         .message("The RDAP service is not provided over IPv6 or contains invalid addresses. See section 1.8 of the "
                                             + "RDAP_Technical_Implementation_Guide_2_1.")
-                                        .build());
+                                        .build(queryContext));
         isValid = false;
       }
     }
@@ -122,9 +133,9 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   }
 
   private static boolean containsInvalidIPAddress(Set<InetAddress> addresses,
-      RDAPDatasetService datasetService) {
+      RDAPDatasetService datasetService, QueryContext queryContext) {
     for (InetAddress address : addresses) {
-      if (ipValidator.isInvalid(address, datasetService)) {
+      if (ipValidator.isInvalid(address, datasetService, queryContext)) {
         return true;
       }
     }
@@ -148,6 +159,10 @@ public final class TigValidation1Dot8 extends ProfileValidation {
 
   static class IPValidator {
     boolean isInvalid(InetAddress ipAddress, RDAPDatasetService datasetService) {
+      return isInvalid(ipAddress, datasetService, null);
+    }
+
+    boolean isInvalid(InetAddress ipAddress, RDAPDatasetService datasetService, QueryContext queryContext) {
       IPSchema schema;
       if (ipAddress instanceof Inet4Address) {
         schema = IPSchema.V4;
@@ -158,8 +173,8 @@ public final class TigValidation1Dot8 extends ProfileValidation {
       }
 
       String ipAddressJson = String.format("{\"ip\": \"%s\"}", ipAddress.getHostAddress());
-      SchemaValidator validator = SchemaValidatorCache.getCachedValidator(schema.path(),  
-          RDAPValidatorResultsImpl.getInstance(), datasetService);
+      RDAPValidatorResults results = queryContext != null ? queryContext.getResults() : RDAPValidatorResultsImpl.getInstance();
+      SchemaValidator validator = SchemaValidatorCache.getCachedValidator(schema.path(), results, datasetService, queryContext);
       boolean isValid = validator.validate(ipAddressJson);
       logger.info("IP address  {} is {} according to the schema {}", ipAddress.getHostAddress(), isValid ? "VALID" : "<INVALID>", schema.path());
       return !isValid;

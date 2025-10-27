@@ -156,7 +156,7 @@ public class CommonUtils {
      */
     public static void addErrorToResultsFile(int code, String value, String message) {
         RDAPValidatorResultsImpl.getInstance()
-                                .add(RDAPValidationResult.builder().code(code).value(value).message(message).build());
+                                .add(RDAPValidationResult.builder().code(code).value(value).message(message).build(null));
 
     }
 
@@ -179,7 +179,7 @@ public class CommonUtils {
                                                          .code(code)
                                                          .value(value)
                                                          .message(message)
-                                                         .build());
+                                                         .build(null));
 
     }
 

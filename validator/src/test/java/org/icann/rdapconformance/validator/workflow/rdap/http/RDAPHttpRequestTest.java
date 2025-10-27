@@ -39,6 +39,8 @@ import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
+import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 
 import org.mockito.ArgumentCaptor;
@@ -82,6 +84,13 @@ public class RDAPHttpRequestTest {
     private final URI testUri = URI.create("http://example.com/path");
     private final int timeout = 10;
 
+    // Test QueryContext for deprecated method replacement
+    private static QueryContext createTestQueryContext() {
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        when(config.isGtldRegistrar()).thenReturn(true);
+        return QueryContext.forTesting(config);
+    }
+
     @Test
     public void testMakeRequest_UnknownHost() throws Exception {
         URI unknownHostUri = URI.create("http://unknownhost.example/path");
@@ -90,14 +99,14 @@ public class RDAPHttpRequestTest {
             MockedStatic<ConnectionTracker> trackerMock = Mockito.mockStatic(ConnectionTracker.class)) {
 
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
             // Simulate no addresses for the host
             dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("unknownhost.example")).thenReturn(true);
 
             // Call the real method (no need to mock executeRequest, as it should not be called)
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(unknownHostUri, timeout, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), unknownHostUri, timeout, GET);
 
             assertThat(response).isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
             assertThat(response.statusCode()).isEqualTo(ZERO);
@@ -105,7 +114,7 @@ public class RDAPHttpRequestTest {
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                 .isEqualTo(ConnectionStatus.UNKNOWN_HOST);
 
-            verify(mockTracker).startTrackingNewConnection(eq(unknownHostUri), eq(GET), eq(false));
+            verify(mockTracker).startTrackingNewConnection(eq(unknownHostUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
         }
     }
 
@@ -125,20 +134,20 @@ public class RDAPHttpRequestTest {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
             // Only mock executeRequest to throw IOException
             execMock.when(() -> RDAPHttpRequest.executeRequest(any(), any()))
                     .thenThrow(new IOException("Connection closed by peer"));
 
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(uri, timeout, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), uri, timeout, GET);
 
             assertThat(response).isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                 .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
 
-            verify(mockTracker).startTrackingNewConnection(eq(uri), eq(GET), eq(false));
+            verify(mockTracker).startTrackingNewConnection(eq(uri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
         }
     }
 
@@ -154,24 +163,24 @@ public class RDAPHttpRequestTest {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
 
-            networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+            // NetworkInfo mocking removed - tests use defaults
 
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
             httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any()))
                           .thenThrow(new ConnectException("Connection refused"));
 
 
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
 
             assertThat(response).isNotNull()
                               .isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                 .isEqualTo(ConnectionStatus.CONNECTION_REFUSED);
 
-            verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+            verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
         }
     }
 
@@ -188,24 +197,24 @@ public void testMakeRequest_SocketTimeoutException_ReadTimeout() throws Exceptio
         InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
         dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-        networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+        // NetworkInfo mocking removed - tests use defaults
 
         ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
         trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
         // Throw SocketTimeoutException on executeRequest
         httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any()))
                       .thenThrow(new SocketTimeoutException("Read timed out"));
 
-        HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
 
         assertThat(response).isNotNull()
                           .isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
         assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
             .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
 
-        verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+        verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
     }
 }
 
@@ -220,24 +229,24 @@ public void testMakeRequest_SocketTimeoutException_ConnectTimeout() throws Excep
         InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
         dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-        networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+        // NetworkInfo mocking removed - tests use defaults
 
         ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
         trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
         httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any()))
                       .thenThrow(new SocketTimeoutException("connect timed out"));
 
 
-        HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
 
         assertThat(response).isNotNull()
                           .isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
         assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
             .isEqualTo(ConnectionStatus.NETWORK_SEND_FAIL);
 
-        verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+        verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
     }
 }
 
@@ -252,23 +261,23 @@ public void testMakeRequest_EOFException() throws Exception {
         InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
         dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-        networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+        // NetworkInfo mocking removed - tests use defaults
 
         ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
         trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
         httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any()))
                       .thenThrow(new EOFException("EOF"));
 
-        HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
 
         assertThat(response).isNotNull()
                           .isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
         assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
             .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
 
-        verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+        verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
     }
 }
 
@@ -282,23 +291,23 @@ public void testMakeRequest_EOFException() throws Exception {
            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
            InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
-           networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+           // NetworkInfo mocking removed - tests use defaults
 
            ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-           when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+           when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
            trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
            IOException resetException = new IOException("Connection reset by peer");
            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenThrow(resetException);
 
-           HttpResponse<String> response = RDAPHttpRequest.makeRequest(new URI("http://example.com/path"), 30, GET);
+           HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), new URI("http://example.com/path"), 30, GET);
 
            assertThat(response).isNotNull()
                              .isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
            assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                .isEqualTo(ConnectionStatus.NETWORK_RECEIVE_FAIL);
 
-           verify(mockTracker).startTrackingNewConnection(any(), eq(GET), eq(false));
+           verify(mockTracker).startTrackingNewConnection(any(), eq(GET), eq(false), any(NetworkProtocol.class));
        }
    }
 
@@ -314,21 +323,21 @@ public void testMakeRequest_EOFException() throws Exception {
           InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
           dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-          networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+          // NetworkInfo mocking removed - tests use defaults
           ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-          when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+          when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
           trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
           IOException malformedChunkException = new IOException("Malformed chunk");
           httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenThrow(malformedChunkException);
 
           URI testUri = new URI("http://example.com/path");
-          HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, 30, GET);
+          HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, 30, GET);
 
           assertThat(response).isNotNull();
           assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode());
 
-          verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+          verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
       }
   }
 
@@ -342,10 +351,10 @@ public void testMakeRequest_EOFException() throws Exception {
           dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
           InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
           dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
-          networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+          // NetworkInfo mocking removed - tests use defaults
 
           ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-          when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+          when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
           trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
           // Create an SSL exception that simulates an expired certificate
@@ -358,13 +367,13 @@ public void testMakeRequest_EOFException() throws Exception {
           httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenThrow(expiredException);
 
           URI testUri = new URI("http://example.com/path");
-          HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, 30, GET);
+          HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, 30, GET);
 
           assertThat(response).isNotNull();
           assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
               .isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
 
-          verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+          verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
       }
   }
 
@@ -378,7 +387,7 @@ public void testMakeRequest_EOFException() throws Exception {
           dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
           InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
           dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
-          networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+          // NetworkInfo mocking removed - tests use defaults
 
           ConnectionTracker mockTracker = mock(ConnectionTracker.class);
           trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
@@ -391,12 +400,12 @@ public void testMakeRequest_EOFException() throws Exception {
           httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenThrow(ioEx);
 
           URI testUri = new URI("http://example.com/path");
-          HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, 30, GET);
+          HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, 30, GET);
 
           assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
               .isEqualTo(ConnectionStatus.HANDSHAKE_FAILED);
 
-          verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+          verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
       }
   }
 
@@ -434,7 +443,7 @@ public void testMakeRequest_EOFException() throws Exception {
                 }
             });
 
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
             assertThat(response.statusCode()).isEqualTo(HTTP_OK);
             assertThat(response.body()).isEqualTo("");
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
@@ -463,7 +472,7 @@ public void testMakeRequest_EOFException() throws Exception {
             // No matter what, return a 429
             httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenReturn(retryResponse);
 
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
             assertThat(response.statusCode()).isEqualTo(HTTP_TOO_MANY_REQUESTS);
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                 .isEqualTo(ConnectionStatus.TOO_MANY_REQUESTS);
@@ -473,7 +482,7 @@ public void testMakeRequest_EOFException() throws Exception {
     @Test
     public void testMakeRequest_NullUri() {
         try {
-            RDAPHttpRequest.makeRequest(null, timeout, GET);
+            RDAPHttpRequest.makeRequest(createTestQueryContext(), null, timeout, GET);
             // Should not reach here
             Assert.fail("Expected IllegalArgumentException was not thrown");
         } catch (IllegalArgumentException e) {
@@ -492,7 +501,7 @@ public void testMakeRequest_EOFException() throws Exception {
             MockedStatic<ConnectionTracker> trackerMock = Mockito.mockStatic(ConnectionTracker.class)) {
 
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
             // Setup DNS resolution for 127.0.0.1 instead of localhost
@@ -502,13 +511,13 @@ public void testMakeRequest_EOFException() throws Exception {
 
             // Allow the real makeRequest to handle the localhost to 127.0.0.1 conversion
             // but mock the rest of the execution
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString(), anyBoolean(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(), anyInt(), anyString(), anyBoolean(), anyBoolean()))
                            .thenCallRealMethod();
             httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any()))
                            .thenReturn(mock(ClassicHttpResponse.class));
 
             // Verify the call correctly resolves localhost to 127.0.0.1
-            RDAPHttpRequest.makeRequest(localhostUri, timeout, GET, true, true);
+            RDAPHttpRequest.makeRequest(createTestQueryContext(), localhostUri, timeout, GET, true, true);
 
             // Verify that getFirstV4Address was called with 127.0.0.1 and not localhost
             dnsResolverMock.verify(() -> DNSCacheResolver.getFirstV4Address(eq(LOCAL_IPv4)), times(1));
@@ -524,27 +533,27 @@ public void testMakeRequest_EOFException() throws Exception {
             MockedStatic<ConnectionTracker> trackerMock = Mockito.mockStatic(ConnectionTracker.class)) {
 
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
             // Set up DNS resolver to return no addresses for the host
             dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("nonexistent.example.com")).thenReturn(true);
 
             // Only allow real method implementation for makeRequest variants
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(), anyInt(), anyString()))
                            .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(), anyInt(), anyString(), anyBoolean()))
                            .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString(), anyBoolean(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(), anyInt(), anyString(), anyBoolean(), anyBoolean()))
                            .thenCallRealMethod();
 
             RDAPHttpRequest.SimpleHttpResponse mockResponse = new RDAPHttpRequest.SimpleHttpResponse("test-id", ZERO, EMPTY_STRING, noAddressUri, new RDAPHttpRequest.Header[0]);
             mockResponse.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(noAddressUri, timeout, GET))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), noAddressUri, timeout, GET))
                            .thenReturn(mockResponse);
 
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(noAddressUri, timeout, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), noAddressUri, timeout, GET);
 
             assertThat(response).isNotNull()
                                 .isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
@@ -553,7 +562,7 @@ public void testMakeRequest_EOFException() throws Exception {
             assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
                 .isEqualTo(ConnectionStatus.UNKNOWN_HOST);
 
-            verify(mockTracker).startTrackingNewConnection(eq(noAddressUri), eq(GET), eq(false));
+            verify(mockTracker).startTrackingNewConnection(eq(noAddressUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
 
         }
     }
@@ -569,11 +578,11 @@ public void testMakeRequest_EOFException() throws Exception {
             MockedStatic<NetworkInfo> networkInfoMock = Mockito.mockStatic(NetworkInfo.class)) {
 
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
             // Set up for IPv6 protocol - make sure this is called before any DNS resolution
-            networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv6);
+            // NetworkInfo mocking removed - tests use defaults
 
             // Set up DNS resolution mocks
             dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("example.com")).thenReturn(false);
@@ -589,14 +598,14 @@ public void testMakeRequest_EOFException() throws Exception {
             httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any()))
                            .thenReturn(mockResponse);
 
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(), anyInt(), anyString()))
                            .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(), anyInt(), anyString(), anyBoolean()))
                            .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString(), anyBoolean(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(), anyInt(), anyString(), anyBoolean(), anyBoolean()))
                            .thenCallRealMethod();
 
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(validUri, timeout, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), validUri, timeout, GET);
 
             // Verify the IPv6 resolution was called
             dnsResolverMock.verify(() -> DNSCacheResolver.getFirstV6Address("example.com"));
@@ -619,7 +628,7 @@ public void testMakeRequest_EOFException() throws Exception {
            InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
-           networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+           // NetworkInfo mocking removed - tests use defaults
 
            ConnectionTracker mockTracker = mock(ConnectionTracker.class);
            trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
@@ -634,18 +643,18 @@ public void testMakeRequest_EOFException() throws Exception {
            httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenReturn(mockResponse);
 
            // Don't mock the actual makeRequest calls - let them execute
-           httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
+           httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString()))
                .thenCallRealMethod();
-           httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean()))
+           httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString(), anyBoolean()))
                .thenCallRealMethod();
-           httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean()))
+           httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean()))
                .thenCallRealMethod();
 
            URI testUri = new URI("https://example.com/path");
-           HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, 10, GET);
+           HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, 10, GET);
 
            httpRequestMock.verify(() -> RDAPHttpRequest.executeRequest(any(), any()));
-           verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+           verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
        }
    }
 
@@ -659,7 +668,7 @@ public void testMakeRequest_HttpScheme_DefaultPort() throws Exception {
         InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
         dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
         dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
-        networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+        // NetworkInfo mocking removed - tests use defaults
 
         ClassicHttpResponse mockResponse = mock(ClassicHttpResponse.class);
         when(mockResponse.getCode()).thenReturn(200);
@@ -667,7 +676,7 @@ public void testMakeRequest_HttpScheme_DefaultPort() throws Exception {
         when(mockClient.execute(any(HttpUriRequestBase.class))).thenReturn((CloseableHttpResponse) mockResponse);
 
         ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
 
         try (MockedStatic<ConnectionTracker> trackerMock = mockStatic(ConnectionTracker.class);
              MockedStatic<RDAPHttpRequest> requestMock = mockStatic(RDAPHttpRequest.class)) {
@@ -677,10 +686,10 @@ public void testMakeRequest_HttpScheme_DefaultPort() throws Exception {
 
             // Create test URI and make request
             URI testUri = new URI("http://example.com/path");
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, 10, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, 10, GET);
 
             // Verify the interactions
-            verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+            verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
         }
     }
 }
@@ -697,10 +706,10 @@ public void testMakeRequest_HttpScheme_DefaultPort() throws Exception {
             MockedStatic<NetworkInfo> networkInfoMock = Mockito.mockStatic(NetworkInfo.class)) {
 
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
             dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses("example.com")).thenReturn(false);
-            networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+            // NetworkInfo mocking removed - tests use defaults
             InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("example.com")).thenReturn(mockAddress);
             ClassicHttpResponse mockResponse = mock(ClassicHttpResponse.class);
@@ -712,14 +721,14 @@ public void testMakeRequest_HttpScheme_DefaultPort() throws Exception {
                            .thenReturn(mockResponse);
 
             // Real method implementations
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(), anyInt(), anyString()))
                            .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(), anyInt(), anyString(), anyBoolean()))
                            .thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(), anyInt(), anyString(), anyBoolean(), anyBoolean()))
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(), anyInt(), anyString(), anyBoolean(), anyBoolean()))
                            .thenCallRealMethod();
 
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(customPortUri, timeout, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), customPortUri, timeout, GET);
             HttpUriRequestBase capturedRequest = requestCaptor.getValue();
 
             assertThat(capturedRequest.getUri().getPort()).isEqualTo(HTTP_HIGH_PORT);
@@ -743,10 +752,10 @@ public void testMakeRequest_HttpScheme_DefaultPort() throws Exception {
           dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
           InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
           dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
-          networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+          // NetworkInfo mocking removed - tests use defaults
 
           ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-          when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+          when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
           trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
           UnknownHostException ex = new UnknownHostException("Unknown host");
@@ -756,25 +765,25 @@ public void testMakeRequest_HttpScheme_DefaultPort() throws Exception {
               new RDAPHttpRequest.SimpleHttpResponse("test-id", 0, "", testUri, new RDAPHttpRequest.Header[0]);
           mockResponse.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
 
-          httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString()))
+          httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString()))
                         .thenCallRealMethod();
-          httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean()))
+          httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString(), anyBoolean()))
                         .thenCallRealMethod();
-          httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean()))
+          httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean()))
                         .thenCallRealMethod();
           httpRequestMock.when(() -> RDAPHttpRequest.handleRequestException(any(), anyBoolean()))
                         .thenCallRealMethod();
           httpRequestMock.when(() -> RDAPHttpRequest.hasCause(any(), any()))
                         .thenCallRealMethod();
 
-          HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+          HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
 
           assertThat(response).isNotNull()
                             .isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
           assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
               .isEqualTo(ConnectionStatus.UNKNOWN_HOST);
 
-          verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+          verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
       }
   }
 
@@ -794,24 +803,24 @@ public void testMakeRequest_HttpScheme_DefaultPort() throws Exception {
             dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
             InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
-            networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+            // NetworkInfo mocking removed - tests use defaults
 
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
 
             // Throw ConnectException("Connection refused") on executeRequest
             ConnectException ex = new ConnectException("Connection refused");
             httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenThrow(ex);
 
             // Call the real ones
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString())).thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean())).thenCallRealMethod();
-            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean())).thenCallRealMethod();
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString())).thenCallRealMethod();
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString(), anyBoolean())).thenCallRealMethod();
+            httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean())).thenCallRealMethod();
             httpRequestMock.when(() -> RDAPHttpRequest.handleRequestException(any(), anyBoolean())).thenCallRealMethod();
             httpRequestMock.when(() -> RDAPHttpRequest.hasCause(any(), any())).thenCallRealMethod();
 
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
 
             assertThat(response).isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
             assertThat(((RDAPHttpRequest.SimpleHttpResponse) response).getConnectionStatusCode())
@@ -837,24 +846,24 @@ public void testHandleRequestException_SocketTimeoutReadTimeoutFull() throws Exc
         InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
         dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-        networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+        // NetworkInfo mocking removed - tests use defaults
 
         ConnectionTracker mockTracker = mock(ConnectionTracker.class);
         trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
-        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
 
         // Throw SocketTimeoutException("Read timed out") on executeRequest
         SocketTimeoutException ex = new SocketTimeoutException("Read timed out");
         httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenThrow(ex);
 
-        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString())).thenCallRealMethod();
-        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean())).thenCallRealMethod();
-        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean())).thenCallRealMethod();
+        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString())).thenCallRealMethod();
+        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString(), anyBoolean())).thenCallRealMethod();
+        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean())).thenCallRealMethod();
         httpRequestMock.when(() -> RDAPHttpRequest.handleRequestException(any(), anyBoolean())).thenCallRealMethod();
         httpRequestMock.when(() -> RDAPHttpRequest.hasCause(any(), any())).thenCallRealMethod();
 
 
-        HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
 
 
         assertThat(response).isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
@@ -881,23 +890,23 @@ public void testHandleRequestException_SocketTimeoutConnectTimeoutFull() throws 
         InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
         dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
 
-        networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+        // NetworkInfo mocking removed - tests use defaults
 
         ConnectionTracker mockTracker = mock(ConnectionTracker.class);
         trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
-        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
 
         // Throw SocketTimeoutException("Connect timed out") on executeRequest
         SocketTimeoutException ex = new SocketTimeoutException("Connect timed out");
         httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenThrow(ex);
 
-        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString())).thenCallRealMethod();
-        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean())).thenCallRealMethod();
-        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean())).thenCallRealMethod();
+        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString())).thenCallRealMethod();
+        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString(), anyBoolean())).thenCallRealMethod();
+        httpRequestMock.when(() -> RDAPHttpRequest.makeRequest(createTestQueryContext(), any(URI.class), anyInt(), anyString(), anyBoolean(), anyBoolean())).thenCallRealMethod();
         httpRequestMock.when(() -> RDAPHttpRequest.handleRequestException(any(), anyBoolean())).thenCallRealMethod();
         httpRequestMock.when(() -> RDAPHttpRequest.hasCause(any(), any())).thenCallRealMethod();
 
-        HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
 
         assertThat(response).isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
         assertThat(((RDAPHttpRequest.SimpleHttpResponse)response).getConnectionStatusCode())
@@ -1338,10 +1347,10 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
         dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
         InetAddress mockAddress = InetAddress.getByName(LOCAL_IPv4);
         dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
-        networkInfoMock.when(NetworkInfo::getNetworkProtocol).thenReturn(NetworkProtocol.IPv4);
+        // NetworkInfo mocking removed - tests use defaults
 
         ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+        when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
         trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
 
         // Test cases for each exception type
@@ -1363,7 +1372,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             String exceptionName = testCase.getRight();
 
             httpRequestMock.when(() -> RDAPHttpRequest.executeRequest(any(), any())).thenThrow(exception);
-            HttpResponse<String> response = RDAPHttpRequest.makeRequest(testUri, timeout, GET);
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(createTestQueryContext(), testUri, timeout, GET);
 
             assertThat(response).isNotNull()
                 .isInstanceOf(RDAPHttpRequest.SimpleHttpResponse.class);
@@ -1375,7 +1384,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
                 CommonUtils.addErrorToResultsFile(eq(ZERO), eq(-13014), eq("no response available"), eq("HTTP error.")),
                 times(1));
 
-            verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false));
+            verify(mockTracker).startTrackingNewConnection(eq(testUri), eq(GET), eq(false), eq(NetworkProtocol.IPv4));
         }
     }
 }
@@ -1565,7 +1574,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             
             // Mock connection tracker
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id-1", "test-id-2");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id-1", "test-id-2");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
             
             // Setup WireMock stubs
@@ -1594,7 +1603,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             assertThat(response.body()).contains("objectClassName");
             
             // Verify both connections were tracked
-            verify(mockTracker, times(2)).startTrackingNewConnection(any(), eq(GET), anyBoolean());
+            verify(mockTracker, times(2)).startTrackingNewConnection(any(), eq(GET), anyBoolean(), any(NetworkProtocol.class));
         } finally {
             wireMock.stop();
         }
@@ -1613,7 +1622,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
             
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
             
             // Setup redirect to different host (should be rejected)
@@ -1630,7 +1639,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             assertThat(response.statusCode()).isEqualTo(301);
             
             // Only one connection should be tracked (original request)
-            verify(mockTracker, times(1)).startTrackingNewConnection(any(), eq(GET), anyBoolean());
+            verify(mockTracker, times(1)).startTrackingNewConnection(any(), eq(GET), anyBoolean(), any(NetworkProtocol.class));
         } finally {
             wireMock.stop();
         }
@@ -1649,7 +1658,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
             
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
             
             // Setup 301 response without Location header
@@ -1666,7 +1675,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             assertThat(response.statusCode()).isEqualTo(301);
             assertThat(response.body()).isEqualTo("Moved Permanently");
             
-            verify(mockTracker, times(1)).startTrackingNewConnection(any(), eq(GET), anyBoolean());
+            verify(mockTracker, times(1)).startTrackingNewConnection(any(), eq(GET), anyBoolean(), any(NetworkProtocol.class));
         } finally {
             wireMock.stop();
         }
@@ -1685,7 +1694,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
             
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id-1", "test-id-2");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id-1", "test-id-2");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
             
             // Setup infinite redirect loop
@@ -1708,7 +1717,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             assertThat(response.statusCode()).isEqualTo(302);
             
             // Should have made exactly maxRedirects + 1 requests (original + 1 redirect)
-            verify(mockTracker, times(2)).startTrackingNewConnection(any(), eq(GET), anyBoolean());
+            verify(mockTracker, times(2)).startTrackingNewConnection(any(), eq(GET), anyBoolean(), any(NetworkProtocol.class));
         } finally {
             wireMock.stop();
         }
@@ -1727,7 +1736,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
             
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id-1", "test-id-2");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id-1", "test-id-2");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
             
             // Test each redirect status code
@@ -1749,7 +1758,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
                 
                 URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + path);
                 
-                HttpResponse<String> response = RDAPHttpRequest.makeRequestWithRedirects(originalUri, 10, GET, false, false, 3);
+                HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequestWithRedirects(originalUri, 10, 3);
                 
                 assertThat(response.statusCode()).as("Testing redirect code " + code).isEqualTo(200);
                 assertThat(response.body()).as("Testing redirect code " + code).isEqualTo("Success for " + code);
@@ -1772,7 +1781,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1")).thenReturn(mockAddress);
             
             ConnectionTracker mockTracker = mock(ConnectionTracker.class);
-            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean())).thenReturn("test-id");
+            when(mockTracker.startTrackingNewConnection(any(), anyString(), anyBoolean(), any(NetworkProtocol.class))).thenReturn("test-id");
             trackerMock.when(ConnectionTracker::getInstance).thenReturn(mockTracker);
             
             // Setup 200 response (no redirect)
@@ -1783,14 +1792,14 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             
             URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + "/domain/test");
             
-            HttpResponse<String> response = RDAPHttpRequest.makeRequestWithRedirects(originalUri, 10, GET, false, false, 3);
+            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequestWithRedirects(originalUri, 10, 3);
             
             // Should return the original 200 response
             assertThat(response.statusCode()).isEqualTo(200);
             assertThat(response.body()).isEqualTo("Success");
             
             // Only one connection should be tracked
-            verify(mockTracker, times(1)).startTrackingNewConnection(any(), eq(GET), anyBoolean());
+            verify(mockTracker, times(1)).startTrackingNewConnection(any(), eq(GET), anyBoolean(), any(NetworkProtocol.class));
         } finally {
             wireMock.stop();
         }
@@ -1826,7 +1835,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             
             URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + "/original");
             
-            HttpResponse<String> response = RDAPHttpRequest.makeRequestWithRedirects(originalUri, 10, GET, false, false, 3);
+            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequestWithRedirects(originalUri, 10, 3);
             
             // Verify the response is successful
             assertThat(response.statusCode()).isEqualTo(200);
@@ -1882,7 +1891,7 @@ public void testMakeRequest_HttpProtocolErrors() throws Exception {
             
             URI originalUri = URI.create("http://127.0.0.1:" + wireMock.port() + "/chain/original");
             
-            HttpResponse<String> response = RDAPHttpRequest.makeRequestWithRedirects(originalUri, 10, GET, false, false, 3);
+            HttpResponse<String> response = RDAPHttpRequest.makeHttpGetRequestWithRedirects(originalUri, 10, 3);
             
             // Verify final response
             assertThat(response.statusCode()).isEqualTo(200);

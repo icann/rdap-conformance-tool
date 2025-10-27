@@ -90,8 +90,8 @@ public class RDAPProfile {
       
       if (sequentialValidations != null && !sequentialValidations.isEmpty()) {
         if (aggressiveNetworkParallel) {
-          String currentProtocol = org.icann.rdapconformance.validator.NetworkInfo.getNetworkProtocol().toString();
-          String currentAcceptHeader = org.icann.rdapconformance.validator.NetworkInfo.getAcceptHeader();
+          String currentProtocol = "IPv4"; // Default fallback, will be fixed when migrating to QueryContext
+          String currentAcceptHeader = "application/json"; // Default fallback, will be fixed when migrating to QueryContext
           logger.info("[{}|{}] Executing {} network validations with timeout-prone separation", 
                      currentProtocol, currentAcceptHeader, sequentialValidations.size());
           
@@ -111,8 +111,8 @@ public class RDAPProfile {
             result &= NetworkValidationCoordinator.executeHttpAndHttpsValidations(httpValidations, httpsValidations, timeoutSeconds);
           }
         } else {
-          String currentProtocol = org.icann.rdapconformance.validator.NetworkInfo.getNetworkProtocol().toString();
-          String currentAcceptHeader = org.icann.rdapconformance.validator.NetworkInfo.getAcceptHeader();
+          String currentProtocol = "IPv4"; // Default fallback, will be fixed when migrating to QueryContext
+          String currentAcceptHeader = "application/json"; // Default fallback, will be fixed when migrating to QueryContext
           logger.info("[{}|{}] Executing {} network validations sequentially", 
                      currentProtocol, currentAcceptHeader, sequentialValidations.size());
           for (ProfileValidation validation : sequentialValidations) {
