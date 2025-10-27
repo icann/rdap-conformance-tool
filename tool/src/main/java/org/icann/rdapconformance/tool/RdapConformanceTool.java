@@ -28,9 +28,8 @@ import picocli.CommandLine.Parameters;
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
-import org.icann.rdapconformance.validator.workflow.profile.NetworkValidationCoordinator;
-import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ProgressCallback;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -40,6 +39,7 @@ import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -103,6 +103,9 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   URI uri;
 
   private FileSystem fileSystem = new LocalFileSystem();
+
+  // QueryContext for managing all validation components in a thread-safe manner
+  private QueryContext queryContext;
 
   @Option(names = {"-c", "--config"}, description = "Definition file", required = true)
   String configurationFile;
@@ -458,24 +461,7 @@ public void setShowProgress(boolean showProgress) {
     // Initialize progress tracking if not in verbose mode (before DNS check so progress is visible)
     initializeProgressTracking();
 
-    // Initialize DNS resolver early (before dataset download) if we're doing network validation
-    // This ensures the custom DNS resolver is configured for all network operations
-    if (networkEnabled) {
-      updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
-      try {
-        DNSCacheResolver.initializeResolver(customDnsResolver);
-      } catch (RuntimeException e) {
-        logger.error("Failed to initialize DNS resolver: {}", e.getMessage());
-        if (e.getMessage().contains("not responding")) {
-            logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
-                         ": DNS server is not reachable: " + customDnsResolver);
-        } else {
-            logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
-                         ": Invalid DNS resolver IP address: " + customDnsResolver);
-        }
-        return ToolResult.BAD_USER_INPUT.getCode();
-      }
-    }
+    // DNS resolver initialization will be handled by QueryContext when it's created
 
     // No matter which validator, we need to initialize the dataset service
     RDAPDatasetService datasetService = initializeDataSetWithProgress();
@@ -503,10 +489,28 @@ public void setShowProgress(boolean showProgress) {
     // get the results file ready
     clean();
 
+    // Create QueryContext as the central "world object" with all components
+    // This includes DNS resolver initialization with any custom DNS server
+    try {
+      updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
+      queryContext = QueryContext.create(this, datasetService, new org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery(this), customDnsResolver);
+      logger.debug("QueryContext created successfully with custom DNS server: {}", customDnsResolver);
+    } catch (RuntimeException e) {
+      logger.error("Failed to initialize QueryContext with DNS resolver: {}", e.getMessage());
+      if (e.getMessage().contains("not responding")) {
+          logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
+                       ": DNS server is not reachable: " + customDnsResolver);
+      } else {
+          logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
+                       ": Invalid DNS resolver IP address: " + customDnsResolver);
+      }
+      return ToolResult.BAD_USER_INPUT.getCode();
+    }
+
     // Get the queryType - bail out if it is not correct
     RDAPHttpQueryTypeProcessor queryTypeProcessor = null;
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
-      queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
+      queryTypeProcessor = queryContext.getHttpQueryTypeProcessor();
       if (!queryTypeProcessor.check(datasetService)) {
         logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
         return queryTypeProcessor.getErrorStatus().getCode();
@@ -523,77 +527,48 @@ public void setShowProgress(boolean showProgress) {
     // Determine which validator we are using
     ValidatorWorkflow validator;
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
-      validator = new RDAPHttpValidator(this, datasetService);
+      validator = new RDAPHttpValidator(queryContext);
     } else {
       networkEnabled = false;
       validator = new RDAPFileValidator(this, datasetService);
     }
 
-    // Initialize the result file from the validator's QueryContext instead of singleton
+    // Initialize the result file from the tool's QueryContext
     RDAPValidationResultFile resultFile;
     if (validator instanceof RDAPValidator) {
-        RDAPValidator rdapValidator = (RDAPValidator) validator;
-        resultFile = rdapValidator.getQueryContext().getResultFile();
-        resultFile.initialize(rdapValidator.getQueryContext().getResults(), this, configFile, fileSystem);
+        // Use the tool's QueryContext for RDAP validators
+        resultFile = queryContext.getResultFile();
+        resultFile.initialize(queryContext.getResults(), this, configFile, fileSystem);
     } else {
-        // Fallback to singleton for non-RDAP validators
-        resultFile = RDAPValidationResultFile.getInstance();
-        resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
+        // For non-RDAP validators, create a basic QueryContext and use instance-based approach
+        if (queryContext == null) {
+            queryContext = QueryContext.create(this, datasetService, null, customDnsResolver);
+        }
+        resultFile = queryContext.getResultFile();
+        resultFile.initialize(queryContext.getResults(), this, configFile, fileSystem);
     }
 
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
-      // DNS resolver was already initialized earlier (before dataset download)
-      // Now perform the actual DNS lookups for the target host
+      // DNS resolver was already initialized when QueryContext was created
+      // Now perform the actual DNS lookups for the target host using QueryContext
       updateProgressPhase("DNS-Resolving");
-      DNSCacheResolver.initFromUrl(uri.toString());
+      queryContext.getDnsResolver().initFromUrl(uri.toString());
       incrementProgress(); // DNS initialization step
       updateProgressPhase("DNS-Validation");
-      DNSCacheResolver.doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
+      queryContext.getDnsResolver().doZeroIPAddressesValidation(queryContext, uri.toString(), executeIPv6Queries, executeIPv4Queries);
       incrementProgress(); // DNS validation step
       
       // Start network validation phase
       updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
 
       // Check if parallel IP version execution is enabled
-      boolean parallelIPVersions = Boolean.parseBoolean(
-          System.getProperty("rdap.parallel.ipversions", "false"));
-
-      if (parallelIPVersions) {
-        logger.info("Executing IPv4 and IPv6 validations in parallel");
-        
-        // Execute IP versions in parallel using NetworkValidationCoordinator
-        NetworkValidationCoordinator.IPVersionValidationResults results = 
-            NetworkValidationCoordinator.executeIPVersionValidations(
-                validator, 
-                uri, 
-                executeIPv4Queries, 
-                executeIPv6Queries,
-                (version, header) -> {
-                    updateProgressPhase(version + "-" + header);
-                    incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND);
-                }
-            );
-        
-        // Log results summary
-        Map<String, Integer> allResults = results.getAllResults();
-        logger.info("Parallel IP version validation results: {}", allResults);
-        
-        if (!results.allSuccessful()) {
-            logger.warn("Some parallel validations failed: {}", 
-                allResults.entrySet().stream()
-                    .filter(e -> e.getValue() != 0)
-                    .collect(java.util.stream.Collectors.toMap(
-                        Map.Entry::getKey, Map.Entry::getValue)));
-        }
-        
-      } else {
-        // Original sequential execution
-        logger.info("Executing IPv4 and IPv6 validations sequentially");
+      // Execute IPv4 and IPv6 validations sequentially
+      logger.info("Executing IPv4 and IPv6 validations sequentially");
         
         // do v6
-        logger.debug("IPv6 check: executeIPv6Queries={}, hasV6Addresses={}", executeIPv6Queries, DNSCacheResolver.hasV6Addresses(uri.toString()));
-        if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
+        logger.debug("IPv6 check: executeIPv6Queries={}, hasV6Addresses={}", executeIPv6Queries, queryContext.getDnsResolver().hasV6Addresses(uri.toString()));
+        if(executeIPv6Queries && queryContext.getDnsResolver().hasV6Addresses(uri.toString())) {
           logger.debug("Starting IPv6 validations...");
           updateProgressPhase("IPv6-JSON");
 
@@ -626,11 +601,11 @@ public void setShowProgress(boolean showProgress) {
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
           logger.debug("IPv6 validations completed");
         } else {
-          logger.debug("Skipping IPv6 validations - executeIPv6Queries={}, hasV6Addresses={}", executeIPv6Queries, DNSCacheResolver.hasV6Addresses(uri.toString()));
+          logger.debug("Skipping IPv6 validations - executeIPv6Queries={}, hasV6Addresses={}", executeIPv6Queries, queryContext.getDnsResolver().hasV6Addresses(uri.toString()));
         }
 
         // do v4
-        if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
+        if(executeIPv4Queries && queryContext.getDnsResolver().hasV4Addresses(uri.toString())) {
           updateProgressPhase("IPv4-JSON");
 
           // Use QueryContext's NetworkInfo instead of singleton
@@ -657,9 +632,8 @@ public void setShowProgress(boolean showProgress) {
           int v4ret2 = validator.validate();
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
         }
-      }
 
-      if(DNSCacheResolver.hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
+      if(queryContext.getDnsResolver().hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
         logger.info("Unable to resolve an IP address endpoint using DNS for uri:  "  + DNSCacheResolver.getHostnameFromUrl(uri.toString()));
       }
 
@@ -669,9 +643,9 @@ public void setShowProgress(boolean showProgress) {
       boolean isResourceNotFound = false;
       if (validator instanceof RDAPValidator) {
           RDAPValidator rdapValidator = (RDAPValidator) validator;
-          isResourceNotFound = rdapValidator.getQueryContext().getConnectionTracker().isResourceNotFoundNoteWarning(this);
+          isResourceNotFound = rdapValidator.getQueryContext().getConnectionTracker().isResourceNotFoundNoteWarning(rdapValidator.getQueryContext(), this);
       } else {
-          isResourceNotFound = ConnectionTracker.getInstance().isResourceNotFoundNoteWarning(this);
+          isResourceNotFound = queryContext.getConnectionTracker().isResourceNotFoundNoteWarning(queryContext, this);
       }
 
       if(isResourceNotFound) {
@@ -706,7 +680,7 @@ public void setShowProgress(boolean showProgress) {
           RDAPValidator rdapValidator = (RDAPValidator) validator;
           logger.debug("ConnectionTracking: " + rdapValidator.getQueryContext().getConnectionTracker().toString());
       } else {
-          logger.debug("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+          logger.debug("ConnectionTracking: " + queryContext.getConnectionTracker().toString());
       }
 
       // Complete progress tracking
@@ -720,10 +694,10 @@ public void setShowProgress(boolean showProgress) {
 
       // if we made it to here, exit 0
       return ZERO;
+    } else {
+      // else we are validating a file
+      return validateWithoutNetwork(resultFile, validator);
     }
-
-    // else we are validating a file
-    return validateWithoutNetwork(resultFile, validator);
   }
 
   /**
@@ -737,7 +711,7 @@ public void setShowProgress(boolean showProgress) {
    * @param validator the file validator workflow to execute
    * @return exit code indicating validation result
    */
-  int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
+  private int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
     // If network is not enabled or ipv4 AND ipv6 flags are off, validate and return
     updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
     updateProgressPhase("FileValidation");
@@ -862,11 +836,14 @@ public void setShowProgress(boolean showProgress) {
 
   @Override
   public void clean() {
-    var resultsImpl = RDAPValidatorResultsImpl.getInstance();
-    var connectionTracker = ConnectionTracker.getInstance();
-    RDAPValidationResultFile.reset();
-    resultsImpl.clear();
-    connectionTracker.reset();
+    // Use QueryContext components if available, otherwise this is called before QueryContext creation
+    if (queryContext != null) {
+      queryContext.getResults().clear();
+      queryContext.getConnectionTracker().reset();
+      // ResultFile doesn't need reset as it will be reinitialized
+    }
+    // Note: In the new architecture, clean() is called before QueryContext creation,
+    // so this method has minimal effect during startup
   }
 
   /**
@@ -875,8 +852,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public List<RDAPValidationResult> getErrors() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      return resultFile.getErrors();
+      if (queryContext != null) {
+        return queryContext.getResultFile().getErrors();
+      }
+      // Return empty list if QueryContext hasn't been created yet
+      return new java.util.ArrayList<>();
     } catch (Exception e) {
       // Return empty list if validation hasn't run yet or failed
       return new java.util.ArrayList<>();
@@ -889,8 +869,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public List<RDAPValidationResult> getAllResults() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      return resultFile.getAllResults();
+      if (queryContext != null) {
+        return queryContext.getResultFile().getAllResults();
+      }
+      // Return empty list if QueryContext hasn't been created yet
+      return new java.util.ArrayList<>();
     } catch (Exception e) {
       // Return empty list if validation hasn't run yet or failed
       return new java.util.ArrayList<>();
@@ -903,8 +886,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public int getErrorCount() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      return resultFile.getErrorCount();  
+      if (queryContext != null) {
+        return queryContext.getResultFile().getErrorCount();
+      }
+      // Return 0 if QueryContext hasn't been created yet
+      return 0;
     } catch (Exception e) {
       // Return 0 if validation hasn't run yet or failed
       return 0;
@@ -917,12 +903,15 @@ public void setShowProgress(boolean showProgress) {
    */
   public String getErrorsAsJson() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      Map<String, Object> resultsMap = resultFile.createResultsMap();
-      @SuppressWarnings("unchecked")
-      List<Map<String, Object>> errors = (List<Map<String, Object>>) resultsMap.get("error");
-      JSONArray jsonArray = new JSONArray(errors);
-      return jsonArray.toString(PRETTY_PRINT_INDENT);
+      if (queryContext != null) {
+        Map<String, Object> resultsMap = queryContext.getResultFile().createResultsMap();
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> errors = (List<Map<String, Object>>) resultsMap.get("error");
+        JSONArray jsonArray = new JSONArray(errors);
+        return jsonArray.toString(PRETTY_PRINT_INDENT);
+      }
+      // Return empty JSON array if QueryContext hasn't been created yet
+      return new JSONArray().toString();
     } catch (Exception e) {
       // Return empty JSON array if validation hasn't run yet or failed
       return new JSONArray().toString();
@@ -935,7 +924,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public String getAllResultsAsJson() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      // Use the QueryContext to get the resultFile if available, otherwise return fallback
+      if (queryContext == null) {
+        throw new IllegalStateException("No validation has been run yet");
+      }
+      RDAPValidationResultFile resultFile = queryContext.getResultFile();
       Map<String, Object> resultsMap = resultFile.createResultsMap();
       JSONObject jsonObject = new JSONObject(resultsMap);
       return jsonObject.toString(PRETTY_PRINT_INDENT);
@@ -956,7 +949,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public String getWarningsAsJson() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      // Use the QueryContext to get the resultFile if available, otherwise return fallback
+      if (queryContext == null) {
+        throw new IllegalStateException("No validation has been run yet");
+      }
+      RDAPValidationResultFile resultFile = queryContext.getResultFile();
       Map<String, Object> resultsMap = resultFile.createResultsMap();
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> warnings = (List<Map<String, Object>>) resultsMap.get("warning");
@@ -1132,7 +1129,10 @@ public void setShowProgress(boolean showProgress) {
       progressCallback = new DatasetProgressCallback();
     }
     
-    RDAPDatasetService datasetService = CommonUtils.initializeDataSet(this, progressCallback);
+    // Create dataset service directly instead of using non-existent CommonUtils method
+    FileSystem fileSystem = new LocalFileSystem();
+    RDAPDatasetService datasetService = new RDAPDatasetServiceImpl(fileSystem);
+    datasetService.download(useLocalDatasets, progressCallback);
     
     // Ensure we're at the right progress point (after dataset phase)
     if (progressTracker != null && datasetService != null) {

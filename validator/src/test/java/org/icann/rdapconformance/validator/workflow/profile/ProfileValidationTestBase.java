@@ -22,11 +22,19 @@ public abstract class ProfileValidationTestBase implements ValidationTest {
   public abstract ProfileValidation getProfileValidation();
 
   public void validate() {
+    // Update QueryContext with current JSON state before validation
+    updateQueryContextJsonData();
     validateOk(results);
   }
 
   public void validate(int code, String value, String message) {
+    // Update QueryContext with current JSON state before validation
+    updateQueryContextJsonData();
     validateNotOk(results, code, value, message);
+  }
+
+  protected void updateQueryContextJsonData() {
+    // Default implementation - ProfileJsonValidationTestBase will override
   }
 
   @BeforeMethod
@@ -34,12 +42,12 @@ public abstract class ProfileValidationTestBase implements ValidationTest {
     results = mock(RDAPValidatorResults.class);
     config = mock(RDAPValidatorConfiguration.class);
     when(config.isGtldRegistrar()).thenReturn(true);
+    when(config.getUri()).thenReturn(java.net.URI.create("https://example.com/domain/test.example"));
 
     // Create QueryContext for testing - this will be available for subclasses
     queryContext = QueryContext.forTesting("{}", results, config);
 
-    // PERFORMANCE FIX: Reduce HTTP 429 retry backoff from 30 seconds to 1 second for tests
-    // This prevents tests from hanging for 30 seconds when hitting rate limits
+    // Set faster timeouts for testing (DEFAULT_BACKOFF_SECS is mutable for testing)
     RDAPHttpRequest.DEFAULT_BACKOFF_SECS = 1;
   }
 

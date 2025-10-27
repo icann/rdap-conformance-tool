@@ -82,7 +82,6 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
         // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
         httpResponse = RDAPHttpRequest.makeRequest(queryContext, uri, config.getTimeout(), GET);
       } else {
-        // Fallback to legacy singleton-based request
         httpResponse = RDAPHttpRequest.makeHttpGetRequestWithRedirects(uri, config.getTimeout(), config.getMaxRedirects());
       }
 

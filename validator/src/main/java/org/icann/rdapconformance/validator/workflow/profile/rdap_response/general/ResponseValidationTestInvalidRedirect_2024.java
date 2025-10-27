@@ -62,7 +62,6 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
                 // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
                 response = RDAPHttpRequest.makeRequest(queryContext, createTestInvalidURI(), config.getTimeout(), GET);
             } else {
-                // Fallback to legacy singleton-based request
                 response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(), config.getTimeout());
             }
 

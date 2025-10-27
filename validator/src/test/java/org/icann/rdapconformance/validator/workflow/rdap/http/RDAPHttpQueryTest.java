@@ -66,6 +66,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     public static final String LOCATION = "Location";
     public static final String NAMESERVERS = "/nameservers";
     private RDAPHttpQuery rdapHttpQuery;
+    private QueryContext queryContext;
 
     @DataProvider(name = "fault")
     public static Object[][] serverFault() {
@@ -97,7 +98,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         rdapHttpQuery = new RDAPHttpQuery(config);
 
         // Create QueryContext for thread-safe operations
-        QueryContext queryContext = QueryContext.forTesting(config);
+        queryContext = QueryContext.forTesting(config);
         rdapHttpQuery.setQueryContext(queryContext);
     }
 
@@ -129,7 +130,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void test_WithHttp() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         givenUri(HTTP);
@@ -146,7 +147,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     @Ignore
     @Test(dataProvider = "fault")
     public void test_ServerFault_ReturnsErrorStatus20(Fault fault) {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         givenUri(HTTP);
@@ -205,7 +206,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void test_ConnectionTimeout_ReturnsErrorStatus10() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 //    rdapHttpQuery.setResults(results);
 
@@ -224,12 +225,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .httpStatusCode(ZERO)
                                                                   .value("no response available")
                                                                   .message("Network receive fail")
-                                                                  .build());
+                                                                  .build(queryContext));
     }
 
     @Test
     public void test_ServerRedirectLessThanRetries_Returns200() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 //    rdapHttpQuery.setResults(results);
 
@@ -255,7 +256,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void test_ServerRedirectMoreThanRetries_ReturnsErrorStatus16() throws Exception {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String path1 = "/domain/test1.example";
@@ -311,7 +312,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                       .code(-13013)
                                                                       .value("no response available")
                                                                       .message("Too many HTTP redirects.")
-                                                                      .build());
+                                                                      .build(queryContext));
         }
     }
 
@@ -324,7 +325,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         QueryContext queryContext = QueryContext.forTesting(config);
         rdapHttpQuery.setQueryContext(queryContext);
 
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         HttpHeaders headers = mock(HttpHeaders.class);
@@ -341,7 +342,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .value("<location header value>")
                                                                   .message(
                                                                       "Response redirect contained query parameters copied from the request.")
-                                                                  .build());
+                                                                  .build(queryContext));
     }
 
     @Test
@@ -353,7 +354,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         QueryContext queryContext = QueryContext.forTesting(config);
         rdapHttpQuery.setQueryContext(queryContext);
 
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
         HttpHeaders headers = mock(HttpHeaders.class);
         URI originalUri = URI.create("http://example.com?param=value");
@@ -369,12 +370,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                         .value("<location header value>")
                                                                         .message(
                                                                             "Response redirect contained query parameters copied from the request.")
-                                                                        .build());
+                                                                        .build(queryContext));
     }
 
     @Test
     public void testIsBlindlyCopyingParams_WithMockedResponses() throws Exception {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String path1 = "/domain/test1.example";
@@ -406,7 +407,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                       .value("<location header value>")
                                                                       .message(
                                                                           "Response redirect contained query parameters copied from the request.")
-                                                                      .build());
+                                                                      .build(queryContext));
         }
     }
 
@@ -419,7 +420,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                       .willReturn(
                                           aResponse().withStatus(REDIRECT))); // Redirect status without Location header
 
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         assertThat(rdapHttpQuery.run()).isFalse();
@@ -435,15 +436,13 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         when(config.getTimeout()).thenReturn(30);
         when(config.getMaxRedirects()).thenReturn(5);
 
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
-        try (MockedStatic<DNSCacheResolver> dnsResolverMock = Mockito.mockStatic(DNSCacheResolver.class);
-            MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class)) {
+        try (MockedStatic<RDAPHttpRequest> httpRequestMock = Mockito.mockStatic(RDAPHttpRequest.class)) {
 
-            dnsResolverMock.when(() -> DNSCacheResolver.hasNoAddresses(anyString())).thenReturn(false);
-            InetAddress mockAddress = InetAddress.getByName("127.0.0.1");
-            dnsResolverMock.when(() -> DNSCacheResolver.getFirstV4Address(anyString())).thenReturn(mockAddress);
+            // DNS resolution now happens through QueryContext's DNSCacheResolver instance
+            // No need to mock DNS calls for this test case
 
             Map<String, List<String>> headers = new HashMap<>();
             headers.put("Content-Type", List.of("application/json")); // Not application/rdap+JSON
@@ -467,7 +466,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                       .value("application/json")
                                                                       .message(
                                                                           "The content-type header does not contain the application/rdap+json media type.")
-                                                                      .build());
+                                                                      .build(queryContext));
 
             assertThat(results.getAll()).hasSize(1);
         }
@@ -475,7 +474,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void test_InvalidJson_ErrorCode13001AddedInResults() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String response = "{\"objectClassName\"}";
@@ -489,12 +488,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .code(-13001)
                                                                   .value("response body not given")
                                                                   .message("The response was not valid JSON.")
-                                                                  .build());
+                                                                  .build(queryContext));
     }
 
     @Test
     public void test_InvalidHttpStatus_ErrorCode13002AddedInResults() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String path = "/nameservers?ip=.*";
@@ -510,7 +509,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .value("403")
                                                                   .message(
                                                                       "The HTTP status code was neither 200 nor 404.")
-                                                                  .build());
+                                                                  .build(queryContext));
     }
 
     @DataProvider(name = "clientErrorStatusCodes")
@@ -525,7 +524,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test(dataProvider = "clientErrorStatusCodes")
     public void test_ClientErrorStatus_CausesEarlyTermination(int statusCode) {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
@@ -543,12 +542,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .value(String.valueOf(statusCode))
                                                                   .message(
                                                                       "The HTTP status code was neither 200 nor 404.")
-                                                                  .build());
+                                                                  .build(queryContext));
     }
 
     @Test(dataProvider = "serverErrorStatusCodes")
     public void test_ServerErrorStatus_ContinuesValidation(int statusCode) {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
@@ -566,12 +565,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .value(String.valueOf(statusCode))
                                                                   .message(
                                                                       "The HTTP status code was neither 200 nor 404.")
-                                                                  .build());
+                                                                  .build(queryContext));
     }
 
     @Test
     public void test_400ErrorSpecifically_DocumentsIntendedBehavior() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String response = "{\"errorCode\": 400, \"title\": \"Bad Request\", \"description\": [\"Invalid domain name\"]}";
@@ -592,12 +591,12 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .value("400")
                                                                   .message(
                                                                       "The HTTP status code was neither 200 nor 404.")
-                                                                  .build());
+                                                                  .build(queryContext));
     }
 
     @Test
     public void test_404Error_ContinuesValidation() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String response = "{\"errorCode\": 404, \"title\": \"Not Found\", \"description\": [\"Domain not found\"]}";
@@ -639,7 +638,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void checkWithQueryType_ObjectClassNameInJsonResponse_IsOk() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         givenUri(HTTP);
@@ -656,7 +655,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     public void checkWithQueryType_NoObjectClassNameInJsonResponse_ReturnsErrorCode13003InResults() {
         givenUri(HTTP);
         String response = "{\"NoObjectClassName\": \"domain\"}";
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         stubFor(get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
@@ -670,14 +669,14 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .value(response)
                                                                   .message(
                                                                       "The response does not have an objectClassName string.")
-                                                                  .build());
+                                                                  .build(queryContext));
     }
 
     @Test
     public void test_WithJsonArray() {
         String path = "/nameservers?ip=.*";
         String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         givenUri(HTTP, path);
@@ -695,7 +694,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     public void checkWithQueryType_JsonResponseIsAnArray_IsOk() {
         String path = "/nameservers?ip=.*";
         String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         givenUri(HTTP, path);
@@ -712,7 +711,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     public void checkWithQueryType_JsonResponseIsNotAnArray_ReturnsErrorCode13003InResults() {
         String path = "/nameservers?ip=.*";
         String response = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         givenUri(HTTP, path);
@@ -728,14 +727,14 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .value(response)
                                                                   .message(
                                                                       "The response does not have an objectClassName string.")
-                                                                  .build());
+                                                                  .build(queryContext));
     }
 
     @Test
     public void checkWithQueryType_JsonResponseIsNotAnArray_ReturnsErrorCode12610InResults() {
         String path = "/nameservers?ip=.*";
         String response = "{\"nameserverSearchResults\": { \"objectClassName\":\"nameserver\" }}";
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         // enable 2024 profile
@@ -754,7 +753,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .value(response)
                                                                   .message(
                                                                       "The nameserverSearchResults structure is required.")
-                                                                  .build());
+                                                                  .build(queryContext));
 
         // disable 2024 profile after testing
         doReturn(false).when(config).useRdapProfileFeb2024();
@@ -776,7 +775,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void jsonResponseValid_TopLevelObjectClassNameMissing_ReturnsFalse() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String response = "{\"entities\": [{\"objectClassName\": \"entity\"}]}";
@@ -791,7 +790,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void jsonResponseValid_EntitiesListInvalid_ReturnsFalse() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String response = "{\"objectClassName\": \"domain\", \"entities\": [\"invalidElement\"]}";
@@ -806,7 +805,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void jsonResponseValid_NameserversListInvalid_ReturnsFalse() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String response = "{\"objectClassName\": \"domain\", \"nameservers\": [\"invalidElement\"]}";
@@ -821,7 +820,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void jsonResponseValid_ValidTopLevelAndNestedEntities_ReturnsTrue() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String response = "{\"objectClassName\": \"domain\", \"entities\": [{\"objectClassName\": \"entity\"}]}";
@@ -836,7 +835,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void jsonResponseValid_ValidTopLevelAndNestedNameservers_ReturnsTrue() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String response = "{\"objectClassName\": \"domain\", \"nameservers\": [{\"objectClassName\": \"nameserver\"}]}";
@@ -854,7 +853,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         doReturn(URI.create("http://example.com")).when(config).getUri();
         stubFor(get(urlEqualTo("/")).willReturn(
             aResponse().withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8").withBody("{}")));
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         rdapHttpQuery.run();
@@ -865,7 +864,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void testGetRedirects_WithRedirects() throws Exception {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         String path1 = "/domain/test1.example";
@@ -918,7 +917,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void test_HandleRequestException_Timeout() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();
@@ -939,7 +938,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @Test
     public void test_AnalyzeIOException_ExpiredCertificate() {
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
+        RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         doReturn(URI.create(HTTP_TEST_EXAMPLE)).when(config).getUri();

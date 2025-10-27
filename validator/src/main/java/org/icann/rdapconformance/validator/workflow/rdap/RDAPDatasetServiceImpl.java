@@ -30,11 +30,8 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
   protected Map<Class<? extends RDAPDataset>, RDAPDataset> datasets;
   protected Map<Class<?>, Object> datasetValidatorModels;
 
-  // Singleton instance
-  private static RDAPDatasetServiceImpl instance;
-
-  // Private constructor to prevent instantiation
-  private RDAPDatasetServiceImpl(FileSystem fileSystem) {
+  // Public constructor for instance-based usage
+  public RDAPDatasetServiceImpl(FileSystem fileSystem) {
     this.fileSystem = fileSystem;
     datasetList = List.of(new IPv4AddressSpaceDataset(fileSystem),
         new SpecialIPv4AddressesDataset(fileSystem),
@@ -54,33 +51,6 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
         .collect(Collectors.toMap(RDAPDataset::getClass, Function.identity()));
   }
 
-  /**
-   * Get the singleton instance of RDAPDatasetServiceImpl.
-   * If the instance doesn't exist, it will be created with the provided FileSystem.
-   *
-   * @param fileSystem The FileSystem to use
-   * @return The singleton instance of RDAPDatasetServiceImpl
-   */
-  public static synchronized RDAPDatasetServiceImpl getInstance(FileSystem fileSystem) {
-    if (instance == null) {
-      instance = new RDAPDatasetServiceImpl(fileSystem);
-    }
-    return instance;
-  }
-
-  /**
-   * Get the singleton instance of RDAPDatasetServiceImpl.
-   * This method should only be called after the instance has been initialized with a FileSystem.
-   *
-   * @return The singleton instance of RDAPDatasetServiceImpl
-   * @throws IllegalStateException if getInstance was not previously called with a FileSystem
-   */
-  public static RDAPDatasetServiceImpl getInstance() {
-    if (instance == null) {
-      throw new IllegalStateException("RDAPDatasetServiceImpl has not been initialized. Call getInstance(FileSystem) first.");
-    }
-    return instance;
-  }
 
   /**
    * Download all RDAP datasets.

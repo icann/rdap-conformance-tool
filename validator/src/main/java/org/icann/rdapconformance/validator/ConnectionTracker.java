@@ -51,14 +51,13 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  * @since 1.0.0
  */
 public class ConnectionTracker {
-    private static final ConnectionTracker INSTANCE = new ConnectionTracker();
     private static final Logger logger = LoggerFactory.getLogger(ConnectionTracker.class);
     private final List<ConnectionRecord> connections;
     private final Map<String, ConnectionRecord> connectionsByTrackingId;
     private ConnectionRecord currentConnection;
     private ConnectionRecord lastMainConnection;
 
-    // Public constructor for QueryContext usage (no longer singleton)
+    // Public constructor for QueryContext usage
     public ConnectionTracker() {
         this.connections = Collections.synchronizedList(new ArrayList<>());
         this.connectionsByTrackingId = Collections.synchronizedMap(new HashMap<>());
@@ -111,7 +110,7 @@ public class ConnectionTracker {
         ConnectionRecord record = new ConnectionRecord(
                 uri,
                 "UNKNOWN", // IP address will be set later
-                protocol,  // Use provided protocol instead of singleton
+                protocol,
                 ZERO,  // Status code not yet known
                 null,  // Duration not yet known
                 null,  // Status not yet known
@@ -473,10 +472,11 @@ public class ConnectionTracker {
      * <p>This method is used to identify cases where a resource may be legitimately
      * unavailable, which may require different validation handling or warning generation.</p>
      *
+     * @param queryContext the QueryContext for thread-safe error reporting
      * @param config the validator configuration containing query settings
      * @return true if all relevant queries returned 404 status, false otherwise
      */
-    public synchronized boolean isResourceNotFoundNoteWarning(RDAPValidatorConfiguration config) {
+    public synchronized boolean isResourceNotFoundNoteWarning(QueryContext queryContext, RDAPValidatorConfiguration config) {
         boolean foundRelevant = false;
         for (ConnectionRecord record : connections) {
             if (record.isMainConnection() || HEAD.equalsIgnoreCase(record.getHttpMethod())) {
@@ -490,14 +490,14 @@ public class ConnectionTracker {
                 if((HEAD.equalsIgnoreCase(record.getHttpMethod()) || GET.equalsIgnoreCase(record.getHttpMethod()))
                         && (config.useRdapProfileFeb2024() || config.useRdapProfileFeb2019())
                         && (config.isGtldRegistrar() || config.isGtldRegistry())) {
-                    CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
+                    queryContext.addError(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
                             + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
                 }
                 // to get the error code we are looking for ->
                 // if no profile is selected and a GET results in 404 and no other errors occur, this should show up as a warning
                 //  then we put in the error code -13020
                 else if(GET.equalsIgnoreCase(record.getHttpMethod())) {
-                    CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
+                    queryContext.addError(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
                             + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
                 }
             }
@@ -668,12 +668,5 @@ public class ConnectionTracker {
         }
     }
 
-    /**
-     * TEMPORARY: This method is added back temporarily to support deprecated RDAPHttpRequest methods.
-     * Will be removed once all callers are migrated to QueryContext.
-     */
-    public static ConnectionTracker getInstance() {
-        return INSTANCE;
-    }
 
 }

@@ -23,10 +23,9 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQueryTypeProcessor.class);
 
-    // BRIDGE PATTERN: ThreadLocal QueryContext for gradual migration
+    // ThreadLocal QueryContext for backward compatibility
     private static final ThreadLocal<QueryContext> currentQueryContext = new ThreadLocal<>();
 
-    private static RDAPHttpQueryTypeProcessor instance;
     private RDAPValidatorConfiguration config;
     private ToolResult status = null;
     private RDAPHttpQueryType queryType = null;
@@ -41,49 +40,19 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     }
 
     /**
-     * BRIDGE METHOD: Set QueryContext for current thread.
-     * This allows processing to access QueryContext's RDAPHttpQueryTypeProcessor.
+     * Set QueryContext for current thread.
      */
     public static void setCurrentQueryContext(QueryContext qctx) {
         currentQueryContext.set(qctx);
     }
 
     /**
-     * BRIDGE METHOD: Clear QueryContext for current thread.
-     * Should be called after processing is complete.
+     * Clear QueryContext for current thread.
      */
     public static void clearCurrentQueryContext() {
         currentQueryContext.remove();
     }
 
-    public static synchronized RDAPHttpQueryTypeProcessor getInstance() {
-        QueryContext qctx = currentQueryContext.get();
-        if (qctx != null) {
-            return qctx.getHttpQueryTypeProcessor();
-        }
-
-        // Fallback to singleton for backward compatibility
-        if (instance == null) {
-            instance = new RDAPHttpQueryTypeProcessor();
-        }
-        return instance;
-    }
-    // Static method to get the singleton instance with configuration
-    public static synchronized RDAPHttpQueryTypeProcessor getInstance(RDAPValidatorConfiguration config) {
-        QueryContext qctx = currentQueryContext.get();
-        if (qctx != null) {
-            RDAPHttpQueryTypeProcessor processor = qctx.getHttpQueryTypeProcessor();
-            processor.setConfiguration(config);
-            return processor;
-        }
-
-        // Fallback to singleton for backward compatibility
-        if (instance == null) {
-            instance = new RDAPHttpQueryTypeProcessor();
-        }
-        instance.setConfiguration(config);
-        return instance;
-    }
 
     // Method to set the configuration
     public void setConfiguration(RDAPValidatorConfiguration config) {
@@ -115,7 +84,13 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
 
             // Store current results count to capture only domain validation errors
-            RDAPValidatorResults mainResults = RDAPValidatorResultsImpl.getInstance();
+            QueryContext qctx = currentQueryContext.get();
+            RDAPValidatorResults mainResults = qctx != null ? qctx.getResults() : null;
+            if (mainResults == null) {
+                logger.error("No QueryContext available for domain validation");
+                status = ToolResult.BAD_USER_INPUT;
+                return false;
+            }
             int currentResultCount = mainResults.getResultCount();
 
             SchemaValidator validator = SchemaValidatorCache.getCachedValidator("rdap_domain_name.json", mainResults, datasetService);

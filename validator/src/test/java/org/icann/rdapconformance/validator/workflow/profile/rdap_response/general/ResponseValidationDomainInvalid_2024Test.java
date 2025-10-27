@@ -30,8 +30,7 @@ public class ResponseValidationDomainInvalid_2024Test {
   @BeforeMethod
   public void setup() {
     mockConfig = mock(RDAPValidatorConfiguration.class);
-    results = RDAPValidatorResultsImpl.getInstance();
-    results.clear();
+    results = mock(RDAPValidatorResults.class);
     responseValidator = new ResponseValidationDomainInvalid_2024(mockConfig, results);
   }
 

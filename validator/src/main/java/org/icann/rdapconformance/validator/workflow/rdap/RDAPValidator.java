@@ -158,19 +158,9 @@ public class RDAPValidator implements ValidatorWorkflow {
         if(queryContext.getConfig().isAdditionalConformanceQueries()) {
             logger.info("Validations for additional conformance queries");
 
-            boolean aggressiveNetworkParallel = "true".equals(System.getProperty("rdap.parallel.network", "false"));
-            if (aggressiveNetworkParallel) {
-                // Execute additional queries in parallel
-                List<ProfileValidation> additionalValidations = List.of(
-                    new ResponseValidationHelp_2024(queryContext),
-                    new ResponseValidationDomainInvalid_2024(queryContext)
-                );
-                org.icann.rdapconformance.validator.workflow.profile.NetworkValidationCoordinator.executeNetworkValidations(additionalValidations);
-            } else {
-                // Sequential execution (default)
-                new ResponseValidationHelp_2024(queryContext).validate();  // Network calls
-                new ResponseValidationDomainInvalid_2024(queryContext).validate(); // Network calls
-            }
+            // Sequential execution (always)
+            new ResponseValidationHelp_2024(queryContext).validate();  // Network calls
+            new ResponseValidationDomainInvalid_2024(queryContext).validate(); // Network calls
         }
 
         // get all the 2019 profile validations and run them

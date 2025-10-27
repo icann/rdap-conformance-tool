@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.mockito.ArgumentCaptor;
@@ -26,11 +26,13 @@ public class ResponseValidationHelp_2024Test {
   private RDAPValidatorResults results;
   private ResponseValidationHelp_2024 responseValidator;
   private MockedStatic<RDAPHttpRequest> mockStaticRequest;
+  private QueryContext queryContext;
 
   @BeforeMethod
   public void setup() {
     mockConfig = mock(RDAPValidatorConfiguration.class);
-    results = RDAPValidatorResultsImpl.getInstance();
+    queryContext = QueryContext.forTesting(mockConfig);
+    results = queryContext.getResults();
     results.clear();
     responseValidator = new ResponseValidationHelp_2024(mockConfig, results);
   }

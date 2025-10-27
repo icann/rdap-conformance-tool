@@ -49,7 +49,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.VariantRe
 public class SchemaValidator {
 
   private static final Logger logger = LoggerFactory.getLogger(SchemaValidator.class);
-  static Pattern duplicateKeys = Pattern.compile("Duplicate key \"(.+)\" at");
+  private static final Pattern duplicateKeys = Pattern.compile("Duplicate key \"(.+)\" at");
   // Cache for compiled patterns to avoid repeated compilation of the same key patterns
   private static final java.util.concurrent.ConcurrentHashMap<String, Pattern> keyPatternCache = new java.util.concurrent.ConcurrentHashMap<>();
   private final JpathUtil jpathUtil;

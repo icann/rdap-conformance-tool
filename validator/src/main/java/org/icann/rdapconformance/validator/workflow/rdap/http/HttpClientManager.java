@@ -64,9 +64,6 @@ import java.util.concurrent.TimeUnit;
 public class HttpClientManager {
     private static final Logger logger = LoggerFactory.getLogger(HttpClientManager.class);
 
-    // Legacy singleton for backward compatibility
-    private static volatile HttpClientManager instance;
-    private static final Object lock = new Object();
 
     // Connection pool configuration
     private static final int MAX_TOTAL_CONNECTIONS = 50;
@@ -92,45 +89,7 @@ public class HttpClientManager {
         setupConnectionCleanup();
     }
 
-    /**
-     * Returns the legacy singleton HTTP client manager instance.
-     *
-     * <p>This method is provided for backward compatibility with code that hasn't
-     * been migrated to the QueryContext architecture. New code should obtain
-     * HttpClientManager through QueryContext.getHttpClientManager().</p>
-     *
-     * @return the legacy singleton HttpClientManager instance
-     * @deprecated Use QueryContext.getHttpClientManager() instead
-     */
-    @Deprecated
-    public static HttpClientManager getInstance() {
-        if (instance == null) {
-            synchronized (lock) {
-                if (instance == null) {
-                    instance = new HttpClientManager();
-                }
-            }
-        }
-        return instance;
-    }
 
-    /**
-     * No-op bridge method for backward compatibility.
-     * @deprecated Bridge pattern removed - use QueryContext directly
-     */
-    @Deprecated
-    public static void setCurrentQueryContext(QueryContext qctx) {
-        // No-op - bridge pattern removed
-    }
-
-    /**
-     * No-op bridge method for backward compatibility.
-     * @deprecated Bridge pattern removed - use QueryContext directly
-     */
-    @Deprecated
-    public static void clearCurrentQueryContext() {
-        // No-op - bridge pattern removed
-    }
 
     /**
      * Retrieves or creates an HTTP client configured for the specified requirements.

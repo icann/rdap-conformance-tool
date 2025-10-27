@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeMethod;
@@ -27,12 +27,14 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
     private RDAPValidatorResults results;
     private RDAPValidatorConfiguration config;
     private ResponseValidationTestInvalidRedirect_2024 validation;
+    private QueryContext queryContext;
 
     @BeforeMethod
     public void setUp() {
-        results = RDAPValidatorResultsImpl.getInstance();
-        results.clear();
         config = mock(RDAPValidatorConfiguration.class);
+        queryContext = QueryContext.forTesting(config);
+        results = queryContext.getResults();
+        results.clear();
         when(config.getTimeout()).thenReturn(5000);
         when(config.getUri()).thenReturn(URI.create("http://example.com/rdap"));
         when(config.isGtldRegistrar()).thenReturn(true);

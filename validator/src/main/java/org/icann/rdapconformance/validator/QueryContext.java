@@ -58,6 +58,7 @@ public class QueryContext {
     private final DNSCacheResolver dnsResolver;
     private final HttpClientManager httpClientManager;
     private final RDAPHttpQueryTypeProcessor httpQueryTypeProcessor;
+    private final RDAPFileQueryTypeProcessor fileQueryTypeProcessor;
     private final NetworkInfo networkInfo;
 
     // MUTABLE: Current Response Data (changes as validation progresses)
@@ -77,6 +78,23 @@ public class QueryContext {
                        RDAPValidatorConfiguration config,
                        RDAPDatasetService datasetService,
                        RDAPQuery query) {
+        this(queryId, config, datasetService, query, (String) null);
+    }
+
+    /**
+     * Constructs a new QueryContext with the specified configuration, services, and custom DNS server.
+     *
+     * @param queryId unique identifier for this validation query
+     * @param config the RDAP validator configuration
+     * @param datasetService service for accessing RDAP datasets
+     * @param query the RDAP query to be validated
+     * @param customDnsServer custom DNS server IP address, or null to use system default
+     */
+    public QueryContext(String queryId,
+                       RDAPValidatorConfiguration config,
+                       RDAPDatasetService datasetService,
+                       RDAPQuery query,
+                       String customDnsServer) {
         // Initialize immutable configuration
         this.queryId = queryId;
         this.config = config;
@@ -87,9 +105,12 @@ public class QueryContext {
         this.results = new RDAPValidatorResultsImpl();
         this.connectionTracker = new ConnectionTracker();
         this.resultFile = new RDAPValidationResultFile();
-        this.dnsResolver = new DNSCacheResolver();
+        this.dnsResolver = new DNSCacheResolver(customDnsServer);
+        // Initialize DNS cache once at startup with the target URL
+        this.dnsResolver.initFromUrl(config.getUri().toString());
         this.httpClientManager = new HttpClientManager();
         this.httpQueryTypeProcessor = new RDAPHttpQueryTypeProcessor();
+        this.fileQueryTypeProcessor = new RDAPFileQueryTypeProcessor();
         this.networkInfo = new NetworkInfo();
 
         // Determine query type after initializing processors
@@ -99,6 +120,9 @@ public class QueryContext {
         if (query instanceof org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery) {
             ((org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery) query).setQueryContext(this);
         }
+
+        // Set QueryContext in ThreadLocal for processors to access
+        org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor.setCurrentQueryContext(this);
     }
 
     /**
@@ -127,8 +151,14 @@ public class QueryContext {
         this.connectionTracker = new ConnectionTracker();
         this.resultFile = new RDAPValidationResultFile();
         this.dnsResolver = new DNSCacheResolver();
+        // Initialize DNS cache once at startup with the target URL (skip for test URIs to improve performance)
+        String uriString = config.getUri().toString();
+        if (!uriString.contains("example.com")) {
+            this.dnsResolver.initFromUrl(uriString);
+        }
         this.httpClientManager = new HttpClientManager();
         this.httpQueryTypeProcessor = new RDAPHttpQueryTypeProcessor();
+        this.fileQueryTypeProcessor = new RDAPFileQueryTypeProcessor();
         this.networkInfo = new NetworkInfo();
 
         // Set QueryContext reference on the query for network operations
@@ -165,8 +195,14 @@ public class QueryContext {
         this.connectionTracker = new ConnectionTracker();
         this.resultFile = new RDAPValidationResultFile();
         this.dnsResolver = new DNSCacheResolver();
+        // Initialize DNS cache once at startup with the target URL (skip for test URIs to improve performance)
+        String uriString = config.getUri().toString();
+        if (!uriString.contains("example.com")) {
+            this.dnsResolver.initFromUrl(uriString);
+        }
         this.httpClientManager = new HttpClientManager();
         this.httpQueryTypeProcessor = new RDAPHttpQueryTypeProcessor();
+        this.fileQueryTypeProcessor = new RDAPFileQueryTypeProcessor();
         this.networkInfo = new NetworkInfo();
 
         // Set QueryContext reference on the query for network operations
@@ -185,9 +221,9 @@ public class QueryContext {
         }
 
         if (config.getUri().getScheme().startsWith("file")) {
-            return RDAPFileQueryTypeProcessor.getInstance(config).getQueryType();
+            fileQueryTypeProcessor.setConfiguration(config);
+            return fileQueryTypeProcessor.getQueryType();
         } else {
-            // Use instance processor instead of singleton
             httpQueryTypeProcessor.setConfiguration(config);
             if (httpQueryTypeProcessor.check(datasetService)) {
                 return httpQueryTypeProcessor.getQueryType();
@@ -255,6 +291,10 @@ public class QueryContext {
 
     public RDAPHttpQueryTypeProcessor getHttpQueryTypeProcessor() {
         return httpQueryTypeProcessor;
+    }
+
+    public RDAPFileQueryTypeProcessor getFileQueryTypeProcessor() {
+        return fileQueryTypeProcessor;
     }
 
     public NetworkInfo getNetworkInfo() {
@@ -388,6 +428,22 @@ public class QueryContext {
                                     RDAPDatasetService datasetService,
                                     RDAPQuery query) {
         return new QueryContext(UUID.randomUUID().toString(), config, datasetService, query);
+    }
+
+    /**
+     * Creates a QueryContext for production use with custom DNS server.
+     *
+     * @param config the RDAP validator configuration
+     * @param datasetService service for accessing RDAP datasets
+     * @param query the RDAP query to be validated
+     * @param customDnsServer custom DNS server IP address, or null to use system default
+     * @return a new QueryContext with unique query ID and custom DNS resolver
+     */
+    public static QueryContext create(RDAPValidatorConfiguration config,
+                                    RDAPDatasetService datasetService,
+                                    RDAPQuery query,
+                                    String customDnsServer) {
+        return new QueryContext(UUID.randomUUID().toString(), config, datasetService, query, customDnsServer);
     }
 
     /**

@@ -21,8 +21,8 @@ public class SchemaValidatorSecureDnsTest extends SchemaValidatorTest {
   @Override
   public void setUp() throws IOException {
     Locale.setDefault(Locale.US);
-    RDAPValidatorResultsImpl.getInstance().clear();
     super.setUp();
+    results.clear();
     name = "secureDNS";
   }
 

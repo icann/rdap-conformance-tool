@@ -62,14 +62,16 @@ public abstract class SchemaValidatorTest {
     // Create mock configuration for testing
     config = mock(RDAPValidatorConfiguration.class);
     when(config.isGtldRegistrar()).thenReturn(true);
+    when(config.getUri()).thenReturn(java.net.URI.create("https://example.com/domain/test.example"));
 
-    // Create QueryContext for thread-safe operations
-    queryContext = QueryContext.forTesting(config);
-    results = queryContext.getResults();
-    results.clear();
-
+    // Create dataset service first, then QueryContext with it
     datasets = new RDAPDatasetServiceMock();
     datasets.download(true);
+
+    // Create QueryContext for thread-safe operations with dataset service
+    queryContext = QueryContext.forTesting(config, datasets);
+    results = queryContext.getResults();
+    results.clear();
     rdapContent = getResource(validJsonResourcePath);
     jsonObject = new JSONObject(rdapContent);
     schemaValidator = new SchemaValidator(schemaName, results, datasets, queryContext);

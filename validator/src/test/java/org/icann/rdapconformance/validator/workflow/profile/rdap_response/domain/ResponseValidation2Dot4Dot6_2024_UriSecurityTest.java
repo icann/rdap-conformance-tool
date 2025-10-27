@@ -6,7 +6,7 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
@@ -18,11 +18,13 @@ import org.mockito.Mockito;
 public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
 
     private ResponseValidation2Dot4Dot6_2024 validation;
-    private RDAPValidatorResultsImpl results;
+    private RDAPValidatorResults results;
+    private QueryContext queryContext;
 
     @BeforeMethod
     public void setup() {
-        results = RDAPValidatorResultsImpl.getInstance();
+        queryContext = QueryContext.forTesting(Mockito.mock(RDAPValidatorConfiguration.class));
+        results = queryContext.getResults();
         results.clear();
 
         // Create validation instance

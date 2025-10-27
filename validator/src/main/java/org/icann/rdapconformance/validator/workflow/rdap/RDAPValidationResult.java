@@ -190,7 +190,7 @@ public class RDAPValidationResult {
     }
 
     /**
-     * TEMPORARY BRIDGE: Deprecated build method temporarily kept during migration to QueryContext.
+     * Legacy build method for backward compatibility.
      * This method provides backward compatibility while callers are updated.
      * @deprecated Use build(QueryContext) instead for proper HTTP status code handling.
      */

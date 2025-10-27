@@ -10,7 +10,6 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
@@ -143,45 +142,11 @@ public class CommonUtils {
         return uri.getHost();
     }
 
-    /**
-     * Adds a validation error to the results file without an HTTP status code.
-     *
-     * <p>This convenience method creates a validation result with the provided error
-     * code, value, and message, then adds it to the global results collection. This
-     * is typically used for validation errors that don't involve HTTP responses.</p>
-     *
-     * @param code the error code identifying the specific validation failure
-     * @param value the value that caused the validation error (e.g., domain name, IP address)
-     * @param message descriptive message explaining the validation failure
-     */
-    public static void addErrorToResultsFile(int code, String value, String message) {
-        RDAPValidatorResultsImpl.getInstance()
-                                .add(RDAPValidationResult.builder().code(code).value(value).message(message).build(null));
+    // REMOVED: addErrorToResultsFile(int, String, String) - use queryContext.addError() instead
 
-    }
-
-    /**
-     * Adds a validation error to the results file with an HTTP status code.
-     *
-     * <p>This method creates a validation result with the provided HTTP status code,
-     * error code, value, and message, then adds it to the global results collection.
-     * This is typically used for validation errors that involve HTTP responses.</p>
-     *
-     * @param httpStatusCode the HTTP status code from the response (e.g., 404, 500)
-     * @param code the error code identifying the specific validation failure
-     * @param value the value that caused the validation error (e.g., domain name, IP address)
-     * @param message descriptive message explaining the validation failure
-     */
-    public static void addErrorToResultsFile(int httpStatusCode, int code, String value, String message) {
-        RDAPValidatorResultsImpl.getInstance()
-                                .add(RDAPValidationResult.builder()
-                                                         .httpStatusCode(httpStatusCode)
-                                                         .code(code)
-                                                         .value(value)
-                                                         .message(message)
-                                                         .build(null));
-
-    }
+    // REMOVED: All addErrorToResultsFile methods - use queryContext.addError() instead
+    // QueryContext.addError(code, value, message) replaces addErrorToResultsFile(code, value, message)
+    // QueryContext.addError(httpStatusCode, code, value, message) replaces addErrorToResultsFile(httpStatusCode, code, value, message)
 
     /**
      * Replaces RDAP query type segments in URLs with a replacement word.
@@ -237,45 +202,6 @@ public class CommonUtils {
         return input;
     }
 
-    /**
-     * Initializes an RDAP dataset service using the provided configuration.
-     *
-     * <p>This convenience method calls the overloaded version with a null progress callback.</p>
-     *
-     * @param config the validator configuration containing dataset settings
-     * @return initialized RDAPDatasetService instance, or null if initialization failed
-     * @see #initializeDataSet(RDAPValidatorConfiguration, ProgressCallback)
-     */
-    public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config) {
-    return initializeDataSet(config, null);
-}
-
-/**
- * Initializes an RDAP dataset service using the provided configuration and progress callback.
- *
- * <p>This method creates and configures an RDAPDatasetService instance, downloads necessary
- * datasets based on the configuration, and provides progress updates through the callback.
- * If dataset download fails, the method returns null.</p>
- *
- * @param config the validator configuration containing dataset settings
- * @param progressCallback optional callback for receiving download progress updates, may be null
- * @return initialized RDAPDatasetService instance, or null if initialization or download failed
- * @throws SecurityException if security restrictions prevent dataset access
- * @throws IllegalArgumentException if configuration parameters are invalid
- */
-public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config, ProgressCallback progressCallback) {
-    RDAPDatasetService datasetService = null;
-    try {
-        datasetService = RDAPDatasetServiceImpl.getInstance(new LocalFileSystem());
-        if(!datasetService.download(config.useLocalDatasets(), progressCallback)) {
-            return null;
-        }
-    } catch (SecurityException  | IllegalArgumentException e) {
-        logger.error(ToolResult.FILE_READ_ERROR.getDescription());
-        System.exit(ToolResult.FILE_READ_ERROR.getCode());
-    }
-    return datasetService;
-}
 
     /**
      * Checks if the configuration file specified in the configuration exists.

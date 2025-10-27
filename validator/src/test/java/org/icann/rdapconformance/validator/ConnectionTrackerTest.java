@@ -7,9 +7,8 @@ import java.util.Collections;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static org.mockito.Mockito.*;
@@ -17,14 +16,20 @@ import static org.testng.Assert.*;
 
 public class ConnectionTrackerTest {
 
+    private QueryContext queryContext;
+    private ConnectionTracker connectionTracker;
+    private RDAPValidatorResults results;
+    private RDAPValidatorConfiguration config;
+    private ConfigurationFile configFile;
+
     @BeforeMethod
     public void setUp() {
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-        ConfigurationFile configFile = mock(ConfigurationFile.class);
+        config = mock(RDAPValidatorConfiguration.class);
+        configFile = mock(ConfigurationFile.class);
 
         when(config.useRdapProfileFeb2024()).thenReturn(true);
-        when(config.isGtldRegistrar()).thenReturn(true); // or false, as needed
-        when(config.isGtldRegistry()).thenReturn(false); // or true, as needed
+        when(config.isGtldRegistrar()).thenReturn(true);
+        when(config.isGtldRegistry()).thenReturn(false);
         when(config.getUri()).thenReturn(URI.create("https://example.com/rdap"));
 
         when(configFile.isError(anyInt())).thenReturn(false);
@@ -33,25 +38,22 @@ public class ConnectionTrackerTest {
         when(configFile.getDefinitionNotes()).thenReturn(Collections.emptyList());
         when(configFile.getDefinitionIdentifier()).thenReturn("test-definition");
 
-        ConnectionTracker.getInstance().reset();
-        RDAPValidatorResultsImpl.reset();
-        RDAPValidationResultFile.reset();
-        RDAPValidationResultFile.getInstance()
-                                .initialize(RDAPValidatorResultsImpl.getInstance(), config, configFile, null);
-    }
+        // Create QueryContext-based instances instead of using singletons
+        queryContext = QueryContext.forTesting(config);
+        connectionTracker = queryContext.getConnectionTracker();
+        results = queryContext.getResults();
 
-    @AfterMethod
-    public void tearDown() {
-        ConnectionTracker.getInstance().reset();
+        // Initialize result file through QueryContext
+        queryContext.getResultFile().initialize(results, config, configFile, null);
     }
 
     @Test
     public void testIsResourceNotFoundNoteWarning_All404s_GtldProfile_NoErrors_AddsWarning() {
-        ConnectionTracker tracker = ConnectionTracker.getInstance();
-        tracker.reset();
+        // Use instance field: connectionTracker
+        connectionTracker.reset();
 
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-        ConfigurationFile configFile = mock(ConfigurationFile.class);
+        // Use class field config
+        // Use class field configFile
         RDAPValidationResultFile resultFile = mock(RDAPValidationResultFile.class);
 
         when(config.useRdapProfileFeb2024()).thenReturn(true);
@@ -69,9 +71,9 @@ public class ConnectionTrackerTest {
         }
 
         // Add a main connection with 404 status
-        tracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);
-        tracker.completeCurrentConnection(404, ConnectionStatus.SUCCESS);
-        boolean result = tracker.isResourceNotFoundNoteWarning(config);
+        connectionTracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);
+        connectionTracker.completeCurrentConnection(404, ConnectionStatus.SUCCESS);
+        boolean result = connectionTracker.isResourceNotFoundNoteWarning(queryContext, config);
 
         assertTrue(result, "Should return true for all 404s with gTLD profile");
         verify(config).useRdapProfileFeb2024();
@@ -80,32 +82,32 @@ public class ConnectionTrackerTest {
 
     @Test
     public void testIsResourceNotFoundNoteWarning_ConnectionNot404_ReturnsFalse() {
-        ConnectionTracker tracker = ConnectionTracker.getInstance();
-        tracker.reset();
+        // Use instance field: connectionTracker
+        connectionTracker.reset();
 
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-        ConfigurationFile configFile = mock(ConfigurationFile.class);
+        // Use class field config
+        // Use class field configFile
 
         // Add a main connection with 200 status (not 404)
-        tracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);
-        tracker.completeCurrentConnection(200, ConnectionStatus.SUCCESS);
-        boolean result = tracker.isResourceNotFoundNoteWarning(config);
+        connectionTracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);
+        connectionTracker.completeCurrentConnection(200, ConnectionStatus.SUCCESS);
+        boolean result = connectionTracker.isResourceNotFoundNoteWarning(queryContext, config);
 
         assertFalse(result, "Should return false when any connection is not 404");
     }
 
     @Test
     public void testIsResourceNotFoundNoteWarning_HeadMethodRelevant() {
-        ConnectionTracker tracker = ConnectionTracker.getInstance();
-        tracker.reset();
+        // Use instance field: connectionTracker
+        connectionTracker.reset();
 
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-        ConfigurationFile configFile = mock(ConfigurationFile.class);
+        // Use class field config
+        // Use class field configFile
 
         // Add a HEAD connection with 404 status
-        tracker.startTracking(URI.create("http://example.com"), "1.2.3.4", NetworkProtocol.IPv4, "HEAD", false);
-        tracker.completeTrackingById(tracker.getLastConnection().getTrackingId(), 404, ConnectionStatus.SUCCESS);
-        boolean result = tracker.isResourceNotFoundNoteWarning(config);
+        connectionTracker.startTracking(URI.create("http://example.com"), "1.2.3.4", NetworkProtocol.IPv4, "HEAD", false);
+        connectionTracker.completeTrackingById(connectionTracker.getLastConnection().getTrackingId(), 404, ConnectionStatus.SUCCESS);
+        boolean result = connectionTracker.isResourceNotFoundNoteWarning(queryContext, config);
 
 
         assertTrue(result, "HEAD method should be considered relevant");
@@ -113,13 +115,13 @@ public class ConnectionTrackerTest {
 
     @Test
     public void testIsResourceNotFoundNoteWarning_NoRelevantConnections_ReturnsFalse() {
-        ConnectionTracker tracker = ConnectionTracker.getInstance();
-        tracker.reset();
+        // Use instance field: connectionTracker
+        connectionTracker.reset();
 
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-        ConfigurationFile configFile = mock(ConfigurationFile.class);
+        // Use class field config
+        // Use class field configFile
 
-        boolean foundRelevant = tracker.isResourceNotFoundNoteWarning(config);
+        boolean foundRelevant = connectionTracker.isResourceNotFoundNoteWarning(queryContext, config);
         assertFalse(foundRelevant, "Should return false if no relevant connections");
     }
 }

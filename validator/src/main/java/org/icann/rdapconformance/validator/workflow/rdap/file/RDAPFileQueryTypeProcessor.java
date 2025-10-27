@@ -8,20 +8,15 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryTypeProcessor;
 
 public class RDAPFileQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
-  private static RDAPFileQueryTypeProcessor instance;
   private RDAPValidatorConfiguration config;
 
-  // Private constructor for singleton
-  private RDAPFileQueryTypeProcessor() {
+  // Public constructor for instance-based usage
+  public RDAPFileQueryTypeProcessor() {
   }
 
-  // Static method to get the singleton instance with configuration
-  public static synchronized RDAPFileQueryTypeProcessor getInstance(RDAPValidatorConfiguration config) {
-    if (instance == null) {
-      instance = new RDAPFileQueryTypeProcessor();
-    }
-    instance.setConfiguration(config);
-    return instance;
+  // Constructor with configuration
+  public RDAPFileQueryTypeProcessor(RDAPValidatorConfiguration config) {
+    this.config = config;
   }
 
   // Method to set the configuration

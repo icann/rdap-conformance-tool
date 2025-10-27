@@ -56,4 +56,17 @@ public class RDAPHttpValidator extends RDAPValidator {
   public RDAPHttpValidator(RDAPValidatorConfiguration config, RDAPDatasetService datasetService) {
     super(QueryContext.create(config, datasetService, new RDAPHttpQuery(config)));
   }
+
+  /**
+   * Creates a new HTTP-based RDAP validator with an existing QueryContext.
+   *
+   * <p>This constructor allows the validator to use a pre-configured QueryContext,
+   * which may contain custom DNS resolvers, specific configurations, or other
+   * specialized components.</p>
+   *
+   * @param queryContext the pre-configured QueryContext to use for validation
+   */
+  public RDAPHttpValidator(QueryContext queryContext) {
+    super(queryContext);
+  }
 }

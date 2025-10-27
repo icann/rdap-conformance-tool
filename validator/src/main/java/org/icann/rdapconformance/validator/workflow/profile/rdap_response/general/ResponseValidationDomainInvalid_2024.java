@@ -73,7 +73,6 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
             // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
             response = RDAPHttpRequest.makeRequest(queryContext, new URI(domainInvalidUriCleaned), this.config.getTimeout(), GET);
         } else {
-            // Fallback to legacy singleton-based request
             response = RDAPHttpRequest.makeHttpGetRequest(new URI(domainInvalidUriCleaned), this.config.getTimeout());
         }
 

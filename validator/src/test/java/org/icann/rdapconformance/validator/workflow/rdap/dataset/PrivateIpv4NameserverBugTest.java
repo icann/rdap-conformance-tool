@@ -53,7 +53,7 @@ public class PrivateIpv4NameserverBugTest {
         results.clear();
 
         // Use real datasets for integration testing
-        datasets = RDAPDatasetServiceImpl.getInstance(new LocalFileSystem());
+        datasets = new RDAPDatasetServiceImpl(new LocalFileSystem());
 
         // Download real datasets - this gives us actual IPv4 allocation and special address data
         boolean downloadSuccess = datasets.download(true);
