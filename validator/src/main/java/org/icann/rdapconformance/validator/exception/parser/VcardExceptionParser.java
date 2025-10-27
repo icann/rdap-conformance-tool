@@ -14,6 +14,13 @@ public class VcardExceptionParser extends ExceptionParser {
     super(e, schema, jsonObject, results);
   }
 
+  protected VcardExceptionParser(ValidationExceptionNode e, Schema schema,
+      JSONObject jsonObject,
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
+  }
+
   @Override
   public boolean matches(ValidationExceptionNode e) {
     return e.getPointerToViolation() != null && e.getPointerToViolation().contains("vcardArray");
@@ -21,11 +28,16 @@ public class VcardExceptionParser extends ExceptionParser {
 
   @Override
   protected void doParse() {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(-12305)
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message(
-            "The value for the JSON name value is not a syntactically valid vcardArray.")
-        .build());
+            "The value for the JSON name value is not a syntactically valid vcardArray.");
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build());
+    }
   }
 }

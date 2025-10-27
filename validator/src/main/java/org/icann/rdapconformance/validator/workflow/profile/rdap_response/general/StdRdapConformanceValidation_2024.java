@@ -9,8 +9,11 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public class StdRdapConformanceValidation_2024 extends ProfileJsonValidation {
+    private final QueryContext queryContext;
+
     public StdRdapConformanceValidation_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -30,7 +33,7 @@ public class StdRdapConformanceValidation_2024 extends ProfileJsonValidation {
                 .code(-10504)
                 .value(jsonObject.toString())
                 .message("RFC 9083 requires all RDAP responses to have an rdapConformance array.")
-                .build());
+                .build(queryContext));
             return false;
         }
 
@@ -40,7 +43,7 @@ public class StdRdapConformanceValidation_2024 extends ProfileJsonValidation {
                     .code(-10505)
                     .value(pointer)
                     .message("The rdapConformance array must appear only in the top-most of the RDAP response.")
-                    .build());
+                    .build(queryContext));
                 result = false;
             }
         }

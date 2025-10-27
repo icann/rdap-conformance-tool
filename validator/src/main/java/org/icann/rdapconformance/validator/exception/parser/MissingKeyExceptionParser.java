@@ -22,6 +22,15 @@ public class MissingKeyExceptionParser extends ExceptionParser {
     matcher.find();
   }
 
+  protected MissingKeyExceptionParser(ValidationExceptionNode e,
+      Schema schema, JSONObject jsonObject,
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
+    matcher = pattern.matcher(e.getMessage());
+    matcher.find();
+  }
+
   public boolean matches(ValidationExceptionNode e) {
     matcher = pattern.matcher(e.getMessage());
     return matcher.find();
@@ -30,10 +39,15 @@ public class MissingKeyExceptionParser extends ExceptionParser {
   @Override
   public void doParse() {
     String key = matcher.group(1);
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(() -> (int) e.getPropertyFromViolatedSchema(key + "Missing")))
         .value(jsonObject.toString())
-        .message("The " + key + " element does not exist.")
-        .build());
+        .message("The " + key + " element does not exist.");
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build());
+    }
   }
 }

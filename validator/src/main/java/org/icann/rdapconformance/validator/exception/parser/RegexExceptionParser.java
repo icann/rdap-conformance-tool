@@ -21,6 +21,13 @@ public class RegexExceptionParser extends ExceptionParser {
     super(e, schema, jsonObject, results);
   }
 
+  protected RegexExceptionParser(ValidationExceptionNode e, Schema schema,
+      JSONObject jsonObject,
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
+  }
+
   @Override
   public boolean matches(ValidationExceptionNode e) {
     if (e.getViolatedSchema() instanceof StringSchema) {
@@ -40,32 +47,47 @@ public class RegexExceptionParser extends ExceptionParser {
     if (errorCode == -11406 && isIPv4PatternError()) {
       if (!IPv4ValidationUtil.isValidIPv4Syntax(ipValue)) {
         // TRUE syntax error - convert IPv4 pattern failure (-11406) to syntax error (-10100)
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
             .code(-10100)
             .value(e.getPointerToViolation() + ":" + ipValue)
-            .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
-            .build());
+            .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
+
+        if (queryContext != null) {
+          results.add(builder.build(queryContext));
+        } else {
+          results.add(builder.build());
+        }
         return;
       } else {
         // Edge case: IP passes IPAddressString validation but fails regex pattern
         // This shouldn't happen with current regex, but handle gracefully
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
             .code(-11406)
             .value(e.getPointerToViolation() + ":" + ipValue)
-            .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
-            .build());
+            .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
+
+        if (queryContext != null) {
+          results.add(builder.build(queryContext));
+        } else {
+          results.add(builder.build());
+        }
         return;
       }
     }
 
     // Default behavior for all other regex patterns
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(errorCode)
         .value(e.getPointerToViolation() + ":" + ipValue)
         .message(e.getMessage("The value of the JSON string data in the " + e.getPointerToViolation()
             + " does not conform to "
-            + e.getSchemaLocation() + " syntax."))
-        .build());
+            + e.getSchemaLocation() + " syntax."));
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build());
+    }
   }
 
   /**

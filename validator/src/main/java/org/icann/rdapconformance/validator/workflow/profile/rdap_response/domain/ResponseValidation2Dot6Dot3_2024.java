@@ -24,12 +24,14 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
 
     private final RDAPValidatorConfiguration config;
     private final RDAPQueryType queryType;
+    private final QueryContext queryContext;
     private static final String NOT_FOUND = "not_found";
 
     public ResponseValidation2Dot6Dot3_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
         this.config = qctx.getConfig();
         this.queryType = qctx.getQueryType();
+        this.queryContext = qctx;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot6Dot3_2024.class);
@@ -78,7 +80,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                     .code(-46601)
                     .value(getResultValue(noticePointersValue))
                     .message("The notice for Status Codes was not found.")
-                    .build());
+                    .build(queryContext));
 
             return new StatusCodeObjectToValidate(statusCodeNotice, false);
         }
@@ -101,7 +103,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                         .code(-46602)
                         .value(getResultValue(noticePointersValue))
                         .message("The notice for Status Codes does not have the proper description.")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
         } else {
@@ -109,7 +111,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                     .code(-46602)
                     .value(getResultValue(noticePointersValue))
                     .message("The notice for Status Codes does not have the proper description.")
-                    .build());
+                    .build(queryContext));
             return false;
         }
 
@@ -130,7 +132,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                     .code(-46603)
                     .value(getResultValue(noticePointersValue))
                     .message("The notice for Status Codes does not have links.")
-                    .build());
+                    .build(queryContext));
             return false;
         }
 
@@ -143,7 +145,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                         .code(-46604)
                         .value(getResultValue(noticePointersValue))
                         .message("The notice for Status Codes does not have a link to the status codes.")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
 
@@ -152,7 +154,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                         .code(-46605)
                         .value(getResultValue(noticePointersValue))
                         .message("The notice for Status Codes does not have a link relation type of glossary")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
 
@@ -161,7 +163,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                         .code(-46606)
                         .value(getResultValue(noticePointersValue))
                         .message("The notice for Status Codes does not have a link value of the request URL.")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
         }

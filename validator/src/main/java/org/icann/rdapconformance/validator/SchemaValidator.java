@@ -57,24 +57,38 @@ public class SchemaValidator {
   private Schema schema;
   private RDAPValidatorResults results;
   private SchemaNode schemaRootNode;
+  private QueryContext queryContext;
 
   public SchemaValidator(String schemaName, RDAPValidatorResults results,
                         RDAPDatasetService datasetService) {
       this.jpathUtil = new JpathUtil();
     this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader(), datasetService),
-        results);
+        results, null);
+  }
+
+  public SchemaValidator(String schemaName, RDAPValidatorResults results,
+                        RDAPDatasetService datasetService, QueryContext queryContext) {
+      this.jpathUtil = new JpathUtil();
+    this.init(getSchema(schemaName, "json-schema/", getClass().getClassLoader(), datasetService),
+        results, queryContext);
   }
 
   public SchemaValidator(Schema schema, RDAPValidatorResults results) {
     this.jpathUtil = new JpathUtil();
-    this.init(schema, results);
+    this.init(schema, results, null);
   }
 
-  private void init(Schema schema, RDAPValidatorResults results) {
+  public SchemaValidator(Schema schema, RDAPValidatorResults results, QueryContext queryContext) {
+    this.jpathUtil = new JpathUtil();
+    this.init(schema, results, queryContext);
+  }
+
+  private void init(Schema schema, RDAPValidatorResults results, QueryContext queryContext) {
     this.schema = schema;
     this.schemaRootNode = SchemaNode.create(null, this.schema);
     this.schemaObject = new JSONObject(schema.toString());
     this.results = results;
+    this.queryContext = queryContext;
   }
 
   public static Schema getSchema(
@@ -155,7 +169,7 @@ public class SchemaValidator {
       verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
       if (content.contains("\"vcardArray\"")) {
-        new VcardArrayGeneralValidation(jsonObject.toString(), results).validate();
+        new VcardArrayGeneralValidation(jsonObject.toString(), results, queryContext).validate();
       }
 
       if (content.contains("\"notices\"")) {
@@ -236,7 +250,7 @@ public class SchemaValidator {
 
   private void parseException(ValidationException e, JSONObject jsonObject) {
     List<ExceptionParser> exceptionParsers = ExceptionParser.createParsers(e, schema, jsonObject,
-        results);
+        results, queryContext);
     for (ExceptionParser exceptionParser : exceptionParsers) {
       exceptionParser.parse();
     }

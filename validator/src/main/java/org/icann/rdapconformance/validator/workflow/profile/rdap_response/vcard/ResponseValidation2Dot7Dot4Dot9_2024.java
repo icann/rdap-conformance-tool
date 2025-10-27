@@ -28,9 +28,12 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
     private Set<String> redactedPointersValue = null;
     private JSONObject redactedRegistrantEmail = null;
 
+    private final QueryContext queryContext;
+
     public ResponseValidation2Dot7Dot4Dot9_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
         this.config = qctx.getConfig();
+        this.queryContext = qctx;
     }
 
     @Override
@@ -104,7 +107,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                         .code(-64108)
                         .value(getResultValue(vcardPointersValue))
                         .message("An email must either be present and valid or redacted for the registrant")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
         }
@@ -130,7 +133,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                         .code(-64100)
                         .value(getResultValue(vcardPointersValue))
                         .message("a redaction of Registrant Email may not have both the email and contact-uri")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
         }
@@ -158,7 +161,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                         .code(-64101)
                         .value(getResultValue(vcardPointersValue))
                         .message("a redaction of Registrant Email must have either the email and contact-uri")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
         }
@@ -182,7 +185,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                             .code(-64102)
                             .value(getResultValue(redactedPointersValue))
                             .message("Registrant Email redaction method must be replacementValue")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }
@@ -244,7 +247,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                                 .code(-64104)
                                 .value(getResultValue(redactedPointersValue))
                                 .message("jsonpath must evaluate to a non-empty set for redaction by replacementvalue of Registrant Email.")
-                                .build());
+                                .build(queryContext));
                         return false;
                     }
                 } catch (Exception e) {
@@ -253,7 +256,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                             .code(-64103)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath is invalid for Registrant Email postPath")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }
@@ -321,7 +324,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                                 .code(-64107)
                                 .value(getResultValue(redactedPointersValue))
                                 .message("jsonpath must evaluate to a non-empty set for redaction by replacementvalue of Registrant Email in replacementPath")
-                                .build());
+                                .build(queryContext));
                         return false;
                     }
                 } catch (Exception e) {
@@ -330,7 +333,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                             .code(-64105)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath is invalid for Registrant Email replacementPath")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }
@@ -361,7 +364,7 @@ public class ResponseValidation2Dot7Dot4Dot9_2024 extends ProfileJsonValidation 
                             .code(-64106)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath is invalid for Registrant Email prePath")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }

@@ -117,7 +117,7 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         if (queryContext.getQuery().isErrorContent()) {
             // if they return a 404 then we need a schema validator that checks the error response content itself
-            validator = SchemaValidatorCache.getCachedValidator("rdap_error.json", queryContext.getResults(), queryContext.getDatasetService());
+            validator = SchemaValidatorCache.getCachedValidator("rdap_error.json", queryContext.getResults(), queryContext.getDatasetService(), queryContext);
         } else {
             // else we check the schema of the data pertaining to the query type
             String schemaFile = schemaMap.get(queryType);
@@ -126,7 +126,7 @@ public class RDAPValidator implements ValidatorWorkflow {
                     logger.error("Thin flag is set while validating entity");
                     return ToolResult.USES_THIN_MODEL.getCode();
                    }
-                validator = SchemaValidatorCache.getCachedValidator(schemaFile, queryContext.getResults(), queryContext.getDatasetService());
+                validator = SchemaValidatorCache.getCachedValidator(schemaFile, queryContext.getResults(), queryContext.getDatasetService(), queryContext);
             }
         }
 
@@ -142,12 +142,16 @@ public class RDAPValidator implements ValidatorWorkflow {
         // Store response data in QueryContext for other components to access
         queryContext.setRdapResponseData(rdapResponseData);
 
-        // otherwise, validate the JSON and get the rdapResponse
-        validator.validate(rdapResponseData);
+        // Get the HTTP response BEFORE schema validation to provide status code context to ExceptionParser
         SimpleHttpResponse rdapResponse = (SimpleHttpResponse) queryContext.getQuery().getRawResponse();
         if(rdapResponse != null) {
             logger.debug("[Raw Response HTTP Code: {} TrackingId: {}",  rdapResponse.statusCode(), rdapResponse.getTrackingId());
+            // Set HTTP response in QueryContext for schema validation error reporting
+            queryContext.setCurrentHttpResponse(rdapResponse);
         }
+
+        // otherwise, validate the JSON and get the rdapResponse
+        validator.validate(rdapResponseData);
 
         // fold the name stuff and send out another query to that URL
         if (rdapResponse != null && !queryContext.getQuery().isErrorContent() && queryContext.getConfig().isNetworkEnabled()) {
@@ -245,8 +249,8 @@ public class RDAPValidator implements ValidatorWorkflow {
         // All validations in original order - exactly like master branch
         // From 2019 profile validations
         validations.add(new TigValidation3Dot2(rdapResponseData, results, config, queryType));
-        validations.add(new TigValidation4Dot1(rdapResponseData, results));
-        validations.add(new TigValidation7Dot1And7Dot2(rdapResponseData, results));
+        validations.add(new TigValidation4Dot1(rdapResponseData, results, queryContext));
+        validations.add(new TigValidation7Dot1And7Dot2(rdapResponseData, results, queryContext));
         validations.add(new ResponseValidation1Dot2Dot2(queryContext));
         validations.add(new ResponseValidation1Dot4(queryContext));
         validations.add(new ResponseValidationLastUpdateEvent(queryContext));
@@ -304,7 +308,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidationStatusDuplication_2024(queryContext));
         validations.add(new ResponseValidation2Dot7Dot6Dot1_2024(queryContext));
         validations.add(new StdRdapConformanceValidation_2024(queryContext));
-        validations.add(new TigValidation3Dot2_2024(rdapResponseData, results, config, queryType));
+        validations.add(new TigValidation3Dot2_2024(rdapResponseData, results, config, queryType, queryContext));
         validations.add(new TigValidation3Dot3And3Dot4_2024(rdapResponseData, results, config));
         validations.add(new ResponseValidation2Dot6Dot3_2024(queryContext));
         validations.add(new ResponseValidation2Dot10_2024(queryContext));
@@ -337,8 +341,8 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new TigValidation1Dot14(rdapResponseData, results));
         validations.add(new TigValidation3Dot2(rdapResponseData, results, config, queryType));
         validations.add(new TigValidation3Dot3And3Dot4(rdapResponseData, results, validator));
-        validations.add(new TigValidation4Dot1(rdapResponseData, results));
-        validations.add(new TigValidation7Dot1And7Dot2(rdapResponseData, results));
+        validations.add(new TigValidation4Dot1(rdapResponseData, results, queryContext));
+        validations.add(new TigValidation7Dot1And7Dot2(rdapResponseData, results, queryContext));
         validations.add(new ResponseValidation1Dot2Dot2(queryContext));
         validations.add(new ResponseValidation1Dot3(rdapResponseData, results));
         validations.add(new ResponseValidation1Dot4(queryContext));

@@ -20,8 +20,11 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
     private static final String REDACTED_PATH = "$.redacted[*]";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot4Dot2_2024.class);
 
+    private final QueryContext queryContext;
+
     public ResponseValidation2Dot7Dot4Dot2_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -46,7 +49,7 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
                     .code(-63304)
                     .value(redactedOrg.toString())
                     .message("a redaction of type Registrant Organization was found but organization name was not redacted.")
-                    .build());
+                    .build(queryContext));
                 return false;
             }
         }
@@ -94,7 +97,7 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
                     .code(-63303)
                     .value(redactedOrg.toString())
                     .message("Registrant Organization redaction method must be removal if present")
-                    .build());
+                    .build(queryContext));
 
                 isValid = false;
             }
@@ -134,7 +137,7 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
                 .code(-63301)
                 .value(value)
                 .message("jsonpath is invalid for Registrant Organization")
-                .build());
+                .build(queryContext));
 
             return false;
         }
@@ -147,7 +150,7 @@ public class ResponseValidation2Dot7Dot4Dot2_2024 extends ProfileJsonValidation 
                 .code(-63302)
                 .value(value)
                 .message("jsonpath must evaluate to a zero set for redaction by removal of Registrant Organization.")
-                .build());
+                .build(queryContext));
 
             return false;
         }

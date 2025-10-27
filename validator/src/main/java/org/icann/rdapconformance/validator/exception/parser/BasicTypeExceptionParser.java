@@ -35,16 +35,30 @@ public class BasicTypeExceptionParser extends ExceptionParser {
     }
   }
 
+  protected BasicTypeExceptionParser(ValidationExceptionNode e, Schema schema,
+      JSONObject jsonObject, RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
+    matcher = basicTypePattern.matcher(e.getMessage());
+    if (matcher.find()) {
+      basicType = matcher.group(1);
+    }
+  }
+
   public boolean matches(ValidationExceptionNode e) {
     return basicTypePattern.matcher(e.getMessage()).find() && basicTypes.contains(e.getViolatedSchema().getClass());
   }
 
   @Override
   public void doParse() {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message(e.getMessage("The JSON value is not a " + basicType.toLowerCase() + "."))
-        .build());
+        .message(e.getMessage("The JSON value is not a " + basicType.toLowerCase() + "."));
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build());
+    }
   }
 }

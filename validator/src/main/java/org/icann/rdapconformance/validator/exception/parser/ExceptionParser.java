@@ -24,6 +24,7 @@ public abstract class ExceptionParser {
   protected final JSONObject schemaObject;
   protected final JSONObject jsonObject;
   protected final RDAPValidatorResults results;
+  protected final org.icann.rdapconformance.validator.QueryContext queryContext;
   public final static int UNKNOWN_ERROR_CODE = -999;
 
   protected ExceptionParser(ValidationExceptionNode e, Schema schema,
@@ -33,42 +34,60 @@ public abstract class ExceptionParser {
     this.schemaObject = new JSONObject(schema.toString());
     this.jsonObject = jsonObject;
     this.results = results;
+    this.queryContext = null; // Legacy constructor for backward compatibility
+  }
+
+  protected ExceptionParser(ValidationExceptionNode e, Schema schema,
+      JSONObject jsonObject, RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
+    this.e = e;
+    this.schema = schema;
+    this.schemaObject = new JSONObject(schema.toString());
+    this.jsonObject = jsonObject;
+    this.results = results;
+    this.queryContext = queryContext;
   }
 
   public static List<ExceptionParser> createParsers(
       ValidationException e,
       Schema schema,
       JSONObject object, RDAPValidatorResults results) {
+    return createParsers(e, schema, object, results, null);
+  }
+
+  public static List<ExceptionParser> createParsers(
+      ValidationException e,
+      Schema schema,
+      JSONObject object, RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
     List<ExceptionParser> parsers = new ArrayList<>();
 
     ValidationExceptionNode rootException = new ValidationExceptionNode(null, e);
     List<ValidationExceptionNode> basicExceptions = rootException.getAllExceptions();
     for (ValidationExceptionNode basicException : basicExceptions) {
-      parsers.add(new UnknowKeyExceptionParser(basicException, schema, object, results));
-      parsers.add(new BasicTypeExceptionParser(basicException, schema, object, results));
-      parsers.add(new EnumExceptionParser(basicException, schema, object, results));
-      parsers.add(new MissingKeyExceptionParser(basicException, schema, object, results));
-      parsers.add(new ConstExceptionParser(basicException, schema, object, results));
-      parsers.add(new ContainsConstExceptionParser(basicException, schema, object, results));
+      parsers.add(new UnknowKeyExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new BasicTypeExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new EnumExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new MissingKeyExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new ConstExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new ContainsConstExceptionParser(basicException, schema, object, results, queryContext));
 
       // IPv4-specific parsers MUST come before RegexExceptionParser to handle -11406 pattern failures
-      parsers.add(new Ipv4PatternExceptionParser(basicException, schema, object, results));
-      parsers.add(new Ipv4ValidationExceptionParser(basicException, schema, object, results));
+      parsers.add(new Ipv4PatternExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new Ipv4ValidationExceptionParser(basicException, schema, object, results, queryContext));
 
       // General regex parser comes after IPv4-specific parsers
-      parsers.add(new RegexExceptionParser(basicException, schema, object, results));
+      parsers.add(new RegexExceptionParser(basicException, schema, object, results, queryContext));
 
-      parsers.add(new DatetimeExceptionParser(basicException, schema, object, results));
-      parsers.add(new DependenciesExceptionParser(basicException, schema, object, results));
-      parsers.add(new HostNameInUriExceptionParser(basicException, schema, object, results));
-      parsers.add(new Ipv6ValidationExceptionParser(basicException, schema, object, results));
-      parsers.add(new IdnHostNameExceptionParser(basicException, schema, object, results));
-      parsers.add(new UniqueItemsExceptionParser(basicException, schema, object, results));
-      parsers.add(new NumberExceptionParser(basicException, schema, object, results));
-      parsers.add(new ComplexTypeExceptionParser(basicException, schema, object, results));
-      parsers.add(new RdapExtensionsExceptionParser(basicException, schema, object, results));
-      parsers.add(new DatasetExceptionParser(basicException, schema, object, results));
-      parsers.add(new VcardExceptionParser(basicException, schema, object, results));
+      parsers.add(new DatetimeExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new DependenciesExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new HostNameInUriExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new Ipv6ValidationExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new IdnHostNameExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new UniqueItemsExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new NumberExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new ComplexTypeExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new RdapExtensionsExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new DatasetExceptionParser(basicException, schema, object, results, queryContext));
+      parsers.add(new VcardExceptionParser(basicException, schema, object, results, queryContext));
     }
 
     return parsers;
@@ -90,26 +109,35 @@ public abstract class ExceptionParser {
       doParse();
 
       if (e.getPointerToViolation() != null) {
-        validateGroupTest(e.getPointerToViolation(), jsonObject, results, schema);
+        validateGroupTest(e.getPointerToViolation(), jsonObject, results, schema, queryContext);
       }
     }
   }
 
   public static void validateGroupTest(String jsonPointer, JSONObject jsonObject,
       RDAPValidatorResults results, Schema schema) {
+    validateGroupTest(jsonPointer, jsonObject, results, schema, null);
+  }
+
+  public static void validateGroupTest(String jsonPointer, JSONObject jsonObject,
+      RDAPValidatorResults results, Schema schema, org.icann.rdapconformance.validator.QueryContext queryContext) {
     SchemaNode tree = SchemaNode.create(null, schema);
     Set<ValidationNode> validationNodes = tree.findValidationNodes(jsonPointer,
         "validationName");
     for (ValidationNode validationNode : validationNodes) {
       results.addGroupErrorWarning(validationNode.getValidationKey());
       if (validationNode.hasParentValidationCode()) {
-        results.add(RDAPValidationResult.builder()
-            .code(
-                parseErrorCode(validationNode::getParentValidationCode))
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
+            .code(parseErrorCode(validationNode::getParentValidationCode))
             .value(jsonPointer + ":" + jsonObject.query(jsonPointer))
             .message(MessageFormat.format("The value for the JSON name value does not pass {0} "
-                + "validation [{1}].", jsonPointer, validationNode.getValidationKey()))
-            .build());
+                + "validation [{1}].", jsonPointer, validationNode.getValidationKey()));
+
+        if (queryContext != null) {
+          results.add(builder.build(queryContext));
+        } else {
+          results.add(builder.build());
+        }
       }
     }
   }

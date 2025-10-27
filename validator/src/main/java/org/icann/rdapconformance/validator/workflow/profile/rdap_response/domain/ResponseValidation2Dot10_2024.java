@@ -24,12 +24,14 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
 
     private final RDAPValidatorConfiguration config;
     private final RDAPQueryType queryType;
+    private final QueryContext queryContext;
     private static final String NOT_FOUND = "not_found";
 
     public ResponseValidation2Dot10_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
         this.config = qctx.getConfig();
         this.queryType = qctx.getQueryType();
+        this.queryContext = qctx;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot10_2024.class);
@@ -79,7 +81,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
                     .code(-46701)
                     .value(getResultValue(noticePointersValue))
                     .message("The notice for RDDS Inaccuracy Complaint Form was not found.")
-                    .build());
+                    .build(queryContext));
 
             return new RDDSInaccuracyObjectToValidate(inaccuracyComplaintNotice, false);
         }
@@ -102,7 +104,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
                         .code(-46702)
                         .value(getResultValue(noticePointersValue))
                         .message("The notice for RDDS Inaccuracy Complaint Form does not have the proper description.")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
         } else {
@@ -110,7 +112,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
                     .code(-46702)
                     .value(getResultValue(noticePointersValue))
                     .message("The notice for RDDS Inaccuracy Complaint Form does not have the proper description.")
-                    .build());
+                    .build(queryContext));
             return false;
         }
 
@@ -131,7 +133,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
                     .code(-46703)
                     .value(getResultValue(noticePointersValue))
                     .message("The notice for RDDS Inaccuracy Complaint Form does not have links.")
-                    .build());
+                    .build(queryContext));
             return false;
         }
 
@@ -144,7 +146,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
                         .code(-46704)
                         .value(getResultValue(noticePointersValue))
                         .message("The notice for RDDS Inaccuracy Complaint Form does not have a link to the complaint form.")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
 
@@ -153,7 +155,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
                         .code(-46705)
                         .value(getResultValue(noticePointersValue))
                         .message("The notice for RDDS Inaccuracy Complaint Form does not have a link relation type of help")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
 
@@ -162,7 +164,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
                         .code(-46706)
                         .value(getResultValue(noticePointersValue))
                         .message("The notice for RDDS Inaccuracy Complaint Form does not have a link value of the request URL.")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
         }

@@ -348,7 +348,7 @@ public class QueryContext {
                 .code(code)
                 .value(value)
                 .message(message)
-                .build());
+                .build(this));
     }
 
     /**
@@ -361,7 +361,7 @@ public class QueryContext {
                 .code(code)
                 .value(value)
                 .message(message)
-                .build());
+                .build(this));
     }
 
     // =================

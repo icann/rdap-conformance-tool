@@ -14,8 +14,11 @@ import org.json.JSONObject;
 public class ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024 extends
     ResponseValidation2Dot7Dot1DotXAndRelated {
 
+    private final QueryContext queryContext;
+
     public ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults(), qctx.getQueryType(), qctx.getConfig());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -51,7 +54,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024 extends
                 .value(getResultValue(handleJsonPointer))
                 .message(
                     "The globally unique identifier in the entity object handle is using an EPPROID reserved for testing by ICANN.")
-                .build());
+                .build(queryContext));
             return false;
         }
 

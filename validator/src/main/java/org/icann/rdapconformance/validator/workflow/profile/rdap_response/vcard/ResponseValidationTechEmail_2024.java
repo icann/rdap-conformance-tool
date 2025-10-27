@@ -25,9 +25,12 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
     private boolean isValid = true;
     private final RDAPValidatorConfiguration configuration;
 
+    private final QueryContext queryContext;
+
     public ResponseValidationTechEmail_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
         this.configuration = qctx.getConfig();
+        this.queryContext = qctx;
     }
 
     @Override
@@ -83,7 +86,7 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
                         .code(-65503)
                         .value(getResultValue(redactedPointersValue))
                         .message("a redaction of type Tech Email was found but email was not redacted.")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
 
@@ -176,7 +179,7 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
                             .code(-65500)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath is invalid for Tech Email")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
 
@@ -187,7 +190,7 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
                             .code(-65501)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath must evaluate to a zero set for redaction by removal of Tech Email.")
-                            .build());
+                            .build(queryContext));
                     isValid = false;
                     return validateMethodProperty(redactedEmail);
                 }
@@ -215,7 +218,7 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
                             .code(-65502)
                             .value(getResultValue(redactedPointersValue))
                             .message("Tech Email redaction method must be removal if present")
-                            .build());
+                            .build(queryContext));
                     isValid = false;
                 }
             }

@@ -23,8 +23,11 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
 
+    private final QueryContext queryContext;
+
     public ResponseValidation2Dot7Dot4Dot3_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -72,7 +75,7 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
                             .code(-63400)
                             .value(getResultValue(vcardAddressPointersValue))
                             .message("The street value of the adr property is required on the vcard for the registrant.")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }
@@ -93,7 +96,7 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
                     .code(-63405)
                     .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Registrant Street was found but the registrant street was not redacted.")
-                    .build());
+                    .build(queryContext));
 
             return false;
         }
@@ -108,7 +111,7 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
                     .code(-63401)
                     .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Registrant Street is required.")
-                    .build());
+                    .build(queryContext));
 
             return false;
         }
@@ -188,7 +191,7 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
                                 .code(-63403)
                                 .value(getResultValue(redactedPointersValue))
                                 .message("jsonpath must evaluate to non-empty set for redaction by empty value of Registrant Street.")
-                                .build());
+                                .build(queryContext));
                         return false;
                     }
                 } catch (Exception e) {
@@ -197,7 +200,7 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
                             .code(-63402)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath is invalid for Registrant Street.")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }
@@ -224,7 +227,7 @@ public class ResponseValidation2Dot7Dot4Dot3_2024 extends ProfileJsonValidation 
                             .code(-63404)
                             .value(getResultValue(redactedPointersValue))
                             .message("Registrant Street redaction method must be emptyValue.")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }

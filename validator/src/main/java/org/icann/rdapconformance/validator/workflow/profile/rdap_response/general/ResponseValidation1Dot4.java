@@ -9,8 +9,11 @@ import org.json.JSONArray;
 
 public class ResponseValidation1Dot4 extends RDAPProfileVcardArrayValidation {
 
+  private final QueryContext queryContext;
+
   public ResponseValidation1Dot4(QueryContext qctx) {
-    super(qctx.getRdapResponseData(), qctx.getResults());
+    super(qctx.getRdapResponseData(), qctx.getResults(), qctx);
+    this.queryContext = qctx;
   }
 
   @Override
@@ -31,7 +34,7 @@ public class ResponseValidation1Dot4 extends RDAPProfileVcardArrayValidation {
               .code(-40400)
               .value(jsonExceptionPointer + ":" + categoryJsonArray)
               .message("A vcard object with a country name parameter with data was found.")
-              .build());
+              .build(queryContext));
           return false;
         }
       }

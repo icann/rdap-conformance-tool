@@ -26,11 +26,13 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
   private Set<String> redactedPointersValue = null;
   private final RDAPDatasetService datasetService;
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
   public ResponseValidation2Dot2_1_2024(QueryContext qctx) {
     super(qctx.getRdapResponseData(), qctx.getResults());
     this.datasetService = qctx.getDatasetService();
     this.queryType = qctx.getQueryType();
+    this.queryContext = qctx;
   }
 
   @Override
@@ -80,7 +82,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
                            .value(getResultValue(HANDLE_PATH))
                            .message(String.format("The handle in the domain object does not comply with the format "
                                    + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730."))
-                           .build());
+                           .build(queryContext));
                    return new HandleObjectToValidate(handle, false);
                } else {
                    String roid = handle.substring(handle.indexOf(DASH) + 1);
@@ -90,7 +92,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
                                .code(-46201)
                                .value(getResultValue(HANDLE_PATH))
                                .message("The globally unique identifier in the domain object handle is not registered in EPPROID.")
-                               .build());
+                               .build(queryContext));
                        return new HandleObjectToValidate(handle, false);
                    }
                 }
@@ -139,7 +141,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
              .code(-46202)
              .value(getResultValue(redactedPointersValue))
              .message("a redaction of type Registry Domain ID is required.")
-             .build());
+             .build(queryContext));
 
      return new RedactedHandleObjectToValidate(redactedRegistryDomain, false);
    }
@@ -162,7 +164,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
                   .code(-46203)
                   .value(getResultValue(redactedPointersValue))
                   .message("jsonpath is invalid for Registry Domain ID.")
-                  .build());
+                  .build(queryContext));
           return false;
         }
       } else {
@@ -170,7 +172,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
                   .code(-46203)
                   .value(getResultValue(redactedPointersValue))
                   .message("jsonpath is invalid for Registry Domain ID.")
-                  .build());
+                  .build(queryContext));
           return false;
       }
     } catch (Exception e) {
@@ -190,7 +192,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
                   .code(-46203)
                   .value(getResultValue(redactedPointersValue))
                   .message("jsonpath is invalid for Registry Domain ID.")
-                  .build());
+                  .build(queryContext));
           return false;
         }
       }
@@ -212,7 +214,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
                 .code(-46204)
                 .value(getResultValue(redactedPointersValue))
                 .message("Registry Domain ID redaction method must be removal if present")
-                .build());
+                .build(queryContext));
         return false;
       }
     }
@@ -239,7 +241,7 @@ public final class ResponseValidation2Dot2_1_2024 extends ProfileJsonValidation 
                    .code(-46206)
                    .value(getResultValue(redactedPointersValue))
                    .message("a redaction of type Registry Domain ID was found but the domain handle was not redacted.")
-                   .build());
+                   .build(queryContext));
                  return false;
              }
          }

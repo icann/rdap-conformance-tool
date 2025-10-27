@@ -22,11 +22,13 @@ public class ResponseValidationStatusDuplication_2024 extends ProfileValidation 
     private static final int ONE = 1;
     private final JpathUtil jpathUtil;
     private final JSONObject jsonObject;
+    private final QueryContext queryContext;
 
     public ResponseValidationStatusDuplication_2024(QueryContext qctx) {
         super(qctx.getResults());
         this.jpathUtil = new JpathUtil();
         this.jsonObject = new JSONObject(qctx.getRdapResponseData());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -55,7 +57,7 @@ public class ResponseValidationStatusDuplication_2024 extends ProfileValidation 
                                                     .code(-11003)
                                                     .value(STATUS_PATH + ": " + duplicateStatus)
                                                     .message("A status value exists more than once in the status array")
-                                                    .build());
+                                                    .build(queryContext));
                     isOK = false;
                 }
             }

@@ -25,10 +25,12 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
     private Set<String> redactedPointersValue = null;
     private boolean isValid = true;
     private final RDAPValidatorConfiguration configuration;
+    private final QueryContext queryContext;
 
     public ResponseValidationRegistrantEmail_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
         this.configuration = qctx.getConfig();
+        this.queryContext = qctx;
     }
 
     @Override
@@ -73,7 +75,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                     .code(-65404)
                     .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Registrant Email was found but email was not redacted.")
-                    .build());
+                    .build(queryContext));
             return false;
         }
 
@@ -87,7 +89,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                     .code(-65400)
                     .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Registrant Email is required.")
-                    .build());
+                    .build(queryContext));
 
             return false;
         }
@@ -166,7 +168,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                             .code(-65401)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath is invalid for Registrant Email")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
 
@@ -177,7 +179,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                             .code(-65402)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath must evaluate to a zero set for redaction by removal of Registrant Email.")
-                            .build());
+                            .build(queryContext));
                     isValid = false;
                     return validateMethodProperty(redactedEmail);
                 }
@@ -205,7 +207,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
                             .code(-65403)
                             .value(getResultValue(redactedPointersValue))
                             .message("Registrant Email redaction method must be removal if present")
-                            .build());
+                            .build(queryContext));
                     isValid = false;
                 }
             }

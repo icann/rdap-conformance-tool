@@ -19,8 +19,11 @@ public class ResponseValidation2Dot7Dot5Dot3_2024 extends ProfileJsonValidation 
     private static final String REDACTED_PATH = "$.redacted[*]";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot5Dot3_2024.class);
 
+    private final QueryContext queryContext;
+
     public ResponseValidation2Dot7Dot5Dot3_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -96,7 +99,7 @@ public class ResponseValidation2Dot7Dot5Dot3_2024 extends ProfileJsonValidation 
                     .code(-64002)
                     .value(redactedFaxExt.toString())
                     .message("Registrant Fax Ext redaction method must be removal if present")
-                    .build());
+                    .build(queryContext));
 
                 isValid = false;
             }
@@ -115,7 +118,7 @@ public class ResponseValidation2Dot7Dot5Dot3_2024 extends ProfileJsonValidation 
                 .code(-64000)
                 .value(value)
                 .message("jsonpath is invalid for Registrant Fax Ext")
-                .build());
+                .build(queryContext));
 
             return false;
         }
@@ -128,7 +131,7 @@ public class ResponseValidation2Dot7Dot5Dot3_2024 extends ProfileJsonValidation 
                 .code(-64001)
                 .value(value)
                 .message("jsonpath must evaluate to a zero set for redaction by removal of Registrant Fax Ext.")
-                .build());
+                .build(queryContext));
 
             return false;
         }

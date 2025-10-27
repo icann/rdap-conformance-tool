@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
 import java.util.Set;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -8,8 +9,17 @@ import org.json.JSONArray;
 
 public abstract class RDAPProfileVcardArrayValidation extends ProfileJsonValidation {
 
+  private final QueryContext queryContext;
+
   public RDAPProfileVcardArrayValidation(String rdapResponse, RDAPValidatorResults results) {
     super(rdapResponse, results);
+    this.queryContext = null;
+  }
+
+  public RDAPProfileVcardArrayValidation(String rdapResponse, RDAPValidatorResults results,
+      QueryContext queryContext) {
+    super(rdapResponse, results);
+    this.queryContext = queryContext;
   }
 
   @Override
@@ -35,12 +45,16 @@ public abstract class RDAPProfileVcardArrayValidation extends ProfileJsonValidat
               categoryArrayIndex++;
             }
           } catch (Exception e) {
-            results.add(RDAPValidationResult.builder()
+            RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                 .code(-12305)
                 .value(getResultValue(jsonPointer))
                 .message(
-                    "The value for the JSON name value is not a syntactically valid vcardArray.")
-                .build());
+                    "The value for the JSON name value is not a syntactically valid vcardArray.");
+            if (queryContext != null) {
+              results.add(builder.build(queryContext));
+            } else {
+              results.add(builder.build());
+            }
           }
         }
         vcardElementIndex++;

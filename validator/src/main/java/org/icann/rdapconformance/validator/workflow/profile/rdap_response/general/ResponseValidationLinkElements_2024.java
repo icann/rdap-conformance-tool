@@ -16,11 +16,13 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationLinkElements_2024.class);
     private final JpathUtil jpathUtil;
     private final JSONObject jsonObject;
+    private final QueryContext queryContext;
 
     public ResponseValidationLinkElements_2024(QueryContext qctx) {
         super(qctx.getResults());
         this.jpathUtil = new JpathUtil();
         this.jsonObject = new JSONObject(qctx.getRdapResponseData());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -42,7 +44,7 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
                                                         .code(-10612)
                                                         .value(jsonPointer + "/" + i + "/value:" + link)
                                                         .message("A 'value' property does not exist in the link object.")
-                                                        .build());
+                                                        .build(queryContext));
                         isOK = false;
                     }
                     if (!link.has("rel")) {
@@ -50,7 +52,7 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
                                                         .code(-10613)
                                                         .value(jsonPointer + "/" + i + "/rel:" + link)
                                                         .message("A 'rel' property does not exist in the link object.")
-                                                        .build());
+                                                        .build(queryContext));
                         isOK = false;
                     }
                 }

@@ -17,6 +17,13 @@ public class NumberExceptionParser extends ExceptionParser {
     super(e, schema, jsonObject, results);
   }
 
+  protected NumberExceptionParser(ValidationExceptionNode e,
+      Schema schema, JSONObject jsonObject,
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
+  }
+
   @Override
   public boolean matches(ValidationExceptionNode e) {
     return e.getViolatedSchema() instanceof NumberSchema;
@@ -36,10 +43,15 @@ public class NumberExceptionParser extends ExceptionParser {
           type, numberSchema.getMinimum(), numberSchema.getMaximum());
     }
 
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message(icannErrorMsg)
-        .build());
+        .message(icannErrorMsg);
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build());
+    }
   }
 }

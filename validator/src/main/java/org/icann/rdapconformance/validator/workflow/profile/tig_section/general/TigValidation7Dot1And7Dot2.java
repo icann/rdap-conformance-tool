@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 
 import java.util.Set;
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileVcardArrayValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -15,10 +16,18 @@ public final class TigValidation7Dot1And7Dot2 extends RDAPProfileVcardArrayValid
   private static final String VOICE_TYPE = "voice";
   private static final String FAX_TYPE = "fax";
   private static final Set<String> AUTHORIZED_PHONE_TYPE = Set.of(VOICE_TYPE, FAX_TYPE);
+  private final QueryContext queryContext;
 
   public TigValidation7Dot1And7Dot2(String rdapResponse,
       RDAPValidatorResults results) {
     super(rdapResponse, results);
+    this.queryContext = null;
+  }
+
+  public TigValidation7Dot1And7Dot2(String rdapResponse,
+      RDAPValidatorResults results, QueryContext queryContext) {
+    super(rdapResponse, results, queryContext);
+    this.queryContext = queryContext;
   }
 
   @Override
@@ -67,11 +76,15 @@ public final class TigValidation7Dot1And7Dot2 extends RDAPProfileVcardArrayValid
   }
 
   private void logError(String jsonExceptionPointer, Object value) {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(-20900)
         .value(jsonExceptionPointer + ":" + value.toString())
         .message("An entity with a tel property without a voice or fax type was found. "
-            + "See section 7.1 and 7.2 of the TIG.")
-        .build());
+            + "See section 7.1 and 7.2 of the TIG.");
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build());
+    }
   }
 }

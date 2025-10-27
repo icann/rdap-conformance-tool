@@ -165,5 +165,42 @@ public class RDAPValidationResult {
           this.queriedURI
       );
     }
+
+    /**
+     * Build RDAPValidationResult using QueryContext for proper status code and network info.
+     * This method should be preferred over build() when QueryContext is available.
+     */
+    public RDAPValidationResult build(org.icann.rdapconformance.validator.QueryContext queryContext) {
+      Integer statusCodeFromCurrent = null;
+
+      // First try to get status code from current HTTP response in QueryContext
+      if (queryContext != null && queryContext.getCurrentHttpResponse() != null) {
+        statusCodeFromCurrent = queryContext.getCurrentHttpResponse().statusCode();
+      }
+
+      // Fallback to ConnectionTracker if HTTP response not available
+      if (statusCodeFromCurrent == null && queryContext != null && queryContext.getConnectionTracker() != null) {
+        org.icann.rdapconformance.validator.ConnectionTracker.ConnectionRecord mainConnection =
+            queryContext.getConnectionTracker().getLastMainConnection();
+        if (mainConnection != null && mainConnection.getStatusCode() != 0 && mainConnection.getStatus() != null) {
+          statusCodeFromCurrent = mainConnection.getStatusCode();
+        } else {
+          statusCodeFromCurrent = 0; // force to zero
+        }
+      }
+
+      return new RDAPValidationResult(
+          this.code,
+          this.value,
+          this.message,
+          this.acceptHeader != null ? this.acceptHeader :
+              (queryContext != null ? queryContext.getNetworkInfo().getAcceptHeader() : NetworkInfo.getAcceptHeader()),
+          this.httpMethod != null ? this.httpMethod : GET,
+          this.serverIpAddress != null ? this.serverIpAddress :
+              (queryContext != null ? queryContext.getNetworkInfo().getServerIpAddress() : NetworkInfo.getServerIpAddress()),
+          this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
+          this.queriedURI
+      );
+    }
   }
 }

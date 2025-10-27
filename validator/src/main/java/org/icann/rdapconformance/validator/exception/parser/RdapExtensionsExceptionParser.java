@@ -16,12 +16,24 @@ public class RdapExtensionsExceptionParser extends
     super(e, schema, jsonObject, results, RdapExtensionsFormatValidator.class);
   }
 
+  protected RdapExtensionsExceptionParser(ValidationExceptionNode e, Schema schema,
+      JSONObject jsonObject,
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, RdapExtensionsFormatValidator.class, queryContext);
+  }
+
   @Override
   protected void doParse() {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message("The JSON string is not included as an Extension Identifier in RDAPExtensions.")
-        .build());
+        .message("The JSON string is not included as an Extension Identifier in RDAPExtensions.");
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build());
+    }
   }
 }

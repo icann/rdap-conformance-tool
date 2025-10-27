@@ -27,6 +27,13 @@ public class Ipv6ValidationExceptionParser extends StringFormatExceptionParser<I
     super(e, schema, jsonObject, results, Ipv6FormatValidator.class);
   }
 
+  protected Ipv6ValidationExceptionParser(ValidationExceptionNode e, Schema schema,
+      JSONObject jsonObject,
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, Ipv6FormatValidator.class, queryContext);
+  }
+
   @Override
   protected void doParse() {
     String ipValue = jsonObject.query(e.getPointerToViolation()).toString();
@@ -34,11 +41,16 @@ public class Ipv6ValidationExceptionParser extends StringFormatExceptionParser<I
     // First, determine if this is truly a syntax error using IPAddressString library
     if (!IPv6ValidationUtil.isValidIPv6Syntax(ipValue)) {
       // TRUE syntax error - generate syntax error only
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-10200)
           .value(e.getPointerToViolation() + ":" + ipValue)
-          .message("The IPv6 address is not syntactically valid.")
-          .build());
+          .message("The IPv6 address is not syntactically valid.");
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build());
+      }
       return;
     }
 
@@ -47,26 +59,41 @@ public class Ipv6ValidationExceptionParser extends StringFormatExceptionParser<I
 
     if (errorMessage.contains(Ipv6FormatValidator.NOT_ALLOCATED_NOR_LEGACY)) {
       // Valid syntax but not allocated/legacy
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-10201)
           .value(e.getPointerToViolation() + ":" + ipValue)
-          .message(Ipv6FormatValidator.NOT_ALLOCATED_NOR_LEGACY)
-          .build());
+          .message(Ipv6FormatValidator.NOT_ALLOCATED_NOR_LEGACY);
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build());
+      }
     } else if (errorMessage.contains(Ipv6FormatValidator.PART_OF_SPECIAL_ADDRESSES)) {
       // Valid syntax but in special address space
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-10202)
           .value(e.getPointerToViolation() + ":" + ipValue)
-          .message(Ipv6FormatValidator.PART_OF_SPECIAL_ADDRESSES)
-          .build());
+          .message(Ipv6FormatValidator.PART_OF_SPECIAL_ADDRESSES);
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build());
+      }
     } else {
       // Unknown format validation failure - default behavior
       // This handles cases where format validation fails for reasons other than allocation/special
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
           .value(e.getPointerToViolation() + ":" + ipValue)
-          .message(e.getMessage("The v6 structure is not syntactically valid."))
-          .build());
+          .message(e.getMessage("The v6 structure is not syntactically valid."));
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build());
+      }
     }
   }
 }

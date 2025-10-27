@@ -14,11 +14,13 @@ public final class ResponseValidation2Dot7Dot2_2024 extends ProfileJsonValidatio
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot2_2024.class);
     private final RDAPValidatorConfiguration config;
     private final RDAPQueryType queryType;
+    private final QueryContext queryContext;
 
     public ResponseValidation2Dot7Dot2_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
         this.config = qctx.getConfig();
         this.queryType = qctx.getQueryType();
+        this.queryContext = qctx;
     }
 
     @Override
@@ -34,7 +36,7 @@ public final class ResponseValidation2Dot7Dot2_2024 extends ProfileJsonValidatio
                     .code(-63000)
                     .value(getResultValue(getPointerFromJPath("$")))
                     .message("A domain served by a registrar must have one registrant.")
-                    .build());
+                    .build(queryContext));
             return false;
         }
 

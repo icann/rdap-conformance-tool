@@ -24,6 +24,15 @@ public class DependenciesExceptionParser extends ExceptionParser {
     matcher.find();
   }
 
+  protected DependenciesExceptionParser(ValidationExceptionNode e, Schema schema,
+      JSONObject jsonObject,
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
+    matcher = pattern.matcher(e.getMessage());
+    matcher.find();
+  }
+
   @Override
   public boolean matches(ValidationExceptionNode e) {
     return e.getKeyword() != null &&
@@ -42,10 +51,15 @@ public class DependenciesExceptionParser extends ExceptionParser {
         parentKey = entry.getKey();
       }
     }
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(() -> (int) e.getPropertyFromViolatedSchema(key + "Missing")))
         .value(jsonObject.query(e.getPointerToViolation()).toString())
-        .message("A " + parentKey + " structure was found but an " + key + " was not.")
-        .build());
+        .message("A " + parentKey + " structure was found but an " + key + " was not.");
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build());
+    }
   }
 }

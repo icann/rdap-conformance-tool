@@ -29,6 +29,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
   private final RDAPValidatorConfiguration config;
   private final RDAPQueryType queryType;
   private final EntityRegistryLookupService entityLookupService;
+  private final QueryContext queryContext;
 
   public ResponseValidationRegistrantHandle_2024(QueryContext qctx) {
     super(qctx.getRdapResponseData(), qctx.getResults());
@@ -36,6 +37,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
     this.datasetService = qctx.getDatasetService();
     this.queryType = qctx.getQueryType();
     this.entityLookupService = new EntityRegistryLookupService(qctx.getDatasetService(), qctx.getConfig());
+    this.queryContext = qctx;
   }
 
 
@@ -97,7 +99,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
                     .value(getResultValue(entityHandleJsonPointers))
                     .message("The handle of the registrant does not comply with the format "
                             + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.")
-                    .build());
+                    .build(queryContext));
               isValid = false;
           } else {
             String roid = handle.substring(handle.indexOf(DASH) + 1);
@@ -107,7 +109,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
                       .code(-63101)
                       .value(getResultValue(entityHandleJsonPointers))
                       .message("The globally unique identifier in the registrant handle is not registered in EPPROID.")
-                      .build());
+                      .build(queryContext));
               isValid = false;
             }
           }
@@ -120,7 +122,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
                     .code(-63106)
                     .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Registry Registrant ID was found but the registrant handle was not redacted.")
-                    .build());
+                    .build(queryContext));
 
             isValid = false;
         }
@@ -140,7 +142,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
               .code(-63102)
               .value(getResultValue(redactedPointersValue))
               .message("a redaction of type Registry Registrant ID is required.")
-              .build());
+              .build(queryContext));
 
       return false;
     }
@@ -219,7 +221,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
                     .code(-63103)
                     .value(getResultValue(redactedPointersValue))
                     .message("jsonpath is invalid for Registry Registrant ID.")
-                    .build());
+                    .build(queryContext));
             return false;
           }
 
@@ -231,7 +233,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
                     .code(-63104)
                     .value(redactedRegistrantName.toString())
                     .message("jsonpath must evaluate to a zero set for redaction by removal of Registry Registrant ID.")
-                    .build());
+                    .build(queryContext));
             return false;
           }
       }
@@ -252,7 +254,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
               .code(-63105)
               .value(redactedRegistrantName.toString())
               .message("Registry Registrant ID redaction method must be removal if present")
-              .build());
+              .build(queryContext));
       return false;
     }
 

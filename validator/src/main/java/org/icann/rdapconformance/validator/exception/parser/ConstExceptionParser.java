@@ -16,6 +16,12 @@ public class ConstExceptionParser extends ExceptionParser {
     super(e, schema, jsonObject, results);
   }
 
+  protected ConstExceptionParser(ValidationExceptionNode e, Schema schema,
+      JSONObject jsonObject,
+      RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
+  }
+
   @Override
   public boolean matches(ValidationExceptionNode e) {
     return e.getViolatedSchema() instanceof ConstSchema;
@@ -24,10 +30,15 @@ public class ConstExceptionParser extends ExceptionParser {
   @Override
   protected void doParse() {
     ConstSchema constSchema = (ConstSchema) e.getViolatedSchema();
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message("The JSON value is not " + constSchema.getPermittedValue() + ".")
-        .build());
+        .message("The JSON value is not " + constSchema.getPermittedValue() + ".");
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build());
+    }
   }
 }

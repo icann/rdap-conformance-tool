@@ -10,10 +10,13 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 public final class ResponseValidation4Dot1Handle_2024 extends ProfileJsonValidation {
     private final RDAPQueryType queryType;
 
+    private final QueryContext queryContext;
+
     public ResponseValidation4Dot1Handle_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
 
         this.queryType = qctx.getQueryType();
+        this.queryContext = qctx;
     }
 
     @Override
@@ -39,7 +42,7 @@ public final class ResponseValidation4Dot1Handle_2024 extends ProfileJsonValidat
                 .value(getResultValue("#/handle"))
                 .message(
                     "The globally unique identifier in the nameserver object handle is using an EPPROID reserved for testing by ICANN.")
-                .build());
+                .build(queryContext));
 
             return false;
         }

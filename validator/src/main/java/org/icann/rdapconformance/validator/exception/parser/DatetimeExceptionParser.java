@@ -17,13 +17,25 @@ public class DatetimeExceptionParser extends StringFormatExceptionParser<DateTim
     super(e, schema, jsonObject, results, DateTimeFormatValidator.class);
   }
 
+  protected DatetimeExceptionParser(ValidationExceptionNode e, Schema schema,
+      JSONObject jsonObject,
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, DateTimeFormatValidator.class, queryContext);
+  }
+
   @Override
   protected void doParse() {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message(
-            "The JSON value shall be a syntactically valid time and date according to RFC3339.")
-        .build());
+            "The JSON value shall be a syntactically valid time and date according to RFC3339.");
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build());
+    }
   }
 }
