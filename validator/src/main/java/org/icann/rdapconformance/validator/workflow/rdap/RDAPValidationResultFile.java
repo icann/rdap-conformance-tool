@@ -129,9 +129,10 @@ public class RDAPValidationResultFile {
     }
 
     /**
-     * Legacy initialize method for backward compatibility with tests.
+     * Initialize method for testing purposes only.
+     * Used by test code that doesn't require QueryContext functionality.
      *
-     * @deprecated Use initialize(results, config, configurationFile, fileSystem, queryContext) instead
+     * @deprecated Use initialize(results, config, configurationFile, fileSystem, queryContext) instead for production code
      */
     @Deprecated
     public void initialize(RDAPValidatorResults results,

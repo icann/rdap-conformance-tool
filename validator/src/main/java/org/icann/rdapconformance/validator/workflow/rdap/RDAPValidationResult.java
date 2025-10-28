@@ -187,9 +187,9 @@ public class RDAPValidationResult {
     }
 
     /**
-     * Legacy build method for backward compatibility.
-     * This method provides backward compatibility while callers are updated.
-     * @deprecated Use build(QueryContext) instead for proper HTTP status code handling.
+     * Build method for testing purposes and fallback compatibility.
+     * Used by tests and as fallback when QueryContext is not available.
+     * @deprecated Use build(QueryContext) instead for proper HTTP status code handling in production.
      */
     @Deprecated
     public RDAPValidationResult build() {
