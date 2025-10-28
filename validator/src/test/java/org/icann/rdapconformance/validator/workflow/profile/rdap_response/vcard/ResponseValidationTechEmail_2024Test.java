@@ -455,6 +455,8 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
         nameObj.put("description", "This will cause exception when trying to get type"); // No "type" property
         redactedObject.put("name", nameObj);
 
+        updateQueryContextJsonData(); // Update QueryContext with modified JSON data
+
         ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(queryContext);
 
         // This should hit lines 128-130: exception catch and debug logging

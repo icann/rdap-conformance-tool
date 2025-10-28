@@ -99,6 +99,10 @@ public class ResponseValidationDomainInvalid_2024Test {
 
   @Test
   public void testDoValidate_WithErrors_InResultFile() throws Exception {
+    // Use real RDAPValidatorResults instead of mock so we can check the actual results
+    RDAPValidatorResults realResults = new RDAPValidatorResultsImpl();
+    responseValidator = new ResponseValidationDomainInvalid_2024(mockConfig, realResults);
+
     URI uri = new URI("http://example.com/rdap");
     when(mockConfig.getUri()).thenReturn(uri);
 
@@ -111,8 +115,8 @@ public class ResponseValidationDomainInvalid_2024Test {
 
     assertThat(responseValidator.doValidate()).isFalse();
 
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor.forClass(RDAPValidationResult.class);
-    assertThat(results.getAll().stream().anyMatch(result ->
+    // Now check the real results
+    assertThat(realResults.getAll().stream().anyMatch(result ->
             result.getCode() == -65300 &&
                     result.getMessage().equals("A query for an invalid domain name did not yield a 404 response.")
     )).isTrue();

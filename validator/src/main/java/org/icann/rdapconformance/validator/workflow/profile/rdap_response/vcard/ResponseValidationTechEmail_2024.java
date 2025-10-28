@@ -113,8 +113,8 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-            JSONObject name = (JSONObject) redacted.get("name");
             try {
+                JSONObject name = (JSONObject) redacted.get("name");
                 var nameValue = name.get("type");
                 if(nameValue instanceof String redactedName) {
                     if(redactedName.trim().equalsIgnoreCase(TECH_EMAIL_TYPE)) {
