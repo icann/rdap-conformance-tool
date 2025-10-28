@@ -64,7 +64,14 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  * It supports both gTLD registry and registrar profiles, with options for different RDAP
  * profile versions (February 2019 and February 2024).</p>
  *
- * <p>Usage example:</p>
+ * <p><strong>For Web Applications: Use {@link RdapWebValidator} instead</strong></p>
+ * <pre>{@code
+ * // Safe for web applications:
+ * RdapWebValidator validator = new RdapWebValidator("https://rdap.example.com/domain/test.example");
+ * RDAPValidatorResults results = validator.validate();
+ * }</pre>
+ *
+ * <p>CLI Usage example:</p>
  * <pre>
  * java -jar rdapct.jar -v -c config.json --gtld-registrar
  *      --use-rdap-profile-february-2024 https://rdap.example.com/domain/example.com
@@ -73,6 +80,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  * @see RDAPValidatorConfiguration
  * @see RDAPHttpValidator
  * @see RDAPFileValidator
+ * @see RdapWebValidator
  * @since 1.0.0
  */
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
