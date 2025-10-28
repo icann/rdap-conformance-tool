@@ -8,11 +8,7 @@ import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParserImpl;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
-import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 
 import org.slf4j.LoggerFactory;
@@ -142,12 +138,6 @@ public class CommonUtils {
     public static String getUriHost(URI uri) {
         return uri.getHost();
     }
-
-    // REMOVED: addErrorToResultsFile(int, String, String) - use queryContext.addError() instead
-
-    // REMOVED: All addErrorToResultsFile methods - use queryContext.addError() instead
-    // QueryContext.addError(code, value, message) replaces addErrorToResultsFile(code, value, message)
-    // QueryContext.addError(httpStatusCode, code, value, message) replaces addErrorToResultsFile(httpStatusCode, code, value, message)
 
     /**
      * Replaces RDAP query type segments in URLs with a replacement word.

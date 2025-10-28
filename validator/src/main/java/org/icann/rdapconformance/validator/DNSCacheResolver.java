@@ -6,11 +6,10 @@ import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv6;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-// REMOVED: addErrorToResultsFile import - use queryContext.addError() instead
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+
 import org.xbill.DNS.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

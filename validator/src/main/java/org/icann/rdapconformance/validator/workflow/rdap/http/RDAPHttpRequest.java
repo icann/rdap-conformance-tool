@@ -5,14 +5,10 @@ import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTP_TOO_MANY_REQUESTS;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
-import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv6;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
-import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-// REMOVED: addErrorToResultsFile import - use queryContext.addError() instead
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -26,7 +22,6 @@ import java.net.http.HttpTimeoutException;
 
 import java.security.KeyStore;
 import java.security.SecureRandom;
-import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateParsingException;
@@ -52,7 +47,6 @@ import org.apache.hc.core5.http.ConnectionClosedException;
 
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
@@ -62,7 +56,6 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -128,8 +121,6 @@ public class RDAPHttpRequest {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RDAPHttpRequest.class);
     public static final String HOST = "Host";
     public static final String ACCEPT = "Accept";
-    public static final String CONNECTION = "Connection";
-    public static final String CLOSE = "close";
 
     public static final String RETRY_AFTER = "Retry-After";
     public static final int MAX_RETRY_TIME = 120;

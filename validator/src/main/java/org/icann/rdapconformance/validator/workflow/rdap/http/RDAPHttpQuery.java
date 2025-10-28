@@ -25,7 +25,6 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
 import static org.icann.rdapconformance.validator.CommonUtils.SEMI_COLON;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-// REMOVED: addErrorToResultsFile import - use queryContext.addError() instead
 
 /**
  * HTTP-based implementation of RDAP query operations with comprehensive validation.
