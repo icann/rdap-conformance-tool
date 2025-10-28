@@ -102,8 +102,11 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
         datasetService.download(true);
 
-        // Create QueryContext for thread-safe operations
-        queryContext = QueryContext.forTesting(config, datasetService);
+        // Create results object for QueryContext
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+
+        // Create QueryContext for thread-safe operations with proper results
+        queryContext = QueryContext.forTesting("", results, config, datasetService);
         rdapHttpQuery.setQueryContext(queryContext);
     }
 

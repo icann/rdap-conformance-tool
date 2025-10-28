@@ -693,7 +693,7 @@ public void setShowProgress(boolean showProgress) {
    * @param validator the file validator workflow to execute
    * @return exit code indicating validation result
    */
-  private int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
+  int validateWithoutNetwork(RDAPValidationResultFile resultFile, ValidatorWorkflow validator) {
     // If network is not enabled or ipv4 AND ipv6 flags are off, validate and return
     updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
     updateProgressPhase("FileValidation");

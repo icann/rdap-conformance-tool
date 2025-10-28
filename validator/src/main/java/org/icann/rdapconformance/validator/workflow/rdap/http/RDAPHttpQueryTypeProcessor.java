@@ -212,4 +212,15 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             return EMPTY_STRING;
         }
     }
+
+    /**
+     * Get an instance of RDAPHttpQueryTypeProcessor for the given object.
+     * This method is provided for backward compatibility with test code.
+     *
+     * @param obj the object (not used in current implementation)
+     * @return a new instance of RDAPHttpQueryTypeProcessor
+     */
+    public static RDAPHttpQueryTypeProcessor getInstance(Object obj) {
+        return new RDAPHttpQueryTypeProcessor();
+    }
 }

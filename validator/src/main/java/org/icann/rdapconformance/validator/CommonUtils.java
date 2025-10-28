@@ -10,6 +10,7 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.LocalFileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
@@ -256,5 +257,26 @@ public class CommonUtils {
             return null;
         }
         return configFile;
+    }
+
+    /**
+     * Initialize and return a dataset service for the given configuration.
+     *
+     * @param config the RDAP validator configuration
+     * @return the initialized RDAPDatasetService
+     */
+    public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config) {
+        return new RDAPDatasetServiceImpl(new LocalFileSystem());
+    }
+
+    /**
+     * Initialize and return a dataset service for the given configuration with progress callback.
+     *
+     * @param config the RDAP validator configuration
+     * @param progressCallback optional progress callback for monitoring initialization
+     * @return the initialized RDAPDatasetService
+     */
+    public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config, ProgressCallback progressCallback) {
+        return new RDAPDatasetServiceImpl(new LocalFileSystem());
     }
 }

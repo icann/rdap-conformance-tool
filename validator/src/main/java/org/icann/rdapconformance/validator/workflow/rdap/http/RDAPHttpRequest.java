@@ -911,13 +911,19 @@ public class RDAPHttpRequest {
                 logger.debug("HTTP request failed on attempt {}: {}", attempt + 1, e.getMessage(), e);
                 attempt++;
                 if (attempt > MAX_RETRIES) {
-                    tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.CONNECTION_FAILED);
-                    return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new RDAPHttpRequest.Header[ZERO]);
+                    // Handle and classify the exception to get proper ConnectionStatus
+                    ConnectionStatus errorStatus = handleRequestException(qctx, e, true);
+                    tracker.completeTrackingById(trackingId, ZERO, errorStatus);
+                    SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new RDAPHttpRequest.Header[ZERO]);
+                    errorResponse.setConnectionStatusCode(errorStatus);
+                    return errorResponse;
                 }
             }
         }
 
         tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.CONNECTION_FAILED);
-        return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new RDAPHttpRequest.Header[ZERO]);
+        SimpleHttpResponse failureResponse = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new RDAPHttpRequest.Header[ZERO]);
+        failureResponse.setConnectionStatusCode(ConnectionStatus.CONNECTION_FAILED);
+        return failureResponse;
     }
 }
