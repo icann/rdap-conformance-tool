@@ -118,16 +118,17 @@ public class QueryContext {
         this.fileQueryTypeProcessor = new RDAPFileQueryTypeProcessor();
         this.networkInfo = new NetworkInfo();
 
-        // Determine query type after initializing processors
+        // Set QueryContext in ThreadLocal for processors to access BEFORE determining query type
+        // This ensures that domain validation in check() method has access to QueryContext
+        org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor.setCurrentQueryContext(this);
+
+        // Determine query type after initializing processors and setting ThreadLocal
         this.queryType = determineQueryType();
 
         // Set QueryContext reference on the query for network operations
         if (query instanceof org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery) {
             ((org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery) query).setQueryContext(this);
         }
-
-        // Set QueryContext in ThreadLocal for processors to access
-        org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor.setCurrentQueryContext(this);
     }
 
     /**
@@ -234,7 +235,7 @@ public class QueryContext {
             return fileQueryTypeProcessor.getQueryType();
         } else {
             httpQueryTypeProcessor.setConfiguration(config);
-            if (httpQueryTypeProcessor.check(datasetService)) {
+            if (httpQueryTypeProcessor.determineQueryType()) {
                 return httpQueryTypeProcessor.getQueryType();
             } else {
                 return RDAPQueryType.DOMAIN; // Default fallback

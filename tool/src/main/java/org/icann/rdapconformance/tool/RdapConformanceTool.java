@@ -692,8 +692,8 @@ public void setShowProgress(boolean showProgress) {
       logger.info("Results file: {}",  validator.getResultsPath());
       setResultsFile(validator.getResultsPath());
       
-      // Always show results file location to user, even when using progress bar (non-verbose mode)
-      if (!isVerbose) {
+      // Show results file location for CLI and VERBOSE modes
+      if (effectiveLevel == LoggingLevel.CLI || effectiveLevel == LoggingLevel.VERBOSE) {
         System.out.println("\nResults saved to: " + validator.getResultsPath());
       }
 
@@ -755,9 +755,10 @@ public void setShowProgress(boolean showProgress) {
     logger.info("Results file: {}",  validator.getResultsPath());
     setResultsFile(validator.getResultsPath());
     
-    // Always show results file location to user, even when using progress bar (non-verbose mode)
-    if (!isVerbose) {
-      System.out.println("\nResults saved to: " + validator.getResultsPath());
+    // Show results file location for CLI and VERBOSE modes
+    LoggingLevel currentEffectiveLevel = isVerbose ? LoggingLevel.VERBOSE : loggingLevel;
+    if (currentEffectiveLevel == LoggingLevel.CLI || currentEffectiveLevel == LoggingLevel.VERBOSE) {
+      System.out.println("Results saved to: " + validator.getResultsPath());
     }
     
     // Complete progress tracking

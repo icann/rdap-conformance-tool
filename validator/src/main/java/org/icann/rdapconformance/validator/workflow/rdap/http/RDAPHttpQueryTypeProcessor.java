@@ -61,12 +61,24 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         this.queryType = null;
     }
 
-    @Override
-    public boolean check(RDAPDatasetService datasetService) {
+    /**
+     * Determines the query type without performing domain validation.
+     * This is safe to call during QueryContext construction.
+     */
+    public boolean determineQueryType() {
         queryType = RDAPHttpQueryType.getType(this.config.getUri().toString());
         if (queryType == null) {
             logger.error("Unknown RDAP query type for URI {}", this.config.getUri());
             status = ToolResult.UNSUPPORTED_QUERY;
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean check(RDAPDatasetService datasetService) {
+        // First determine query type if not already done
+        if (queryType == null && !determineQueryType()) {
             return false;
         }
 
