@@ -15,7 +15,7 @@ public final class ResponseValidation2Dot2 extends HandleValidation {
         queryContext.getDatasetService(), queryContext.getQueryType(), -46200, "domain");
   }
 
-  // Legacy constructor for backward compatibility
+  // For testing purposes only
   public ResponseValidation2Dot2(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
                                  RDAPDatasetService datasetService, RDAPQueryType queryType) {
 

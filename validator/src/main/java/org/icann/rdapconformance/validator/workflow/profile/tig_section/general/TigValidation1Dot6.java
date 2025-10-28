@@ -24,7 +24,7 @@ public final class TigValidation1Dot6 extends ProfileValidation {
     super(results);
     this.rdapResponseStatusCode = rdapResponseStatusCode;
     this.config = config;
-    this.queryContext = null; // Legacy constructor for backward compatibility
+    this.queryContext = null; // For testing purposes only
   }
 
   public TigValidation1Dot6(int rdapResponseStatusCode, QueryContext queryContext) {

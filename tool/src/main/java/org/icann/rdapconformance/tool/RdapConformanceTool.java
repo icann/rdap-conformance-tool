@@ -575,14 +575,14 @@ public void setShowProgress(boolean showProgress) {
     if (validator instanceof RDAPValidator) {
         // Use the tool's QueryContext for RDAP validators
         resultFile = queryContext.getResultFile();
-        resultFile.initialize(queryContext.getResults(), this, configFile, fileSystem);
+        resultFile.initialize(queryContext.getResults(), this, configFile, fileSystem, queryContext);
     } else {
         // For non-RDAP validators, create a basic QueryContext and use instance-based approach
         if (queryContext == null) {
             queryContext = QueryContext.create(this, datasetService, null, customDnsResolver);
         }
         resultFile = queryContext.getResultFile();
-        resultFile.initialize(queryContext.getResults(), this, configFile, fileSystem);
+        resultFile.initialize(queryContext.getResults(), this, configFile, fileSystem, queryContext);
     }
 
     // Are we querying over the network or is this a file on our system?

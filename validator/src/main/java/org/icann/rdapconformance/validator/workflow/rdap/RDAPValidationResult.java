@@ -1,10 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
-
 import java.util.Objects;
-import org.icann.rdapconformance.validator.ConnectionTracker;
-import org.icann.rdapconformance.validator.NetworkInfo;
 
 public class RDAPValidationResult {
 

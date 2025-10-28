@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.icann.rdapconformance.validator.ConformanceError;
-import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.*;
@@ -27,8 +26,6 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
-import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileQueryTypeProcessor;
-import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.SimpleHttpResponse;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.workflow.SchemaValidatorCache;
@@ -71,7 +68,7 @@ public class RDAPValidator implements ValidatorWorkflow {
     private static final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
     private final QueryContext queryContext;
 
-    // Legacy static field - will be removed after migration
+    // this is ok to be static because it's the data set that we pull ICANN  - everyone uses it no matter what
     private static RDAPDatasetService datasetService;
 
     /**

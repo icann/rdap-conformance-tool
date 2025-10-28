@@ -43,7 +43,7 @@ public final class TigValidation1Dot8 extends ProfileValidation {
     this.rdapResponse = rdapResponse;
     this.datasetService = datasetService;
     this.config = config;
-    this.queryContext = null; // Legacy constructor for backward compatibility
+    this.queryContext = null; // For testing purposes only
   }
 
   public TigValidation1Dot8(QueryContext qctx) {

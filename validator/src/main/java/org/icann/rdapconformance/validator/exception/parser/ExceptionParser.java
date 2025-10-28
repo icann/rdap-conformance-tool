@@ -34,7 +34,7 @@ public abstract class ExceptionParser {
     this.schemaObject = new JSONObject(schema.toString());
     this.jsonObject = jsonObject;
     this.results = results;
-    this.queryContext = null; // Legacy constructor for backward compatibility
+    this.queryContext = null; // For testing purposes only
   }
 
   protected ExceptionParser(ValidationExceptionNode e, Schema schema,
