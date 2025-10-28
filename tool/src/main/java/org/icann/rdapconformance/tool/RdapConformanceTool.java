@@ -44,6 +44,7 @@ import org.json.JSONObject;
 
 import static org.icann.rdapconformance.validator.CommonUtils.*;
 
+
 /**
  * Main entry point and orchestrator for the RDAP Conformance Tool.
  *
@@ -141,7 +142,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
 
-  @Option(names = {"--dns-resolver"}, 
+  @Option(names = {"--logging"}, description = "Set logging level (CLI, INFO, DEBUG, ERROR, VERBOSE)", defaultValue = "CLI")
+  private LoggingLevel loggingLevel = LoggingLevel.CLI;
+
+  @Option(names = {"--dns-resolver"},
           description = "Custom DNS resolver IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888)")
   private String customDnsResolver;
 
@@ -297,6 +301,15 @@ public void setVerbose(boolean isVerbose) {
 }
 
 /**
+ * Sets the logging level for the RDAP conformance validation.
+ *
+ * @param loggingLevel the logging level to set (CLI, INFO, DEBUG, ERROR, VERBOSE)
+ */
+public void setLogging(LoggingLevel loggingLevel) {
+    this.loggingLevel = loggingLevel;
+}
+
+/**
  * Sets whether to display progress information during validation.
  *
  * @param showProgress true to show progress bar/updates
@@ -337,40 +350,46 @@ public void setShowProgress(boolean showProgress) {
 
   @Override
   public Integer call() throws Exception {
-    // Determine if user wants logging output vs progress bar
-    boolean hasSystemLogProperty = (System.getProperty("logging.level.root") != null ||
-                                   System.getProperty("logLevel") != null);
+    // Configure logging based on the new logging level system
+    // Legacy -v flag overrides --logging setting and enables VERBOSE mode
+    LoggingLevel effectiveLevel = isVerbose ? LoggingLevel.VERBOSE : loggingLevel;
 
-
-    if (isVerbose) {
-      // Verbose mode always forces DEBUG level, overriding any system properties
-      System.setProperty("defaultLogLevel", "DEBUG");
-      // Clear any user-provided overrides when verbose is set
-      System.clearProperty("logging.level.root");
-      System.clearProperty("logLevel");
-      // Disable progress bar when verbose
-      showProgress = false;
-    } else if (hasSystemLogProperty) {
-      // System properties provided - show logs instead of progress bar
-      showProgress = false;
-      // Copy the system property to our defaultLogLevel and clear originals (same as verbose mode)
-      String systemLevel = System.getProperty("logging.level.root");
-      if (systemLevel == null) {
-        systemLevel = System.getProperty("logLevel");
-      }
-      if (systemLevel != null) {
-        System.setProperty("defaultLogLevel", systemLevel);
-        // Clear the original properties so logback uses our defaultLogLevel
-        System.clearProperty("logging.level.root");
-        System.clearProperty("logLevel");
-      }
-    } else {
-      // No flags - show progress bar with ERROR level only
-      System.setProperty("defaultLogLevel", "ERROR");
-      showProgress = true;
+    // Configure logging and progress bar based on effective logging level
+    switch (effectiveLevel) {
+      case CLI:
+        // CLI mode: Keep progress bar, minimal logging (ERROR level for both root and rdapconformance)
+        showProgress = true;
+        System.setProperty("defaultLogLevel", "ERROR");
+        System.setProperty("logging.level.org.icann.rdapconformance", "ERROR");
+        break;
+      case INFO:
+        // INFO mode: No progress bar, INFO level for rdapconformance, ERROR for root
+        showProgress = false;
+        System.setProperty("defaultLogLevel", "ERROR");
+        System.setProperty("logging.level.org.icann.rdapconformance", "INFO");
+        break;
+      case DEBUG:
+        // DEBUG mode: No progress bar, DEBUG level for rdapconformance, ERROR for root
+        showProgress = false;
+        System.setProperty("defaultLogLevel", "ERROR");
+        System.setProperty("logging.level.org.icann.rdapconformance", "DEBUG");
+        break;
+      case ERROR:
+        // ERROR mode: No progress bar, ERROR level for both root and rdapconformance
+        showProgress = false;
+        System.setProperty("defaultLogLevel", "ERROR");
+        System.setProperty("logging.level.org.icann.rdapconformance", "ERROR");
+        break;
+      case VERBOSE:
+        // VERBOSE mode: No progress bar, DEBUG level for everything (legacy -v behavior)
+        showProgress = false;
+        System.setProperty("defaultLogLevel", "DEBUG");
+        // Clear package-specific setting to use root level
+        System.clearProperty("logging.level.org.icann.rdapconformance");
+        break;
     }
 
-    // Force logback reconfiguration to pick up the new property
+    // Force logback reconfiguration to pick up the new properties
     try {
       LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
       JoranConfigurator configurator = new JoranConfigurator();
@@ -379,35 +398,63 @@ public void setShowProgress(boolean showProgress) {
       // Use the default logback.xml from classpath
       configurator.doConfigure(getClass().getClassLoader().getResourceAsStream("logback.xml"));
 
-      // Also programmatically set the root logger level to ensure it takes effect
+      // Programmatically set the root logger level
       Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-      String targetLevel = isVerbose ? "DEBUG" :
-                          (hasSystemLogProperty ? System.getProperty("defaultLogLevel", "ERROR") : "ERROR");
+      String rootLevel = System.getProperty("defaultLogLevel", "ERROR");
 
-      if ("DEBUG".equals(targetLevel)) {
+      if ("DEBUG".equals(rootLevel)) {
         root.setLevel(Level.DEBUG);
-      } else if ("INFO".equals(targetLevel)) {
+      } else if ("INFO".equals(rootLevel)) {
         root.setLevel(Level.INFO);
-      } else if ("WARN".equals(targetLevel)) {
+      } else if ("WARN".equals(rootLevel)) {
         root.setLevel(Level.WARN);
       } else {
         root.setLevel(Level.ERROR);
       }
 
+      // Set package-specific logger level if specified
+      String packageLevel = System.getProperty("logging.level.org.icann.rdapconformance");
+      if (packageLevel != null) {
+        Logger packageLogger = (Logger) LoggerFactory.getLogger("org.icann.rdapconformance");
+        if ("DEBUG".equals(packageLevel)) {
+          packageLogger.setLevel(Level.DEBUG);
+        } else if ("INFO".equals(packageLevel)) {
+          packageLogger.setLevel(Level.INFO);
+        } else if ("WARN".equals(packageLevel)) {
+          packageLogger.setLevel(Level.WARN);
+        } else {
+          packageLogger.setLevel(Level.ERROR);
+        }
+      }
+
     } catch (Exception e) {
       // Fall back to programmatic setting if reconfiguration fails
       Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-      String targetLevel = isVerbose ? "DEBUG" :
-                          (hasSystemLogProperty ? System.getProperty("defaultLogLevel", "ERROR") : "ERROR");
+      String rootLevel = System.getProperty("defaultLogLevel", "ERROR");
 
-      if ("DEBUG".equals(targetLevel)) {
+      if ("DEBUG".equals(rootLevel)) {
         root.setLevel(Level.DEBUG);
-      } else if ("INFO".equals(targetLevel)) {
+      } else if ("INFO".equals(rootLevel)) {
         root.setLevel(Level.INFO);
-      } else if ("WARN".equals(targetLevel)) {
+      } else if ("WARN".equals(rootLevel)) {
         root.setLevel(Level.WARN);
       } else {
         root.setLevel(Level.ERROR);
+      }
+
+      // Set package-specific logger level if specified
+      String packageLevel = System.getProperty("logging.level.org.icann.rdapconformance");
+      if (packageLevel != null) {
+        Logger packageLogger = (Logger) LoggerFactory.getLogger("org.icann.rdapconformance");
+        if ("DEBUG".equals(packageLevel)) {
+          packageLogger.setLevel(Level.DEBUG);
+        } else if ("INFO".equals(packageLevel)) {
+          packageLogger.setLevel(Level.INFO);
+        } else if ("WARN".equals(packageLevel)) {
+          packageLogger.setLevel(Level.WARN);
+        } else {
+          packageLogger.setLevel(Level.ERROR);
+        }
       }
     }
 
@@ -423,12 +470,6 @@ public void setShowProgress(boolean showProgress) {
     //  System.setProperty("javax.net.debug", "ssl");
     //  System.setProperty("javax.net.debug", "ssl:handshake:verbose");
     //  System.setProperty("java.net.debug", "all");
-
-    // Only reset to ERROR if user provided no logging flags at all
-    if (!isVerbose && !hasSystemLogProperty) {
-      Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-      root.setLevel(Level.ERROR);
-    }
 
     // Update executeIP*Queries based on command line options if provided
     if (ipVersionOptions != null) {

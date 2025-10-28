@@ -20,7 +20,8 @@ public class RdapToolExample {
         tool.setExecuteIPv4Queries(true);
         tool.setExecuteIPv6Queries(false);
         tool.setAdditionalConformanceQueries(true);
-        tool.setVerbose(false);
+        // tool.setVerbose(false);  // Legacy verbose flag
+        tool.setLogging(LoggingLevel.INFO);  // New logging system: CLI, INFO, DEBUG, ERROR, VERBOSE
         // Use Path API for safer file path handling
         Path currentDir = Paths.get(System.getProperty("user.dir"));
         Path configFilePath;

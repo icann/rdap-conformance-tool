@@ -5,6 +5,10 @@
         </encoder>
     </appender>
 
+    <!-- Package-specific logger for RDAP conformance tool -->
+    <!-- This allows setting logging level for org.icann.rdapconformance package independently -->
+    <logger name="org.icann.rdapconformance" level="${logging.level.org.icann.rdapconformance:-${defaultLogLevel:-ERROR}}" additivity="true"/>
+
     <!-- Support both logLevel and logging.level.root properties, with verbose-aware default -->
     <root level="${logging.level.root:-${logLevel:-${defaultLogLevel:-ERROR}}}">
         <appender-ref ref="STDOUT" />
