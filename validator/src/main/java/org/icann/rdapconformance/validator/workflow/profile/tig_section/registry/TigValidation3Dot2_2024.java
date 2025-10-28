@@ -34,9 +34,19 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
     private static final String[] EXCLUDED_REGISTRAR_IDS = {"9994", "9995", "9996", "9997", "9998", "9999"};
 
 
-    public TigValidation3Dot2_2024(String rdapResponse, RDAPValidatorResults results,
-        RDAPValidatorConfiguration config,
-        RDAPQueryType queryType, org.icann.rdapconformance.validator.QueryContext queryContext) {
+    public TigValidation3Dot2_2024(org.icann.rdapconformance.validator.QueryContext queryContext) {
+        super(queryContext.getRdapResponseData(), queryContext.getResults());
+        this.config = queryContext.getConfig();
+        this.queryType = queryContext.getQueryType();
+        this.queryContext = queryContext;
+    }
+
+    /**
+     * @deprecated Use TigValidation3Dot2_2024(QueryContext) instead
+     * TODO: Migrate tests to QueryContext-only constructor
+     */
+    @Deprecated
+    public TigValidation3Dot2_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config, RDAPQueryType queryType, org.icann.rdapconformance.validator.QueryContext queryContext) {
         super(rdapResponse, results);
         this.config = config;
         this.queryType = queryType;

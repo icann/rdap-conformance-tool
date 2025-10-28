@@ -13,8 +13,27 @@ public class TigValidation4Dot1 extends RDAPProfileVcardArrayValidation {
   private final QueryContext queryContext;
 
 
-  public TigValidation4Dot1(String rdapResponse, RDAPValidatorResults results,
-      QueryContext queryContext) {
+  public TigValidation4Dot1(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext);
+    this.queryContext = queryContext;
+  }
+
+  /**
+   * @deprecated Use TigValidation4Dot1(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
+  public TigValidation4Dot1(String rdapResponse, RDAPValidatorResults results) {
+    super(rdapResponse, results);
+    this.queryContext = null; // For testing purposes only
+  }
+
+  /**
+   * @deprecated Use TigValidation4Dot1(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
+  public TigValidation4Dot1(String rdapResponse, RDAPValidatorResults results, QueryContext queryContext) {
     super(rdapResponse, results, queryContext);
     this.queryContext = queryContext;
   }

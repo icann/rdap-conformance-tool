@@ -20,12 +20,9 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
 
 public final class TigValidation1Dot8 extends ProfileValidation {
 
@@ -37,21 +34,12 @@ public final class TigValidation1Dot8 extends ProfileValidation {
   private final RDAPValidatorConfiguration config;
   private final QueryContext queryContext;
 
-  public TigValidation1Dot8(HttpResponse<String> rdapResponse, RDAPValidatorResults results,
-      RDAPDatasetService datasetService, RDAPValidatorConfiguration config) {
-    super(results);
-    this.rdapResponse = rdapResponse;
-    this.datasetService = datasetService;
-    this.config = config;
-    this.queryContext = null; // For testing purposes only
-  }
-
-  public TigValidation1Dot8(QueryContext qctx) {
-    super(qctx.getResults());
-    this.rdapResponse = (HttpResponse<String>) qctx.getQuery().getRawResponse();
-    this.datasetService = qctx.getDatasetService();
-    this.config = qctx.getConfig();
-    this.queryContext = qctx;
+  public TigValidation1Dot8(QueryContext queryContext) {
+    super(queryContext.getResults());
+    this.rdapResponse = (HttpResponse<String>) queryContext.getQuery().getRawResponse();
+    this.datasetService = queryContext.getDatasetService();
+    this.config = queryContext.getConfig();
+    this.queryContext = queryContext;
   }
 
   @Override

@@ -3,8 +3,6 @@ package org.icann.rdapconformance.validator;
 import java.net.http.HttpResponse;
 import java.util.UUID;
 
-import static org.icann.rdapconformance.validator.CommonUtils.DASH;
-
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
@@ -394,7 +392,6 @@ public class QueryContext {
 
     // ================================
     // RESULT MANAGEMENT METHODS
-    // (replaces CommonUtils static calls)
     // ================================
 
     /**

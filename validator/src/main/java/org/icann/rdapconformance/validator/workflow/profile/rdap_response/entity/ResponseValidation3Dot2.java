@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.entit
 
 import java.util.HashSet;
 import java.util.Set;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -15,10 +16,18 @@ public final class ResponseValidation3Dot2 extends ProfileJsonValidation {
   protected final RDAPValidatorConfiguration config;
   private final RDAPQueryType queryType;
 
-  public ResponseValidation3Dot2(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType,
-      RDAPValidatorConfiguration config) {
+  public ResponseValidation3Dot2(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.queryType = queryContext.getQueryType();
+    this.config = queryContext.getConfig();
+  }
+
+  /**
+   * @deprecated Use ResponseValidation3Dot2(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
+  public ResponseValidation3Dot2(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config) {
     super(rdapResponse, results);
     this.queryType = queryType;
     this.config = config;

@@ -1,12 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PREFIX;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PREFIX;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,8 +19,6 @@ import java.util.Map.Entry;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +35,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
     super(qctx.getResults());
     this.qctx = qctx;
   }
+
 
   @Override
   public String getGroupName() {

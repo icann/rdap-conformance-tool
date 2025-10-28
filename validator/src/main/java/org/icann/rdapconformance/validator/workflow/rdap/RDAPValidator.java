@@ -41,7 +41,6 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated6;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot3;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.SimpleHandleValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidation3Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidation3Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous.ResponseValidationLastUpdateEvent;
@@ -219,17 +218,13 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         // Extract commonly used values from queryContext for convenience
         RDAPValidatorConfiguration config = queryContext.getConfig();
-        RDAPValidatorResults results = queryContext.getResults();
-        RDAPDatasetService datasetService = queryContext.getDatasetService();
-        RDAPQueryType queryType = queryContext.getQueryType();
-        String rdapResponseData = queryContext.getRdapResponseData();
         List<ProfileValidation> validations = new ArrayList<>();
 
         // All validations in original order - exactly like master branch
         // From 2019 profile validations
-        validations.add(new TigValidation3Dot2(rdapResponseData, results, config, queryType));
-        validations.add(new TigValidation4Dot1(rdapResponseData, results, queryContext));
-        validations.add(new TigValidation7Dot1And7Dot2(rdapResponseData, results, queryContext));
+        validations.add(new TigValidation3Dot2(queryContext));
+        validations.add(new TigValidation4Dot1(queryContext));
+        validations.add(new TigValidation7Dot1And7Dot2(queryContext));
         validations.add(new ResponseValidation1Dot2Dot2(queryContext));
         validations.add(new ResponseValidation1Dot4(queryContext));
         validations.add(new ResponseValidationLastUpdateEvent(queryContext));
@@ -287,19 +282,19 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidationStatusDuplication_2024(queryContext));
         validations.add(new ResponseValidation2Dot7Dot6Dot1_2024(queryContext));
         validations.add(new StdRdapConformanceValidation_2024(queryContext));
-        validations.add(new TigValidation3Dot2_2024(rdapResponseData, results, config, queryType, queryContext));
-        validations.add(new TigValidation3Dot3And3Dot4_2024(rdapResponseData, results, config));
+        validations.add(new TigValidation3Dot2_2024(queryContext));
+        validations.add(new TigValidation3Dot3And3Dot4_2024(queryContext));
         validations.add(new ResponseValidation2Dot6Dot3_2024(queryContext));
         validations.add(new ResponseValidation2Dot10_2024(queryContext));
 
         // Network-dependent validations
         if (config.isNetworkEnabled()) {
-            validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), queryContext)); // HTTP head request
-            validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
+            validations.add(new TigValidation1Dot6(queryContext)); // HTTP head request
+            validations.add(new TigValidation1Dot13(queryContext)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(queryContext)); // SSL Network connection
             validations.add(new TigValidation1Dot8(queryContext)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // URL-based validation
-            validations.add(new TigValidation1Dot5_2024(rdapResponse, config, results)); // SSL Network connection
+            validations.add(new TigValidation1Dot11Dot1(queryContext)); // URL-based validation
+            validations.add(new TigValidation1Dot5_2024(queryContext)); // SSL Network connection
             validations.add(new ResponseValidationTestInvalidRedirect_2024(queryContext)); // Network connection
         }
 
@@ -317,11 +312,11 @@ public class RDAPValidator implements ValidatorWorkflow {
         List<ProfileValidation> validations = new ArrayList<>();
 
         // All validations in original order - exactly like master branch
-        validations.add(new TigValidation1Dot14(rdapResponseData, results));
-        validations.add(new TigValidation3Dot2(rdapResponseData, results, config, queryType));
-        validations.add(new TigValidation3Dot3And3Dot4(rdapResponseData, results, validator));
-        validations.add(new TigValidation4Dot1(rdapResponseData, results, queryContext));
-        validations.add(new TigValidation7Dot1And7Dot2(rdapResponseData, results, queryContext));
+        validations.add(new TigValidation1Dot14(queryContext));
+        validations.add(new TigValidation3Dot2(queryContext));
+        validations.add(new TigValidation3Dot3And3Dot4(queryContext));
+        validations.add(new TigValidation4Dot1(queryContext));
+        validations.add(new TigValidation7Dot1And7Dot2(queryContext));
         validations.add(new ResponseValidation1Dot2Dot2(queryContext));
         validations.add(new ResponseValidation1Dot3(rdapResponseData, results));
         validations.add(new ResponseValidation1Dot4(queryContext));
@@ -335,9 +330,9 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new ResponseValidation2Dot3Dot1Dot2(queryContext));
         }
 
-        validations.add(new ResponseValidationNoticesIncluded(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidation2Dot6Dot3(rdapResponseData, results, queryType));
-        validations.add(new ResponseValidation2Dot11(rdapResponseData, results, queryType));
+        validations.add(new ResponseValidationNoticesIncluded(queryContext));
+        validations.add(new ResponseValidation2Dot6Dot3(queryContext));
+        validations.add(new ResponseValidation2Dot11(queryContext));
         validations.add(new ResponseValidation2Dot10(queryContext));
         validations.add(new ResponseValidationRFC5731(queryContext));
         validations.add(new ResponseValidationRFC3915(queryContext));
@@ -346,16 +341,15 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot4Dot1(queryContext));
         validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(queryContext));
         validations.add(new ResponseValidation2Dot4Dot5(queryContext));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated1(rdapResponseData, results, queryType, config));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated2(rdapResponseData, results, queryType, config));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4(rdapResponseData, results, queryType, config,
-            new SimpleHandleValidation(config, rdapResponseData, results, datasetService, queryType, -52102)));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated5(rdapResponseData, results, queryType, config));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated6(rdapResponseData, results, queryType, config));
-        validations.add(new ResponseValidation2Dot7Dot5Dot2(rdapResponseData, results, queryType, config));
-        validations.add(new ResponseValidation2Dot7Dot5Dot3(rdapResponseData, results, queryType, config));
-        validations.add(new ResponseValidation3Dot1(rdapResponseData, results, queryType, config));
-        validations.add(new ResponseValidation3Dot2(rdapResponseData, results, queryType, config));
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated1(queryContext));
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated2(queryContext));
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4(queryContext));
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated5(queryContext));
+        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated6(queryContext));
+        validations.add(new ResponseValidation2Dot7Dot5Dot2(queryContext));
+        validations.add(new ResponseValidation2Dot7Dot5Dot3(queryContext));
+        validations.add(new ResponseValidation3Dot1(queryContext));
+        validations.add(new ResponseValidation3Dot2(queryContext));
         validations.add(new ResponseNameserverStatusValidation(queryContext));
         validations.add(new ResponseValidation4Dot1Handle(queryContext));
         validations.add(new ResponseValidation4Dot1Query(queryContext));
@@ -363,12 +357,12 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         // Network-dependent validations
         if (config.isNetworkEnabled()) {
-            validations.add(new TigValidation1Dot3(rdapResponse, config, results)); // SSL context
-            validations.add(new TigValidation1Dot6(rdapResponse.statusCode(), queryContext)); // HTTP head request
-            validations.add(new TigValidation1Dot13(rdapResponse, results)); // reads HTTP headers
+            validations.add(new TigValidation1Dot3(queryContext)); // SSL context
+            validations.add(new TigValidation1Dot6(queryContext)); // HTTP head request
+            validations.add(new TigValidation1Dot13(queryContext)); // reads HTTP headers
             validations.add(new TigValidation1Dot2(queryContext)); // SSL Network connection
             validations.add(new TigValidation1Dot8(queryContext)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(config, results, datasetService, queryType)); // URL-based validation
+            validations.add(new TigValidation1Dot11Dot1(queryContext)); // URL-based validation
         }
 
         return validations;

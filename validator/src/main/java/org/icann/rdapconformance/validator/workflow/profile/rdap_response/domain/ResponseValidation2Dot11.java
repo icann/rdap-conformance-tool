@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
@@ -9,11 +10,18 @@ public final class ResponseValidation2Dot11 extends NoticesValidation {
   final static String DESCRIPTION = "URL of the ICANN RDDS Inaccuracy Complaint Form: https://icann.org/wicf";
   final static String HREF = "https://icann.org/wicf";
 
-  public ResponseValidation2Dot11(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType) {
-    super(rdapResponse, results, queryType,
+  public ResponseValidation2Dot11(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(),
         TITLE, DESCRIPTION, HREF, -46700);
+  }
+
+  /**
+   * @deprecated Use ResponseValidation2Dot11(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
+  public ResponseValidation2Dot11(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType) {
+    super(rdapResponse, results, queryType, TITLE, DESCRIPTION, HREF, -46700);
   }
 
   @Override

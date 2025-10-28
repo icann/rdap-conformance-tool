@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -10,9 +11,17 @@ public final class ResponseValidationNoticesIncluded extends ProfileJsonValidati
 
   private final RDAPQueryType queryType;
 
-  public ResponseValidationNoticesIncluded(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType) {
+  public ResponseValidationNoticesIncluded(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.queryType = queryContext.getQueryType();
+  }
+
+  /**
+   * @deprecated Use ResponseValidationNoticesIncluded(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
+  public ResponseValidationNoticesIncluded(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType) {
     super(rdapResponse, results);
     this.queryType = queryType;
   }

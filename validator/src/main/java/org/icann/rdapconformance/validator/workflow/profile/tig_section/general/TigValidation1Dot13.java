@@ -4,6 +4,7 @@ import java.net.http.HttpResponse;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -12,8 +13,17 @@ public final class TigValidation1Dot13 extends ProfileValidation {
 
   private final HttpResponse<String> rdapResponse;
 
-  public TigValidation1Dot13(HttpResponse<String> rdapResponse,
-      RDAPValidatorResults results) {
+  public TigValidation1Dot13(QueryContext queryContext) {
+    super(queryContext.getResults());
+    this.rdapResponse = (HttpResponse<String>) queryContext.getQuery().getRawResponse();
+  }
+
+  /**
+   * @deprecated Use TigValidation1Dot13(QueryContext) instead
+   * TODO: Migrate to QueryContext-only constructor
+   */
+  @Deprecated
+  public TigValidation1Dot13(HttpResponse<String> rdapResponse, RDAPValidatorResults results) {
     super(results);
     this.rdapResponse = rdapResponse;
   }

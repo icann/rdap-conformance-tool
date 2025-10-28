@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
 
 import java.util.Set;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -13,10 +14,18 @@ import org.json.JSONObject;
 public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
     private final RDAPValidatorConfiguration config;
 
-    public TigValidation3Dot3And3Dot4_2024(String rdapResponse,
-        RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results);
+    public TigValidation3Dot3And3Dot4_2024(QueryContext queryContext) {
+        super(queryContext.getRdapResponseData(), queryContext.getResults());
+        this.config = queryContext.getConfig();
+    }
 
+    /**
+     * @deprecated Use TigValidation3Dot3And3Dot4_2024(QueryContext) instead
+     * TODO: Migrate tests to QueryContext-only constructor
+     */
+    @Deprecated
+    public TigValidation3Dot3And3Dot4_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
+        super(rdapResponse, results);
         this.config = config;
     }
 

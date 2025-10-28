@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.registr
 
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -20,10 +21,18 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
       RDAPQueryType.ENTITY
   );
 
-  public TigValidation1Dot12Dot1(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPDatasetService datasetService,
-      RDAPQueryType queryType) {
+  public TigValidation1Dot12Dot1(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.datasetService = queryContext.getDatasetService();
+    this.queryType = queryContext.getQueryType();
+  }
+
+  /**
+   * @deprecated Use TigValidation1Dot12Dot1(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
+  public TigValidation1Dot12Dot1(String rdapResponse, RDAPValidatorResults results, RDAPDatasetService datasetService, RDAPQueryType queryType) {
     super(rdapResponse, results);
     this.datasetService = datasetService;
     this.queryType = queryType;

@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -29,9 +30,19 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
   private final RDAPDatasetService datasetService;
   private final RDAPQueryType queryType;
 
-  public TigValidation1Dot11Dot1(RDAPValidatorConfiguration config,
-      RDAPValidatorResults results, RDAPDatasetService datasetService,
-      RDAPQueryType queryType) {
+  public TigValidation1Dot11Dot1(QueryContext queryContext) {
+    super(queryContext.getResults());
+    this.config = queryContext.getConfig();
+    this.datasetService = queryContext.getDatasetService();
+    this.queryType = queryContext.getQueryType();
+  }
+
+  /**
+   * @deprecated Use TigValidation1Dot11Dot1(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
+  public TigValidation1Dot11Dot1(RDAPValidatorConfiguration config, RDAPValidatorResults results, RDAPDatasetService datasetService, RDAPQueryType queryType) {
     super(results);
     this.config = config;
     this.datasetService = datasetService;

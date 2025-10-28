@@ -7,7 +7,6 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,14 +18,18 @@ public final class TigValidation1Dot6 extends ProfileValidation {
   private final RDAPValidatorConfiguration config;
   private final QueryContext queryContext;
 
-  public TigValidation1Dot6(int rdapResponseStatusCode, RDAPValidatorConfiguration config,
-      RDAPValidatorResults results) {
-    super(results);
-    this.rdapResponseStatusCode = rdapResponseStatusCode;
-    this.config = config;
-    this.queryContext = null; // For testing purposes only
+  public TigValidation1Dot6(QueryContext queryContext) {
+    super(queryContext.getResults());
+    this.rdapResponseStatusCode = queryContext.getCurrentHttpResponse().statusCode();
+    this.config = queryContext.getConfig();
+    this.queryContext = queryContext;
   }
 
+  /**
+   * @deprecated Use TigValidation1Dot6(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
   public TigValidation1Dot6(int rdapResponseStatusCode, QueryContext queryContext) {
     super(queryContext.getResults());
     this.rdapResponseStatusCode = rdapResponseStatusCode;

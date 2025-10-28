@@ -1,20 +1,25 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import java.util.Set;
-import org.icann.rdapconformance.validator.SchemaValidator;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public class TigValidation3Dot3And3Dot4 extends ProfileJsonValidation {
 
-  private final SchemaValidator schemaValidator;
+  public TigValidation3Dot3And3Dot4(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+  }
 
-  public TigValidation3Dot3And3Dot4(String rdapResponse,
-      RDAPValidatorResults results,
-      SchemaValidator schemaValidator) {
+  /**
+   * @deprecated Use TigValidation3Dot3And3Dot4(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
+  public TigValidation3Dot3And3Dot4(String rdapResponse, RDAPValidatorResults results, org.icann.rdapconformance.validator.SchemaValidator schemaValidator) {
     super(rdapResponse, results);
-    this.schemaValidator = schemaValidator;
+    // schemaValidator is no longer used in current implementation
   }
 
   @Override

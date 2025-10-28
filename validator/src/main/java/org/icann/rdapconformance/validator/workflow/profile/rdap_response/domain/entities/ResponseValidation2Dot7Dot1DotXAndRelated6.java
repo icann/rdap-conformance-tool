@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
 import java.util.Set;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -14,10 +15,16 @@ import org.json.JSONObject;
 public class ResponseValidation2Dot7Dot1DotXAndRelated6 extends
     ResponseValidation2Dot7Dot1DotXAndRelated {
 
-  public ResponseValidation2Dot7Dot1DotXAndRelated6(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType,
-      RDAPValidatorConfiguration config) {
+  public ResponseValidation2Dot7Dot1DotXAndRelated6(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(), queryContext.getConfig());
+  }
+
+  /**
+   * @deprecated Use ResponseValidation2Dot7Dot1DotXAndRelated6(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
+  public ResponseValidation2Dot7Dot1DotXAndRelated6(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config) {
     super(rdapResponse, results, queryType, config);
   }
 

@@ -3,23 +3,18 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
-import static org.icann.rdapconformance.validator.CommonUtils.TIMEOUT_IN_5SECS;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.net.http.HttpResponse;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xbill.DNS.HTTPSRecord;
 
 public class TigValidation1Dot5_2024 extends ProfileValidation {
 
@@ -28,14 +23,24 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
     private final RDAPValidatorConfiguration config;
     private final SSLValidator sslValidator;
 
-    public TigValidation1Dot5_2024(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
-        RDAPValidatorResults results) {
-        this(rdapResponse, config, results, new DefaultSSLValidator());
+    public TigValidation1Dot5_2024(QueryContext queryContext) {
+        this(queryContext, new DefaultSSLValidator());
     }
-    
+
     // Constructor for testing with injectable SSLValidator
-    public TigValidation1Dot5_2024(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
-        RDAPValidatorResults results, SSLValidator sslValidator) {
+    public TigValidation1Dot5_2024(QueryContext queryContext, SSLValidator sslValidator) {
+        super(queryContext.getResults());
+        this.rdapResponse = (HttpResponse<String>) queryContext.getQuery().getRawResponse();
+        this.config = queryContext.getConfig();
+        this.sslValidator = sslValidator;
+    }
+
+    /**
+     * @deprecated Use TigValidation1Dot5_2024(QueryContext) or TigValidation1Dot5_2024(QueryContext, SSLValidator) instead
+     * TODO: Migrate tests to QueryContext-only constructor
+     */
+    @Deprecated
+    public TigValidation1Dot5_2024(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config, RDAPValidatorResults results, SSLValidator sslValidator) {
         super(results);
         this.rdapResponse = rdapResponse;
         this.config = config;

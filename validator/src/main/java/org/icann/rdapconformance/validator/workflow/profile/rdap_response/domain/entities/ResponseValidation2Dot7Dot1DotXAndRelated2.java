@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import java.util.Set;
 import org.everit.json.schema.ValidationException;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -42,10 +43,16 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
   private static final String ERROR_MESSAGE_52101 = "An entity without a remark titled \"REDACTED FOR PRIVACY\" " +
           "does not have all the necessary information of handle, fn, adr, tel, street and city.";
 
-  public ResponseValidation2Dot7Dot1DotXAndRelated2(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType,
-      RDAPValidatorConfiguration config) {
+  public ResponseValidation2Dot7Dot1DotXAndRelated2(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(), queryContext.getConfig());
+  }
+
+  /**
+   * @deprecated Use ResponseValidation2Dot7Dot1DotXAndRelated2(QueryContext) instead
+   * TODO: Migrate tests to QueryContext-only constructor
+   */
+  @Deprecated
+  public ResponseValidation2Dot7Dot1DotXAndRelated2(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config) {
     super(rdapResponse, results, queryType, config);
   }
 

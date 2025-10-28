@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -30,8 +31,18 @@ public final class TigValidation1Dot3 extends ProfileValidation {
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
 
-  public TigValidation1Dot3(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
-      RDAPValidatorResults results) {
+  public TigValidation1Dot3(QueryContext queryContext) {
+    super(queryContext.getResults());
+    this.rdapResponse = (HttpResponse<String>) queryContext.getQuery().getRawResponse();
+    this.config = queryContext.getConfig();
+  }
+
+  /**
+   * @deprecated Use TigValidation1Dot3(QueryContext) instead
+   * TODO: Migrate to QueryContext-only constructor
+   */
+  @Deprecated
+  public TigValidation1Dot3(HttpResponse<String> rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
     super(results);
     this.rdapResponse = rdapResponse;
     this.config = config;
