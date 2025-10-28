@@ -548,7 +548,7 @@ public void setShowProgress(boolean showProgress) {
     RDAPHttpQueryTypeProcessor queryTypeProcessor = null;
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
       queryTypeProcessor = queryContext.getHttpQueryTypeProcessor();
-      if (!queryTypeProcessor.check(datasetService)) {
+      if (!queryTypeProcessor.check(datasetService, queryContext)) {
         logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
         return queryTypeProcessor.getErrorStatus().getCode();
       }

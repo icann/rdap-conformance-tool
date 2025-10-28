@@ -41,7 +41,7 @@ public class RDAPValidatorTest {
     doReturn(true).when(config).check();
     doReturn(URI.create("https://example.com")).when(config).getUri(); // Mock getUri to return a valid URI
     validator = new RDAPValidator(QueryContext.create(config, datasetService, query));
-    doReturn(true).when(processor).check(datasetService);
+    doReturn(true).when(processor).check(eq(datasetService), any(QueryContext.class));
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile("Test", null, null, null, null, false, false, false, false, false))
         .when(configParser).parse(any());
@@ -116,7 +116,7 @@ public class RDAPValidatorTest {
     // Provide URI for QueryContext creation
     doReturn(java.net.URI.create("https://example.com/domain/test.example")).when(config).getUri();
     doReturn(true).when(config).check();
-    doReturn(true).when(queryTypeProcessor).check(datasetService);
+    doReturn(true).when(queryTypeProcessor).check(eq(datasetService), any(QueryContext.class));
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile(
             "Test", null, null, null, null, false, false, false, false, false))

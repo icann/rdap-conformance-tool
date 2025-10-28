@@ -68,7 +68,7 @@ public class RDAPFileQueryTypeProcessorTest {
     public void testCheck_AlwaysReturnsTrue() {
         processor = new RDAPFileQueryTypeProcessor(mockConfig);
         
-        boolean result = processor.check(mockDatasetService);
+        boolean result = processor.check(mockDatasetService, null);
         
         assertThat(result).isTrue();
     }
@@ -77,7 +77,7 @@ public class RDAPFileQueryTypeProcessorTest {
     public void testCheck_WithNullDatasetService_ReturnsTrue() {
         processor = new RDAPFileQueryTypeProcessor(mockConfig);
         
-        boolean result = processor.check(null);
+        boolean result = processor.check(null, null);
         
         assertThat(result).isTrue();
     }

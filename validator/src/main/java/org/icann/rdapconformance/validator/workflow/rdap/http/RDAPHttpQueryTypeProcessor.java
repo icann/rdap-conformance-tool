@@ -23,8 +23,6 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQueryTypeProcessor.class);
 
-    // ThreadLocal QueryContext for backward compatibility
-    private static final ThreadLocal<QueryContext> currentQueryContext = new ThreadLocal<>();
 
     private RDAPValidatorConfiguration config;
     private ToolResult status = null;
@@ -39,19 +37,6 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         this.config = config;
     }
 
-    /**
-     * Set QueryContext for current thread.
-     */
-    public static void setCurrentQueryContext(QueryContext qctx) {
-        currentQueryContext.set(qctx);
-    }
-
-    /**
-     * Clear QueryContext for current thread.
-     */
-    public static void clearCurrentQueryContext() {
-        currentQueryContext.remove();
-    }
 
 
     // Method to set the configuration
@@ -76,7 +61,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
     }
 
     @Override
-    public boolean check(RDAPDatasetService datasetService) {
+    public boolean check(RDAPDatasetService datasetService, QueryContext queryContext) {
         // First determine query type if not already done
         if (queryType == null && !determineQueryType()) {
             return false;
@@ -95,9 +80,8 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             // Domain validation block - Re-enabled to capture input domain validation errors
             String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
 
-            // Store current results count to capture only domain validation errors
-            QueryContext qctx = currentQueryContext.get();
-            RDAPValidatorResults mainResults = qctx != null ? qctx.getResults() : null;
+            // Use the QueryContext parameter directly instead of ThreadLocal
+            RDAPValidatorResults mainResults = queryContext != null ? queryContext.getResults() : null;
             if (mainResults == null) {
                 logger.error("No QueryContext available for domain validation");
                 status = ToolResult.BAD_USER_INPUT;

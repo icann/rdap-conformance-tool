@@ -129,7 +129,7 @@ public class RdapConformanceToolTest {
     ConfigurationFile mockConfigFile = mock(ConfigurationFile.class);
 
     RDAPHttpQueryTypeProcessor mockProcessor = mock(RDAPHttpQueryTypeProcessor.class);
-    when(mockProcessor.check(any())).thenReturn(true);
+    when(mockProcessor.check(any(RDAPDatasetService.class), any(QueryContext.class))).thenReturn(true);
     when(mockProcessor.getQueryType()).thenReturn(RDAPQueryType.ENTITY);
 
     try (MockedStatic<CommonUtils> mockedCommonUtils = Mockito.mockStatic(CommonUtils.class);

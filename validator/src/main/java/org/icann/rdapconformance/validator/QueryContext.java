@@ -116,11 +116,8 @@ public class QueryContext {
         this.fileQueryTypeProcessor = new RDAPFileQueryTypeProcessor();
         this.networkInfo = new NetworkInfo();
 
-        // Set QueryContext in ThreadLocal for processors to access BEFORE determining query type
-        // This ensures that domain validation in check() method has access to QueryContext
-        org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor.setCurrentQueryContext(this);
 
-        // Determine query type after initializing processors and setting ThreadLocal
+        // Determine query type after initializing processors
         this.queryType = determineQueryType();
 
         // Set QueryContext reference on the query for network operations
