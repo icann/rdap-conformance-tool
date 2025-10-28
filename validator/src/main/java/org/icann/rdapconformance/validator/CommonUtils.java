@@ -259,24 +259,4 @@ public class CommonUtils {
         return configFile;
     }
 
-    /**
-     * Initialize and return a dataset service for the given configuration.
-     *
-     * @param config the RDAP validator configuration
-     * @return the initialized RDAPDatasetService
-     */
-    public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config) {
-        return new RDAPDatasetServiceImpl(new LocalFileSystem());
-    }
-
-    /**
-     * Initialize and return a dataset service for the given configuration with progress callback.
-     *
-     * @param config the RDAP validator configuration
-     * @param progressCallback optional progress callback for monitoring initialization
-     * @return the initialized RDAPDatasetService
-     */
-    public static RDAPDatasetService initializeDataSet(RDAPValidatorConfiguration config, ProgressCallback progressCallback) {
-        return new RDAPDatasetServiceImpl(new LocalFileSystem());
-    }
 }

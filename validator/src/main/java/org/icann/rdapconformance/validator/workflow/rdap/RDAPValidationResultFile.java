@@ -555,22 +555,4 @@ private void printCategoryExamples(String category, List<RDAPValidationResult> e
     }
 }
 
-    /**
-     * Reset the result file state.
-     * This method is provided for backward compatibility with test code.
-     */
-    public static void reset() {
-        // Implementation would clear internal state if needed
-        // For now, this is a no-op for backward compatibility
-    }
-
-    /**
-     * Get an instance of RDAPValidationResultFile.
-     * This method is provided for backward compatibility with test code.
-     *
-     * @return a new instance of RDAPValidationResultFile
-     */
-    public static RDAPValidationResultFile getInstance() {
-        return new RDAPValidationResultFile();
-    }
 }

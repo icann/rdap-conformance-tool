@@ -101,7 +101,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private FileSystem fileSystem = new LocalFileSystem();
 
   // QueryContext for managing all validation components in a thread-safe manner
-  private QueryContext queryContext;
+  QueryContext queryContext;
 
   @Option(names = {"-c", "--config"}, description = "Definition file", required = true)
   String configurationFile;
@@ -840,6 +840,9 @@ public void setShowProgress(boolean showProgress) {
       // Return empty list if QueryContext hasn't been created yet
       return new java.util.ArrayList<>();
     } catch (Exception e) {
+      // TODO: Remove this debug logging after fixing tests
+      System.err.println("Exception in getErrors(): " + e.getMessage());
+      e.printStackTrace();
       // Return empty list if validation hasn't run yet or failed
       return new java.util.ArrayList<>();
     }
@@ -1194,5 +1197,25 @@ public void setShowProgress(boolean showProgress) {
     }
 
     return false;
+  }
+
+  /**
+   * Package-private setter for QueryContext to support testing.
+   * This method allows tests to inject a mock QueryContext for testing purposes.
+   *
+   * @param queryContext the QueryContext to set
+   */
+  void setQueryContext(QueryContext queryContext) {
+    this.queryContext = queryContext;
+  }
+
+  /**
+   * Gets the QueryContext for this tool instance.
+   * This method is package-private for testing purposes.
+   *
+   * @return the QueryContext instance
+   */
+  QueryContext getQueryContext() {
+    return this.queryContext;
   }
 }

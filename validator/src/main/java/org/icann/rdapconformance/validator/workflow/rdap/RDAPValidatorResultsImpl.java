@@ -208,13 +208,4 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     results.removeAll(toRemove);
   }
 
-  /**
-   * Get an instance of RDAPValidatorResultsImpl.
-   * This method is provided for backward compatibility with test code.
-   *
-   * @return a new instance of RDAPValidatorResultsImpl
-   */
-  public static RDAPValidatorResultsImpl getInstance() {
-    return new RDAPValidatorResultsImpl();
-  }
 }
