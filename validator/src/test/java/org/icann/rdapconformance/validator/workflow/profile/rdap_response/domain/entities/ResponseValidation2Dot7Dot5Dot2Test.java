@@ -42,7 +42,6 @@ public class ResponseValidation2Dot7Dot5Dot2Test extends ResponseDomainValidatio
   }
 
 
-  @Override
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
@@ -50,7 +49,6 @@ public class ResponseValidation2Dot7Dot5Dot2Test extends ResponseDomainValidatio
     doReturn(true).when(config).isGtldRegistrar();
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
     return new ResponseValidation2Dot7Dot5Dot2(jsonObject.toString(), results, queryType, config);
   }

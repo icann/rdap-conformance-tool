@@ -11,7 +11,6 @@ public class ResponseValidation2Dot1Test extends QueryValidationTest {
         RDAPQueryType.DOMAIN);
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
     return new ResponseValidation2Dot1(queryContext);
   }

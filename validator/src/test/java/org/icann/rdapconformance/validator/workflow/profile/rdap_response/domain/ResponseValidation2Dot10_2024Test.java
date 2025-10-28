@@ -45,7 +45,6 @@ public class ResponseValidation2Dot10_2024Test extends ProfileJsonValidationTest
         doReturn(uri).when(queryContext.getConfig()).getUri();
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         return new ResponseValidation2Dot10_2024(queryContext);
     }

@@ -15,9 +15,8 @@ public class TigValidation4Dot1Test extends ProfileJsonValidationTestBase {
         "tigSection_4_1_Validation");
   }
 
-  @Override
   public ProfileJsonValidation getProfileValidation() {
-    return new TigValidation4Dot1(jsonObject.toString(), results);
+    return new TigValidation4Dot1(jsonObject.toString(), results, queryContext);
   }
 
   /**

@@ -13,13 +13,11 @@ public class ResponseValidation2Dot2Test extends HandleValidationTest<ResponseVa
         RDAPQueryType.DOMAIN, ResponseValidation2Dot2.class, "domain");
   }
 
-  @Override
   protected String givenInvalidHandle() {
     replaceValue("handle", "ABCD");
     return "#/handle:ABCD";
   }
 
-  @Override
   protected String getValidValueWithRoidExmp() {
     return "#/handle:2138514_DOMAIN_COM-EXMP";
   }

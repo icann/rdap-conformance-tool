@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.util.List;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -44,9 +45,11 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
     queryType = this.baseQueryType;
     doReturn(eppRoid).when(datasetService).get(EPPRoid.class);
     doReturn(false).when(eppRoid).isInvalid("EXMP");
+
+    // Re-initialize queryContext with the custom mocked datasetService
+    queryContext = QueryContext.forTesting(rdapContent, results, config, datasetService);
   }
 
-  @Override
   public HandleValidation getProfileValidation() {
     try {
       // Try QueryContext constructor first (modern pattern)

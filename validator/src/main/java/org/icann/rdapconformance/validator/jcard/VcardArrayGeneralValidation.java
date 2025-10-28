@@ -11,10 +11,6 @@ public class VcardArrayGeneralValidation extends RDAPProfileVcardArrayValidation
 
   private final QueryContext queryContext;
 
-  public VcardArrayGeneralValidation(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
-    this.queryContext = null;
-  }
 
   public VcardArrayGeneralValidation(String rdapResponse, RDAPValidatorResults results,
       QueryContext queryContext) {

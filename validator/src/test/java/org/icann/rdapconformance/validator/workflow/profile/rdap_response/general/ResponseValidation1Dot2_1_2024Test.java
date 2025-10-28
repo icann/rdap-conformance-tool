@@ -11,13 +11,11 @@ public class ResponseValidation1Dot2_1_2024Test extends RDAPConformanceValidatio
         super("rdapResponseProfile_1_2_Validation");
     }
 
-    @Override
     public void testValidate_ok() {
         jsonObject.put("rdapConformance", List.of("rdap_level_0", "icann_rdap_technical_implementation_guide_1", "icann_rdap_response_profile_1"));
         validate();
     }
 
-    @Override
     public RDAPConformanceValidation getProfileValidation() {
         return new ResponseValidation1Dot2_1_2024(queryContext);
     }

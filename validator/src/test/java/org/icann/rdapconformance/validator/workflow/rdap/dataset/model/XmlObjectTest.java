@@ -20,7 +20,6 @@ public class XmlObjectTest {
 
     // Concrete test implementation of XmlObject
     private static class TestXmlObject extends XmlObject {
-        @Override
         public void parse(InputStream inputStream) throws Throwable {
             super.parse(inputStream);
         }

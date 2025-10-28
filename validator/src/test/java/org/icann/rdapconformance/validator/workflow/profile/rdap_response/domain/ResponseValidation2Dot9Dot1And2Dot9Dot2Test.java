@@ -55,13 +55,11 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
         "A nameserver object without ldhName was found.");
   }
 
-  @Override
   protected String givenInvalidHandle() {
     replaceValue("$['nameservers'][0]['handle']", "ABCD");
     return "#/nameservers/0/handle:ABCD";
   }
 
-  @Override
   protected String getValidValueWithRoidExmp() {
     return "#/nameservers/0/handle:2138514_NS1_DOMAIN_COM-EXMP";
   }

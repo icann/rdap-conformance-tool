@@ -58,7 +58,7 @@ public final class TigValidation1Dot6 extends ProfileValidation {
             .value(rdapResponseStatusCode + "\n/\n" + httpResponse.statusCode())
             .message("The HTTP Status code obtained when using the HEAD method is different from "
                 + "the GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.")
-            .build());
+            .build(queryContext));
         return false;
       }
     } catch (Exception e) {

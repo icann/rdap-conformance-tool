@@ -13,7 +13,6 @@ public class StdRdapConformanceValidation_2024Test  extends ProfileJsonValidatio
         super("/validators/domain/valid.json", "stdRdapConformanceValidation");
     }
 
-    @Override
     public ProfileJsonValidation getProfileValidation() {
         return new StdRdapConformanceValidation_2024(queryContext);
     }

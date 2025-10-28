@@ -37,7 +37,6 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
         when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         return new ResponseValidationRegistrantEmail_2024(queryContext);
     }

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -23,7 +24,6 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
 
   private RDAPValidatorResults results;
 
-  @Override
   @BeforeMethod
   public void setUp() {
     super.setUp();
@@ -32,11 +32,12 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
     results = mock(RDAPValidatorResults.class);
+    // Override queryContext to use our mock results
+    queryContext = QueryContext.forTesting("{}", results, config);
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new TigValidation1Dot6(200, config, results);
+    return new TigValidation1Dot6(200, queryContext);
   }
 
   @Test
@@ -78,7 +79,7 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
 
     // When GET returns 400 and HEAD also returns 400, TigValidation1Dot6 should handle it gracefully
     // This test verifies that TigValidation1Dot6 doesn't add an error when both GET and HEAD return the same 4xx status
-    TigValidation1Dot6 validation = new TigValidation1Dot6(400, config, results);
+    TigValidation1Dot6 validation = new TigValidation1Dot6(400, queryContext);
     assertThat(validation.validate()).isTrue();
   }
 
@@ -92,7 +93,7 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
               .withStatus(200)));
 
       // When GET returns 400 but HEAD returns 200, this indicates a server implementation issue
-      TigValidation1Dot6 validation = new TigValidation1Dot6(400, config, results);
+      TigValidation1Dot6 validation = new TigValidation1Dot6(400, queryContext);
       assertThat(validation.validate()).isFalse();
       
       // Should record the error -20300

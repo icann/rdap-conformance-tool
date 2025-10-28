@@ -60,7 +60,6 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
         super.setUp();
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         return new ResponseValidation2Dot7Dot4Dot9_2024(queryContext);
@@ -425,7 +424,6 @@ public class ResponseValidation2Dot7Dot4Dot9_2024Test extends ProfileJsonValidat
         JSONObject obj = redacted.getJSONObject(0);
         // Replace 'name' with an object that throws on get("type")
         obj.put("name", new JSONObject() {
-            @Override
             public Object get(String key) {
                 throw new RuntimeException("forced exception");
             }

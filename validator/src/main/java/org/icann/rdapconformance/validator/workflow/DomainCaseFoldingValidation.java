@@ -36,18 +36,6 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
   private final RDAPQueryType queryType;
   private final QueryContext queryContext;
 
-  public DomainCaseFoldingValidation(HttpResponse<String> rdapResponse,
-      RDAPValidatorConfiguration config,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType) {
-    super(results);
-    this.rdapResponse = rdapResponse;
-    this.config = config;
-    this.queryType = queryType;
-    this.queryContext = null; // Legacy constructor for backward compatibility
-    String path = this.rdapResponse.uri().getPath();
-    domainName = path.substring(path.lastIndexOf(SLASH) + ONE);
-  }
 
   public DomainCaseFoldingValidation(HttpResponse<String> rdapResponse,
       QueryContext queryContext,

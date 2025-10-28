@@ -33,14 +33,6 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
     // Excluded registrar IDs
     private static final String[] EXCLUDED_REGISTRAR_IDS = {"9994", "9995", "9996", "9997", "9998", "9999"};
 
-    public TigValidation3Dot2_2024(String rdapResponse, RDAPValidatorResults results,
-        RDAPValidatorConfiguration config,
-        RDAPQueryType queryType) {
-        super(rdapResponse, results);
-        this.config = config;
-        this.queryType = queryType;
-        this.queryContext = null; // For legacy compatibility
-    }
 
     public TigValidation3Dot2_2024(String rdapResponse, RDAPValidatorResults results,
         RDAPValidatorConfiguration config,

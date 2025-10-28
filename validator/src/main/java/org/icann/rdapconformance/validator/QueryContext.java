@@ -106,8 +106,13 @@ public class QueryContext {
         this.connectionTracker = new ConnectionTracker();
         this.resultFile = new RDAPValidationResultFile();
         this.dnsResolver = new DNSCacheResolver(customDnsServer);
-        // Initialize DNS cache once at startup with the target URL
-        this.dnsResolver.initFromUrl(config.getUri().toString());
+        // Initialize DNS cache once at startup with the target URL (skip for test URIs to improve performance)
+        if (config.getUri() != null) {
+            String uriString = config.getUri().toString();
+            if (!uriString.contains("example.com")) {
+                this.dnsResolver.initFromUrl(uriString);
+            }
+        }
         this.httpClientManager = new HttpClientManager();
         this.httpQueryTypeProcessor = new RDAPHttpQueryTypeProcessor();
         this.fileQueryTypeProcessor = new RDAPFileQueryTypeProcessor();
@@ -152,9 +157,11 @@ public class QueryContext {
         this.resultFile = new RDAPValidationResultFile();
         this.dnsResolver = new DNSCacheResolver();
         // Initialize DNS cache once at startup with the target URL (skip for test URIs to improve performance)
-        String uriString = config.getUri().toString();
-        if (!uriString.contains("example.com")) {
-            this.dnsResolver.initFromUrl(uriString);
+        if (config.getUri() != null) {
+            String uriString = config.getUri().toString();
+            if (!uriString.contains("example.com")) {
+                this.dnsResolver.initFromUrl(uriString);
+            }
         }
         this.httpClientManager = new HttpClientManager();
         this.httpQueryTypeProcessor = new RDAPHttpQueryTypeProcessor();
@@ -196,9 +203,11 @@ public class QueryContext {
         this.resultFile = new RDAPValidationResultFile();
         this.dnsResolver = new DNSCacheResolver();
         // Initialize DNS cache once at startup with the target URL (skip for test URIs to improve performance)
-        String uriString = config.getUri().toString();
-        if (!uriString.contains("example.com")) {
-            this.dnsResolver.initFromUrl(uriString);
+        if (config.getUri() != null) {
+            String uriString = config.getUri().toString();
+            if (!uriString.contains("example.com")) {
+                this.dnsResolver.initFromUrl(uriString);
+            }
         }
         this.httpClientManager = new HttpClientManager();
         this.httpQueryTypeProcessor = new RDAPHttpQueryTypeProcessor();

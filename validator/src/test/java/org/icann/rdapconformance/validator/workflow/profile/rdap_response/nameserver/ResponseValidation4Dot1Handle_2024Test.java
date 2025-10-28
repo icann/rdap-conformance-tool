@@ -12,7 +12,6 @@ public class ResponseValidation4Dot1Handle_2024Test extends ProfileJsonValidatio
         super("/validators/nameserver/valid.json", "rdapResponseProfile_4_1_Validation");
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         QueryContext nameserverContext = new QueryContext(
             queryContext.getQueryId(),

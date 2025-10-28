@@ -54,21 +54,10 @@ public class ConnectionTrackerTest {
 
         // Use class field config
         // Use class field configFile
-        RDAPValidationResultFile resultFile = mock(RDAPValidationResultFile.class);
-
         when(config.useRdapProfileFeb2024()).thenReturn(true);
+        when(config.isGtldRegistrar()).thenReturn(false);  // Override setup to ensure isGtldRegistry() is called
         when(config.isGtldRegistry()).thenReturn(true);
         when(config.getUri()).thenReturn(URI.create("http://example.com/domain/example.com"));
-        when(resultFile.getErrorCount()).thenReturn(0);
-
-        // Use reflection to set the mock in singleton instance
-        try {
-            Field instanceField = RDAPValidationResultFile.class.getDeclaredField("instance");
-            instanceField.setAccessible(true);
-            instanceField.set(null, resultFile);
-        } catch (Exception e) {
-            fail("Failed to set mock RDAPValidationResultFile: " + e.getMessage());
-        }
 
         // Add a main connection with 404 status
         connectionTracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);

@@ -28,7 +28,6 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
         doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
     }
 
-    @Override
     protected String givenInvalidHandle() {
         // Change the existing registrar entity to have "billing" role and invalid handle
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
@@ -36,7 +35,6 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
         return "#/entities/0/handle:ABCD";
     }
 
-    @Override
     protected String getValidValueWithRoidExmp() {
         // Change the existing registrar entity to have "billing" role and valid handle  
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));

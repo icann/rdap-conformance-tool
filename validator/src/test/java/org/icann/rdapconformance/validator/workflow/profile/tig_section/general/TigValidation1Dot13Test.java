@@ -19,7 +19,6 @@ public class TigValidation1Dot13Test extends ProfileValidationTestBase {
 
   private HttpResponse<String> httpResponse;
 
-  @Override
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
@@ -29,7 +28,6 @@ public class TigValidation1Dot13Test extends ProfileValidationTestBase {
         .when(httpResponse).headers();
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
     return new TigValidation1Dot13(httpResponse, results);
   }

@@ -31,7 +31,6 @@ public class TigValidation3Dot3And3Dot4_2024Test extends ProfileJsonValidationTe
         doReturn(uri).when(config).getUri();
     }
 
-    @Override
     public ProfileJsonValidation getProfileValidation() {
         return new TigValidation3Dot3And3Dot4_2024(
             jsonObject.toString(),

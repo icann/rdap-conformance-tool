@@ -77,7 +77,6 @@ public class MultiCertHttpsTestServer {
             this.certName = certName;
         }
 
-        @Override
         public void handle(HttpExchange exchange) throws IOException {
             String response = "Served by cert: " + certName;
             exchange.sendResponseHeaders(HTTP_OK, response.length());

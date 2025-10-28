@@ -33,7 +33,6 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
     this.testGroupName = testGroupName;
   }
 
-  @Override
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
@@ -46,7 +45,6 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
     queryContext = QueryContext.forTesting(rdapContent, results, config, datasets);
   }
 
-  @Override
   protected void updateQueryContextJsonData() {
     // Update QueryContext with current modified JSON data
     if (queryContext != null && jsonObject != null) {

@@ -45,7 +45,6 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
         doReturn(false).when(queryContext.getConfig()).isThin();
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         return new ResponseValidationRegistrantHandle_2024(queryContext);
     }

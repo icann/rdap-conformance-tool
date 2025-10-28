@@ -173,7 +173,7 @@ public class SchemaValidator {
       }
 
       if (content.contains("\"notices\"")) {
-        new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode).validate();
+        new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode, queryContext).validate();
       }
     } catch (Exception e) {
       logger.debug("Exception during schema validation. This is likely caused by a schema deeply "
@@ -203,7 +203,7 @@ public class SchemaValidator {
                 .code(errorCode)
                 .value(jsonPointer + "/" + i + "/eventAction:" + eventAction)
                 .message("An eventAction value exists more than once within the events array.")
-                .build());
+                .build(queryContext));
             // and add also corresponding group test validation error:
             ExceptionParser
                 .validateGroupTest(jsonPointer + "/" + i + "/eventAction", jsonObject, results,

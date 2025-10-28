@@ -26,7 +26,6 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import org.icann.rdapconformance.validator.CommonUtils;
-import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.QueryContext;
@@ -95,9 +94,6 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private static final int OPERATIONS_PER_DATASET = 2;  // download + parse
   private static final int DATASET_TOTAL_STEPS = DATASETS_COUNT * OPERATIONS_PER_DATASET;
   private static final int ESTIMATED_VALIDATIONS_PER_ROUND = 75;
-  private static final long THREAD_JOIN_TIMEOUT_MS = 1000;  // 1 second
-  private static final long MAX_DATASET_WAIT_TIME_MS = 45000;  // 45 seconds
-  private static final long MIN_STEP_DELAY_MS = 200;  // 200ms minimum per step
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
@@ -561,10 +557,6 @@ public void setShowProgress(boolean showProgress) {
       
       // Start network validation phase
       updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
-
-      // Check if parallel IP version execution is enabled
-      // Execute IPv4 and IPv6 validations sequentially
-      logger.info("Executing IPv4 and IPv6 validations sequentially");
         
         // do v6
         logger.debug("IPv6 check: executeIPv6Queries={}, hasV6Addresses={}", executeIPv6Queries, queryContext.getDnsResolver().hasV6Addresses(uri.toString()));
@@ -572,13 +564,11 @@ public void setShowProgress(boolean showProgress) {
           logger.debug("Starting IPv6 validations...");
           updateProgressPhase("IPv6-JSON");
 
-          // Use QueryContext's NetworkInfo instead of singleton
           if (validator instanceof RDAPValidator) {
               RDAPValidator rdapValidator = (RDAPValidator) validator;
               rdapValidator.getQueryContext().setStackToV6();
               rdapValidator.getQueryContext().setAcceptHeaderToApplicationJson();
           }
-          // Note: NetworkInfo static calls removed - bridge pattern will delegate to QueryContext
 
           logger.debug("About to run IPv6-JSON validation");
           int v6ret = validator.validate();
@@ -588,12 +578,10 @@ public void setShowProgress(boolean showProgress) {
           // set the header to RDAP+JSON and redo the validations
           updateProgressPhase("IPv6-RDAP+JSON");
 
-          // Use QueryContext's NetworkInfo instead of singleton
           if (validator instanceof RDAPValidator) {
               RDAPValidator rdapValidator = (RDAPValidator) validator;
               rdapValidator.getQueryContext().setAcceptHeaderToApplicationRdapJson();
           }
-          // Note: NetworkInfo static calls removed - bridge pattern will delegate to QueryContext
 
           logger.debug("About to run IPv6-RDAP+JSON validation");
           int v6ret2 = validator.validate();
@@ -608,13 +596,11 @@ public void setShowProgress(boolean showProgress) {
         if(executeIPv4Queries && queryContext.getDnsResolver().hasV4Addresses(uri.toString())) {
           updateProgressPhase("IPv4-JSON");
 
-          // Use QueryContext's NetworkInfo instead of singleton
           if (validator instanceof RDAPValidator) {
               RDAPValidator rdapValidator = (RDAPValidator) validator;
               rdapValidator.getQueryContext().setStackToV4();
               rdapValidator.getQueryContext().setAcceptHeaderToApplicationJson();
           }
-          // Note: NetworkInfo static calls removed - bridge pattern will delegate to QueryContext
 
           int v4ret = validator.validate();
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
@@ -622,12 +608,10 @@ public void setShowProgress(boolean showProgress) {
           // set the header to RDAP+JSON and redo the validations
           updateProgressPhase("IPv4-RDAP+JSON");
 
-          // Use QueryContext's NetworkInfo instead of singleton
           if (validator instanceof RDAPValidator) {
               RDAPValidator rdapValidator = (RDAPValidator) validator;
               rdapValidator.getQueryContext().setAcceptHeaderToApplicationRdapJson();
           }
-          // Note: NetworkInfo static calls removed - bridge pattern will delegate to QueryContext
 
           int v4ret2 = validator.validate();
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
@@ -639,7 +623,6 @@ public void setShowProgress(boolean showProgress) {
 
 
       // Removing extra errors to avoid discrepancies between profiles when 404 status code is returned
-      // Use QueryContext's ConnectionTracker instead of singleton
       boolean isResourceNotFound = false;
       if (validator instanceof RDAPValidator) {
           RDAPValidator rdapValidator = (RDAPValidator) validator;
@@ -675,7 +658,6 @@ public void setShowProgress(boolean showProgress) {
 
 
       // Having network issues? You WILL need this.
-      // Use QueryContext's ConnectionTracker instead of singleton
       if (validator instanceof RDAPValidator) {
           RDAPValidator rdapValidator = (RDAPValidator) validator;
           logger.debug("ConnectionTracking: " + rdapValidator.getQueryContext().getConnectionTracker().toString());

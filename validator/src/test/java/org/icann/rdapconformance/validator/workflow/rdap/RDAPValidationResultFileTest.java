@@ -57,7 +57,11 @@ public class RDAPValidationResultFileTest {
         configurationFile = mock(ConfigurationFile.class);
         fileSystem = mock(FileSystem.class);
 
-        queryContext = QueryContext.forTesting(config);
+        // Create dataset service first, then QueryContext with it
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasets =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasets.download(true);
+        queryContext = QueryContext.forTesting(config, datasets);
         results = queryContext.getResults();
         results.clear();
         results.addGroups(Set.of("firstGroup"));
@@ -87,6 +91,8 @@ public class RDAPValidationResultFileTest {
 
   @Test
   public void testGtldRegistrar() throws IOException {
+    // Override setup to test false case
+    when(config.isGtldRegistrar()).thenReturn(false);
     file.build();
     verify(fileSystem).write(any(), contains("\"gtldRegistrar\": false"));
   }
@@ -331,7 +337,12 @@ public void testAllCodesThatShouldBeIgnored() {
         // Create QueryContext for proper status code handling
         // Use class field: config
         when(config.isGtldRegistrar()).thenReturn(true);
-        QueryContext queryContext = QueryContext.forTesting(config);
+
+        // Create dataset service for QueryContext
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasetService.download(true);
+        QueryContext queryContext = QueryContext.forTesting(config, datasetService);
 
         // Mock ConnectionTracker through QueryContext
         ConnectionTracker mockTracker = mock(ConnectionTracker.class);
@@ -367,7 +378,12 @@ public void testAllCodesThatShouldBeIgnored() {
         // Create QueryContext for proper status code handling
         // Use class field: config
         when(config.isGtldRegistrar()).thenReturn(true);
-        QueryContext queryContext = QueryContext.forTesting(config);
+
+        // Create dataset service for QueryContext
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasetService.download(true);
+        QueryContext queryContext = QueryContext.forTesting(config, datasetService);
 
         // Mock ConnectionTracker through QueryContext
         ConnectionTracker mockTracker = mock(ConnectionTracker.class);
@@ -984,7 +1000,12 @@ public void testCreateResultsMap() {
         // Create QueryContext for proper status code handling
         // Use class field: config
         when(config.isGtldRegistrar()).thenReturn(true);
-        QueryContext queryContext = QueryContext.forTesting(config);
+
+        // Create dataset service for QueryContext
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasetService.download(true);
+        QueryContext queryContext = QueryContext.forTesting(config, datasetService);
 
         // Add results with null HTTP status codes to test null handling
         results.add(RDAPValidationResult.builder()

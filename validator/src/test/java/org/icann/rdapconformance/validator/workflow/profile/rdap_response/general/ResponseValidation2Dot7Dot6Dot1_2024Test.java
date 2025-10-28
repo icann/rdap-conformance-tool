@@ -16,7 +16,6 @@ public class ResponseValidation2Dot7Dot6Dot1_2024Test extends ProfileJsonValidat
             "rdapResponseProfile_2_7_6_1_Validation");
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         QueryContext generalContext = new QueryContext(
             queryContext.getQueryId(),

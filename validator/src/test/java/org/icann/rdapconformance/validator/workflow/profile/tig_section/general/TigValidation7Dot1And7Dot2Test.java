@@ -15,9 +15,8 @@ public class TigValidation7Dot1And7Dot2Test extends ProfileJsonValidationTestBas
         "tigSection_7_1_and_7_2_Validation");
   }
 
-  @Override
   public ProfileJsonValidation getProfileValidation() {
-    return new TigValidation7Dot1And7Dot2(jsonObject.toString(), results);
+    return new TigValidation7Dot1And7Dot2(jsonObject.toString(), results, queryContext);
   }
 
   /**

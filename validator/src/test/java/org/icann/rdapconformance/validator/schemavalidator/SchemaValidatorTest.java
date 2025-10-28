@@ -102,6 +102,10 @@ public abstract class SchemaValidatorTest {
             .code(errorCode)
             .value(value)
             .message(msg)
+            .acceptHeader("application/json")
+            .httpMethod("GET")
+            .serverIpAddress("-")
+            .httpStatusCode(0)
             .build(queryContext));
   }
 
@@ -173,7 +177,11 @@ public abstract class SchemaValidatorTest {
             .value(value)
             .message("The value for the JSON name value does not pass "
                 + key + " validation [" + validationName + "].")
-            .build(queryContext)
+            .acceptHeader("application/json")
+            .httpMethod("GET")
+            .serverIpAddress("-")
+            .httpStatusCode(0)
+            .build()
     );
     assertThat(results.getGroupErrorWarning()).contains(validationName);
   }

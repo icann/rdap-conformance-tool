@@ -12,10 +12,6 @@ public class TigValidation4Dot1 extends RDAPProfileVcardArrayValidation {
 
   private final QueryContext queryContext;
 
-  public TigValidation4Dot1(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
-    this.queryContext = null;
-  }
 
   public TigValidation4Dot1(String rdapResponse, RDAPValidatorResults results,
       QueryContext queryContext) {

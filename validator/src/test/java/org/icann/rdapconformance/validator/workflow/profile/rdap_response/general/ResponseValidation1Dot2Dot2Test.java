@@ -11,7 +11,6 @@ public class ResponseValidation1Dot2Dot2Test extends ProfileJsonValidationTestBa
     super("/validators/domain/valid.json", "rdapResponseProfile_1_2_2_Validation");
   }
 
-  @Override
   public ProfileJsonValidation getProfileValidation() {
     return new ResponseValidation1Dot2Dot2(queryContext);
   }

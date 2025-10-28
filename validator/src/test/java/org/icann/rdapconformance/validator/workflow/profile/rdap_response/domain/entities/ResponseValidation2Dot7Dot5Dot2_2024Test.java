@@ -12,7 +12,6 @@ public class ResponseValidation2Dot7Dot5Dot2_2024Test extends ProfileJsonValidat
             "rdapResponseProfile_2_7_5_2_Validation");
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         return new ResponseValidation2Dot7Dot5Dot2_2024(queryContext);
     }

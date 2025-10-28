@@ -12,12 +12,10 @@ public class TigValidation1Dot3_2024Test extends RDAPConformanceValidationTest {
         super("tigSection_1_3_Validation");
     }
 
-    @Override
     public RDAPConformanceValidation getProfileValidation() {
         return new TigValidation1Dot3_2024(queryContext);
     }
 
-    @Override
     public void testValidate_ok() {
         jsonObject.put("rdapConformance", List.of("rdap_level_0", "icann_rdap_technical_implementation_guide_1","icann_rdap_response_profile_0"));
         validate();

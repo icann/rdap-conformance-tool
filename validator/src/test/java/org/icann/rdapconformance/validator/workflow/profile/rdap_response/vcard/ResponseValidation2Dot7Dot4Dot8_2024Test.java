@@ -34,7 +34,6 @@ public class ResponseValidation2Dot7Dot4Dot8_2024Test extends ProfileJsonValidat
         super.setUp();
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         return new ResponseValidation2Dot7Dot4Dot8_2024(queryContext);
     }

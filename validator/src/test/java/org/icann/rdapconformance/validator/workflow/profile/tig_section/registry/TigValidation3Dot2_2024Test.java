@@ -48,9 +48,8 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         doReturn(registrarId).when(datasetService).get(RegistrarId.class);
     }
 
-    @Override
     public ProfileJsonValidation getProfileValidation() {
-        return new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        return new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType, queryContext);
     }
 
 
@@ -83,7 +82,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(publicIds);
         jsonObject.put("entities", entities);
 
-        TigValidation3Dot2_2024 tigValidation3Dot2_2024 = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 tigValidation3Dot2_2024 = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType, queryContext);
         assertThat(tigValidation3Dot2_2024.isRegistrarId9999()).isTrue();
     }
 
@@ -103,7 +102,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(publicIds);
         jsonObject.put("entities", entities);
 
-        TigValidation3Dot2_2024 tigValidation3Dot2_2024 = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 tigValidation3Dot2_2024 = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType, queryContext);
         assertThat(tigValidation3Dot2_2024.isExcludedRegistrarId()).isTrue();
         assertThat(tigValidation3Dot2_2024.isRegistrarId9999()).isTrue(); // Backward compatibility
     }
@@ -319,7 +318,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
     @Test
     public void testIsExcludedRegistrarId_NoEntities_ReturnsFalse() {
         // Test case: no entities field at all
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType, queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 
@@ -333,7 +332,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(entityWithoutPublicIds);
         jsonObject.put("entities", entities);
         
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType, queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 
@@ -347,7 +346,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(entity);
         jsonObject.put("entities", entities);
         
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType, queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 
@@ -367,7 +366,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(entity);
         jsonObject.put("entities", entities);
         
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType, queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 
@@ -391,7 +390,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(entityWithPublicIds);    // Second entity with non-excluded ID
         jsonObject.put("entities", entities);
         
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType, queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 
@@ -415,7 +414,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(entity);
         jsonObject.put("entities", entities);
         
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType, queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 }

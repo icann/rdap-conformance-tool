@@ -40,7 +40,6 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     doReturn(registrarId).when(datasetService).get(RegistrarId.class);
   }
 
-  @Override
   public ProfileJsonValidation getProfileValidation() {
     return new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
   }

@@ -97,8 +97,13 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
         rdapHttpQuery = new RDAPHttpQuery(config);
 
+        // Create dataset service for QueryContext
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasetService.download(true);
+
         // Create QueryContext for thread-safe operations
-        queryContext = QueryContext.forTesting(config);
+        queryContext = QueryContext.forTesting(config, datasetService);
         rdapHttpQuery.setQueryContext(queryContext);
     }
 
@@ -319,19 +324,24 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     @Test
     public void testIsBlindlyCopyingParams() {
         RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        URI originalUri = URI.create("http://example.com?param=value");
+        when(config.getUri()).thenReturn(originalUri);
+
         RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
 
+        // Create dataset service for QueryContext
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasetService.download(true);
+
         // Create QueryContext for thread-safe operations
-        QueryContext queryContext = QueryContext.forTesting(config);
+        QueryContext queryContext = QueryContext.forTesting(config, datasetService);
         rdapHttpQuery.setQueryContext(queryContext);
 
         RDAPValidatorResults results = queryContext.getResults();
         results.clear();
 
         HttpHeaders headers = mock(HttpHeaders.class);
-        URI originalUri = URI.create("http://example.com?param=value");
-
-        when(config.getUri()).thenReturn(originalUri);
         when(headers.firstValue(LOCATION)).thenReturn(Optional.of("http://example.com/redirected?param=value"));
 
         boolean result = rdapHttpQuery.isBlindlyCopyingParams(headers);
@@ -348,18 +358,23 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     @Test
     public void testIsBlindlyCopyingParams_NotCopied() {
         RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        URI originalUri = URI.create("http://example.com?param=value");
+        when(config.getUri()).thenReturn(originalUri);
+
         RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
 
+        // Create dataset service for QueryContext
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasetService.download(true);
+
         // Create QueryContext for thread-safe operations
-        QueryContext queryContext = QueryContext.forTesting(config);
+        QueryContext queryContext = QueryContext.forTesting(config, datasetService);
         rdapHttpQuery.setQueryContext(queryContext);
 
         RDAPValidatorResults results = queryContext.getResults();
         results.clear();
         HttpHeaders headers = mock(HttpHeaders.class);
-        URI originalUri = URI.create("http://example.com?param=value");
-
-        when(config.getUri()).thenReturn(originalUri);
         when(headers.firstValue(LOCATION)).thenReturn(Optional.of("http://example.com/redirected"));
 
         boolean result = rdapHttpQuery.isBlindlyCopyingParams(headers);
@@ -459,6 +474,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                            .thenReturn(response);
 
             RDAPHttpQuery query = new RDAPHttpQuery(config);
+            query.setQueryContext(queryContext);
             query.run();
 
             assertThat(results.getAll()).contains(RDAPValidationResult.builder()
@@ -902,12 +918,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         when(headers3.allValues("Content-Type")).thenReturn(List.of("application/rdap+JSON"));
 
         try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
-            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), uri1, config.getTimeout(), "GET", true))
-                        .thenReturn(response1);
-            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), uri2, config.getTimeout(), "GET", true))
-                        .thenReturn(response2);
-            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), uri3, config.getTimeout(), "GET", true))
-                        .thenReturn(response3);
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString(), anyBoolean()))
+                        .thenReturn(response1, response2, response3);
 
             rdapHttpQuery.run();
             List<URI> redirects = rdapHttpQuery.getRedirects();
@@ -928,7 +940,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             when(timeoutResponse.getConnectionStatusCode()).thenReturn(ConnectionStatus.CONNECTION_FAILED);
 
             mockedStatic.when(
-                            () -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), any(String.class), any(Boolean.class)))
+                            () -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString(), anyBoolean()))
                         .thenReturn(timeoutResponse);
 
             rdapHttpQuery.run();
@@ -949,7 +961,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             when(expiredCertResponse.getConnectionStatusCode()).thenReturn(ConnectionStatus.EXPIRED_CERTIFICATE);
 
             mockedStatic.when(
-                            () -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), any(String.class), any(Boolean.class)))
+                            () -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString(), anyBoolean()))
                         .thenReturn(expiredCertResponse);
 
             rdapHttpQuery.run();

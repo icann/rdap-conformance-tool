@@ -93,6 +93,15 @@ public abstract class QueryValidationTest extends
         .of(RDAPQueryType.HELP, RDAPQueryType.NAMESERVERS, RDAPQueryType.NAMESERVER,
             RDAPQueryType.ENTITY, RDAPQueryType.DOMAIN)) {
       queryType = queryTypeBeingTested;
+      // Update QueryContext with new query type for proper validation behavior
+      queryContext = new QueryContext(queryContext.getQueryId(),
+                                     queryContext.getConfig(),
+                                     queryContext.getDatasetService(),
+                                     queryContext.getQuery(),
+                                     queryContext.getResults(),
+                                     queryType);
+      queryContext.setRdapResponseData(rdapContent);
+
       if (queryType.equals(baseQueryType)) {
         assertThat(getProfileValidation().doLaunch()).isTrue();
       } else {

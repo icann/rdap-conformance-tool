@@ -14,7 +14,6 @@ public class EntityQueryTest extends ProfileJsonValidationTestBase {
                 "rdapResponseProfile_EntityQuery_Test");
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         // This won't be used in our specific tests
         QueryContext domainContext = new QueryContext(
@@ -29,7 +28,6 @@ public class EntityQueryTest extends ProfileJsonValidationTestBase {
         return new ResponseValidation2Dot2_1_2024(domainContext);
     }
 
-    @Override
     @Test
     public void testValidate_ok() {
         // Skip the automatic validation test since this test class is specifically

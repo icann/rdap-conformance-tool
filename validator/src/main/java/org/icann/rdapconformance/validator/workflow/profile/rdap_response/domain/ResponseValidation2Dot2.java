@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -8,6 +9,13 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public final class ResponseValidation2Dot2 extends HandleValidation {
 
+  // Modern QueryContext constructor
+  public ResponseValidation2Dot2(QueryContext queryContext) {
+    super(queryContext.getConfig(), queryContext.getRdapResponseData(), queryContext.getResults(),
+        queryContext.getDatasetService(), queryContext.getQueryType(), -46200, "domain");
+  }
+
+  // Legacy constructor for backward compatibility
   public ResponseValidation2Dot2(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
                                  RDAPDatasetService datasetService, RDAPQueryType queryType) {
 

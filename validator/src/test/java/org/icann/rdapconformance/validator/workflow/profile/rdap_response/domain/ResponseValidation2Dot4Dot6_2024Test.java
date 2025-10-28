@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -64,8 +65,44 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
         return new ResponseValidation2Dot4Dot6_2024(domainContext);
     }
 
-    @Test
     @Override
+    public void testDoLaunch() {
+        // Test doLaunch behavior by creating validation instances with different query types
+        // Domain validations should return true only when query type is DOMAIN
+
+        QueryContext helpContext = new QueryContext(queryContext.getQueryId(),
+            queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.HELP);
+        helpContext.setRdapResponseData(queryContext.getRdapResponseData());
+        assertThat(new ResponseValidation2Dot4Dot6_2024(helpContext).doLaunch()).isFalse();
+
+        QueryContext nameserversContext = new QueryContext(queryContext.getQueryId(),
+            queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.NAMESERVERS);
+        nameserversContext.setRdapResponseData(queryContext.getRdapResponseData());
+        assertThat(new ResponseValidation2Dot4Dot6_2024(nameserversContext).doLaunch()).isFalse();
+
+        QueryContext nameserverContext = new QueryContext(queryContext.getQueryId(),
+            queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.NAMESERVER);
+        nameserverContext.setRdapResponseData(queryContext.getRdapResponseData());
+        assertThat(new ResponseValidation2Dot4Dot6_2024(nameserverContext).doLaunch()).isFalse();
+
+        QueryContext entityContext = new QueryContext(queryContext.getQueryId(),
+            queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.ENTITY);
+        entityContext.setRdapResponseData(queryContext.getRdapResponseData());
+        assertThat(new ResponseValidation2Dot4Dot6_2024(entityContext).doLaunch()).isFalse();
+
+        QueryContext domainContext = new QueryContext(queryContext.getQueryId(),
+            queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.DOMAIN);
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        assertThat(new ResponseValidation2Dot4Dot6_2024(domainContext).doLaunch()).isTrue();
+    }
+
+
+    @Test
     public void testValidate_ok() {
         validate();
     }

@@ -16,7 +16,6 @@ public class SchemaValidatorEntitiesTest extends SchemaValidatorForArrayTest {
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     super.setUp();
     name = "entities";

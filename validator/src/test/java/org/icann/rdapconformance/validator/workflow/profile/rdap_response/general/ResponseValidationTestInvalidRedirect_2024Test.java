@@ -6,6 +6,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.mockito.ArgumentCaptor;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static org.mockito.Mockito.mockStatic;
@@ -28,6 +29,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
     private RDAPValidatorConfiguration config;
     private ResponseValidationTestInvalidRedirect_2024 validation;
     private QueryContext queryContext;
+    private MockedStatic<RDAPHttpRequest> mockRequest;
 
     @BeforeMethod
     public void setUp() {
@@ -40,7 +42,17 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         when(config.isGtldRegistrar()).thenReturn(true);
         when(config.isGtldRegistry()).thenReturn(true);
         when(config.useRdapProfileFeb2024()).thenReturn(true);
-        validation = new ResponseValidationTestInvalidRedirect_2024(config, results);
+        validation = new ResponseValidationTestInvalidRedirect_2024(queryContext);
+
+        // Create static mock once per test method
+        mockRequest = mockStatic(RDAPHttpRequest.class);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+        if (mockRequest != null) {
+            mockRequest.close();
+        }
     }
 
     @Test
@@ -51,8 +63,9 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         when(response.headers()).thenReturn(headers);
         when(headers.firstValue(LOCATION)).thenReturn(Optional.of("http://example.com/rdap/domain/test.invalid"));
 
-        MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
+        // Mock both method signatures since the code has two paths
         mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+        mockRequest.when(() -> RDAPHttpRequest.makeRequest(any(), any(), anyInt(), anyString())).thenReturn(response);
 
         assertThat(validation.doValidate()).isFalse();
 
@@ -61,8 +74,6 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
             result.getCode() == -13005 &&
                 result.getMessage().equals("Server responded with a redirect to itself for domain 'test.invalid'.")
         )).isTrue();
-
-        mockRequest.close();
     }
 
     @Test
@@ -70,13 +81,12 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         HttpResponse<String> response = mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(404);  // Change to 404 Not Found instead of 200 OK
 
-        MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
+        // Mock both method signatures since the code has two paths
         mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+        mockRequest.when(() -> RDAPHttpRequest.makeRequest(any(), any(), anyInt(), anyString())).thenReturn(response);
 
         assertThat(validation.doValidate()).isTrue();
         assertThat(results.getAll()).isEmpty();
-
-        mockRequest.close();
     }
 
     @Test
@@ -127,8 +137,9 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         // Mock the URI in the response to avoid NullPointerException
         when(response.uri()).thenReturn(URI.create("http://example.com/rdap/domain/test.invalid"));
 
-        MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
+        // Mock both method signatures since the code has two paths
         mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+        mockRequest.when(() -> RDAPHttpRequest.makeRequest(any(), any(), anyInt(), anyString())).thenReturn(response);
 
         assertThat(validation.doValidate()).isFalse();
 
@@ -136,8 +147,6 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
             result.getCode() == -13006 &&
                 result.getMessage().equals("Server responded with a 200 OK for 'test.invalid'.")
         )).isTrue();
-
-        mockRequest.close();
     }
 
     @Test
@@ -145,13 +154,12 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         HttpResponse<String> response = mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(404);
 
-        MockedStatic<RDAPHttpRequest> mockRequest = mockStatic(RDAPHttpRequest.class);
+        // Mock both method signatures since the code has two paths
         mockRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+        mockRequest.when(() -> RDAPHttpRequest.makeRequest(any(), any(), anyInt(), anyString())).thenReturn(response);
 
         assertThat(validation.doValidate()).isTrue();
         assertThat(results.getAll()).isEmpty();
-
-        mockRequest.close();
     }
 
     @Test

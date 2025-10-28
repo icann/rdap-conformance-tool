@@ -18,11 +18,6 @@ public final class TigValidation7Dot1And7Dot2 extends RDAPProfileVcardArrayValid
   private static final Set<String> AUTHORIZED_PHONE_TYPE = Set.of(VOICE_TYPE, FAX_TYPE);
   private final QueryContext queryContext;
 
-  public TigValidation7Dot1And7Dot2(String rdapResponse,
-      RDAPValidatorResults results) {
-    super(rdapResponse, results);
-    this.queryContext = null;
-  }
 
   public TigValidation7Dot1And7Dot2(String rdapResponse,
       RDAPValidatorResults results, QueryContext queryContext) {

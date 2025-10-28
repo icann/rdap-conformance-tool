@@ -94,6 +94,8 @@ public class RDAPValidatorTest {
     RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
 
+    // Provide URI for QueryContext creation but make config.check() fail
+    doReturn(java.net.URI.create("https://example.com/domain/test.example")).when(config).getUri();
     doReturn(false).when(config).check();
 
     assertThatThrownBy(() -> new RDAPValidator(QueryContext.create(config, datasetService, query)))
@@ -111,6 +113,8 @@ public class RDAPValidatorTest {
     RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
 
+    // Provide URI for QueryContext creation
+    doReturn(java.net.URI.create("https://example.com/domain/test.example")).when(config).getUri();
     doReturn(true).when(config).check();
     doReturn(true).when(queryTypeProcessor).check(datasetService);
     doReturn(true).when(datasetService).download(anyBoolean());

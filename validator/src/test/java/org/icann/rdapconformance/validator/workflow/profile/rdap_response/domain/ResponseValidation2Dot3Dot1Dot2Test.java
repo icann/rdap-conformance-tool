@@ -12,7 +12,6 @@ public class ResponseValidation2Dot3Dot1Dot2Test extends
     super("rdapResponseProfile_2_3_1_2_Validation", ResponseValidation2Dot3Dot1Dot2.class);
   }
 
-  @Override
   public void testDoLaunch() {
     queryType = RDAPQueryType.HELP;
     assertThat(getProfileValidation().doLaunch()).isFalse();

@@ -44,7 +44,6 @@ public class ResponseValidation2Dot7Dot6Dot2_2024Test extends ProfileJsonValidat
         super.setUp();
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         QueryContext generalContext = new QueryContext(
             queryContext.getQueryId(),

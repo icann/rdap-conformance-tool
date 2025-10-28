@@ -13,7 +13,6 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2_2024Test extends ProfileJso
         super("/validators/domain/valid.json", "rdapResponseProfile_2_9_1_and_2_9_2_Validation");
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         QueryContext domainContext = new QueryContext(
             queryContext.getQueryId(),

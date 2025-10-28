@@ -32,6 +32,9 @@ public class ResponseValidationDomainInvalid_2024Test {
     mockConfig = mock(RDAPValidatorConfiguration.class);
     results = mock(RDAPValidatorResults.class);
     responseValidator = new ResponseValidationDomainInvalid_2024(mockConfig, results);
+
+    // Initialize static mock for each test
+    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
   }
 
   @AfterMethod
@@ -58,7 +61,6 @@ public class ResponseValidationDomainInvalid_2024Test {
     when(mockResponse.body()).thenReturn("{\"rdapConformance\":[], \"errorCode\":404}");
     when(mockResponse.uri()).thenReturn(URI.create("http://example.com/domain/test.invalid"));
 
-    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
     mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
@@ -87,7 +89,6 @@ public class ResponseValidationDomainInvalid_2024Test {
     when(mockResponse.statusCode()).thenReturn(404);
     when(mockResponse.uri()).thenReturn(URI.create("http://example.com/domain/test.invalid"));
 
-    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
     mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
@@ -106,7 +107,6 @@ public class ResponseValidationDomainInvalid_2024Test {
     when(response.body()).thenReturn("{\"rdapConformance\":[]}");
     when(response.uri()).thenReturn(URI.create("http://example.com/domain/test.invalid"));
 
-    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
     mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
 
     assertThat(responseValidator.doValidate()).isFalse();

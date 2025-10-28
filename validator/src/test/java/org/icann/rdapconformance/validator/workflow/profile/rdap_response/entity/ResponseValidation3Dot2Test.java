@@ -40,7 +40,6 @@ public class ResponseValidation3Dot2Test extends ProfileJsonValidationTestBase {
     doReturn(true).when(config).isGtldRegistry();
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
     return new ResponseValidation3Dot2(jsonObject.toString(), results, queryType, config);
   }

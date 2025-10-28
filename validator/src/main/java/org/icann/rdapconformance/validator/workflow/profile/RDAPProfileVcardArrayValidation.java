@@ -11,10 +11,6 @@ public abstract class RDAPProfileVcardArrayValidation extends ProfileJsonValidat
 
   private final QueryContext queryContext;
 
-  public RDAPProfileVcardArrayValidation(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
-    this.queryContext = null;
-  }
 
   public RDAPProfileVcardArrayValidation(String rdapResponse, RDAPValidatorResults results,
       QueryContext queryContext) {

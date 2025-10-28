@@ -23,7 +23,6 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
   private final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
   private RDAPQueryType queryType;
 
-  @Override
   public ProfileValidation getProfileValidation() {
     return new TigValidation1Dot11Dot1(config, results, rdapDatasetService, queryType);
   }

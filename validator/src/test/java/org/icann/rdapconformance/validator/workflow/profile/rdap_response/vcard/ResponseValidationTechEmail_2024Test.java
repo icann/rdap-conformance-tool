@@ -35,7 +35,6 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
         when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         return new ResponseValidationTechEmail_2024(queryContext);
     }
@@ -560,7 +559,6 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
         // Mock getPointerFromJPath to return a malformed pointer
         QueryContext customContext = QueryContext.forTesting(validJson, results, queryContext.getConfig(), queryContext.getDatasetService());
         ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(customContext) {
-            @Override
             public Set<String> getPointerFromJPath(String jpath) {
                 // Return an invalid JSONPointer that will cause query() to throw
                 return Set.of("/entities[badIndex]/notvalid"); // Invalid JSONPointer syntax

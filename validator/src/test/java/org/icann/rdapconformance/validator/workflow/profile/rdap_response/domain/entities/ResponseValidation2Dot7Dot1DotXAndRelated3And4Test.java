@@ -11,14 +11,12 @@ import org.testng.annotations.Test;
 public class ResponseValidation2Dot7Dot1DotXAndRelated3And4Test extends
     ResponseValidation2Dot7Dot1DotXAndRelatedTest {
 
-  @Override
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
     replaceValue("['entities'][0]['handle']", "2138514_DOMAIN_COM-EXMP");
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
     SimpleHandleValidation simpleHandleValidation = new SimpleHandleValidation(config,
         jsonObject.toString(),

@@ -10,7 +10,9 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 
 public class ResponseValidation2Dot7Dot2_2024Test extends ProfileJsonValidationTestBase {
@@ -46,7 +48,6 @@ public class ResponseValidation2Dot7Dot2_2024Test extends ProfileJsonValidationT
         when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
         QueryContext domainContext = new QueryContext(
             queryContext.getQueryId(),
@@ -74,6 +75,9 @@ public class ResponseValidation2Dot7Dot2_2024Test extends ProfileJsonValidationT
     @Test
     public void testValidate_noRegistrar_NoErrorsAdded() {
         when(queryContext.getConfig().isGtldRegistrar()).thenReturn(false);
-        validate();
+        ProfileValidation validation = getProfileValidation();
+        assertThat(validation.validate()).isTrue();
+        // When doLaunch() returns false, no groups are added and no interactions occur
+        verifyNoMoreInteractions(results);
     }
 }

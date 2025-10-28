@@ -64,8 +64,13 @@ public class RDAPHttpQueryStatusCodeTest {
         doReturn(true).when(config).isGtldRegistrar();
         doReturn(URI.create("https://example.com/domain/test.example")).when(config).getUri();
 
+        // Create dataset service first, then QueryContext with it
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasets =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasets.download(true);
+
         // Create QueryContext for thread-safe operations
-        queryContext = QueryContext.forTesting(config);
+        queryContext = QueryContext.forTesting(config, datasets);
 
         // Clear any previous results
         queryContext.getResults().clear();

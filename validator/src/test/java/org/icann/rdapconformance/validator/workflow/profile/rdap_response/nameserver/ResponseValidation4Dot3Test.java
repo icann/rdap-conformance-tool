@@ -31,6 +31,42 @@ public class ResponseValidation4Dot3Test extends
     return new ResponseValidation4Dot3(nameserverContext);
   }
 
+  @Override
+  public void testDoLaunch() {
+    // Test doLaunch behavior by creating validation instances with different query types
+    // Nameserver validations should return true only when query type is NAMESERVER
+
+    QueryContext helpContext = new QueryContext(queryContext.getQueryId(),
+        queryContext.getConfig(), queryContext.getDatasetService(),
+        queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.HELP);
+    helpContext.setRdapResponseData(queryContext.getRdapResponseData());
+    assertThat(new ResponseValidation4Dot3(helpContext).doLaunch()).isFalse();
+
+    QueryContext nameserversContext = new QueryContext(queryContext.getQueryId(),
+        queryContext.getConfig(), queryContext.getDatasetService(),
+        queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.NAMESERVERS);
+    nameserversContext.setRdapResponseData(queryContext.getRdapResponseData());
+    assertThat(new ResponseValidation4Dot3(nameserversContext).doLaunch()).isFalse();
+
+    QueryContext domainContext = new QueryContext(queryContext.getQueryId(),
+        queryContext.getConfig(), queryContext.getDatasetService(),
+        queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.DOMAIN);
+    domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+    assertThat(new ResponseValidation4Dot3(domainContext).doLaunch()).isFalse();
+
+    QueryContext entityContext = new QueryContext(queryContext.getQueryId(),
+        queryContext.getConfig(), queryContext.getDatasetService(),
+        queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.ENTITY);
+    entityContext.setRdapResponseData(queryContext.getRdapResponseData());
+    assertThat(new ResponseValidation4Dot3(entityContext).doLaunch()).isFalse();
+
+    QueryContext nameserverContext = new QueryContext(queryContext.getQueryId(),
+        queryContext.getConfig(), queryContext.getDatasetService(),
+        queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.NAMESERVER);
+    nameserverContext.setRdapResponseData(queryContext.getRdapResponseData());
+    assertThat(new ResponseValidation4Dot3(nameserverContext).doLaunch()).isTrue();
+  }
+
   @Test
   public void testValidate_RegistrarEntityWithHandleNotApplicableWithPublicIds_AddResults49205() {
     replaceValue("$['entities'][0]['handle']", "not applicable");
@@ -45,6 +81,7 @@ public class ResponseValidation4Dot3Test extends
   @Test
   public void testDoLaunch_NoRegistrarEntity_IsFalse() {
     replaceValue("$['entities'][0]['roles'][0]", "registrant");
+    updateQueryContextJsonData(); // Update QueryContext with modified JSON data
     assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 }

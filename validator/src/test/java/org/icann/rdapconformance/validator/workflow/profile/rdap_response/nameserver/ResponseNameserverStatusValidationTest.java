@@ -43,7 +43,6 @@ public class ResponseNameserverStatusValidationTest extends ProfileJsonValidatio
     super.setUp();
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
     QueryContext nameserverContext = new QueryContext(
         queryContext.getQueryId(),

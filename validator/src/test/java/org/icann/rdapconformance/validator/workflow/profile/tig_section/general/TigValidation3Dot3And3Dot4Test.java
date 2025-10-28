@@ -13,7 +13,6 @@ public class TigValidation3Dot3And3Dot4Test extends ProfileJsonValidationTestBas
         "tigSection_3_3_and_3_4_Validation");
   }
 
-  @Override
   public ProfileJsonValidation getProfileValidation() {
     return new TigValidation3Dot3And3Dot4(
         jsonObject.toString(),

@@ -46,11 +46,7 @@ public class PrivateIpv4NameserverBugTest {
         // Create mock configuration for testing
         config = mock(RDAPValidatorConfiguration.class);
         when(config.isGtldRegistrar()).thenReturn(true);
-
-        // Create QueryContext for thread-safe operations
-        queryContext = QueryContext.forTesting(config);
-        results = queryContext.getResults();
-        results.clear();
+        when(config.getUri()).thenReturn(java.net.URI.create("https://example.com/domain/test.example"));
 
         // Use real datasets for integration testing
         datasets = new RDAPDatasetServiceImpl(new LocalFileSystem());
@@ -60,6 +56,11 @@ public class PrivateIpv4NameserverBugTest {
         if (!downloadSuccess) {
             throw new RuntimeException("Failed to download real datasets for integration testing");
         }
+
+        // Create QueryContext for thread-safe operations (after dataset download)
+        queryContext = QueryContext.forTesting(config, datasets);
+        results = queryContext.getResults();
+        results.clear();
 
         // Load the test JSON file that contains private IPv4 addresses in nameservers
         testJsonContent = SchemaValidatorTest.getResource("/validators/domain/private_ipv4_nameserver_bug.json");

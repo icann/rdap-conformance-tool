@@ -32,12 +32,6 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
     private final QueryContext queryContext;
     public static final String DOMAIN_TEST_INVALID_WITH_SLASH = "/domain/test.invalid"; // with the slash
 
-    public ResponseValidationTestInvalidRedirect_2024( RDAPValidatorConfiguration config,
-                                                      RDAPValidatorResults results) {
-        super(results);
-        this.config = config;
-        this.queryContext = null; // Legacy constructor for backward compatibility
-    }
 
     public ResponseValidationTestInvalidRedirect_2024(QueryContext queryContext) {
         super(queryContext.getResults());

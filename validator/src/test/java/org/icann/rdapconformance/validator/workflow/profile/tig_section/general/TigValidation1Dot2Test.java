@@ -41,7 +41,6 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
     queryContext.setCurrentHttpResponse(httpsResponse);
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
     return new TigValidation1Dot2(queryContext);
   }

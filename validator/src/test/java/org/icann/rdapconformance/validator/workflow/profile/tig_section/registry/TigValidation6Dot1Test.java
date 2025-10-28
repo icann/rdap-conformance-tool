@@ -13,7 +13,6 @@ public class TigValidation6Dot1Test extends RegistrarEntityPublicIdsValidationTe
     super("/validators/domain/valid.json", "tigSection_6_1_Validation", RDAPQueryType.DOMAIN);
   }
 
-  @Override
   public RegistrarEntityPublicIdsValidation getProfileValidation() {
     return new TigValidation6Dot1(jsonObject.toString(), results, queryType);
   }

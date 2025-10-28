@@ -19,14 +19,12 @@ public abstract class TopMostEventActionValidationTest<T extends TopMostEventAct
     this.validationClass = validationClass;
   }
 
-  @Override
   @BeforeMethod
   public void setUp() throws java.io.IOException {
     super.setUp();
     queryType = RDAPQueryType.DOMAIN;
   }
 
-  @Override
   public TopMostEventActionValidation getProfileValidation() {
     try {
       // Update QueryContext with current JSON data and query type before creating validation

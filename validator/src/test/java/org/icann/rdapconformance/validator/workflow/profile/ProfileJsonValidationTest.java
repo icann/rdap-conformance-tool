@@ -249,12 +249,10 @@ public class ProfileJsonValidationTest {
             super(rdapResponse, results);
         }
 
-        @Override
         public String getGroupName() {
             return "TestJsonValidation";
         }
 
-        @Override
         protected boolean doValidate() throws Exception {
             return true;
         }
