@@ -42,10 +42,7 @@ public class LocalFileSystem implements FileSystem {
 
   @Override
   public boolean exists(String filepath) {
-    if (filepath == null) {
-      throw new NullPointerException("filepath cannot be null");
-    }
-    if (filepath.trim().isEmpty()) {
+    if (filepath == null || filepath.trim().isEmpty()) {
       return false;
     }
     return new File(filepath).exists();
