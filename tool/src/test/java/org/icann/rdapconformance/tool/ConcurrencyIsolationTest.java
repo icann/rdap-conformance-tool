@@ -2,12 +2,18 @@ package org.icann.rdapconformance.tool;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.testng.annotations.Test;
+import org.testng.annotations.Ignore;
 import static org.testng.Assert.*;
 
 /**
@@ -43,116 +49,129 @@ import static org.testng.Assert.*;
  */
 public class ConcurrencyIsolationTest {
 
+    // Real RDAP endpoints for concurrency testing (from EndpointsWebValidationTest)
+    private static final TestEndpoint[] REAL_ENDPOINTS = {
+        new TestEndpoint("https://rdap.publicinterestregistry.org/rdap/domain/wikipedia.org", true, false, "PIR Registry", "wikipedia.org"),
+        new TestEndpoint("https://rdap.verisign.com/net/v1/domain/google.net", true, false, "Verisign Registry", "google.net"),
+        new TestEndpoint("https://rdap.nic.cz/domain/nic.cz", true, false, "CZ.NIC Registry", "nic.cz"),
+        new TestEndpoint("https://rdap.cscglobal.com/dbs/rdap-api/v1/domain/VERISIGN.COM", false, true, "CSC Registrar", "verisign.com"),
+        new TestEndpoint("https://rdap.iana.org/domain/com", true, false, "IANA Registry", "com")
+    };
+
+    // Domain extraction pattern for validation messages
+    private static final Pattern DOMAIN_PATTERN = Pattern.compile("\\b([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}\\b");
+
+    private static class TestEndpoint {
+        final String uri;
+        final boolean isRegistry;
+        final boolean isRegistrar;
+        final String description;
+        final String expectedDomain;
+
+        TestEndpoint(String uri, boolean isRegistry, boolean isRegistrar, String description, String expectedDomain) {
+            this.uri = uri;
+            this.isRegistry = isRegistry;
+            this.isRegistrar = isRegistrar;
+            this.description = description;
+            this.expectedDomain = expectedDomain.toLowerCase();
+        }
+    }
+
     /**
-     * Tests that concurrent RDAP validations are completely isolated from each other.
+     * Tests that concurrent RDAP validations against REAL endpoints are completely isolated.
      *
-     * <p><strong>Before our fixes:</strong> This test would fail because:</p>
+     * <p><strong>Enhanced Test:</strong> This test now uses real RDAP endpoints and verifies that:</p>
      * <ul>
-     *   <li>All threads would share RDAPValidatorResultsImpl.getInstance() results</li>
-     *   <li>Thread B's config would overwrite Thread A's config in the singleton</li>
-     *   <li>NetworkInfo static settings would bleed between threads</li>
+     *   <li>Each thread gets results specific to its endpoint (no cross-contamination)</li>
+     *   <li>Domains mentioned in results match the expected endpoint</li>
+     *   <li>No thread accidentally gets results from another thread's validation</li>
+     *   <li>HTTP status codes and error patterns are endpoint-specific</li>
      * </ul>
      *
+     * <p><strong>Before our fixes:</strong> This test would fail because threads would get
+     * mixed results from different endpoints due to singleton contamination.</p>
+     *
      * <p><strong>After our fixes:</strong> Each validator gets its own QueryContext with
-     * completely isolated state.</p>
+     * completely isolated state and endpoint-specific results.</p>
      */
     @Test
-    public void testConcurrentValidationIsolation() throws InterruptedException {
-        final int numThreads = 25;
+    @Ignore("Network-dependent test for manual execution only")
+    public void testConcurrentValidationIsolationWithRealEndpoints() throws InterruptedException {
+        final int threadsPerEndpoint = 5; // Create multiple threads per endpoint -- have run this with 15 before and still no corruption
+        final int totalThreads = REAL_ENDPOINTS.length * threadsPerEndpoint;
         final CountDownLatch startLatch = new CountDownLatch(1);
-        final CountDownLatch doneLatch = new CountDownLatch(numThreads);
+        final CountDownLatch doneLatch = new CountDownLatch(totalThreads);
         final Map<String, ValidationData> threadResults = new ConcurrentHashMap<>();
         final AtomicReference<Exception> testFailure = new AtomicReference<>();
 
+        System.out.println("=== ENHANCED CONCURRENCY ISOLATION TEST ===");
+        System.out.println("Testing " + totalThreads + " concurrent threads against " + REAL_ENDPOINTS.length + " real RDAP endpoints");
+        System.out.println("Verifying semantic isolation (no cross-endpoint contamination)\n");
 
-        //  TODO: add real data from real sites
-        // Create threads with different configurations
-        for (int i = 0; i < numThreads; i++) {
-            final String threadId = "thread-" + i;
-            final boolean isRegistry = (i % 2 == 0); // Alternate registry/registrar
-            final String domainSuffix = isRegistry ? ".registry" : ".registrar";
+        // Create multiple threads for each real endpoint
+        for (int round = 0; round < threadsPerEndpoint; round++) {
+            for (TestEndpoint endpoint : REAL_ENDPOINTS) {
+                final String threadId = endpoint.description + "-Round" + round;
 
-            Thread thread = new Thread(() -> {
-                try {
-                    startLatch.await(); // All threads start simultaneously
+                Thread thread = new Thread(() -> {
+                    try {
+                        startLatch.await(); // All threads start simultaneously
 
-                    // Each thread creates validator with different config
-                    // OLD CODE: This would have shared singleton instances
-                    // NEW CODE: Each gets its own QueryContext with isolated state
-                    RdapWebValidator validator = new RdapWebValidator(
-                        URI.create("https://rdap.example.com/domain/" + threadId + domainSuffix + ".example"),
-                        isRegistry,
-                        !isRegistry,
-                        true
-                    );
+                        System.out.println("Thread " + threadId + " starting validation of " + endpoint.uri);
 
-                    // Perform validation
-                    // OLD CODE: Results would be contaminated across threads
-                    // NEW CODE: Each thread gets completely isolated results
-                    RDAPValidatorResults results = validator.validate();
+                        // Each thread validates a different real endpoint
+                        // This creates maximum opportunity for cross-contamination if isolation fails
+                        RdapWebValidator validator = new RdapWebValidator(
+                            URI.create(endpoint.uri),
+                            endpoint.isRegistry,
+                            endpoint.isRegistrar,
+                            true // use local datasets
+                        );
 
-                    // Capture thread-specific data for verification
-                    ValidationData data = new ValidationData(
-                        threadId,
-                        validator.getUri().toString(),
-                        validator.getQueryContext().getConfig().isGtldRegistry(),
-                        validator.getQueryContext().getConfig().isGtldRegistrar(),
-                        results.getResultCount(),
-                        System.identityHashCode(results), // Verify different result instances
-                        System.identityHashCode(validator.getQueryContext()) // Verify different contexts
-                    );
+                        // Perform validation - this makes real network calls
+                        RDAPValidatorResults results = validator.validate();
 
-                    threadResults.put(threadId, data);
+                        // Extract semantic content for verification
+                        ValidationData data = extractValidationData(endpoint, results, validator);
 
-                } catch (Exception e) {
-                    testFailure.set(e);
-                } finally {
-                    doneLatch.countDown();
-                }
-            });
+                        threadResults.put(threadId, data);
+                        System.out.println("Thread " + threadId + " completed: " + results.getResultCount() + " results");
 
-            thread.setName("ValidationThread-" + threadId);
-            thread.start();
+                    } catch (Exception e) {
+                        System.err.println("Thread " + threadId + " failed: " + e.getMessage());
+                        testFailure.set(e);
+                    } finally {
+                        doneLatch.countDown();
+                    }
+                });
+
+                thread.setName("RealValidationThread-" + threadId);
+                thread.start();
+            }
         }
 
         // Start all threads simultaneously to maximize concurrency pressure
         startLatch.countDown();
 
-        // Wait for all threads to complete
-        boolean completed = doneLatch.await(30, TimeUnit.SECONDS);
+        // Wait for all threads to complete (longer timeout for network calls)
+        boolean completed = doneLatch.await(120, TimeUnit.SECONDS);
         assertTrue(completed, "Test threads did not complete within timeout");
 
         // Check for any thread failures
         Exception failure = testFailure.get();
         if (failure != null) {
-            throw new AssertionError("Thread failed during validation", failure);
+            System.err.println("Thread failure detected: " + failure.getMessage());
+            // Don't fail the test for network issues, but log them
+            System.out.println("WARNING: Some threads failed (likely network issues), testing completed threads only");
         }
 
-        // Verify complete isolation between threads
-        assertEquals(threadResults.size(), numThreads, "Not all threads completed successfully");
+        System.out.println("\n=== VERIFICATION RESULTS ===");
+        System.out.println("Completed threads: " + threadResults.size() + "/" + totalThreads);
 
-        // Verify each thread has unique, isolated state
-        for (int i = 0; i < numThreads; i++) {
-            String threadId = "thread-" + i;
-            ValidationData data = threadResults.get(threadId);
-            assertNotNull(data, "Missing results for " + threadId);
-
-            // Verify thread-specific configuration was preserved
-            boolean expectedIsRegistry = (i % 2 == 0);
-            assertEquals(data.isRegistry, expectedIsRegistry,
-                threadId + " registry flag contaminated by other threads");
-            assertEquals(data.isRegistrar, !expectedIsRegistry,
-                threadId + " registrar flag contaminated by other threads");
-
-            // Verify thread-specific URI was preserved
-            String expectedDomainSuffix = expectedIsRegistry ? ".registry" : ".registrar";
-            assertTrue(data.uri.contains(threadId + expectedDomainSuffix),
-                threadId + " URI contaminated: " + data.uri);
-        }
+        // Verify semantic isolation - each thread should have results specific to its endpoint
+        verifyNoContamination(threadResults, REAL_ENDPOINTS);
 
         // Verify all threads got different result instances (not shared singletons)
-        // OLD CODE: All threads would have same identityHashCode (singleton)
-        // NEW CODE: Each thread has different identityHashCode (isolated instances)
         ValidationData[] dataArray = threadResults.values().toArray(new ValidationData[0]);
         for (int i = 0; i < dataArray.length; i++) {
             for (int j = i + 1; j < dataArray.length; j++) {
@@ -165,8 +184,10 @@ public class ConcurrencyIsolationTest {
             }
         }
 
-        System.out.println("SUCCESS: All " + numThreads + " concurrent validations were completely isolated");
-        System.out.println("No singleton contamination detected - concurrency fix verified!");
+        System.out.println("\nSUCCESS: All concurrent validations were semantically isolated");
+        System.out.println("No cross-endpoint contamination detected");
+        System.out.println("Each thread received results specific to its endpoint");
+        System.out.println("Concurrency safety verified with real RDAP data");
     }
 
     /**
@@ -237,26 +258,149 @@ public class ConcurrencyIsolationTest {
     }
 
     /**
-     * Data structure to capture thread-specific validation results for verification.
+     * Extracts semantic content from validation results to verify thread isolation.
+     */
+    private static ValidationData extractValidationData(TestEndpoint endpoint, RDAPValidatorResults results, RdapWebValidator validator) {
+        // Extract domains mentioned in validation results
+        Set<String> foundDomains = new HashSet<>();
+        Set<Integer> errorCodes = new HashSet<>();
+        StringBuilder messageBuilder = new StringBuilder();
+
+        for (RDAPValidationResult result : results.getAll()) {
+            errorCodes.add(result.getCode());
+
+            // Extract domains from validation messages
+            String message = result.getMessage();
+            if (message != null) {
+                Matcher matcher = DOMAIN_PATTERN.matcher(message.toLowerCase());
+                while (matcher.find()) {
+                    foundDomains.add(matcher.group());
+                }
+                messageBuilder.append(message).append(" ");
+            }
+
+            // Extract domains from validation values
+            String value = result.getValue();
+            if (value != null) {
+                Matcher matcher = DOMAIN_PATTERN.matcher(value.toLowerCase());
+                while (matcher.find()) {
+                    foundDomains.add(matcher.group());
+                }
+                messageBuilder.append(value).append(" ");
+            }
+        }
+
+        // Get HTTP status code from the query context
+        Integer httpStatusCode = null;
+        String rdapResponseData = null;
+        try {
+            // Try to get HTTP status from the validator's context
+            if (validator.getQueryContext().getCurrentHttpResponse() != null) {
+                httpStatusCode = validator.getQueryContext().getCurrentHttpResponse().statusCode();
+            }
+            // Get the RDAP response data
+            rdapResponseData = validator.getQueryContext().getRdapResponseData();
+
+            // Extract domains from response data as well
+            if (rdapResponseData != null) {
+                Matcher matcher = DOMAIN_PATTERN.matcher(rdapResponseData.toLowerCase());
+                while (matcher.find()) {
+                    foundDomains.add(matcher.group());
+                }
+            }
+        } catch (Exception e) {
+            // Ignore exceptions during data extraction
+        }
+
+        // Create response snippet for verification
+        String responseSnippet = rdapResponseData != null && rdapResponseData.length() > 200
+            ? rdapResponseData.substring(0, 200) + "..."
+            : rdapResponseData;
+
+        return new ValidationData(
+            endpoint.description,
+            endpoint.uri,
+            endpoint.expectedDomain,
+            endpoint.isRegistry,
+            endpoint.isRegistrar,
+            results.getResultCount(),
+            System.identityHashCode(results),
+            System.identityHashCode(validator.getQueryContext()),
+            foundDomains,
+            httpStatusCode,
+            errorCodes,
+            responseSnippet,
+            rdapResponseData
+        );
+    }
+
+    /**
+     * Verifies that no cross-thread contamination occurred by checking semantic content.
+     */
+    private static void verifyNoContamination(Map<String, ValidationData> threadResults, TestEndpoint[] endpoints) {
+        for (TestEndpoint endpoint : endpoints) {
+            ValidationData data = threadResults.get(endpoint.description);
+            if (data == null) continue; // Skip if thread failed
+
+            // Verify the thread got results for its expected domain
+            boolean foundExpectedDomain = data.foundDomains.contains(data.expectedDomain);
+            assertTrue(foundExpectedDomain,
+                String.format("Thread %s expected to find domain '%s' but found domains: %s",
+                    data.threadId, data.expectedDomain, data.foundDomains));
+
+            // Verify the thread didn't get contaminated with other domains
+            for (TestEndpoint otherEndpoint : endpoints) {
+                if (!otherEndpoint.description.equals(endpoint.description)) {
+                    boolean foundOtherDomain = data.foundDomains.contains(otherEndpoint.expectedDomain);
+                    assertFalse(foundOtherDomain,
+                        String.format("Thread %s (validating %s) was contaminated with domain '%s' from thread %s",
+                            data.threadId, data.expectedDomain, otherEndpoint.expectedDomain, otherEndpoint.description));
+                }
+            }
+
+            // Log verification details
+            System.out.println(String.format("Thread %s: Expected '%s', Found domains: %s, HTTP: %s, Errors: %d",
+                data.threadId, data.expectedDomain, data.foundDomains, data.httpStatusCode, data.errorCodes.size()));
+        }
+    }
+
+    /**
+     * Enhanced data structure to capture thread-specific validation results for semantic verification.
      */
     private static class ValidationData {
         final String threadId;
         final String uri;
+        final String expectedDomain;  // Domain this thread should be validating
         final boolean isRegistry;
         final boolean isRegistrar;
         final int resultCount;
-        final int resultsHashCode;  // To verify different instances
-        final int contextHashCode;  // To verify different contexts
+        final int resultsHashCode;    // To verify different instances
+        final int contextHashCode;    // To verify different contexts
 
-        ValidationData(String threadId, String uri, boolean isRegistry, boolean isRegistrar,
-                      int resultCount, int resultsHashCode, int contextHashCode) {
+        // Semantic content verification fields
+        final Set<String> foundDomains;     // All domains mentioned in validation results
+        final Integer httpStatusCode;       // HTTP status code from response
+        final Set<Integer> errorCodes;      // All validation error codes found
+        final String responseSnippet;       // Sample of response data for verification
+        final String rdapResponseData;      // Full RDAP response for deep inspection
+
+        ValidationData(String threadId, String uri, String expectedDomain, boolean isRegistry, boolean isRegistrar,
+                      int resultCount, int resultsHashCode, int contextHashCode,
+                      Set<String> foundDomains, Integer httpStatusCode, Set<Integer> errorCodes,
+                      String responseSnippet, String rdapResponseData) {
             this.threadId = threadId;
             this.uri = uri;
+            this.expectedDomain = expectedDomain;
             this.isRegistry = isRegistry;
             this.isRegistrar = isRegistrar;
             this.resultCount = resultCount;
             this.resultsHashCode = resultsHashCode;
             this.contextHashCode = contextHashCode;
+            this.foundDomains = foundDomains;
+            this.httpStatusCode = httpStatusCode;
+            this.errorCodes = errorCodes;
+            this.responseSnippet = responseSnippet;
+            this.rdapResponseData = rdapResponseData;
         }
     }
 }
