@@ -246,13 +246,13 @@ public class RDAPValidationResultFile {
         List<Map<String, Object>> errors = new ArrayList<>();
         List<Map<String, Object>> warnings = new ArrayList<>();
 
-        Set<RDAPValidationResult> allResults = results.getAll();
+        List<RDAPValidationResult> allResults = results.getAllAsList();
         Set<Integer> codeToIgnore = new HashSet<>(configurationFile.getDefinitionIgnore());
-        Set<RDAPValidationResult> filteredResults = results.getAll()
+        List<RDAPValidationResult> filteredResults = results.getAllAsList()
                                                            .stream()
                                                            .filter(r -> !codeToIgnore.contains(r.getCode())
                                                                && r.getCode() != UNKNOWN_ERROR_CODE)
-                                                           .collect(Collectors.toSet());
+                                                           .collect(Collectors.toList());
 
         filteredResults = cullDuplicateIPAddressErrors(filteredResults);
         filteredResults = addErrorIfAllQueriesDoNotReturnSameStatusCode(filteredResults);
@@ -290,7 +290,7 @@ public class RDAPValidationResultFile {
         return resultsMap;
     }
 
-    public Set<RDAPValidationResult> addErrorIfAllQueriesDoNotReturnSameStatusCode(Set<RDAPValidationResult> allResults) {
+    public List<RDAPValidationResult> addErrorIfAllQueriesDoNotReturnSameStatusCode(List<RDAPValidationResult> allResults) {
         List<RDAPValidationResult> filtered = new ArrayList<>();
         for (RDAPValidationResult result : allResults) {
             int code = result.getCode();
@@ -320,7 +320,7 @@ public class RDAPValidationResultFile {
         }
 
         // we still care about all our results, that's what gets returned
-        Set<RDAPValidationResult> updatedResults = new HashSet<>(allResults);
+        List<RDAPValidationResult> updatedResults = new ArrayList<>(allResults);
 
         // If not all the same, add the new error code
         if (statusCodes.size() > ONE) {
@@ -350,7 +350,7 @@ public class RDAPValidationResultFile {
     }
 
     // New culling function
-    public Set<RDAPValidationResult> cullDuplicateIPAddressErrors(Set<RDAPValidationResult> results) {
+    public List<RDAPValidationResult> cullDuplicateIPAddressErrors(List<RDAPValidationResult> results) {
         int ipv4Count = ZERO;
         int ipv6Count = ZERO;
         Set<RDAPValidationResult> toRemove = new HashSet<>();
@@ -399,7 +399,7 @@ public class RDAPValidationResultFile {
      * @return list of validation results that are classified as errors
      */
     public List<RDAPValidationResult> getErrors() {
-        return this.results.getAll()
+        return this.results.getAllAsList()
                            .stream()
                            .filter(result -> this.configurationFile.isError(result.getCode()) || (
                                !this.configurationFile.isWarning(result.getCode())
@@ -468,7 +468,7 @@ public class RDAPValidationResultFile {
      * @return list containing all validation results
      */
     public List<RDAPValidationResult> getAllResults() {
-        return new ArrayList<>(this.results.getAll());
+        return this.results.getAllAsList();
     }
 
     /**

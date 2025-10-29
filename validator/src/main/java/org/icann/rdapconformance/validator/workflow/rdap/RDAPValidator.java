@@ -67,8 +67,6 @@ public class RDAPValidator implements ValidatorWorkflow {
     private static final Logger logger = LoggerFactory.getLogger(RDAPValidator.class);
     private final QueryContext queryContext;
 
-    // this is ok to be static because it's the data set that we pull ICANN  - everyone uses it no matter what
-    private static RDAPDatasetService datasetService;
 
     /**
      * Creates a new RDAPValidator with the complete QueryContext.
@@ -83,8 +81,6 @@ public class RDAPValidator implements ValidatorWorkflow {
             throw new RuntimeException("Please fix the configuration");
         }
 
-        // Set legacy static field for backward compatibility during migration
-        RDAPValidator.datasetService = queryContext.getDatasetService();
     }
 
     @Override

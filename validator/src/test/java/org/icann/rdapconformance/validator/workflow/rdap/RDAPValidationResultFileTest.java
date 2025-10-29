@@ -19,6 +19,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -229,7 +230,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     // Use RDAPValidationResultFile's implementation to filter the results
     RDAPValidationResultFile resultFile = file;
-    Set<RDAPValidationResult> filteredResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(allResults);
+    List<RDAPValidationResult> filteredResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(allResults));
 
     // Check that the filtered codes don't appear in the unique tuples that are checked
     // for status code differences (this is what the method actually does)
@@ -506,9 +507,9 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testCullDuplicates_DuplicateIpv4() {
-        results.add(RDAPValidationResult.builder().code(-20400).build());
-        results.add(RDAPValidationResult.builder().code(-20400).build());
-        results.add(RDAPValidationResult.builder().code(-20401).build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 1").build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 2").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error").build());
 
         results.cullDuplicateIPAddressErrors();
 
@@ -519,9 +520,9 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testCullDuplicates_DuplicateIpv6() {
-        results.add(RDAPValidationResult.builder().code(-20400).build());
-        results.add(RDAPValidationResult.builder().code(-20401).build());
-        results.add(RDAPValidationResult.builder().code(-20401).build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 1").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 2").build());
 
         results.cullDuplicateIPAddressErrors();
 
@@ -532,11 +533,11 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testCullDuplicates_BothDuplicates() {
-        results.add(RDAPValidationResult.builder().code(-20400).build());
-        results.add(RDAPValidationResult.builder().code(-20400).build());
-        results.add(RDAPValidationResult.builder().code(-20401).build());
-        results.add(RDAPValidationResult.builder().code(-20401).build());
-        results.add(RDAPValidationResult.builder().code(-10000).build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 1").build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 2").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 1").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 2").build());
+        results.add(RDAPValidationResult.builder().code(-10000).message("Other error").build());
 
         results.cullDuplicateIPAddressErrors();
 
@@ -551,7 +552,7 @@ public void testAllCodesThatShouldBeIgnored() {
         Set<RDAPValidationResult> testResults = new HashSet<>();
 
         RDAPValidationResultFile resultFile = file;
-        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
+        List<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(testResults));
         assertTrue(filtered.isEmpty());
     }
 
@@ -564,7 +565,7 @@ public void testAllCodesThatShouldBeIgnored() {
         testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
 
         RDAPValidationResultFile resultFile = file;
-        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
+        List<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(testResults));
 
         // Verify all unique code/status combinations are preserved
         assertTrue(filtered.stream().anyMatch(r -> r.getCode() == 1001 && r.getHttpStatusCode() == 200));
@@ -582,7 +583,7 @@ public void testAllCodesThatShouldBeIgnored() {
         testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
 
         RDAPValidationResultFile resultFile = file;
-        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
+        List<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(testResults));
 
         // Verify results are maintained
         assertEquals(2, filtered.size());
@@ -599,7 +600,7 @@ public void testAllCodesThatShouldBeIgnored() {
         testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
 
         RDAPValidationResultFile resultFile = file;
-        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
+        List<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(testResults));
 
         // Verify the -13018 code is added
         assertTrue(filtered.stream().anyMatch(r -> r.getCode() == -13018));
@@ -625,7 +626,7 @@ public void testAllCodesThatShouldBeIgnored() {
         testResults.add(RDAPValidationResult.builder().code(1001).build());   // Other code
 
         RDAPValidationResultFile resultFile = file;
-        Set<RDAPValidationResult> culled = resultFile.cullDuplicateIPAddressErrors(testResults);
+        List<RDAPValidationResult> culled = resultFile.cullDuplicateIPAddressErrors(new ArrayList<>(testResults));
 
         // Verify duplicates are removed but one of each IP error remains
         assertEquals(3, culled.size());
@@ -1022,7 +1023,7 @@ public void testCreateResultsMap() {
         RDAPValidationResultFile resultFile = file;
         
         Set<RDAPValidationResult> allResults = results.getAll();
-        Set<RDAPValidationResult> processedResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(allResults);
+        List<RDAPValidationResult> processedResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(allResults));
         
         // Should have added -13018 error because null != 404
         assertTrue(processedResults.stream().anyMatch(r -> r.getCode() == -13018));
@@ -1039,7 +1040,7 @@ public void testCreateResultsMap() {
         results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 2").build());
         
         RDAPValidationResultFile resultFile = file;
-        Set<RDAPValidationResult> culled = resultFile.cullDuplicateIPAddressErrors(results.getAll());
+        List<RDAPValidationResult> culled = resultFile.cullDuplicateIPAddressErrors(new ArrayList<>(results.getAll()));
         
         // Should keep only 1 of each type
         long ipv4Count = culled.stream().filter(r -> r.getCode() == -20400).count();
@@ -1104,7 +1105,7 @@ public void testCreateResultsMap() {
         // exercises the code path and ensures robustness
         RDAPValidationResultFile resultFile = file;
         
-        Set<RDAPValidationResult> processedResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(results.getAll());
+        List<RDAPValidationResult> processedResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(results.getAll()));
         
         // Should have added -13018 error for mixed status codes  
         assertTrue(processedResults.stream().anyMatch(r -> r.getCode() == -13018));

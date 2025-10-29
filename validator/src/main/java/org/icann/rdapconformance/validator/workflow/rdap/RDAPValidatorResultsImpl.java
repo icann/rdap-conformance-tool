@@ -24,7 +24,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   public static final String HTTP_STATUS_CODE = ", httpStatusCode=";
   public static final String BRACKETS = "[]";
 
-  private final Set<RDAPValidationResult> results = ConcurrentHashMap.newKeySet();
+  private final List<RDAPValidationResult> results = new ArrayList<>();
   private final Set<String> groups = ConcurrentHashMap.newKeySet();
   private final Set<String> groupErrorWarning = ConcurrentHashMap.newKeySet();
 
@@ -38,9 +38,8 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
   @Override
   public void add(RDAPValidationResult result) {
-    if (this.results.add(result)) {
-      logger.debug("adding error result {}", result);
-    }
+    this.results.add(result);
+    logger.debug("adding error result {}", result);
   }
 
   @Override
@@ -57,7 +56,12 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
   @Override
   public Set<RDAPValidationResult> getAll() {
-    return results;
+    return new HashSet<>(results);
+  }
+
+  @Override
+  public List<RDAPValidationResult> getAllAsList() {
+    return new ArrayList<>(results);
   }
 
   @Override
