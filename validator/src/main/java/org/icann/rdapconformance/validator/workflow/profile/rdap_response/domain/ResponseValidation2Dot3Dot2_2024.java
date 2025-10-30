@@ -9,10 +9,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 public final class ResponseValidation2Dot3Dot2_2024 extends TopMostEventActionValidation {
 
   public ResponseValidation2Dot3Dot2_2024(QueryContext qctx) {
-    super(qctx.getRdapResponseData(), qctx.getResults(), qctx.getQueryType(),
-        -65400,
-        "An eventAction of type 'registrar expiration' is expected.",
-        EventAction.REGISTRAR_EXPIRATION);
+    super(qctx, -65400, "An eventAction of type 'registrar expiration' is expected.", EventAction.REGISTRAR_EXPIRATION);
   }
 
   @Override

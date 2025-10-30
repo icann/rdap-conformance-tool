@@ -8,7 +8,7 @@ public class TigValidation1Dot14 extends RDAPConformanceValidation {
 
 
   public TigValidation1Dot14(QueryContext queryContext) {
-    super(queryContext.getRdapResponseData(), queryContext.getResults(),"icann_rdap_technical_implementation_guide_0", -20600,
+    super(queryContext, "icann_rdap_technical_implementation_guide_0", -20600,
         "The RDAP Conformance data structure does not include icann_rdap_technical_implementation_guide_0. "
             + "See section 1.14 of the RDAP_Technical_Implementation_Guide_2_1.");
   }

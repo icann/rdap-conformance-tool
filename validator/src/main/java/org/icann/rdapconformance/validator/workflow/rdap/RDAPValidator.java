@@ -216,7 +216,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         RDAPValidatorConfiguration config = queryContext.getConfig();
         List<ProfileValidation> validations = new ArrayList<>();
 
-        // All validations in original order - exactly like master branch
+        // All validations in original order
         // From 2019 profile validations
         validations.add(new TigValidation3Dot2(queryContext));
         validations.add(new TigValidation4Dot1(queryContext));
@@ -301,20 +301,16 @@ public class RDAPValidator implements ValidatorWorkflow {
     private List<ProfileValidation> get2019RdapValidations(HttpResponse<String> rdapResponse, SchemaValidator validator) {
         // Extract commonly used values from queryContext for convenience
         RDAPValidatorConfiguration config = queryContext.getConfig();
-        RDAPValidatorResults results = queryContext.getResults();
-        RDAPDatasetService datasetService = queryContext.getDatasetService();
-        RDAPQueryType queryType = queryContext.getQueryType();
-        String rdapResponseData = queryContext.getRdapResponseData();
         List<ProfileValidation> validations = new ArrayList<>();
 
-        // All validations in original order - exactly like master branch
+        // All validations in original order
         validations.add(new TigValidation1Dot14(queryContext));
         validations.add(new TigValidation3Dot2(queryContext));
         validations.add(new TigValidation3Dot3And3Dot4(queryContext));
         validations.add(new TigValidation4Dot1(queryContext));
         validations.add(new TigValidation7Dot1And7Dot2(queryContext));
         validations.add(new ResponseValidation1Dot2Dot2(queryContext));
-        validations.add(new ResponseValidation1Dot3(rdapResponseData, results));
+        validations.add(new ResponseValidation1Dot3(queryContext));
         validations.add(new ResponseValidation1Dot4(queryContext));
         validations.add(new ResponseValidationLastUpdateEvent(queryContext));
         validations.add(new ResponseValidation2Dot1(queryContext));

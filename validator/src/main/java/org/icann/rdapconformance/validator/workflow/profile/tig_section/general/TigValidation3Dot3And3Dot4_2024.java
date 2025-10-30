@@ -13,10 +13,12 @@ import org.json.JSONObject;
 
 public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
     private final RDAPValidatorConfiguration config;
+    private final QueryContext queryContext;
 
     public TigValidation3Dot3And3Dot4_2024(QueryContext queryContext) {
         super(queryContext.getRdapResponseData(), queryContext.getResults());
         this.config = queryContext.getConfig();
+        this.queryContext = queryContext;
     }
 
     /**
@@ -27,6 +29,7 @@ public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
     public TigValidation3Dot3And3Dot4_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
         super(rdapResponse, results);
         this.config = config;
+        this.queryContext = null; // Deprecated constructor - QueryContext not available
     }
 
     @Override
@@ -54,33 +57,48 @@ public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
                     if (!l.optString("href").startsWith(HTTP)) {
                         is61201Valid = false;
 
-                        results.add(RDAPValidationResult.builder()
+                        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                             .code(-61201)
                             .value(l.toString())
-                            .message("This link must have an href.")
-                            .build());
+                            .message("This link must have an href.");
+
+                        if (queryContext != null) {
+                            results.add(builder.build(queryContext));
+                        } else {
+                            results.add(builder.build()); // Fallback for deprecated constructor
+                        }
                     }
 
 
                     if (!l.optString("value").equals(this.config.getUri().toString())) {
                         is61202Valid = false;
 
-                        results.add(RDAPValidationResult.builder()
+                        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                             .code(-61202)
                             .value(l.toString())
-                            .message("This link must have a value that is the same as the queried URI.")
-                            .build());
+                            .message("This link must have a value that is the same as the queried URI.");
+
+                        if (queryContext != null) {
+                            results.add(builder.build(queryContext));
+                        } else {
+                            results.add(builder.build()); // Fallback for deprecated constructor
+                        }
                     }
                 }
             }
         }
 
         if (!is61200Valid) {
-            results.add(RDAPValidationResult.builder()
+            RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                 .code(-61200)
                 .value(jsonObject.toString())
-                .message("The response must have one notice to the terms of service.")
-                .build());
+                .message("The response must have one notice to the terms of service.");
+
+            if (queryContext != null) {
+                results.add(builder.build(queryContext));
+            } else {
+                results.add(builder.build()); // Fallback for deprecated constructor
+            }
         }
 
         return is61200Valid && is61201Valid && is61202Valid;

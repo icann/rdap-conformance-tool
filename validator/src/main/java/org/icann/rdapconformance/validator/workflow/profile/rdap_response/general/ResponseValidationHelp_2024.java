@@ -87,14 +87,19 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
 
         jsonHelpResponse = new RDAPHttpQuery.JsonData(rdapHelpResponse);
         if(!isHelpJsonValid(jsonHelpResponse ) || HTTP_OK != httpHelpStatusCode) {
-            results.add(RDAPValidationResult.builder()
+            RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                                             .queriedURI(httpHelpResponse.uri().toString())
                                             .httpMethod(GET)
                                             .httpStatusCode(httpHelpStatusCode)
                                             .code(-20701)
                                             .value(rdapHelpResponse)
-                                            .message("Response to a /help query did not yield a proper status code or RDAP response.")
-                                            .build());
+                                            .message("Response to a /help query did not yield a proper status code or RDAP response.");
+
+            if (queryContext != null) {
+                results.add(builder.build(queryContext));
+            } else {
+                results.add(builder.build()); // Fallback for deprecated constructor
+            }
             isValid = false;
         }
 
