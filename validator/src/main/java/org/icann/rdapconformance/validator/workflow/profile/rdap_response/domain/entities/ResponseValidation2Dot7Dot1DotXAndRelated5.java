@@ -16,9 +16,11 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated5 extends
     ResponseValidation2Dot7Dot1DotXAndRelated {
 
     private final Set<String> roles = new HashSet<>();
+    private final QueryContext queryContext;
 
     public ResponseValidation2Dot7Dot1DotXAndRelated5(QueryContext queryContext) {
         super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(), queryContext.getConfig());
+        this.queryContext = queryContext;
     }
 
     /**
@@ -28,6 +30,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated5 extends
     @Deprecated
     public ResponseValidation2Dot7Dot1DotXAndRelated5(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config) {
         super(rdapResponse, results, queryType, config);
+        this.queryContext = null; // Not available in deprecated constructor
     }
 
     @Override
@@ -44,12 +47,17 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated5 extends
         if (entity.has("roles")) {
             for (Object role : entity.getJSONArray("roles")) {
                 if (!roles.add(role.toString())) {
-                    results.add(RDAPValidationResult.builder()
+                    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                         .code(-52104)
                         .value(getResultValue(jsonPointer))
                         .message("More than one entity with the following roles were found: "
-                            + "registrant, administrative, technical and billing.")
-                        .build());
+                            + "registrant, administrative, technical and billing.");
+
+                    if (queryContext != null) {
+                        results.add(builder.build(queryContext));
+                    } else {
+                        results.add(builder.build()); // Fallback for deprecated constructor
+                    }
                     isValid = false;
                 }
             }

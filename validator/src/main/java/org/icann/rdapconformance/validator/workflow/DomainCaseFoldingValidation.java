@@ -84,7 +84,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
                                         .code(-10403)
                                         .value(uri.toString())
                                         .message("RDAP responses do not match when handling domain label case folding.")
-                                        .build());
+                                        .build(queryContext));
         return false;
       }
 
@@ -100,7 +100,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
                                         .code(-10403)
                                         .value(uri.toString())
                                         .message("RDAP responses do not match when handling domain label case folding.")
-                                        .build());
+                                        .build(queryContext));
         return false;
       }
     } catch (JsonProcessingException e) {
@@ -113,7 +113,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
                                       .code(-10403)
                                       .value(uri.toString())
                                       .message("RDAP responses do not match when handling domain label case folding.")
-                                      .build());
+                                      .build(queryContext));
       return false;
     }
     return true;

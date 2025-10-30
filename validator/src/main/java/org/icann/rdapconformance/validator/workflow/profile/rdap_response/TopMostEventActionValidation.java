@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 import java.util.Objects;
 import java.util.Set;
 import org.icann.rdapconformance.validator.EventAction;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -15,10 +16,24 @@ public abstract class TopMostEventActionValidation extends ProfileJsonValidation
   final int code;
   final String message;
   private final EventAction eventAction;
+  private final QueryContext queryContext;
 
+  // QueryContext constructor for production use
+  public TopMostEventActionValidation(QueryContext queryContext, int code, String message, EventAction eventAction) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.queryContext = queryContext;
+    this.queryType = queryContext.getQueryType();
+    this.eventAction = eventAction;
+    this.code = code;
+    this.message = message;
+  }
+
+  // Deprecated constructor for testing
+  @Deprecated
   public TopMostEventActionValidation(String rdapResponse, RDAPValidatorResults results,
       RDAPQueryType queryType, int code, String message, EventAction eventAction) {
     super(rdapResponse, results);
+    this.queryContext = null; // Not available in deprecated constructor
     this.queryType = queryType;
     this.eventAction = eventAction;
     this.code = code;
@@ -35,11 +50,16 @@ public abstract class TopMostEventActionValidation extends ProfileJsonValidation
       }
     }
 
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(code)
         .value(jsonObject.get("events").toString())
-        .message(message)
-        .build());
+        .message(message);
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build()); // Fallback for deprecated constructor
+    }
     return false;
   }
 }

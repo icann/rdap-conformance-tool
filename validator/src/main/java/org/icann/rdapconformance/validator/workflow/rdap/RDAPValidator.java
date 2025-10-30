@@ -318,7 +318,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation1Dot4(queryContext));
         validations.add(new ResponseValidationLastUpdateEvent(queryContext));
         validations.add(new ResponseValidation2Dot1(queryContext));
-        validations.add(new ResponseValidation2Dot2(config, rdapResponseData, results, datasetService, queryType));
+        validations.add(new ResponseValidation2Dot2(queryContext));
         validations.add(new ResponseValidation2Dot3Dot1Dot1(queryContext));
 
         // Only run this validation if it's a gTLD registry

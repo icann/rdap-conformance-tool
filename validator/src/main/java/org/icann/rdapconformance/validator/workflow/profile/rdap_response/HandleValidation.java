@@ -83,7 +83,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
     EPPRoid eppRoid = datasetService.get(EPPRoid.class);
     if (eppRoid.isInvalid(roid)) {
       RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
-          .code(code - 1)  // CalculatedCode(s): -47601 (entities), -46201 (domain), -49103 (nameserver)
+          .code(code - 1)  // CalculatedCode(s): -47601 (entities), -46201 (domain), -49103 (nameserver) -47202 (nameserver)
           .value(getResultValue(handleJsonPointer))
           .message(String.format("The globally unique identifier in the %s object handle is not "
               + "registered in EPPROID.", objectName));
