@@ -18,10 +18,12 @@ import org.json.JSONObject;
 public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidation {
 
   private final RDAPValidatorConfiguration config;
+  private final QueryContext queryContext;
 
   public ResponseValidation2Dot9Dot1And2Dot9Dot2(QueryContext qctx) {
-    super(qctx.getConfig(), qctx.getRdapResponseData(), qctx.getResults(), qctx.getDatasetService(), qctx.getQueryType(), -47201, "nameserver");
+    super(qctx, -47201, "nameserver");
     this.config = qctx.getConfig();
+    this.queryContext = qctx;
   }
 
   @Override
@@ -63,7 +65,7 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
               .code(-47203)
               .value(getResultValue(jsonPointer))
               .message("The handle or status in the nameserver object is not included.")
-              .build()));
+              .build(queryContext)));
       isValid = false;
     }
 
@@ -73,11 +75,16 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
   private boolean checkLdhName(String nameserverJsonPointer) {
     JSONObject nameserver = (JSONObject) jsonObject.query(nameserverJsonPointer);
     if (NULL.equals(nameserver.opt("ldhName"))) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-47200)
           .value(getResultValue(nameserverJsonPointer))
-          .message("A nameserver object without ldhName was found.")
-          .build());
+          .message("A nameserver object without ldhName was found.");
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build()); // Fallback for deprecated constructor
+      }
       return false;
     }
     return true;

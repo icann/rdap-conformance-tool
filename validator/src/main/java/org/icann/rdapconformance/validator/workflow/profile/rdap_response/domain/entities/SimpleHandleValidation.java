@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -11,6 +12,13 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
  */
 public class SimpleHandleValidation extends HandleValidation {
 
+  // QueryContext constructor for production use
+  public SimpleHandleValidation(QueryContext queryContext, int code) {
+    super(queryContext, code, "entity");
+  }
+
+  // Deprecated constructor for testing
+  @Deprecated
   public SimpleHandleValidation(RDAPValidatorConfiguration config, String rdapResponse,
                                 RDAPValidatorResults results,
                                 RDAPDatasetService datasetService,

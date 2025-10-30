@@ -43,8 +43,12 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
   private static final String ERROR_MESSAGE_52101 = "An entity without a remark titled \"REDACTED FOR PRIVACY\" " +
           "does not have all the necessary information of handle, fn, adr, tel, street and city.";
 
+  // Store QueryContext for proper build() method usage
+  private final QueryContext queryContext;
+
   public ResponseValidation2Dot7Dot1DotXAndRelated2(QueryContext queryContext) {
     super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(), queryContext.getConfig());
+    this.queryContext = queryContext;
   }
 
   /**
@@ -54,6 +58,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
   @Deprecated
   public ResponseValidation2Dot7Dot1DotXAndRelated2(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config) {
     super(rdapResponse, results, queryType, config);
+    this.queryContext = null; // Deprecated constructor - QueryContext not available
   }
 
   @Override
@@ -191,11 +196,16 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
   }
 
   private boolean log52101(String jsonPointer) {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(ERROR_CODE_52101)
         .value(getResultValue(jsonPointer))
-        .message(ERROR_MESSAGE_52101)
-        .build());
+        .message(ERROR_MESSAGE_52101);
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build()); // Fallback for deprecated constructor
+    }
     return false;
   }
 }

@@ -11,8 +11,7 @@ public final class ResponseValidation2Dot2 extends HandleValidation {
 
   // Modern QueryContext constructor
   public ResponseValidation2Dot2(QueryContext queryContext) {
-    super(queryContext.getConfig(), queryContext.getRdapResponseData(), queryContext.getResults(),
-        queryContext.getDatasetService(), queryContext.getQueryType(), -46200, "domain");
+    super(queryContext, -46200, "domain");
   }
 
   // For testing purposes only

@@ -17,7 +17,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4 extends
 
   public ResponseValidation2Dot7Dot1DotXAndRelated3And4(QueryContext queryContext) {
     super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(), queryContext.getConfig());
-    this.simpleHandleValidation = new SimpleHandleValidation(queryContext.getConfig(), queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getDatasetService(), queryContext.getQueryType(), -52102);
+    this.simpleHandleValidation = new SimpleHandleValidation(queryContext, -52102);
   }
 
   /**

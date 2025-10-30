@@ -164,15 +164,16 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     if (statusCodes.size() > ONE) {
       logger.debug("Not all status codes are the same");
       results.add(
-          RDAPValidationResult.builder()
-                              .acceptHeader(DASH)
-                              .queriedURI(DASH)
-                              .httpMethod(DASH)
-                              .httpStatusCode(ZERO)
-                              .code(-13018)
-                              .value(tupleListJson)
-                               .message("Queries do not produce the same HTTP status code.")
-                              .build()
+          new RDAPValidationResult(
+              -13018,
+              tupleListJson,
+              "Queries do not produce the same HTTP status code.",
+              DASH,
+              DASH,
+              DASH,
+              ZERO,
+              DASH
+          )
       );
     } else {
       logger.debug("All status codes are the same");

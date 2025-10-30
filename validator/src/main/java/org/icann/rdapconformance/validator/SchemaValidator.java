@@ -207,7 +207,7 @@ public class SchemaValidator {
             // and add also corresponding group test validation error:
             ExceptionParser
                 .validateGroupTest(jsonPointer + "/" + i + "/eventAction", jsonObject, results,
-                    schema);
+                    schema, this.queryContext);
           }
           i++;
         }

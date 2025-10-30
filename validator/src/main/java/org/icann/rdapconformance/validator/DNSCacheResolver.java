@@ -399,7 +399,7 @@ public class DNSCacheResolver {
                                             .code(-13019)
                                             .value("no response available")
                                             .message("Unable to resolve an IP address endpoint using DNS.")
-                                            .build());
+                                            .build(queryContext));
             return;
         }
 
@@ -414,7 +414,7 @@ public class DNSCacheResolver {
                                             .value(hostname)
                                             .message(
                                                 "The RDAP service is not provided over IPv4 or contains invalid addresses. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1.")
-                                            .build());
+                                            .build(queryContext));
         }
 
         if (executeIPv6Queries && !hasV6) {
@@ -427,7 +427,7 @@ public class DNSCacheResolver {
                                             .value(hostname)
                                             .message(
                                                 "The RDAP service is not provided over IPv6 or contains invalid addresses. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1.")
-                                            .build());
+                                            .build(queryContext));
         }
     }
 }

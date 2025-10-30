@@ -88,14 +88,19 @@ boolean validateDomainInvalidQuery(HttpResponse<String> domainInvalidResponse, b
     jsonDomainInvalidResponse = new RDAPHttpQuery.JsonData(rdapDomainInvalidResponse);
     if(HTTP_NOT_FOUND != domainInvalidStatusCode) {
         if(!isDomainInvalidJsonValid(jsonDomainInvalidResponse )) {
-            results.add(RDAPValidationResult.builder()
+            RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                                             .queriedURI(domainInvalidResponse.uri().toString())
                                             .httpMethod(GET)
                                             .httpStatusCode(domainInvalidStatusCode)
                                             .code(-65300)
                                             .value(String.valueOf(domainInvalidStatusCode))
-                                            .message("A query for an invalid domain name did not yield a 404 response.")
-                                            .build());
+                                            .message("A query for an invalid domain name did not yield a 404 response.");
+
+            if (queryContext != null) {
+                results.add(builder.build(queryContext));
+            } else {
+                results.add(builder.build()); // Fallback for testing constructor
+            }
             isValid = false;
         }
     }

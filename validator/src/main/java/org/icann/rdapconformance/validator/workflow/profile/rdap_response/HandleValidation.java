@@ -10,6 +10,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
+import org.icann.rdapconformance.validator.QueryContext;
 
 
 /**
@@ -26,7 +27,21 @@ public abstract class HandleValidation extends ProfileJsonValidation {
   protected final RDAPValidatorConfiguration config;
   final int code;
   final String objectName;
+  protected final QueryContext queryContext;
 
+  // Constructor with QueryContext for production use
+  public HandleValidation(QueryContext queryContext, int code, String objectName) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.datasetService = queryContext.getDatasetService();
+    this.queryType = queryContext.getQueryType();
+    this.code = code;
+    this.config = queryContext.getConfig();
+    this.objectName = objectName;
+    this.queryContext = queryContext;
+  }
+
+  // Deprecated constructor for testing
+  @Deprecated
   public HandleValidation(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
                           RDAPDatasetService datasetService, RDAPQueryType queryType, int code, String objectName) {
     super(rdapResponse, results);
@@ -35,6 +50,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
     this.code = code;
     this.config = config;
     this.objectName = objectName;
+    this.queryContext = null; // For tests - QueryContext not available
   }
 
   protected boolean validateHandle(String handleJsonPointer) {
@@ -49,24 +65,34 @@ public abstract class HandleValidation extends ProfileJsonValidation {
     }
 
     if (handle == null || !handle.matches(CommonUtils.HANDLE_PATTERN)) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(code)
           .value(getResultValue(handleJsonPointer))
           .message(String.format("The handle in the %s object does not comply with the format "
-              + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", objectName))
-          .build());
+              + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", objectName));
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build()); // Fallback for deprecated constructor
+      }
       return false;
     }
 
     String roid = handle.substring(handle.indexOf(DASH) + 1);
     EPPRoid eppRoid = datasetService.get(EPPRoid.class);
     if (eppRoid.isInvalid(roid)) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(code - 1)  // CalculatedCode(s): -47601 (entities), -46201 (domain), -49103 (nameserver)
           .value(getResultValue(handleJsonPointer))
           .message(String.format("The globally unique identifier in the %s object handle is not "
-              + "registered in EPPROID.", objectName))
-          .build());
+              + "registered in EPPROID.", objectName));
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build()); // Fallback for deprecated constructor
+      }
       return false;
     }
     return true;
