@@ -80,11 +80,7 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
           .value(linksStr)
           .message(ERROR_23200_MESSAGE);
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
     }
     return isValid;
   }

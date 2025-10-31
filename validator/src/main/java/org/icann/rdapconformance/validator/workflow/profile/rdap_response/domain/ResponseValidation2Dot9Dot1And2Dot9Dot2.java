@@ -80,11 +80,7 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
           .value(getResultValue(nameserverJsonPointer))
           .message("A nameserver object without ldhName was found.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

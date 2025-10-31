@@ -48,11 +48,7 @@ public abstract class RegistrarEntityValidation extends
           .value(getResultValue(entityJsonPointer))
           .message("The handle of the entity with the registrar role is not a positive integer.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     RegistrarId registrarId = datasetService.get(RegistrarId.class);
@@ -63,11 +59,7 @@ public abstract class RegistrarEntityValidation extends
           .message(
               "The handle references an IANA Registrar ID that does not exist in the registrarId.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;
@@ -91,11 +83,7 @@ public abstract class RegistrarEntityValidation extends
                 "The identifier of the publicIds member of the entity with the registrar role "
                     + "is not equal to the handle member.");
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build()); // Fallback for deprecated constructor
-        }
+        results.add(builder.build(queryContext));
         return false;
       }
     }

@@ -45,11 +45,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated6 extends
               .message("An entity with the registrant role without the CC parameter "
                   + "was found. See section 2.7.3.1 of the RDAP_Response_Profile_2_1.");
 
-          if (queryContext != null) {
-            results.add(builder.build(queryContext));
-          } else {
-            results.add(builder.build()); // Fallback for deprecated constructor
-          }
+          results.add(builder.build(queryContext));
           return false;
         }
       }

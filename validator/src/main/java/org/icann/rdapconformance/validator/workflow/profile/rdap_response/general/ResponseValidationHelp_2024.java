@@ -67,14 +67,9 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
         String helpUriCleaned =  CommonUtils.cleanStringFromExtraSlash(helpUri);
 
         logger.debug("Making request to: {}", helpUriCleaned);
-        HttpResponse<String> response = null;
 
-        if (queryContext != null) {
-            // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
-            response = RDAPHttpRequest.makeRequest(queryContext, new URI(helpUriCleaned), this.config.getTimeout(), GET);
-        } else {
-            response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUriCleaned), this.config.getTimeout());
-        }
+        // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(queryContext, new URI(helpUriCleaned), this.config.getTimeout(), GET);
 
         // final response
         return validateHelpQuery(response, isValid);
@@ -95,11 +90,7 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
                                             .value(rdapHelpResponse)
                                             .message("Response to a /help query did not yield a proper status code or RDAP response.");
 
-            if (queryContext != null) {
-                results.add(builder.build(queryContext));
-            } else {
-                results.add(builder.build()); // Fallback for deprecated constructor
-            }
+            results.add(builder.build(queryContext));
             isValid = false;
         }
 

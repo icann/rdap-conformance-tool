@@ -49,10 +49,6 @@ public class EnumExceptionParser extends ExceptionParser {
         .message(e.getMessage("The JSON string is not included as a Value with " + schemaLocation
             + " dataset (" + enumSchema.getPossibleValuesAsList() + ")."));
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 }

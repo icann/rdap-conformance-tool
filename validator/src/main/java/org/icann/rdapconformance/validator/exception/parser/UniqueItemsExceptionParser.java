@@ -34,10 +34,6 @@ public class UniqueItemsExceptionParser extends ExceptionParser {
         .value(jsonObject.toString())
         .message("A " + e.getPointerToViolation() + " value appeared more than once.");
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 }

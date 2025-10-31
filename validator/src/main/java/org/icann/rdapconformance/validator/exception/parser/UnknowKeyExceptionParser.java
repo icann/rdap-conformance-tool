@@ -42,11 +42,7 @@ public class UnknowKeyExceptionParser extends ExceptionParser {
             .query(e.getPointerToViolation())).get(key)))
         .message("The name in the name/value pair is not of: " + getAuthorizedProperties() + ".");
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 
   private String getAuthorizedProperties() {

@@ -133,11 +133,7 @@ public abstract class ExceptionParser {
             .message(MessageFormat.format("The value for the JSON name value does not pass {0} "
                 + "validation [{1}].", jsonPointer, validationNode.getValidationKey()));
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build());
-        }
+        results.add(builder.build(queryContext));
       }
     }
   }

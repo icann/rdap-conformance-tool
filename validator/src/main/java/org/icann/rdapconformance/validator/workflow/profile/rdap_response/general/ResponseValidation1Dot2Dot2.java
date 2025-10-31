@@ -54,11 +54,7 @@ public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
         .message("The RDAP response contains browser executable code (e.g., JavaScript). "
             + "See section 1.2.2 of the RDAP_Response_Profile_2_1.");
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build()); // Fallback for deprecated constructor
-    }
+    results.add(builder.build(queryContext));
   }
 
 }

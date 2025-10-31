@@ -54,11 +54,7 @@ public final class ResponseValidation3Dot1 extends ProfileJsonValidation {
           .message("An entity with the registrar role was not found as the topmost object. "
               + "See section 3.1 of the RDAP_Response_Profile_2_1");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
 
@@ -118,11 +114,7 @@ public final class ResponseValidation3Dot1 extends ProfileJsonValidation {
         .message("The required members for a registrar entity were not found. "
             + "See section 3.1 of the RDAP_Response_Profile_2_1.");
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build()); // Fallback for deprecated constructor
-    }
+    results.add(builder.build(queryContext));
   }
 
   @Override

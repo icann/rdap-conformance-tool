@@ -30,10 +30,6 @@ public class RdapExtensionsExceptionParser extends
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message("The JSON string is not included as an Extension Identifier in RDAPExtensions.");
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 }

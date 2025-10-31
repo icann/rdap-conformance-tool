@@ -67,13 +67,8 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
     try {
       HttpResponse<String> httpResponse = null;
 
-      if (queryContext != null) {
-        // Use QueryContext-aware request with redirect handling
-        httpResponse = makeRequestWithRedirects(queryContext, uri, config.getTimeout(), config.getMaxRedirects());
-      } else {
-        // Fallback for legacy usage without QueryContext
-        httpResponse = makeRequestWithRedirectsLegacy(uri, config.getTimeout(), config.getMaxRedirects());
-      }
+      // Use QueryContext-aware request with redirect handling
+      httpResponse = makeRequestWithRedirects(queryContext, uri, config.getTimeout(), config.getMaxRedirects());
 
       // Check if we got a non-200 response first
       if (httpResponse.statusCode() != rdapResponse.statusCode()) {

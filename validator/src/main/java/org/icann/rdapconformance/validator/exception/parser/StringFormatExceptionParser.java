@@ -42,10 +42,6 @@ public abstract class StringFormatExceptionParser<T> extends ExceptionParser {
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message(e.getMessage(e.getMessage()));
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 }

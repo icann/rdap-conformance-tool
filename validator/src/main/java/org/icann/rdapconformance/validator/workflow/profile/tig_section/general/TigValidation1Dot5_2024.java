@@ -89,12 +89,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                             .message("The RDAP server must only use TLS 1.2 or TLS 1.3");
 
                         // Let QueryContext populate all HTTP fields including httpMethod and receivedHttpStatusCode
-                        if (queryContext != null) {
-                            results.add(builder.build(queryContext));
-                        } else {
-                            // Fallback for deprecated constructor with explicit values
-                            results.add(builder.httpStatusCode(ZERO).httpMethod(DASH).build());
-                        }
+                        results.add(builder.build(queryContext));
                         isValid = false;
                     }
                 }
@@ -113,12 +108,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                                     + "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384.");
 
                             // Let QueryContext populate all HTTP fields including httpMethod and receivedHttpStatusCode
-                            if (queryContext != null) {
-                                results.add(builder.build(queryContext));
-                            } else {
-                                // Fallback for deprecated constructor with explicit values
-                                results.add(builder.httpStatusCode(ZERO).httpMethod(DASH).build());
-                            }
+                            results.add(builder.build(queryContext));
                             isValid = false;
                         }
                     } else if (cipherResult != null) {

@@ -55,10 +55,6 @@ public class BasicTypeExceptionParser extends ExceptionParser {
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message(e.getMessage("The JSON value is not a " + basicType.toLowerCase() + "."));
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 }

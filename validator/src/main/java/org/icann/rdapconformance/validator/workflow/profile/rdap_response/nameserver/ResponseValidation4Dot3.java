@@ -34,11 +34,7 @@ public final class ResponseValidation4Dot3 extends RegistrarEntityValidation {
             .value(getResultValue(entityJsonPointer))
             .message("A publicIds member is included in the entity with the registrar role.");
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build()); // Fallback for deprecated constructor
-        }
+        results.add(builder.build(queryContext));
         return false;
       }
       return true;

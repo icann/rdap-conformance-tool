@@ -66,11 +66,7 @@ public class ResponseValidation2Dot7Dot5Dot2 extends EntitiesWithinDomainProfile
                 + ("CONTACT-URI member was found. "
                 + "See section 2.7.5.2 of the RDAP_Response_Profile_2_1.")));
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build()); // Fallback for deprecated constructor
-        }
+        results.add(builder.build(queryContext));
         return false;
       } else if (!contactUri.contains("@")
           && (null == URI.create(contactUri).getScheme()
@@ -82,11 +78,7 @@ public class ResponseValidation2Dot7Dot5Dot2 extends EntitiesWithinDomainProfile
                 + "technical, or billing role does not contain an email or http/https link. "
                 + "See section 2.7.5.2 of the RDAP_Response_Profile_2_1."));
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build()); // Fallback for deprecated constructor
-        }
+        results.add(builder.build(queryContext));
         return false;
       }
     }

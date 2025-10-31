@@ -71,11 +71,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .message(String.format("The handle in the %s object does not comply with the format "
               + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.", objectName));
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
 
@@ -88,11 +84,7 @@ public abstract class HandleValidation extends ProfileJsonValidation {
           .message(String.format("The globally unique identifier in the %s object handle is not "
               + "registered in EPPROID.", objectName));
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

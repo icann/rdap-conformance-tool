@@ -80,12 +80,7 @@ public final class SchemaValidatorCache {
 
   private static SchemaValidator createValidatorWithSchema(Schema schema, RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
     // Create a SchemaValidator using the cached schema
-    // Now uses QueryContext-aware constructor when available
-    if (queryContext != null) {
-      return new SchemaValidator(schema, results, queryContext);
-    } else {
-      return new SchemaValidator(schema, results);
-    }
+    return new SchemaValidator(schema, results, queryContext);
   }
   
   private static String createCacheKey(String schemaName, RDAPDatasetService datasetService) {

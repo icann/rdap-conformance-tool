@@ -53,11 +53,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated5 extends
                         .message("More than one entity with the following roles were found: "
                             + "registrant, administrative, technical and billing.");
 
-                    if (queryContext != null) {
-                        results.add(builder.build(queryContext));
-                    } else {
-                        results.add(builder.build()); // Fallback for deprecated constructor
-                    }
+                    results.add(builder.build(queryContext));
                     isValid = false;
                 }
             }

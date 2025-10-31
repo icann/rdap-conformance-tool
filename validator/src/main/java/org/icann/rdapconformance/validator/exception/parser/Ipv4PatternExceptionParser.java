@@ -101,11 +101,7 @@ public class Ipv4PatternExceptionParser extends ExceptionParser {
           .value(e.getPointerToViolation() + ":" + ipValue)
           .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build());
-      }
+      results.add(builder.build(queryContext));
     } else {
       // Edge case: IP passes IPAddressString validation but fails regex pattern
       // This shouldn't happen with current regex, but handle gracefully
@@ -115,11 +111,7 @@ public class Ipv4PatternExceptionParser extends ExceptionParser {
           .value(e.getPointerToViolation() + ":" + ipValue)
           .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build());
-      }
+      results.add(builder.build(queryContext));
     }
   }
 

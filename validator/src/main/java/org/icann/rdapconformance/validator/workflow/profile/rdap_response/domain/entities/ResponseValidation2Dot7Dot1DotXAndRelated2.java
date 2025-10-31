@@ -201,11 +201,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
         .value(getResultValue(jsonPointer))
         .message(ERROR_MESSAGE_52101);
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build()); // Fallback for deprecated constructor
-    }
+    results.add(builder.build(queryContext));
     return false;
   }
 }

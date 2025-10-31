@@ -35,11 +35,7 @@ public class VcardArrayGeneralValidation extends RDAPProfileVcardArrayValidation
             .value(jsonExceptionPointer + ":" + categoryJsonArray)
             .message(
                 "The value for the JSON name value is not a syntactically valid vcardArray.");
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build());
-        }
+        results.add(builder.build(queryContext));
         return false;
       }
     } else {
@@ -47,11 +43,7 @@ public class VcardArrayGeneralValidation extends RDAPProfileVcardArrayValidation
           .code(-12305)
           .value(jsonExceptionPointer + ":" + category)
           .message("unknown vcard category: \"" + category + "\".");
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build());
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

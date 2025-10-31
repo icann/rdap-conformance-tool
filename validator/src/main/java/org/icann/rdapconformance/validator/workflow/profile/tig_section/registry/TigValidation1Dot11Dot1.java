@@ -74,12 +74,7 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
                     + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.");
 
       // Let QueryContext populate all HTTP fields including httpMethod and receivedHttpStatusCode
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        // Fallback for deprecated constructor with explicit values
-        results.add(builder.queriedURI(DASH).httpMethod(DASH).httpStatusCode(ZERO).build());
-      }
+      results.add(builder.build(queryContext));
       isValid = false;
     } else {
       Set<String> urls = dataset.getUrlsForTld(tld);
@@ -91,12 +86,7 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
                         + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.");
 
         // Let QueryContext populate all HTTP fields including httpMethod and receivedHttpStatusCode
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          // Fallback for deprecated constructor with explicit values
-          results.add(builder.queriedURI(DASH).httpMethod(DASH).httpStatusCode(ZERO).build());
-        }
+        results.add(builder.build(queryContext));
         isValid = false;
       }
       if (urls.stream().anyMatch(u -> !URI.create(u).getScheme().equals(HTTPS))) {
@@ -107,12 +97,7 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
                         + "https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.");
 
         // Let QueryContext populate all HTTP fields including httpMethod and receivedHttpStatusCode
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          // Fallback for deprecated constructor with explicit values
-          results.add(builder.queriedURI(DASH).httpMethod(DASH).httpStatusCode(ZERO).build());
-        }
+        results.add(builder.build(queryContext));
         isValid = false;
       }
     }

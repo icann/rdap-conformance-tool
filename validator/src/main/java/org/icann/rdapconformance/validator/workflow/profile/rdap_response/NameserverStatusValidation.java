@@ -57,11 +57,7 @@ public abstract class NameserverStatusValidation extends ProfileJsonValidation {
           .value(getResultValue(statusJsonPointer))
           .message("The values of the status data structure does not comply with RFC5732.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

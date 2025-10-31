@@ -50,14 +50,9 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
         }
 
             logger.debug("Sending a GET request to: {}", createTestInvalidURI());
-            HttpResponse<String> response = null;
 
-            if (queryContext != null) {
-                // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
-                response = RDAPHttpRequest.makeRequest(queryContext, createTestInvalidURI(), config.getTimeout(), GET);
-            } else {
-                response = RDAPHttpRequest.makeHttpGetRequest(createTestInvalidURI(), config.getTimeout());
-            }
+            // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
+            HttpResponse<String> response = RDAPHttpRequest.makeRequest(queryContext, createTestInvalidURI(), config.getTimeout(), GET);
 
             int status = response.statusCode();
             logger.debug("Status code for test.invalid: {}", status);

@@ -35,10 +35,6 @@ public class ConstExceptionParser extends ExceptionParser {
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message("The JSON value is not " + constSchema.getPermittedValue() + ".");
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 }

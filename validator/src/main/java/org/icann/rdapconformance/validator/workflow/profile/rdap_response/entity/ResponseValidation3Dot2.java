@@ -61,11 +61,7 @@ public final class ResponseValidation3Dot2 extends ProfileJsonValidation {
                   "The required members for entities with the administrative and technical roles "
                       + "were not found. See section 3.2 of the RDAP_Response_Profile_2_1.");
 
-          if (queryContext != null) {
-            results.add(builder.build(queryContext));
-          } else {
-            results.add(builder.build()); // Fallback for deprecated constructor
-          }
+          results.add(builder.build(queryContext));
           isValid = false;
         }
       }

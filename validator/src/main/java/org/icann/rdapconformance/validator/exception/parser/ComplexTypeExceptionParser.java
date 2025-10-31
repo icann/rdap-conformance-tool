@@ -44,10 +44,6 @@ public class ComplexTypeExceptionParser extends ExceptionParser {
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message("The " + e.getPointerToViolation() + " structure is not syntactically valid.");
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 }

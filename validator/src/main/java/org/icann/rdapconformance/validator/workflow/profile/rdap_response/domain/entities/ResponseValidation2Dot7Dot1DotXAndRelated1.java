@@ -49,11 +49,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated1 extends
                 + "the "
                 + "RDAP_Response_Profile_2_1.");
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build()); // Fallback for deprecated constructor
-        }
+        results.add(builder.build(queryContext));
         return false;
       }
     }

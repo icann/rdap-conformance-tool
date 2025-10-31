@@ -42,11 +42,7 @@ public final class ResponseValidationNoticesIncluded extends ProfileJsonValidati
           .value(jsonObject.toString())
           .message("A notices members does not appear in the RDAP response.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

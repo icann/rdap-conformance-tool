@@ -67,14 +67,9 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
         String domainInvalidUriCleaned = CommonUtils.cleanStringFromExtraSlash(domainInvalidUri);
 
         logger.debug("Making request to: {}", domainInvalidUriCleaned);
-        HttpResponse<String> response = null;
 
-        if (queryContext != null) {
-            // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
-            response = RDAPHttpRequest.makeRequest(queryContext, new URI(domainInvalidUriCleaned), this.config.getTimeout(), GET);
-        } else {
-            response = RDAPHttpRequest.makeHttpGetRequest(new URI(domainInvalidUriCleaned), this.config.getTimeout());
-        }
+        // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(queryContext, new URI(domainInvalidUriCleaned), this.config.getTimeout(), GET);
 
         // final response
         return validateDomainInvalidQuery(response, isValid);
@@ -96,11 +91,7 @@ boolean validateDomainInvalidQuery(HttpResponse<String> domainInvalidResponse, b
                                             .value(String.valueOf(domainInvalidStatusCode))
                                             .message("A query for an invalid domain name did not yield a 404 response.");
 
-            if (queryContext != null) {
-                results.add(builder.build(queryContext));
-            } else {
-                results.add(builder.build()); // Fallback for testing constructor
-            }
+            results.add(builder.build(queryContext));
             isValid = false;
         }
     }

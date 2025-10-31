@@ -57,11 +57,7 @@ public abstract class NoticesValidation extends ProfileJsonValidation {
               .collect(Collectors.toSet())))
           .message(String.format("The notice for %s was not found.", href));
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

@@ -49,11 +49,7 @@ public class Ipv4ValidationExceptionParser extends StringFormatExceptionParser<I
           .value(e.getPointerToViolation() + ":" + ipValue)
           .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build());
-      }
+      results.add(builder.build(queryContext));
       return;
     }
 
@@ -67,11 +63,7 @@ public class Ipv4ValidationExceptionParser extends StringFormatExceptionParser<I
           .value(e.getPointerToViolation() + ":" + ipValue)
           .message(Ipv4FormatValidator.NOT_ALLOCATED_NOR_LEGACY);
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build());
-      }
+      results.add(builder.build(queryContext));
     } else if (errorMessage.contains(Ipv4FormatValidator.PART_OF_SPECIAL_ADDRESSES)) {
       // Valid syntax but in special address space
       RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
@@ -79,11 +71,7 @@ public class Ipv4ValidationExceptionParser extends StringFormatExceptionParser<I
           .value(e.getPointerToViolation() + ":" + ipValue)
           .message(Ipv4FormatValidator.PART_OF_SPECIAL_ADDRESSES);
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build());
-      }
+      results.add(builder.build(queryContext));
     } else {
       // Unknown format validation failure - default behavior
       // This handles cases where format validation fails for reasons other than allocation/special
@@ -92,11 +80,7 @@ public class Ipv4ValidationExceptionParser extends StringFormatExceptionParser<I
           .value(e.getPointerToViolation() + ":" + ipValue)
           .message(e.getMessage("The v4 structure is not syntactically valid."));
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build());
-      }
+      results.add(builder.build(queryContext));
     }
   }
 

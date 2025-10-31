@@ -55,11 +55,7 @@ public class TigValidation4Dot1 extends RDAPProfileVcardArrayValidation {
             .value(jsonExceptionPointer + ":" + categoryJsonArray)
             .message(
                 "An entity with a non-structured address was found. See section 4.1 of the TIG.");
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build());
-        }
+        results.add(builder.build(queryContext));
         return false;
       }
     }

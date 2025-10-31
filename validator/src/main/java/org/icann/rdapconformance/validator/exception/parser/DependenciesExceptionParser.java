@@ -56,10 +56,6 @@ public class DependenciesExceptionParser extends ExceptionParser {
         .value(jsonObject.query(e.getPointerToViolation()).toString())
         .message("A " + parentKey + " structure was found but an " + key + " was not.");
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 }

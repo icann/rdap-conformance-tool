@@ -56,11 +56,7 @@ public abstract class RDAPProfileVcardArrayValidation extends ProfileJsonValidat
                 .value(getResultValue(jsonPointer))
                 .message(
                     "The value for the JSON name value is not a syntactically valid vcardArray.");
-            if (queryContext != null) {
-              results.add(builder.build(queryContext));
-            } else {
-              results.add(builder.build());
-            }
+            results.add(builder.build(queryContext));
           }
         }
         vcardElementIndex++;

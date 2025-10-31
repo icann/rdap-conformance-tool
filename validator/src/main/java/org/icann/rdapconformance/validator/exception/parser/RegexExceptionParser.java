@@ -52,11 +52,7 @@ public class RegexExceptionParser extends ExceptionParser {
             .value(e.getPointerToViolation() + ":" + ipValue)
             .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build());
-        }
+        results.add(builder.build(queryContext));
         return;
       } else {
         // Edge case: IP passes IPAddressString validation but fails regex pattern
@@ -66,11 +62,7 @@ public class RegexExceptionParser extends ExceptionParser {
             .value(e.getPointerToViolation() + ":" + ipValue)
             .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build());
-        }
+        results.add(builder.build(queryContext));
         return;
       }
     }
@@ -83,11 +75,7 @@ public class RegexExceptionParser extends ExceptionParser {
             + " does not conform to "
             + e.getSchemaLocation() + " syntax."));
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 
   /**

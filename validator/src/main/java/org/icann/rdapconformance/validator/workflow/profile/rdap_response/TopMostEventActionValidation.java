@@ -55,11 +55,7 @@ public abstract class TopMostEventActionValidation extends ProfileJsonValidation
         .value(jsonObject.get("events").toString())
         .message(message);
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build()); // Fallback for deprecated constructor
-    }
+    results.add(builder.build(queryContext));
     return false;
   }
 }

@@ -67,11 +67,7 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
                 + "structure with the registrar role was not found. See section 1.12.1 of the "
                 + "RDAP_Technical_Implementation_Guide_2_1.");
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build()); // Fallback for deprecated constructor
-        }
+        results.add(builder.build(queryContext));
         return false;
       } else {
         int identifier = publicId.getInt("identifier");
@@ -83,11 +79,7 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
               .message("The registrar identifier is not included in the registrarId. "
                   + "See section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1.");
 
-          if (queryContext != null) {
-            results.add(builder.build(queryContext));
-          } else {
-            results.add(builder.build()); // Fallback for deprecated constructor
-          }
+          results.add(builder.build(queryContext));
           return false;
         }
 
@@ -99,11 +91,7 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
               .message("One or more of the base URLs for the registrar contain a "
                       + "schema different from https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.");
 
-          if (queryContext != null) {
-            results.add(builder.build(queryContext));
-          } else {
-            results.add(builder.build()); // Fallback for deprecated constructor
-          }
+          results.add(builder.build(queryContext));
           return false;
         }
       }

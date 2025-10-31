@@ -32,10 +32,6 @@ public class DatetimeExceptionParser extends StringFormatExceptionParser<DateTim
         .message(
             "The JSON value shall be a syntactically valid time and date according to RFC3339.");
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 }

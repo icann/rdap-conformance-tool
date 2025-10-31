@@ -62,11 +62,7 @@ public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
                             .value(l.toString())
                             .message("This link must have an href.");
 
-                        if (queryContext != null) {
-                            results.add(builder.build(queryContext));
-                        } else {
-                            results.add(builder.build()); // Fallback for deprecated constructor
-                        }
+                        results.add(builder.build(queryContext));
                     }
 
 
@@ -78,11 +74,7 @@ public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
                             .value(l.toString())
                             .message("This link must have a value that is the same as the queried URI.");
 
-                        if (queryContext != null) {
-                            results.add(builder.build(queryContext));
-                        } else {
-                            results.add(builder.build()); // Fallback for deprecated constructor
-                        }
+                        results.add(builder.build(queryContext));
                     }
                 }
             }
@@ -94,11 +86,7 @@ public class TigValidation3Dot3And3Dot4_2024 extends ProfileJsonValidation {
                 .value(jsonObject.toString())
                 .message("The response must have one notice to the terms of service.");
 
-            if (queryContext != null) {
-                results.add(builder.build(queryContext));
-            } else {
-                results.add(builder.build()); // Fallback for deprecated constructor
-            }
+            results.add(builder.build(queryContext));
         }
 
         return is61200Valid && is61201Valid && is61202Valid;

@@ -45,11 +45,7 @@ public class ResponseValidation2Dot7Dot5Dot3 extends EntitiesWithinDomainProfile
               + "without a valid \"EMAIL REDACTED FOR PRIVACY\" remark was found. See section 2.7.5.3 "
               + "of the RDAP_Response_Profile_2_1.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

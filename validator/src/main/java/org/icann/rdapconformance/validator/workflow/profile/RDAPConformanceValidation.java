@@ -53,11 +53,7 @@ public abstract class RDAPConformanceValidation extends ProfileJsonValidation {
                                       .value(getResultValue(jsonPointer))
                                       .message(message); // Always use the passed-in message
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
 
@@ -70,11 +66,7 @@ public abstract class RDAPConformanceValidation extends ProfileJsonValidation {
                                       .value(getResultValue(jsonPointer))
                                       .message(message); // Always use the passed-in message
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
 

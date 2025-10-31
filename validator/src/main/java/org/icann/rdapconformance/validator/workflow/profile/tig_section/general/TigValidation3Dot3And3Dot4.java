@@ -42,11 +42,7 @@ public class TigValidation3Dot3And3Dot4 extends ProfileJsonValidation {
               + "topmost object. See section 3.3 and 3.4 of the "
               + "RDAP_Technical_Implementation_Guide_2_1.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

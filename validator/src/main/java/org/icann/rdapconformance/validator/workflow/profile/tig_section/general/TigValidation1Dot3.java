@@ -88,11 +88,7 @@ public final class TigValidation1Dot3 extends ProfileValidation {
                                             .value(response.uri().toString())
                                             .message("The RDAP server is offering SSLv2 and/or SSLv3.");
 
-            if (queryContext != null) {
-              results.add(builder.build(queryContext));
-            } else {
-              results.add(builder.build()); // Fallback for deprecated constructor
-            }
+            results.add(builder.build(queryContext));
             isValid = false;
           }
         } catch (NoSuchAlgorithmException | IOException e) {

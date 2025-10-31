@@ -44,14 +44,8 @@ public final class TigValidation1Dot6 extends ProfileValidation {
 
   public boolean doValidate() {
     try {
-      HttpResponse<String> httpResponse = null;
-
-      if (queryContext != null) {
-        // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
-        httpResponse = RDAPHttpRequest.makeRequest(queryContext, config.getUri(), config.getTimeout(), HEAD);
-      } else {
-        httpResponse = RDAPHttpRequest.makeHttpHeadRequest(config.getUri(), config.getTimeout());
-      }
+      // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
+      HttpResponse<String> httpResponse = RDAPHttpRequest.makeRequest(queryContext, config.getUri(), config.getTimeout(), HEAD);
 
       if (httpResponse.statusCode() != rdapResponseStatusCode) {
         results.add(RDAPValidationResult.builder()

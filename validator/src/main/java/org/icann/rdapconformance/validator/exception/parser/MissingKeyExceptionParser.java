@@ -44,10 +44,6 @@ public class MissingKeyExceptionParser extends ExceptionParser {
         .value(jsonObject.toString())
         .message("The " + key + " element does not exist.");
 
-    if (queryContext != null) {
-      results.add(builder.build(queryContext));
-    } else {
-      results.add(builder.build());
-    }
+    results.add(builder.build(queryContext));
   }
 }

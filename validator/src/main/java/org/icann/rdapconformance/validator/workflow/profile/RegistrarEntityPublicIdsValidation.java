@@ -56,11 +56,7 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
           .value(getResultValue(entityJsonPointer))
           .message("A publicIds member is not included in the entity with the registrar role.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     for (String jsonPointer : publicIdsJsonPointers) {
@@ -79,11 +75,7 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
           .message("The identifier of the publicIds member of the entity with the registrar role "
               + "is not a positive integer.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

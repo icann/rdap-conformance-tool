@@ -47,11 +47,7 @@ public final class ResponseValidationRFC5731 extends ProfileJsonValidation {
           .value(getResultValue("#/status"))
           .message("The values of the status data structure does not comply with RFC5731.");
 
-      if (queryContext != null) {
-        results.add(builder.build(queryContext));
-      } else {
-        results.add(builder.build()); // Fallback for deprecated constructor
-      }
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

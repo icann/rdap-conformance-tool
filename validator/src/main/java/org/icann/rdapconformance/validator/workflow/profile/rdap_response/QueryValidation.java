@@ -84,11 +84,7 @@ public abstract class QueryValidation extends ProfileJsonValidation {
                     + "See section %s of the RDAP_Response_Profile_2_1.",
                 queryType.name().toLowerCase(), sectionName));
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build()); // Fallback for deprecated constructor
-        }
+        results.add(builder.build(queryContext));
         isValid = false;
       }
     } else {
@@ -102,11 +98,7 @@ public abstract class QueryValidation extends ProfileJsonValidation {
                     + "See section %s of the RDAP_Response_Profile_2_1.",
                 queryType.name().toLowerCase(), sectionName));
 
-        if (queryContext != null) {
-          results.add(builder.build(queryContext));
-        } else {
-          results.add(builder.build()); // Fallback for deprecated constructor
-        }
+        results.add(builder.build(queryContext));
         isValid = false;
       }
     }

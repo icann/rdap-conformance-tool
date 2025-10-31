@@ -92,11 +92,7 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
                 .value(linksStr)
                 .message(ERROR_23201_MESSAGE);
 
-            if (queryContext != null) {
-                results.add(builder.build(queryContext));
-            } else {
-                results.add(builder.build());
-            }
+            results.add(builder.build(queryContext));
         }
         
         return isValid;
@@ -118,11 +114,7 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
                             .value(l.toString())
                             .message(ERROR_23202_MESSAGE);
 
-                        if (queryContext != null) {
-                            results.add(builder.build(queryContext));
-                        } else {
-                            results.add(builder.build());
-                        }
+                        results.add(builder.build(queryContext));
                         isValid = false;
                     }
                 }
