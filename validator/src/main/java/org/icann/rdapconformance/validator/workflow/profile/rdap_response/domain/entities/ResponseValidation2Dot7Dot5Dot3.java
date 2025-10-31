@@ -10,8 +10,11 @@ import org.json.JSONObject;
 
 public class ResponseValidation2Dot7Dot5Dot3 extends EntitiesWithinDomainProfileJsonValidation {
 
+  private final QueryContext queryContext;
+
   public ResponseValidation2Dot7Dot5Dot3(QueryContext queryContext) {
     super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(), queryContext.getConfig());
+    this.queryContext = queryContext;
   }
 
   /**
@@ -21,6 +24,7 @@ public class ResponseValidation2Dot7Dot5Dot3 extends EntitiesWithinDomainProfile
   @Deprecated
   public ResponseValidation2Dot7Dot5Dot3(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config) {
     super(rdapResponse, results, queryType, config);
+    this.queryContext = null; // Not available in deprecated constructor
   }
 
   @Override
@@ -34,13 +38,18 @@ public class ResponseValidation2Dot7Dot5Dot3 extends EntitiesWithinDomainProfile
     if (emailOmitted && getPointerFromJPath(entity,
         "$.remarks[?(@.title == 'EMAIL REDACTED FOR PRIVACY' && "
             + "@.type == 'object redacted due to authorization')]").isEmpty()) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-55000)
           .value(getResultValue(jsonPointer))
           .message("An entity with the administrative, technical, or billing role "
               + "without a valid \"EMAIL REDACTED FOR PRIVACY\" remark was found. See section 2.7.5.3 "
-              + "of the RDAP_Response_Profile_2_1.")
-          .build());
+              + "of the RDAP_Response_Profile_2_1.");
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build()); // Fallback for deprecated constructor
+      }
       return false;
     }
     return true;
