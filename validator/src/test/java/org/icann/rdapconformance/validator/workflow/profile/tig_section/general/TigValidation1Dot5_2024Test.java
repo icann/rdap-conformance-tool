@@ -28,6 +28,7 @@ public class TigValidation1Dot5_2024Test {
     public void setUp() throws IOException {
         httpResponse = mock(HttpResponse.class);
         config = mock(RDAPValidatorConfiguration.class);
+        results = mock(RDAPValidatorResults.class);
         mockSSLValidator = mock(SSLValidator.class);
 
         when(config.getUri()).thenReturn(URI.create("https://example.com"));
@@ -37,9 +38,8 @@ public class TigValidation1Dot5_2024Test {
             SSLValidator.CipherValidationResult.success("TLSv1.2", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
         when(mockSSLValidator.validateTLS12CipherSuites(anyString(), anyInt())).thenReturn(defaultCipherResult);
 
-        queryContext = QueryContext.forTesting(config);
-        results = queryContext.getResults();
-        results.clear();
+        queryContext = QueryContext.forTesting("{}", results, config);
+        queryContext.setCurrentHttpResponse(httpResponse);
 
         // Use constructor that allows dependency injection
         validation = new TigValidation1Dot5_2024(queryContext, mockSSLValidator);

@@ -32,7 +32,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
     public TigValidation1Dot5_2024(QueryContext queryContext, SSLValidator sslValidator) {
         super(queryContext.getResults());
         this.queryContext = queryContext;
-        this.rdapResponse = (HttpResponse<String>) queryContext.getQuery().getRawResponse();
+        this.rdapResponse = queryContext.getCurrentHttpResponse();
         this.config = queryContext.getConfig();
         this.sslValidator = sslValidator;
     }

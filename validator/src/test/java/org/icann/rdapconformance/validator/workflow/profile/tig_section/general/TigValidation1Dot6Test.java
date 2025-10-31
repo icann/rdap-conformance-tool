@@ -39,6 +39,12 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
   }
 
   public ProfileValidation getProfileValidation() {
+    // Ensure there's a mock HTTP response set for validation
+    if (queryContext.getCurrentHttpResponse() == null) {
+      HttpResponse<String> mockResponse = mock(HttpResponse.class);
+      when(mockResponse.statusCode()).thenReturn(200); // Default status
+      queryContext.setCurrentHttpResponse(mockResponse);
+    }
     return new TigValidation1Dot6(queryContext);
   }
 

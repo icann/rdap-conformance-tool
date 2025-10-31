@@ -62,7 +62,7 @@ public class ResponseValidationHelp_2024Test {
     when(mockResponse.uri()).thenReturn(URI.create("http://example.com/help"));
 
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
@@ -92,7 +92,7 @@ public class ResponseValidationHelp_2024Test {
     when(mockResponse.uri()).thenReturn(URI.create("http://example.com/help"));
 
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
@@ -111,7 +111,7 @@ public class ResponseValidationHelp_2024Test {
     when(response.uri()).thenReturn(URI.create("http://example.com/help"));
 
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString())).thenReturn(response);
 
     assertThat(responseValidator.doValidate()).isFalse();
 
