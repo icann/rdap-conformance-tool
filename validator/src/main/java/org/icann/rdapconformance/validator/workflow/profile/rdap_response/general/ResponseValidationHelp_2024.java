@@ -26,11 +26,6 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
     private final RDAPValidatorConfiguration config;
     private final QueryContext queryContext;
 
-    public ResponseValidationHelp_2024(RDAPValidatorConfiguration config, RDAPValidatorResults results) {
-        super(results);
-        this.config = config;
-        this.queryContext = null; // For testing purposes only
-    }
 
     public ResponseValidationHelp_2024(QueryContext queryContext) {
         super(queryContext.getResults());

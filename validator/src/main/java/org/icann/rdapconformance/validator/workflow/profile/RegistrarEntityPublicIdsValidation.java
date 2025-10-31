@@ -14,13 +14,6 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
   protected final QueryContext queryContext;
   final int code;
 
-  public RegistrarEntityPublicIdsValidation(String rdapResponse, RDAPValidatorResults results,
-                                            RDAPQueryType queryType, int code) {
-    super(rdapResponse, results);
-    this.queryType = queryType;
-    this.queryContext = null; // Not available in deprecated constructor
-    this.code = code;
-  }
 
   // QueryContext constructor for production use
   public RegistrarEntityPublicIdsValidation(QueryContext queryContext, int code) {

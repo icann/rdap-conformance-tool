@@ -40,18 +40,6 @@ public abstract class HandleValidation extends ProfileJsonValidation {
     this.queryContext = queryContext;
   }
 
-  // Deprecated constructor for testing
-  @Deprecated
-  public HandleValidation(RDAPValidatorConfiguration config, String rdapResponse, RDAPValidatorResults results,
-                          RDAPDatasetService datasetService, RDAPQueryType queryType, int code, String objectName) {
-    super(rdapResponse, results);
-    this.datasetService = datasetService;
-    this.queryType = queryType;
-    this.code = code;
-    this.config = config;
-    this.objectName = objectName;
-    this.queryContext = null; // For tests - QueryContext not available
-  }
 
   protected boolean validateHandle(String handleJsonPointer) {
     String handle = null;

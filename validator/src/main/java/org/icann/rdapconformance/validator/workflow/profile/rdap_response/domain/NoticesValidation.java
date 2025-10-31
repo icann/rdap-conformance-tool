@@ -18,18 +18,6 @@ public abstract class NoticesValidation extends ProfileJsonValidation {
   private final RDAPQueryType queryType;
   private final QueryContext queryContext;
 
-  public NoticesValidation(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType,
-      String title, String description, String href, int code) {
-    super(rdapResponse, results);
-    this.queryType = queryType;
-    this.queryContext = null; // Not available in deprecated constructor
-    this.title = title;
-    this.description = description;
-    this.href = href;
-    this.code = code;
-  }
 
   // QueryContext constructor for production use
   public NoticesValidation(QueryContext queryContext,

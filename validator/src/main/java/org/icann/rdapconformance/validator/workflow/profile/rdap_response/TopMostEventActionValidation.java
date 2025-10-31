@@ -28,17 +28,6 @@ public abstract class TopMostEventActionValidation extends ProfileJsonValidation
     this.message = message;
   }
 
-  // Deprecated constructor for testing
-  @Deprecated
-  public TopMostEventActionValidation(String rdapResponse, RDAPValidatorResults results,
-      RDAPQueryType queryType, int code, String message, EventAction eventAction) {
-    super(rdapResponse, results);
-    this.queryContext = null; // Not available in deprecated constructor
-    this.queryType = queryType;
-    this.eventAction = eventAction;
-    this.code = code;
-    this.message = message;
-  }
 
   @Override
   protected boolean doValidate() {

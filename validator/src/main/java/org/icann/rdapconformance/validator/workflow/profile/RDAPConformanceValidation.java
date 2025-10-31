@@ -29,16 +29,6 @@ public abstract class RDAPConformanceValidation extends ProfileJsonValidation {
     this.message = message;
   }
 
-  // Deprecated constructor for testing
-  @Deprecated
-  public RDAPConformanceValidation(String rdapResponse, RDAPValidatorResults results,
-                                   String requiredValue, Integer code, String message) {
-    super(rdapResponse, results);
-    this.queryContext = null; // Not available in deprecated constructor
-    this.requiredValue = requiredValue;
-    this.code = code;
-    this.message = message;
-  }
 
   @Override
   protected boolean doValidate() {

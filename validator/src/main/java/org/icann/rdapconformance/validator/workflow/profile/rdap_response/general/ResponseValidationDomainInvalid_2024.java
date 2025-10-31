@@ -27,11 +27,6 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
     private final RDAPValidatorConfiguration config;
     private final QueryContext queryContext;
 
-    public ResponseValidationDomainInvalid_2024(RDAPValidatorConfiguration config, RDAPValidatorResults results) {
-        super(results);
-        this.config = config;
-        this.queryContext = null; // For testing purposes only
-    }
 
     public ResponseValidationDomainInvalid_2024(QueryContext queryContext) {
         super(queryContext.getResults());

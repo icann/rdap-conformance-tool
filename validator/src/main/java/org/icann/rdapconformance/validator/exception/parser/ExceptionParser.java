@@ -27,15 +27,6 @@ public abstract class ExceptionParser {
   protected final org.icann.rdapconformance.validator.QueryContext queryContext;
   public final static int UNKNOWN_ERROR_CODE = -999;
 
-  protected ExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject, RDAPValidatorResults results) {
-    this.e = e;
-    this.schema = schema;
-    this.schemaObject = new JSONObject(schema.toString());
-    this.jsonObject = jsonObject;
-    this.results = results;
-    this.queryContext = null; // For testing purposes only
-  }
 
   protected ExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject, RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
@@ -47,12 +38,6 @@ public abstract class ExceptionParser {
     this.queryContext = queryContext;
   }
 
-  public static List<ExceptionParser> createParsers(
-      ValidationException e,
-      Schema schema,
-      JSONObject object, RDAPValidatorResults results) {
-    return createParsers(e, schema, object, results, null);
-  }
 
   public static List<ExceptionParser> createParsers(
       ValidationException e,
@@ -114,10 +99,6 @@ public abstract class ExceptionParser {
     }
   }
 
-  public static void validateGroupTest(String jsonPointer, JSONObject jsonObject,
-      RDAPValidatorResults results, Schema schema) {
-    validateGroupTest(jsonPointer, jsonObject, results, schema, null);
-  }
 
   public static void validateGroupTest(String jsonPointer, JSONObject jsonObject,
       RDAPValidatorResults results, Schema schema, org.icann.rdapconformance.validator.QueryContext queryContext) {
