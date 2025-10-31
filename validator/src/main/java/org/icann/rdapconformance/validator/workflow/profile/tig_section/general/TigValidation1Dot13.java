@@ -16,7 +16,7 @@ public final class TigValidation1Dot13 extends ProfileValidation {
 
   public TigValidation1Dot13(QueryContext queryContext) {
     super(queryContext.getResults());
-    this.rdapResponse = (HttpResponse<String>) queryContext.getQuery().getRawResponse();
+    this.rdapResponse = queryContext.getCurrentHttpResponse();
     this.queryContext = queryContext;
   }
 

@@ -18,7 +18,6 @@ import org.testng.annotations.Test;
 
 public class ResponseValidation3Dot2Test extends ProfileJsonValidationTestBase {
 
-  private RDAPQueryType queryType;
   private RDAPValidatorConfiguration config;
 
 
@@ -35,7 +34,7 @@ public class ResponseValidation3Dot2Test extends ProfileJsonValidationTestBase {
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
-    queryType = RDAPQueryType.ENTITY;
+    queryContext.setQueryType(RDAPQueryType.ENTITY);
     config = mock(RDAPValidatorConfiguration.class);
     doReturn(true).when(config).isGtldRegistry();
   }
@@ -67,15 +66,15 @@ public class ResponseValidation3Dot2Test extends ProfileJsonValidationTestBase {
 
   @Test
   public void testDoLaunch() {
-    queryType = RDAPQueryType.HELP;
+    queryContext.setQueryType(RDAPQueryType.HELP);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVERS;
+    queryContext.setQueryType(RDAPQueryType.NAMESERVERS);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVER;
+    queryContext.setQueryType(RDAPQueryType.NAMESERVER);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.DOMAIN;
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.ENTITY;
+    queryContext.setQueryType(RDAPQueryType.ENTITY);
     assertThat(getProfileValidation().doLaunch()).isTrue();
     doReturn(false).when(config).isGtldRegistry();
     assertThat(getProfileValidation().doLaunch()).isFalse();

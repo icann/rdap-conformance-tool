@@ -29,6 +29,7 @@ public class TigValidation1Dot13Test extends ProfileValidationTestBase {
   }
 
   public ProfileValidation getProfileValidation() {
+    queryContext.setCurrentHttpResponse(httpResponse);
     return new TigValidation1Dot13(queryContext);
   }
 

@@ -46,8 +46,7 @@ public abstract class ResponseValidation2Dot7Dot1DotXAndRelatedTest extends
 
   public void testDoLaunch() {
     super.testDoLaunch();
-    queryType = RDAPQueryType.DOMAIN;
-    updateQueryContext();
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
     doReturn(false).when(config).isGtldRegistry();
     doReturn(false).when(config).isGtldRegistrar();
     assertThat(getProfileValidation().doLaunch()).isFalse();
@@ -56,17 +55,5 @@ public abstract class ResponseValidation2Dot7Dot1DotXAndRelatedTest extends
     assertThat(getProfileValidation().doLaunch()).isFalse();
     doReturn(false).when(config).isThin();
     assertThat(getProfileValidation().doLaunch()).isTrue();
-  }
-
-  private void updateQueryContext() {
-    // Update QueryContext with new query type for proper validation behavior
-    queryContext = new org.icann.rdapconformance.validator.QueryContext(
-        queryContext.getQueryId(),
-        queryContext.getConfig(),
-        queryContext.getDatasetService(),
-        queryContext.getQuery(),
-        queryContext.getResults(),
-        queryType);
-    queryContext.setRdapResponseData(rdapContent);
   }
 }

@@ -21,7 +21,6 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
   private final RDAPDatasetService rdapDatasetService = mock(RDAPDatasetService.class);
   private final BootstrapDomainNameSpace dataset = mock(BootstrapDomainNameSpace.class);
   private final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
-  private RDAPQueryType queryType;
 
   public ProfileValidation getProfileValidation() {
     return new TigValidation1Dot11Dot1(queryContext);
@@ -30,7 +29,7 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
-    queryType = RDAPQueryType.DOMAIN;
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
     doReturn(dataset).when(rdapDatasetService).get(BootstrapDomainNameSpace.class);
     doReturn(URI.create("https://domain.test:433/rdap/test.example")).when(config).getUri();
     doReturn(true).when(config).isGtldRegistry();
@@ -83,7 +82,7 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
   @Test
   public void testDoLaunch_NotADomainQuery_IsFalse() {
     doReturn(true).when(config).isGtldRegistry();
-    queryType = RDAPQueryType.NAMESERVER;
+    queryContext.setQueryType(RDAPQueryType.NAMESERVER);
     assertThat(this.getProfileValidation().doLaunch()).isFalse();
   }
 }

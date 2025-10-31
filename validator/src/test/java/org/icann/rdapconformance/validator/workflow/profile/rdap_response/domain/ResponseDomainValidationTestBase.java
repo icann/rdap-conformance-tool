@@ -12,8 +12,6 @@ import org.testng.annotations.Test;
 
 public abstract class ResponseDomainValidationTestBase extends ProfileJsonValidationTestBase {
 
-  protected RDAPQueryType queryType;
-
   public ResponseDomainValidationTestBase(String testGroupName) {
     super("/validators/domain/valid.json", testGroupName);
   }
@@ -21,38 +19,21 @@ public abstract class ResponseDomainValidationTestBase extends ProfileJsonValida
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
-    queryType = RDAPQueryType.DOMAIN;
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
   }
 
   @Test
   public void testDoLaunch() {
-    queryType = RDAPQueryType.HELP;
-    updateQueryContext();
+    queryContext.setQueryType(RDAPQueryType.HELP);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVERS;
-    updateQueryContext();
+    queryContext.setQueryType(RDAPQueryType.NAMESERVERS);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVER;
-    updateQueryContext();
+    queryContext.setQueryType(RDAPQueryType.NAMESERVER);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.ENTITY;
-    updateQueryContext();
+    queryContext.setQueryType(RDAPQueryType.ENTITY);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.DOMAIN;
-    updateQueryContext();
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
     assertThat(getProfileValidation().doLaunch()).isTrue();
-  }
-
-  private void updateQueryContext() {
-    // Update QueryContext with new query type for proper validation behavior
-    queryContext = new org.icann.rdapconformance.validator.QueryContext(
-        queryContext.getQueryId(),
-        queryContext.getConfig(),
-        queryContext.getDatasetService(),
-        queryContext.getQuery(),
-        queryContext.getResults(),
-        queryType);
-    queryContext.setRdapResponseData(rdapContent);
   }
 
 }

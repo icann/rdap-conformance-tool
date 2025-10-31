@@ -19,7 +19,6 @@ import org.testng.annotations.Test;
 public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
 
   private RDAPValidatorConfiguration config;
-  private RDAPQueryType queryType;
   private RDAPDatasetService datasetService;
   private RegistrarId registrarId;
 
@@ -31,13 +30,16 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
-    queryType = RDAPQueryType.DOMAIN;
     config = mock(RDAPValidatorConfiguration.class);
     doReturn(true).when(config).isGtldRegistry();
 
     datasetService = mock(RDAPDatasetService.class);
     registrarId = mock(RegistrarId.class);
     doReturn(registrarId).when(datasetService).get(RegistrarId.class);
+
+    // Create QueryContext with our mocked config and datasetService
+    queryContext = org.icann.rdapconformance.validator.QueryContext.forTesting(rdapContent, results, config, datasetService);
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
   }
 
   public ProfileJsonValidation getProfileValidation() {
@@ -92,7 +94,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   @Test
   public void testDoLaunch_NotADomainQuery_IsFalse() {
     doReturn(true).when(config).isGtldRegistry();
-    queryType = RDAPQueryType.NAMESERVER;
+    queryContext.setQueryType(RDAPQueryType.NAMESERVER);
     assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 
@@ -111,6 +113,9 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     JSONArray entities = new JSONArray();
     entities.put(publicIds);
     jsonObject.put("entities", entities);
+
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
 
     TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
@@ -132,6 +137,9 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
+
     TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
@@ -150,6 +158,9 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     JSONArray entities = new JSONArray();
     entities.put(publicIds);
     jsonObject.put("entities", entities);
+
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
 
     TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
@@ -170,6 +181,9 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
+
     TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
@@ -189,6 +203,9 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
+
     TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
@@ -207,6 +224,9 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     JSONArray entities = new JSONArray();
     entities.put(publicIds);
     jsonObject.put("entities", entities);
+
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
 
     TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();

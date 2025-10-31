@@ -52,22 +52,13 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
 
   public HandleValidation getProfileValidation() {
     try {
-      // Try QueryContext constructor first (modern pattern)
-      try {
-        // Update QueryContext with current test data and queryType
-        queryContext.setRdapResponseData(jsonObject.toString());
-        queryContext.setQueryType(queryType);
+      // Update QueryContext with current test data and queryType
+      queryContext.setRdapResponseData(jsonObject.toString());
+      queryContext.setQueryType(queryType);
 
-        return validationClass
-            .getConstructor(org.icann.rdapconformance.validator.QueryContext.class)
-            .newInstance(queryContext);
-      } catch (NoSuchMethodException e) {
-        // Fallback to legacy constructor for validators not yet migrated
-        return validationClass
-            .getConstructor(RDAPValidatorConfiguration.class, String.class, RDAPValidatorResults.class, RDAPDatasetService.class,
-                RDAPQueryType.class)
-            .newInstance(config, jsonObject.toString(), results, datasetService, queryType);
-      }
+      return validationClass
+          .getConstructor(org.icann.rdapconformance.validator.QueryContext.class)
+          .newInstance(queryContext);
     } catch (Exception e) {
       e.printStackTrace(); // For debugging constructor issues
       return null;

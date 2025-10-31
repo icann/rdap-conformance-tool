@@ -57,7 +57,7 @@ public class ResponseValidation2Dot7Dot5Dot3Test extends ResponseDomainValidatio
   @Test
   public void testDoLaunch() {
     super.testDoLaunch();
-    queryType = RDAPQueryType.DOMAIN;
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
     doReturn(false).when(config).isGtldRegistry();
     assertThat(getProfileValidation().doLaunch()).isFalse();
   }
