@@ -37,19 +37,6 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
         this.sslValidator = sslValidator;
     }
 
-    /**
-     * @deprecated Use TigValidation1Dot5_2024(QueryContext) or TigValidation1Dot5_2024(QueryContext, SSLValidator) instead
-     * TODO: Migrate tests to QueryContext-only constructor
-     */
-    @Deprecated
-    public TigValidation1Dot5_2024(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config, RDAPValidatorResults results, SSLValidator sslValidator) {
-        super(results);
-        this.queryContext = null; // Deprecated constructor - QueryContext not available
-        this.rdapResponse = rdapResponse;
-        this.config = config;
-        this.sslValidator = sslValidator;
-    }
-
     @Override
     public String getGroupName() {
         return "tigSection_1_5_Validation";

@@ -15,17 +15,6 @@ public class TigValidation3Dot3And3Dot4 extends ProfileJsonValidation {
     this.queryContext = queryContext;
   }
 
-  /**
-   * @deprecated Use TigValidation3Dot3And3Dot4(QueryContext) instead
-   * TODO: Migrate tests to QueryContext-only constructor
-   */
-  @Deprecated
-  public TigValidation3Dot3And3Dot4(String rdapResponse, RDAPValidatorResults results, org.icann.rdapconformance.validator.SchemaValidator schemaValidator) {
-    super(rdapResponse, results);
-    this.queryContext = null; // Not available in deprecated constructor
-    // schemaValidator is no longer used in current implementation
-  }
-
   @Override
   public String getGroupName() {
     return "tigSection_3_3_and_3_4_Validation";

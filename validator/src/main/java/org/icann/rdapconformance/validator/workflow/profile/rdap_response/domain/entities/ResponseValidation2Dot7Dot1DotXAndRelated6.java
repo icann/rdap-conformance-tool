@@ -22,16 +22,6 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated6 extends
     this.queryContext = queryContext;
   }
 
-  /**
-   * @deprecated Use ResponseValidation2Dot7Dot1DotXAndRelated6(QueryContext) instead
-   * TODO: Migrate tests to QueryContext-only constructor
-   */
-  @Deprecated
-  public ResponseValidation2Dot7Dot1DotXAndRelated6(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config) {
-    super(rdapResponse, results, queryType, config);
-    this.queryContext = null; // For testing purposes only
-  }
-
   @Override
   protected boolean doValidateEntity(String jsonPointer, JSONObject entity) {
     if (!getPointerFromJPath(entity, "[?(@.roles contains 'registrant')]").isEmpty()) {

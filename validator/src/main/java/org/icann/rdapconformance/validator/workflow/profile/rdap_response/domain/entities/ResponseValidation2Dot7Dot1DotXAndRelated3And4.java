@@ -20,16 +20,6 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4 extends
     this.simpleHandleValidation = new SimpleHandleValidation(queryContext, -52102);
   }
 
-  /**
-   * @deprecated Use ResponseValidation2Dot7Dot1DotXAndRelated3And4(QueryContext) instead
-   * TODO: Migrate tests to QueryContext-only constructor
-   */
-  @Deprecated
-  public ResponseValidation2Dot7Dot1DotXAndRelated3And4(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config, SimpleHandleValidation simpleHandleValidation) {
-    super(rdapResponse, results, queryType, config);
-    this.simpleHandleValidation = simpleHandleValidation;
-  }
-
   @Override
   protected boolean doValidateEntity(String jsonPointer, JSONObject entity) {
     if (isChildOfRegistrar(jsonPointer)) {

@@ -24,18 +24,6 @@ public final class ResponseValidation3Dot2 extends ProfileJsonValidation {
     this.queryContext = queryContext;
   }
 
-  /**
-   * @deprecated Use ResponseValidation3Dot2(QueryContext) instead
-   * TODO: Migrate tests to QueryContext-only constructor
-   */
-  @Deprecated
-  public ResponseValidation3Dot2(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config) {
-    super(rdapResponse, results);
-    this.queryType = queryType;
-    this.config = config;
-    this.queryContext = null; // Not available in deprecated constructor
-  }
-
 
   @Override
   public String getGroupName() {

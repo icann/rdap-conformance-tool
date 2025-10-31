@@ -24,16 +24,6 @@ public abstract class NameserverStatusValidation extends ProfileJsonValidation {
     this.queryContext = queryContext;
   }
 
-  // Deprecated constructor for tests
-  @Deprecated
-  public NameserverStatusValidation(String rdapResponse,
-                                    RDAPValidatorResults results, RDAPQueryType queryType, int code) {
-    super(rdapResponse, results);
-    this.queryType = queryType;
-    this.code = code;
-    this.queryContext = null; // Not available in deprecated constructor
-  }
-
   public boolean validateStatus(String statusJsonPointer) {
     Set<String> status = new HashSet<>();
     JSONArray statusJson = (JSONArray) jsonObject.query(statusJsonPointer);

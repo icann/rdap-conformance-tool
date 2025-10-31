@@ -18,16 +18,6 @@ public abstract class RDAPProfileVcardArrayValidation extends ProfileJsonValidat
     this.queryContext = queryContext;
   }
 
-  /**
-   * @deprecated Use RDAPProfileVcardArrayValidation(String, RDAPValidatorResults, QueryContext) instead
-   * TODO: Migrate tests to QueryContext-only constructor
-   */
-  @Deprecated
-  public RDAPProfileVcardArrayValidation(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
-    this.queryContext = null; // For testing purposes only
-  }
-
   @Override
   protected boolean doValidate() {
     Set<String> pointersFromJPath = getPointerFromJPath("$..entities..vcardArray");

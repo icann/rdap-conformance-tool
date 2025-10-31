@@ -17,16 +17,6 @@ public class ResponseValidation2Dot7Dot5Dot3 extends EntitiesWithinDomainProfile
     this.queryContext = queryContext;
   }
 
-  /**
-   * @deprecated Use ResponseValidation2Dot7Dot5Dot3(QueryContext) instead
-   * TODO: Migrate tests to QueryContext-only constructor
-   */
-  @Deprecated
-  public ResponseValidation2Dot7Dot5Dot3(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config) {
-    super(rdapResponse, results, queryType, config);
-    this.queryContext = null; // Not available in deprecated constructor
-  }
-
   @Override
   public String getGroupName() {
     return "rdapResponseProfile_2_7_5_3_Validation";

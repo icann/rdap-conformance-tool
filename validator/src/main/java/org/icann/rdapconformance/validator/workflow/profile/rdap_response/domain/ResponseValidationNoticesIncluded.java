@@ -18,17 +18,6 @@ public final class ResponseValidationNoticesIncluded extends ProfileJsonValidati
     this.queryContext = queryContext;
   }
 
-  /**
-   * @deprecated Use ResponseValidationNoticesIncluded(QueryContext) instead
-   * TODO: Migrate tests to QueryContext-only constructor
-   */
-  @Deprecated
-  public ResponseValidationNoticesIncluded(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType) {
-    super(rdapResponse, results);
-    this.queryType = queryType;
-    this.queryContext = null; // Not available in deprecated constructor
-  }
-
   @Override
   public String getGroupName() {
     return "rdapResponseProfile_notices_included_Validation";

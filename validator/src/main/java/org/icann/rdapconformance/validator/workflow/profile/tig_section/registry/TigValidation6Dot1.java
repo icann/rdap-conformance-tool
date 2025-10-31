@@ -13,15 +13,6 @@ public final class TigValidation6Dot1 extends RegistrarEntityPublicIdsValidation
     super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(), -23300);
   }
 
-  /**
-   * @deprecated Use TigValidation6Dot1(QueryContext) instead
-   * TODO: Migrate tests to QueryContext-only constructor
-   */
-  @Deprecated
-  public TigValidation6Dot1(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType) {
-    super(rdapResponse, results, queryType, -23300);
-  }
-
   @Override
   public String getGroupName() {
     return "tigSection_6_1_Validation";

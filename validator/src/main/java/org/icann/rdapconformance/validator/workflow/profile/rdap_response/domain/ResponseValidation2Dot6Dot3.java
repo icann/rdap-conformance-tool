@@ -14,15 +14,6 @@ public final class ResponseValidation2Dot6Dot3 extends NoticesValidation {
     super(queryContext, TITLE, DESCRIPTION, HREF, -46600);
   }
 
-  /**
-   * @deprecated Use ResponseValidation2Dot6Dot3(QueryContext) instead
-   * TODO: Migrate tests to QueryContext-only constructor
-   */
-  @Deprecated
-  public ResponseValidation2Dot6Dot3(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType) {
-    super(rdapResponse, results, queryType, TITLE, DESCRIPTION, HREF, -46600);
-  }
-
   @Override
   public String getGroupName() {
     return "rdapResponseProfile_2_6_3_Validation";

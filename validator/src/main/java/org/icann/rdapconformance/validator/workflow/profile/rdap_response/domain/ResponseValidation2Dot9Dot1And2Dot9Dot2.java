@@ -126,7 +126,7 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
           .code(-47204)
           .value(getResultValue(statusJsonPointer))
           .message("The values of the status data structure does not comply with RFC5732.")
-          .build());
+          .build(queryContext));
       return false;
     }
     return true;

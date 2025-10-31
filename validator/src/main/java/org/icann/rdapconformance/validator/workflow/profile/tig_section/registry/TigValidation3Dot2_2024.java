@@ -41,18 +41,6 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
         this.queryContext = queryContext;
     }
 
-    /**
-     * @deprecated Use TigValidation3Dot2_2024(QueryContext) instead
-     * TODO: Migrate tests to QueryContext-only constructor
-     */
-    @Deprecated
-    public TigValidation3Dot2_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config, RDAPQueryType queryType, org.icann.rdapconformance.validator.QueryContext queryContext) {
-        super(rdapResponse, results);
-        this.config = config;
-        this.queryType = queryType;
-        this.queryContext = queryContext;
-    }
-
     @Override
     public String getGroupName() {
         return "tigSection_3_2_Validation";

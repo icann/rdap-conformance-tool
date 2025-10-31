@@ -25,18 +25,6 @@ public final class TigValidation1Dot6 extends ProfileValidation {
     this.queryContext = queryContext;
   }
 
-  /**
-   * @deprecated Use TigValidation1Dot6(QueryContext) instead
-   * TODO: Migrate tests to QueryContext-only constructor
-   */
-  @Deprecated
-  public TigValidation1Dot6(int rdapResponseStatusCode, QueryContext queryContext) {
-    super(queryContext.getResults());
-    this.rdapResponseStatusCode = rdapResponseStatusCode;
-    this.config = queryContext.getConfig();
-    this.queryContext = queryContext;
-  }
-
   @Override
   public String getGroupName() {
     return "tigSection_1_6_Validation";

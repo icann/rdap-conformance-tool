@@ -64,7 +64,7 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
                                                 .code(-13006)
                                                 .value(createTestInvalidURI().toString())
                                                 .message("Server responded with a 200 OK for 'test.invalid'.")
-                                                .build());
+                                                .build(queryContext));
                 return false;
             } else if (RDAPHttpQuery.isRedirectStatus(status)) {
                 return handleRedirect(response);
@@ -90,7 +90,7 @@ public class ResponseValidationTestInvalidRedirect_2024 extends ProfileValidatio
                                                 .code(-13005)
                                                 .value(locationHeader)
                                                 .message("Server responded with a redirect to itself for domain 'test.invalid'.")
-                                                .build());
+                                                .build(queryContext));
                 return false;
             }
         } catch (Exception e) {

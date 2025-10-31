@@ -17,15 +17,6 @@ public class SimpleHandleValidation extends HandleValidation {
     super(queryContext, code, "entity");
   }
 
-  // Deprecated constructor for testing
-  @Deprecated
-  public SimpleHandleValidation(RDAPValidatorConfiguration config, String rdapResponse,
-                                RDAPValidatorResults results,
-                                RDAPDatasetService datasetService,
-                                RDAPQueryType queryType, int code) {
-    super(config, rdapResponse, results, datasetService, queryType, code, "entity");
-  }
-
   @Override
   public String getGroupName() {
     throw new IllegalArgumentException("Should not be called. This class exists only because Java"

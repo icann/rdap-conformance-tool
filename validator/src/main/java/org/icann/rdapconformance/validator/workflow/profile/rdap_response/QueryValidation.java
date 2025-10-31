@@ -40,24 +40,6 @@ public abstract class QueryValidation extends ProfileJsonValidation {
         | IDNA.USE_STD3_RULES);
   }
 
-  // Deprecated constructor for tests
-  @Deprecated
-  public QueryValidation(String rdapResponse, RDAPValidatorResults results,
-      RDAPValidatorConfiguration config, RDAPQueryType queryType, String sectionName, int code) {
-    super(rdapResponse, results);
-    this.config = config;
-    this.queryType = queryType;
-    this.sectionName = sectionName;
-    this.code = code;
-    this.queryContext = null; // Not available in deprecated constructor
-    this.idna = IDNA.getUTS46Instance(IDNA.NONTRANSITIONAL_TO_ASCII
-        | IDNA.NONTRANSITIONAL_TO_UNICODE
-        | IDNA.CHECK_BIDI
-        | IDNA.CHECK_CONTEXTJ
-        | IDNA.CHECK_CONTEXTO
-        | IDNA.USE_STD3_RULES);
-  }
-
   @Override
   protected boolean doValidate() {
     boolean isValid = true;
