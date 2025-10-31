@@ -84,6 +84,9 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(publicIds);
         jsonObject.put("entities", entities);
 
+        // Update QueryContext with modified JSON data
+        updateQueryContextJsonData();
+
         TigValidation3Dot2_2024 tigValidation3Dot2_2024 = new TigValidation3Dot2_2024(queryContext);
         assertThat(tigValidation3Dot2_2024.isRegistrarId9999()).isTrue();
     }

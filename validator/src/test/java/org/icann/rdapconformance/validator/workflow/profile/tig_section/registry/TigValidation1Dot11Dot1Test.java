@@ -29,13 +29,20 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
-    queryContext.setQueryType(RDAPQueryType.DOMAIN);
-    doReturn(dataset).when(rdapDatasetService).get(BootstrapDomainNameSpace.class);
+
+    // Override the config created by super.setUp() with our test-specific config
     doReturn(URI.create("https://domain.test:433/rdap/test.example")).when(config).getUri();
     doReturn(true).when(config).isGtldRegistry();
+
+    // Set up dataset service mocks
+    doReturn(dataset).when(rdapDatasetService).get(BootstrapDomainNameSpace.class);
     doReturn(true).when(dataset).tldExists("example");
     doReturn(Set.of("https://domain.abc/rdap", "https://domain.test/rdap")).when(dataset)
         .getUrlsForTld("example");
+
+    // Recreate QueryContext with our mocked dependencies
+    queryContext = org.icann.rdapconformance.validator.QueryContext.forTesting("{}", results, config, rdapDatasetService);
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
   }
 
   @Test
