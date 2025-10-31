@@ -10,11 +10,6 @@ import org.json.JSONObject;
 public class RdapExtensionsExceptionParser extends
     StringFormatExceptionParser<RdapExtensionsFormatValidator> {
 
-  protected RdapExtensionsExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results, RdapExtensionsFormatValidator.class);
-  }
 
   protected RdapExtensionsExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,

@@ -15,14 +15,6 @@ public abstract class RegistrarEntityValidation extends
   protected final int code;
   private final RDAPDatasetService datasetService;
 
-  public RegistrarEntityValidation(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPDatasetService datasetService,
-      RDAPQueryType queryType, int code) {
-    super(rdapResponse, results, queryType, code);
-    this.datasetService = datasetService;
-    this.code = code;
-  }
 
   // QueryContext constructor for production use
   public RegistrarEntityValidation(QueryContext queryContext,

@@ -18,14 +18,6 @@ public class DependenciesExceptionParser extends ExceptionParser {
 
   protected DependenciesExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
-    matcher = pattern.matcher(e.getMessage());
-    matcher.find();
-  }
-
-  protected DependenciesExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject,
       RDAPValidatorResults results,
       org.icann.rdapconformance.validator.QueryContext queryContext) {
     super(e, schema, jsonObject, results, queryContext);

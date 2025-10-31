@@ -16,14 +16,6 @@ public class EnumExceptionParser extends ExceptionParser {
 
   protected EnumExceptionParser(ValidationExceptionNode e,
       Schema schema, JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
-    matcher = enumPattern.matcher(e.getMessage());
-    matcher.find();
-  }
-
-  protected EnumExceptionParser(ValidationExceptionNode e,
-      Schema schema, JSONObject jsonObject,
       RDAPValidatorResults results,
       org.icann.rdapconformance.validator.QueryContext queryContext) {
     super(e, schema, jsonObject, results, queryContext);

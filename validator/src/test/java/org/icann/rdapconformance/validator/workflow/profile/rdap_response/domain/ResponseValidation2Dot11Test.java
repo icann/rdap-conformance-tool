@@ -25,6 +25,6 @@ public class ResponseValidation2Dot11Test extends
   }
 
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot11(jsonObject.toString(), results, queryType);
+    return new ResponseValidation2Dot11(queryContext);
   }
 }

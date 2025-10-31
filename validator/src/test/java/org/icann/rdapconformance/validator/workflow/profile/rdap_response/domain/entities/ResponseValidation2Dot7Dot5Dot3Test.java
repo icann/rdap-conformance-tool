@@ -63,6 +63,6 @@ public class ResponseValidation2Dot7Dot5Dot3Test extends ResponseDomainValidatio
   }
 
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot7Dot5Dot3(jsonObject.toString(), results, queryType, config);
+    return new ResponseValidation2Dot7Dot5Dot3(queryContext);
   }
 }

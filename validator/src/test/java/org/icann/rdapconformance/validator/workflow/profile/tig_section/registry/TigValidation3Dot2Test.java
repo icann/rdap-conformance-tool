@@ -41,7 +41,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   }
 
   public ProfileJsonValidation getProfileValidation() {
-    return new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    return new TigValidation3Dot2(queryContext);
   }
 
   @Test

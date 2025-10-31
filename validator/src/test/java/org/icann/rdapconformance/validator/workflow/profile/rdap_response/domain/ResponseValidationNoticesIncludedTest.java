@@ -11,7 +11,7 @@ public class ResponseValidationNoticesIncludedTest extends ResponseDomainValidat
   }
 
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidationNoticesIncluded(jsonObject.toString(), results, queryType);
+    return new ResponseValidationNoticesIncluded(queryContext);
   }
 
   @Test

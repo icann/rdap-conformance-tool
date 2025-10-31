@@ -16,7 +16,7 @@ public class TigValidation7Dot1And7Dot2Test extends ProfileJsonValidationTestBas
   }
 
   public ProfileJsonValidation getProfileValidation() {
-    return new TigValidation7Dot1And7Dot2(jsonObject.toString(), results, queryContext);
+    return new TigValidation7Dot1And7Dot2(queryContext);
   }
 
   /**

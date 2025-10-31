@@ -11,11 +11,6 @@ import org.json.JSONObject;
 
 public class DatetimeExceptionParser extends StringFormatExceptionParser<DateTimeFormatValidator> {
 
-  protected DatetimeExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results, DateTimeFormatValidator.class);
-  }
 
   protected DatetimeExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,

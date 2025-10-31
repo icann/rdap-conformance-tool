@@ -41,7 +41,7 @@ public class ResponseValidation3Dot2Test extends ProfileJsonValidationTestBase {
   }
 
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation3Dot2(jsonObject.toString(), results, queryType, config);
+    return new ResponseValidation3Dot2(queryContext);
   }
 
   @Test(dataProvider = "roleVcardIndex")

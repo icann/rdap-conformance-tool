@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.List;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.testng.annotations.BeforeMethod;
@@ -21,23 +22,27 @@ public class TigValidation1Dot5_2024Test {
     private RDAPValidatorResults results;
     private SSLValidator mockSSLValidator;
     private TigValidation1Dot5_2024 validation;
+    private QueryContext queryContext;
 
     @BeforeMethod
     public void setUp() throws IOException {
         httpResponse = mock(HttpResponse.class);
         config = mock(RDAPValidatorConfiguration.class);
-        results = mock(RDAPValidatorResults.class);
         mockSSLValidator = mock(SSLValidator.class);
 
         when(config.getUri()).thenReturn(URI.create("https://example.com"));
 
         // Set up default mock behavior for SSL cipher validation to prevent NPE
-        SSLValidator.CipherValidationResult defaultCipherResult = 
+        SSLValidator.CipherValidationResult defaultCipherResult =
             SSLValidator.CipherValidationResult.success("TLSv1.2", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
         when(mockSSLValidator.validateTLS12CipherSuites(anyString(), anyInt())).thenReturn(defaultCipherResult);
 
+        queryContext = QueryContext.forTesting(config);
+        results = queryContext.getResults();
+        results.clear();
+
         // Use constructor that allows dependency injection
-        validation = new TigValidation1Dot5_2024(httpResponse, config, results, mockSSLValidator);
+        validation = new TigValidation1Dot5_2024(queryContext, mockSSLValidator);
     }
 
     @Test

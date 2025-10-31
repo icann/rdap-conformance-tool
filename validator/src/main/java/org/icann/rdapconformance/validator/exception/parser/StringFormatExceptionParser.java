@@ -14,14 +14,6 @@ public abstract class StringFormatExceptionParser<T> extends ExceptionParser {
   protected StringFormatExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results,
-      Class<T> formatValidator) {
-    super(e, schema, jsonObject, results);
-    this.formatValidator = formatValidator;
-  }
-
-  protected StringFormatExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject,
-      RDAPValidatorResults results,
       Class<T> formatValidator,
       org.icann.rdapconformance.validator.QueryContext queryContext) {
     super(e, schema, jsonObject, results, queryContext);

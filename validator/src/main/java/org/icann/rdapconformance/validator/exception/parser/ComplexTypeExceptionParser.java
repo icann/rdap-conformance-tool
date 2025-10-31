@@ -17,12 +17,6 @@ public class ComplexTypeExceptionParser extends ExceptionParser {
 
   protected ComplexTypeExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
-  }
-
-  protected ComplexTypeExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject,
       RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
     super(e, schema, jsonObject, results, queryContext);
   }

@@ -8,12 +8,6 @@ import org.json.JSONObject;
 
 public class DatasetExceptionParser extends StringFormatExceptionParser<DatasetValidator> {
 
-  protected DatasetExceptionParser(
-      ValidationExceptionNode e,
-      Schema schema, JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results, DatasetValidator.class);
-  }
 
   protected DatasetExceptionParser(
       ValidationExceptionNode e,

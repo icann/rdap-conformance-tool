@@ -7,8 +7,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated1Test extends
     ResponseValidation2Dot7Dot1DotXAndRelatedTest {
 
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot7Dot1DotXAndRelated1(jsonObject.toString(), results,
-        queryType, config);
+    return new ResponseValidation2Dot7Dot1DotXAndRelated1(queryContext);
   }
 
   @Test

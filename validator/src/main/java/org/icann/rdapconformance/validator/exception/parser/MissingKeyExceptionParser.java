@@ -14,13 +14,6 @@ public class MissingKeyExceptionParser extends ExceptionParser {
   static Pattern pattern = Pattern.compile("required key \\[(.+)\\] not found");
   protected Matcher matcher;
 
-  protected MissingKeyExceptionParser(ValidationExceptionNode e,
-      Schema schema, JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
-    matcher = pattern.matcher(e.getMessage());
-    matcher.find();
-  }
 
   protected MissingKeyExceptionParser(ValidationExceptionNode e,
       Schema schema, JSONObject jsonObject,

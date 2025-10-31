@@ -34,7 +34,7 @@ public class ResponseValidationHelp_2024Test {
     queryContext = QueryContext.forTesting(mockConfig);
     results = queryContext.getResults();
     results.clear();
-    responseValidator = new ResponseValidationHelp_2024(mockConfig, results);
+    responseValidator = new ResponseValidationHelp_2024(queryContext);
   }
 
   @AfterMethod

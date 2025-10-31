@@ -27,15 +27,6 @@ public class BasicTypeExceptionParser extends ExceptionParser {
       );
 
   protected BasicTypeExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject, RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
-    matcher = basicTypePattern.matcher(e.getMessage());
-    if (matcher.find()) {
-      basicType = matcher.group(1);
-    }
-  }
-
-  protected BasicTypeExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject, RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
     super(e, schema, jsonObject, results, queryContext);
     matcher = basicTypePattern.matcher(e.getMessage());

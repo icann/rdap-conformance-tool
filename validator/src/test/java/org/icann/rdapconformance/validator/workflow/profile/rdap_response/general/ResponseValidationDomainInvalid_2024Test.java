@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -26,12 +27,15 @@ public class ResponseValidationDomainInvalid_2024Test {
   private RDAPValidatorResults results;
   private ResponseValidationDomainInvalid_2024 responseValidator;
   private MockedStatic<RDAPHttpRequest> mockStaticRequest;
+  private QueryContext queryContext;
 
   @BeforeMethod
   public void setup() {
     mockConfig = mock(RDAPValidatorConfiguration.class);
-    results = mock(RDAPValidatorResults.class);
-    responseValidator = new ResponseValidationDomainInvalid_2024(mockConfig, results);
+    queryContext = QueryContext.forTesting(mockConfig);
+    results = queryContext.getResults();
+    results.clear();
+    responseValidator = new ResponseValidationDomainInvalid_2024(queryContext);
 
     // Initialize static mock for each test
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);

@@ -24,7 +24,7 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
   private RDAPQueryType queryType;
 
   public ProfileValidation getProfileValidation() {
-    return new TigValidation1Dot11Dot1(config, results, rdapDatasetService, queryType);
+    return new TigValidation1Dot11Dot1(queryContext);
   }
 
   @BeforeMethod

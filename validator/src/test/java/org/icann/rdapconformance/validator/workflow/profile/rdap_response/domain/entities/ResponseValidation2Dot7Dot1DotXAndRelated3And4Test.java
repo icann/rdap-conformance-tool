@@ -18,14 +18,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4Test extends
   }
 
   public ProfileValidation getProfileValidation() {
-    SimpleHandleValidation simpleHandleValidation = new SimpleHandleValidation(config,
-        jsonObject.toString(),
-        results,
-        datasets,
-        queryType,
-        -52102);
-    return new ResponseValidation2Dot7Dot1DotXAndRelated3And4(jsonObject.toString(), results,
-        queryType, config, simpleHandleValidation);
+    return new ResponseValidation2Dot7Dot1DotXAndRelated3And4(queryContext);
   }
 
   /**

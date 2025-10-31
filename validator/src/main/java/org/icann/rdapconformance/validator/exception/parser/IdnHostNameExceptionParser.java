@@ -9,11 +9,6 @@ import org.json.JSONObject;
 
 public class IdnHostNameExceptionParser extends StringFormatExceptionParser<IdnHostNameFormatValidator> {
 
-  protected IdnHostNameExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results, IdnHostNameFormatValidator.class);
-  }
 
   protected IdnHostNameExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,

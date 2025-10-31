@@ -10,6 +10,6 @@ public class TigValidation1Dot14Test extends RDAPConformanceValidationTest {
   }
 
   public RDAPConformanceValidation getProfileValidation() {
-    return new TigValidation1Dot14(jsonObject.toString(), results);
+    return new TigValidation1Dot14(queryContext);
   }
 }

@@ -43,7 +43,7 @@ public class ResponseValidation3Dot1Test extends ProfileJsonValidationTestBase {
   }
 
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation3Dot1(jsonObject.toString(), results, queryType, config);
+    return new ResponseValidation3Dot1(queryContext);
   }
 
   @Test

@@ -21,11 +21,6 @@ import org.json.JSONObject;
  */
 public class Ipv6ValidationExceptionParser extends StringFormatExceptionParser<Ipv6FormatValidator> {
 
-  protected Ipv6ValidationExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results, Ipv6FormatValidator.class);
-  }
 
   protected Ipv6ValidationExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,

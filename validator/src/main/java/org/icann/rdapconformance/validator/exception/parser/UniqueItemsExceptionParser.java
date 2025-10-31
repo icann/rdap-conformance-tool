@@ -10,12 +10,6 @@ public class UniqueItemsExceptionParser extends ExceptionParser {
 
   protected UniqueItemsExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
-  }
-
-  protected UniqueItemsExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject,
       RDAPValidatorResults results,
       org.icann.rdapconformance.validator.QueryContext queryContext) {
     super(e, schema, jsonObject, results, queryContext);

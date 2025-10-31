@@ -22,12 +22,6 @@ public class Ipv4PatternExceptionParser extends ExceptionParser {
 
   protected Ipv4PatternExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
-  }
-
-  protected Ipv4PatternExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject,
       RDAPValidatorResults results,
       org.icann.rdapconformance.validator.QueryContext queryContext) {
     super(e, schema, jsonObject, results, queryContext);

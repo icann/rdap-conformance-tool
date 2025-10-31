@@ -49,7 +49,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
     }
 
     public ProfileJsonValidation getProfileValidation() {
-        return new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType, queryContext);
+        return new TigValidation3Dot2_2024(queryContext);
     }
 
 

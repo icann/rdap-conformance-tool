@@ -9,7 +9,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 public class ResponseValidationLastUpdateEvent extends TopMostEventActionValidation {
 
   public ResponseValidationLastUpdateEvent(QueryContext qctx) {
-    super(qctx.getRdapResponseData(), qctx.getResults(), qctx.getQueryType(),
+    super(qctx,
         -43100,
         "An eventAction type last update of RDAP database does not "
             + "exists in the topmost events data structure. See section 2.3.1.3, 2.7.6, 3.3 and "

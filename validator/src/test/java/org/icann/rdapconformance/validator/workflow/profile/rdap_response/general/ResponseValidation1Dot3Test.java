@@ -10,6 +10,6 @@ public class ResponseValidation1Dot3Test extends RDAPConformanceValidationTest {
   }
 
   public RDAPConformanceValidation getProfileValidation() {
-    return new ResponseValidation1Dot3(jsonObject.toString(), results);
+    return new ResponseValidation1Dot3(queryContext);
   }
 }

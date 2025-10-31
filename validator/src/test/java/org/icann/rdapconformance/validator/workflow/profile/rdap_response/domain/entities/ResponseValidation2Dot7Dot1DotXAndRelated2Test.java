@@ -25,8 +25,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2Test extends
   }
 
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot7Dot1DotXAndRelated2(jsonObject.toString(), results,
-        queryType, config);
+    return new ResponseValidation2Dot7Dot1DotXAndRelated2(queryContext);
   }
 
   @Test
