@@ -104,8 +104,9 @@ public class ResponseValidationDomainInvalid_2024Test {
   @Test
   public void testDoValidate_WithErrors_InResultFile() throws Exception {
     // Use real RDAPValidatorResults instead of mock so we can check the actual results
-    RDAPValidatorResults realResults = new RDAPValidatorResultsImpl();
-    responseValidator = new ResponseValidationDomainInvalid_2024(mockConfig, realResults);
+    QueryContext testContext = QueryContext.forTesting(mockConfig);
+    RDAPValidatorResults realResults = testContext.getResults();
+    responseValidator = new ResponseValidationDomainInvalid_2024(testContext);
 
     URI uri = new URI("http://example.com/rdap");
     when(mockConfig.getUri()).thenReturn(uri);

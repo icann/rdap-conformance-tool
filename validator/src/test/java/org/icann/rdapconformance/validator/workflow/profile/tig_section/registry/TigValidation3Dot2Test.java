@@ -112,7 +112,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -132,7 +132,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -151,7 +151,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -170,7 +170,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -189,7 +189,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -208,7 +208,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -227,7 +227,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isFalse();
   }
 
@@ -235,7 +235,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   public void testValidate_NoEntities_NotExcluded() {
     jsonObject.remove("entities");
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isFalse();
   }
 
@@ -243,7 +243,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   public void testValidate_EmptyEntities_NotExcluded() {
     jsonObject.put("entities", new JSONArray());
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isFalse();
   }
 }
