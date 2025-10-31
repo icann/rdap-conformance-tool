@@ -102,19 +102,17 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                         if (!isValidTLS12Cipher(cipher)) {
                             RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                                 .code(-61101)
-                                .httpStatusCode(ZERO)
-                                .httpMethod(DASH)
                                 .value(response.uri().toString())
                                 .message("The RDAP server must use one of the following cipher suites when using TLS 1.2: "
                                     + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, "
                                     + "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384.");
 
-                            // For TLS validation: populate acceptMediaType from QueryContext but keep explicit httpMethod and statusCode
+                            // Let QueryContext populate all HTTP fields including httpMethod and receivedHttpStatusCode
                             if (queryContext != null) {
-                                builder.acceptHeader(queryContext.getNetworkInfo().getAcceptHeaderValue());
                                 results.add(builder.build(queryContext));
                             } else {
-                                results.add(builder.build()); // Fallback for deprecated constructor
+                                // Fallback for deprecated constructor with explicit values
+                                results.add(builder.httpStatusCode(ZERO).httpMethod(DASH).build());
                             }
                             isValid = false;
                         }

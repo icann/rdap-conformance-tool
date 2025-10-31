@@ -10,7 +10,7 @@ public final class ResponseValidation2Dot4Dot2And2Dot4Dot3 extends
     RegistrarEntityValidation {
 
   public ResponseValidation2Dot4Dot2And2Dot4Dot3(QueryContext qctx) {
-    super(qctx.getRdapResponseData(), qctx.getResults(), qctx.getDatasetService(), qctx.getQueryType(), -47400);
+    super(qctx, qctx.getDatasetService(), -47400);
   }
 
   @Override

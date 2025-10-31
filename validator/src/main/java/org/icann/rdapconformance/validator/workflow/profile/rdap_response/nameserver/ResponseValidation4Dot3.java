@@ -13,7 +13,7 @@ import org.json.JSONObject;
 public final class ResponseValidation4Dot3 extends RegistrarEntityValidation {
 
   public ResponseValidation4Dot3(QueryContext qctx) {
-    super(qctx.getRdapResponseData(), qctx.getResults(), qctx.getDatasetService(), qctx.getQueryType(), -49200);
+    super(qctx, qctx.getDatasetService(), -49200);
   }
 
   @Override
@@ -29,11 +29,16 @@ public final class ResponseValidation4Dot3 extends RegistrarEntityValidation {
     } else {
       Set<String> publicIdsJsonPointers = getPointerFromJPath(entity, "$.publicIds[*]");
       if (!publicIdsJsonPointers.isEmpty()) {
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
             .code(-49205)
             .value(getResultValue(entityJsonPointer))
-            .message("A publicIds member is included in the entity with the registrar role.")
-            .build());
+            .message("A publicIds member is included in the entity with the registrar role.");
+
+        if (queryContext != null) {
+          results.add(builder.build(queryContext));
+        } else {
+          results.add(builder.build()); // Fallback for deprecated constructor
+        }
         return false;
       }
       return true;

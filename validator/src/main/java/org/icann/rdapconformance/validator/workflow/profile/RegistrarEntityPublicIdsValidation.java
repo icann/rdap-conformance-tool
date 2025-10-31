@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile;
 
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -10,12 +11,22 @@ import org.json.JSONObject;
 public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonValidation {
 
   protected final RDAPQueryType queryType;
+  protected final QueryContext queryContext;
   final int code;
 
   public RegistrarEntityPublicIdsValidation(String rdapResponse, RDAPValidatorResults results,
                                             RDAPQueryType queryType, int code) {
     super(rdapResponse, results);
     this.queryType = queryType;
+    this.queryContext = null; // Not available in deprecated constructor
+    this.code = code;
+  }
+
+  // QueryContext constructor for production use
+  public RegistrarEntityPublicIdsValidation(QueryContext queryContext, int code) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.queryType = queryContext.getQueryType();
+    this.queryContext = queryContext;
     this.code = code;
   }
 
@@ -40,11 +51,16 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
     JSONObject entity = (JSONObject) jsonObject.query(entityJsonPointer);
     Set<String> publicIdsJsonPointers = getPointerFromJPath(entity, "$.publicIds[*]");
     if (publicIdsJsonPointers.isEmpty()) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(code)
           .value(getResultValue(entityJsonPointer))
-          .message("A publicIds member is not included in the entity with the registrar role.")
-          .build());
+          .message("A publicIds member is not included in the entity with the registrar role.");
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build()); // Fallback for deprecated constructor
+      }
       return false;
     }
     for (String jsonPointer : publicIdsJsonPointers) {
@@ -57,12 +73,17 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
     JSONObject publicId = (JSONObject) jsonObject.query(publicIdJsonPointer);
     String identifier = publicId.optString("identifier", "");
     if (!isPositiveInteger(identifier)) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(code - 1)  // CalculatedCode: -23301 (TigValidation6Dot1)
           .value(getResultValue(publicIdJsonPointer))
           .message("The identifier of the publicIds member of the entity with the registrar role "
-              + "is not a positive integer.")
-          .build());
+              + "is not a positive integer.");
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build()); // Fallback for deprecated constructor
+      }
       return false;
     }
     return true;
