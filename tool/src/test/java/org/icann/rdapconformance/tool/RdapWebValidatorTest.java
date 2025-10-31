@@ -3,8 +3,8 @@ package org.icann.rdapconformance.tool;
 import static org.testng.Assert.*;
 
 import java.net.URI;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 /**
@@ -127,6 +127,7 @@ public class RdapWebValidatorTest {
     }
 
     @Test
+    @Ignore // requires network access
     public void testWebExampleBasicUsage() {
         // Test the example usage pattern
         RdapWebExample.ValidationResponse response =

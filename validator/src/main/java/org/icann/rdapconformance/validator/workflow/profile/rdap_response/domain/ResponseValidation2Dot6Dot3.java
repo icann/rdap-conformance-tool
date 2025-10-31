@@ -11,8 +11,7 @@ public final class ResponseValidation2Dot6Dot3 extends NoticesValidation {
   final static String HREF = "https://icann.org/epp";
 
   public ResponseValidation2Dot6Dot3(QueryContext queryContext) {
-    super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(),
-        TITLE, DESCRIPTION, HREF, -46600);
+    super(queryContext, TITLE, DESCRIPTION, HREF, -46600);
   }
 
   /**

@@ -11,8 +11,7 @@ public final class ResponseValidation2Dot11 extends NoticesValidation {
   final static String HREF = "https://icann.org/wicf";
 
   public ResponseValidation2Dot11(QueryContext queryContext) {
-    super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(),
-        TITLE, DESCRIPTION, HREF, -46700);
+    super(queryContext, TITLE, DESCRIPTION, HREF, -46700);
   }
 
   /**
