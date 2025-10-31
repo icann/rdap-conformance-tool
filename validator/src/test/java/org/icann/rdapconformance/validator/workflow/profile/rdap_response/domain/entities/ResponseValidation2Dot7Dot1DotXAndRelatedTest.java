@@ -23,8 +23,13 @@ public abstract class ResponseValidation2Dot7Dot1DotXAndRelatedTest extends
   @BeforeMethod
   public void setUp() throws java.io.IOException {
     super.setUp();
+
+    // Create mock config
     config = mock(RDAPValidatorConfiguration.class);
     doReturn(true).when(config).isGtldRegistrar();
+
+    // Recreate QueryContext with our mocked config and dataset service
+    queryContext = org.icann.rdapconformance.validator.QueryContext.forTesting(rdapContent, results, config, datasets);
   }
 
   protected void remarkMemberIs(String key, String value) {

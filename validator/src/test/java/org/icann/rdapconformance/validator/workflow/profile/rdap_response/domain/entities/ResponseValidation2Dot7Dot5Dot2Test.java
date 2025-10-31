@@ -45,8 +45,13 @@ public class ResponseValidation2Dot7Dot5Dot2Test extends ResponseDomainValidatio
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
+
+    // Create mock config
     config = mock(RDAPValidatorConfiguration.class);
     doReturn(true).when(config).isGtldRegistrar();
+
+    // Recreate QueryContext with our mocked config
+    queryContext = org.icann.rdapconformance.validator.QueryContext.forTesting(rdapContent, results, config);
   }
 
   public ProfileValidation getProfileValidation() {

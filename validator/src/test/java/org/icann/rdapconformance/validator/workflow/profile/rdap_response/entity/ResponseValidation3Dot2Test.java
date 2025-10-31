@@ -34,9 +34,14 @@ public class ResponseValidation3Dot2Test extends ProfileJsonValidationTestBase {
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
-    queryContext.setQueryType(RDAPQueryType.ENTITY);
+
+    // Create mock config
     config = mock(RDAPValidatorConfiguration.class);
     doReturn(true).when(config).isGtldRegistry();
+
+    // Recreate QueryContext with our mocked config
+    queryContext = org.icann.rdapconformance.validator.QueryContext.forTesting(rdapContent, results, config);
+    queryContext.setQueryType(RDAPQueryType.ENTITY);
   }
 
   public ProfileValidation getProfileValidation() {
