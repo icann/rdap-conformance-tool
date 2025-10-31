@@ -83,13 +83,18 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                 // Validate TLS protocols
                 for (String enabledProtocol : enabledProtocols) {
                     if (!"TLSv1.2".equalsIgnoreCase(enabledProtocol) && !"TLSv1.3".equalsIgnoreCase(enabledProtocol)) {
-                        results.add(RDAPValidationResult.builder()
+                        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                             .code(-61100)
-                            .httpStatusCode(ZERO)
-                            .httpMethod(DASH)
                             .value(response.uri().toString())
-                            .message("The RDAP server must only use TLS 1.2 or TLS 1.3")
-                            .build());
+                            .message("The RDAP server must only use TLS 1.2 or TLS 1.3");
+
+                        // Let QueryContext populate all HTTP fields including httpMethod and receivedHttpStatusCode
+                        if (queryContext != null) {
+                            results.add(builder.build(queryContext));
+                        } else {
+                            // Fallback for deprecated constructor with explicit values
+                            results.add(builder.httpStatusCode(ZERO).httpMethod(DASH).build());
+                        }
                         isValid = false;
                     }
                 }

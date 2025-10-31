@@ -16,11 +16,13 @@ public final class ResponseValidation3Dot1 extends ProfileJsonValidation {
 
   protected final RDAPValidatorConfiguration config;
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
   public ResponseValidation3Dot1(QueryContext queryContext) {
     super(queryContext.getRdapResponseData(), queryContext.getResults());
     this.queryType = queryContext.getQueryType();
     this.config = queryContext.getConfig();
+    this.queryContext = queryContext;
   }
 
   /**
@@ -32,6 +34,7 @@ public final class ResponseValidation3Dot1 extends ProfileJsonValidation {
     super(rdapResponse, results);
     this.queryType = queryType;
     this.config = config;
+    this.queryContext = null; // Not available in deprecated constructor
   }
 
 
@@ -45,12 +48,17 @@ public final class ResponseValidation3Dot1 extends ProfileJsonValidation {
         "$.[?(@.roles contains 'registrar')]");
 
     if (registrarEntitiesJsonPointers.isEmpty()) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-60100)
           .value(jsonObject.toString())
           .message("An entity with the registrar role was not found as the topmost object. "
-              + "See section 3.1 of the RDAP_Response_Profile_2_1")
-          .build());
+              + "See section 3.1 of the RDAP_Response_Profile_2_1");
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build()); // Fallback for deprecated constructor
+      }
       return false;
     }
 
@@ -104,12 +112,17 @@ public final class ResponseValidation3Dot1 extends ProfileJsonValidation {
   }
 
   private void addResult60101() {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(-60101)
         .value(jsonObject.toString())
         .message("The required members for a registrar entity were not found. "
-            + "See section 3.1 of the RDAP_Response_Profile_2_1.")
-        .build());
+            + "See section 3.1 of the RDAP_Response_Profile_2_1.");
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build()); // Fallback for deprecated constructor
+    }
   }
 
   @Override

@@ -15,11 +15,13 @@ public final class ResponseValidation3Dot2 extends ProfileJsonValidation {
 
   protected final RDAPValidatorConfiguration config;
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
   public ResponseValidation3Dot2(QueryContext queryContext) {
     super(queryContext.getRdapResponseData(), queryContext.getResults());
     this.queryType = queryContext.getQueryType();
     this.config = queryContext.getConfig();
+    this.queryContext = queryContext;
   }
 
   /**
@@ -31,6 +33,7 @@ public final class ResponseValidation3Dot2 extends ProfileJsonValidation {
     super(rdapResponse, results);
     this.queryType = queryType;
     this.config = config;
+    this.queryContext = null; // Not available in deprecated constructor
   }
 
 
@@ -51,13 +54,18 @@ public final class ResponseValidation3Dot2 extends ProfileJsonValidation {
 
       for (String jsonPointer : vcardJsonPointers) {
         if (!checkVcard(entityJsonPointer.concat(jsonPointer.substring(1)))) {
-          results.add(RDAPValidationResult.builder()
+          RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
               .code(-60200)
               .value(getResultValue(entityJsonPointer))
               .message(
                   "The required members for entities with the administrative and technical roles "
-                      + "were not found. See section 3.2 of the RDAP_Response_Profile_2_1.")
-              .build());
+                      + "were not found. See section 3.2 of the RDAP_Response_Profile_2_1.");
+
+          if (queryContext != null) {
+            results.add(builder.build(queryContext));
+          } else {
+            results.add(builder.build()); // Fallback for deprecated constructor
+          }
           isValid = false;
         }
       }
