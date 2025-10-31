@@ -13,10 +13,12 @@ import org.json.JSONArray;
 public final class ResponseValidation2Dot4Dot1 extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
   public ResponseValidation2Dot4Dot1(QueryContext qctx) {
     super(qctx.getRdapResponseData(), qctx.getResults());
     this.queryType = qctx.getQueryType();
+    this.queryContext = qctx;
   }
 
 
@@ -36,7 +38,7 @@ public final class ResponseValidation2Dot4Dot1 extends ProfileJsonValidation {
           .code(-47300)
           .value(jsonObject.toString())
           .message("An entity with the registrar role was not found in the domain topmost object.")
-          .build());
+          .build(queryContext));
       return false;
     }
     if (registrarEntitiesJsonPointers.size() > 1) {
@@ -45,7 +47,7 @@ public final class ResponseValidation2Dot4Dot1 extends ProfileJsonValidation {
           .value(jsonObject.toString())
           .message("More than one entities with the registrar role were found in the domain "
               + "topmost object.")
-          .build());
+          .build(queryContext));
       isValid = false;
     }
     Set<String> vcardJsonPointers = getPointerFromJPath(
@@ -76,7 +78,7 @@ public final class ResponseValidation2Dot4Dot1 extends ProfileJsonValidation {
         .value(getResultValue(vcardJsonPointer))
         .message("An fn member was not found in one or more vcard objects of the entity with the "
             + "registrar role.")
-        .build());
+        .build(queryContext));
     return false;
   }
 

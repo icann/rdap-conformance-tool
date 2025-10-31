@@ -11,10 +11,12 @@ import org.json.JSONObject;
 public final class ResponseValidation2Dot10 extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
   public ResponseValidation2Dot10(QueryContext qctx) {
     super(qctx.getRdapResponseData(), qctx.getResults());
     this.queryType = qctx.getQueryType();
+    this.queryContext = qctx;
   }
 
   @Override
@@ -29,7 +31,7 @@ public final class ResponseValidation2Dot10 extends ProfileJsonValidation {
           .code(-46800)
           .value(jsonObject.toString())
           .message("A secureDNS member does not appear in the domain object.")
-          .build());
+          .build(queryContext));
       return false;
     }
 
@@ -38,7 +40,7 @@ public final class ResponseValidation2Dot10 extends ProfileJsonValidation {
           .code(-46801)
           .value(jsonObject.toString())
           .message("The delegationSigned element does not exist.")
-          .build());
+          .build(queryContext));
       return false;
     }
 
@@ -51,7 +53,7 @@ public final class ResponseValidation2Dot10 extends ProfileJsonValidation {
           .value(jsonObject.toString())
           .message("delegationSigned value is true, but no dsData nor keyData "
               + "name/value pair exists.")
-          .build());
+          .build(queryContext));
       return false;
     }
 

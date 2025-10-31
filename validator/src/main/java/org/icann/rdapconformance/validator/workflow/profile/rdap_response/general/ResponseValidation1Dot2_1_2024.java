@@ -6,7 +6,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public final class ResponseValidation1Dot2_1_2024 extends RDAPConformanceValidation {
     public ResponseValidation1Dot2_1_2024(QueryContext qctx) {
-        super(qctx.getRdapResponseData(), qctx.getResults(), "icann_rdap_response_profile_1", -62000,
+        super(qctx, "icann_rdap_response_profile_1", -62000,
             "The RDAP Conformance data structure does not include icann_rdap_response_profile_1.");
     }
 

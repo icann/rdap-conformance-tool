@@ -12,10 +12,12 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
   public ResponseValidationRFC3915(QueryContext qctx) {
     super(qctx.getRdapResponseData(), qctx.getResults());
     this.queryType = qctx.getQueryType();
+    this.queryContext = qctx;
   }
 
   @Override
@@ -36,7 +38,7 @@ public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
                 .code(-47001)
                 .value(getResultValue("#/status"))
                 .message("'redemption period' is only valid with a status of 'pending delete'")
-                .build());
+                .build(queryContext));
         statusError ++;
       }
 
@@ -45,7 +47,7 @@ public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
                 .code(-47002)
                 .value(getResultValue("#/status"))
                 .message("'pending restore' is only valid with a status of 'pending delete'")
-                .build());
+                .build(queryContext));
         statusError ++;
       }
 

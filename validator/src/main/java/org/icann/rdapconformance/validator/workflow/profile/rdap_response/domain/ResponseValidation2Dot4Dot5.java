@@ -12,10 +12,12 @@ import org.json.JSONArray;
 public final class ResponseValidation2Dot4Dot5 extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
   public ResponseValidation2Dot4Dot5(QueryContext qctx) {
     super(qctx.getRdapResponseData(), qctx.getResults());
     this.queryType = qctx.getQueryType();
+    this.queryContext = qctx;
   }
 
 
@@ -45,7 +47,7 @@ public final class ResponseValidation2Dot4Dot5 extends ProfileJsonValidation {
           .value(getResultValue(getPointerFromJPath("$.entities[?(@.roles contains 'registrar')]")))
           .message(
               "Tel and email members were not found for the entity within the entity with the abuse role in the topmost domain object.")
-          .build());
+          .build(queryContext));
     }
 
     return isValid;
