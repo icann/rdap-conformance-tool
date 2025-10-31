@@ -13,6 +13,7 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
 
   private final RDAPValidatorConfiguration config;
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
   
   // Field names
   private static final String LINKS_FIELD = "links";
@@ -35,6 +36,7 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
     super(queryContext.getRdapResponseData(), queryContext.getResults());
     this.config = queryContext.getConfig();
     this.queryType = queryContext.getQueryType();
+    this.queryContext = queryContext;
   }
 
   /**
@@ -46,6 +48,7 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
     super(rdapResponse, results);
     this.config = config;
     this.queryType = queryType;
+    this.queryContext = null; // Not available in deprecated constructor
   }
 
   @Override
@@ -72,11 +75,16 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
 
     if (!isValid) {
       String linksStr = links == null ? "" : links.toString();
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-23200)
           .value(linksStr)
-          .message(ERROR_23200_MESSAGE)
-          .build());
+          .message(ERROR_23200_MESSAGE);
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build()); // Fallback for deprecated constructor
+      }
     }
     return isValid;
   }

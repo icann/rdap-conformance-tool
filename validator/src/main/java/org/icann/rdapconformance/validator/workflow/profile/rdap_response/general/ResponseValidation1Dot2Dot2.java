@@ -23,10 +23,12 @@ public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
   private static final Pattern WORD_MATCHED_PATTERN = Pattern.compile(WORD_MATCHED_REGEX);
   private static final ObjectMapper mapper = org.icann.rdapconformance.validator.workflow.JsonMapperUtil.getSharedMapper();
   private final String rdapResponse;
+  private final QueryContext queryContext;
 
   public ResponseValidation1Dot2Dot2(QueryContext qctx) {
     super(qctx.getRdapResponseData(), qctx.getResults());
     this.rdapResponse = qctx.getRdapResponseData();
+    this.queryContext = qctx;
   }
 
   @Override
@@ -46,12 +48,17 @@ public final class ResponseValidation1Dot2Dot2 extends ProfileJsonValidation {
   }
 
   private void addResult() {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(-40100)
         .value(rdapResponse)
         .message("The RDAP response contains browser executable code (e.g., JavaScript). "
-            + "See section 1.2.2 of the RDAP_Response_Profile_2_1.")
-        .build());
+            + "See section 1.2.2 of the RDAP_Response_Profile_2_1.");
+
+    if (queryContext != null) {
+      results.add(builder.build(queryContext));
+    } else {
+      results.add(builder.build()); // Fallback for deprecated constructor
+    }
   }
 
 }
