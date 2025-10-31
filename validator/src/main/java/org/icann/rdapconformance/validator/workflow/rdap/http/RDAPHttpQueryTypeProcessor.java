@@ -89,7 +89,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             }
             int currentResultCount = mainResults.getResultCount();
 
-            SchemaValidator validator = SchemaValidatorCache.getCachedValidator("rdap_domain_name.json", mainResults, datasetService);
+            SchemaValidator validator = SchemaValidatorCache.getCachedValidator("rdap_domain_name.json", mainResults, datasetService, queryContext);
             boolean isValid = validator.validate(domainNameJson);
 
             if (!isValid) {

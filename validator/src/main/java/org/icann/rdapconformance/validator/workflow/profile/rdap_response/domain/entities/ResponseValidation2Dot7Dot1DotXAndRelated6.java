@@ -15,8 +15,11 @@ import org.json.JSONObject;
 public class ResponseValidation2Dot7Dot1DotXAndRelated6 extends
     ResponseValidation2Dot7Dot1DotXAndRelated {
 
+  private final QueryContext queryContext;
+
   public ResponseValidation2Dot7Dot1DotXAndRelated6(QueryContext queryContext) {
     super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(), queryContext.getConfig());
+    this.queryContext = queryContext;
   }
 
   /**
@@ -26,6 +29,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated6 extends
   @Deprecated
   public ResponseValidation2Dot7Dot1DotXAndRelated6(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType, RDAPValidatorConfiguration config) {
     super(rdapResponse, results, queryType, config);
+    this.queryContext = null; // For testing purposes only
   }
 
   @Override
@@ -35,12 +39,17 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated6 extends
       for (String adrPointer : adrPointers) {
         JSONArray adr = (JSONArray) entity.query(adrPointer);
         if (!adr.getJSONObject(1).has("cc")) {
-          results.add(RDAPValidationResult.builder()
+          RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
               .code(-52105)
               .value(getResultValue(jsonPointer))
               .message("An entity with the registrant role without the CC parameter "
-                  + "was found. See section 2.7.3.1 of the RDAP_Response_Profile_2_1.")
-              .build());
+                  + "was found. See section 2.7.3.1 of the RDAP_Response_Profile_2_1.");
+
+          if (queryContext != null) {
+            results.add(builder.build(queryContext));
+          } else {
+            results.add(builder.build()); // Fallback for deprecated constructor
+          }
           return false;
         }
       }

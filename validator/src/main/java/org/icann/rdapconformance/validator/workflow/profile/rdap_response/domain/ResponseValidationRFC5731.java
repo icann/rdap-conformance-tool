@@ -7,15 +7,16 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public final class ResponseValidationRFC5731 extends ProfileJsonValidation {
 
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
   public ResponseValidationRFC5731(QueryContext qctx) {
     super(qctx.getRdapResponseData(), qctx.getResults());
     this.queryType = qctx.getQueryType();
+    this.queryContext = qctx;
   }
 
   @Override
@@ -41,11 +42,16 @@ public final class ResponseValidationRFC5731 extends ProfileJsonValidation {
             .of("pending create", "pending delete", "pending renew", "pending transfer",
                 "pending update").contains(s))
             .count() > CommonUtils.ONE)) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-46900)
           .value(getResultValue("#/status"))
-          .message("The values of the status data structure does not comply with RFC5731.")
-          .build());
+          .message("The values of the status data structure does not comply with RFC5731.");
+
+      if (queryContext != null) {
+        results.add(builder.build(queryContext));
+      } else {
+        results.add(builder.build()); // Fallback for deprecated constructor
+      }
       return false;
     }
     return true;
