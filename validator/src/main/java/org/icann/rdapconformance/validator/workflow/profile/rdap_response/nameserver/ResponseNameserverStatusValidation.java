@@ -8,7 +8,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 public final class ResponseNameserverStatusValidation extends NameserverStatusValidation {
 
   public ResponseNameserverStatusValidation(QueryContext qctx) {
-    super(qctx.getRdapResponseData(), qctx.getResults(), qctx.getQueryType(), -49300);
+    super(qctx, -49300);
   }
 
   @Override

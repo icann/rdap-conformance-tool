@@ -15,6 +15,7 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
 
   private final RDAPDatasetService datasetService;
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
   private static final Set<RDAPQueryType> AUTHORIZED_QUERY_TYPES = Set.of(
       RDAPQueryType.DOMAIN,
       RDAPQueryType.NAMESERVER,
@@ -25,6 +26,7 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
     super(queryContext.getRdapResponseData(), queryContext.getResults());
     this.datasetService = queryContext.getDatasetService();
     this.queryType = queryContext.getQueryType();
+    this.queryContext = queryContext;
   }
 
   /**
@@ -36,6 +38,7 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
     super(rdapResponse, results);
     this.datasetService = datasetService;
     this.queryType = queryType;
+    this.queryContext = null; // Not available in deprecated constructor
   }
 
   @Override
@@ -57,35 +60,50 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
 
   private boolean checkPublicId(String jsonPointer, JSONObject publicId) {
       if (!publicId.has("identifier")) {
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
             .code(-26100)
             .value(getResultValue(jsonPointer))
             .message("An identifier in the publicIds within the entity data "
                 + "structure with the registrar role was not found. See section 1.12.1 of the "
-                + "RDAP_Technical_Implementation_Guide_2_1.")
-            .build());
+                + "RDAP_Technical_Implementation_Guide_2_1.");
+
+        if (queryContext != null) {
+          results.add(builder.build(queryContext));
+        } else {
+          results.add(builder.build()); // Fallback for deprecated constructor
+        }
         return false;
       } else {
         int identifier = publicId.getInt("identifier");
         RegistrarId registrarId = datasetService.get(RegistrarId.class);
         if (!registrarId.containsId(identifier)) {
-          results.add(RDAPValidationResult.builder()
+          RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
               .code(-26101)
               .value(getResultValue(jsonPointer + "/identifier"))
               .message("The registrar identifier is not included in the registrarId. "
-                  + "See section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1.")
-              .build());
+                  + "See section 1.12.1 of the RDAP_Technical_Implementation_Guide_2_1.");
+
+          if (queryContext != null) {
+            results.add(builder.build(queryContext));
+          } else {
+            results.add(builder.build()); // Fallback for deprecated constructor
+          }
           return false;
         }
 
         RegistrarId.Record record = registrarId.getById(identifier);
         if (!record.getRdapUrl().isBlank() && !record.getRdapUrl().startsWith("https")) {
-          results.add(RDAPValidationResult.builder()
+          RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
               .code(-26102)
               .value(jsonPointer + "/identifier" + ":" + record)
               .message("One or more of the base URLs for the registrar contain a "
-                      + "schema different from https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.")
-              .build());
+                      + "schema different from https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.");
+
+          if (queryContext != null) {
+            results.add(builder.build(queryContext));
+          } else {
+            results.add(builder.build()); // Fallback for deprecated constructor
+          }
           return false;
         }
       }

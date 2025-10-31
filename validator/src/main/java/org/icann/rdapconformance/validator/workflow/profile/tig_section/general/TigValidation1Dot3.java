@@ -30,11 +30,13 @@ public final class TigValidation1Dot3 extends ProfileValidation {
   public static final String SS_LV_3 = "SSLv3";
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
+  private final QueryContext queryContext;
 
   public TigValidation1Dot3(QueryContext queryContext) {
     super(queryContext.getResults());
     this.rdapResponse = (HttpResponse<String>) queryContext.getQuery().getRawResponse();
     this.config = queryContext.getConfig();
+    this.queryContext = queryContext;
   }
 
   /**
@@ -46,6 +48,7 @@ public final class TigValidation1Dot3 extends ProfileValidation {
     super(results);
     this.rdapResponse = rdapResponse;
     this.config = config;
+    this.queryContext = null; // Not available in deprecated constructor
   }
 
   @Override
@@ -80,11 +83,16 @@ public final class TigValidation1Dot3 extends ProfileValidation {
             }
           }
           if (enabledProtocols.contains(SS_LV_2) || enabledProtocols.contains(SS_LV_3)) {
-            results.add(RDAPValidationResult.builder()
+            RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                                             .code(-20200)
                                             .value(response.uri().toString())
-                                            .message("The RDAP server is offering SSLv2 and/or SSLv3.")
-                                            .build());
+                                            .message("The RDAP server is offering SSLv2 and/or SSLv3.");
+
+            if (queryContext != null) {
+              results.add(builder.build(queryContext));
+            } else {
+              results.add(builder.build()); // Fallback for deprecated constructor
+            }
             isValid = false;
           }
         } catch (NoSuchAlgorithmException | IOException e) {
