@@ -19,6 +19,9 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2HandleTest extends
     String jsonResponse = getResource(
         "/validators/profile/rdap_response/domain/entities/missing_handle_no_redacted_remark.json");
     jsonObject = new JSONObject(jsonResponse);
+
+    // Update QueryContext with the new JSON data
+    queryContext.setRdapResponseData(jsonObject.toString());
   }
 
   public ProfileValidation getProfileValidation() {
