@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertTrue;
 
@@ -35,21 +34,16 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
     @BeforeMethod
     public void setUp() throws IOException {
         super.setUp();
-        config = mock(RDAPValidatorConfiguration.class);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
-        when(config.isGtldRegistry()).thenReturn(true);
-        return new ResponseValidationRegistrantEmail_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        return new ResponseValidationRegistrantEmail_2024(queryContext);
     }
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot8_2024_No_Registrant() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("roles");
         roles.put(0, "registrar");
         validate();
@@ -57,7 +51,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot8_2024_63700() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Remove ALL tel properties from registrant entity to trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
@@ -76,7 +70,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot8_2024_63701_By_PathLang_NotValid() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Remove ALL tel properties from registrant entity to trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
@@ -96,7 +90,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot8_2024_63702_By_MissingPathLang_Bad_PrePath() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Remove ALL tel properties from registrant entity to trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
@@ -117,7 +111,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void ResponseValidation2Dot7Dot4Dot8_2024_63703_By_Method() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Remove ALL tel properties from registrant entity to trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
@@ -137,7 +131,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testRealWorldData_IcannOrgResponse_ShouldNotTriggerFalsePositive65400() throws Exception {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // This test uses real-world RDAP data from icann.org to prevent regression
         // The issue was that mixed redacted objects (some with name.type, some with name.description)
         // caused exceptions that incorrectly triggered -63700 validation failures
@@ -163,7 +157,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testEmailTelPresent_ShouldNotTriggerValidations() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test that when email property exists, no redaction validations are triggered
 
         // The base test data already has a email property, so no modifications needed
@@ -174,7 +168,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testNoRegistrantEntity_ShouldNotTriggerValidations() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test that when there's no registrant entity, no validations are triggered
 
         JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("roles");
@@ -187,7 +181,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testEmptyRedactedArray_ShouldTrigger63700() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test edge case where redacted array exists but is empty
 
         // Remove ALL tel properties from registrant entity to trigger validation
@@ -212,7 +206,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testNoEmailButOtherTelTypes_ShouldTriggerValidations() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when there are email properties parameter
 
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
@@ -229,7 +223,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testInvalidPrePathExists_ShouldTrigger63701() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when prePath contains invalid JSONPath syntax
 
         JSONArray email = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -246,7 +240,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidPrePathWithResults_ShouldTrigger65402() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when prePath is valid but evaluates to non-empty set (should be empty for removal)
 
         JSONArray email = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -263,7 +257,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testMissingPrePathProperty_ShouldPass() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when prePath property is missing entirely
 
         JSONArray email = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -278,7 +272,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testInvalidMethod_ShouldTrigger65403() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when method is not "removal"
 
         JSONArray email = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -295,7 +289,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testMissingMethodProperty_ShouldPass() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when method property is missing entirely
 
         JSONArray email = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1).getJSONArray(4);
@@ -310,7 +304,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateRedactedArrayForEmailValue_EmailPresentButRedactionFound_ShouldTrigger65404() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test the scenario where email is present in vCard but there's also a redaction for it
         // This should trigger error -65404
 
@@ -348,7 +342,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateRedactedArrayForEmailValue_EmailPresentNoRedaction_ShouldPass() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test the scenario where email is present in vCard and no redaction exists for it
         // This should pass (return true)
 
@@ -385,7 +379,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateRedactedProperties_WithPathLangJsonpath_ShouldCallValidatePrePath() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when pathLang exists and equals "jsonpath" - should call validatePrePathBasedOnPathLang
 
         // Remove email to trigger redaction validation path
@@ -408,7 +402,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateRedactedProperties_WithPathLangNonJsonpath_ShouldReturnTrue() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when pathLang exists but doesn't equal "jsonpath" - should return true
 
         // Remove email to trigger redaction validation path
@@ -430,7 +424,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateRedactedProperties_WithPathLangCaseInsensitive_ShouldCallValidatePrePath() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test case-insensitive matching for pathLang "JSONPATH"
 
         // Remove email to trigger redaction validation path
@@ -453,7 +447,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateRedactedProperties_WithPathLangWhitespace_ShouldCallValidatePrePath() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test pathLang with whitespace - should be trimmed and matched
 
         // Remove email to trigger redaction validation path
@@ -476,7 +470,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateRedactedProperties_WithNonStringPathLang_ShouldReturnTrue() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when pathLang exists but is not a string - should return true
 
         // Remove email to trigger redaction validation path
@@ -498,7 +492,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateRedactedProperties_WithMissingPathLang_ShouldCallValidatePrePath() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when pathLang is missing - should trigger exception and call validatePrePathBasedOnPathLang
 
         // Remove email to trigger redaction validation path
@@ -521,7 +515,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateRedactedProperties_ExceptionHandling_ShouldCallValidatePrePath() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test exception handling in validateRedactedProperties
 
         // Remove email to trigger redaction validation path
@@ -544,7 +538,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateMethodProperty_WithValidRemovalMethod_ShouldPass() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when method property is "removal" - should pass validation
 
         // Remove email to trigger redaction validation path
@@ -566,7 +560,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateMethodProperty_WithRemovalCaseInsensitive_ShouldPass() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test case-insensitive matching for method "REMOVAL"
 
         // Remove email to trigger redaction validation path
@@ -588,7 +582,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateMethodProperty_WithRemovalWhitespace_ShouldPass() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test method with whitespace - should be trimmed and matched
 
         // Remove email to trigger redaction validation path
@@ -610,7 +604,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateMethodProperty_WithInvalidMethod_ShouldTrigger65403() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when method is not "removal" - should trigger error -65403
 
         // Remove email to trigger redaction validation path
@@ -633,7 +627,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateMethodProperty_WithNonStringMethod_ShouldPass() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when method exists but is not a string - should pass (skip validation)
 
         // Remove email to trigger redaction validation path
@@ -655,7 +649,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
 
     @Test
     public void testValidateMethodProperty_WithMissingMethod_ShouldPass() {
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test when method property is missing entirely - should trigger exception handling and pass
 
         // Remove email to trigger redaction validation path

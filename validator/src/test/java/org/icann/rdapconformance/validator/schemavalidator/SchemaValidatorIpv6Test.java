@@ -19,7 +19,6 @@ public class SchemaValidatorIpv6Test extends SchemaValidatorTest {
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     super.setUp();
     name = "ipv6";

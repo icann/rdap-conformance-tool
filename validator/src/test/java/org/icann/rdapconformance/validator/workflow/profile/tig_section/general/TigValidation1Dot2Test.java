@@ -8,18 +8,16 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.Comparator;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2.RDAPJsonComparator;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
@@ -32,17 +30,19 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
 
   private RDAPValidatorResults results;
   private HttpResponse<String> httpsResponse;
+  private QueryContext queryContext;
 
   @BeforeMethod
   public void setUp() {
     super.setUp();
     results = mock(RDAPValidatorResults.class);
     httpsResponse = mock(HttpResponse.class);
+    queryContext = QueryContext.forTesting("{}", results, config);
+    queryContext.setCurrentHttpResponse(httpsResponse);
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new TigValidation1Dot2(httpsResponse, config, results);
+    return new TigValidation1Dot2(queryContext);
   }
 
   @Test
@@ -66,11 +66,7 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
     // Fix for CI Build
       WireMock.configureFor(WIREMOCK_HOST, wireMockServer.port());
 
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
+    try {
 
       // Configure HTTP response
       stubFor(get(urlEqualTo("/test"))

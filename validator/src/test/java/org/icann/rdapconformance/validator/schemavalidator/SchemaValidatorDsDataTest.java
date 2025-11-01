@@ -16,7 +16,6 @@ public class SchemaValidatorDsDataTest extends SchemaValidatorForArrayTest {
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     Locale.setDefault(Locale.US);
     super.setUp();

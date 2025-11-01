@@ -44,7 +44,6 @@ public class SchemaValidatorStatusTest extends SchemaValidatorForArrayOfStringTe
         "The JSON string is not included as a Value with \nType=\"status\".");
   }
 
-  @Override
   protected void validate(int errorCode, String value, String msg) {
     super.validate(errorCode, value, msg);
     assertThat(results.getGroupOk()).isEmpty();

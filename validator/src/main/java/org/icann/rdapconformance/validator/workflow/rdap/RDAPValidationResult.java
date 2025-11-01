@@ -1,10 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
-
 import java.util.Objects;
-import org.icann.rdapconformance.validator.ConnectionTracker;
-import org.icann.rdapconformance.validator.NetworkInfo;
 
 public class RDAPValidationResult {
 
@@ -151,19 +148,62 @@ public class RDAPValidationResult {
       return this;
     }
 
-    public RDAPValidationResult build() {
-      Integer statusCodeFromCurrent = ConnectionTracker.getMainStatusCode();
+
+    /**
+     * Build RDAPValidationResult using QueryContext for proper status code and network info.
+     * This method should be preferred over build() when QueryContext is available.
+     */
+    public RDAPValidationResult build(org.icann.rdapconformance.validator.QueryContext queryContext) {
+      Integer statusCodeFromCurrent = null;
+
+      // First try to get status code from current HTTP response in QueryContext
+      if (queryContext != null && queryContext.getCurrentHttpResponse() != null) {
+        statusCodeFromCurrent = queryContext.getCurrentHttpResponse().statusCode();
+      }
+
+      // Fallback to ConnectionTracker if HTTP response not available
+      if (statusCodeFromCurrent == null && queryContext != null && queryContext.getConnectionTracker() != null) {
+        org.icann.rdapconformance.validator.ConnectionTracker.ConnectionRecord mainConnection =
+            queryContext.getConnectionTracker().getLastMainConnection();
+        if (mainConnection != null && mainConnection.getStatusCode() != 0 && mainConnection.getStatus() != null) {
+          statusCodeFromCurrent = mainConnection.getStatusCode();
+        } else {
+          statusCodeFromCurrent = 0; // force to zero
+        }
+      }
 
       return new RDAPValidationResult(
           this.code,
           this.value,
           this.message,
-          this.acceptHeader != null ? this.acceptHeader : NetworkInfo.getAcceptHeader(),  // the default is the current accept header
-          this.httpMethod != null ? this.httpMethod : GET, // the default is GET unless you explicitly set it
-          this.serverIpAddress != null ? this.serverIpAddress :  NetworkInfo.getServerIpAddress(), // the default is the current server IP address
+          this.acceptHeader != null ? this.acceptHeader :
+              (queryContext != null ? queryContext.getNetworkInfo().getAcceptHeaderValue() : "application/json"),
+          this.httpMethod != null ? this.httpMethod : GET,
+          this.serverIpAddress != null ? this.serverIpAddress :
+              (queryContext != null ? queryContext.getNetworkInfo().getServerIpAddressValue() : "-"),
           this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
           this.queriedURI
       );
+    }
+
+    /**
+     * Build method for testing purposes and fallback compatibility.
+     * Used by tests and as fallback when QueryContext is not available.
+     * @deprecated Use build(QueryContext) instead for proper HTTP status code handling in production.
+     */
+    @Deprecated
+    public RDAPValidationResult build() {
+        // Preserve old behavior for test compatibility: null HTTP values
+        return new RDAPValidationResult(
+            this.code,
+            this.value,
+            this.message,
+            this.acceptHeader,
+            this.httpMethod,
+            this.serverIpAddress,
+            this.httpStatusCode,
+            this.queriedURI
+        );
     }
   }
 }

@@ -2,6 +2,8 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 
+import org.icann.rdapconformance.validator.QueryContext;
+
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,29 +22,22 @@ import org.slf4j.LoggerFactory;
 public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQueryTypeProcessor.class);
-    private static RDAPHttpQueryTypeProcessor instance;
+
+
     private RDAPValidatorConfiguration config;
     private ToolResult status = null;
     private RDAPHttpQueryType queryType = null;
 
-    // Private constructor for singleton
-    private RDAPHttpQueryTypeProcessor() {
+    // Constructor - now public for regular class usage
+    public RDAPHttpQueryTypeProcessor() {
     }
 
-    public static synchronized RDAPHttpQueryTypeProcessor getInstance() {
-        if (instance == null) {
-            instance = new RDAPHttpQueryTypeProcessor();
-        }
-        return instance;
+    // Constructor with configuration
+    public RDAPHttpQueryTypeProcessor(RDAPValidatorConfiguration config) {
+        this.config = config;
     }
-    // Static method to get the singleton instance with configuration
-    public static synchronized RDAPHttpQueryTypeProcessor getInstance(RDAPValidatorConfiguration config) {
-        if (instance == null) {
-            instance = new RDAPHttpQueryTypeProcessor();
-        }
-        instance.setConfiguration(config);
-        return instance;
-    }
+
+
 
     // Method to set the configuration
     public void setConfiguration(RDAPValidatorConfiguration config) {
@@ -51,12 +46,24 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         this.queryType = null;
     }
 
-    @Override
-    public boolean check(RDAPDatasetService datasetService) {
+    /**
+     * Determines the query type without performing domain validation.
+     * This is safe to call during QueryContext construction.
+     */
+    public boolean determineQueryType() {
         queryType = RDAPHttpQueryType.getType(this.config.getUri().toString());
         if (queryType == null) {
             logger.error("Unknown RDAP query type for URI {}", this.config.getUri());
             status = ToolResult.UNSUPPORTED_QUERY;
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean check(RDAPDatasetService datasetService, QueryContext queryContext) {
+        // First determine query type if not already done
+        if (queryType == null && !determineQueryType()) {
             return false;
         }
 
@@ -73,11 +80,16 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             // Domain validation block - Re-enabled to capture input domain validation errors
             String domainNameJson = String.format("{\"domain\": \"%s\"}", domainName);
 
-            // Store current results count to capture only domain validation errors
-            RDAPValidatorResults mainResults = RDAPValidatorResultsImpl.getInstance();
+            // Use the QueryContext parameter directly instead of ThreadLocal
+            RDAPValidatorResults mainResults = queryContext != null ? queryContext.getResults() : null;
+            if (mainResults == null) {
+                logger.error("No QueryContext available for domain validation");
+                status = ToolResult.BAD_USER_INPUT;
+                return false;
+            }
             int currentResultCount = mainResults.getResultCount();
 
-            SchemaValidator validator = SchemaValidatorCache.getCachedValidator("rdap_domain_name.json", mainResults, datasetService);
+            SchemaValidator validator = SchemaValidatorCache.getCachedValidator("rdap_domain_name.json", mainResults, datasetService, queryContext);
             boolean isValid = validator.validate(domainNameJson);
 
             if (!isValid) {
@@ -195,5 +207,16 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             }
             return EMPTY_STRING;
         }
+    }
+
+    /**
+     * Get an instance of RDAPHttpQueryTypeProcessor for the given object.
+     * This method is provided for backward compatibility with test code.
+     *
+     * @param obj the object (not used in current implementation)
+     * @return a new instance of RDAPHttpQueryTypeProcessor
+     */
+    public static RDAPHttpQueryTypeProcessor getInstance(Object obj) {
+        return new RDAPHttpQueryTypeProcessor();
     }
 }

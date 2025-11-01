@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 import java.util.HashSet;
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -11,12 +12,12 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
-  public ResponseValidationRFC3915(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType) {
-    super(rdapResponse, results);
-    this.queryType = queryType;
+  public ResponseValidationRFC3915(QueryContext qctx) {
+    super(qctx.getRdapResponseData(), qctx.getResults());
+    this.queryType = qctx.getQueryType();
+    this.queryContext = qctx;
   }
 
   @Override
@@ -37,7 +38,7 @@ public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
                 .code(-47001)
                 .value(getResultValue("#/status"))
                 .message("'redemption period' is only valid with a status of 'pending delete'")
-                .build());
+                .build(queryContext));
         statusError ++;
       }
 
@@ -46,7 +47,7 @@ public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
                 .code(-47002)
                 .value(getResultValue("#/status"))
                 .message("'pending restore' is only valid with a status of 'pending delete'")
-                .build());
+                .build(queryContext));
         statusError ++;
       }
 

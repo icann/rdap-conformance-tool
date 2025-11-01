@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -13,14 +14,13 @@ public final class ResponseValidation2Dot7Dot2_2024 extends ProfileJsonValidatio
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot2_2024.class);
     private final RDAPValidatorConfiguration config;
     private final RDAPQueryType queryType;
+    private final QueryContext queryContext;
 
-    public ResponseValidation2Dot7Dot2_2024(RDAPValidatorConfiguration config,
-                                            RDAPQueryType queryType,
-                                            String rdapResponse,
-                                            RDAPValidatorResults results) {
-        super(rdapResponse, results);
-        this.config = config;
-        this.queryType = queryType;
+    public ResponseValidation2Dot7Dot2_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.config = qctx.getConfig();
+        this.queryType = qctx.getQueryType();
+        this.queryContext = qctx;
     }
 
     @Override
@@ -36,7 +36,7 @@ public final class ResponseValidation2Dot7Dot2_2024 extends ProfileJsonValidatio
                     .code(-63000)
                     .value(getResultValue(getPointerFromJPath("$")))
                     .message("A domain served by a registrar must have one registrant.")
-                    .build());
+                    .build(queryContext));
             return false;
         }
 

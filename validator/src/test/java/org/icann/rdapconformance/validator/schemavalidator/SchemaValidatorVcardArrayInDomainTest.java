@@ -40,7 +40,7 @@ public class SchemaValidatorVcardArrayInDomainTest extends SchemaValidatorDomain
                     .code(-12305)
                     .value("#/entities/0/vcardArray/1:" + jsonObject.query("#/entities/0/vcardArray/1"))
                     .message("The value for the JSON name value is not a syntactically valid vcardArray.")
-                    .build());
+                    .build(queryContext));
   }
   @Test
   public void testVcardDoesNotContainsProperty() throws IOException {

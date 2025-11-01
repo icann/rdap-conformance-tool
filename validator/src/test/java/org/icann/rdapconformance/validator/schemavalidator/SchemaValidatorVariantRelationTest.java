@@ -17,7 +17,6 @@ public class SchemaValidatorVariantRelationTest extends SchemaValidatorForArrayO
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     super.setUp();
     name = "relation";

@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.net.URI;
 
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
 public class ResponseValidation2Dot6Dot3_2024Test extends ProfileJsonValidationTestBase {
 
@@ -39,19 +38,20 @@ public class ResponseValidation2Dot6Dot3_2024Test extends ProfileJsonValidationT
     public void setUp() throws IOException {
         super.setUp();
         URI uri = URI.create("https://example.net/entity/XXXX");
-        doReturn(uri).when(config).getUri();
-
-        config = mock(RDAPValidatorConfiguration.class);
-        doReturn(uri).when(config).getUri();
+        doReturn(uri).when(queryContext.getConfig()).getUri();
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot6Dot3_2024(
-                jsonObject.toString(),
-                results,
-                this.config,
-                RDAPQueryType.DOMAIN);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        return new ResponseValidation2Dot6Dot3_2024(domainContext);
     }
 
     @Test
@@ -105,33 +105,33 @@ public class ResponseValidation2Dot6Dot3_2024Test extends ProfileJsonValidationT
 
     @Test
     public void testDoLaunch_DomainQueryType_ReturnsTrue() {
-        ResponseValidation2Dot6Dot3_2024 validation = new ResponseValidation2Dot6Dot3_2024(
-                jsonObject.toString(),
-                results,
-                this.config,
-                RDAPQueryType.DOMAIN);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(), queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.DOMAIN);
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        ResponseValidation2Dot6Dot3_2024 validation = new ResponseValidation2Dot6Dot3_2024(domainContext);
 
         assert validation.doLaunch() : "doLaunch should return true for DOMAIN query type";
     }
 
     @Test
     public void testDoLaunch_HelpQueryType_ReturnsFalse() {
-        ResponseValidation2Dot6Dot3_2024 validation = new ResponseValidation2Dot6Dot3_2024(
-                jsonObject.toString(),
-                results,
-                this.config,
-                RDAPQueryType.HELP);
+        QueryContext helpContext = new QueryContext(
+            queryContext.getQueryId(), queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.HELP);
+        helpContext.setRdapResponseData(queryContext.getRdapResponseData());
+        ResponseValidation2Dot6Dot3_2024 validation = new ResponseValidation2Dot6Dot3_2024(helpContext);
 
         assert !validation.doLaunch() : "doLaunch should return false for HELP query type";
     }
 
     @Test
     public void testDoLaunch_EntityQueryType_ReturnsFalse() {
-        ResponseValidation2Dot6Dot3_2024 validation = new ResponseValidation2Dot6Dot3_2024(
-                jsonObject.toString(),
-                results,
-                this.config,
-                RDAPQueryType.ENTITY);
+        QueryContext entityContext = new QueryContext(
+            queryContext.getQueryId(), queryContext.getConfig(), queryContext.getDatasetService(),
+            queryContext.getQuery(), queryContext.getResults(), RDAPQueryType.ENTITY);
+        entityContext.setRdapResponseData(queryContext.getRdapResponseData());
+        ResponseValidation2Dot6Dot3_2024 validation = new ResponseValidation2Dot6Dot3_2024(entityContext);
 
         assert !validation.doLaunch() : "doLaunch should return false for ENTITY query type";
     }

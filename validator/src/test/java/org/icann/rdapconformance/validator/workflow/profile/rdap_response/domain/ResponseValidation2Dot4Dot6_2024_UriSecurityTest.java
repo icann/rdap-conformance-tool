@@ -2,10 +2,11 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
@@ -17,20 +18,31 @@ import org.mockito.Mockito;
 public class ResponseValidation2Dot4Dot6_2024_UriSecurityTest {
 
     private ResponseValidation2Dot4Dot6_2024 validation;
-    private RDAPValidatorResultsImpl results;
+    private RDAPValidatorResults results;
+    private QueryContext queryContext;
 
     @BeforeMethod
     public void setup() {
-        results = RDAPValidatorResultsImpl.getInstance();
+        queryContext = QueryContext.forTesting(Mockito.mock(RDAPValidatorConfiguration.class));
+        results = queryContext.getResults();
         results.clear();
-        
+
         // Create validation instance
         String mockJson = "{}";
         RDAPDatasetServiceMock datasets = new RDAPDatasetServiceMock();
-        RDAPQueryType queryType = RDAPQueryType.DOMAIN;
-        
         RDAPValidatorConfiguration config = Mockito.mock(RDAPValidatorConfiguration.class);
-        validation = new ResponseValidation2Dot4Dot6_2024(mockJson, results, datasets, queryType, config);
+
+        QueryContext queryContext = QueryContext.forTesting(mockJson, results, config, datasets);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(mockJson);
+        validation = new ResponseValidation2Dot4Dot6_2024(domainContext);
     }
 
     // Null and empty input tests

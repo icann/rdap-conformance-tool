@@ -25,7 +25,6 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
 import static org.icann.rdapconformance.validator.CommonUtils.SEMI_COLON;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
 /**
  * HTTP-based implementation of RDAP query operations with comprehensive validation.
@@ -87,6 +86,9 @@ public class RDAPHttpQuery implements RDAPQuery {
     private boolean isQuerySuccessful = true;
     private ConnectionStatus status = null;
 
+    // QueryContext for thread-safe network operations
+    private org.icann.rdapconformance.validator.QueryContext queryContext;
+
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
     /**
@@ -96,6 +98,16 @@ public class RDAPHttpQuery implements RDAPQuery {
      */
     public RDAPHttpQuery(RDAPValidatorConfiguration config) {
         this.config = config;
+    }
+
+    /**
+     * Sets the QueryContext for this query. This is called after construction
+     * to provide access to thread-safe network operations.
+     *
+     * @param queryContext the QueryContext to use for network operations
+     */
+    public void setQueryContext(org.icann.rdapconformance.validator.QueryContext queryContext) {
+        this.queryContext = queryContext;
     }
 
     /**
@@ -151,17 +163,17 @@ public class RDAPHttpQuery implements RDAPQuery {
         if (httpResponse.statusCode() == HTTP_OK) {
             if (queryType.isLookupQuery() && !jsonResponseValid()) {
                 logger.debug("objectClassName was not found in the topmost object");
-                addErrorToResultsFile(-13003, httpResponse.body(),
+                queryContext.addError(-13003, httpResponse.body(),
                     "The response does not have an objectClassName string.");
                 structureValid = false;
             } else if (queryType.equals(RDAPQueryType.NAMESERVERS) && !hasNameserverSearchResults()) {
                 logger.debug("No JSON array in answer");
                 if (config.useRdapProfileFeb2024()) {
-                    addErrorToResultsFile(-12610, httpResponse.body(),
+                    queryContext.addError(-12610, httpResponse.body(),
                         "The nameserverSearchResults structure is required.");
                     structureValid = false;
                 } else {
-                    addErrorToResultsFile(-13003, httpResponse.body(),
+                    queryContext.addError(-13003, httpResponse.body(),
                         "The response does not have an objectClassName string.");
                     structureValid = false;
                 }
@@ -261,7 +273,12 @@ public class RDAPHttpQuery implements RDAPQuery {
             HttpResponse<String> response = null;
 
             while (remainingRedirects > ZERO) {
-                response = RDAPHttpRequest.makeRequest(currentUri, this.config.getTimeout(), GET, true);
+                // QueryContext is required for proper network protocol handling
+                if (queryContext == null) {
+                    throw new IllegalStateException("QueryContext must be set before running RDAPHttpQuery. Call setQueryContext() first.");
+                }
+                logger.debug("Using QueryContext makeRequest - protocol: {}", queryContext.getNetworkProtocol());
+                response = RDAPHttpRequest.makeRequest(queryContext, currentUri, this.config.getTimeout(), GET, true);
                 int httpStatusCode = response.statusCode();
                 ConnectionStatus st = ((SimpleHttpResponse) response).getConnectionStatusCode();
                 this.setErrorStatus(((SimpleHttpResponse) response).getConnectionStatusCode());   // ensure this is set
@@ -302,8 +319,8 @@ public class RDAPHttpQuery implements RDAPQuery {
             // check for the redirects
             if (remainingRedirects == ZERO) {
                 status = ConnectionStatus.TOO_MANY_REDIRECTS;
-                addErrorToResultsFile(-13013, "no response available", "Too many HTTP redirects.");
-                ConnectionTracker.getInstance().updateCurrentConnection(status);
+                queryContext.addError(-13013, "no response available", "Too many HTTP redirects.");
+                queryContext.getConnectionTracker().updateCurrentConnection(status);
             }
 
             // if we exit the loop without a redirect, we have a final response
@@ -328,7 +345,7 @@ public class RDAPHttpQuery implements RDAPQuery {
         if (!isValidStatusCode) {
             String statusValue =
                 httpResponse == null ? "no response available" : String.valueOf(httpResponse.statusCode());
-            addErrorToResultsFile(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
+            queryContext.addError(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
         }
 
         // Check 2024 profile validations BEFORE early termination to ensure -12108 precedence
@@ -338,10 +355,10 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             if (httpStatusCode != HTTP_OK) {
                 if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
-                    addErrorToResultsFile(-12107, rdapResponse, "The errorCode value is required in an error response.");
+                    queryContext.addError(-12107, rdapResponse, "The errorCode value is required in an error response.");
                     isQuerySuccessful = false;
                 } else if (!validateErrorCodeMatchesHttpStatus(httpStatusCode, rdapResponse)) {
-                    addErrorToResultsFile(-12108, rdapResponse, "The errorCode value does not match the HTTP status code.");
+                    queryContext.addError(-12108, rdapResponse, "The errorCode value does not match the HTTP status code.");
                     isQuerySuccessful = false;
                 }
             }
@@ -373,14 +390,14 @@ public class RDAPHttpQuery implements RDAPQuery {
         // application/rdap+JSON, error code -13000 added in results file.
         if (Arrays.stream(String.join(SEMI_COLON, headers.allValues(CONTENT_TYPE)).split(SEMI_COLON))
                   .noneMatch(s -> s.equalsIgnoreCase(APPLICATION_RDAP_JSON))) {
-            addErrorToResultsFile(-13000, headers.firstValue(CONTENT_TYPE).orElse("missing"),
+            queryContext.addError(-13000, headers.firstValue(CONTENT_TYPE).orElse("missing"),
                 "The content-type header does not contain the application/rdap+json media type.");
         }
 
         // If a response is available to the tool, but it's not syntactically valid JSON object, error code -13001 added in results file.
         jsonResponse = new JsonData(rdapResponse);
         if (!jsonResponse.isValid()) {
-            addErrorToResultsFile(-13001, "response body not given", "The response was not valid JSON.");
+            queryContext.addError(-13001, "response body not given", "The response was not valid JSON.");
             isQuerySuccessful = false;
         }
     }
@@ -407,7 +424,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             // They copied the query over, this is bad
             if (originalQuery != null && originalQuery.equals(locationQuery)) {
-                addErrorToResultsFile(-13004, "<location header value>",
+                queryContext.addError(-13004, "<location header value>",
                     "Response redirect contained query parameters copied from the request.");
                 return true;
             }

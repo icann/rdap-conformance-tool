@@ -58,3 +58,4 @@ datasets
 
 # our scratch directory for sample programs and wildly random stuff we don't want saved
 scratch/
+result_custom/

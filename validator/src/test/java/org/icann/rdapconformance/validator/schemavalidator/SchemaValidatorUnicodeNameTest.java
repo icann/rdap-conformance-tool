@@ -13,7 +13,6 @@ public class SchemaValidatorUnicodeNameTest extends SchemaValidatorIdnaTest {
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     super.setUp();
     name = "unicodeName";

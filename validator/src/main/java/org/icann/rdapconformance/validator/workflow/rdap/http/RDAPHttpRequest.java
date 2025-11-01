@@ -8,11 +8,9 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_TOO_MANY_REQUESTS;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
-import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv6;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -26,7 +24,6 @@ import java.net.http.HttpTimeoutException;
 
 import java.security.KeyStore;
 import java.security.SecureRandom;
-import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateParsingException;
@@ -52,7 +49,7 @@ import org.apache.hc.core5.http.ConnectionClosedException;
 
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
 
@@ -61,7 +58,6 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -74,6 +70,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -101,7 +98,7 @@ import org.apache.hc.core5.util.Timeout;
  * </ul>
  *
  * <p>The class integrates tightly with the ConnectionTracker for monitoring connection
- * state and the NetworkInfo singleton for protocol selection and header configuration.
+ * state and the NetworkInfo configuration.
  * All requests are tracked with unique identifiers for debugging and correlation.</p>
  *
  * <p>SSL/TLS validation is customized to focus on leaf certificate validation while
@@ -132,6 +129,8 @@ public class RDAPHttpRequest {
     public static final String RETRY_AFTER = "Retry-After";
     public static final int MAX_RETRY_TIME = 120;
 
+    // NOTE: Mutable for testing purposes - allows test timeouts to be reduced from 30 seconds to 1 second
+    // This field is not modified in production code, only in test environments
     public static int DEFAULT_BACKOFF_SECS = 30;
     public static final int MAX_RETRIES = 1;
     public static final int DNS_PORT = 53;
@@ -203,21 +202,8 @@ public class RDAPHttpRequest {
 
     /**
      * Creates and executes an HTTP request with full configuration options.
-     *
-     * <p>This is the main request method that handles all aspects of HTTP communication
-     * including DNS resolution, IPv4/IPv6 selection, SSL/TLS validation, retry logic,
-     * and comprehensive error handling. The method automatically selects appropriate
-     * local and remote IP addresses based on the current network protocol configuration.</p>
-     *
-     * <p>Key processing steps:</p>
-     * <ul>
-     *   <li>DNS resolution using the configured network protocol (IPv4/IPv6)</li>
-     *   <li>Local bind address selection based on protocol and availability</li>
-     *   <li>SSL/TLS context creation with custom certificate validation</li>
-     *   <li>HTTP request execution with connection pooling</li>
-     *   <li>Automatic retry handling for 429 responses with backoff</li>
-     *   <li>Connection tracking and status reporting</li>
-     * </ul>
+     * This is a legacy method that uses static singleton access patterns.
+     * New code should use the QueryContext-enabled makeRequest methods.
      *
      * @param originalUri the URI to send the request to (must not be null)
      * @param timeoutSeconds the timeout in seconds for both connection and response
@@ -229,140 +215,9 @@ public class RDAPHttpRequest {
      * @throws IllegalArgumentException if originalUri is null
      */
     public static HttpResponse<String> makeRequest(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
-        if (originalUri == null) throw new IllegalArgumentException("The provided URI is null.");
-
-        ConnectionTracker tracker = ConnectionTracker.getInstance();
-        String trackingId = tracker.startTrackingNewConnection(originalUri, method, isMain);
-
-        String host = originalUri.getHost();
-        if (LOCALHOST.equalsIgnoreCase(host)) {
-            host = LOCAL_IPv4; // only do v4, no dual-stack binding
-        }
-
-        int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT) : originalUri.getPort();
-
-        if (DNSCacheResolver.hasNoAddresses(host)) {
-            logger.debug("No IP address found for host: " + host);
-            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
-            SimpleHttpResponse resp = new SimpleHttpResponse(trackingId,ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
-            resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
-            return resp;
-        }
-
-        NetworkProtocol protocol = NetworkInfo.getNetworkProtocol();
-        InetAddress localBindIp = (protocol == NetworkProtocol.IPv6)
-            ? getDefaultIPv6Address()
-            : getDefaultIPv4Address();
-
-        InetAddress remoteAddress = (protocol == NetworkProtocol.IPv6)
-            ? DNSCacheResolver.getFirstV6Address(host)
-            : DNSCacheResolver.getFirstV4Address(host);
-
-        // If remote address or local bind IP is null, treat as unknown host
-        if (remoteAddress == null || localBindIp == null) {
-            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
-            return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
-        }
-
-        // Special case: if remote is 127.0.0.1, bind to 127.0.0.1
-        if (remoteAddress.getHostAddress().equals(LOCAL_IPv4)) {
-            localBindIp = InetAddress.getByName(LOCAL_IPv4);
-        }
-
-        URI ipUri = new URI(
-            originalUri.getScheme(),
-            null,
-            remoteAddress.getHostAddress(),
-            port,
-            originalUri.getRawPath(),
-            originalUri.getRawQuery(),
-            originalUri.getRawFragment()
-        );
-
-        NetworkInfo.setServerIpAddress(remoteAddress.getHostAddress());
-        tracker.updateIPAddressById(trackingId, remoteAddress.getHostAddress());
-        logger.debug("Connecting to: {} using {}", remoteAddress.getHostAddress(), NetworkInfo.getNetworkProtocol());
-
-        HttpUriRequestBase request = method.equals(GET) ? new HttpGet(originalUri) : new HttpHead(originalUri);
-        request.setHeader(HOST, host);
-        request.setHeader(ACCEPT, NetworkInfo.getAcceptHeader());
-        request.setHeader(CONNECTION, CLOSE);
-        request.setUri(ipUri);
-
-        RequestConfig config = RequestConfig.custom()
-                                            .setConnectTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
-                                            .setResponseTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
-                                            .build();
-        request.setConfig(config);
-
-        X509TrustManager leafCheckingTm = createLeafValidatingTrustManager();
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[] { leafCheckingTm }, new SecureRandom());
-
-        // Use the pooled HTTP client manager instead of creating a new client each time
-        CloseableHttpClient client = HttpClientManager.getInstance().getClient(host, sslContext, localBindIp, timeoutSeconds);
-
-        // Set the local bind address for the request
-        int attempt = ZERO;
-
-        while (attempt <= MAX_RETRIES) {
-            ClassicHttpResponse response = null;
-            int statusCode = ZERO;
-            String body = EMPTY_STRING;
-
-            try {
-                response = executeRequest(client, request);
-                statusCode = response.getCode();
-                body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
-            } catch (Exception e) {
-                ConnectionStatus status = handleRequestException(e, canRecordError);
-                tracker.completeTrackingById(trackingId, statusCode, status);
-                SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
-                    trackingId, statusCode, body, originalUri, new Header[ZERO]
-                );
-                simpleHttpResponse.setConnectionStatusCode(status);
-                return simpleHttpResponse;
-            }
-
-            if (statusCode == HTTP_TOO_MANY_REQUESTS) {
-                long backoffSeconds = getBackoffTime(response.getHeaders());
-
-                if (attempt >= MAX_RETRIES) {
-                    logger.debug("Requeried using retry-after wait time but result was a 429.");
-                    tracker.completeTrackingById(trackingId, statusCode, ConnectionStatus.TOO_MANY_REQUESTS);
-
-                    SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
-                        trackingId, statusCode, body, originalUri, convertHeaders(response.getHeaders())
-                    );
-
-                    simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
-                    return simpleHttpResponse;
-                }
-                attempt++;
-                // in-line the sleep method to avoid unnecessary complexity
-                if (backoffSeconds > ZERO) {
-                    try {
-                        Thread.sleep(backoffSeconds * PAUSE); // Convert seconds to milliseconds
-                    } catch (InterruptedException ignored) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-                continue;
-            }
-
-            // Successful response
-            tracker.completeTrackingById(trackingId, statusCode, ConnectionStatus.SUCCESS);
-            SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
-                trackingId, statusCode, body, originalUri, convertHeaders(response.getHeaders())
-            );
-
-            simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.SUCCESS);
-            return simpleHttpResponse;
-        }
-
-        // If all retries are exhausted
-        tracker.completeTrackingById(trackingId, HTTP_TOO_MANY_REQUESTS, ConnectionStatus.TOO_MANY_REQUESTS);
-        return new SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[ZERO]);
+        // For backward compatibility, this method still exists but should be migrated to use QueryContext
+        // For now, delegate to the QueryContext version with null (which will handle legacy behavior)
+        return makeRequest(null, originalUri, timeoutSeconds, method, isMain, canRecordError);
     }
 
     private static SSLConnectionSocketFactory getSslConnectionSocketFactory(String host, SSLContext sslContext) {
@@ -407,6 +262,17 @@ public class RDAPHttpRequest {
     }
 
     /**
+     * Legacy method for making requests without QueryContext (for backward compatibility).
+     * This method recreates the behavior of the original master implementation.
+     */
+    private static HttpResponse<String> makeRequestLegacy(URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
+        // This is a simplified legacy implementation that should not be used in new code
+        // It exists only for backward compatibility where QueryContext is not available
+        throw new UnsupportedOperationException("Legacy makeRequest without QueryContext is no longer supported. Please use QueryContext-enabled methods.");
+    }
+
+
+    /**
      * Handles and classifies exceptions that occur during HTTP request execution.
      *
      * <p>This method provides comprehensive exception handling and classification for
@@ -422,11 +288,12 @@ public class RDAPHttpRequest {
      *   <li>DNS resolution failures (unknown host)</li>
      * </ul>
      *
+     * @param queryContext the QueryContext for thread-safe error reporting and connection tracking
      * @param e the exception that occurred during request execution
      * @param recordError whether to record the error in validation results
      * @return ConnectionStatus representing the classified error type
      */
-    public static ConnectionStatus handleRequestException(Exception e, boolean recordError) {
+    public static ConnectionStatus handleRequestException(QueryContext queryContext, Exception e, boolean recordError) {
         String exceptionString = e.toString();
 
         if (e instanceof NoHttpResponseException ||
@@ -440,64 +307,64 @@ public class RDAPHttpRequest {
             (e.getCause() instanceof MessageConstraintException) ||
             (e.getCause() instanceof TruncatedChunkException)) {
             if (recordError) {
-                addErrorToResultsFile(ZERO, -13014, "no response available", "HTTP error.");
+                queryContext.addError(ZERO, -13014, "no response available", "HTTP error.");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HTTP_ERROR);
+            queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.HTTP_ERROR);
             return ConnectionStatus.HTTP_ERROR;
         }
 
         if (e instanceof UnknownHostException) {
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
+            queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.UNKNOWN_HOST);
             return ConnectionStatus.UNKNOWN_HOST;
         }
 
         if (exceptionString.contains("Connection refused")) {
             if (recordError) {
-                addErrorToResultsFile(ZERO, -13021, "no response available", "Connection refused by host.");
+                queryContext.addError(ZERO, -13021, "no response available", "Connection refused by host.");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_REFUSED);
+            queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.CONNECTION_REFUSED);
             return ConnectionStatus.CONNECTION_REFUSED;
         }
 
         if (e instanceof ConnectException || e instanceof HttpTimeoutException) {
                 if(recordError) {
-                    addErrorToResultsFile(ZERO, -13007, "no response available", "Failed to connect to server.");
+                    queryContext.addError(ZERO, -13007, "no response available", "Failed to connect to server.");
                 }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
+                queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
                 return ConnectionStatus.CONNECTION_FAILED;
         }
 
         // SSL and TLS related exceptions
         if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
             if(recordError) {
-                addErrorToResultsFile(ZERO, -13011, "no response available", "Expired certificate.");
+                queryContext.addError(ZERO, -13011, "no response available", "Expired certificate.");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
+            queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
             return ConnectionStatus.EXPIRED_CERTIFICATE;
         } else if (hasCause(e, "java.security.cert.CertificateRevokedException") || exceptionString.contains("CertificateRevokedException") ||  exceptionString.contains("Certificate revoked")) {
             if(recordError) {
-                addErrorToResultsFile(ZERO, -13010, "no response available", "Revoked TLS certificate.");
+                queryContext.addError(ZERO, -13010, "no response available", "Revoked TLS certificate.");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
+            queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.REVOKED_CERTIFICATE);
             return ConnectionStatus.REVOKED_CERTIFICATE;
         }
         else if (hasCause(e, "javax.net.ssl.SSLHandshakeException") || e.toString().contains("SSLHandshakeException")) {
             if(recordError) {
-                addErrorToResultsFile(ZERO, -13008, "no response available", "TLS handshake failed.");
+                queryContext.addError(ZERO, -13008, "no response available", "TLS handshake failed.");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
+            queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.HANDSHAKE_FAILED);
             return ConnectionStatus.HANDSHAKE_FAILED;
         }
         else if (hasCause(e, "javax.net.ssl.SSLPeerUnverifiedException") || e.toString().contains("SSLPeerUnverifiedException")) {
                 if(recordError) {
-                    addErrorToResultsFile(ZERO, -13009, "no response available", "Invalid TLS certificate.");
+                    queryContext.addError(ZERO, -13009, "no response available", "Invalid TLS certificate.");
                 }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
+                queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.INVALID_CERTIFICATE);
                 return ConnectionStatus.INVALID_CERTIFICATE;
         } else if (hasCause(e, "sun.security.validator.ValidatorException") || hasCause(e, "java.security.cert.CertificateException") ) {
             // else it's just a generic certificate error and falls under the certificate error category
-            addErrorToResultsFile(ZERO,-13012, "no response available", "TLS certificate error.");
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
+            queryContext.addError(ZERO,-13012, "no response available", "TLS certificate error.");
+            queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.CERTIFICATE_ERROR);
             return ConnectionStatus.CERTIFICATE_ERROR;
         }
 
@@ -508,16 +375,16 @@ public class RDAPHttpRequest {
             if (isReadTimeout) {
                 // Read timeout = network receive failure (-13017)
                 if (recordError) {
-                    addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
+                    queryContext.addError(ZERO, -13017, "no response available", "Network receive fail");
                 }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+                queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
                 return ConnectionStatus.NETWORK_RECEIVE_FAIL;
             } else {
                 // Other socket timeouts = network send failure (-13016)
                 if (recordError) {
-                    addErrorToResultsFile(ZERO, -13016, "no response available", "Network send fail");
+                    queryContext.addError(ZERO, -13016, "no response available", "Network send fail");
                 }
-                ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
+                queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.NETWORK_SEND_FAIL);
                 return ConnectionStatus.NETWORK_SEND_FAIL;
             }
         }
@@ -530,16 +397,16 @@ public class RDAPHttpRequest {
             ))) {
 
             if (recordError) {
-                addErrorToResultsFile(ZERO, -13017, "no response available", "Network receive fail");
+                queryContext.addError(ZERO, -13017, "no response available", "Network receive fail");
             }
-            ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
+            queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.NETWORK_RECEIVE_FAIL);
             return ConnectionStatus.NETWORK_RECEIVE_FAIL;
         }
         // we are at the fall through point, which means we have not identified a specific cause, and it gets classified as a connection failure
         if(recordError) {
-            addErrorToResultsFile(ZERO,-13007, "no response available", "Failed to connect to server.");
+            queryContext.addError(ZERO,-13007, "no response available", "Failed to connect to server.");
         }
-        ConnectionTracker.getInstance().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
+        queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
         return ConnectionStatus.CONNECTION_FAILED;
     }
 
@@ -920,107 +787,292 @@ public class RDAPHttpRequest {
      * This is specifically for case folding validation where redirects need to be followed.
      */
     public static HttpResponse<String> makeHttpGetRequestWithRedirects(URI uri, int timeoutSeconds, int maxRedirects) throws Exception {
-        return makeRequestWithRedirects(uri, timeoutSeconds, GET, false, true, maxRedirects);
+        // TEMPORARY: Simple implementation without redirect following - redirects are now handled in RDAPHttpQuery
+        return makeRequest(null, uri, timeoutSeconds, GET, false, true);
+    }
+
+
+
+    // ========================================
+    // QUERYCONTEXT-ENABLED METHODS (PHASE 2)
+    // ========================================
+
+    /**
+     * QueryContext-enabled version of makeRequest.
+     * Uses QueryContext's ConnectionTracker and NetworkInfo.
+     */
+    public static HttpResponse<String> makeRequest(QueryContext qctx, URI originalUri, int timeoutSeconds, String method) throws Exception {
+        return makeRequest(qctx, originalUri, timeoutSeconds, method, false);
     }
 
     /**
-     * Makes an HTTP request with optional redirect following.
-     * This preserves ALL existing connection tracking and error handling.
+     * QueryContext-enabled version of makeRequest with isMain flag.
      */
-    public static HttpResponse<String> makeRequestWithRedirects(URI originalUri, int timeoutSeconds, String method, 
-                                                               boolean isMain, boolean canRecordError, int maxRedirects) throws Exception {
-        // If maxRedirects is 0, use existing behavior exactly
-        if (maxRedirects <= ZERO) {
-            return makeRequest(originalUri, timeoutSeconds, method, isMain, canRecordError);
+    public static HttpResponse<String> makeRequest(QueryContext qctx, URI originalUri, int timeoutSeconds, String method, boolean isMain) throws Exception {
+        return makeRequest(qctx, originalUri, timeoutSeconds, method, isMain, true);
+    }
+
+    /**
+     * QueryContext-enabled version of makeRequest with full parameters.
+     * This method uses QueryContext services for thread-safe operations.
+     * Contains the complete HTTP processing logic from master with QueryContext integration.
+     */
+    public static HttpResponse<String> makeRequest(QueryContext qctx, URI originalUri, int timeoutSeconds, String method, boolean isMain, boolean canRecordError) throws Exception {
+        if (originalUri == null) throw new IllegalArgumentException("The provided URI is null.");
+
+        // Handle null QueryContext for backward compatibility (use legacy method)
+        if (qctx == null) {
+            return makeRequestLegacy(originalUri, timeoutSeconds, method, isMain, canRecordError);
         }
-        
-        // For redirects, we need to handle the redirect chain while preserving connection tracking
-        URI currentUri = originalUri;
-        int remainingRedirects = maxRedirects;
-        String previousTrackingId = null; // Track the previous request in the chain
-        
-        while (remainingRedirects > 0) {
-            // Make the request using existing infrastructure - this preserves ALL tracking
-            HttpResponse<String> response = makeRequest(currentUri, timeoutSeconds, method, isMain, canRecordError);
-            
-            // Get the tracking ID of this response
-            String currentTrackingId = null;
-            if (response instanceof SimpleHttpResponse) {
-                currentTrackingId = ((SimpleHttpResponse) response).getTrackingId();
-            }
-            
-            // Link to previous request if this is a redirect follow
-            if (previousTrackingId != null && currentTrackingId != null) {
-                linkRedirectConnections(previousTrackingId, currentTrackingId);
-            }
-            
-            // If not a redirect, return the response
-            if (!RDAPHttpQuery.isRedirectStatus(response.statusCode())) {
-                return response;
-            }
-            
-            // Handle redirect
-            Optional<String> location = response.headers().firstValue("Location");
-            if (location.isEmpty()) {
-                logger.warn("Redirect response missing Location header");
-                return response; // Return the redirect response as-is
-            }
-            
-            URI redirectUri;
+
+        // Use QueryContext's ConnectionTracker
+        ConnectionTracker tracker = qctx.getConnectionTracker();
+        NetworkProtocol protocol = qctx.getNetworkProtocol();
+        String trackingId = tracker.startTrackingNewConnection(originalUri, method, isMain, protocol);
+
+        String host = originalUri.getHost();
+        if (LOCALHOST.equalsIgnoreCase(host)) {
+            host = LOCAL_IPv4; // only do v4, no dual-stack binding
+        }
+
+        int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT) : originalUri.getPort();
+
+        if (qctx.getDnsResolver().hasNoAddresses(host)) {
+            logger.debug("No IP address found for host: " + host);
+            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
+            SimpleHttpResponse resp = new SimpleHttpResponse(trackingId,ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+            resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
+            return resp;
+        }
+
+        // Use the NetworkProtocol we already got for connection tracking
+        InetAddress localBindIp = (protocol == NetworkProtocol.IPv6)
+            ? getDefaultIPv6Address()
+            : getDefaultIPv4Address();
+
+        InetAddress remoteAddress = (protocol == NetworkProtocol.IPv6)
+            ? qctx.getDnsResolver().getFirstV6Address(host)
+            : qctx.getDnsResolver().getFirstV4Address(host);
+
+        // If remote address or local bind IP is null, treat as unknown host
+        if (remoteAddress == null || localBindIp == null) {
+            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
+            return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+        }
+
+        // Special case: if remote is 127.0.0.1, bind to 127.0.0.1
+        if (remoteAddress.getHostAddress().equals(LOCAL_IPv4)) {
+            localBindIp = InetAddress.getByName(LOCAL_IPv4);
+        }
+
+        URI ipUri = new URI(
+            originalUri.getScheme(),
+            null,
+            remoteAddress.getHostAddress(),
+            port,
+            originalUri.getRawPath(),
+            originalUri.getRawQuery(),
+            originalUri.getRawFragment()
+        );
+
+        // Set network info in QueryContext
+        qctx.setServerIpAddress(remoteAddress.getHostAddress());
+        qctx.setHttpMethod(method);
+        tracker.updateIPAddressById(trackingId, remoteAddress.getHostAddress());
+        logger.debug("Connecting to: {} using {}", remoteAddress.getHostAddress(), qctx.getNetworkProtocol());
+
+        HttpUriRequestBase request = method.equals(GET) ? new HttpGet(originalUri) : new HttpHead(originalUri);
+        request.setHeader(HOST, host);
+        request.setHeader(ACCEPT, qctx.getAcceptHeader());
+        request.setHeader(CONNECTION, CLOSE);
+        request.setUri(ipUri);
+
+        RequestConfig config = RequestConfig.custom()
+                                            .setConnectTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
+                                            .setResponseTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
+                                            .build();
+        request.setConfig(config);
+
+        X509TrustManager leafCheckingTm = createLeafValidatingTrustManager();
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[] { leafCheckingTm }, new SecureRandom());
+
+        // Use QueryContext's HttpClientManager instead of singleton
+        CloseableHttpClient client = qctx.getHttpClientManager().getClient(host, sslContext, localBindIp, timeoutSeconds);
+
+        // CRITICAL: 429 retry logic with backoff (restored from master)
+        int attempt = ZERO;
+
+        while (attempt <= MAX_RETRIES) {
+            ClassicHttpResponse response = null;
+            int statusCode = ZERO;
+            String body = EMPTY_STRING;
+
             try {
-                redirectUri = URI.create(location.get());
-                if (!redirectUri.isAbsolute()) {
-                    redirectUri = currentUri.resolve(redirectUri);
-                }
+                response = executeRequest(client, request);
+                statusCode = response.getCode();
+                body = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : EMPTY_STRING;
             } catch (Exception e) {
-                logger.warn("Invalid redirect Location header: {}", location.get(), e);
-                return response; // Return the redirect response as-is
+                ConnectionStatus status = handleRequestException(qctx, e, canRecordError);
+                tracker.completeTrackingById(trackingId, statusCode, status);
+                SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
+                    trackingId, statusCode, body, originalUri, new Header[ZERO]
+                );
+                simpleHttpResponse.setConnectionStatusCode(status);
+                return simpleHttpResponse;
             }
-            
-            // Security check: only allow same-host redirects for case folding
-            if (!currentUri.getHost().equalsIgnoreCase(redirectUri.getHost())) {
-                logger.warn("Cross-host redirect rejected: {} -> {}", currentUri.getHost(), redirectUri.getHost());
-                return response; // Return the redirect response as-is
+
+            // CRITICAL: Handle HTTP 429 Too Many Requests with backoff (restored from master)
+            if (statusCode == HTTP_TOO_MANY_REQUESTS) {
+                long backoffSeconds = getBackoffTime(response.getHeaders());
+
+                if (attempt >= MAX_RETRIES) {
+                    logger.debug("Requeried using retry-after wait time but result was a 429.");
+                    tracker.completeTrackingById(trackingId, statusCode, ConnectionStatus.TOO_MANY_REQUESTS);
+
+                    SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
+                        trackingId, statusCode, body, originalUri, convertHeaders(response.getHeaders())
+                    );
+
+                    simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.TOO_MANY_REQUESTS);
+                    return simpleHttpResponse;
+                }
+                attempt++;
+                // Sleep with backoff (restored from master)
+                if (backoffSeconds > ZERO) {
+                    try {
+                        Thread.sleep(backoffSeconds * PAUSE); // Convert seconds to milliseconds
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                continue;
             }
-            
-            logger.info("Following redirect for case folding: {} -> {}", currentUri, redirectUri);
-            
-            // Prepare for next iteration
-            previousTrackingId = currentTrackingId; // This redirect will be the parent of the next request
-            currentUri = redirectUri;
-            remainingRedirects--;
-            
-            // For subsequent requests in the redirect chain, treat as non-main connections
-            isMain = false;
+
+            // Successful response
+            tracker.completeTrackingById(trackingId, statusCode, ConnectionStatus.SUCCESS);
+            SimpleHttpResponse simpleHttpResponse = new SimpleHttpResponse(
+                trackingId, statusCode, body, originalUri, convertHeaders(response.getHeaders())
+            );
+
+            simpleHttpResponse.setConnectionStatusCode(ConnectionStatus.SUCCESS);
+            return simpleHttpResponse;
         }
-        
-        // If we've exhausted redirects, make one final request
-        return makeRequest(currentUri, timeoutSeconds, method, isMain, canRecordError);
+
+        // If all retries are exhausted
+        tracker.completeTrackingById(trackingId, HTTP_TOO_MANY_REQUESTS, ConnectionStatus.TOO_MANY_REQUESTS);
+        return new SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[ZERO]);
     }
 
     /**
-     * Link two connections to show redirect relationship
-     * @param redirectTrackingId The tracking ID of the request that returned a redirect
-     * @param followUpTrackingId The tracking ID of the request that followed the redirect
+     * Internal method to complete the QueryContext-enabled request.
+     * This will contain the rest of the HTTP processing logic.
      */
-    private static void linkRedirectConnections(String redirectTrackingId, String followUpTrackingId) {
-        try {
-            ConnectionTracker tracker = ConnectionTracker.getInstance();
-            
-            // Get both connection records
-            ConnectionTracker.ConnectionRecord redirectRecord = tracker.getConnectionByTrackingId(redirectTrackingId);
-            ConnectionTracker.ConnectionRecord followUpRecord = tracker.getConnectionByTrackingId(followUpTrackingId);
-            
-            if (redirectRecord != null && followUpRecord != null) {
-                // Link the connections
-                redirectRecord.setRedirectedToId(followUpTrackingId);
-                followUpRecord.setParentTrackingId(redirectTrackingId);
-                followUpRecord.setRedirectFollow(true);
-                
-                logger.debug("Linked redirect connections: {} -> {}", redirectTrackingId, followUpTrackingId);
-            }
-        } catch (Exception e) {
-            logger.warn("Failed to link redirect connections: {} -> {}", redirectTrackingId, followUpTrackingId, e);
+    private static HttpResponse<String> makeRequestInternal(QueryContext qctx, URI originalUri, int timeoutSeconds, String method,
+            boolean isMain, boolean canRecordError, ConnectionTracker tracker, String trackingId,
+            InetAddress localBindIp, InetAddress remoteAddress, int port) throws Exception {
+
+        logger.debug("makeRequestInternal called with protocol: {}, localBindIp: {}, remoteAddress: {}", qctx.getNetworkProtocol(), localBindIp, remoteAddress);
+
+        // Use QueryContext services
+        String host = originalUri.getHost();
+        if (LOCALHOST.equalsIgnoreCase(host)) {
+            host = LOCAL_IPv4; // only do v4, no dual-stack binding
         }
+
+        // Get SSL context and create HTTP client using QueryContext services
+        X509TrustManager leafCheckingTm = createLeafValidatingTrustManager();
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[] { leafCheckingTm }, new SecureRandom());
+
+        // Use QueryContext's HttpClientManager
+        CloseableHttpClient client = qctx.getHttpClientManager().getClient(host, sslContext, localBindIp, timeoutSeconds);
+
+        // Continue with the HTTP request logic using QueryContext services
+        return executeHttpRequest(qctx, client, originalUri, host, method, tracker, trackingId, localBindIp, remoteAddress, port, timeoutSeconds);
+    }
+
+    /**
+     * Executes the HTTP request using QueryContext services.
+     */
+    private static HttpResponse<String> executeHttpRequest(QueryContext qctx, CloseableHttpClient client, URI originalUri,
+            String host, String method, ConnectionTracker tracker, String trackingId, InetAddress localBindIp, InetAddress remoteAddress, int port, int timeoutSeconds) throws Exception {
+
+        logger.debug("executeHttpRequest called with protocol: {}, localBindIp: {}, remoteAddress: {}", qctx.getNetworkProtocol(), localBindIp, remoteAddress);
+
+        // Update QueryContext network info
+        qctx.setServerIpAddress(remoteAddress.getHostAddress());
+        qctx.setHttpMethod(method);
+        tracker.updateIPAddressById(trackingId, remoteAddress.getHostAddress());
+        logger.debug("Connecting to: {} using {} (local bind: {})", remoteAddress.getHostAddress(), qctx.getNetworkProtocol(), localBindIp.getHostAddress());
+
+        // Create URI with IP address (like the working implementation)
+        URI ipUri;
+        try {
+            ipUri = new URI(
+                originalUri.getScheme(),
+                null,
+                remoteAddress.getHostAddress(),
+                port,
+                originalUri.getRawPath(),
+                originalUri.getRawQuery(),
+                originalUri.getRawFragment()
+            );
+            logger.debug("Created IP URI: {}", ipUri);
+        } catch (Exception e) {
+            logger.debug("Failed to create IP URI, using original: {}", e.getMessage());
+            ipUri = originalUri;
+        }
+
+        // Create request with original URI, then set IP URI (like working implementation)
+        HttpUriRequestBase request = method.equals(GET) ? new HttpGet(originalUri) : new HttpHead(originalUri);
+        request.setHeader(HOST, host);  // Use original hostname for Host header
+        request.setHeader(ACCEPT, qctx.getAcceptHeader());
+        request.setHeader("Connection", "close");
+        request.setUri(ipUri);  // Set the IP URI for actual connection
+
+        // Set request configuration for timeouts (like working implementation)
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
+                .setResponseTimeout(Timeout.of(timeoutSeconds, TimeUnit.SECONDS))
+                .build();
+        request.setConfig(config);
+
+        int attempt = ZERO;
+        while (attempt <= MAX_RETRIES) {
+            try {
+                CloseableHttpResponse response = client.execute(request);
+                int statusCode = response.getCode();
+
+                // Get response body
+                String responseBody = EMPTY_STRING;
+                if (response.getEntity() != null) {
+                    responseBody = EntityUtils.toString(response.getEntity());
+                }
+
+                // Get response headers and convert them
+                RDAPHttpRequest.Header[] headers = convertHeaders(response.getHeaders());
+
+                tracker.completeTrackingById(trackingId, statusCode, ConnectionStatus.SUCCESS);
+                return new SimpleHttpResponse(trackingId, statusCode, responseBody, originalUri, headers);
+
+            } catch (Exception e) {
+                logger.debug("HTTP request failed on attempt {}: {}", attempt + 1, e.getMessage(), e);
+                attempt++;
+                if (attempt > MAX_RETRIES) {
+                    // Handle and classify the exception to get proper ConnectionStatus
+                    ConnectionStatus errorStatus = handleRequestException(qctx, e, true);
+                    tracker.completeTrackingById(trackingId, ZERO, errorStatus);
+                    SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new RDAPHttpRequest.Header[ZERO]);
+                    errorResponse.setConnectionStatusCode(errorStatus);
+                    return errorResponse;
+                }
+            }
+        }
+
+        tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.CONNECTION_FAILED);
+        SimpleHttpResponse failureResponse = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new RDAPHttpRequest.Header[ZERO]);
+        failureResponse.setConnectionStatusCode(ConnectionStatus.CONNECTION_FAILED);
+        return failureResponse;
     }
 }

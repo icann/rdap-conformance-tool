@@ -14,7 +14,6 @@ public class SchemaValidatorLdhNameTest extends SchemaValidatorIdnaTest {
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     super.setUp();
     name = "ldhName";

@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
@@ -27,6 +28,9 @@ public abstract class HttpTestingUtils {
   protected final RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
   protected final RDAPValidatorResults results = mock(RDAPValidatorResults.class);
   protected WireMockServer wireMockServer;
+
+  // QueryContext support for modern test patterns
+  protected QueryContext queryContext;
 
   public static RedirectData givenChainedHttpRedirects() {
     String path1 = "https://domain1/test1.example";
@@ -54,6 +58,35 @@ public abstract class HttpTestingUtils {
   public void setUp() {
     doReturn(10).when(config).getTimeout();
     doReturn(3).when(config).getMaxRedirects();
+
+    // Initialize QueryContext for modern test patterns
+    initializeQueryContext();
+  }
+
+  /**
+   * Initialize QueryContext for tests that need QueryContext-based operations.
+   * This method can be overridden by subclasses for custom QueryContext setup.
+   */
+  protected void initializeQueryContext() {
+    // Set up default URI for QueryContext initialization
+    doReturn(URI.create("https://example.com/domain/test.example")).when(config).getUri();
+    // Create dataset service first, then QueryContext with it to prevent null dataset service errors
+    RDAPDatasetService datasets = new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+    datasets.download(true);
+    queryContext = QueryContext.forTesting(config, datasets);
+  }
+
+  /**
+   * Get QueryContext-based results, useful for tests migrating from singleton patterns.
+   * This provides an alternative to direct results field access.
+   *
+   * @return RDAPValidatorResults from the QueryContext
+   */
+  protected RDAPValidatorResults getQueryContextResults() {
+    if (queryContext == null) {
+      initializeQueryContext();
+    }
+    return queryContext.getResults();
   }
 
   @AfterMethod

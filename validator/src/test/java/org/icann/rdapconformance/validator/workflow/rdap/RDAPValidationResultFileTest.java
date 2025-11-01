@@ -12,12 +12,14 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.icann.rdapconformance.validator.BuildInfo;
 import org.icann.rdapconformance.validator.ConnectionTracker;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -41,26 +44,31 @@ public class RDAPValidationResultFileTest {
     private FileSystem fileSystem;
     private RDAPValidatorResults results;
     private ConfigurationFile configurationFile;
-  private RDAPValidationResultFile file;
+    private RDAPValidationResultFile file;
+    private QueryContext queryContext;
+    private RDAPValidatorConfiguration config;
 
     @BeforeMethod
     public void setUp() {
-        RDAPValidationResultFile.reset();
-
-        results = RDAPValidatorResultsImpl.getInstance();
-        results.clear();
-        fileSystem = mock(FileSystem.class);
-        results.addGroups(Set.of("firstGroup"));
+        // Create QueryContext-based instances instead of using singletons
+        config = mock(RDAPValidatorConfiguration.class);
+        when(config.isGtldRegistrar()).thenReturn(true);
+        // Add URI configuration to prevent null pointer exceptions during QueryContext creation
+        when(config.getUri()).thenReturn(java.net.URI.create("https://example.com/domain/test.example"));
         configurationFile = mock(ConfigurationFile.class);
+        fileSystem = mock(FileSystem.class);
 
-        RDAPValidationResultFile.getInstance().initialize(
-            results,
-            mock(RDAPValidatorConfiguration.class),
-            configurationFile,
-            fileSystem
-        );
+        // Create dataset service first, then QueryContext with it
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasets =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasets.download(true);
+        queryContext = QueryContext.forTesting(config, datasets);
+        results = queryContext.getResults();
+        results.clear();
+        results.addGroups(Set.of("firstGroup"));
 
-        file = RDAPValidationResultFile.getInstance();
+        file = queryContext.getResultFile();
+        file.initialize(results, config, configurationFile, fileSystem);
     }
 
     @AfterMethod
@@ -71,19 +79,21 @@ public class RDAPValidationResultFileTest {
 
     @Test
     public void testGroupOkAssigned() throws IOException {
-        RDAPValidationResultFile.getInstance().build();
+        file.build();
         verify(fileSystem).write(any(), contains("\"groupOK\": [\"firstGroup\"]"));
     }
 
     @Test
     public void testGroupErrorWarningAssigned() throws IOException {
         results.addGroupErrorWarning("secondGroup");
-        RDAPValidationResultFile.getInstance().build();
+        file.build();
         verify(fileSystem).write(any(), contains("\"groupErrorWarning\": [\"secondGroup\"]"));
     }
 
   @Test
   public void testGtldRegistrar() throws IOException {
+    // Override setup to test false case
+    when(config.isGtldRegistrar()).thenReturn(false);
     file.build();
     verify(fileSystem).write(any(), contains("\"gtldRegistrar\": false"));
   }
@@ -101,34 +111,34 @@ public class RDAPValidationResultFileTest {
 
     @Test
     public void testConformanceToolVersion() throws IOException {
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        // Use class field: config
         doReturn(true).when(config).useRdapProfileFeb2024();
 
-        RDAPValidationResultFile.reset();
-        RDAPValidationResultFile.getInstance().initialize(
+        // Instance-based - no reset needed
+        file.initialize(
             results,
             config,
             configurationFile,
             fileSystem
         );
-        RDAPValidationResultFile.getInstance().build();
+        file.build();
 
         verify(fileSystem).write(any(), contains("\"conformanceToolVersion\": \"" + BuildInfo.getVersion() + "\""));
     }
 
     @Test
     public void testBuildDate() throws IOException {
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        // Use class field: config
         doReturn(true).when(config).useRdapProfileFeb2024();
 
-        RDAPValidationResultFile.reset();
-        RDAPValidationResultFile.getInstance().initialize(
+        // Instance-based - no reset needed
+        file.initialize(
             results,
             config,
             configurationFile,
             fileSystem
         );
-        RDAPValidationResultFile.getInstance().build();
+        file.build();
 
         verify(fileSystem).write(any(), contains("\"buildDate\": \"" + BuildInfo.getBuildDate() + "\""));
     }
@@ -168,18 +178,18 @@ public class RDAPValidationResultFileTest {
 
     @Test
     public void testResultsFilePath() throws IOException {
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        // Use class field: config
         String customResultsFilePath = "custom_results.json";
         doReturn(customResultsFilePath).when(config).getResultsFile();
 
-        RDAPValidationResultFile.reset();
-        RDAPValidationResultFile.getInstance().initialize(
+        // Instance-based - no reset needed
+        file.initialize(
             results,
             config,
             configurationFile,
             fileSystem
         );
-        RDAPValidationResultFile.getInstance().build();
+        file.build();
 
         // Verify that the results are written to the custom file path
         verify(fileSystem).write(eq(customResultsFilePath), any(String.class));
@@ -187,17 +197,17 @@ public class RDAPValidationResultFileTest {
 
     @Test
     public void testDefaultResultsFilePath() throws IOException {
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        // Use class field: config
         doReturn(null).when(config).getResultsFile();
 
-        RDAPValidationResultFile.reset();
-        RDAPValidationResultFile.getInstance().initialize(
+        // Instance-based - no reset needed
+        file.initialize(
             results,
             config,
             configurationFile,
             fileSystem
         );
-        RDAPValidationResultFile.getInstance().build();
+        file.build();
 
     // Verify that the results are written to the default file path
     verify(fileSystem).mkdir("results");
@@ -208,19 +218,19 @@ public class RDAPValidationResultFileTest {
 @Test
 public void testAllCodesThatShouldBeIgnored() {
     // Create results with codes that should be filtered
-    RDAPValidatorResultsImpl resultsImpl = RDAPValidatorResultsImpl.getInstance();
-    resultsImpl.clear();
-    resultsImpl.add(RDAPValidationResult.builder().code(-13004).httpStatusCode(200).build());
-    resultsImpl.add(RDAPValidationResult.builder().code(-13005).httpStatusCode(404).build());
-    resultsImpl.add(RDAPValidationResult.builder().code(-13006).httpStatusCode(404).build());
-    resultsImpl.add(RDAPValidationResult.builder().code(-65300).httpStatusCode(404).build());
+    // Use class field: results
+    results.clear();
+    results.add(RDAPValidationResult.builder().code(-13004).httpStatusCode(200).build());
+    results.add(RDAPValidationResult.builder().code(-13005).httpStatusCode(404).build());
+    results.add(RDAPValidationResult.builder().code(-13006).httpStatusCode(404).build());
+    results.add(RDAPValidationResult.builder().code(-65300).httpStatusCode(404).build());
 
     // Get all results from the implementation
-    Set<RDAPValidationResult> allResults = resultsImpl.getAll();
+    Set<RDAPValidationResult> allResults = results.getAll();
 
     // Use RDAPValidationResultFile's implementation to filter the results
-    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-    Set<RDAPValidationResult> filteredResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(allResults);
+    RDAPValidationResultFile resultFile = file;
+    List<RDAPValidationResult> filteredResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(allResults));
 
     // Check that the filtered codes don't appear in the unique tuples that are checked
     // for status code differences (this is what the method actually does)
@@ -237,7 +247,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testBuggyIgnoredCodes() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        // Use class field: results
         results.clear();
 
         results.add(RDAPValidationResult.builder().code(-130004).httpStatusCode(200).build());
@@ -250,7 +260,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testAllNonIgnoredCodesSameStatus() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        // Use class field: results
         results.clear();
         results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(200).build());
@@ -264,7 +274,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testAllNonIgnoredCodesDifferentStatus() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        // Use class field: results
         results.clear();
         results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
@@ -284,7 +294,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testMixedIgnoredAndNonIgnoredCodes() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        // Use class field: results
         results.clear();
         results.add(RDAPValidationResult.builder().code(-130004).httpStatusCode(200).build());
         results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
@@ -298,7 +308,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testNonIgnoredCodeWithZeroStatus() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        // Use class field: results
         results.clear();
         results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(0).build());
         results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(200).build());
@@ -315,7 +325,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testEmptyResults() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        // Use class field: results
         results.clear();
 
         String output = results.analyzeResultsWithStatusCheck();
@@ -325,32 +335,74 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testNullAndZeroStatusCodesAreEquivalent() {
-        try (MockedStatic<ConnectionTracker> mocked = org.mockito.Mockito.mockStatic(ConnectionTracker.class)) {
-            mocked.when(ConnectionTracker::getMainStatusCode).thenReturn(0);
+        // Create QueryContext for proper status code handling
+        // Use class field: config
+        when(config.isGtldRegistrar()).thenReturn(true);
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        // Create dataset service for QueryContext
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasetService.download(true);
+        QueryContext queryContext = QueryContext.forTesting(config, datasetService);
+
+        // Mock ConnectionTracker through QueryContext
+        ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+        ConnectionTracker.ConnectionRecord mockConnection = mock(ConnectionTracker.ConnectionRecord.class);
+        when(mockConnection.getStatusCode()).thenReturn(0);
+        when(mockTracker.getLastMainConnection()).thenReturn(mockConnection);
+
+        // Use reflection to set the mocked tracker in QueryContext for this test
+        try {
+            java.lang.reflect.Field trackerField = QueryContext.class.getDeclaredField("connectionTracker");
+            trackerField.setAccessible(true);
+            trackerField.set(queryContext, mockTracker);
+
+            // Use class field: results
             results.clear();
 
-            results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
-            results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
+            // Use QueryContext to properly normalize null to 0
+            results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build(queryContext));
+            results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build(queryContext));
 
             String output = results.analyzeResultsWithStatusCheck();
             assertTrue(output.contains("code=1001, httpStatusCode=0"));
             assertTrue(output.contains("code=1002, httpStatusCode=0"));
             assertFalse(results.getAll().stream().anyMatch(r -> r.getCode() == -13018));
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set mock ConnectionTracker", e);
         }
     }
 
     @Test
     public void testMixedNullZeroAndOtherStatusCodes() {
-        try (MockedStatic<ConnectionTracker> mocked = org.mockito.Mockito.mockStatic(ConnectionTracker.class)) {
-            mocked.when(ConnectionTracker::getMainStatusCode).thenReturn(0);
+        // Create QueryContext for proper status code handling
+        // Use class field: config
+        when(config.isGtldRegistrar()).thenReturn(true);
 
-            RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        // Create dataset service for QueryContext
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasetService.download(true);
+        QueryContext queryContext = QueryContext.forTesting(config, datasetService);
+
+        // Mock ConnectionTracker through QueryContext
+        ConnectionTracker mockTracker = mock(ConnectionTracker.class);
+        ConnectionTracker.ConnectionRecord mockConnection = mock(ConnectionTracker.ConnectionRecord.class);
+        when(mockConnection.getStatusCode()).thenReturn(0);
+        when(mockTracker.getLastMainConnection()).thenReturn(mockConnection);
+
+        // Use reflection to set the mocked tracker in QueryContext for this test
+        try {
+            java.lang.reflect.Field trackerField = QueryContext.class.getDeclaredField("connectionTracker");
+            trackerField.setAccessible(true);
+            trackerField.set(queryContext, mockTracker);
+
+            // Use class field: results
             results.clear();
-            results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build());
-            results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
-            results.add(RDAPValidationResult.builder().code(1003).httpStatusCode(200).build());
+            results.add(RDAPValidationResult.builder().code(1001).httpStatusCode(null).build(queryContext));
+            results.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build(queryContext));
+            results.add(RDAPValidationResult.builder().code(1003).httpStatusCode(200).build(queryContext));
 
             results.analyzeResultsWithStatusCheck();
 
@@ -365,12 +417,15 @@ public void testAllCodesThatShouldBeIgnored() {
             assertTrue(value.contains("[1001,0]"));
             assertTrue(value.contains("[1002,0]"));
             assertTrue(value.contains("[1003,200]"));
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set mock ConnectionTracker", e);
         }
     }
 
     @Test
     public void testNoDuplicateTuplesInJson() {
-        RDAPValidatorResultsImpl results = RDAPValidatorResultsImpl.getInstance();
+        // Use class field: results
         results.clear();
 
         // Add duplicate results deliberately
@@ -452,9 +507,9 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testCullDuplicates_DuplicateIpv4() {
-        results.add(RDAPValidationResult.builder().code(-20400).build());
-        results.add(RDAPValidationResult.builder().code(-20400).build());
-        results.add(RDAPValidationResult.builder().code(-20401).build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 1").build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 2").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error").build());
 
         results.cullDuplicateIPAddressErrors();
 
@@ -465,9 +520,9 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testCullDuplicates_DuplicateIpv6() {
-        results.add(RDAPValidationResult.builder().code(-20400).build());
-        results.add(RDAPValidationResult.builder().code(-20401).build());
-        results.add(RDAPValidationResult.builder().code(-20401).build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 1").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 2").build());
 
         results.cullDuplicateIPAddressErrors();
 
@@ -478,11 +533,11 @@ public void testAllCodesThatShouldBeIgnored() {
 
     @Test
     public void testCullDuplicates_BothDuplicates() {
-        results.add(RDAPValidationResult.builder().code(-20400).build());
-        results.add(RDAPValidationResult.builder().code(-20400).build());
-        results.add(RDAPValidationResult.builder().code(-20401).build());
-        results.add(RDAPValidationResult.builder().code(-20401).build());
-        results.add(RDAPValidationResult.builder().code(-10000).build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 1").build());
+        results.add(RDAPValidationResult.builder().code(-20400).message("IPv4 error 2").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 1").build());
+        results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 2").build());
+        results.add(RDAPValidationResult.builder().code(-10000).message("Other error").build());
 
         results.cullDuplicateIPAddressErrors();
 
@@ -496,8 +551,8 @@ public void testAllCodesThatShouldBeIgnored() {
         // Create nothing - get nothing
         Set<RDAPValidationResult> testResults = new HashSet<>();
 
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
+        RDAPValidationResultFile resultFile = file;
+        List<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(testResults));
         assertTrue(filtered.isEmpty());
     }
 
@@ -509,8 +564,8 @@ public void testAllCodesThatShouldBeIgnored() {
         testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build()); // Duplicate
         testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
 
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
+        RDAPValidationResultFile resultFile = file;
+        List<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(testResults));
 
         // Verify all unique code/status combinations are preserved
         assertTrue(filtered.stream().anyMatch(r -> r.getCode() == 1001 && r.getHttpStatusCode() == 200));
@@ -527,8 +582,8 @@ public void testAllCodesThatShouldBeIgnored() {
         testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(0).build());
         testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(0).build());
 
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
+        RDAPValidationResultFile resultFile = file;
+        List<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(testResults));
 
         // Verify results are maintained
         assertEquals(2, filtered.size());
@@ -544,8 +599,8 @@ public void testAllCodesThatShouldBeIgnored() {
         testResults.add(RDAPValidationResult.builder().code(1001).httpStatusCode(200).build());
         testResults.add(RDAPValidationResult.builder().code(1002).httpStatusCode(404).build());
 
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        Set<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(testResults);
+        RDAPValidationResultFile resultFile = file;
+        List<RDAPValidationResult> filtered = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(testResults));
 
         // Verify the -13018 code is added
         assertTrue(filtered.stream().anyMatch(r -> r.getCode() == -13018));
@@ -570,8 +625,8 @@ public void testAllCodesThatShouldBeIgnored() {
         testResults.add(RDAPValidationResult.builder().code(-20401).build()); // Duplicate IPv6 error
         testResults.add(RDAPValidationResult.builder().code(1001).build());   // Other code
 
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        Set<RDAPValidationResult> culled = resultFile.cullDuplicateIPAddressErrors(testResults);
+        RDAPValidationResultFile resultFile = file;
+        List<RDAPValidationResult> culled = resultFile.cullDuplicateIPAddressErrors(new ArrayList<>(testResults));
 
         // Verify duplicates are removed but one of each IP error remains
         assertEquals(3, culled.size());
@@ -582,7 +637,7 @@ public void testAllCodesThatShouldBeIgnored() {
 
 @Test
 public void testCreateResultsMap() {
-    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+    RDAPValidationResultFile resultFile = file;
 
     // Mock configuration file behavior
     doReturn(List.of(999)).when(configurationFile).getDefinitionIgnore();
@@ -706,7 +761,7 @@ public void testCreateResultsMap() {
         results.add(RDAPValidationResult.builder().code(-3001).build()); // Ignored
         results.add(RDAPValidationResult.builder().code(-4001).build()); // Neither error nor warning nor ignored (defaults to error)
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         int errorCount = resultFile.getErrorCount();
         
         assertEquals(2, errorCount); // -1001 and -4001 should be counted as errors
@@ -730,7 +785,7 @@ public void testCreateResultsMap() {
         results.add(RDAPValidationResult.builder().code(-3001).message("Ignored 1").build());
         results.add(RDAPValidationResult.builder().code(-4001).message("Default Error").build());
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         List<RDAPValidationResult> errors = resultFile.getErrors();
         
         assertEquals(2, errors.size());
@@ -761,7 +816,7 @@ public void testCreateResultsMap() {
         
         assertEquals(3, results.getAll().size());
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         resultFile.removeErrors();
         
         // Only warnings should remain
@@ -806,7 +861,7 @@ public void testCreateResultsMap() {
         
         assertEquals(4, results.getAll().size());
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         resultFile.removeErrors();
         
         // Should preserve warnings AND response format errors (-121XX range)
@@ -833,12 +888,12 @@ public void testCreateResultsMap() {
     @Test
     public void testInitializeWhenAlreadyInitialized() {
         // Initialize once
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        resultFile.initialize(results, mock(RDAPValidatorConfiguration.class), 
+        RDAPValidationResultFile resultFile = file;
+        resultFile.initialize(results, config, 
                              configurationFile, fileSystem);
         
         // Try to initialize again - should return early without overwriting
-        RDAPValidatorConfiguration newConfig = mock(RDAPValidatorConfiguration.class);
+        RDAPValidatorConfiguration newConfig = config;
         resultFile.initialize(results, newConfig, configurationFile, fileSystem);
         
         // The second initialization should be ignored - test re-initialization safety
@@ -848,11 +903,11 @@ public void testCreateResultsMap() {
     @Test 
     public void testBuildWithEmptyResultsFilePath() throws Exception {
         // Test the edge case where resultsFilePath is empty string (not null)
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        // Use class field: config
         doReturn("").when(config).getResultsFile(); // Empty string, not null
         doReturn(false).when(config).useRdapProfileFeb2024();
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         resultFile.initialize(results, config, configurationFile, fileSystem);
         
         boolean result = resultFile.build();
@@ -873,10 +928,10 @@ public void testCreateResultsMap() {
                    .message("Test")
                    .build());
         
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        // Use class field: config
         doReturn(false).when(config).useRdapProfileFeb2024();
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         resultFile.initialize(results, config, configurationFile, fileSystem);
         
         Map<String, Object> resultMap = resultFile.createResultsMap();
@@ -900,10 +955,10 @@ public void testCreateResultsMap() {
                    .message("Test")
                    .build());
         
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        // Use class field: config
         doReturn(false).when(config).useRdapProfileFeb2024();
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         resultFile.initialize(results, config, configurationFile, fileSystem);
         
         Map<String, Object> resultMap = resultFile.createResultsMap();
@@ -925,11 +980,11 @@ public void testCreateResultsMap() {
                    .message("Test")
                    .build());
         
-        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        // Use class field: config
         doReturn(null).when(config).getUri(); // Null URI to test the fallback
         doReturn(false).when(config).useRdapProfileFeb2024();
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         resultFile.initialize(results, config, configurationFile, fileSystem);
         
         Map<String, Object> resultMap = resultFile.createResultsMap();
@@ -943,22 +998,32 @@ public void testCreateResultsMap() {
     
     @Test
     public void testStatusCodeComparisonWithNullStatus() {
+        // Create QueryContext for proper status code handling
+        // Use class field: config
+        when(config.isGtldRegistrar()).thenReturn(true);
+
+        // Create dataset service for QueryContext
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
+            new org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock();
+        datasetService.download(true);
+        QueryContext queryContext = QueryContext.forTesting(config, datasetService);
+
         // Add results with null HTTP status codes to test null handling
         results.add(RDAPValidationResult.builder()
                    .code(-12107)
                    .httpStatusCode(null) // Null status code
                    .message("Test 1")
-                   .build());
+                   .build(queryContext));
         results.add(RDAPValidationResult.builder()
-                   .code(-12108)  
+                   .code(-12108)
                    .httpStatusCode(404)
                    .message("Test 2")
-                   .build());
+                   .build(queryContext));
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         
         Set<RDAPValidationResult> allResults = results.getAll();
-        Set<RDAPValidationResult> processedResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(allResults);
+        List<RDAPValidationResult> processedResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(allResults));
         
         // Should have added -13018 error because null != 404
         assertTrue(processedResults.stream().anyMatch(r -> r.getCode() == -13018));
@@ -974,8 +1039,8 @@ public void testCreateResultsMap() {
         results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 1").build());
         results.add(RDAPValidationResult.builder().code(-20401).message("IPv6 error 2").build());
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        Set<RDAPValidationResult> culled = resultFile.cullDuplicateIPAddressErrors(results.getAll());
+        RDAPValidationResultFile resultFile = file;
+        List<RDAPValidationResult> culled = resultFile.cullDuplicateIPAddressErrors(new ArrayList<>(results.getAll()));
         
         // Should keep only 1 of each type
         long ipv4Count = culled.stream().filter(r -> r.getCode() == -20400).count();
@@ -996,8 +1061,8 @@ public void testCreateResultsMap() {
         doReturn(false).when(configurationFile).isError(-99999);
         doReturn(false).when(configurationFile).isWarning(-99999);
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        resultFile.initialize(results, mock(RDAPValidatorConfiguration.class), configurationFile, fileSystem);
+        RDAPValidationResultFile resultFile = file;
+        resultFile.initialize(results, config, configurationFile, fileSystem);
         
         // Test debug printing with ignored codes classification
         resultFile.debugPrintResultBreakdown();
@@ -1013,8 +1078,8 @@ public void testCreateResultsMap() {
                    .message("Test with null value")
                    .build());
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-        resultFile.initialize(results, mock(RDAPValidatorConfiguration.class), configurationFile, fileSystem);
+        RDAPValidationResultFile resultFile = file;
+        resultFile.initialize(results, config, configurationFile, fileSystem);
         
         // Test debug printing with null values handling
         resultFile.debugPrintResultBreakdown();
@@ -1038,9 +1103,9 @@ public void testCreateResultsMap() {
         // This scenario creates uniqueTuples that could potentially cause JSON serialization issues
         // In practice, ObjectMapper.writeValueAsString should handle this, but this test
         // exercises the code path and ensures robustness
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         
-        Set<RDAPValidationResult> processedResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(results.getAll());
+        List<RDAPValidationResult> processedResults = resultFile.addErrorIfAllQueriesDoNotReturnSameStatusCode(new ArrayList<>(results.getAll()));
         
         // Should have added -13018 error for mixed status codes  
         assertTrue(processedResults.stream().anyMatch(r -> r.getCode() == -13018));
@@ -1067,7 +1132,7 @@ public void testCreateResultsMap() {
         results.addGroup("TestGroup2");
         results.add(RDAPValidationResult.builder().code(-1001).build());
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         resultFile.removeResultGroups();
         
         // Groups should be removed but results should remain
@@ -1077,7 +1142,7 @@ public void testCreateResultsMap() {
     
     @Test
     public void testGetResultsPath() {
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         
         // Set a test path
         resultFile.resultPath = "/test/path/results.json";
@@ -1088,7 +1153,7 @@ public void testCreateResultsMap() {
     
     @Test
     public void testGetResultsPath_Null() {
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         
         // Clear the path
         resultFile.resultPath = null;
@@ -1114,7 +1179,7 @@ public void testCreateResultsMap() {
         results.add(RDAPValidationResult.builder().code(-2001).message("Warning 1").build());
         results.add(RDAPValidationResult.builder().code(-3001).message("Default Error").build());
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         
         // This method should not throw an exception
         resultFile.debugPrintResultBreakdown(); // Should not throw
@@ -1129,7 +1194,7 @@ public void testCreateResultsMap() {
         results.add(RDAPValidationResult.builder().code(-1001).build());
         results.add(RDAPValidationResult.builder().code(-2001).build());
         
-        RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+        RDAPValidationResultFile resultFile = file;
         List<RDAPValidationResult> allResults = resultFile.getAllResults();
         
         assertEquals(2, allResults.size());

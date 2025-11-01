@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import java.util.Set;
 import org.everit.json.schema.ValidationException;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.jcard.JcardCategoriesSchemas;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -42,11 +43,12 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
   private static final String ERROR_MESSAGE_52101 = "An entity without a remark titled \"REDACTED FOR PRIVACY\" " +
           "does not have all the necessary information of handle, fn, adr, tel, street and city.";
 
-  public ResponseValidation2Dot7Dot1DotXAndRelated2(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType,
-      RDAPValidatorConfiguration config) {
-    super(rdapResponse, results, queryType, config);
+  // Store QueryContext for proper build() method usage
+  private final QueryContext queryContext;
+
+  public ResponseValidation2Dot7Dot1DotXAndRelated2(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(), queryContext.getConfig());
+    this.queryContext = queryContext;
   }
 
   @Override
@@ -184,11 +186,12 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2 extends
   }
 
   private boolean log52101(String jsonPointer) {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(ERROR_CODE_52101)
         .value(getResultValue(jsonPointer))
-        .message(ERROR_MESSAGE_52101)
-        .build());
+        .message(ERROR_MESSAGE_52101);
+
+    results.add(builder.build(queryContext));
     return false;
   }
 }

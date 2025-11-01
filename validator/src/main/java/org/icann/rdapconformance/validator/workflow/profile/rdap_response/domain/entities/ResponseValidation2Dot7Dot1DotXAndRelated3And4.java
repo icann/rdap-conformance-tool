@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
 import java.util.Set;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -14,13 +15,9 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4 extends
 
   private final SimpleHandleValidation simpleHandleValidation;
 
-  public ResponseValidation2Dot7Dot1DotXAndRelated3And4(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType,
-      RDAPValidatorConfiguration config,
-      SimpleHandleValidation simpleHandleValidation) {
-    super(rdapResponse, results, queryType, config);
-    this.simpleHandleValidation = simpleHandleValidation;
+  public ResponseValidation2Dot7Dot1DotXAndRelated3And4(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults(), queryContext.getQueryType(), queryContext.getConfig());
+    this.simpleHandleValidation = new SimpleHandleValidation(queryContext, -52102);
   }
 
   @Override

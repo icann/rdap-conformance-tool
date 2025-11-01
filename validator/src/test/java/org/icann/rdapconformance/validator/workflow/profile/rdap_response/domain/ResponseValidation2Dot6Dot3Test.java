@@ -31,8 +31,7 @@ public class ResponseValidation2Dot6Dot3Test extends NoticesValidationTest {
     super("rdapResponseProfile_2_6_3_Validation", NOTICE_VALUE, 1);
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot6Dot3(jsonObject.toString(), results, queryType);
+    return new ResponseValidation2Dot6Dot3(queryContext);
   }
 }

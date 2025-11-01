@@ -9,7 +9,6 @@ public abstract class RDAPConformanceValidationTest extends ProfileJsonValidatio
     super("/validators/profile/rdapConformance/valid.json", testGroupName);
   }
 
-  @Override
   public abstract RDAPConformanceValidation getProfileValidation();
 
   @Test

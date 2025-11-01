@@ -6,11 +6,10 @@ import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv6;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-import static org.icann.rdapconformance.validator.CommonUtils.addErrorToResultsFile;
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+
 import org.xbill.DNS.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,32 +59,30 @@ public class DNSCacheResolver {
 
     private static final Logger logger = LoggerFactory.getLogger(DNSCacheResolver.class);
 
-    private static final Map<String, List<InetAddress>> CACHE_V4 = new ConcurrentHashMap<>();
-    private static final Map<String, List<InetAddress>> CACHE_V6 = new ConcurrentHashMap<>();
+    // Instance-based caches for thread safety
+    private final Map<String, List<InetAddress>> cacheV4 = new ConcurrentHashMap<>();
+    private final Map<String, List<InetAddress>> cacheV6 = new ConcurrentHashMap<>();
     
     // DNS resolver configuration constants
     private static final int DNS_TIMEOUT_SECONDS = 10;
     private static final int DNS_RETRIES = 3;
 
-    public static Resolver resolver;
+    // Instance-based resolver for thread safety
+    private final Resolver resolver;
 
     static {
-        Resolver r = null;
-        try {
-            ExtendedResolver extendedResolver = new ExtendedResolver(); // Uses system-configured resolvers
-            // Configure timeouts and retries to avoid long DNS delays
-            extendedResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
-            extendedResolver.setRetries(DNS_RETRIES);
-            r = extendedResolver;
-            logger.info("DNS Resolver initialized");
-            logger.debug("sDNS settings: {} seconds timeout and {} retries.",  DNS_TIMEOUT_SECONDS, DNS_RETRIES);
-        } catch (Exception e) {
-            logger.error("Failed to initialize DNS resolver.", e);
-        }
-        resolver = r;
+        logger.info("DNS Resolver initialized");
+        logger.debug("DNS settings: {} seconds timeout and {} retries.", DNS_TIMEOUT_SECONDS, DNS_RETRIES);
     }
 
-    private DNSCacheResolver() {
+    // Public constructor for QueryContext usage
+    public DNSCacheResolver() {
+        this(null);
+    }
+
+    // Constructor with custom DNS server for testing
+    public DNSCacheResolver(String customDnsServer) {
+        this.resolver = initializeResolver(customDnsServer);
     }
 
     /**
@@ -130,9 +127,10 @@ public class DNSCacheResolver {
      * Initializes the DNS resolver with an optional custom DNS server.
      *
      * @param customDnsServer the custom DNS server to use, or null to use system default
+     * @return the configured Resolver instance
      * @throws RuntimeException if the DNS resolver configuration is invalid
      */
-    public static synchronized void initializeResolver(String customDnsServer) {
+    private Resolver initializeResolver(String customDnsServer) {
         try {
             if (customDnsServer != null && !customDnsServer.isEmpty()) {
                 SimpleResolver simpleResolver = new SimpleResolver(customDnsServer);
@@ -150,16 +148,16 @@ public class DNSCacheResolver {
                         "Please verify the IP address is correct and the server is reachable.");
                 }
 
-                resolver = simpleResolver;
                 logger.debug("DNS Resolver configured with custom server: {} ({}s timeout)",
                            customDnsServer, DNS_TIMEOUT_SECONDS);
+                return simpleResolver;
             } else {
                 ExtendedResolver extendedResolver = new ExtendedResolver(); // Uses system-configured resolvers
                 extendedResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
                 extendedResolver.setRetries(DNS_RETRIES);
-                resolver = extendedResolver;
                 logger.debug("DNS Resolver initialized using system DNS settings with {}s timeout and {} retries.",
                            DNS_TIMEOUT_SECONDS, DNS_RETRIES);
+                return extendedResolver;
             }
         } catch (RuntimeException e) {
             // Re-throw RuntimeException (from health check failure) as-is
@@ -181,7 +179,7 @@ public class DNSCacheResolver {
      * @param url the URL containing the hostname to resolve
      * @throws URISyntaxException if the URL is malformed
      */
-    public static void initFromUrl(String url) {
+    public void initFromUrl(String url) {
         logger.debug("Trying to lookup FQDN for URL: {}", url);
         if (url == null) {
             logger.debug("URL is null, skipping DNS lookup");
@@ -207,10 +205,10 @@ public class DNSCacheResolver {
      * @param fqdn the fully qualified domain name to resolve
      * @return the first IPv4 address found, or null if none available
      */
-    public static InetAddress getFirstV4Address(String fqdn) {
+    public InetAddress getFirstV4Address(String fqdn) {
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
-        return getFirst(CACHE_V4, name);
+        return getFirst(cacheV4, name);
     }
 
     /**
@@ -219,16 +217,16 @@ public class DNSCacheResolver {
      * @param fqdn the fully qualified domain name to resolve
      * @return the first IPv6 address found, or null if none available
      */
-    public static InetAddress getFirstV6Address(String fqdn) {
+    public InetAddress getFirstV6Address(String fqdn) {
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
-        return getFirst(CACHE_V6, name);
+        return getFirst(cacheV6, name);
     }
 
-    public static List<InetAddress> getAllV4Addresses(String fqdn) {
+    public List<InetAddress> getAllV4Addresses(String fqdn) {
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
-        return Collections.unmodifiableList(CACHE_V4.getOrDefault(name, Collections.emptyList()));
+        return Collections.unmodifiableList(cacheV4.getOrDefault(name, Collections.emptyList()));
     }
 
     /**
@@ -237,11 +235,11 @@ public class DNSCacheResolver {
      * @param uri the URI containing the hostname to check
      * @return true if IPv4 addresses are available, false otherwise
      */
-    public static boolean hasV4Addresses(String uri) {
+    public boolean hasV4Addresses(String uri) {
         String fqdn = getHostnameFromUrl(uri);
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
-        List<InetAddress> addresses = CACHE_V4.getOrDefault(name, Collections.emptyList());
+        List<InetAddress> addresses = cacheV4.getOrDefault(name, Collections.emptyList());
         return !addresses.isEmpty();
     }
 
@@ -251,32 +249,32 @@ public class DNSCacheResolver {
      * @param uri the URI containing the hostname to check
      * @return true if IPv6 addresses are available, false otherwise
      */
-    public static boolean hasV6Addresses(String uri) {
+    public boolean hasV6Addresses(String uri) {
         String fqdn = getHostnameFromUrl(uri);
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
-        List<InetAddress> addresses = CACHE_V6.getOrDefault(name, Collections.emptyList());
+        List<InetAddress> addresses = cacheV6.getOrDefault(name, Collections.emptyList());
         return !addresses.isEmpty();
     }
 
-    public static List<InetAddress> getAllV6Addresses(String fqdn) {
+    public List<InetAddress> getAllV6Addresses(String fqdn) {
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
-        return Collections.unmodifiableList(CACHE_V6.getOrDefault(name, Collections.emptyList()));
+        return Collections.unmodifiableList(cacheV6.getOrDefault(name, Collections.emptyList()));
     }
 
-    public static boolean hasNoAddresses(String fqdn) {
+    public boolean hasNoAddresses(String fqdn) {
         String name = ensureFQDN(fqdn);
         resolveIfNeeded(name);
 
-        List<InetAddress> v4Addresses = CACHE_V4.getOrDefault(name, Collections.emptyList());
-        List<InetAddress> v6Addresses = CACHE_V6.getOrDefault(name, Collections.emptyList());
+        List<InetAddress> v4Addresses = cacheV4.getOrDefault(name, Collections.emptyList());
+        List<InetAddress> v6Addresses = cacheV6.getOrDefault(name, Collections.emptyList());
 
         return v4Addresses.isEmpty() && v6Addresses.isEmpty();
     }
 
-    public static void resolveIfNeeded(String fqdn) {
-        if (CACHE_V4.containsKey(fqdn) && CACHE_V6.containsKey(fqdn)) {
+    private void resolveIfNeeded(String fqdn) {
+        if (cacheV4.containsKey(fqdn) && cacheV6.containsKey(fqdn)) {
             logger.debug("Cache hit for {}", fqdn);
             return;
         }
@@ -284,29 +282,29 @@ public class DNSCacheResolver {
         if (fqdn.equals(LOCAL_IPv4 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
             logger.debug("Handling special-case loopback (IPv4) for {}", fqdn);
             try {
-                CACHE_V4.put(fqdn, List.of(InetAddress.getByName(CommonUtils.LOCAL_IPv4)));
+                cacheV4.put(fqdn, List.of(InetAddress.getByName(CommonUtils.LOCAL_IPv4)));
             } catch (Exception e) {
                 logger.debug("Failed to handle {}", CommonUtils.LOCAL_IPv4, e);
-                CACHE_V4.put(fqdn, List.of());
+                cacheV4.put(fqdn, List.of());
             }
         } else {
-            CACHE_V4.put(fqdn, resolveWithCNAMEChain(fqdn, Type.A));
+            cacheV4.put(fqdn, resolveWithCNAMEChain(fqdn, Type.A));
         }
 
         if (fqdn.equals(LOCAL_IPv6 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
             logger.debug("Handling special-case loopback (IPv6) for {}", fqdn);
             try {
-                CACHE_V6.put(fqdn, List.of(InetAddress.getByName(CommonUtils.LOCAL_IPv6_COMPRESSED)));
+                cacheV6.put(fqdn, List.of(InetAddress.getByName(CommonUtils.LOCAL_IPv6_COMPRESSED)));
             } catch (Exception e) {
                 logger.debug("Failed to handle {}", CommonUtils.LOCAL_IPv6_COMPRESSED, e);
-                CACHE_V6.put(fqdn, List.of());
+                cacheV6.put(fqdn, List.of());
             }
         } else {
-            CACHE_V6.put(fqdn, resolveWithCNAMEChain(fqdn, Type.AAAA));
+            cacheV6.put(fqdn, resolveWithCNAMEChain(fqdn, Type.AAAA));
         }
     }
 
-    public static List<InetAddress> resolveWithCNAMEChain(String fqdn, int type) {
+    private List<InetAddress> resolveWithCNAMEChain(String fqdn, int type) {
         List<InetAddress> results = new ArrayList<>();
         Set<String> visited = new HashSet<>();
         String currentName = fqdn;
@@ -379,17 +377,18 @@ public class DNSCacheResolver {
         return host.endsWith(DOT) ? host : host + DOT;
     }
 
-    public static void doZeroIPAddressesValidation(String url, boolean executeIPv6Queries, boolean executeIPv4Queries) {
+    public static void doZeroIPAddressesValidation(QueryContext queryContext, String url, boolean executeIPv6Queries, boolean executeIPv4Queries) {
         String hostname = getHostnameFromUrl(url);
         if (hostname.isEmpty()) {
-            addErrorToResultsFile(-13019, "no response available",
+            queryContext.addError(-13019, "no response available",
                 "Unable to resolve an IP address endpoint using DNS.");
             return;
         }
 
-        RDAPValidatorResults results = RDAPValidatorResultsImpl.getInstance();
-        boolean hasV4 = hasV4Addresses(url);
-        boolean hasV6 = hasV6Addresses(url);
+        RDAPValidatorResults results = queryContext.getResults();
+        DNSCacheResolver dnsResolver = queryContext.getDnsResolver();
+        boolean hasV4 = dnsResolver.hasV4Addresses(url);
+        boolean hasV6 = dnsResolver.hasV6Addresses(url);
 
         if (executeIPv4Queries && executeIPv6Queries && !hasV4 && !hasV6) {
             results.add(RDAPValidationResult.builder()
@@ -400,7 +399,7 @@ public class DNSCacheResolver {
                                             .code(-13019)
                                             .value("no response available")
                                             .message("Unable to resolve an IP address endpoint using DNS.")
-                                            .build());
+                                            .build(queryContext));
             return;
         }
 
@@ -415,7 +414,7 @@ public class DNSCacheResolver {
                                             .value(hostname)
                                             .message(
                                                 "The RDAP service is not provided over IPv4 or contains invalid addresses. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1.")
-                                            .build());
+                                            .build(queryContext));
         }
 
         if (executeIPv6Queries && !hasV6) {
@@ -428,7 +427,7 @@ public class DNSCacheResolver {
                                             .value(hostname)
                                             .message(
                                                 "The RDAP service is not provided over IPv6 or contains invalid addresses. See section 1.8 of the RDAP_Technical_Implementation_Guide_2_1.")
-                                            .build());
+                                            .build(queryContext));
         }
     }
 }

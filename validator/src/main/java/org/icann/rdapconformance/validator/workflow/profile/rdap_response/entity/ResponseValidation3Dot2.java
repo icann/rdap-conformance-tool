@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.entit
 
 import java.util.HashSet;
 import java.util.Set;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -14,14 +15,13 @@ public final class ResponseValidation3Dot2 extends ProfileJsonValidation {
 
   protected final RDAPValidatorConfiguration config;
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
-  public ResponseValidation3Dot2(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType,
-      RDAPValidatorConfiguration config) {
-    super(rdapResponse, results);
-    this.queryType = queryType;
-    this.config = config;
+  public ResponseValidation3Dot2(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.queryType = queryContext.getQueryType();
+    this.config = queryContext.getConfig();
+    this.queryContext = queryContext;
   }
 
 
@@ -42,13 +42,14 @@ public final class ResponseValidation3Dot2 extends ProfileJsonValidation {
 
       for (String jsonPointer : vcardJsonPointers) {
         if (!checkVcard(entityJsonPointer.concat(jsonPointer.substring(1)))) {
-          results.add(RDAPValidationResult.builder()
+          RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
               .code(-60200)
               .value(getResultValue(entityJsonPointer))
               .message(
                   "The required members for entities with the administrative and technical roles "
-                      + "were not found. See section 3.2 of the RDAP_Response_Profile_2_1.")
-              .build());
+                      + "were not found. See section 3.2 of the RDAP_Response_Profile_2_1.");
+
+          results.add(builder.build(queryContext));
           isValid = false;
         }
       }

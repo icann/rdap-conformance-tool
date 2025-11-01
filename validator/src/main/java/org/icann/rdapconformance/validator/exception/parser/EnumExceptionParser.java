@@ -16,8 +16,9 @@ public class EnumExceptionParser extends ExceptionParser {
 
   protected EnumExceptionParser(ValidationExceptionNode e,
       Schema schema, JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
     matcher = enumPattern.matcher(e.getMessage());
     matcher.find();
   }
@@ -33,12 +34,13 @@ public class EnumExceptionParser extends ExceptionParser {
     if (e.getSchemaLocation() != null) {
       schemaLocation = "Type=\"" + e.getSchemaLocation().replace("classpath://json-schema/", "") + "\"";
     }
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation())
             .toString())
         .message(e.getMessage("The JSON string is not included as a Value with " + schemaLocation
-            + " dataset (" + enumSchema.getPossibleValuesAsList() + ")."))
-        .build());
+            + " dataset (" + enumSchema.getPossibleValuesAsList() + ")."));
+
+    results.add(builder.build(queryContext));
   }
 }

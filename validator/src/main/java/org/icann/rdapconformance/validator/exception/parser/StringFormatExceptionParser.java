@@ -14,8 +14,9 @@ public abstract class StringFormatExceptionParser<T> extends ExceptionParser {
   protected StringFormatExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
       RDAPValidatorResults results,
-      Class<T> formatValidator) {
-    super(e, schema, jsonObject, results);
+      Class<T> formatValidator,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
     this.formatValidator = formatValidator;
   }
 
@@ -28,10 +29,11 @@ public abstract class StringFormatExceptionParser<T> extends ExceptionParser {
 
   @Override
   protected void doParse() {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message(e.getMessage(e.getMessage()))
-        .build());
+        .message(e.getMessage(e.getMessage()));
+
+    results.add(builder.build(queryContext));
   }
 }

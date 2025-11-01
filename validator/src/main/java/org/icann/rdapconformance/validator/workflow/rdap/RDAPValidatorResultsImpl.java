@@ -24,34 +24,13 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   public static final String HTTP_STATUS_CODE = ", httpStatusCode=";
   public static final String BRACKETS = "[]";
 
-  // Static instance for the singleton
-  private static RDAPValidatorResultsImpl instance;
-
-  private final Set<RDAPValidationResult> results = ConcurrentHashMap.newKeySet();
+  private final List<RDAPValidationResult> results = new ArrayList<>();
   private final Set<String> groups = ConcurrentHashMap.newKeySet();
   private final Set<String> groupErrorWarning = ConcurrentHashMap.newKeySet();
 
-  // Private constructor to prevent instantiation
-  private RDAPValidatorResultsImpl() {}
+  // Public constructor for QueryContext usage
+  public RDAPValidatorResultsImpl() {}
 
-  /**
-   * Gets the singleton instance of RDAPValidatorResultsImpl
-   *
-   * @return the singleton instance
-   */
-  public static synchronized RDAPValidatorResultsImpl getInstance() {
-    if (instance == null) {
-      instance = new RDAPValidatorResultsImpl();
-    }
-    return instance;
-  }
-
-  /**
-   * Resets the singleton instance (primarily for testing)
-   */
-  public static void reset() {
-    instance = null;
-  }
 
   public int getResultCount() {
     return results.size();
@@ -59,9 +38,8 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
   @Override
   public void add(RDAPValidationResult result) {
-    if (this.results.add(result)) {
-      logger.debug("adding error result {}", result);
-    }
+    this.results.add(result);
+    logger.debug("adding error result {}", result);
   }
 
   @Override
@@ -78,7 +56,12 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
   @Override
   public Set<RDAPValidationResult> getAll() {
-    return results;
+    return new HashSet<>(results);
+  }
+
+  @Override
+  public List<RDAPValidationResult> getAllAsList() {
+    return new ArrayList<>(results);
   }
 
   @Override
@@ -181,15 +164,16 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     if (statusCodes.size() > ONE) {
       logger.debug("Not all status codes are the same");
       results.add(
-          RDAPValidationResult.builder()
-                              .acceptHeader(DASH)
-                              .queriedURI(DASH)
-                              .httpMethod(DASH)
-                              .httpStatusCode(ZERO)
-                              .code(-13018)
-                              .value(tupleListJson)
-                               .message("Queries do not produce the same HTTP status code.")
-                              .build()
+          new RDAPValidationResult(
+              -13018,
+              tupleListJson,
+              "Queries do not produce the same HTTP status code.",
+              DASH,
+              DASH,
+              DASH,
+              ZERO,
+              DASH
+          )
       );
     } else {
       logger.debug("All status codes are the same");
@@ -228,4 +212,5 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
     // Remove duplicates
     results.removeAll(toRemove);
   }
+
 }

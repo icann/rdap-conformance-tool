@@ -16,7 +16,6 @@ public class SchemaValidatorWebUriTest extends SchemaValidatorTest {
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     super.setUp();
     name = "webUri";

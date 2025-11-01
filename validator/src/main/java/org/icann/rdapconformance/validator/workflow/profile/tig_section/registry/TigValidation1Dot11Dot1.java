@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -28,14 +29,14 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
   private final RDAPValidatorConfiguration config;
   private final RDAPDatasetService datasetService;
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
-  public TigValidation1Dot11Dot1(RDAPValidatorConfiguration config,
-      RDAPValidatorResults results, RDAPDatasetService datasetService,
-      RDAPQueryType queryType) {
-    super(results);
-    this.config = config;
-    this.datasetService = datasetService;
-    this.queryType = queryType;
+  public TigValidation1Dot11Dot1(QueryContext queryContext) {
+    super(queryContext.getResults());
+    this.config = queryContext.getConfig();
+    this.datasetService = queryContext.getDatasetService();
+    this.queryType = queryContext.getQueryType();
+    this.queryContext = queryContext;
   }
 
   @Override
@@ -52,41 +53,38 @@ public final class TigValidation1Dot11Dot1 extends ProfileValidation {
     String tld = urlWithoutPort.substring(urlWithoutPort.lastIndexOf(".") + ONE).toLowerCase(Locale.ROOT);
 
     if (!dataset.tldExists(tld)) {
-      results.add(RDAPValidationResult.builder()
-                 .queriedURI(DASH)
-                 .httpMethod(DASH)
-                 .httpStatusCode(ZERO)
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                  .code(-23100)
                  .value(
                     tld + "\n/\n" + dataset.getTlds().stream().sorted().collect(Collectors.joining(", ")))
                  .message("The TLD is not included in the bootstrapDomainNameSpace. "
-                    + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
-                 .build());
+                    + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.");
+
+      // Let QueryContext populate all HTTP fields including httpMethod and receivedHttpStatusCode
+      results.add(builder.build(queryContext));
       isValid = false;
     } else {
       Set<String> urls = dataset.getUrlsForTld(tld);
       if (StringUtils.isNoneBlank(urlWithoutPort) && urls.stream().noneMatch(urlWithoutPort::startsWith)) {
-        results.add(RDAPValidationResult.builder()
-                    .queriedURI(DASH)
-                    .httpMethod(DASH)
-                    .httpStatusCode(ZERO)
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                     .code(-23101)
                     .value(urls.stream().sorted().collect(Collectors.joining(", ")))
                     .message("The TLD entry in bootstrapDomainNameSpace does not contain a base URL. "
-                        + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.")
-                    .build());
+                        + "See section 1.11.1 of the RDAP_Technical_Implementation_Guide_2_1.");
+
+        // Let QueryContext populate all HTTP fields including httpMethod and receivedHttpStatusCode
+        results.add(builder.build(queryContext));
         isValid = false;
       }
       if (urls.stream().anyMatch(u -> !URI.create(u).getScheme().equals(HTTPS))) {
-        results.add(RDAPValidationResult.builder()
-                    .queriedURI(DASH)
-                    .httpMethod(DASH)
-                    .httpStatusCode(ZERO)
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                     .code(-23102)
                     .value(urls.stream().sorted().collect(Collectors.joining(", ")))
                     .message("One or more of the base URLs for the TLD contain a schema different from "
-                        + "https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.")
-                    .build());
+                        + "https. See section 1.2 of the RDAP_Technical_Implementation_Guide_2_1.");
+
+        // Let QueryContext populate all HTTP fields including httpMethod and receivedHttpStatusCode
+        results.add(builder.build(queryContext));
         isValid = false;
       }
     }

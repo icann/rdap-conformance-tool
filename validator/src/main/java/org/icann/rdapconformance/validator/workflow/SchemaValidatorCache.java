@@ -36,19 +36,26 @@ public final class SchemaValidatorCache {
    * @param datasetService the dataset service for validation
    * @return a SchemaValidator instance using cached or new Schema
    */
-  public static SchemaValidator getCachedValidator(String schemaName, 
-                                                   RDAPValidatorResults results, 
+  public static SchemaValidator getCachedValidator(String schemaName,
+                                                   RDAPValidatorResults results,
                                                    RDAPDatasetService datasetService) {
+    return getCachedValidator(schemaName, results, datasetService, null);
+  }
+
+  public static SchemaValidator getCachedValidator(String schemaName,
+                                                   RDAPValidatorResults results,
+                                                   RDAPDatasetService datasetService,
+                                                   org.icann.rdapconformance.validator.QueryContext queryContext) {
     // Create cache key based on schema name and dataset service
     String cacheKey = createCacheKey(schemaName, datasetService);
-    
+
     // Fast path: check cache without locks
     Schema cachedSchema = schemaCache.get(cacheKey);
     if (cachedSchema != null) {
       logger.debug("Using cached Schema for schema: {}", schemaName);
-      return createValidatorWithSchema(cachedSchema, results);
+      return createValidatorWithSchema(cachedSchema, results, queryContext);
     }
-    
+
     // Lock-free schema creation using computeIfAbsent
     Schema newSchema = schemaCache.computeIfAbsent(cacheKey, key -> {
       // Check cache size and evict if necessary (non-blocking)
@@ -56,23 +63,24 @@ public final class SchemaValidatorCache {
         // Simple random eviction to avoid blocking
         schemaCache.entrySet().removeIf(entry -> Math.random() < 0.2);
       }
-      
+
       // Create new schema
       logger.debug("Creating new Schema for schema: {}", schemaName);
-      return SchemaValidator.getSchema(schemaName, "json-schema/", 
-                                      SchemaValidatorCache.class.getClassLoader(), 
+      return SchemaValidator.getSchema(schemaName, "json-schema/",
+                                      SchemaValidatorCache.class.getClassLoader(),
                                       datasetService);
     });
-      
-    return createValidatorWithSchema(newSchema, results);
+
+    return createValidatorWithSchema(newSchema, results, queryContext);
   }
   
   private static SchemaValidator createValidatorWithSchema(Schema schema, RDAPValidatorResults results) {
+    return createValidatorWithSchema(schema, results, null);
+  }
+
+  private static SchemaValidator createValidatorWithSchema(Schema schema, RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
     // Create a SchemaValidator using the cached schema
-    // We need to use reflection or create a constructor that accepts a pre-built schema
-    // For now, we'll fall back to the standard constructor since SchemaValidator doesn't expose this
-    // This is still beneficial because the expensive schema loading is cached
-    return new SchemaValidator(schema, results);
+    return new SchemaValidator(schema, results, queryContext);
   }
   
   private static String createCacheKey(String schemaName, RDAPDatasetService datasetService) {

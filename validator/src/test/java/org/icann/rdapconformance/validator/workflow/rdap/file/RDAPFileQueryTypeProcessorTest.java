@@ -15,6 +15,7 @@ public class RDAPFileQueryTypeProcessorTest {
 
     private RDAPValidatorConfiguration mockConfig;
     private RDAPDatasetService mockDatasetService;
+    private RDAPFileQueryTypeProcessor processor;
 
     @BeforeMethod
     public void setUp() {
@@ -25,33 +26,35 @@ public class RDAPFileQueryTypeProcessorTest {
     }
 
     @Test
-    public void testGetInstance_ReturnsSingleton() {
-        RDAPFileQueryTypeProcessor processor1 = RDAPFileQueryTypeProcessor.getInstance(mockConfig);
-        RDAPFileQueryTypeProcessor processor2 = RDAPFileQueryTypeProcessor.getInstance(mockConfig);
-        
-        assertThat(processor1).isSameAs(processor2);
+    public void testConstructor_CreatesDistinctInstances() {
+        RDAPFileQueryTypeProcessor processor1 = new RDAPFileQueryTypeProcessor(mockConfig);
+        RDAPFileQueryTypeProcessor processor2 = new RDAPFileQueryTypeProcessor(mockConfig);
+
+        assertThat(processor1).isNotSameAs(processor2);
         assertThat(processor1).isNotNull();
+        assertThat(processor2).isNotNull();
     }
 
     @Test
-    public void testGetInstance_WithDifferentConfigs_ReturnsSameInstance() {
+    public void testConstructor_WithDifferentConfigs_CreatesDifferentBehavior() {
         RDAPValidatorConfiguration config1 = mock(RDAPValidatorConfiguration.class);
         RDAPValidatorConfiguration config2 = mock(RDAPValidatorConfiguration.class);
-        
+
         when(config1.getQueryType()).thenReturn(RDAPQueryType.DOMAIN);
         when(config2.getQueryType()).thenReturn(RDAPQueryType.ENTITY);
-        
-        RDAPFileQueryTypeProcessor processor1 = RDAPFileQueryTypeProcessor.getInstance(config1);
-        RDAPFileQueryTypeProcessor processor2 = RDAPFileQueryTypeProcessor.getInstance(config2);
-        
-        assertThat(processor1).isSameAs(processor2);
-        // But the configuration should be updated to the latest one
+
+        RDAPFileQueryTypeProcessor processor1 = new RDAPFileQueryTypeProcessor(config1);
+        RDAPFileQueryTypeProcessor processor2 = new RDAPFileQueryTypeProcessor(config2);
+
+        assertThat(processor1).isNotSameAs(processor2);
+        // Each processor should return its own configured query type
+        assertThat(processor1.getQueryType()).isEqualTo(RDAPQueryType.DOMAIN);
         assertThat(processor2.getQueryType()).isEqualTo(RDAPQueryType.ENTITY);
     }
 
     @Test
     public void testSetConfiguration_UpdatesConfig() {
-        RDAPFileQueryTypeProcessor processor = RDAPFileQueryTypeProcessor.getInstance(mockConfig);
+        processor = new RDAPFileQueryTypeProcessor(mockConfig);
         
         RDAPValidatorConfiguration newConfig = mock(RDAPValidatorConfiguration.class);
         when(newConfig.getQueryType()).thenReturn(RDAPQueryType.NAMESERVER);
@@ -63,25 +66,25 @@ public class RDAPFileQueryTypeProcessorTest {
 
     @Test
     public void testCheck_AlwaysReturnsTrue() {
-        RDAPFileQueryTypeProcessor processor = RDAPFileQueryTypeProcessor.getInstance(mockConfig);
+        processor = new RDAPFileQueryTypeProcessor(mockConfig);
         
-        boolean result = processor.check(mockDatasetService);
+        boolean result = processor.check(mockDatasetService, null);
         
         assertThat(result).isTrue();
     }
 
     @Test
     public void testCheck_WithNullDatasetService_ReturnsTrue() {
-        RDAPFileQueryTypeProcessor processor = RDAPFileQueryTypeProcessor.getInstance(mockConfig);
+        processor = new RDAPFileQueryTypeProcessor(mockConfig);
         
-        boolean result = processor.check(null);
+        boolean result = processor.check(null, null);
         
         assertThat(result).isTrue();
     }
 
     @Test
     public void testGetErrorStatus_ReturnsNull() {
-        RDAPFileQueryTypeProcessor processor = RDAPFileQueryTypeProcessor.getInstance(mockConfig);
+        processor = new RDAPFileQueryTypeProcessor(mockConfig);
         
         ToolResult errorStatus = processor.getErrorStatus();
         
@@ -90,7 +93,7 @@ public class RDAPFileQueryTypeProcessorTest {
 
     @Test
     public void testGetQueryType_ReturnsConfiguredQueryType() {
-        RDAPFileQueryTypeProcessor processor = RDAPFileQueryTypeProcessor.getInstance(mockConfig);
+        processor = new RDAPFileQueryTypeProcessor(mockConfig);
         
         RDAPQueryType queryType = processor.getQueryType();
         
@@ -99,7 +102,7 @@ public class RDAPFileQueryTypeProcessorTest {
 
     @Test
     public void testGetQueryType_AfterConfigurationChange() {
-        RDAPFileQueryTypeProcessor processor = RDAPFileQueryTypeProcessor.getInstance(mockConfig);
+        processor = new RDAPFileQueryTypeProcessor(mockConfig);
         
         // Change the configuration
         when(mockConfig.getQueryType()).thenReturn(RDAPQueryType.IP_NETWORK);
@@ -112,7 +115,7 @@ public class RDAPFileQueryTypeProcessorTest {
 
     @Test
     public void testGetQueryType_WithNullConfig_ThrowsException() {
-        RDAPFileQueryTypeProcessor processor = RDAPFileQueryTypeProcessor.getInstance(mockConfig);
+        processor = new RDAPFileQueryTypeProcessor(mockConfig);
         processor.setConfiguration(null);
         
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> processor.getQueryType())
@@ -121,7 +124,7 @@ public class RDAPFileQueryTypeProcessorTest {
 
     @Test
     public void testGetInstance_WithNullConfig() {
-        RDAPFileQueryTypeProcessor processor = RDAPFileQueryTypeProcessor.getInstance(null);
+        processor = new RDAPFileQueryTypeProcessor(null);
         
         assertThat(processor).isNotNull();
         

@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -10,12 +10,12 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 
 public class ResponseValidation2Dot7Dot2_2024Test extends ProfileJsonValidationTestBase {
-    private RDAPValidatorConfiguration config;
     static final String DOMAIN_PATH= "#:{\"objectClassName\":\"domain\",\"notices\":[{\"description\":[\"Service subject to Terms of Use.\"]," +
             "\"links\":[{\"rel\":\"terms-of-service\",\"href\":\"https://www.example.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml\"," +
             "\"type\":\"text/html\",\"value\":\"https://www.example.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml\"}]," +
@@ -45,18 +45,25 @@ public class ResponseValidation2Dot7Dot2_2024Test extends ProfileJsonValidationT
     @BeforeMethod
     public void setUp() throws IOException {
         super.setUp();
-        config = mock(RDAPValidatorConfiguration.class);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
-        when(config.isGtldRegistrar()).thenReturn(true);
-        return new ResponseValidation2Dot7Dot2_2024(config, RDAPQueryType.DOMAIN, jsonObject.toString(), results);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        return new ResponseValidation2Dot7Dot2_2024(domainContext);
     }
 
     @Test
     public void testValidate_RegistrantIsInvalid_AddErrorCode63000() {
-        when(config.isGtldRegistrar()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);
         JSONArray roles = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("roles");
 
         roles.remove(0);
@@ -67,7 +74,10 @@ public class ResponseValidation2Dot7Dot2_2024Test extends ProfileJsonValidationT
 
     @Test
     public void testValidate_noRegistrar_NoErrorsAdded() {
-        when(config.isGtldRegistrar()).thenReturn(false);
-        validate();
+        when(queryContext.getConfig().isGtldRegistrar()).thenReturn(false);
+        ProfileValidation validation = getProfileValidation();
+        assertThat(validation.validate()).isTrue();
+        // When doLaunch() returns false, no groups are added and no interactions occur
+        verifyNoMoreInteractions(results);
     }
 }

@@ -12,9 +12,8 @@ public class ResponseValidation2Dot2_2024Test extends ProfileJsonValidationTestB
         super("/validators/domain/valid.json", "rdapResponseProfile_2_1_Validation");
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot2_2024(jsonObject.toString(), results, RDAPQueryType.DOMAIN);
+        return new ResponseValidation2Dot2_2024(queryContext);
     }
 
     protected String givenReservedICANNHandle() {

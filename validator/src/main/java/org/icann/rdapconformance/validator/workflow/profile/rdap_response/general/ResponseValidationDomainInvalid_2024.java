@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -24,10 +25,13 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
     public static final String DOMAIN_INVALID = "/domain/not-a-domain.invalid";
 
     private final RDAPValidatorConfiguration config;
+    private final QueryContext queryContext;
 
-    public ResponseValidationDomainInvalid_2024(RDAPValidatorConfiguration config, RDAPValidatorResults results) {
-        super(results);
-        this.config = config;
+
+    public ResponseValidationDomainInvalid_2024(QueryContext queryContext) {
+        super(queryContext.getResults());
+        this.config = queryContext.getConfig();
+        this.queryContext = queryContext;
     }
 
     @Override
@@ -58,9 +62,9 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
         String domainInvalidUriCleaned = CommonUtils.cleanStringFromExtraSlash(domainInvalidUri);
 
         logger.debug("Making request to: {}", domainInvalidUriCleaned);
-        HttpResponse<String> response = null;
 
-        response = RDAPHttpRequest.makeHttpGetRequest(new URI(domainInvalidUriCleaned), this.config.getTimeout());
+        // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(queryContext, new URI(domainInvalidUriCleaned), this.config.getTimeout(), GET);
 
         // final response
         return validateDomainInvalidQuery(response, isValid);
@@ -74,14 +78,15 @@ boolean validateDomainInvalidQuery(HttpResponse<String> domainInvalidResponse, b
     jsonDomainInvalidResponse = new RDAPHttpQuery.JsonData(rdapDomainInvalidResponse);
     if(HTTP_NOT_FOUND != domainInvalidStatusCode) {
         if(!isDomainInvalidJsonValid(jsonDomainInvalidResponse )) {
-            results.add(RDAPValidationResult.builder()
+            RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                                             .queriedURI(domainInvalidResponse.uri().toString())
                                             .httpMethod(GET)
                                             .httpStatusCode(domainInvalidStatusCode)
                                             .code(-65300)
                                             .value(String.valueOf(domainInvalidStatusCode))
-                                            .message("A query for an invalid domain name did not yield a 404 response.")
-                                            .build());
+                                            .message("A query for an invalid domain name did not yield a 404 response.");
+
+            results.add(builder.build(queryContext));
             isValid = false;
         }
     }

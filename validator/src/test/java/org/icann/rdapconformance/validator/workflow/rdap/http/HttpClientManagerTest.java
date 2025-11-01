@@ -18,47 +18,51 @@ import java.util.concurrent.TimeUnit;
 
 public class HttpClientManagerTest {
 
+  private HttpClientManager manager;
+
   @AfterMethod
   public void tearDown() {
     // Clean up after each test to avoid interference
-    HttpClientManager.getInstance().shutdown();
+    if (manager != null) {
+      manager.shutdown();
+    }
   }
 
   @Test
-  public void testGetInstanceReturnsSingleton() {
-    HttpClientManager instance1 = HttpClientManager.getInstance();
-    HttpClientManager instance2 = HttpClientManager.getInstance();
-    
-    assertThat(instance1).isSameAs(instance2);
+  public void testMultipleInstancesAreIndependent() {
+    HttpClientManager instance1 = new HttpClientManager();
+    HttpClientManager instance2 = new HttpClientManager();
+
+    assertThat(instance1).isNotSameAs(instance2);
   }
 
   @Test
   public void testInstanceIsNotNull() {
-    HttpClientManager instance = HttpClientManager.getInstance();
-    assertThat(instance).isNotNull();
+    manager = new HttpClientManager();
+    assertThat(manager).isNotNull();
   }
 
   @Test
   public void testShutdownDoesNotThrow() {
-    HttpClientManager instance = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     // Should not throw any exceptions
-    instance.shutdown();
+    manager.shutdown();
   }
 
   @Test
   public void testGetClient_ValidParameters() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
-    
+
     CloseableHttpClient client = manager.getClient("example.com", sslContext, localBindIp, 30);
-    
+
     assertThat(client).isNotNull();
   }
 
   @Test
   public void testGetClient_NullHost_CreatesClient() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
     
@@ -69,7 +73,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testGetClient_NullSSLContext_ThrowsException() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
     
     assertThatThrownBy(() -> manager.getClient("example.com", null, localBindIp, 30))
@@ -78,7 +82,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testGetClient_NullLocalBindIp_CreatesClient() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     
     CloseableHttpClient client = manager.getClient("example.com", sslContext, null, 30);
@@ -88,7 +92,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testGetClient_ClientCaching() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
     
@@ -100,7 +104,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testGetClient_DifferentConfigurations_DifferentClients() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
     
@@ -112,7 +116,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testGetClient_DifferentTimeouts_DifferentClients() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
     
@@ -124,7 +128,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testGetClient_DifferentSSLContexts_DifferentClients() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext1 = SSLContext.getDefault();
     SSLContext sslContext2 = SSLContext.getInstance("TLS");
     sslContext2.init(null, null, null); // Initialize with default settings
@@ -138,7 +142,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testGetClient_DifferentLocalBindIps_DifferentClients() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp1 = InetAddress.getLoopbackAddress();
     InetAddress localBindIp2 = InetAddress.getByName("127.0.0.1");
@@ -153,7 +157,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testThreadSafety() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
     
@@ -188,7 +192,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testShutdown_ClearsCache() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
     
@@ -207,7 +211,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testGetClient_ZeroTimeout() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
     
@@ -218,7 +222,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testGetClient_NegativeTimeout_ThrowsException() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
     
@@ -229,7 +233,7 @@ public class HttpClientManagerTest {
 
   @Test
   public void testGetClient_EmptyHost_CreatesClient() throws Exception {
-    HttpClientManager manager = HttpClientManager.getInstance();
+    manager = new HttpClientManager();
     SSLContext sslContext = SSLContext.getDefault();
     InetAddress localBindIp = InetAddress.getLoopbackAddress();
     

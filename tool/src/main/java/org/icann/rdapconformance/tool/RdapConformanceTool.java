@@ -16,6 +16,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.everit.json.schema.internal.IPV4Validator;
 import org.everit.json.schema.internal.IPV6Validator;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
 import org.slf4j.LoggerFactory;
 import org.icann.rdapconformance.tool.progress.ProgressTracker;
 import org.icann.rdapconformance.tool.progress.ProgressPhase;
@@ -25,11 +26,9 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import org.icann.rdapconformance.validator.CommonUtils;
-import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
-import org.icann.rdapconformance.validator.workflow.profile.NetworkValidationCoordinator;
-import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.ProgressCallback;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -39,10 +38,12 @@ import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpValidator;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import static org.icann.rdapconformance.validator.CommonUtils.*;
+
 
 /**
  * Main entry point and orchestrator for the RDAP Conformance Tool.
@@ -63,7 +64,14 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  * It supports both gTLD registry and registrar profiles, with options for different RDAP
  * profile versions (February 2019 and February 2024).</p>
  *
- * <p>Usage example:</p>
+ * <p><strong>For Web Applications: Use {@link RdapWebValidator} instead</strong></p>
+ * <pre>{@code
+ * // Safe for web applications:
+ * RdapWebValidator validator = new RdapWebValidator("https://rdap.example.com/domain/test.example");
+ * RDAPValidatorResults results = validator.validate();
+ * }</pre>
+ *
+ * <p>CLI Usage example:</p>
  * <pre>
  * java -jar rdapct.jar -v -c config.json --gtld-registrar
  *      --use-rdap-profile-february-2024 https://rdap.example.com/domain/example.com
@@ -72,6 +80,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  * @see RDAPValidatorConfiguration
  * @see RDAPHttpValidator
  * @see RDAPFileValidator
+ * @see RdapWebValidator
  * @since 1.0.0
  */
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
@@ -94,14 +103,14 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private static final int OPERATIONS_PER_DATASET = 2;  // download + parse
   private static final int DATASET_TOTAL_STEPS = DATASETS_COUNT * OPERATIONS_PER_DATASET;
   private static final int ESTIMATED_VALIDATIONS_PER_ROUND = 75;
-  private static final long THREAD_JOIN_TIMEOUT_MS = 1000;  // 1 second
-  private static final long MAX_DATASET_WAIT_TIME_MS = 45000;  // 45 seconds
-  private static final long MIN_STEP_DELAY_MS = 200;  // 200ms minimum per step
 
   @Parameters(paramLabel = "RDAP_URI", description = "The URI to be tested", index = "0")
   URI uri;
 
   private FileSystem fileSystem = new LocalFileSystem();
+
+  // QueryContext for managing all validation components in a thread-safe manner
+  QueryContext queryContext;
 
   @Option(names = {"-c", "--config"}, description = "Definition file", required = true)
   String configurationFile;
@@ -141,7 +150,10 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"-v", "--verbose"}, description = "display all logs")
   private boolean isVerbose = false;
 
-  @Option(names = {"--dns-resolver"}, 
+  @Option(names = {"--logging"}, description = "Set logging level (CLI, INFO, DEBUG, ERROR, VERBOSE)", defaultValue = "CLI")
+  private LoggingLevel loggingLevel = LoggingLevel.CLI;
+
+  @Option(names = {"--dns-resolver"},
           description = "Custom DNS resolver IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888)")
   private String customDnsResolver;
 
@@ -297,6 +309,15 @@ public void setVerbose(boolean isVerbose) {
 }
 
 /**
+ * Sets the logging level for the RDAP conformance validation.
+ *
+ * @param loggingLevel the logging level to set (CLI, INFO, DEBUG, ERROR, VERBOSE)
+ */
+public void setLogging(LoggingLevel loggingLevel) {
+    this.loggingLevel = loggingLevel;
+}
+
+/**
  * Sets whether to display progress information during validation.
  *
  * @param showProgress true to show progress bar/updates
@@ -337,40 +358,46 @@ public void setShowProgress(boolean showProgress) {
 
   @Override
   public Integer call() throws Exception {
-    // Determine if user wants logging output vs progress bar
-    boolean hasSystemLogProperty = (System.getProperty("logging.level.root") != null ||
-                                   System.getProperty("logLevel") != null);
+    // Configure logging based on the new logging level system
+    // Legacy -v flag overrides --logging setting and enables VERBOSE mode
+    LoggingLevel effectiveLevel = isVerbose ? LoggingLevel.VERBOSE : loggingLevel;
 
-
-    if (isVerbose) {
-      // Verbose mode always forces DEBUG level, overriding any system properties
-      System.setProperty("defaultLogLevel", "DEBUG");
-      // Clear any user-provided overrides when verbose is set
-      System.clearProperty("logging.level.root");
-      System.clearProperty("logLevel");
-      // Disable progress bar when verbose
-      showProgress = false;
-    } else if (hasSystemLogProperty) {
-      // System properties provided - show logs instead of progress bar
-      showProgress = false;
-      // Copy the system property to our defaultLogLevel and clear originals (same as verbose mode)
-      String systemLevel = System.getProperty("logging.level.root");
-      if (systemLevel == null) {
-        systemLevel = System.getProperty("logLevel");
-      }
-      if (systemLevel != null) {
-        System.setProperty("defaultLogLevel", systemLevel);
-        // Clear the original properties so logback uses our defaultLogLevel
-        System.clearProperty("logging.level.root");
-        System.clearProperty("logLevel");
-      }
-    } else {
-      // No flags - show progress bar with ERROR level only
-      System.setProperty("defaultLogLevel", "ERROR");
-      showProgress = true;
+    // Configure logging and progress bar based on effective logging level
+    switch (effectiveLevel) {
+      case CLI:
+        // CLI mode: Keep progress bar, minimal logging (ERROR level for both root and rdapconformance)
+        showProgress = true;
+        System.setProperty("defaultLogLevel", "ERROR");
+        System.setProperty("logging.level.org.icann.rdapconformance", "ERROR");
+        break;
+      case INFO:
+        // INFO mode: No progress bar, INFO level for rdapconformance, ERROR for root
+        showProgress = false;
+        System.setProperty("defaultLogLevel", "ERROR");
+        System.setProperty("logging.level.org.icann.rdapconformance", "INFO");
+        break;
+      case DEBUG:
+        // DEBUG mode: No progress bar, DEBUG level for rdapconformance, ERROR for root
+        showProgress = false;
+        System.setProperty("defaultLogLevel", "ERROR");
+        System.setProperty("logging.level.org.icann.rdapconformance", "DEBUG");
+        break;
+      case ERROR:
+        // ERROR mode: No progress bar, ERROR level for both root and rdapconformance
+        showProgress = false;
+        System.setProperty("defaultLogLevel", "ERROR");
+        System.setProperty("logging.level.org.icann.rdapconformance", "ERROR");
+        break;
+      case VERBOSE:
+        // VERBOSE mode: No progress bar, DEBUG level for everything (legacy -v behavior)
+        showProgress = false;
+        System.setProperty("defaultLogLevel", "DEBUG");
+        // Clear package-specific setting to use root level
+        System.clearProperty("logging.level.org.icann.rdapconformance");
+        break;
     }
 
-    // Force logback reconfiguration to pick up the new property
+    // Force logback reconfiguration to pick up the new properties
     try {
       LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
       JoranConfigurator configurator = new JoranConfigurator();
@@ -379,35 +406,63 @@ public void setShowProgress(boolean showProgress) {
       // Use the default logback.xml from classpath
       configurator.doConfigure(getClass().getClassLoader().getResourceAsStream("logback.xml"));
 
-      // Also programmatically set the root logger level to ensure it takes effect
+      // Programmatically set the root logger level
       Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-      String targetLevel = isVerbose ? "DEBUG" :
-                          (hasSystemLogProperty ? System.getProperty("defaultLogLevel", "ERROR") : "ERROR");
+      String rootLevel = System.getProperty("defaultLogLevel", "ERROR");
 
-      if ("DEBUG".equals(targetLevel)) {
+      if ("DEBUG".equals(rootLevel)) {
         root.setLevel(Level.DEBUG);
-      } else if ("INFO".equals(targetLevel)) {
+      } else if ("INFO".equals(rootLevel)) {
         root.setLevel(Level.INFO);
-      } else if ("WARN".equals(targetLevel)) {
+      } else if ("WARN".equals(rootLevel)) {
         root.setLevel(Level.WARN);
       } else {
         root.setLevel(Level.ERROR);
       }
 
+      // Set package-specific logger level if specified
+      String packageLevel = System.getProperty("logging.level.org.icann.rdapconformance");
+      if (packageLevel != null) {
+        Logger packageLogger = (Logger) LoggerFactory.getLogger("org.icann.rdapconformance");
+        if ("DEBUG".equals(packageLevel)) {
+          packageLogger.setLevel(Level.DEBUG);
+        } else if ("INFO".equals(packageLevel)) {
+          packageLogger.setLevel(Level.INFO);
+        } else if ("WARN".equals(packageLevel)) {
+          packageLogger.setLevel(Level.WARN);
+        } else {
+          packageLogger.setLevel(Level.ERROR);
+        }
+      }
+
     } catch (Exception e) {
       // Fall back to programmatic setting if reconfiguration fails
       Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-      String targetLevel = isVerbose ? "DEBUG" :
-                          (hasSystemLogProperty ? System.getProperty("defaultLogLevel", "ERROR") : "ERROR");
+      String rootLevel = System.getProperty("defaultLogLevel", "ERROR");
 
-      if ("DEBUG".equals(targetLevel)) {
+      if ("DEBUG".equals(rootLevel)) {
         root.setLevel(Level.DEBUG);
-      } else if ("INFO".equals(targetLevel)) {
+      } else if ("INFO".equals(rootLevel)) {
         root.setLevel(Level.INFO);
-      } else if ("WARN".equals(targetLevel)) {
+      } else if ("WARN".equals(rootLevel)) {
         root.setLevel(Level.WARN);
       } else {
         root.setLevel(Level.ERROR);
+      }
+
+      // Set package-specific logger level if specified
+      String packageLevel = System.getProperty("logging.level.org.icann.rdapconformance");
+      if (packageLevel != null) {
+        Logger packageLogger = (Logger) LoggerFactory.getLogger("org.icann.rdapconformance");
+        if ("DEBUG".equals(packageLevel)) {
+          packageLogger.setLevel(Level.DEBUG);
+        } else if ("INFO".equals(packageLevel)) {
+          packageLogger.setLevel(Level.INFO);
+        } else if ("WARN".equals(packageLevel)) {
+          packageLogger.setLevel(Level.WARN);
+        } else {
+          packageLogger.setLevel(Level.ERROR);
+        }
       }
     }
 
@@ -423,12 +478,6 @@ public void setShowProgress(boolean showProgress) {
     //  System.setProperty("javax.net.debug", "ssl");
     //  System.setProperty("javax.net.debug", "ssl:handshake:verbose");
     //  System.setProperty("java.net.debug", "all");
-
-    // Only reset to ERROR if user provided no logging flags at all
-    if (!isVerbose && !hasSystemLogProperty) {
-      Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-      root.setLevel(Level.ERROR);
-    }
 
     // Update executeIP*Queries based on command line options if provided
     if (ipVersionOptions != null) {
@@ -457,24 +506,7 @@ public void setShowProgress(boolean showProgress) {
     // Initialize progress tracking if not in verbose mode (before DNS check so progress is visible)
     initializeProgressTracking();
 
-    // Initialize DNS resolver early (before dataset download) if we're doing network validation
-    // This ensures the custom DNS resolver is configured for all network operations
-    if (networkEnabled) {
-      updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
-      try {
-        DNSCacheResolver.initializeResolver(customDnsResolver);
-      } catch (RuntimeException e) {
-        logger.error("Failed to initialize DNS resolver: {}", e.getMessage());
-        if (e.getMessage().contains("not responding")) {
-            logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
-                         ": DNS server is not reachable: " + customDnsResolver);
-        } else {
-            logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
-                         ": Invalid DNS resolver IP address: " + customDnsResolver);
-        }
-        return ToolResult.BAD_USER_INPUT.getCode();
-      }
-    }
+    // DNS resolver initialization will be handled by QueryContext when it's created
 
     // No matter which validator, we need to initialize the dataset service
     RDAPDatasetService datasetService = initializeDataSetWithProgress();
@@ -501,14 +533,30 @@ public void setShowProgress(boolean showProgress) {
 
     // get the results file ready
     clean();
-    RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-    resultFile.initialize(RDAPValidatorResultsImpl.getInstance(), this, configFile, fileSystem);
+
+    // Create QueryContext as the central "world object" with all components
+    // This includes DNS resolver initialization with any custom DNS server
+    try {
+      updateProgressPhase(ProgressPhase.DNS_RESOLUTION);
+      queryContext = QueryContext.create(this, datasetService, new org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery(this), customDnsResolver);
+      logger.debug("QueryContext created successfully with custom DNS server: {}", customDnsResolver);
+    } catch (RuntimeException e) {
+      logger.error("Failed to initialize QueryContext with DNS resolver: {}", e.getMessage());
+      if (e.getMessage().contains("not responding")) {
+          logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
+                       ": DNS server is not reachable: " + customDnsResolver);
+      } else {
+          logger.error(ToolResult.BAD_USER_INPUT.getDescription() +
+                       ": Invalid DNS resolver IP address: " + customDnsResolver);
+      }
+      return ToolResult.BAD_USER_INPUT.getCode();
+    }
 
     // Get the queryType - bail out if it is not correct
     RDAPHttpQueryTypeProcessor queryTypeProcessor = null;
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
-      queryTypeProcessor = RDAPHttpQueryTypeProcessor.getInstance(this);
-      if (!queryTypeProcessor.check(datasetService)) {
+      queryTypeProcessor = queryContext.getHttpQueryTypeProcessor();
+      if (!queryTypeProcessor.check(datasetService, queryContext)) {
         logger.error(ToolResult.UNSUPPORTED_QUERY.getDescription());
         return queryTypeProcessor.getErrorStatus().getCode();
       }
@@ -524,100 +572,115 @@ public void setShowProgress(boolean showProgress) {
     // Determine which validator we are using
     ValidatorWorkflow validator;
     if (uri.getScheme() != null && uri.getScheme().toLowerCase().startsWith(HTTP)) {
-      validator = new RDAPHttpValidator(this, datasetService);
+      validator = new RDAPHttpValidator(queryContext);
     } else {
       networkEnabled = false;
       validator = new RDAPFileValidator(this, datasetService);
     }
 
+    // Initialize the result file from the tool's QueryContext
+    RDAPValidationResultFile resultFile;
+    if (validator instanceof RDAPValidator) {
+        // Use the tool's QueryContext for RDAP validators
+        resultFile = queryContext.getResultFile();
+        resultFile.initialize(queryContext.getResults(), this, configFile, fileSystem, queryContext);
+    } else {
+        // For non-RDAP validators, create a basic QueryContext and use instance-based approach
+        if (queryContext == null) {
+            queryContext = QueryContext.create(this, datasetService, null, customDnsResolver);
+        }
+        resultFile = queryContext.getResultFile();
+        resultFile.initialize(queryContext.getResults(), this, configFile, fileSystem, queryContext);
+    }
+
     // Are we querying over the network or is this a file on our system?
     if (networkEnabled) {
-      // DNS resolver was already initialized earlier (before dataset download)
-      // Now perform the actual DNS lookups for the target host
+      // DNS resolver was already initialized when QueryContext was created
+      // Now perform the actual DNS lookups for the target host using QueryContext
       updateProgressPhase("DNS-Resolving");
-      DNSCacheResolver.initFromUrl(uri.toString());
+      queryContext.getDnsResolver().initFromUrl(uri.toString());
       incrementProgress(); // DNS initialization step
       updateProgressPhase("DNS-Validation");
-      DNSCacheResolver.doZeroIPAddressesValidation(uri.toString(), executeIPv6Queries, executeIPv4Queries);
+      queryContext.getDnsResolver().doZeroIPAddressesValidation(queryContext, uri.toString(), executeIPv6Queries, executeIPv4Queries);
       incrementProgress(); // DNS validation step
       
       // Start network validation phase
       updateProgressPhase(ProgressPhase.NETWORK_VALIDATION);
-
-      // Check if parallel IP version execution is enabled
-      boolean parallelIPVersions = Boolean.parseBoolean(
-          System.getProperty("rdap.parallel.ipversions", "false"));
-
-      if (parallelIPVersions) {
-        logger.info("Executing IPv4 and IPv6 validations in parallel");
-        
-        // Execute IP versions in parallel using NetworkValidationCoordinator
-        NetworkValidationCoordinator.IPVersionValidationResults results = 
-            NetworkValidationCoordinator.executeIPVersionValidations(
-                validator, 
-                uri, 
-                executeIPv4Queries, 
-                executeIPv6Queries,
-                (version, header) -> {
-                    updateProgressPhase(version + "-" + header);
-                    incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND);
-                }
-            );
-        
-        // Log results summary
-        Map<String, Integer> allResults = results.getAllResults();
-        logger.info("Parallel IP version validation results: {}", allResults);
-        
-        if (!results.allSuccessful()) {
-            logger.warn("Some parallel validations failed: {}", 
-                allResults.entrySet().stream()
-                    .filter(e -> e.getValue() != 0)
-                    .collect(java.util.stream.Collectors.toMap(
-                        Map.Entry::getKey, Map.Entry::getValue)));
-        }
-        
-      } else {
-        // Original sequential execution
-        logger.info("Executing IPv4 and IPv6 validations sequentially");
         
         // do v6
-        if(executeIPv6Queries && DNSCacheResolver.hasV6Addresses(uri.toString())) {
+        logger.debug("IPv6 check: executeIPv6Queries={}, hasV6Addresses={}", executeIPv6Queries, queryContext.getDnsResolver().hasV6Addresses(uri.toString()));
+        if(executeIPv6Queries && queryContext.getDnsResolver().hasV6Addresses(uri.toString())) {
+          logger.debug("Starting IPv6 validations...");
           updateProgressPhase("IPv6-JSON");
-          NetworkInfo.setStackToV6();
-          NetworkInfo.setAcceptHeaderToApplicationJson();
+
+          if (validator instanceof RDAPValidator) {
+              RDAPValidator rdapValidator = (RDAPValidator) validator;
+              rdapValidator.getQueryContext().setStackToV6();
+              rdapValidator.getQueryContext().setAcceptHeaderToApplicationJson();
+          }
+
+          logger.debug("About to run IPv6-JSON validation");
           int v6ret = validator.validate();
+          logger.debug("IPv6-JSON validation completed with result: {}", v6ret);
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
           // set the header to RDAP+JSON and redo the validations
           updateProgressPhase("IPv6-RDAP+JSON");
-          NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+
+          if (validator instanceof RDAPValidator) {
+              RDAPValidator rdapValidator = (RDAPValidator) validator;
+              rdapValidator.getQueryContext().setAcceptHeaderToApplicationRdapJson();
+          }
+
+          logger.debug("About to run IPv6-RDAP+JSON validation");
           int v6ret2 = validator.validate();
+          logger.debug("IPv6-RDAP+JSON validation completed with result: {}", v6ret2);
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
+          logger.debug("IPv6 validations completed");
+        } else {
+          logger.debug("Skipping IPv6 validations - executeIPv6Queries={}, hasV6Addresses={}", executeIPv6Queries, queryContext.getDnsResolver().hasV6Addresses(uri.toString()));
         }
 
         // do v4
-        if(executeIPv4Queries && DNSCacheResolver.hasV4Addresses(uri.toString())) {
+        if(executeIPv4Queries && queryContext.getDnsResolver().hasV4Addresses(uri.toString())) {
           updateProgressPhase("IPv4-JSON");
-          NetworkInfo.setStackToV4();
-          NetworkInfo.setAcceptHeaderToApplicationJson();
+
+          if (validator instanceof RDAPValidator) {
+              RDAPValidator rdapValidator = (RDAPValidator) validator;
+              rdapValidator.getQueryContext().setStackToV4();
+              rdapValidator.getQueryContext().setAcceptHeaderToApplicationJson();
+          }
+
           int v4ret = validator.validate();
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
 
           // set the header to RDAP+JSON and redo the validations
           updateProgressPhase("IPv4-RDAP+JSON");
-          NetworkInfo.setAcceptHeaderToApplicationRdapJson();
+
+          if (validator instanceof RDAPValidator) {
+              RDAPValidator rdapValidator = (RDAPValidator) validator;
+              rdapValidator.getQueryContext().setAcceptHeaderToApplicationRdapJson();
+          }
+
           int v4ret2 = validator.validate();
           incrementProgress(ESTIMATED_VALIDATIONS_PER_ROUND); // Estimated validations per round
         }
-      }
 
-      if(DNSCacheResolver.hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
+      if(queryContext.getDnsResolver().hasNoAddresses(DNSCacheResolver.getHostnameFromUrl(uri.toString()))) {
         logger.info("Unable to resolve an IP address endpoint using DNS for uri:  "  + DNSCacheResolver.getHostnameFromUrl(uri.toString()));
       }
 
 
       // Removing extra errors to avoid discrepancies between profiles when 404 status code is returned
-      if(ConnectionTracker.getInstance().isResourceNotFoundNoteWarning(this)) {
+      boolean isResourceNotFound = false;
+      if (validator instanceof RDAPValidator) {
+          RDAPValidator rdapValidator = (RDAPValidator) validator;
+          isResourceNotFound = rdapValidator.getQueryContext().getConnectionTracker().isResourceNotFoundNoteWarning(rdapValidator.getQueryContext(), this);
+      } else {
+          isResourceNotFound = queryContext.getConnectionTracker().isResourceNotFoundNoteWarning(queryContext, this);
+      }
+
+      if(isResourceNotFound) {
         logger.debug("All HEAD and Main queries returned a 404 Not Found response code.");
         resultFile.removeErrors();
         resultFile.removeResultGroups();
@@ -637,14 +700,19 @@ public void setShowProgress(boolean showProgress) {
       logger.info("Results file: {}",  validator.getResultsPath());
       setResultsFile(validator.getResultsPath());
       
-      // Always show results file location to user, even when using progress bar (non-verbose mode)
-      if (!isVerbose) {
+      // Show results file location for CLI and VERBOSE modes
+      if (effectiveLevel == LoggingLevel.CLI || effectiveLevel == LoggingLevel.VERBOSE) {
         System.out.println("\nResults saved to: " + validator.getResultsPath());
       }
 
 
       // Having network issues? You WILL need this.
-      logger.debug("ConnectionTracking: " + ConnectionTracker.getInstance().toString());
+      if (validator instanceof RDAPValidator) {
+          RDAPValidator rdapValidator = (RDAPValidator) validator;
+          logger.debug("ConnectionTracking: " + rdapValidator.getQueryContext().getConnectionTracker().toString());
+      } else {
+          logger.debug("ConnectionTracking: " + queryContext.getConnectionTracker().toString());
+      }
 
       // Complete progress tracking
       completeProgress();
@@ -657,10 +725,10 @@ public void setShowProgress(boolean showProgress) {
 
       // if we made it to here, exit 0
       return ZERO;
+    } else {
+      // else we are validating a file
+      return validateWithoutNetwork(resultFile, validator);
     }
-
-    // else we are validating a file
-    return validateWithoutNetwork(resultFile, validator);
   }
 
   /**
@@ -695,9 +763,10 @@ public void setShowProgress(boolean showProgress) {
     logger.info("Results file: {}",  validator.getResultsPath());
     setResultsFile(validator.getResultsPath());
     
-    // Always show results file location to user, even when using progress bar (non-verbose mode)
-    if (!isVerbose) {
-      System.out.println("\nResults saved to: " + validator.getResultsPath());
+    // Show results file location for CLI and VERBOSE modes
+    LoggingLevel currentEffectiveLevel = isVerbose ? LoggingLevel.VERBOSE : loggingLevel;
+    if (currentEffectiveLevel == LoggingLevel.CLI || currentEffectiveLevel == LoggingLevel.VERBOSE) {
+      System.out.println("Results saved to: " + validator.getResultsPath());
     }
     
     // Complete progress tracking
@@ -799,11 +868,14 @@ public void setShowProgress(boolean showProgress) {
 
   @Override
   public void clean() {
-    var resultsImpl = RDAPValidatorResultsImpl.getInstance();
-    var connectionTracker = ConnectionTracker.getInstance();
-    RDAPValidationResultFile.reset();
-    resultsImpl.clear();
-    connectionTracker.reset();
+    // Use QueryContext components if available, otherwise this is called before QueryContext creation
+    if (queryContext != null) {
+      queryContext.getResults().clear();
+      queryContext.getConnectionTracker().reset();
+      // ResultFile doesn't need reset as it will be reinitialized
+    }
+    // Note: In the new architecture, clean() is called before QueryContext creation,
+    // so this method has minimal effect during startup
   }
 
   /**
@@ -812,9 +884,15 @@ public void setShowProgress(boolean showProgress) {
    */
   public List<RDAPValidationResult> getErrors() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      return resultFile.getErrors();
+      if (queryContext != null) {
+        return queryContext.getResultFile().getErrors();
+      }
+      // Return empty list if QueryContext hasn't been created yet
+      return new java.util.ArrayList<>();
     } catch (Exception e) {
+      // TODO: Remove this debug logging after fixing tests
+      System.err.println("Exception in getErrors(): " + e.getMessage());
+      e.printStackTrace();
       // Return empty list if validation hasn't run yet or failed
       return new java.util.ArrayList<>();
     }
@@ -826,8 +904,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public List<RDAPValidationResult> getAllResults() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      return resultFile.getAllResults();
+      if (queryContext != null) {
+        return queryContext.getResultFile().getAllResults();
+      }
+      // Return empty list if QueryContext hasn't been created yet
+      return new java.util.ArrayList<>();
     } catch (Exception e) {
       // Return empty list if validation hasn't run yet or failed
       return new java.util.ArrayList<>();
@@ -840,8 +921,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public int getErrorCount() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      return resultFile.getErrorCount();  
+      if (queryContext != null) {
+        return queryContext.getResultFile().getErrorCount();
+      }
+      // Return 0 if QueryContext hasn't been created yet
+      return 0;
     } catch (Exception e) {
       // Return 0 if validation hasn't run yet or failed
       return 0;
@@ -854,12 +938,15 @@ public void setShowProgress(boolean showProgress) {
    */
   public String getErrorsAsJson() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
-      Map<String, Object> resultsMap = resultFile.createResultsMap();
-      @SuppressWarnings("unchecked")
-      List<Map<String, Object>> errors = (List<Map<String, Object>>) resultsMap.get("error");
-      JSONArray jsonArray = new JSONArray(errors);
-      return jsonArray.toString(PRETTY_PRINT_INDENT);
+      if (queryContext != null) {
+        Map<String, Object> resultsMap = queryContext.getResultFile().createResultsMap();
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> errors = (List<Map<String, Object>>) resultsMap.get("error");
+        JSONArray jsonArray = new JSONArray(errors);
+        return jsonArray.toString(PRETTY_PRINT_INDENT);
+      }
+      // Return empty JSON array if QueryContext hasn't been created yet
+      return new JSONArray().toString();
     } catch (Exception e) {
       // Return empty JSON array if validation hasn't run yet or failed
       return new JSONArray().toString();
@@ -872,7 +959,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public String getAllResultsAsJson() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      // Use the QueryContext to get the resultFile if available, otherwise return fallback
+      if (queryContext == null) {
+        throw new IllegalStateException("No validation has been run yet");
+      }
+      RDAPValidationResultFile resultFile = queryContext.getResultFile();
       Map<String, Object> resultsMap = resultFile.createResultsMap();
       JSONObject jsonObject = new JSONObject(resultsMap);
       return jsonObject.toString(PRETTY_PRINT_INDENT);
@@ -893,7 +984,11 @@ public void setShowProgress(boolean showProgress) {
    */
   public String getWarningsAsJson() {
     try {
-      RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
+      // Use the QueryContext to get the resultFile if available, otherwise return fallback
+      if (queryContext == null) {
+        throw new IllegalStateException("No validation has been run yet");
+      }
+      RDAPValidationResultFile resultFile = queryContext.getResultFile();
       Map<String, Object> resultsMap = resultFile.createResultsMap();
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> warnings = (List<Map<String, Object>>) resultsMap.get("warning");
@@ -1069,7 +1164,10 @@ public void setShowProgress(boolean showProgress) {
       progressCallback = new DatasetProgressCallback();
     }
     
-    RDAPDatasetService datasetService = CommonUtils.initializeDataSet(this, progressCallback);
+    // Create dataset service directly instead of using non-existent CommonUtils method
+    FileSystem fileSystem = new LocalFileSystem();
+    RDAPDatasetService datasetService = new RDAPDatasetServiceImpl(fileSystem);
+    datasetService.download(useLocalDatasets, progressCallback);
     
     // Ensure we're at the right progress point (after dataset phase)
     if (progressTracker != null && datasetService != null) {
@@ -1149,5 +1247,25 @@ public void setShowProgress(boolean showProgress) {
     }
 
     return false;
+  }
+
+  /**
+   * Package-private setter for QueryContext to support testing.
+   * This method allows tests to inject a mock QueryContext for testing purposes.
+   *
+   * @param queryContext the QueryContext to set
+   */
+  void setQueryContext(QueryContext queryContext) {
+    this.queryContext = queryContext;
+  }
+
+  /**
+   * Gets the QueryContext for this tool instance.
+   * This method is package-private for testing purposes.
+   *
+   * @return the QueryContext instance
+   */
+  QueryContext getQueryContext() {
+    return this.queryContext;
   }
 }

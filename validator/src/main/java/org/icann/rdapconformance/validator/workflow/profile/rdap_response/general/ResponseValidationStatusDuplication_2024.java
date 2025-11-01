@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.JpathUtil;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -20,14 +21,14 @@ public class ResponseValidationStatusDuplication_2024 extends ProfileValidation 
     private static final int ZERO = 0;
     private static final int ONE = 1;
     private final JpathUtil jpathUtil;
-    private JSONObject jsonObject = null;
-    private RDAPValidatorResults results = null;
+    private final JSONObject jsonObject;
+    private final QueryContext queryContext;
 
-    public ResponseValidationStatusDuplication_2024(String rdapResponse, RDAPValidatorResults results) {
-        super(results);
+    public ResponseValidationStatusDuplication_2024(QueryContext qctx) {
+        super(qctx.getResults());
         this.jpathUtil = new JpathUtil();
-        this.jsonObject = new JSONObject(rdapResponse);
-        this.results = results;
+        this.jsonObject = new JSONObject(qctx.getRdapResponseData());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -56,7 +57,7 @@ public class ResponseValidationStatusDuplication_2024 extends ProfileValidation 
                                                     .code(-11003)
                                                     .value(STATUS_PATH + ": " + duplicateStatus)
                                                     .message("A status value exists more than once in the status array")
-                                                    .build());
+                                                    .build(queryContext));
                     isOK = false;
                 }
             }

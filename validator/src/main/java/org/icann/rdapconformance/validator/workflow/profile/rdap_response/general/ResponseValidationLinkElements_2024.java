@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 
 import java.util.Set;
 import org.icann.rdapconformance.validator.JpathUtil;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -14,14 +15,14 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationLinkElements_2024.class);
     private final JpathUtil jpathUtil;
-    private JSONObject jsonObject = null;
-    private RDAPValidatorResults results = null;
+    private final JSONObject jsonObject;
+    private final QueryContext queryContext;
 
-    public ResponseValidationLinkElements_2024(String  rdapResponse, RDAPValidatorResults results) {
-        super(results);
+    public ResponseValidationLinkElements_2024(QueryContext qctx) {
+        super(qctx.getResults());
         this.jpathUtil = new JpathUtil();
-        this.jsonObject =   new JSONObject(rdapResponse);
-        this.results = results;
+        this.jsonObject = new JSONObject(qctx.getRdapResponseData());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -43,7 +44,7 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
                                                         .code(-10612)
                                                         .value(jsonPointer + "/" + i + "/value:" + link)
                                                         .message("A 'value' property does not exist in the link object.")
-                                                        .build());
+                                                        .build(queryContext));
                         isOK = false;
                     }
                     if (!link.has("rel")) {
@@ -51,7 +52,7 @@ public class ResponseValidationLinkElements_2024 extends ProfileValidation {
                                                         .code(-10613)
                                                         .value(jsonPointer + "/" + i + "/rel:" + link)
                                                         .message("A 'rel' property does not exist in the link object.")
-                                                        .build());
+                                                        .build(queryContext));
                         isOK = false;
                     }
                 }

@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.rdap.http;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -53,6 +54,19 @@ public class RDAPHttpValidator extends RDAPValidator {
    * @param datasetService the dataset service providing access to RDAP bootstrap and validation data
    */
   public RDAPHttpValidator(RDAPValidatorConfiguration config, RDAPDatasetService datasetService) {
-    super(config, new RDAPHttpQuery(config),datasetService );
+    super(QueryContext.create(config, datasetService, new RDAPHttpQuery(config)));
+  }
+
+  /**
+   * Creates a new HTTP-based RDAP validator with an existing QueryContext.
+   *
+   * <p>This constructor allows the validator to use a pre-configured QueryContext,
+   * which may contain custom DNS resolvers, specific configurations, or other
+   * specialized components.</p>
+   *
+   * @param queryContext the pre-configured QueryContext to use for validation
+   */
+  public RDAPHttpValidator(QueryContext queryContext) {
+    super(queryContext);
   }
 }

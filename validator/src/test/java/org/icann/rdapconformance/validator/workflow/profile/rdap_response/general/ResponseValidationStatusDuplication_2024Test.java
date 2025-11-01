@@ -1,8 +1,11 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.json.JSONObject;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeMethod;
@@ -19,23 +22,28 @@ public class ResponseValidationStatusDuplication_2024Test {
 
     private JSONObject jsonObject;
     private RDAPValidatorResults results;
+    private QueryContext queryContext;
 
     @BeforeMethod
     public void setUp() throws java.io.IOException {
         results = mock(RDAPValidatorResults.class);
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        RDAPDatasetServiceMock datasets = new RDAPDatasetServiceMock();
+        queryContext = QueryContext.forTesting("{}", results, config, datasets);
     }
 
     private void loadJson(String filePath) {
         try {
             String content = new String(Files.readAllBytes(Paths.get(filePath)));
             jsonObject = new JSONObject(content);
+            queryContext.setRdapResponseData(content);
         } catch (java.io.IOException e) {
             throw new RuntimeException("Failed to load JSON file: " + filePath, e);
         }
     }
 
     private ProfileValidation getProfileValidation() {
-        return new ResponseValidationStatusDuplication_2024(jsonObject.toString(), results);
+        return new ResponseValidationStatusDuplication_2024(queryContext);
     }
 
     @Test

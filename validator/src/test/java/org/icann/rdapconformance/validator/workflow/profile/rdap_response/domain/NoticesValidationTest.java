@@ -19,7 +19,6 @@ public abstract class NoticesValidationTest extends ResponseDomainValidationTest
     this.noticeIndex = noticeIndex;
   }
 
-  @Override
   @BeforeMethod
   public void setUp() throws java.io.IOException {
     super.setUp();

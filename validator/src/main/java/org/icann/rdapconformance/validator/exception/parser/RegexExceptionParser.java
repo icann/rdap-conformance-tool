@@ -17,8 +17,9 @@ public class RegexExceptionParser extends ExceptionParser {
 
   protected RegexExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
   }
 
   @Override
@@ -40,32 +41,35 @@ public class RegexExceptionParser extends ExceptionParser {
     if (errorCode == -11406 && isIPv4PatternError()) {
       if (!IPv4ValidationUtil.isValidIPv4Syntax(ipValue)) {
         // TRUE syntax error - convert IPv4 pattern failure (-11406) to syntax error (-10100)
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
             .code(-10100)
             .value(e.getPointerToViolation() + ":" + ipValue)
-            .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
-            .build());
+            .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
+
+        results.add(builder.build(queryContext));
         return;
       } else {
         // Edge case: IP passes IPAddressString validation but fails regex pattern
         // This shouldn't happen with current regex, but handle gracefully
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
             .code(-11406)
             .value(e.getPointerToViolation() + ":" + ipValue)
-            .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
-            .build());
+            .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
+
+        results.add(builder.build(queryContext));
         return;
       }
     }
 
     // Default behavior for all other regex patterns
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(errorCode)
         .value(e.getPointerToViolation() + ":" + ipValue)
         .message(e.getMessage("The value of the JSON string data in the " + e.getPointerToViolation()
             + " does not conform to "
-            + e.getSchemaLocation() + " syntax."))
-        .build());
+            + e.getSchemaLocation() + " syntax."));
+
+    results.add(builder.build(queryContext));
   }
 
   /**

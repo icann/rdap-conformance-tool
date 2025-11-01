@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import org.apache.commons.lang3.StringUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -20,8 +21,11 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
     private static final String REDACTED_PATH = "$.redacted[*]";
     private Set<String> redactedPointersValue = null;
 
-    public ResponseValidation2Dot7Dot4Dot4_2024(String rdapResponse, RDAPValidatorResults results) {
-        super(rdapResponse, results);
+    private final QueryContext queryContext;
+
+    public ResponseValidation2Dot7Dot4Dot4_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -65,7 +69,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                             .code(-63500)
                             .value(getResultValue(vcardAddressPointersValue))
                             .message("The city value of the adr property is required on the vcard for the registrant.")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }
@@ -86,7 +90,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                     .code(-63505)
                     .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Registrant City was found but the city was not redacted.")
-                    .build());
+                    .build(queryContext));
 
             return false;
         }
@@ -101,7 +105,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                     .code(-63501)
                     .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Registrant City is required.")
-                    .build());
+                    .build(queryContext));
 
             return false;
         }
@@ -181,7 +185,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                                 .code(-63503)
                                 .value(getResultValue(redactedPointersValue))
                                 .message("jsonpath must evaluate to non-empty set for redaction by empty value of Registrant City.")
-                                .build());
+                                .build(queryContext));
                         return false;
                     }
                 } catch (Exception e) {
@@ -190,7 +194,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                             .code(-63502)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath is invalid for Registrant City.")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }
@@ -217,7 +221,7 @@ public class ResponseValidation2Dot7Dot4Dot4_2024 extends ProfileJsonValidation 
                             .code(-63504)
                             .value(getResultValue(redactedPointersValue))
                             .message("Registrant City redaction method must be emptyValue.")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }

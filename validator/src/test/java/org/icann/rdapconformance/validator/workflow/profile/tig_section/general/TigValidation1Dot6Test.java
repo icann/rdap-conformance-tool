@@ -7,12 +7,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import java.net.InetAddress;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
+import java.net.http.HttpResponse;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -26,7 +26,6 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
 
   private RDAPValidatorResults results;
 
-  @Override
   @BeforeMethod
   public void setUp() {
     super.setUp();
@@ -35,61 +34,49 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
     results = mock(RDAPValidatorResults.class);
+    // Override queryContext to use our mock results
+    queryContext = QueryContext.forTesting("{}", results, config);
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new TigValidation1Dot6(200, config, results);
+    // Ensure there's a mock HTTP response set for validation
+    if (queryContext.getCurrentHttpResponse() == null) {
+      HttpResponse<String> mockResponse = mock(HttpResponse.class);
+      when(mockResponse.statusCode()).thenReturn(200); // Default status
+      queryContext.setCurrentHttpResponse(mockResponse);
+    }
+    return new TigValidation1Dot6(queryContext);
   }
 
   @Test
   public void testValidate_HttpHeadStatusSameAsGet_IsOk() throws Exception {
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
+    givenUri("http");
+    stubFor(head(urlEqualTo(REQUEST_PATH))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withStatus(200)));
 
-      givenUri("http");
-      stubFor(head(urlEqualTo(REQUEST_PATH))
-          .withScheme("http")
-          .willReturn(aResponse()
-              .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
-              .withStatus(200)));
-
-      validateOk(results);
-    }
+    validateOk(results);
   }
 
   @Test
   public void testValidate_HttpHeadStatusDifferentThanGet_AddResults20300() throws Exception {
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
+    givenUri("http");
+    stubFor(head(urlEqualTo(REQUEST_PATH))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
+            .withStatus(404)));
 
-      givenUri("http");
-      stubFor(head(urlEqualTo(REQUEST_PATH))
-          .withScheme("http")
-          .willReturn(aResponse()
-              .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
-              .withStatus(404)));
-
-      validateNotOk(results, -20300,
-          200 + "\n/\n" + 404,
-          "The HTTP Status code obtained when using the HEAD method is different from the "
-              + "GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.");
-    }
+    validateNotOk(results, -20300,
+        200 + "\n/\n" + 404,
+        "The HTTP Status code obtained when using the HEAD method is different from the "
+            + "GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.");
   }
 
   @Test
   public void testValidate_HttpHead400Error_HandledProperly() throws Exception {
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
 
       givenUri("http");
       stubFor(head(urlEqualTo(REQUEST_PATH))
@@ -98,22 +85,19 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
               .withHeader("Content-Type", "application/rdap+JSON;encoding=UTF-8")
               .withStatus(400)));
 
-      // When GET returns 400 and HEAD also returns 400, TigValidation1Dot6 should handle it gracefully
-      // This test verifies that TigValidation1Dot6 doesn't add an error when both GET and HEAD return the same 4xx status
-      TigValidation1Dot6 validation = new TigValidation1Dot6(400, config, results);
-      assertThat(validation.validate()).isTrue();
-    }
+    // When GET returns 400 and HEAD also returns 400, TigValidation1Dot6 should handle it gracefully
+    // This test verifies that TigValidation1Dot6 doesn't add an error when both GET and HEAD return the same 4xx status
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+    when(mockResponse.statusCode()).thenReturn(400);
+    QueryContext testContext = QueryContext.forTesting("{}", results, config);
+    testContext.setCurrentHttpResponse(mockResponse);
+    TigValidation1Dot6 validation = new TigValidation1Dot6(testContext);
+    assertThat(validation.validate()).isTrue();
   }
 
   @Test
   public void testValidate_GetReturns400HeadReturns200_AddResults20300() throws Exception {
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
-
-      givenUri("http");
+    givenUri("http");
       stubFor(head(urlEqualTo(REQUEST_PATH))
           .withScheme("http")
           .willReturn(aResponse()
@@ -121,7 +105,11 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
               .withStatus(200)));
 
       // When GET returns 400 but HEAD returns 200, this indicates a server implementation issue
-      TigValidation1Dot6 validation = new TigValidation1Dot6(400, config, results);
+      HttpResponse<String> mockResponse = mock(HttpResponse.class);
+      when(mockResponse.statusCode()).thenReturn(400);
+      QueryContext testContext = QueryContext.forTesting("{}", results, config);
+      testContext.setCurrentHttpResponse(mockResponse);
+      TigValidation1Dot6 validation = new TigValidation1Dot6(testContext);
       assertThat(validation.validate()).isFalse();
       
       // Should record the error -20300
@@ -133,6 +121,5 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
           .hasFieldOrPropertyWithValue("message", 
               "The HTTP Status code obtained when using the HEAD method is different from the "
               + "GET method. See section 1.6 of the RDAP_Technical_Implementation_Guide_2_1.");
-    }
   }
 }

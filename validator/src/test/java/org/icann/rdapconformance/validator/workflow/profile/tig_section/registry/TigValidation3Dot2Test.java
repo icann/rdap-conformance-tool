@@ -19,7 +19,6 @@ import org.testng.annotations.Test;
 public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
 
   private RDAPValidatorConfiguration config;
-  private RDAPQueryType queryType;
   private RDAPDatasetService datasetService;
   private RegistrarId registrarId;
 
@@ -31,18 +30,20 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
-    queryType = RDAPQueryType.DOMAIN;
     config = mock(RDAPValidatorConfiguration.class);
     doReturn(true).when(config).isGtldRegistry();
 
     datasetService = mock(RDAPDatasetService.class);
     registrarId = mock(RegistrarId.class);
     doReturn(registrarId).when(datasetService).get(RegistrarId.class);
+
+    // Create QueryContext with our mocked config and datasetService
+    queryContext = org.icann.rdapconformance.validator.QueryContext.forTesting(rdapContent, results, config, datasetService);
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
   }
 
-  @Override
   public ProfileJsonValidation getProfileValidation() {
-    return new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    return new TigValidation3Dot2(queryContext);
   }
 
   @Test
@@ -93,7 +94,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   @Test
   public void testDoLaunch_NotADomainQuery_IsFalse() {
     doReturn(true).when(config).isGtldRegistry();
-    queryType = RDAPQueryType.NAMESERVER;
+    queryContext.setQueryType(RDAPQueryType.NAMESERVER);
     assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 
@@ -113,7 +114,10 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -133,7 +137,10 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -152,7 +159,10 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -171,7 +181,10 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -190,7 +203,10 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -209,7 +225,10 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    // Update QueryContext with modified JSON data
+    updateQueryContextJsonData();
+
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isTrue();
   }
 
@@ -228,7 +247,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
     entities.put(publicIds);
     jsonObject.put("entities", entities);
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isFalse();
   }
 
@@ -236,7 +255,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   public void testValidate_NoEntities_NotExcluded() {
     jsonObject.remove("entities");
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isFalse();
   }
 
@@ -244,7 +263,7 @@ public class TigValidation3Dot2Test extends ProfileJsonValidationTestBase {
   public void testValidate_EmptyEntities_NotExcluded() {
     jsonObject.put("entities", new JSONArray());
 
-    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(jsonObject.toString(), results, config, queryType);
+    TigValidation3Dot2 tigValidation3Dot2 = new TigValidation3Dot2(queryContext);
     assertThat(tigValidation3Dot2.isExcludedRegistrarId()).isFalse();
   }
 }

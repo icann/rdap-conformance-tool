@@ -23,8 +23,32 @@ import org.slf4j.LoggerFactory;
  * and validation against real servers.
  */
 public class DefaultSSLValidator implements SSLValidator {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(DefaultSSLValidator.class);
+    private final NetworkProtocol networkProtocol;
+    private final DNSCacheResolver dnsResolver;
+
+    /**
+     * Default constructor using IPv4 protocol for backward compatibility.
+     */
+    public DefaultSSLValidator() {
+        this(NetworkProtocol.IPv4, new DNSCacheResolver());
+    }
+
+    /**
+     * Constructor that allows specifying the network protocol to use.
+     */
+    public DefaultSSLValidator(NetworkProtocol networkProtocol) {
+        this(networkProtocol, new DNSCacheResolver());
+    }
+
+    /**
+     * Constructor with DNS resolver dependency injection for QueryContext integration.
+     */
+    public DefaultSSLValidator(NetworkProtocol networkProtocol, DNSCacheResolver dnsResolver) {
+        this.networkProtocol = networkProtocol;
+        this.dnsResolver = dnsResolver;
+    }
     
     @Override
     public SSLValidationResult validateSSL(String hostname, int port) {
@@ -55,12 +79,12 @@ public class DefaultSSLValidator implements SSLValidator {
     }
     
     private InetAddress resolveHostname(String hostname) {
-        if (NetworkInfo.getNetworkProtocol() == NetworkProtocol.IPv6) {
-            InetAddress ipAddress = DNSCacheResolver.getFirstV6Address(hostname);
+        if (networkProtocol == NetworkProtocol.IPv6) {
+            InetAddress ipAddress = dnsResolver.getFirstV6Address(hostname);
             logger.info("Using IPv6 address {} for host {}", ipAddress, hostname);
             return ipAddress;
         } else {
-            InetAddress ipAddress = DNSCacheResolver.getFirstV4Address(hostname);
+            InetAddress ipAddress = dnsResolver.getFirstV4Address(hostname);
             logger.info("Using IPv4 address {} for host {}", ipAddress, hostname);
             return ipAddress;
         }

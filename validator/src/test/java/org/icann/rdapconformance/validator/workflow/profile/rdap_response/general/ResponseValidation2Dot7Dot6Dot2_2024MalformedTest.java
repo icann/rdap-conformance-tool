@@ -17,11 +17,8 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
                 "rdapResponseProfile_2_7_6_2_Validation");
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot7Dot6Dot2_2024(
-                jsonObject.toString(),
-                results);
+        return new ResponseValidation2Dot7Dot6Dot2_2024(queryContext);
     }
 
     @Test
@@ -37,11 +34,8 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
                     "rdapResponseProfile_2_7_6_2_Validation");
         }
 
-        @Override
         public ProfileValidation getProfileValidation() {
-            return new ResponseValidation2Dot7Dot6Dot2_2024(
-                    jsonObject.toString(),
-                    results);
+            return new ResponseValidation2Dot7Dot6Dot2_2024(queryContext);
         }
 
         @Test
@@ -58,11 +52,8 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
                     "rdapResponseProfile_2_7_6_2_Validation");
         }
 
-        @Override
         public ProfileValidation getProfileValidation() {
-            return new ResponseValidation2Dot7Dot6Dot2_2024(
-                    jsonObject.toString(),
-                    results);
+            return new ResponseValidation2Dot7Dot6Dot2_2024(queryContext);
         }
 
         @Test
@@ -79,11 +70,8 @@ public class ResponseValidation2Dot7Dot6Dot2_2024MalformedTest extends ProfileJs
                     "rdapResponseProfile_2_7_6_2_Validation");
         }
 
-        @Override
         public ProfileValidation getProfileValidation() {
-            return new ResponseValidation2Dot7Dot6Dot2_2024(
-                    jsonObject.toString(),
-                    results);
+            return new ResponseValidation2Dot7Dot6Dot2_2024(queryContext);
         }
 
         @Test

@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.names
 
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.RegistrarEntityValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -11,11 +12,8 @@ import org.json.JSONObject;
 
 public final class ResponseValidation4Dot3 extends RegistrarEntityValidation {
 
-  public ResponseValidation4Dot3(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPDatasetService datasetService,
-      RDAPQueryType queryType) {
-    super(rdapResponse, results, datasetService, queryType, -49200);
+  public ResponseValidation4Dot3(QueryContext qctx) {
+    super(qctx, qctx.getDatasetService(), -49200);
   }
 
   @Override
@@ -31,11 +29,12 @@ public final class ResponseValidation4Dot3 extends RegistrarEntityValidation {
     } else {
       Set<String> publicIdsJsonPointers = getPointerFromJPath(entity, "$.publicIds[*]");
       if (!publicIdsJsonPointers.isEmpty()) {
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
             .code(-49205)
             .value(getResultValue(entityJsonPointer))
-            .message("A publicIds member is included in the entity with the registrar role.")
-            .build());
+            .message("A publicIds member is included in the entity with the registrar role.");
+
+        results.add(builder.build(queryContext));
         return false;
       }
       return true;

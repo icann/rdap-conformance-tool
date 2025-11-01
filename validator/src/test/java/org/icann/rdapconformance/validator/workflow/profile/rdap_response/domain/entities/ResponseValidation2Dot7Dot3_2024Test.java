@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.json.JSONArray;
@@ -24,10 +25,9 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
     public void setUp() throws IOException {
         super.setUp();
 
-        doReturn(true).when(config).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
     }
 
-    @Override
     protected String givenInvalidHandle() {
         // Change the existing registrar entity to have "billing" role and invalid handle
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
@@ -35,7 +35,6 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
         return "#/entities/0/handle:ABCD";
     }
 
-    @Override
     protected String getValidValueWithRoidExmp() {
         // Change the existing registrar entity to have "billing" role and valid handle  
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
@@ -123,55 +122,87 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
     @Test
     public void testDoLaunch_NonDomainQuery_ReturnsFalse() {
         // Test that validation does not launch for non-DOMAIN queries
-        doReturn(true).when(config).isGtldRegistry();
-        doReturn(false).when(config).isThin();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
+        doReturn(false).when(queryContext.getConfig()).isThin();
 
-        var validation = new ResponseValidation2Dot7Dot3_2024(config, rdapContent, results,
-            mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService.class), RDAPQueryType.ENTITY);
+        QueryContext entityContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.ENTITY
+        );
+        entityContext.setRdapResponseData(queryContext.getRdapResponseData());
+        var validation = new ResponseValidation2Dot7Dot3_2024(entityContext);
         assertThat(validation.doLaunch()).isFalse();
     }
 
     @Test
     public void testDoLaunch_GtldRegistryThinRegistry_ReturnsFalse() {
         // Test that thin registries don't launch this validation
-        doReturn(true).when(config).isGtldRegistry();
-        doReturn(true).when(config).isThin();
-        doReturn(false).when(config).isGtldRegistrar();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isThin();
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistrar();
 
-        var validation = new ResponseValidation2Dot7Dot3_2024(config, rdapContent, results,
-            mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService.class), RDAPQueryType.DOMAIN);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        var validation = new ResponseValidation2Dot7Dot3_2024(domainContext);
         assertThat(validation.doLaunch()).isFalse();
     }
 
     @Test
     public void testDoLaunch_GtldRegistrar_ReturnsTrue() {
         // Test that gTLD registrars launch this validation
-        doReturn(false).when(config).isGtldRegistry();
-        doReturn(false).when(config).isThin();
-        doReturn(true).when(config).isGtldRegistrar();
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistry();
+        doReturn(false).when(queryContext.getConfig()).isThin();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistrar();
 
-        var validation = new ResponseValidation2Dot7Dot3_2024(config, rdapContent, results,
-            mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService.class), RDAPQueryType.DOMAIN);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        var validation = new ResponseValidation2Dot7Dot3_2024(domainContext);
         assertThat(validation.doLaunch()).isTrue();
     }
 
     @Test
     public void testDoLaunch_NonGtldRegistryAndNonGtldRegistrar_ReturnsFalse() {
         // Test that neither gTLD registry nor registrar doesn't launch
-        doReturn(false).when(config).isGtldRegistry();
-        doReturn(false).when(config).isThin();
-        doReturn(false).when(config).isGtldRegistrar();
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistry();
+        doReturn(false).when(queryContext.getConfig()).isThin();
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistrar();
 
-        var validation = new ResponseValidation2Dot7Dot3_2024(config, rdapContent, results,
-            mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService.class), RDAPQueryType.DOMAIN);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        var validation = new ResponseValidation2Dot7Dot3_2024(domainContext);
         assertThat(validation.doLaunch()).isFalse();
     }
 
     @Test
     public void testValidate_RegistrarModeThickRegistry_RunsValidation() {
         // Test registrar mode where entity exists in thick registry - validation should run
-        doReturn(false).when(config).isGtldRegistry();
-        doReturn(true).when(config).isGtldRegistrar();
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistrar();
 
         // Set up entity with invalid handle - keep existing domain data
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
@@ -190,8 +221,8 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
     public void testValidate_RegistrarModeThinRegistry_ValidationRuns() {
         // Test registrar mode - without mocking the HTTP service, validation will run
         // In real thin registry scenarios, the HTTP lookup would return false and skip validation
-        doReturn(false).when(config).isGtldRegistry();
-        doReturn(true).when(config).isGtldRegistrar();
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistrar();
 
         // Set up entity with invalid handle - keep existing domain data
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
@@ -209,9 +240,9 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
     @Test
     public void testValidate_RegistryMode_AlwaysRunsValidation() {
         // Test registry mode - validation should always run regardless of thick/thin
-        doReturn(true).when(config).isGtldRegistry();
-        doReturn(false).when(config).isThin();
-        doReturn(false).when(config).isGtldRegistrar();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
+        doReturn(false).when(queryContext.getConfig()).isThin();
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistrar();
 
         // Set up entity with invalid handle
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
@@ -226,8 +257,8 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
     @Test
     public void testValidate_RegistrarModeNoDomainName_StillValidates() {
         // Test that when domain name cannot be extracted, registrar mode still validates
-        doReturn(false).when(config).isGtldRegistry();
-        doReturn(true).when(config).isGtldRegistrar();
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistry();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistrar();
 
         // Set up entity with invalid handle - this should still be validated even without domain
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
@@ -243,8 +274,8 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
     public void testValidate_EntityWithArrayIndex_ProperJsonPointerConversion() {
         // Test that JSON pointer conversion handles array indices correctly
         // This exercises the convertJsonPointerToJsonPath method with array indices
-        doReturn(true).when(config).isGtldRegistry();
-        doReturn(false).when(config).isThin();
+        doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
+        doReturn(false).when(queryContext.getConfig()).isThin();
 
         // Set the first entity to have billing role (not excluded) and invalid handle
         // This will trigger validation and test the JSON pointer conversion:

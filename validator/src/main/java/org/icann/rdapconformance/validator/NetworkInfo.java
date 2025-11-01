@@ -1,13 +1,15 @@
 package org.icann.rdapconformance.validator;
 
 import static org.icann.rdapconformance.validator.CommonUtils.DASH;
-import org.icann.rdapconformance.validator.workflow.profile.IPVersionContext;
 
 /**
- * Singleton class that manages network configuration state for RDAP validation.
+ * Network configuration class integrated into QueryContext architecture.
  *
- * <p>This class provides centralized management of network settings used during
- * RDAP validation, including:</p>
+ * <p>This class provides network settings management for RDAP validation,
+ * now integrated into the QueryContext "world object" pattern for thread-safe
+ * operation in concurrent environments.</p>
+ *
+ * <p>Network settings managed:</p>
  * <ul>
  *   <li>Accept header configuration (application/json vs application/rdap+json)</li>
  *   <li>Network protocol selection (IPv4 vs IPv6)</li>
@@ -15,60 +17,26 @@ import org.icann.rdapconformance.validator.workflow.profile.IPVersionContext;
  *   <li>Server IP address tracking for debugging</li>
  * </ul>
  *
- * <p>The class uses static methods to provide global access to network configuration
- * and maintains state that affects how HTTP requests are made and tracked during
- * validation operations.</p>
- *
- * <p>Key features:</p>
- * <ul>
- *   <li>Thread-safe singleton pattern for global state management</li>
- *   <li>Support for both standard JSON and RDAP-specific content types</li>
- *   <li>IPv4/IPv6 protocol switching for dual-stack validation</li>
- *   <li>Integration with connection tracking for detailed logging</li>
- * </ul>
- *
- * <p>Example usage:</p>
- * <pre>
- * NetworkInfo.setStackToV6();
- * NetworkInfo.setAcceptHeaderToApplicationRdapJson();
- * String currentHeader = NetworkInfo.getAcceptHeader();
- * NetworkProtocol protocol = NetworkInfo.getNetworkProtocol();
- * </pre>
+ * <p>This class is now instantiated per QueryContext for thread-safe validation.</p>
  *
  * @see NetworkProtocol
- * @see ConnectionTracker
+ * @see QueryContext
  * @since 1.0.0
  */
 public class NetworkInfo {
-    private static final NetworkInfo instance = new NetworkInfo();
-    
-    // Thread-local storage for parallel execution
-    private static final ThreadLocal<NetworkInfo> threadLocalInstance = 
-        ThreadLocal.withInitial(NetworkInfo::new);
-    
-    // Feature flag to enable thread-local mode
-    private static final boolean USE_THREAD_LOCAL = 
-        "true".equals(System.getProperty("rdap.parallel.ipversions", "false"));
-
     private AcceptHeader acceptHeader = AcceptHeader.APPLICATION_JSON;
     private String httpMethod;
     private String serverIpAddress;
     private NetworkProtocol networkProtocol = NetworkProtocol.IPv4;
 
-    private NetworkInfo() {}
+    /**
+     * Public constructor for QueryContext integration.
+     */
+    public NetworkInfo() {}
 
-    public static NetworkInfo getInstance() {
-        if (USE_THREAD_LOCAL) {
-            IPVersionContext context = IPVersionContext.current();
-            if (context != null) {
-                return threadLocalInstance.get();
-            }
-        }
-        return instance;
-    }
 
     // Enum for AcceptHeader
-    private enum AcceptHeader {
+    public enum AcceptHeader {
         APPLICATION_JSON("application/json"),
         APPLICATION_RDAP_JSON("application/rdap+json");
 
@@ -83,56 +51,53 @@ public class NetworkInfo {
         }
     }
 
-    // Static Getters
-    public static String getAcceptHeader() {
-        return getInstance().acceptHeader.getValue();
+    // Instance methods for QueryContext integration
+    public String getAcceptHeaderValue() {
+        return acceptHeader.getValue();
     }
 
-    public static String getHttpMethod() {
-        NetworkInfo info = getInstance();
-        return (info.httpMethod == null || info.httpMethod.isEmpty()) ? DASH : info.httpMethod;
+    public String getHttpMethodValue() {
+        return (httpMethod == null || httpMethod.isEmpty()) ? DASH : httpMethod;
     }
 
-    public static String getServerIpAddress() {
-        NetworkInfo info = getInstance();
-        return (info.serverIpAddress == null || info.serverIpAddress.isEmpty()) ? DASH : info.serverIpAddress;
+    public String getServerIpAddressValue() {
+        return (serverIpAddress == null || serverIpAddress.isEmpty()) ? DASH : serverIpAddress;
     }
 
-    public static NetworkProtocol getNetworkProtocol() {
-        return getInstance().networkProtocol;
+    public NetworkProtocol getNetworkProtocolValue() {
+        return networkProtocol;
     }
 
-    public static String getNetworkProtocolAsString() {
-        NetworkInfo info = getInstance();
-        return (info.networkProtocol == null) ? DASH : info.networkProtocol.name();
+    public String getNetworkProtocolAsStringValue() {
+        return (networkProtocol == null) ? DASH : networkProtocol.name();
     }
 
-    // Static Setters
-    public static void setAcceptHeaderToApplicationJson() {
-        getInstance().acceptHeader = AcceptHeader.APPLICATION_JSON;
+    public void setAcceptHeaderToApplicationJsonValue() {
+        this.acceptHeader = AcceptHeader.APPLICATION_JSON;
     }
 
-    public static void setAcceptHeaderToApplicationRdapJson() {
-        getInstance().acceptHeader = AcceptHeader.APPLICATION_RDAP_JSON;
+    public void setAcceptHeaderToApplicationRdapJsonValue() {
+        this.acceptHeader = AcceptHeader.APPLICATION_RDAP_JSON;
     }
 
-    public static void setHttpMethod(String httpMethod) {
-        getInstance().httpMethod = httpMethod;
+    public void setHttpMethodValue(String httpMethod) {
+        this.httpMethod = httpMethod;
     }
 
-    public static void setServerIpAddress(String serverIpAddress) {
-        getInstance().serverIpAddress = serverIpAddress;
+    public void setServerIpAddressValue(String serverIpAddress) {
+        this.serverIpAddress = serverIpAddress;
     }
 
-    public static void setNetworkProtocol(NetworkProtocol protocol) {
-        getInstance().networkProtocol = protocol;
+    public void setNetworkProtocolValue(NetworkProtocol protocol) {
+        this.networkProtocol = protocol;
     }
 
-    public static void setStackToV6() {
-        setNetworkProtocol(NetworkProtocol.IPv6);
+    public void setStackToV6Value() {
+        setNetworkProtocolValue(NetworkProtocol.IPv6);
     }
 
-    public static void setStackToV4() {
-        setNetworkProtocol(NetworkProtocol.IPv4);
+    public void setStackToV4Value() {
+        setNetworkProtocolValue(NetworkProtocol.IPv4);
     }
+
 }

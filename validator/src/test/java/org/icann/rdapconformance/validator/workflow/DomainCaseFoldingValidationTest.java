@@ -8,13 +8,13 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -31,38 +31,35 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   @BeforeMethod
   public void setUp() {
     super.setUp();
-    results = mock(RDAPValidatorResults.class);
+    results = mock(RDAPValidatorResults.class); // Mock results for verify() calls
+    // Create QueryContext with our mock results instead of using the default one
+    queryContext = QueryContext.forTesting("{}", results, config);
     httpsResponse = mock(HttpResponse.class);
     doReturn(URI.create("http://domain/test.example")).when(httpsResponse).uri();
   }
 
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new DomainCaseFoldingValidation(httpsResponse, config, results,
-        RDAPQueryType.DOMAIN);
+    return new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
   }
 
   @Test
   public void testFoldDomain() {
-    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config
-        , results, RDAPQueryType.DOMAIN);
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     assertThat(validator.foldDomain()).isEqualTo("tEsT.ExAmPlE");
   }
 
   @Test
   public void testFoldingDigitAndDot() {
     doReturn(URI.create("http://domain/123.example")).when(httpsResponse).uri();
-    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config
-        , results, RDAPQueryType.DOMAIN);
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     assertThat(validator.foldDomain()).isEqualTo("123.eXaMpLe");
   }
 
   @Test
   public void testFoldingCharNotFoldeable() {
     doReturn(URI.create("http://domain/test.国xample")).when(httpsResponse).uri();
-    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config
-        , results, RDAPQueryType.DOMAIN);
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     assertThat(validator.foldDomain()).isEqualTo("tEsT.国xAmPlE");
   }
 
@@ -73,23 +70,16 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
+    // Use real DNS resolution for test - domain case folding doesn't depend on DNS mocking
 
       givenUri("http");
-      doReturn(config.getUri()).when(httpsResponse).uri();
-      doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
       givenUriWithDifferentResponse("/domain/tEsT.ExAmPlE");
 
-      validateNotOk(results,
+    validateNotOk(results,
           -10403, "http://127.0.0.1:8080/domain/tEsT.ExAmPlE",
           "RDAP responses do not match when handling domain label case folding.");
-    } catch (Exception e) {
-      throw new RuntimeException("Error mocking DNSCacheResolver", e);
-    }
   }
 
   @Test
@@ -98,8 +88,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
     assertThat(
         new DomainCaseFoldingValidation(
             httpsResponse,
-            config,
-            results,
+            queryContext,
             RDAPQueryType.NAMESERVER).doLaunch()).isFalse();
   }
 
@@ -115,7 +104,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   @Test
   public void testFoldDomain_NonFoldableCharacters() {
     doReturn(URI.create("http://domain/test.123")).when(httpsResponse).uri();
-    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     
     String folded = validator.foldDomain();
     assertThat(folded).isEqualTo("tEsT.123");
@@ -124,7 +113,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   @Test
   public void testFoldDomain_EmptyDomain() {
     doReturn(URI.create("http://domain/")).when(httpsResponse).uri();
-    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     
     String folded = validator.foldDomain();
     assertThat(folded).isEmpty();
@@ -133,7 +122,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   @Test
   public void testFoldDomain_SingleCharacter() {
     doReturn(URI.create("http://domain/a")).when(httpsResponse).uri();
-    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     
     String folded = validator.foldDomain();
     assertThat(folded).isEqualTo("a");
@@ -142,7 +131,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   @Test
   public void testFoldDomain_AlternatesCase() {
     doReturn(URI.create("http://domain/abcd")).when(httpsResponse).uri();
-    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     
     String folded = validator.foldDomain();
     assertThat(folded).isEqualTo("aBcD");
@@ -155,41 +144,36 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
+    // Use real DNS resolution for test - domain case folding doesn't depend on DNS mocking
 
-      // Setup: Original response returns 200 OK
+    //Setup: Original response returns 200 OK
       givenUri("http");
-      doReturn(config.getUri()).when(httpsResponse).uri();
-      doReturn(200).when(httpsResponse).statusCode();
-      doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
 
-      // Setup: Case-folded URL returns 301 redirect, then final URL returns same content
-      String caseFoldedPath = "/domain/tEsT.ExAmPlE";
-      String finalPath = "/domain/test.example";
+    //Setup: Case-folded URL returns 301 redirect, then final URL returns same content
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    String finalPath = "/domain/test.example";
       
-      // Step 1: Case-folded request returns redirect
-      stubFor(get(urlEqualTo(caseFoldedPath))
+    //Step 1: Case-folded request returns redirect
+    stubFor(get(urlEqualTo(caseFoldedPath))
           .withScheme("http")
           .willReturn(aResponse()
               .withStatus(301)
               .withHeader("Location", "http://127.0.0.1:" + wireMockServer.port() + finalPath)
               .withHeader("Content-Type", "application/rdap+json")));
       
-      // Step 2: Final redirect target returns same content as original
-      stubFor(get(urlEqualTo(finalPath))
+    //Step 2: Final redirect target returns same content as original
+    stubFor(get(urlEqualTo(finalPath))
           .withScheme("http")
           .willReturn(aResponse()
               .withStatus(200)
               .withHeader("Content-Type", "application/rdap+json")
               .withBody(RDAP_RESPONSE)));
 
-      // This should now PASS (not fail) because redirects are followed
-      validateOk(results);
-    }
+    //This should now PASS (not fail) because redirects are followed
+    validateOk(results);
   }
 
   @Test
@@ -199,31 +183,26 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
+    // Use real DNS resolution for test - domain case folding doesn't depend on DNS mocking
 
-      givenUri("http");
-      doReturn(config.getUri()).when(httpsResponse).uri();
-      doReturn(200).when(httpsResponse).statusCode();
-      doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
 
-      // Setup: Case-folded URL returns cross-host redirect (should be rejected)
-      String caseFoldedPath = "/domain/tEsT.ExAmPlE";
-      stubFor(get(urlEqualTo(caseFoldedPath))
+    //Setup: Case-folded URL returns cross-host redirect (should be rejected)
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    stubFor(get(urlEqualTo(caseFoldedPath))
           .withScheme("http")
           .willReturn(aResponse()
               .withStatus(301)
               .withHeader("Location", "http://evil.example.com/domain/test.example")
               .withHeader("Content-Type", "application/rdap+json")));
 
-      // Should fail because cross-host redirect is rejected and status codes don't match
-      validateNotOk(results,
+    //Should fail because cross-host redirect is rejected and status codes don't match
+    validateNotOk(results,
           -10403, "http://127.0.0.1:8080/domain/tEsT.ExAmPlE",
           "RDAP responses do not match when handling domain label case folding.");
-    }
   }
 
   @Test
@@ -233,31 +212,26 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
+    // Use real DNS resolution for test - domain case folding doesn't depend on DNS mocking
 
       givenUri("http");
-      doReturn(config.getUri()).when(httpsResponse).uri();
-      doReturn(200).when(httpsResponse).statusCode();
-      doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
 
-      // Setup: Case-folded URL returns 301 but no Location header
-      String caseFoldedPath = "/domain/tEsT.ExAmPlE";
-      stubFor(get(urlEqualTo(caseFoldedPath))
+    //Setup: Case-folded URL returns 301 but no Location header
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    stubFor(get(urlEqualTo(caseFoldedPath))
           .withScheme("http")
           .willReturn(aResponse()
               .withStatus(301)
               .withHeader("Content-Type", "application/rdap+json")
               .withBody("Moved")));
 
-      // Should fail because redirect cannot be followed and status codes don't match
-      validateNotOk(results,
+    //Should fail because redirect cannot be followed and status codes don't match
+    validateNotOk(results,
           -10403, "http://127.0.0.1:8080/domain/tEsT.ExAmPlE",
           "RDAP responses do not match when handling domain label case folding.");
-    }
   }
 
   @Test
@@ -267,52 +241,47 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
         .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
-    try (var mockedStatic = mockStatic(DNSCacheResolver.class)) {
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV4Address("127.0.0.1"))
-                  .thenReturn(InetAddress.getByName("127.0.0.1"));
-      mockedStatic.when(() -> DNSCacheResolver.getFirstV6Address("127.0.0.1"))
-                  .thenReturn(null);
+    // Use real DNS resolution for test - domain case folding doesn't depend on DNS mocking
 
       givenUri("http");
-      doReturn(config.getUri()).when(httpsResponse).uri();
-      doReturn(200).when(httpsResponse).statusCode();
-      doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
 
-      // Setup chain: caseFolded -> intermediate -> final
-      String caseFoldedPath = "/domain/tEsT.ExAmPlE";
-      String intermediatePath = "/domain/temp.example";
-      String finalPath = "/domain/test.example";
+    //Setup chain: caseFolded -> intermediate -> final
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    String intermediatePath = "/domain/temp.example";
+    String finalPath = "/domain/test.example";
       
-      // Step 1: Case-folded -> intermediate
-      stubFor(get(urlEqualTo(caseFoldedPath))
+    //Step 1: Case-folded -> intermediate
+    stubFor(get(urlEqualTo(caseFoldedPath))
           .withScheme("http")
           .willReturn(aResponse()
               .withStatus(302)
               .withHeader("Location", "http://127.0.0.1:" + wireMockServer.port() + intermediatePath)));
       
-      // Step 2: Intermediate -> final
-      stubFor(get(urlEqualTo(intermediatePath))
+    //Step 2: Intermediate -> final
+    stubFor(get(urlEqualTo(intermediatePath))
           .withScheme("http")
           .willReturn(aResponse()
               .withStatus(301)
               .withHeader("Location", "http://127.0.0.1:" + wireMockServer.port() + finalPath)));
       
-      // Step 3: Final destination
-      stubFor(get(urlEqualTo(finalPath))
+    //Step 3: Final destination
+    stubFor(get(urlEqualTo(finalPath))
           .withScheme("http")
           .willReturn(aResponse()
               .withStatus(200)
               .withHeader("Content-Type", "application/rdap+json")
               .withBody(RDAP_RESPONSE)));
 
-      // Should pass because multiple redirects are followed (up to max limit)
-      validateOk(results);
-    }
+    //Should pass because multiple redirects are followed (up to max limit)
+    validateOk(results);
   }
 
   @Test
   public void testGetGroupName() {
-    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     
     assertThat(validator.getGroupName()).isEqualTo("domainCaseFoldingValidation");
   }
@@ -321,7 +290,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   public void testDoValidate_SameDomain_ReturnsTrue() throws Exception {
     // Test when foldDomain returns the same domain (no case folding possible)
     doReturn(URI.create("http://domain/123.456")).when(httpsResponse).uri();
-    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, config, results, RDAPQueryType.DOMAIN);
+    DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     
     boolean result = validator.doValidate();
     
@@ -331,7 +300,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   @Test
   public void testDoLaunch_NonDomainQuery_ReturnsFalse() {
     DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(
-        httpsResponse, config, results, RDAPQueryType.ENTITY);
+        httpsResponse, queryContext, RDAPQueryType.ENTITY);
     
     assertThat(validator.doLaunch()).isFalse();
   }
@@ -339,7 +308,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   @Test
   public void testDoLaunch_DomainQuery_ReturnsTrue() {
     DomainCaseFoldingValidation validator = new DomainCaseFoldingValidation(
-        httpsResponse, config, results, RDAPQueryType.DOMAIN);
+        httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     
     assertThat(validator.doLaunch()).isTrue();
   }

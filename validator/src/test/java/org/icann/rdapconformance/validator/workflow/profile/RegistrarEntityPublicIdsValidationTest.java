@@ -28,7 +28,6 @@ public abstract class RegistrarEntityPublicIdsValidationTest extends ProfileJson
     this.queryType = baseQueryType;
   }
 
-  @Override
   public abstract RegistrarEntityPublicIdsValidation getProfileValidation();
 
   @Test

@@ -42,7 +42,7 @@ public class RDAPDatasetServiceIt {
     @BeforeMethod
     public void setUp() {
         this.fileSystem = new LocalFileSystem();
-        this.rdapDatasetService =  RDAPDatasetServiceImpl.getInstance(this.fileSystem);
+        this.rdapDatasetService = new RDAPDatasetServiceImpl(this.fileSystem);
     }
 
     @Test

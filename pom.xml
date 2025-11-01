@@ -28,8 +28,6 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <org.aspectj-version>1.9.6</org.aspectj-version>
-
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.source>21</maven.compiler.source>
         <jackson-databind.version>2.18.1</jackson-databind.version>
@@ -69,20 +67,9 @@
                 <version>${jaxb-impl.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.javassist</groupId>
-                <artifactId>javassist</artifactId>
-                <version>${javassist.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j-api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.aspectj</groupId>
-                <artifactId>aspectjrt</artifactId>
-                <version>${org.aspectj-version}</version>
             </dependency>
 
             <dependency>
