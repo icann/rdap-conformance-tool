@@ -43,6 +43,24 @@ public interface RDAPValidatorConfiguration {
   boolean isNetworkEnabled();
   boolean isAdditionalConformanceQueries();
 
+  /**
+   * Returns custom dataset directory path for IANA XML files.
+   * If null, uses the default "datasets" directory.
+   * @return custom dataset directory path, or null for default
+   */
+  default String getDatasetDirectory() {
+    return null;
+  }
+
+  /**
+   * Whether to cleanup dataset files after validation completes.
+   * Only applies when using a custom dataset directory.
+   * @return true to cleanup datasets after validation, false to keep them
+   */
+  default boolean isCleanupDatasetsOnComplete() {
+    return false;
+  }
+
   default boolean check() {
     if (getUri().getScheme() != null && getUri().getScheme().startsWith("http")) {
       if (getQueryType() != null) {

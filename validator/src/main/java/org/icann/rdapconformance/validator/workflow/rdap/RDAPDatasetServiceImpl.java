@@ -26,26 +26,33 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
   public static final int THREADS_PER_CORE = 2;
   public static final int MAX_THREAD_POOL_SIZE = 8;
   private final FileSystem fileSystem;
+  private final String datasetDirectory;
   private final List<RDAPDataset<? extends RDAPDatasetModel>> datasetList;
   protected Map<Class<? extends RDAPDataset>, RDAPDataset> datasets;
   protected Map<Class<?>, Object> datasetValidatorModels;
 
-  // Public constructor for instance-based usage
+  // Public constructor for instance-based usage with default dataset directory
   public RDAPDatasetServiceImpl(FileSystem fileSystem) {
+    this(fileSystem, null);
+  }
+
+  // Public constructor for instance-based usage with custom dataset directory
+  public RDAPDatasetServiceImpl(FileSystem fileSystem, String datasetDirectory) {
     this.fileSystem = fileSystem;
-    datasetList = List.of(new IPv4AddressSpaceDataset(fileSystem),
-        new SpecialIPv4AddressesDataset(fileSystem),
-        new IPv6AddressSpaceDataset(fileSystem),
-        new SpecialIPv6AddressesDataset(fileSystem),
-        new RDAPExtensionsDataset(fileSystem),
-        new LinkRelationsDataset(fileSystem),
-        new MediaTypesDataset(fileSystem),
-        new RDAPJsonValuesDataset(fileSystem),
-        new DsRrTypesDataset(fileSystem),
-        new DNSSecAlgNumbersDataset(fileSystem),
-        new BootstrapDomainNameSpaceDataset(fileSystem),
-        new RegistrarIdDataset(fileSystem),
-        new EPPRoidDataset(fileSystem));
+    this.datasetDirectory = datasetDirectory != null ? datasetDirectory : DATASET_PATH;
+    datasetList = List.of(new IPv4AddressSpaceDataset(fileSystem, this.datasetDirectory),
+        new SpecialIPv4AddressesDataset(fileSystem, this.datasetDirectory),
+        new IPv6AddressSpaceDataset(fileSystem, this.datasetDirectory),
+        new SpecialIPv6AddressesDataset(fileSystem, this.datasetDirectory),
+        new RDAPExtensionsDataset(fileSystem, this.datasetDirectory),
+        new LinkRelationsDataset(fileSystem, this.datasetDirectory),
+        new MediaTypesDataset(fileSystem, this.datasetDirectory),
+        new RDAPJsonValuesDataset(fileSystem, this.datasetDirectory),
+        new DsRrTypesDataset(fileSystem, this.datasetDirectory),
+        new DNSSecAlgNumbersDataset(fileSystem, this.datasetDirectory),
+        new BootstrapDomainNameSpaceDataset(fileSystem, this.datasetDirectory),
+        new RegistrarIdDataset(fileSystem, this.datasetDirectory),
+        new EPPRoidDataset(fileSystem, this.datasetDirectory));
     this.datasets = datasetList
         .stream()
         .collect(Collectors.toMap(RDAPDataset::getClass, Function.identity()));
@@ -71,9 +78,9 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
    */
   public boolean download(boolean useLocalDatasets, ProgressCallback progressCallback) {
     try {
-      fileSystem.mkdir(DATASET_PATH);
+      fileSystem.mkdir(datasetDirectory);
     } catch (IOException e) {
-      logger.error("Failed to create datasets directory", e);
+      logger.error("Failed to create datasets directory: {}", datasetDirectory, e);
       return false;
     }
 

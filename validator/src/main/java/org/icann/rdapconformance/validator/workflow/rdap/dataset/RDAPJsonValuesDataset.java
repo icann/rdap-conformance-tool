@@ -11,4 +11,10 @@ public class RDAPJsonValuesDataset extends RDAPDataset<RDAPJsonValues> {
         URI.create("https://www.iana.org/assignments/rdap-json-values/rdap-json-values.xml"),
         fileSystem, RDAPJsonValues.class);
   }
+
+  public RDAPJsonValuesDataset(FileSystem fileSystem, String datasetDirectory) {
+    super("RDAPJSONValues",
+        URI.create("https://www.iana.org/assignments/rdap-json-values/rdap-json-values.xml"),
+        fileSystem, datasetDirectory, RDAPJsonValues.class);
+  }
 }

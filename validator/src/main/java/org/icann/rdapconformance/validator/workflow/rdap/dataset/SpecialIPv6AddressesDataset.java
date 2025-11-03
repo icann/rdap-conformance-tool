@@ -12,4 +12,11 @@ public class SpecialIPv6AddressesDataset extends RDAPDataset<SpecialIPv6Addresse
             "https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xml"),
         fileSystem, SpecialIPv6Addresses.class);
   }
+
+  public SpecialIPv6AddressesDataset(FileSystem fileSystem, String datasetDirectory) {
+    super("specialIPv6Addresses",
+        URI.create(
+            "https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xml"),
+        fileSystem, datasetDirectory, SpecialIPv6Addresses.class);
+  }
 }

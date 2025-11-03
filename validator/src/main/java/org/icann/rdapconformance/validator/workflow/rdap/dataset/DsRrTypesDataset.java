@@ -11,4 +11,10 @@ public class DsRrTypesDataset extends RDAPDataset<DsRrTypes> {
         URI.create("https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xml"),
         fileSystem, DsRrTypes.class);
   }
+
+  public DsRrTypesDataset(FileSystem fileSystem, String datasetDirectory) {
+    super("dsRrTypes",
+        URI.create("https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xml"),
+        fileSystem, datasetDirectory, DsRrTypes.class);
+  }
 }

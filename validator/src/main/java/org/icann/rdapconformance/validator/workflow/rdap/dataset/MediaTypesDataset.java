@@ -11,4 +11,10 @@ public class MediaTypesDataset extends RDAPDataset<MediaTypes> {
         URI.create("https://www.iana.org/assignments/media-types/media-types.xml"),
         fileSystem, MediaTypes.class);
   }
+
+  public MediaTypesDataset(FileSystem fileSystem, String datasetDirectory) {
+    super("mediaTypes",
+        URI.create("https://www.iana.org/assignments/media-types/media-types.xml"),
+        fileSystem, datasetDirectory, MediaTypes.class);
+  }
 }

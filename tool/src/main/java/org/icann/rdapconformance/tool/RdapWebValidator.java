@@ -1,6 +1,9 @@
 package org.icann.rdapconformance.tool;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -36,10 +39,12 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
  * <p><strong>Important:</strong> Do not use {@link RdapConformanceTool#call()} in web applications
  * as it modifies global JVM state including logging configuration and TLS properties.</p>
  */
-public class RdapWebValidator {
+public class RdapWebValidator implements AutoCloseable {
 
     private final QueryContext queryContext;
     private final RDAPValidator rdapValidator;
+    private final String customDatasetDirectory;
+    private final boolean shouldCleanupDatasets;
 
     /**
      * Creates a new web-safe RDAP validator for the specified URI.
@@ -49,7 +54,7 @@ public class RdapWebValidator {
      * @throws RuntimeException if the configuration is invalid
      */
     public RdapWebValidator(String uri) {
-        this(validateAndCreateURI(uri), null);
+        this(validateAndCreateURI(uri), null, null, false);
     }
 
     /**
@@ -60,7 +65,7 @@ public class RdapWebValidator {
      * @throws RuntimeException if the configuration is invalid
      */
     public RdapWebValidator(URI uri) {
-        this(uri, null);
+        this(uri, null, null, false);
     }
 
     /**
@@ -72,7 +77,7 @@ public class RdapWebValidator {
      * @throws RuntimeException if the configuration is invalid
      */
     public RdapWebValidator(URI uri, boolean isRegistry) {
-        this(uri, new ConfigurableRDAPValidatorConfiguration(uri, isRegistry, !isRegistry));
+        this(uri, new ConfigurableRDAPValidatorConfiguration(uri, isRegistry, !isRegistry), null, false);
     }
 
     /**
@@ -86,7 +91,37 @@ public class RdapWebValidator {
      * @throws RuntimeException if the configuration is invalid
      */
     public RdapWebValidator(URI uri, boolean isRegistry, boolean isRegistrar, boolean useLocalDatasets) {
-        this(uri, new ConfigurableRDAPValidatorConfiguration(uri, isRegistry, isRegistrar, useLocalDatasets));
+        this(uri, new ConfigurableRDAPValidatorConfiguration(uri, isRegistry, isRegistrar, useLocalDatasets), null, false);
+    }
+
+    /**
+     * Creates a new web-safe RDAP validator with temporary directory support.
+     * Uses a unique temporary directory for IANA datasets that will be cleaned up automatically.
+     *
+     * @param uri the RDAP URI to validate
+     * @param isRegistry true if this is a gTLD registry
+     * @param isRegistrar true if this is a gTLD registrar
+     * @param useTemporaryDirectory true to use a temporary directory for datasets
+     * @param cleanupOnClose true to cleanup the temporary directory when close() is called
+     * @throws IllegalArgumentException if the URI is invalid
+     * @throws RuntimeException if the configuration is invalid or temp directory creation fails
+     */
+    public RdapWebValidator(URI uri, boolean isRegistry, boolean isRegistrar, boolean useTemporaryDirectory, boolean cleanupOnClose) {
+        this(uri, new ConfigurableRDAPValidatorConfiguration(uri, isRegistry, isRegistrar, false),
+             useTemporaryDirectory ? createTempDirectory() : null, cleanupOnClose);
+    }
+
+    /**
+     * Creates a new web-safe RDAP validator with custom dataset directory.
+     *
+     * @param uri the RDAP URI to validate
+     * @param customDatasetDirectory custom directory path for IANA datasets, null for default
+     * @param cleanupOnClose true to delete the dataset directory when close() is called
+     * @throws IllegalArgumentException if the URI is invalid
+     * @throws RuntimeException if the configuration is invalid
+     */
+    public RdapWebValidator(URI uri, String customDatasetDirectory, boolean cleanupOnClose) {
+        this(uri, null, customDatasetDirectory, cleanupOnClose);
     }
 
     /**
@@ -98,6 +133,24 @@ public class RdapWebValidator {
      * @throws RuntimeException if the configuration is invalid
      */
     public RdapWebValidator(URI uri, RDAPValidatorConfiguration config) {
+        this(uri, config, null, false);
+    }
+
+    /**
+     * Creates a new web-safe RDAP validator with custom configuration and dataset directory.
+     *
+     * @param uri the RDAP URI to validate
+     * @param config custom configuration, or null for default configuration
+     * @param customDatasetDirectory custom directory for datasets, or null for default
+     * @param shouldCleanupDatasets whether to cleanup the dataset directory on close
+     * @throws IllegalArgumentException if the URI is invalid
+     * @throws RuntimeException if the configuration is invalid
+     */
+    public RdapWebValidator(URI uri, RDAPValidatorConfiguration config, String customDatasetDirectory, boolean shouldCleanupDatasets) {
+        // Store cleanup settings
+        this.customDatasetDirectory = customDatasetDirectory;
+        this.shouldCleanupDatasets = shouldCleanupDatasets;
+
         // Create default configuration if none provided
         if (config == null) {
             // Create a simple configuration implementation
@@ -108,8 +161,10 @@ public class RdapWebValidator {
         org.icann.rdapconformance.validator.workflow.FileSystem fileSystem =
             new org.icann.rdapconformance.validator.workflow.LocalFileSystem();
 
-        // Create dataset service for ICANN data
-        RDAPDatasetServiceImpl datasetService = new RDAPDatasetServiceImpl(fileSystem);
+        // Create dataset service for ICANN data with custom directory if provided
+        RDAPDatasetServiceImpl datasetService = customDatasetDirectory != null ?
+            new RDAPDatasetServiceImpl(fileSystem, customDatasetDirectory) :
+            new RDAPDatasetServiceImpl(fileSystem);
 
         // Download and initialize datasets (required for validation)
         try {
@@ -184,6 +239,57 @@ public class RdapWebValidator {
      */
     public boolean isValid() {
         return queryContext.getResults().getResultCount() == 0;
+    }
+
+    /**
+     * Closes the validator and cleans up resources.
+     * If this validator was created with a temporary directory, it will be deleted.
+     */
+    @Override
+    public void close() {
+        if (shouldCleanupDatasets && customDatasetDirectory != null) {
+            try {
+                deleteDirectoryRecursively(Path.of(customDatasetDirectory));
+            } catch (IOException e) {
+                // Log warning but don't throw - cleanup is best-effort
+                System.err.println("Warning: Failed to cleanup temporary dataset directory: " + customDatasetDirectory + " - " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Creates a unique temporary directory for IANA datasets.
+     *
+     * @return path to the created temporary directory
+     * @throws RuntimeException if temporary directory creation fails
+     */
+    private static String createTempDirectory() {
+        try {
+            Path tempDir = Files.createTempDirectory("rdap-validation-");
+            return tempDir.toAbsolutePath().toString();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create temporary directory for RDAP datasets", e);
+        }
+    }
+
+    /**
+     * Recursively deletes a directory and all its contents.
+     *
+     * @param directory the directory to delete
+     * @throws IOException if deletion fails
+     */
+    private static void deleteDirectoryRecursively(Path directory) throws IOException {
+        if (Files.exists(directory)) {
+            Files.walk(directory)
+                .sorted((a, b) -> b.compareTo(a)) // Delete files before directories
+                .forEach(path -> {
+                    try {
+                        Files.delete(path);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to delete: " + path, e);
+                    }
+                });
+        }
     }
 
     /**
@@ -286,6 +392,16 @@ public class RdapWebValidator {
 
         @Override
         public void clean() { /* no-op */ }
+
+        @Override
+        public String getDatasetDirectory() {
+            return null; // Use default dataset directory
+        }
+
+        @Override
+        public boolean isCleanupDatasetsOnComplete() {
+            return false; // Don't cleanup by default
+        }
     }
 
     /**
@@ -364,5 +480,15 @@ public class RdapWebValidator {
 
         @Override
         public void clean() { /* no-op */ }
+
+        @Override
+        public String getDatasetDirectory() {
+            return null; // Use default dataset directory
+        }
+
+        @Override
+        public boolean isCleanupDatasetsOnComplete() {
+            return false; // Don't cleanup by default
+        }
     }
 }

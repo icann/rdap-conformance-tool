@@ -11,4 +11,10 @@ public class LinkRelationsDataset extends RDAPDataset<LinkRelations> {
         URI.create("https://www.iana.org/assignments/link-relations/link-relations.xml"),
         fileSystem, LinkRelations.class);
   }
+
+  public LinkRelationsDataset(FileSystem fileSystem, String datasetDirectory) {
+    super("linkRelations",
+        URI.create("https://www.iana.org/assignments/link-relations/link-relations.xml"),
+        fileSystem, datasetDirectory, LinkRelations.class);
+  }
 }

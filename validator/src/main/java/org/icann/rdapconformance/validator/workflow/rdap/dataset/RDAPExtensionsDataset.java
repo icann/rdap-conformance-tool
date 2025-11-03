@@ -11,4 +11,10 @@ public class RDAPExtensionsDataset extends RDAPDataset<RDAPExtensions> {
         URI.create("https://www.iana.org/assignments/rdap-extensions/rdap-extensions.xml"),
         fileSystem, RDAPExtensions.class);
   }
+
+  public RDAPExtensionsDataset(FileSystem fileSystem, String datasetDirectory) {
+    super("RDAPExtensions",
+        URI.create("https://www.iana.org/assignments/rdap-extensions/rdap-extensions.xml"),
+        fileSystem, datasetDirectory, RDAPExtensions.class);
+  }
 }

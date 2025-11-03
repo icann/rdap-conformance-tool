@@ -23,13 +23,19 @@ public abstract class RDAPDataset<T extends RDAPDatasetModel> {
     private final String name;
     private final URI uri;
     private final FileSystem fileSystem;
+    private final String datasetDirectory;
     private final Deserializer<T> deserializer;
     private T modelInstance;
 
     public RDAPDataset(String name, URI uri, FileSystem fileSystem, Class<T> model) {
+        this(name, uri, fileSystem, DATASET_PATH, model);
+    }
+
+    public RDAPDataset(String name, URI uri, FileSystem fileSystem, String datasetDirectory, Class<T> model) {
         this.name = name;
         this.fileSystem = fileSystem;
         this.uri = uri;
+        this.datasetDirectory = datasetDirectory;
         try {
             this.modelInstance = model.getConstructor().newInstance();
         } catch (Exception e) {
@@ -51,7 +57,7 @@ public abstract class RDAPDataset<T extends RDAPDatasetModel> {
     }
 
     private String filePath() {
-        return Paths.get(DATASET_PATH, filename()).toAbsolutePath().toString();
+        return Paths.get(datasetDirectory, filename()).toAbsolutePath().toString();
     }
 
     public boolean download(boolean useLocalDatasets) {
