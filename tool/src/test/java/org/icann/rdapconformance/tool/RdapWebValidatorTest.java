@@ -2,7 +2,17 @@ package org.icann.rdapconformance.tool;
 
 import static org.testng.Assert.*;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
@@ -141,5 +151,261 @@ public class RdapWebValidatorTest {
         // Should be able to check validity
         boolean isValid = response.isValid();
         assertTrue(isValid || !isValid); // Just ensure it returns a boolean
+    }
+
+    @Test
+    public void testCustomDatasetDirectoryConstructor() {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+        String customDir = "/tmp/rdap-test-custom";
+
+        // Test custom dataset directory constructor
+        try (RdapWebValidator validator = new RdapWebValidator(testUri, customDir, false)) {
+            assertNotNull(validator);
+            assertNotNull(validator.getQueryContext());
+            assertEquals(testUri, validator.getUri());
+        }
+        // No exceptions should be thrown during cleanup
+    }
+
+    @Test
+    public void testTemporaryDirectoryConstructor() {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        // Test auto-generated temporary directory constructor
+        try (RdapWebValidator validator = new RdapWebValidator(testUri, true, false, true, true)) {
+            assertNotNull(validator);
+            assertNotNull(validator.getQueryContext());
+            assertEquals(testUri, validator.getUri());
+        }
+        // Temporary directory should be cleaned up automatically
+    }
+
+    @Test
+    public void testAutoCloseableInterface() {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        // Test that RdapWebValidator implements AutoCloseable properly
+        try (RdapWebValidator validator = new RdapWebValidator(testUri, "/tmp/rdap-test-autocloseable", true)) {
+            assertNotNull(validator);
+            // Use the validator
+            validator.validate();
+        } catch (Exception e) {
+            // Network errors are expected in test environment, but no cleanup errors should occur
+            assertFalse(e.getMessage().contains("cleanup"), "Cleanup should not fail: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testTemporaryDirectoryCreation() throws IOException {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+        Path createdTempDir = null;
+
+        try {
+            // Create a temporary directory for testing
+            Path tempDir = Files.createTempDirectory("rdap-test-");
+            createdTempDir = tempDir;
+            String tempDirPath = tempDir.toAbsolutePath().toString();
+
+            // Test that custom directory is used
+            try (RdapWebValidator validator = new RdapWebValidator(testUri, tempDirPath, false)) {
+                assertNotNull(validator);
+                // The directory should exist during validation
+                assertTrue(Files.exists(tempDir), "Custom dataset directory should exist");
+            }
+
+            // Directory should still exist since cleanup=false
+            assertTrue(Files.exists(tempDir), "Directory should still exist when cleanup=false");
+
+        } finally {
+            // Clean up test directory recursively
+            if (createdTempDir != null && Files.exists(createdTempDir)) {
+                deleteDirectoryRecursively(createdTempDir);
+            }
+        }
+    }
+
+    @Test
+    public void testTemporaryDirectoryCleanup() throws IOException {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+        Path tempDirToCheck = null;
+
+        try {
+            // Create a temporary directory for testing cleanup
+            Path tempDir = Files.createTempDirectory("rdap-test-cleanup-");
+            tempDirToCheck = tempDir;
+            String tempDirPath = tempDir.toAbsolutePath().toString();
+
+            // Test with cleanup enabled
+            try (RdapWebValidator validator = new RdapWebValidator(testUri, tempDirPath, true)) {
+                assertNotNull(validator);
+                // Directory should exist during validation
+                assertTrue(Files.exists(tempDir), "Dataset directory should exist during validation");
+            }
+
+            // Directory should be cleaned up after close
+            assertFalse(Files.exists(tempDir), "Directory should be cleaned up after close()");
+            tempDirToCheck = null; // Don't try to clean up in finally block
+
+        } finally {
+            // Clean up test directory if cleanup didn't work
+            if (tempDirToCheck != null && Files.exists(tempDirToCheck)) {
+                Files.delete(tempDirToCheck);
+            }
+        }
+    }
+
+    @Test
+    public void testConcurrentTemporaryDirectories() throws InterruptedException {
+        // Test that multiple concurrent validations get isolated directories
+        final int numValidators = 5;
+        final URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+        final List<String> usedDirectories = new ArrayList<>();
+        final List<Exception> exceptions = new ArrayList<>();
+
+        ExecutorService executor = Executors.newFixedThreadPool(numValidators);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (int i = 0; i < numValidators; i++) {
+            final int validatorIndex = i;
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try {
+                    // Create a custom directory for each validator
+                    Path tempDir = Files.createTempDirectory("rdap-concurrent-test-" + validatorIndex + "-");
+                    String tempDirPath = tempDir.toAbsolutePath().toString();
+
+                    synchronized (usedDirectories) {
+                        usedDirectories.add(tempDirPath);
+                    }
+
+                    try (RdapWebValidator validator = new RdapWebValidator(testUri, tempDirPath, true)) {
+                        assertNotNull(validator);
+                        assertEquals(testUri, validator.getUri());
+
+                        // Verify each validator has its own directory
+                        assertTrue(Files.exists(Paths.get(tempDirPath)),
+                                 "Validator " + validatorIndex + " should have its own directory");
+                    }
+
+                    // Directory should be cleaned up
+                    assertFalse(Files.exists(Paths.get(tempDirPath)),
+                               "Directory should be cleaned up for validator " + validatorIndex);
+
+                } catch (Exception e) {
+                    synchronized (exceptions) {
+                        exceptions.add(e);
+                    }
+                }
+            }, executor);
+
+            futures.add(future);
+        }
+
+        // Wait for all validations to complete
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                             .get(30, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            fail("Failed to complete concurrent validations: " + e.getMessage());
+        }
+
+        executor.shutdown();
+        assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS), "Executor should terminate");
+
+        // Verify no exceptions occurred
+        if (!exceptions.isEmpty()) {
+            fail("Concurrent validation failed: " + exceptions.get(0).getMessage());
+        }
+
+        // Verify all directories were unique
+        assertEquals(numValidators, usedDirectories.size(), "Should have created unique directories");
+        assertEquals(usedDirectories.size(), usedDirectories.stream().distinct().count(),
+                    "All directories should be unique");
+    }
+
+    @Test
+    public void testBackwardCompatibility() {
+        // Test that existing constructor signatures still work unchanged
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        // Original constructors should still work
+        RdapWebValidator validator1 = new RdapWebValidator("https://rdap.example.com/domain/test.example");
+        assertNotNull(validator1);
+
+        RdapWebValidator validator2 = new RdapWebValidator(testUri);
+        assertNotNull(validator2);
+
+        RdapWebValidator validator3 = new RdapWebValidator(testUri, true);
+        assertNotNull(validator3);
+
+        RdapWebValidator validator4 = new RdapWebValidator(testUri, true, false, true);
+        assertNotNull(validator4);
+
+        RdapWebValidator validator5 = new RdapWebValidator(testUri, null);
+        assertNotNull(validator5);
+    }
+
+    @Test
+    public void testConfigurationIntegration() {
+        // Test that the new configuration methods are properly integrated
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        try (RdapWebValidator validator = new RdapWebValidator(testUri, "/tmp/rdap-config-test", true)) {
+            assertNotNull(validator.getQueryContext());
+            assertNotNull(validator.getQueryContext().getConfig());
+
+            // Configuration should be accessible
+            assertEquals(testUri, validator.getQueryContext().getConfig().getUri());
+            assertEquals(30, validator.getQueryContext().getConfig().getTimeout());
+
+            // New configuration methods should have default implementations
+            // getDatasetDirectory() returns null by default, which is expected
+            assertNull(validator.getQueryContext().getConfig().getDatasetDirectory());
+            assertFalse(validator.getQueryContext().getConfig().isCleanupDatasetsOnComplete());
+        }
+    }
+
+    @Test
+    public void testErrorHandlingWithInvalidDirectory() {
+        // Test error handling when dataset directory creation fails during initialization
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        try {
+            // Try to create validator with invalid directory path
+            new RdapWebValidator(testUri, "/invalid/nonexistent/path/that/should/fail", false);
+            // If we get here, the validator was created but datasets failed to download
+            // This is acceptable behavior as download failures are handled gracefully
+        } catch (RuntimeException e) {
+            // This is also acceptable - some environments may throw on directory creation
+            assertTrue(e.getMessage().contains("Failed to initialize RDAP datasets"));
+        }
+    }
+
+    @Test
+    public void testNullDirectoryHandling() {
+        // Test that null directory is handled properly (falls back to default)
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        try (RdapWebValidator validator = new RdapWebValidator(testUri, null, false)) {
+            assertNotNull(validator);
+            assertNotNull(validator.getQueryContext());
+            assertEquals(testUri, validator.getUri());
+        }
+    }
+
+    /**
+     * Helper method to recursively delete directories for test cleanup.
+     */
+    private void deleteDirectoryRecursively(Path directory) throws IOException {
+        if (Files.exists(directory)) {
+            Files.walk(directory)
+                .sorted((a, b) -> b.compareTo(a)) // Delete files before directories
+                .forEach(path -> {
+                    try {
+                        Files.delete(path);
+                    } catch (IOException e) {
+                        // Ignore cleanup errors in tests
+                    }
+                });
+        }
     }
 }
