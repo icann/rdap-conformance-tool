@@ -214,6 +214,14 @@ public class RdapWebValidator implements AutoCloseable {
     /**
      * Performs RDAP validation and returns the results.
      *
+     * <p>This method performs multiple validation passes like the CLI tool:</p>
+     * <ul>
+     *   <li>IPv4 with application/json Accept header</li>
+     *   <li>IPv4 with application/rdap+json Accept header</li>
+     *   <li>IPv6 with application/json Accept header</li>
+     *   <li>IPv6 with application/rdap+json Accept header</li>
+     * </ul>
+     *
      * <p>This method is thread-safe and does not modify any global JVM state.
      * Unlike {@link RdapConformanceTool#call()}, this method:</p>
      * <ul>
@@ -227,11 +235,34 @@ public class RdapWebValidator implements AutoCloseable {
      * @throws RuntimeException if validation fails due to configuration or network issues
      */
     public RDAPValidatorResults validate() {
-        // Perform validation - this uses the existing validation logic
-        // but skips all the global setup from RdapConformanceTool.call()
-        rdapValidator.validate();
+        // Get configuration to check if IPv4/IPv6 should be skipped
+        RDAPValidatorConfiguration config = queryContext.getConfig();
 
-        // Return the results that were collected during validation
+        // Perform IPv4 passes (if not disabled)
+        if (!config.isNoIpv4Queries()) {
+            // IPv4 Pass 1: application/json header
+            queryContext.setStackToV4();
+            queryContext.setAcceptHeaderToApplicationJson();
+            rdapValidator.validate();
+
+            // IPv4 Pass 2: application/rdap+json header
+            queryContext.setAcceptHeaderToApplicationRdapJson();
+            rdapValidator.validate();
+        }
+
+        // Perform IPv6 passes (if not disabled)
+        if (!config.isNoIpv6Queries()) {
+            // IPv6 Pass 1: application/json header
+            queryContext.setStackToV6();
+            queryContext.setAcceptHeaderToApplicationJson();
+            rdapValidator.validate();
+
+            // IPv6 Pass 2: application/rdap+json header
+            queryContext.setAcceptHeaderToApplicationRdapJson();
+            rdapValidator.validate();
+        }
+
+        // Return the results that were collected during all validation passes
         return queryContext.getResults();
     }
 
