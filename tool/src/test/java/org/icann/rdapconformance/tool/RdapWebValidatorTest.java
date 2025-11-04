@@ -392,6 +392,169 @@ public class RdapWebValidatorTest {
         }
     }
 
+    @Test
+    public void testFullConfigurationConstructor() {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        // Test the new constructor with all configuration options
+        try (RdapWebValidator validator = new RdapWebValidator(testUri,
+                true,    // isRegistry
+                false,   // isRegistrar
+                true,    // useRdapProfileFeb2019
+                false,   // useRdapProfileFeb2024
+                true,    // noIpv4Queries
+                false,   // noIpv6Queries
+                true,    // additionalConformanceQueries
+                true,    // useTemporaryDirectory
+                true     // cleanupOnClose
+        )) {
+            assertNotNull(validator);
+            assertNotNull(validator.getQueryContext());
+
+            // Verify configuration values are set correctly
+            assertEquals(testUri, validator.getUri());
+            assertTrue(validator.getQueryContext().getConfig().isGtldRegistry());
+            assertFalse(validator.getQueryContext().getConfig().isGtldRegistrar());
+            assertTrue(validator.getQueryContext().getConfig().useRdapProfileFeb2019());
+            assertFalse(validator.getQueryContext().getConfig().useRdapProfileFeb2024());
+            assertTrue(validator.getQueryContext().getConfig().isNoIpv4Queries());
+            assertFalse(validator.getQueryContext().getConfig().isNoIpv6Queries());
+            assertTrue(validator.getQueryContext().getConfig().isAdditionalConformanceQueries());
+        }
+    }
+
+    @Test
+    public void testFullConfigurationWithDefaults() {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        // Test with configuration that matches defaults
+        try (RdapWebValidator validator = new RdapWebValidator(testUri,
+                false,   // isRegistry
+                true,    // isRegistrar
+                false,   // useRdapProfileFeb2019 (default)
+                true,    // useRdapProfileFeb2024 (default)
+                false,   // noIpv4Queries (default)
+                false,   // noIpv6Queries (default)
+                false,   // additionalConformanceQueries (default)
+                false,   // useTemporaryDirectory
+                false    // cleanupOnClose
+        )) {
+            assertNotNull(validator);
+
+            // Verify configuration values match what we set
+            assertFalse(validator.getQueryContext().getConfig().isGtldRegistry());
+            assertTrue(validator.getQueryContext().getConfig().isGtldRegistrar());
+            assertFalse(validator.getQueryContext().getConfig().useRdapProfileFeb2019());
+            assertTrue(validator.getQueryContext().getConfig().useRdapProfileFeb2024());
+            assertFalse(validator.getQueryContext().getConfig().isNoIpv4Queries());
+            assertFalse(validator.getQueryContext().getConfig().isNoIpv6Queries());
+            assertFalse(validator.getQueryContext().getConfig().isAdditionalConformanceQueries());
+        }
+    }
+
+    @Test
+    public void testProfileConfigurationOptions() {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        // Test RDAP Profile 2019 enabled
+        try (RdapWebValidator validator2019 = new RdapWebValidator(testUri,
+                true, false, true, false, false, false, false, false, false)) {
+            assertTrue(validator2019.getQueryContext().getConfig().useRdapProfileFeb2019());
+            assertFalse(validator2019.getQueryContext().getConfig().useRdapProfileFeb2024());
+        }
+
+        // Test RDAP Profile 2024 enabled
+        try (RdapWebValidator validator2024 = new RdapWebValidator(testUri,
+                true, false, false, true, false, false, false, false, false)) {
+            assertFalse(validator2024.getQueryContext().getConfig().useRdapProfileFeb2019());
+            assertTrue(validator2024.getQueryContext().getConfig().useRdapProfileFeb2024());
+        }
+
+        // Test both profiles enabled
+        try (RdapWebValidator validatorBoth = new RdapWebValidator(testUri,
+                true, false, true, true, false, false, false, false, false)) {
+            assertTrue(validatorBoth.getQueryContext().getConfig().useRdapProfileFeb2019());
+            assertTrue(validatorBoth.getQueryContext().getConfig().useRdapProfileFeb2024());
+        }
+    }
+
+    @Test
+    public void testIpVersionConfigurationOptions() {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        // Test IPv4 disabled
+        try (RdapWebValidator validatorNoIPv4 = new RdapWebValidator(testUri,
+                true, false, false, true, true, false, false, false, false)) {
+            assertTrue(validatorNoIPv4.getQueryContext().getConfig().isNoIpv4Queries());
+            assertFalse(validatorNoIPv4.getQueryContext().getConfig().isNoIpv6Queries());
+        }
+
+        // Test IPv6 disabled
+        try (RdapWebValidator validatorNoIPv6 = new RdapWebValidator(testUri,
+                true, false, false, true, false, true, false, false, false)) {
+            assertFalse(validatorNoIPv6.getQueryContext().getConfig().isNoIpv4Queries());
+            assertTrue(validatorNoIPv6.getQueryContext().getConfig().isNoIpv6Queries());
+        }
+
+        // Test both IP versions disabled
+        try (RdapWebValidator validatorNoIP = new RdapWebValidator(testUri,
+                true, false, false, true, true, true, false, false, false)) {
+            assertTrue(validatorNoIP.getQueryContext().getConfig().isNoIpv4Queries());
+            assertTrue(validatorNoIP.getQueryContext().getConfig().isNoIpv6Queries());
+        }
+    }
+
+    @Test
+    public void testAdditionalConformanceQueriesConfiguration() {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        // Test additional conformance queries enabled
+        try (RdapWebValidator validator = new RdapWebValidator(testUri,
+                true, false, false, true, false, false, true, false, false)) {
+            assertTrue(validator.getQueryContext().getConfig().isAdditionalConformanceQueries());
+        }
+
+        // Test additional conformance queries disabled (default)
+        try (RdapWebValidator validator = new RdapWebValidator(testUri,
+                true, false, false, true, false, false, false, false, false)) {
+            assertFalse(validator.getQueryContext().getConfig().isAdditionalConformanceQueries());
+        }
+    }
+
+    @Test
+    public void testFullConfigurationWithTemporaryDirectory() throws IOException {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        // Test all configuration options with temporary directory and cleanup
+        try (RdapWebValidator validator = new RdapWebValidator(testUri,
+                false,   // isRegistry
+                true,    // isRegistrar
+                true,    // useRdapProfileFeb2019
+                true,    // useRdapProfileFeb2024
+                true,    // noIpv4Queries
+                true,    // noIpv6Queries
+                true,    // additionalConformanceQueries
+                true,    // useTemporaryDirectory
+                true     // cleanupOnClose
+        )) {
+            assertNotNull(validator);
+
+            // Verify all configuration options are set as expected
+            assertFalse(validator.getQueryContext().getConfig().isGtldRegistry());
+            assertTrue(validator.getQueryContext().getConfig().isGtldRegistrar());
+            assertTrue(validator.getQueryContext().getConfig().useRdapProfileFeb2019());
+            assertTrue(validator.getQueryContext().getConfig().useRdapProfileFeb2024());
+            assertTrue(validator.getQueryContext().getConfig().isNoIpv4Queries());
+            assertTrue(validator.getQueryContext().getConfig().isNoIpv6Queries());
+            assertTrue(validator.getQueryContext().getConfig().isAdditionalConformanceQueries());
+
+            // Verify it's still a functional validator
+            assertEquals(testUri, validator.getUri());
+            assertNotNull(validator.getQueryContext());
+        }
+        // Temporary directory should be cleaned up automatically
+    }
+
     /**
      * Helper method to recursively delete directories for test cleanup.
      */

@@ -112,6 +112,34 @@ public class RdapWebValidator implements AutoCloseable {
     }
 
     /**
+     * Creates a new web-safe RDAP validator with full configuration control and temporary directory support.
+     *
+     * @param uri the RDAP URI to validate
+     * @param isRegistry true if this is a gTLD registry
+     * @param isRegistrar true if this is a gTLD registrar
+     * @param useRdapProfileFeb2019 true to use RDAP Profile Feb 2019
+     * @param useRdapProfileFeb2024 true to use RDAP Profile Feb 2024
+     * @param noIpv4Queries true to disable IPv4 queries
+     * @param noIpv6Queries true to disable IPv6 queries
+     * @param additionalConformanceQueries true to enable additional conformance queries
+     * @param useTemporaryDirectory true to use a temporary directory for datasets
+     * @param cleanupOnClose true to cleanup the temporary directory when close() is called
+     * @throws IllegalArgumentException if the URI is invalid
+     * @throws RuntimeException if the configuration is invalid or temp directory creation fails
+     */
+    public RdapWebValidator(URI uri, boolean isRegistry, boolean isRegistrar,
+                           boolean useRdapProfileFeb2019, boolean useRdapProfileFeb2024,
+                           boolean noIpv4Queries, boolean noIpv6Queries,
+                           boolean additionalConformanceQueries,
+                           boolean useTemporaryDirectory, boolean cleanupOnClose) {
+        this(uri, new ConfigurableRDAPValidatorConfiguration(uri, isRegistry, isRegistrar, false,
+                                                           useRdapProfileFeb2019, useRdapProfileFeb2024,
+                                                           noIpv4Queries, noIpv6Queries,
+                                                           additionalConformanceQueries),
+             useTemporaryDirectory ? createTempDirectory() : null, cleanupOnClose);
+    }
+
+    /**
      * Creates a new web-safe RDAP validator with custom dataset directory.
      *
      * @param uri the RDAP URI to validate
@@ -415,16 +443,40 @@ public class RdapWebValidator implements AutoCloseable {
         private final boolean isRegistry;
         private final boolean isRegistrar;
         private final boolean useLocalDatasets;
+        private final boolean useRdapProfileFeb2019;
+        private final boolean useRdapProfileFeb2024;
+        private final boolean noIpv4Queries;
+        private final boolean noIpv6Queries;
+        private final boolean additionalConformanceQueries;
 
         public ConfigurableRDAPValidatorConfiguration(URI uri, boolean isRegistry, boolean isRegistrar) {
             this(uri, isRegistry, isRegistrar, true); // Default to using local datasets
         }
 
         public ConfigurableRDAPValidatorConfiguration(URI uri, boolean isRegistry, boolean isRegistrar, boolean useLocalDatasets) {
+            this(uri, isRegistry, isRegistrar, useLocalDatasets,
+                 false, // useRdapProfileFeb2019 - default to false
+                 true,  // useRdapProfileFeb2024 - default to true
+                 false, // noIpv4Queries - default to false (IPv4 enabled)
+                 false, // noIpv6Queries - default to false (IPv6 enabled)
+                 false  // additionalConformanceQueries - default to false
+            );
+        }
+
+        public ConfigurableRDAPValidatorConfiguration(URI uri, boolean isRegistry, boolean isRegistrar,
+                                                    boolean useLocalDatasets,
+                                                    boolean useRdapProfileFeb2019, boolean useRdapProfileFeb2024,
+                                                    boolean noIpv4Queries, boolean noIpv6Queries,
+                                                    boolean additionalConformanceQueries) {
             this.uri = uri;
             this.isRegistry = isRegistry;
             this.isRegistrar = isRegistrar;
             this.useLocalDatasets = useLocalDatasets;
+            this.useRdapProfileFeb2019 = useRdapProfileFeb2019;
+            this.useRdapProfileFeb2024 = useRdapProfileFeb2024;
+            this.noIpv4Queries = noIpv4Queries;
+            this.noIpv6Queries = noIpv6Queries;
+            this.additionalConformanceQueries = additionalConformanceQueries;
         }
 
         @Override
@@ -446,10 +498,10 @@ public class RdapWebValidator implements AutoCloseable {
         public boolean useLocalDatasets() { return useLocalDatasets; }
 
         @Override
-        public boolean useRdapProfileFeb2019() { return false; }
+        public boolean useRdapProfileFeb2019() { return useRdapProfileFeb2019; }
 
         @Override
-        public boolean useRdapProfileFeb2024() { return true; }
+        public boolean useRdapProfileFeb2024() { return useRdapProfileFeb2024; }
 
         @Override
         public boolean isGtldRegistrar() { return isRegistrar; }
@@ -464,19 +516,19 @@ public class RdapWebValidator implements AutoCloseable {
         public String getResultsFile() { return null; }
 
         @Override
-        public boolean isNoIpv4Queries() { return false; }
+        public boolean isNoIpv4Queries() { return noIpv4Queries; }
 
         @Override
         public RDAPQueryType getQueryType() { return null; }
 
         @Override
-        public boolean isNoIpv6Queries() { return false; }
+        public boolean isNoIpv6Queries() { return noIpv6Queries; }
 
         @Override
         public boolean isNetworkEnabled() { return true; }
 
         @Override
-        public boolean isAdditionalConformanceQueries() { return false; }
+        public boolean isAdditionalConformanceQueries() { return additionalConformanceQueries; }
 
         @Override
         public void clean() { /* no-op */ }
