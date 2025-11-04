@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
@@ -41,19 +42,11 @@ public class ResponseValidation2Dot10_2024Test extends ProfileJsonValidationTest
     public void setUp() throws IOException {
         super.setUp();
         URI uri = URI.create("https://rdap.cscglobal.com/dbs/rdap-api/v1/domain/cscglobal.com");
-        doReturn(uri).when(config).getUri();
-
-        config = mock(RDAPValidatorConfiguration.class);
-        doReturn(uri).when(config).getUri();
+        doReturn(uri).when(queryContext.getConfig()).getUri();
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot10_2024(
-                jsonObject.toString(),
-                results,
-                this.config,
-                RDAPQueryType.DOMAIN);
+        return new ResponseValidation2Dot10_2024(queryContext);
     }
 
     @Test
@@ -115,33 +108,42 @@ public class ResponseValidation2Dot10_2024Test extends ProfileJsonValidationTest
 
     @Test
     public void testDoLaunch_DomainQueryType_ReturnsTrue() {
-        ResponseValidation2Dot10_2024 validation = new ResponseValidation2Dot10_2024(
-                jsonObject.toString(),
-                results,
-                this.config,
+        QueryContext domainQueryContext = new QueryContext("test-domain",
+                queryContext.getConfig(),
+                queryContext.getDatasetService(),
+                queryContext.getQuery(),
+                queryContext.getResults(),
                 RDAPQueryType.DOMAIN);
+        domainQueryContext.setRdapResponseData(jsonObject.toString());
+        ResponseValidation2Dot10_2024 validation = new ResponseValidation2Dot10_2024(domainQueryContext);
 
         assert validation.doLaunch() : "doLaunch should return true for DOMAIN query type";
     }
 
     @Test
     public void testDoLaunch_HelpQueryType_ReturnsFalse() {
-        ResponseValidation2Dot10_2024 validation = new ResponseValidation2Dot10_2024(
-                jsonObject.toString(),
-                results,
-                this.config,
+        QueryContext helpQueryContext = new QueryContext("test-help",
+                queryContext.getConfig(),
+                queryContext.getDatasetService(),
+                queryContext.getQuery(),
+                queryContext.getResults(),
                 RDAPQueryType.HELP);
+        helpQueryContext.setRdapResponseData(jsonObject.toString());
+        ResponseValidation2Dot10_2024 validation = new ResponseValidation2Dot10_2024(helpQueryContext);
 
         assert !validation.doLaunch() : "doLaunch should return false for HELP query type";
     }
 
     @Test
     public void testDoLaunch_EntityQueryType_ReturnsFalse() {
-        ResponseValidation2Dot10_2024 validation = new ResponseValidation2Dot10_2024(
-                jsonObject.toString(),
-                results,
-                this.config,
+        QueryContext entityQueryContext = new QueryContext("test-entity",
+                queryContext.getConfig(),
+                queryContext.getDatasetService(),
+                queryContext.getQuery(),
+                queryContext.getResults(),
                 RDAPQueryType.ENTITY);
+        entityQueryContext.setRdapResponseData(jsonObject.toString());
+        ResponseValidation2Dot10_2024 validation = new ResponseValidation2Dot10_2024(entityQueryContext);
 
         assert !validation.doLaunch() : "doLaunch should return false for ENTITY query type";
     }

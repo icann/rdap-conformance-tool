@@ -4,6 +4,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 import java.util.Objects;
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -18,8 +19,11 @@ public class ResponseValidation2Dot7Dot5Dot2_2024 extends ProfileJsonValidation 
     private static final String REDACTED_PATH = "$.redacted[*]";
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot5Dot2_2024.class);
 
-    public ResponseValidation2Dot7Dot5Dot2_2024(String rdapResponse, RDAPValidatorResults results) {
-        super(rdapResponse, results);
+    private final QueryContext queryContext;
+
+    public ResponseValidation2Dot7Dot5Dot2_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -95,7 +99,7 @@ public class ResponseValidation2Dot7Dot5Dot2_2024 extends ProfileJsonValidation 
                     .code(-63902)
                     .value(redactedFax.toString())
                     .message("Registrant Fax redaction method must be removal if present")
-                    .build());
+                    .build(queryContext));
 
                 isValid = false;
             }
@@ -114,7 +118,7 @@ public class ResponseValidation2Dot7Dot5Dot2_2024 extends ProfileJsonValidation 
                 .code(-63900)
                 .value(value)
                 .message("jsonpath is invalid for Registrant Fax")
-                .build());
+                .build(queryContext));
 
             return false;
         }
@@ -127,7 +131,7 @@ public class ResponseValidation2Dot7Dot5Dot2_2024 extends ProfileJsonValidation 
                 .code(-63901)
                 .value(value)
                 .message("jsonpath must evaluate to a zero set for redaction by removal of Registrant Fax.")
-                .build());
+                .build(queryContext));
 
             return false;
         }

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -22,9 +23,11 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
   private static final String TECH_PHONE_TYPE = "Tech Phone";
   private static final String VCARD_ARRAY = "vcardArray";
   private Set<String> redactedPointersValue = null;
+  private final QueryContext queryContext;
 
-  public ResponseValidation2Dot7Dot6Dot2_2024(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
+  public ResponseValidation2Dot7Dot6Dot2_2024(QueryContext qctx) {
+    super(qctx.getRdapResponseData(), qctx.getResults());
+    this.queryContext = qctx;
   }
 
   @Override
@@ -72,7 +75,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
                      .code(-65104)
                      .value(getResultValue(redactedPointersValue))
                      .message("a redaction of type Tech Phone was found but tech phone was not redacted.")
-                     .build());
+                     .build(queryContext));
 
              return new RedactedHandleObjectToValidate(redactedTechPhone, false);
          }
@@ -88,7 +91,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
                  .code(-65100)
                  .value(getResultValue(redactedPointersValue))
                  .message("a redaction of type Tech Phone is required.")
-                 .build());
+                 .build(queryContext));
 
          return new RedactedHandleObjectToValidate(null, false);
      }
@@ -131,7 +134,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
                   .code(-65101)
                   .value(getResultValue(redactedPointersValue))
                   .message("jsonpath is invalid for Tech Phone.")
-                  .build());
+                  .build(queryContext));
           return false;
         }
       } else {
@@ -139,7 +142,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
                   .code(-65101)
                   .value(getResultValue(redactedPointersValue))
                   .message("jsonpath is invalid for Tech Phone.")
-                  .build());
+                  .build(queryContext));
           return false;
       }
     } catch (Exception e) {
@@ -162,7 +165,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
                         .code(-65102)
                         .value(getResultValue(redactedPointersValue))
                         .message("jsonpath must evaluate to a zero set for redaction by removal of Tech Phone.")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
         } catch (Exception e) {
@@ -171,7 +174,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
                     .code(-65101)
                     .value(getResultValue(redactedPointersValue))
                     .message("jsonpath is invalid for Tech Phone.")
-                    .build());
+                    .build(queryContext));
             return false;
         }
       }
@@ -193,7 +196,7 @@ public final class ResponseValidation2Dot7Dot6Dot2_2024 extends ProfileJsonValid
                     .code(-65103)
                     .value(getResultValue(redactedPointersValue))
                     .message("Tech Phone redaction method must be removal if present")
-                    .build());
+                    .build(queryContext));
             return false;
           }
         }

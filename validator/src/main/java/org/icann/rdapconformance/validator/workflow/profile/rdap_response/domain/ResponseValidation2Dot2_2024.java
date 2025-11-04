@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -8,10 +9,13 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 public final class ResponseValidation2Dot2_2024 extends ProfileJsonValidation {
     private final RDAPQueryType queryType;
 
-    public ResponseValidation2Dot2_2024(String rdapResponse, RDAPValidatorResults results, RDAPQueryType queryType) {
-        super(rdapResponse, results);
+    private final QueryContext queryContext;
 
-        this.queryType = queryType;
+    public ResponseValidation2Dot2_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+
+        this.queryType = qctx.getQueryType();
+        this.queryContext = qctx;
     }
 
     @Override
@@ -37,7 +41,7 @@ public final class ResponseValidation2Dot2_2024 extends ProfileJsonValidation {
                 .value(getResultValue("#/handle"))
                 .message(
                     "The globally unique identifier in the domain object handle is using an EPPROID reserved for testing by ICANN.")
-                .build());
+                .build(queryContext));
 
             return false;
         }

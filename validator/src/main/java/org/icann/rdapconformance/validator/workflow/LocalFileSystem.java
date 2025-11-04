@@ -42,6 +42,9 @@ public class LocalFileSystem implements FileSystem {
 
   @Override
   public boolean exists(String filepath) {
+    if (filepath == null || filepath.trim().isEmpty()) {
+      return false;
+    }
     return new File(filepath).exists();
   }
 

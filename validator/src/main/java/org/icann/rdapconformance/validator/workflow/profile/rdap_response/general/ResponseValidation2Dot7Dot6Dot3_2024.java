@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -23,9 +24,12 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
     private boolean contactUrlExists = false;
     private final RDAPValidatorConfiguration config;
 
-    public ResponseValidation2Dot7Dot6Dot3_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration config) {
-        super(rdapResponse, results);
-        this.config = config;
+    private final QueryContext queryContext;
+
+    public ResponseValidation2Dot7Dot6Dot3_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.config = qctx.getConfig();
+        this.queryContext = qctx;
     }
 
     @Override
@@ -76,7 +80,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                     .code(-65202)
                     .value(redactedTechEmail.toString())
                     .message("Tech Email redaction method must be replacementValue")
-                    .build());
+                    .build(queryContext));
 
                 isValid = false;
             }
@@ -175,7 +179,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                     .code(-65200)
                     .value(vcardArray.toString())
                     .message("a redaction of Tech Email may not have both the email and contact-uri")
-                    .build());
+                    .build(queryContext));
 
                 isValid = false;
             }
@@ -186,7 +190,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                     .code(-65201)
                     .value(vcardArray.toString())
                     .message("a redaction of Tech Email must have either the email or contact-uri")
-                    .build());
+                    .build(queryContext));
 
                 isValid = false;
             }
@@ -203,7 +207,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                 .code(-65203)
                 .value(value)
                 .message("jsonpath is invalid for Tech Email postPath")
-                .build());
+                .build(queryContext));
 
             return false;
         }
@@ -216,7 +220,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                 .code(-65204)
                 .value(value)
                 .message("jsonpath must evaluate to a non-empty set for redaction by replacementValue of Tech Email.")
-                .build());
+                .build(queryContext));
 
             return false;
         }
@@ -231,7 +235,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                 .code(-65205)
                 .value(value)
                 .message("jsonpath is invalid for Tech Email replacementPath")
-                .build());
+                .build(queryContext));
 
             return false;
         }
@@ -243,7 +247,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                 .code(-65207)
                 .value(value)
                 .message("jsonpath must evaluate to a non-empty set for redaction by replacementValue of Tech Email in replacementPath")
-                .build());
+                .build(queryContext));
 
             return false;
         }
@@ -259,7 +263,7 @@ public final class ResponseValidation2Dot7Dot6Dot3_2024 extends ProfileJsonValid
                 .code(-65206)
                 .value(value)
                 .message("jsonpath is invalid for Tech Email prePath")
-                .build());
+                .build(queryContext));
 
             return false;
         }

@@ -11,4 +11,10 @@ public class EPPRoidDataset extends RDAPDataset<EPPRoid> {
         URI.create("https://www.iana.org/assignments/epp-repository-ids/epp-repository-ids.xml"),
         fileSystem, EPPRoid.class);
   }
+
+  public EPPRoidDataset(FileSystem fileSystem, String datasetDirectory) {
+    super("EPPROID",
+        URI.create("https://www.iana.org/assignments/epp-repository-ids/epp-repository-ids.xml"),
+        fileSystem, datasetDirectory, EPPRoid.class);
+  }
 }

@@ -21,7 +21,6 @@ import org.testng.annotations.Test;
 public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
 
     private RDAPValidatorConfiguration config;
-    private RDAPQueryType queryType;
     private RDAPDatasetService datasetService;
     private RegistrarId registrarId;
 
@@ -33,7 +32,6 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
     @BeforeMethod
     public void setUp() throws IOException {
         super.setUp();
-        queryType = RDAPQueryType.DOMAIN;
         config = mock(RDAPValidatorConfiguration.class);
         doReturn(true).when(config).isGtldRegistry();
 
@@ -46,11 +44,14 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         datasetService = mock(RDAPDatasetService.class);
         registrarId = mock(RegistrarId.class);
         doReturn(registrarId).when(datasetService).get(RegistrarId.class);
+
+        // Create QueryContext with our mocked config and datasetService
+        queryContext = org.icann.rdapconformance.validator.QueryContext.forTesting(rdapContent, results, config, datasetService);
+        queryContext.setQueryType(RDAPQueryType.DOMAIN);
     }
 
-    @Override
     public ProfileJsonValidation getProfileValidation() {
-        return new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        return new TigValidation3Dot2_2024(queryContext);
     }
 
 
@@ -63,7 +64,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
     @Test
     public void testDoLaunch_NotADomainQuery_IsFalse() {
         doReturn(true).when(config).isGtldRegistry();
-        queryType = RDAPQueryType.NAMESERVER;
+        queryContext.setQueryType(RDAPQueryType.NAMESERVER);
         assertThat(getProfileValidation().doLaunch()).isFalse();
     }
 
@@ -83,7 +84,10 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(publicIds);
         jsonObject.put("entities", entities);
 
-        TigValidation3Dot2_2024 tigValidation3Dot2_2024 = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        // Update QueryContext with modified JSON data
+        updateQueryContextJsonData();
+
+        TigValidation3Dot2_2024 tigValidation3Dot2_2024 = new TigValidation3Dot2_2024(queryContext);
         assertThat(tigValidation3Dot2_2024.isRegistrarId9999()).isTrue();
     }
 
@@ -103,7 +107,10 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(publicIds);
         jsonObject.put("entities", entities);
 
-        TigValidation3Dot2_2024 tigValidation3Dot2_2024 = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        // Update QueryContext with modified JSON data
+        updateQueryContextJsonData();
+
+        TigValidation3Dot2_2024 tigValidation3Dot2_2024 = new TigValidation3Dot2_2024(queryContext);
         assertThat(tigValidation3Dot2_2024.isExcludedRegistrarId()).isTrue();
         assertThat(tigValidation3Dot2_2024.isRegistrarId9999()).isTrue(); // Backward compatibility
     }
@@ -319,7 +326,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
     @Test
     public void testIsExcludedRegistrarId_NoEntities_ReturnsFalse() {
         // Test case: no entities field at all
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 
@@ -333,7 +340,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(entityWithoutPublicIds);
         jsonObject.put("entities", entities);
         
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 
@@ -347,7 +354,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(entity);
         jsonObject.put("entities", entities);
         
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 
@@ -367,7 +374,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(entity);
         jsonObject.put("entities", entities);
         
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 
@@ -391,7 +398,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(entityWithPublicIds);    // Second entity with non-excluded ID
         jsonObject.put("entities", entities);
         
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 
@@ -415,7 +422,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         entities.put(entity);
         jsonObject.put("entities", entities);
         
-        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(jsonObject.toString(), results, config, queryType);
+        TigValidation3Dot2_2024 validation = new TigValidation3Dot2_2024(queryContext);
         assertThat(validation.isExcludedRegistrarId()).isFalse();
     }
 }

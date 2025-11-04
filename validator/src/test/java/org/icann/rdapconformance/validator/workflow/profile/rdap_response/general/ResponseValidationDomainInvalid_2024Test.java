@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -26,13 +27,18 @@ public class ResponseValidationDomainInvalid_2024Test {
   private RDAPValidatorResults results;
   private ResponseValidationDomainInvalid_2024 responseValidator;
   private MockedStatic<RDAPHttpRequest> mockStaticRequest;
+  private QueryContext queryContext;
 
   @BeforeMethod
   public void setup() {
     mockConfig = mock(RDAPValidatorConfiguration.class);
-    results = RDAPValidatorResultsImpl.getInstance();
+    queryContext = QueryContext.forTesting(mockConfig);
+    results = queryContext.getResults();
     results.clear();
-    responseValidator = new ResponseValidationDomainInvalid_2024(mockConfig, results);
+    responseValidator = new ResponseValidationDomainInvalid_2024(queryContext);
+
+    // Initialize static mock for each test
+    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
   }
 
   @AfterMethod
@@ -59,8 +65,7 @@ public class ResponseValidationDomainInvalid_2024Test {
     when(mockResponse.body()).thenReturn("{\"rdapConformance\":[], \"errorCode\":404}");
     when(mockResponse.uri()).thenReturn(URI.create("http://example.com/domain/test.invalid"));
 
-    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
@@ -88,8 +93,7 @@ public class ResponseValidationDomainInvalid_2024Test {
     when(mockResponse.statusCode()).thenReturn(404);
     when(mockResponse.uri()).thenReturn(URI.create("http://example.com/domain/test.invalid"));
 
-    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
@@ -99,6 +103,11 @@ public class ResponseValidationDomainInvalid_2024Test {
 
   @Test
   public void testDoValidate_WithErrors_InResultFile() throws Exception {
+    // Use real RDAPValidatorResults instead of mock so we can check the actual results
+    QueryContext testContext = QueryContext.forTesting(mockConfig);
+    RDAPValidatorResults realResults = testContext.getResults();
+    responseValidator = new ResponseValidationDomainInvalid_2024(testContext);
+
     URI uri = new URI("http://example.com/rdap");
     when(mockConfig.getUri()).thenReturn(uri);
 
@@ -107,13 +116,12 @@ public class ResponseValidationDomainInvalid_2024Test {
     when(response.body()).thenReturn("{\"rdapConformance\":[]}");
     when(response.uri()).thenReturn(URI.create("http://example.com/domain/test.invalid"));
 
-    mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString())).thenReturn(response);
 
     assertThat(responseValidator.doValidate()).isFalse();
 
-    ArgumentCaptor<RDAPValidationResult> resultCaptor = ArgumentCaptor.forClass(RDAPValidationResult.class);
-    assertThat(results.getAll().stream().anyMatch(result ->
+    // Now check the real results
+    assertThat(realResults.getAll().stream().anyMatch(result ->
             result.getCode() == -65300 &&
                     result.getMessage().equals("A query for an invalid domain name did not yield a 404 response.")
     )).isTrue();

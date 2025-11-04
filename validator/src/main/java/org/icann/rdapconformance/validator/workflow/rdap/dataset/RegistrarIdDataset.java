@@ -11,4 +11,10 @@ public class RegistrarIdDataset extends RDAPDataset<RegistrarId> {
         URI.create("https://www.iana.org/assignments/registrar-ids/registrar-ids.xml"),
         fileSystem, RegistrarId.class);
   }
+
+  public RegistrarIdDataset(FileSystem fileSystem, String datasetDirectory) {
+    super("registrarId",
+        URI.create("https://www.iana.org/assignments/registrar-ids/registrar-ids.xml"),
+        fileSystem, datasetDirectory, RegistrarId.class);
+  }
 }

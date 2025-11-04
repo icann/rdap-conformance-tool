@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.registry;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -12,6 +13,7 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
 
   private final RDAPValidatorConfiguration config;
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
   
   // Field names
   private static final String LINKS_FIELD = "links";
@@ -30,12 +32,11 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
       + "shall contain the elements rel:related and href, but they were not found. "
       + "See section 3.2 of the RDAP_Technical_Implementation_Guide_2_1.";
 
-  public TigValidation3Dot2(String rdapResponse, RDAPValidatorResults results,
-      RDAPValidatorConfiguration config,
-      RDAPQueryType queryType) {
-    super(rdapResponse, results);
-    this.config = config;
-    this.queryType = queryType;
+  public TigValidation3Dot2(QueryContext queryContext) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.config = queryContext.getConfig();
+    this.queryType = queryContext.getQueryType();
+    this.queryContext = queryContext;
   }
 
   @Override
@@ -62,11 +63,12 @@ public final class TigValidation3Dot2 extends ProfileJsonValidation {
 
     if (!isValid) {
       String linksStr = links == null ? "" : links.toString();
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-23200)
           .value(linksStr)
-          .message(ERROR_23200_MESSAGE)
-          .build());
+          .message(ERROR_23200_MESSAGE);
+
+      results.add(builder.build(queryContext));
     }
     return isValid;
   }

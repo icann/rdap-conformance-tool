@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
@@ -35,11 +36,8 @@ public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidat
         super.setUp();
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot7Dot4Dot1_2024(
-                jsonObject.toString(),
-                results);
+        return new ResponseValidation2Dot7Dot4Dot1_2024(queryContext);
     }
 
     @Test
@@ -525,6 +523,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidat
         obj.put("name", new JSONObject().put("type", "Registrant Name"));
         redactedArray.put(obj);
         jsonObject.put("redacted", redactedArray);
+        updateQueryContextJsonData(); // Update QueryContext with modified JSON data
         var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
         java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("extractRedactedRegistrantName");
         m.setAccessible(true);
@@ -541,6 +540,7 @@ public class ResponseValidation2Dot7Dot4Dot1_2024Test extends ProfileJsonValidat
         obj.put("name", new JSONObject().put("type", "  registrant name  "));
         redactedArray.put(obj);
         jsonObject.put("redacted", redactedArray);
+        updateQueryContextJsonData(); // Update QueryContext with modified JSON data
         var validation = (ResponseValidation2Dot7Dot4Dot1_2024) getProfileValidation();
         java.lang.reflect.Method m = ResponseValidation2Dot7Dot4Dot1_2024.class.getDeclaredMethod("extractRedactedRegistrantName");
         m.setAccessible(true);

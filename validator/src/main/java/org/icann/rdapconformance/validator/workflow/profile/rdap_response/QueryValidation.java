@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 import static org.json.JSONObject.NULL;
 
 import com.ibm.icu.text.IDNA;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -20,15 +21,17 @@ public abstract class QueryValidation extends ProfileJsonValidation {
   protected final String sectionName;
   private final RDAPValidatorConfiguration config;
   private final IDNA idna;
+  private final QueryContext queryContext;
 
 
-  public QueryValidation(String rdapResponse, RDAPValidatorResults results,
-      RDAPValidatorConfiguration config, RDAPQueryType queryType, String sectionName, int code) {
-    super(rdapResponse, results);
-    this.config = config;
-    this.queryType = queryType;
+  // QueryContext constructor for production use
+  public QueryValidation(QueryContext queryContext, String sectionName, int code) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.config = queryContext.getConfig();
+    this.queryType = queryContext.getQueryType();
     this.sectionName = sectionName;
     this.code = code;
+    this.queryContext = queryContext;
     this.idna = IDNA.getUTS46Instance(IDNA.NONTRANSITIONAL_TO_ASCII
         | IDNA.NONTRANSITIONAL_TO_UNICODE
         | IDNA.CHECK_BIDI
@@ -55,27 +58,29 @@ public abstract class QueryValidation extends ProfileJsonValidation {
     if (ldhNameBuilder.toString().equalsIgnoreCase(domainName)) {
       // URI contains only A-label or NR-LDH labels
       if (NULL.equals(jsonObject.opt("ldhName"))) {
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
             .code(code)
             .value(jsonObject.toString())
             .message(String.format("The RDAP Query URI contains only A-label or NR-LDH labels, "
                     + "the topmost %s object does not contain a ldhName member. "
                     + "See section %s of the RDAP_Response_Profile_2_1.",
-                queryType.name().toLowerCase(), sectionName))
-            .build());
+                queryType.name().toLowerCase(), sectionName));
+
+        results.add(builder.build(queryContext));
         isValid = false;
       }
     } else {
       // URI contains one or more U-label
       if (NULL.equals(jsonObject.opt("unicodeName"))) {
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
             .code(code - 1)  // CalculatedCode(s): -46101 (domain), -49101 (nameserver)
             .value(jsonObject.toString())
             .message(String.format("The RDAP Query URI contains one or more U-label, the topmost "
                     + "%s object does not contain a unicodeName member. "
                     + "See section %s of the RDAP_Response_Profile_2_1.",
-                queryType.name().toLowerCase(), sectionName))
-            .build());
+                queryType.name().toLowerCase(), sectionName));
+
+        results.add(builder.build(queryContext));
         isValid = false;
       }
     }

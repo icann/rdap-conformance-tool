@@ -15,7 +15,6 @@ public class SchemaValidatorVariantNamesTest extends SchemaValidatorForArrayTest
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     super.setUp();
     name = "variantNames";

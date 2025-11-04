@@ -11,17 +11,14 @@ import org.testng.annotations.Test;
 
 public class TigValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
 
-  RDAPQueryType queryType = RDAPQueryType.DOMAIN;
-
   public TigValidation1Dot12Dot1Test() {
     super(
         "/validators/profile/tig_section/entities/valid.json",
         "tigSection_1_12_1_Validation");
   }
 
-  @Override
   public ProfileJsonValidation getProfileValidation() {
-    return new TigValidation1Dot12Dot1(jsonObject.toString(), results, datasets, queryType);
+    return new TigValidation1Dot12Dot1(queryContext);
   }
 
   /**
@@ -98,9 +95,9 @@ public class TigValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
 
   @Test
   public void testDoLaunch_NotARegistryNorRegistrar_IsFalse() {
-    queryType = RDAPQueryType.HELP;
+    queryContext.setQueryType(RDAPQueryType.HELP);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVERS;
+    queryContext.setQueryType(RDAPQueryType.NAMESERVERS);
     assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 }

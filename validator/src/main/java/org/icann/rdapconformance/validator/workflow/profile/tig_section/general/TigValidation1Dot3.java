@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -29,12 +30,13 @@ public final class TigValidation1Dot3 extends ProfileValidation {
   public static final String SS_LV_3 = "SSLv3";
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
+  private final QueryContext queryContext;
 
-  public TigValidation1Dot3(HttpResponse<String> rdapResponse, RDAPValidatorConfiguration config,
-      RDAPValidatorResults results) {
-    super(results);
-    this.rdapResponse = rdapResponse;
-    this.config = config;
+  public TigValidation1Dot3(QueryContext queryContext) {
+    super(queryContext.getResults());
+    this.rdapResponse = (HttpResponse<String>) queryContext.getQuery().getRawResponse();
+    this.config = queryContext.getConfig();
+    this.queryContext = queryContext;
   }
 
   @Override
@@ -69,11 +71,12 @@ public final class TigValidation1Dot3 extends ProfileValidation {
             }
           }
           if (enabledProtocols.contains(SS_LV_2) || enabledProtocols.contains(SS_LV_3)) {
-            results.add(RDAPValidationResult.builder()
+            RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                                             .code(-20200)
                                             .value(response.uri().toString())
-                                            .message("The RDAP server is offering SSLv2 and/or SSLv3.")
-                                            .build());
+                                            .message("The RDAP server is offering SSLv2 and/or SSLv3.");
+
+            results.add(builder.build(queryContext));
             isValid = false;
           }
         } catch (NoSuchAlgorithmException | IOException e) {

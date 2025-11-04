@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
@@ -11,7 +11,6 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.util.Set;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationTestBase {
@@ -33,16 +32,11 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     @BeforeMethod
     public void setUp() throws IOException {
         super.setUp();
-        config = mock(RDAPValidatorConfiguration.class);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
-        when(config.isGtldRegistry()).thenReturn(true);
-        return new ResponseValidationTechEmail_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        return new ResponseValidationTechEmail_2024(queryContext);
     }
 
     @Test
@@ -213,11 +207,8 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testDoLaunch_NotGtldRegistry_ShouldNotLaunch() {
         // Test that validation only runs for gTLD registry
 
-        when(config.isGtldRegistry()).thenReturn(false);
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(false);
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(queryContext);
 
         // Should not launch when not gTLD registry
         assert !validation.doLaunch();
@@ -227,11 +218,8 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testDoLaunch_GtldRegistry_ShouldLaunch() {
         // Test that validation runs for gTLD registry
 
-        when(config.isGtldRegistry()).thenReturn(true);
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(queryContext);
 
         // Should launch when gTLD registry
         assert validation.doLaunch();
@@ -241,14 +229,12 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testValidate_MalformedJsonException_ShouldReturnTrue() {
         // Test exception handling in main validation method
 
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
 
         // Create malformed JSON that will cause exception in validation
         String malformedJson = "{\"entities\":[{\"roles\":[\"technical\"],\"invalidStructure\":true}]}";
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                malformedJson,
-                results,
-                config);
+        QueryContext customContext = QueryContext.forTesting(malformedJson, results, queryContext.getConfig(), queryContext.getDatasetService());
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(customContext);
 
         // Should return true even with exception (graceful handling)
         boolean result = validation.validate();
@@ -335,7 +321,7 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testValidate_RedactionValidationWithNullRedactedEmail_ShouldReturnTrue() {
         // Test null check in validateRedactedProperties method
 
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
 
         // This test would require more complex mocking to reach the null check
         // The scenario is already covered by existing tests where redactedEmail is null
@@ -347,7 +333,7 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testValidate_PrePathValidationWithNullRedactedEmail_ShouldReturnTrue() {
         // Test null check in validatePrePathBasedOnPathLang method
 
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
 
         // This scenario is covered by the null check guards in the method
         // The validatePrePathBasedOnPathLang method has null checks that return true
@@ -359,7 +345,7 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testValidate_MethodValidationWithNullRedactedEmail_ShouldReturnTrue() {
         // Test null check in validateMethodProperty method
 
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
 
         // This scenario is covered by the null check guards in the method
         // The validateMethodProperty method has null checks that return true
@@ -432,11 +418,8 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testLine90_RedactionInvalidButEmailPresent_ShouldReturnFalse() {
         // Test LINE 90: return false when redaction properties are invalid but email is present
 
-        when(config.isGtldRegistry()).thenReturn(true);
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(queryContext);
 
         // Add email to technical entity
         JSONObject technicalEntity = jsonObject.getJSONArray("entities").getJSONObject(0);
@@ -464,7 +447,7 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testLine128_ExceptionInExtractRedactedEmailObject_ShouldLogAndContinue() {
         // Test LINE 128-130: exception logging in extractRedactedEmailObject
 
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
 
         // Create JSON with redacted object that has name but will cause exception when accessing name.type
         JSONObject redactedObject = jsonObject.getJSONArray("redacted").getJSONObject(0);
@@ -472,10 +455,9 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
         nameObj.put("description", "This will cause exception when trying to get type"); // No "type" property
         redactedObject.put("name", nameObj);
 
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        updateQueryContextJsonData(); // Update QueryContext with modified JSON data
+
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(queryContext);
 
         // This should hit lines 128-130: exception catch and debug logging
         JSONObject result = validation.extractRedactedEmailObject();
@@ -486,11 +468,8 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testLine139_ValidateRedactedPropertiesWithNull_ShouldReturnTrue() {
         // Test LINE 139: null check in validateRedactedProperties
 
-        when(config.isGtldRegistry()).thenReturn(true);
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(queryContext);
 
         // Directly test the public method with null input
         boolean result = validation.validateRedactedProperties(null);
@@ -501,11 +480,8 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testLine165_ValidatePrePathWithNull_ShouldReturnTrue() {
         // Test LINE 165: null check in validatePrePathBasedOnPathLang
 
-        when(config.isGtldRegistry()).thenReturn(true);
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(queryContext);
 
         // Directly test the public method with null input
         boolean result = validation.validatePrePathBasedOnPathLang(null);
@@ -516,16 +492,13 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testLine195_ExceptionInValidatePrePath_ShouldLogAndContinue() {
         // Test LINE 195: exception catch in validatePrePathBasedOnPathLang
 
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
 
         // Create malformed redacted object that will cause exception when accessing prePath
         JSONObject malformedRedacted = new JSONObject();
         malformedRedacted.put("invalid", "structure"); // This will cause exception when accessing prePath
 
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(queryContext);
 
         // This should hit line 195: exception logging in prePath validation
         boolean result = validation.validatePrePathBasedOnPathLang(malformedRedacted);
@@ -537,11 +510,8 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testLine205_ValidateMethodPropertyWithNull_ShouldReturnTrue() {
         // Test LINE 205: null check in validateMethodProperty
 
-        when(config.isGtldRegistry()).thenReturn(true);
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                jsonObject.toString(),
-                results,
-                config);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(queryContext);
 
         // Directly test the public method with null input
         boolean result = validation.validateMethodProperty(null);
@@ -552,16 +522,14 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testLine237_EmptyTechnicalEntities_ShouldReturnFalse() {
         // Test LINE 237: empty technical entities check in hasEmailProperty
 
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
 
         // Create JSON with no technical entities
         JSONObject emptyEntitiesJson = new JSONObject(jsonObject.toString());
         emptyEntitiesJson.put("entities", new JSONArray()); // Empty entities array
 
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                emptyEntitiesJson.toString(),
-                results,
-                config);
+        QueryContext customContext = QueryContext.forTesting(emptyEntitiesJson.toString(), results, queryContext.getConfig(), queryContext.getDatasetService());
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(customContext);
 
         // This should hit line 237: return false when technicalEntities.isEmpty()
         boolean result = validation.hasEmailProperty();
@@ -572,7 +540,7 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
     public void testLine265_ExceptionInHasEmailProperty_ShouldReturnFalse() {
         // Test LINE 265: exception catch in hasEmailProperty
 
-        when(config.isGtldRegistry()).thenReturn(true);
+        when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
 
         String validJson = """
         {
@@ -591,11 +559,8 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
         """;
 
         // Mock getPointerFromJPath to return a malformed pointer
-        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(
-                validJson,
-                results,
-                config) {
-            @Override
+        QueryContext customContext = QueryContext.forTesting(validJson, results, queryContext.getConfig(), queryContext.getDatasetService());
+        ResponseValidationTechEmail_2024 validation = new ResponseValidationTechEmail_2024(customContext) {
             public Set<String> getPointerFromJPath(String jpath) {
                 // Return an invalid JSONPointer that will cause query() to throw
                 return Set.of("/entities[badIndex]/notvalid"); // Invalid JSONPointer syntax

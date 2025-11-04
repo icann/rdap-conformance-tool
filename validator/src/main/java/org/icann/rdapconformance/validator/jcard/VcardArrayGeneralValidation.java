@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.jcard;
 
 import org.everit.json.schema.ValidationException;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfileVcardArrayValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -8,8 +9,13 @@ import org.json.JSONArray;
 
 public class VcardArrayGeneralValidation extends RDAPProfileVcardArrayValidation {
 
-  public VcardArrayGeneralValidation(String rdapResponse, RDAPValidatorResults results) {
-    super(rdapResponse, results);
+  private final QueryContext queryContext;
+
+
+  public VcardArrayGeneralValidation(String rdapResponse, RDAPValidatorResults results,
+      QueryContext queryContext) {
+    super(rdapResponse, results, queryContext);
+    this.queryContext = queryContext;
   }
 
   @Override
@@ -24,20 +30,20 @@ public class VcardArrayGeneralValidation extends RDAPProfileVcardArrayValidation
       try {
         jcardCategoriesSchemas.getCategory(category).validate(categoryJsonArray);
       } catch (ValidationException e) {
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
             .code(-12305)
             .value(jsonExceptionPointer + ":" + categoryJsonArray)
             .message(
-                "The value for the JSON name value is not a syntactically valid vcardArray.")
-            .build());
+                "The value for the JSON name value is not a syntactically valid vcardArray.");
+        results.add(builder.build(queryContext));
         return false;
       }
     } else {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-12305)
           .value(jsonExceptionPointer + ":" + category)
-          .message("unknown vcard category: \"" + category + "\".")
-          .build());
+          .message("unknown vcard category: \"" + category + "\".");
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

@@ -16,7 +16,6 @@ public class ResponseValidation4Dot1HandleTest extends
         RDAPQueryType.NAMESERVER, ResponseValidation4Dot1Handle.class, "nameserver");
   }
 
-  @Override
   protected String givenInvalidHandle() {
     replaceValue("handle", "ABCD");
     return "#/handle:ABCD";
@@ -27,7 +26,6 @@ public class ResponseValidation4Dot1HandleTest extends
     return "#/handle:ABCD-ICANNRST";
   }
 
-  @Override
   protected String getValidValueWithRoidExmp() {
     return "#/handle:2138514_NS_COM-EXMP";
   }

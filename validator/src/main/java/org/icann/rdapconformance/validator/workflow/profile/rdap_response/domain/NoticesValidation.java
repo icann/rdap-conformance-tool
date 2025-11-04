@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.schema.JsonPointers;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -15,13 +16,15 @@ public abstract class NoticesValidation extends ProfileJsonValidation {
   final String description;
   final String href;
   private final RDAPQueryType queryType;
+  private final QueryContext queryContext;
 
-  public NoticesValidation(String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPQueryType queryType,
+
+  // QueryContext constructor for production use
+  public NoticesValidation(QueryContext queryContext,
       String title, String description, String href, int code) {
-    super(rdapResponse, results);
-    this.queryType = queryType;
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.queryType = queryContext.getQueryType();
+    this.queryContext = queryContext;
     this.title = title;
     this.description = description;
     this.href = href;
@@ -35,13 +38,14 @@ public abstract class NoticesValidation extends ProfileJsonValidation {
         title, description, href);
     if (!exists(path)) {
       Set<String> noticesPaths = getPointerFromJPath("$..notices");
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(code)
           .value(getResultValue(noticesPaths.stream()
               .map(JsonPointers::fromJpath)
               .collect(Collectors.toSet())))
-          .message(String.format("The notice for %s was not found.", href))
-          .build());
+          .message(String.format("The notice for %s was not found.", href));
+
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -24,8 +25,11 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
     private Set<String> redactedPointersValue = null;
     private boolean isValid = true;
 
-    public ResponseValidation2Dot7Dot4Dot8_2024(String rdapResponse, RDAPValidatorResults results) {
-        super(rdapResponse, results);
+    private final QueryContext queryContext;
+
+    public ResponseValidation2Dot7Dot4Dot8_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -69,7 +73,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                     .code(-63704)
                     .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Registrant Phone was found but the phone was not redacted.")
-                    .build());
+                    .build(queryContext));
 
             return false;
         }
@@ -83,7 +87,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                     .code(-63700)
                     .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Registrant Phone is required.")
-                    .build());
+                    .build(queryContext));
 
             return false;
         }
@@ -163,7 +167,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                                 .code(-63702)
                                 .value(getResultValue(redactedPointersValue))
                                 .message("jsonpath must evaluate to a zero set for redaction by removal of Registrant Phone.")
-                                .build());
+                                .build(queryContext));
                         isValid = false;
                         return validateMethodProperty(redactedPhone);
                     }
@@ -173,7 +177,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                             .code(-63701)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath is invalid for Registrant Phone.")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
             }
@@ -200,7 +204,7 @@ public class ResponseValidation2Dot7Dot4Dot8_2024 extends ProfileJsonValidation 
                             .code(-63703)
                             .value(getResultValue(redactedPointersValue))
                             .message("Registrant Phone redaction method must be removal if present")
-                            .build());
+                            .build(queryContext));
                     isValid = false;
                 }
             }

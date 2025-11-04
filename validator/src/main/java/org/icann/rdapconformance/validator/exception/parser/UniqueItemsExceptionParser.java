@@ -10,8 +10,9 @@ public class UniqueItemsExceptionParser extends ExceptionParser {
 
   protected UniqueItemsExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
   }
 
   @Override
@@ -21,11 +22,12 @@ public class UniqueItemsExceptionParser extends ExceptionParser {
 
   @Override
   protected void doParse() {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(
             parseErrorCode(() -> (int) e.getPropertyFromViolatedSchema("duplicateItemsErrorCode")))
         .value(jsonObject.toString())
-        .message("A " + e.getPointerToViolation() + " value appeared more than once.")
-        .build());
+        .message("A " + e.getPointerToViolation() + " value appeared more than once.");
+
+    results.add(builder.build(queryContext));
   }
 }

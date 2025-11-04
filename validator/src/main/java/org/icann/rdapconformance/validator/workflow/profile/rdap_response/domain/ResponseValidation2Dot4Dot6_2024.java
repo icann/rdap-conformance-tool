@@ -10,6 +10,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.getUriHost;
 
 import java.net.URI;
 import java.util.Set;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -32,15 +33,14 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
     private final RDAPDatasetService datasetService;
     private final RDAPValidatorConfiguration config;
 
-    public ResponseValidation2Dot4Dot6_2024(String rdapResponse,
-        RDAPValidatorResults results,
-        RDAPDatasetService datasetService,
-        RDAPQueryType queryType,
-        RDAPValidatorConfiguration config) {
-        super(rdapResponse, results);
-        this.datasetService = datasetService;
-        this.queryType = queryType;
-        this.config = config;
+    private final QueryContext queryContext;
+
+    public ResponseValidation2Dot4Dot6_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.datasetService = qctx.getDatasetService();
+        this.queryType = qctx.getQueryType();
+        this.config = qctx.getConfig();
+        this.queryContext = qctx;
     }
 
 
@@ -68,7 +68,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
                 .value(getResultValue(getPointerFromJPath("$.entities[?(@.roles contains 'registrar')]")))
                 .message(
                     "A domain must have link to the RDAP base URL of the registrar.")
-                .build());
+                .build(queryContext));
 
             // Return false but don't exit early - we want to collect all possible errors
             // However, if there's no link, we can't validate the other properties
@@ -110,7 +110,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
                 .value(getResultValue(linkPointer))
                 .message(
                     "The registrar RDAP base URL must have an https scheme.")
-                .build());
+                .build(queryContext));
             valueHttpsValid = false;
             allValidationsPassed = false;
         }
@@ -148,7 +148,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
                 .value(getResultValue(linkPointer))
                 .message(
                     "The registrar base URL is not registered with IANA.")
-                .build());
+                .build(queryContext));
             return false;
         }
 
@@ -170,7 +170,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
                 .value(getResultValue(linkPointer))
                 .message(
                     "The registrar base URL is not registered with IANA.")
-                .build());
+                .build(queryContext));
 
             return false;
         }
@@ -193,7 +193,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
                 .value(getResultValue(linkPointer))
                 .message(
                     "The 'href' property is not a valid Web URI according to [webUriValidation].")
-                .build());
+                .build(queryContext));
             return false;
         }
 
@@ -208,7 +208,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
                 .value(getResultValue(linkPointer))
                 .message(
                     "The 'href' property is not a valid Web URI according to [webUriValidation].")
-                .build());
+                .build(queryContext));
             return false;
         }
 
@@ -222,7 +222,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
                 .value(getResultValue(linkPointer))
                 .message(
                     "The 'href' property is not a valid Web URI according to [webUriValidation].")
-                .build());
+                .build(queryContext));
             return false;
         }
         
@@ -234,7 +234,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
                 .value(getResultValue(linkPointer))
                 .message(
                     "The 'href' property is not a valid Web URI according to [webUriValidation].")
-                .build());
+                .build(queryContext));
             return false;
         }
 
@@ -247,7 +247,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
                 .value(getResultValue(linkPointer))
                 .message(
                     "The 'href' property is not a valid Web URI according to [webUriValidation].")
-                .build());
+                .build(queryContext));
             return false;
         }
 
@@ -260,7 +260,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
                 .value(getResultValue(linkPointer))
                 .message(
                     "The 'href' property is not a valid Web URI according to [webUriValidation].")
-                .build());
+                .build(queryContext));
             return false;
         }
 

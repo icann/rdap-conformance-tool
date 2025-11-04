@@ -11,4 +11,10 @@ public class BootstrapDomainNameSpaceDataset extends RDAPDataset<BootstrapDomain
         URI.create("https://data.iana.org/rdap/dns.json"),
         fileSystem, BootstrapDomainNameSpace.class);
   }
+
+  public BootstrapDomainNameSpaceDataset(FileSystem fileSystem, String datasetDirectory) {
+    super("bootstrapDomainNameSpace",
+        URI.create("https://data.iana.org/rdap/dns.json"),
+        fileSystem, datasetDirectory, BootstrapDomainNameSpace.class);
+  }
 }

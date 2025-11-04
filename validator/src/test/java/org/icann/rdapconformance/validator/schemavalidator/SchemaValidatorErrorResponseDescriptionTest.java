@@ -14,7 +14,6 @@ public class SchemaValidatorErrorResponseDescriptionTest extends SchemaValidator
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     super.setUp();
     name = "description";

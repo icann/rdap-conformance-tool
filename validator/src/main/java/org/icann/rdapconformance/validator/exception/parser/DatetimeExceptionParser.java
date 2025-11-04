@@ -11,19 +11,22 @@ import org.json.JSONObject;
 
 public class DatetimeExceptionParser extends StringFormatExceptionParser<DateTimeFormatValidator> {
 
+
   protected DatetimeExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results, DateTimeFormatValidator.class);
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, DateTimeFormatValidator.class, queryContext);
   }
 
   @Override
   protected void doParse() {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
         .message(
-            "The JSON value shall be a syntactically valid time and date according to RFC3339.")
-        .build());
+            "The JSON value shall be a syntactically valid time and date according to RFC3339.");
+
+    results.add(builder.build(queryContext));
   }
 }

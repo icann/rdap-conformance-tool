@@ -11,17 +11,14 @@ import org.testng.annotations.Test;
 public class ResponseValidation2Dot7Dot1DotXAndRelated6Test extends
     ResponseValidation2Dot7Dot1DotXAndRelatedTest {
 
-  @Override
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
     replaceValue("$..vcardArray[1][?(@[0] == 'adr')][1]", Map.of("cc", "US"));
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot7Dot1DotXAndRelated6(jsonObject.toString(), results,
-        queryType, config);
+    return new ResponseValidation2Dot7Dot1DotXAndRelated6(queryContext);
   }
 
   /**

@@ -13,22 +13,21 @@ public class TigValidation6Dot1Test extends RegistrarEntityPublicIdsValidationTe
     super("/validators/domain/valid.json", "tigSection_6_1_Validation", RDAPQueryType.DOMAIN);
   }
 
-  @Override
   public RegistrarEntityPublicIdsValidation getProfileValidation() {
-    return new TigValidation6Dot1(jsonObject.toString(), results, queryType);
+    return new TigValidation6Dot1(queryContext);
   }
 
   @Test
   public void testDoLaunch() {
-    queryType = RDAPQueryType.HELP;
+    queryContext.setQueryType(RDAPQueryType.HELP);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVERS;
+    queryContext.setQueryType(RDAPQueryType.NAMESERVERS);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.DOMAIN;
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
     assertThat(getProfileValidation().doLaunch()).isTrue();
-    queryType = RDAPQueryType.NAMESERVER;
+    queryContext.setQueryType(RDAPQueryType.NAMESERVER);
     assertThat(getProfileValidation().doLaunch()).isTrue();
-    queryType = RDAPQueryType.ENTITY;
+    queryContext.setQueryType(RDAPQueryType.ENTITY);
     assertThat(getProfileValidation().doLaunch()).isTrue();
   }
 

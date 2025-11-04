@@ -10,12 +10,14 @@ public class HostNameInUriExceptionParser extends StringFormatExceptionParser<Ho
 
   private final IdnHostNameExceptionParser idnHostNameExceptionParser;
 
+
   protected HostNameInUriExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results, HostNameInUriFormatValidator.class);
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, HostNameInUriFormatValidator.class, queryContext);
     idnHostNameExceptionParser = new IdnHostNameExceptionParser(e,
-        schema, jsonObject, results);
+        schema, jsonObject, results, queryContext);
   }
 
   @Override

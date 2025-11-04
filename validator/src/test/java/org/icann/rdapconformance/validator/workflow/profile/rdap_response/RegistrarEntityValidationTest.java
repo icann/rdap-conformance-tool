@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.util.List;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPublicIdsValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -30,6 +31,9 @@ public abstract class RegistrarEntityValidationTest extends RegistrarEntityPubli
     registrarId = mock(RegistrarId.class);
     doReturn(registrarId).when(datasetService).get(RegistrarId.class);
     doReturn(true).when(registrarId).containsId(292);
+
+    // Re-initialize queryContext with the custom mocked datasetService
+    queryContext = QueryContext.forTesting(rdapContent, results, config, datasetService);
   }
 
   private RegistrarEntityValidation getRegistrarEntityValidation() {
@@ -75,6 +79,16 @@ public abstract class RegistrarEntityValidationTest extends RegistrarEntityPubli
         .of(RDAPQueryType.HELP, RDAPQueryType.NAMESERVERS, RDAPQueryType.NAMESERVER,
             RDAPQueryType.ENTITY, RDAPQueryType.DOMAIN)) {
       queryType = queryTypeBeingTested;
+      // Update QueryContext with new query type for proper validation behavior
+      queryContext = QueryContext.forTesting(rdapContent, results, config, datasets);
+      queryContext = new QueryContext(queryContext.getQueryId(),
+                                     queryContext.getConfig(),
+                                     queryContext.getDatasetService(),
+                                     queryContext.getQuery(),
+                                     queryContext.getResults(),
+                                     queryType);
+      queryContext.setRdapResponseData(rdapContent);
+
       if (queryType.equals(baseQueryType)) {
         assertThat(getProfileValidation().doLaunch()).isTrue();
       } else {

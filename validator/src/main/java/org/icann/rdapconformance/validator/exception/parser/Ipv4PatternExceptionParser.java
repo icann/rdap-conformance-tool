@@ -22,8 +22,9 @@ public class Ipv4PatternExceptionParser extends ExceptionParser {
 
   protected Ipv4PatternExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
   }
 
   @Override
@@ -89,20 +90,22 @@ public class Ipv4PatternExceptionParser extends ExceptionParser {
     // Use IPAddressString library to determine if this is actually a syntax error
     if (!IPv4ValidationUtil.isValidIPv4Syntax(ipValue)) {
       // TRUE syntax error - convert -11406 pattern failure to -10100
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-10100)
           .value(e.getPointerToViolation() + ":" + ipValue)
-          .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
-          .build());
+          .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
+
+      results.add(builder.build(queryContext));
     } else {
       // Edge case: IP passes IPAddressString validation but fails regex pattern
       // This shouldn't happen with current regex, but handle gracefully
       // Keep the original pattern error code
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-11406)
           .value(e.getPointerToViolation() + ":" + ipValue)
-          .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
-          .build());
+          .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
+
+      results.add(builder.build(queryContext));
     }
   }
 

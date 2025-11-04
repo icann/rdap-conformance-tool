@@ -13,6 +13,7 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
 
     private final RDAPValidatorConfiguration config;
     private final RDAPQueryType queryType;
+    private final org.icann.rdapconformance.validator.QueryContext queryContext;
     private static final Pattern DOMAIN_QUERY_PATTERN = Pattern.compile("^https?://[^/]+/.*/domain/.+$");
     
     // Error messages
@@ -32,12 +33,12 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
     // Excluded registrar IDs
     private static final String[] EXCLUDED_REGISTRAR_IDS = {"9994", "9995", "9996", "9997", "9998", "9999"};
 
-    public TigValidation3Dot2_2024(String rdapResponse, RDAPValidatorResults results,
-        RDAPValidatorConfiguration config,
-        RDAPQueryType queryType) {
-        super(rdapResponse, results);
-        this.config = config;
-        this.queryType = queryType;
+
+    public TigValidation3Dot2_2024(org.icann.rdapconformance.validator.QueryContext queryContext) {
+        super(queryContext.getRdapResponseData(), queryContext.getResults());
+        this.config = queryContext.getConfig();
+        this.queryType = queryContext.getQueryType();
+        this.queryContext = queryContext;
     }
 
     @Override
@@ -74,11 +75,12 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
 
         if(!isValid) {
             String linksStr = links == null ? "" : links.toString();
-            results.add(RDAPValidationResult.builder()
+            RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                 .code(-23201)
                 .value(linksStr)
-                .message(ERROR_23201_MESSAGE)
-                .build());
+                .message(ERROR_23201_MESSAGE);
+
+            results.add(builder.build(queryContext));
         }
         
         return isValid;
@@ -95,11 +97,12 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
                 if (l.optString(REL_FIELD).equals(REL_RELATED) && l.has(HREF_FIELD)) {
                     String href = l.optString(HREF_FIELD);
                     if (href.isEmpty() || !DOMAIN_QUERY_PATTERN.matcher(href).matches()) {
-                        results.add(RDAPValidationResult.builder()
+                        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                             .code(-23202)
                             .value(l.toString())
-                            .message(ERROR_23202_MESSAGE)
-                            .build());
+                            .message(ERROR_23202_MESSAGE);
+
+                        results.add(builder.build(queryContext));
                         isValid = false;
                     }
                 }

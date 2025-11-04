@@ -13,7 +13,6 @@ import org.testng.annotations.Test;
 public class ResponseValidation2Dot7Dot1DotXAndRelated2Test extends
     ResponseValidation2Dot7Dot1DotXAndRelatedTest {
 
-  @Override
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
@@ -25,10 +24,8 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2Test extends
         .put("vcardArray", new JSONArray(validVcardJson));
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot7Dot1DotXAndRelated2(jsonObject.toString(), results,
-        queryType, config);
+    return new ResponseValidation2Dot7Dot1DotXAndRelated2(queryContext);
   }
 
   @Test

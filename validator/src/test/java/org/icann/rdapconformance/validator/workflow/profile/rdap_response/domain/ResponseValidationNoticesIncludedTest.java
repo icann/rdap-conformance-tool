@@ -10,9 +10,8 @@ public class ResponseValidationNoticesIncludedTest extends ResponseDomainValidat
     super("rdapResponseProfile_notices_included_Validation");
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidationNoticesIncluded(jsonObject.toString(), results, queryType);
+    return new ResponseValidationNoticesIncluded(queryContext);
   }
 
   @Test

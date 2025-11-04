@@ -1,15 +1,15 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous;
 
 import org.icann.rdapconformance.validator.EventAction;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.TopMostEventActionValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public class ResponseValidationLastUpdateEvent extends TopMostEventActionValidation {
 
-  public ResponseValidationLastUpdateEvent(String rdapResponse, RDAPValidatorResults results,
-                                          RDAPQueryType queryType) {
-    super(rdapResponse, results, queryType,
+  public ResponseValidationLastUpdateEvent(QueryContext qctx) {
+    super(qctx,
         -43100,
         "An eventAction type last update of RDAP database does not "
             + "exists in the topmost events data structure. See section 2.3.1.3, 2.7.6, 3.3 and "

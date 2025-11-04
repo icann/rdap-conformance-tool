@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import java.util.Objects;
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -23,8 +24,11 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot7Dot6Dot1_2024.class);
     public static final String FN = "fn";
 
-    public ResponseValidation2Dot7Dot6Dot1_2024(String rdapResponse, RDAPValidatorResults results) {
-        super(rdapResponse, results);
+    private final QueryContext queryContext;
+
+    public ResponseValidation2Dot7Dot6Dot1_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.queryContext = qctx;
     }
 
     @Override
@@ -95,7 +99,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                     .code(-65000)
                     .value(vcardArray.toString())
                     .message("The fn property is required on the vcard for the technical contact.")
-                    .build());
+                    .build(queryContext));
 
                 isValid = false;
                 anyTechEntityMissingFn = true;
@@ -119,7 +123,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                     .code(-65001)
                     .value(getResultValue(redactedPointersValue))
                     .message("a redaction of type Tech Name is required.")
-                    .build());
+                    .build(queryContext));
 
                 isValid = false;
             } else if (anyTechEntityHasNonEmptyFn && !anyTechEntityHasEmptyFn && Objects.nonNull(redactedTechName)) {
@@ -129,7 +133,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                         .code(-65005)
                         .value(getResultValue(redactedPointersValue))
                         .message("a redaction of type Tech Name was found but tech name was not redacted.")
-                        .build());
+                        .build(queryContext));
 
                 isValid = false;
             } else if (anyTechEntityHasEmptyFn && Objects.nonNull(redactedTechName)) {
@@ -170,7 +174,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                         .code(-65004)
                         .value(redactedTechName.toString())
                         .message("Tech Name redaction method must be emptyValue")
-                        .build());
+                        .build(queryContext));
 
                     isValid = false;
                 }
@@ -188,7 +192,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                 .code(-65002)
                 .value(value)
                 .message("jsonpath is invalid for Tech Name")
-                .build());
+                .build(queryContext));
 
             return false;
         }
@@ -201,7 +205,7 @@ public class ResponseValidation2Dot7Dot6Dot1_2024 extends ProfileJsonValidation 
                 .code(-65003)
                 .value(value)
                 .message("jsonpath must evaluate to a non-empty set for redaction by empty value of Tech Name.")
-                .build());
+                .build(queryContext));
 
             return false;
         }

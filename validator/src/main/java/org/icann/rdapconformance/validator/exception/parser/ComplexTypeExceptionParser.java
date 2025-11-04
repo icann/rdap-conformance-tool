@@ -17,8 +17,8 @@ public class ComplexTypeExceptionParser extends ExceptionParser {
 
   protected ComplexTypeExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
+      RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
   }
 
   @Override
@@ -33,10 +33,11 @@ public class ComplexTypeExceptionParser extends ExceptionParser {
 
   @Override
   protected void doParse() {
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(() -> (int)e.getPropertyFromViolatedSchema("structureInvalid")))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message("The " + e.getPointerToViolation() + " structure is not syntactically valid.")
-        .build());
+        .message("The " + e.getPointerToViolation() + " structure is not syntactically valid.");
+
+    results.add(builder.build(queryContext));
   }
 }

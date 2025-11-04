@@ -48,7 +48,6 @@ public class RDAPDatasetServiceMock implements RDAPDatasetService {
     return true;
   }
 
-  @Override
   public boolean download(boolean useLocalDatasets, ProgressCallback progressCallback) {
     return true;
   }

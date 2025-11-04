@@ -11,4 +11,10 @@ public class IPv4AddressSpaceDataset extends RDAPDataset<Ipv4AddressSpace> {
         URI.create("https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xml"),
         fileSystem, Ipv4AddressSpace.class);
   }
+
+  public IPv4AddressSpaceDataset(FileSystem fileSystem, String datasetDirectory) {
+    super("ipv4AddressSpace",
+        URI.create("https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xml"),
+        fileSystem, datasetDirectory, Ipv4AddressSpace.class);
+  }
 }

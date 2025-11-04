@@ -8,6 +8,7 @@ import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
 import net.minidev.json.JSONArray;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.util.FixturesGenerator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -32,7 +33,6 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
     this.testGroupName = testGroupName;
   }
 
-  @Override
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
@@ -40,6 +40,16 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
     datasets.download(true);
     rdapContent = getResource(validJsonResourcePath);
     jsonObject = new JSONObject(rdapContent);
+
+    // Update QueryContext with actual JSON data for more realistic testing
+    queryContext = QueryContext.forTesting(rdapContent, results, config, datasets);
+  }
+
+  protected void updateQueryContextJsonData() {
+    // Update QueryContext with current modified JSON data
+    if (queryContext != null && jsonObject != null) {
+      queryContext.setRdapResponseData(jsonObject.toString());
+    }
   }
 
   public <T> T getValue(String jpath) {

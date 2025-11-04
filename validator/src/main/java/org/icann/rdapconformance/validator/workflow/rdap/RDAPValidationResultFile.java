@@ -25,9 +25,10 @@ import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.icann.rdapconformance.validator.QueryContext;
 
 /**
- * Singleton service for managing RDAP validation results and generating formatted output files.
+ * Instance-based service for managing RDAP validation results and generating formatted output files.
  *
  * <p>This class is responsible for collecting, processing, and formatting RDAP validation results
  * into structured JSON output files. It handles result aggregation, filtering, formatting, and
@@ -43,10 +44,9 @@ import org.slf4j.LoggerFactory;
  *   <li>Writing timestamped result files to the filesystem</li>
  * </ul>
  *
- * <p>The class operates as a singleton to ensure consistent result aggregation across
- * the entire validation process. It must be initialized once with the required
- * dependencies before use, and provides various methods for result manipulation
- * and output generation.</p>
+ * <p>This class is now instance-based and managed through QueryContext to ensure
+ * thread safety and isolation between concurrent validations. Each QueryContext
+ * maintains its own instance, eliminating concurrency issues.</p>
  *
  * <p>Result formatting includes comprehensive metadata such as:</p>
  * <ul>
@@ -62,8 +62,9 @@ import org.slf4j.LoggerFactory;
  *
  * <p>Example usage:</p>
  * <pre>
- * RDAPValidationResultFile resultFile = RDAPValidationResultFile.getInstance();
- * resultFile.initialize(results, config, configFile, fileSystem);
+ * QueryContext qctx = QueryContext.create(config, datasetService, query);
+ * RDAPValidationResultFile resultFile = qctx.getResultFile();
+ * resultFile.initialize(qctx.getResults(), config, configFile, fileSystem);
  * boolean success = resultFile.build();
  * if (success) {
  *     String path = resultFile.getResultsPath();
@@ -80,9 +81,6 @@ public class RDAPValidationResultFile {
 
     private static final Logger logger = LoggerFactory.getLogger(RDAPValidationResultFile.class);
 
-    // Singleton instance
-    private static RDAPValidationResultFile instance;
-
     private RDAPValidatorResults results;
     private RDAPValidatorConfiguration config;
     private ConfigurationFile configurationFile;
@@ -92,26 +90,13 @@ public class RDAPValidationResultFile {
     // Track if already initialized
     private boolean isInitialized = false;
 
-    /**
-     * Private constructor to enforce singleton pattern.
-     */
-    private RDAPValidationResultFile() {
-    }
+    // QueryContext for result building - set during initialization
+    private QueryContext queryContext;
 
     /**
-     * Returns the singleton instance of the validation result file manager.
-     *
-     * <p>This method provides thread-safe access to the singleton instance,
-     * creating it if it doesn't exist. The instance must be initialized
-     * before use through the initialize method.</p>
-     *
-     * @return the singleton RDAPValidationResultFile instance
+     * Public constructor for instance-based usage through QueryContext.
      */
-    public static synchronized RDAPValidationResultFile getInstance() {
-        if (instance == null) {
-            instance = new RDAPValidationResultFile();
-        }
-        return instance;
+    public RDAPValidationResultFile() {
     }
 
     /**
@@ -125,11 +110,13 @@ public class RDAPValidationResultFile {
      * @param config the validator configuration
      * @param configurationFile the configuration file with validation rules
      * @param fileSystem the file system abstraction for file operations
+     * @param queryContext the query context for building validation results
      */
     public void initialize(RDAPValidatorResults results,
                            RDAPValidatorConfiguration config,
                            ConfigurationFile configurationFile,
-                           FileSystem fileSystem) {
+                           FileSystem fileSystem,
+                           QueryContext queryContext) {
         if (isInitialized) {
             return;
         }
@@ -138,17 +125,23 @@ public class RDAPValidationResultFile {
         this.config = config;
         this.configurationFile = configurationFile;
         this.fileSystem = fileSystem;
+        this.queryContext = queryContext;
     }
 
     /**
-     * Resets the singleton instance for testing purposes.
+     * Initialize method for testing purposes only.
+     * Used by test code that doesn't require QueryContext functionality.
      *
-     * <p>This method is intended for use in unit tests to ensure a clean
-     * state between test runs. It should not be used in production code.</p>
+     * @deprecated Use initialize(results, config, configurationFile, fileSystem, queryContext) instead for production code
      */
-    public static void reset() {
-        instance = null;
+    @Deprecated
+    public void initialize(RDAPValidatorResults results,
+                           RDAPValidatorConfiguration config,
+                           ConfigurationFile configurationFile,
+                           FileSystem fileSystem) {
+        initialize(results, config, configurationFile, fileSystem, null);
     }
+
 
     private static String getFilename() {
         String datetimePattern = "yyyyMMddHHmmss";
@@ -253,13 +246,13 @@ public class RDAPValidationResultFile {
         List<Map<String, Object>> errors = new ArrayList<>();
         List<Map<String, Object>> warnings = new ArrayList<>();
 
-        Set<RDAPValidationResult> allResults = results.getAll();
+        List<RDAPValidationResult> allResults = results.getAllAsList();
         Set<Integer> codeToIgnore = new HashSet<>(configurationFile.getDefinitionIgnore());
-        Set<RDAPValidationResult> filteredResults = results.getAll()
+        List<RDAPValidationResult> filteredResults = results.getAllAsList()
                                                            .stream()
                                                            .filter(r -> !codeToIgnore.contains(r.getCode())
                                                                && r.getCode() != UNKNOWN_ERROR_CODE)
-                                                           .collect(Collectors.toSet());
+                                                           .collect(Collectors.toList());
 
         filteredResults = cullDuplicateIPAddressErrors(filteredResults);
         filteredResults = addErrorIfAllQueriesDoNotReturnSameStatusCode(filteredResults);
@@ -297,7 +290,7 @@ public class RDAPValidationResultFile {
         return resultsMap;
     }
 
-    public Set<RDAPValidationResult> addErrorIfAllQueriesDoNotReturnSameStatusCode(Set<RDAPValidationResult> allResults) {
+    public List<RDAPValidationResult> addErrorIfAllQueriesDoNotReturnSameStatusCode(List<RDAPValidationResult> allResults) {
         List<RDAPValidationResult> filtered = new ArrayList<>();
         for (RDAPValidationResult result : allResults) {
             int code = result.getCode();
@@ -327,7 +320,7 @@ public class RDAPValidationResultFile {
         }
 
         // we still care about all our results, that's what gets returned
-        Set<RDAPValidationResult> updatedResults = new HashSet<>(allResults);
+        List<RDAPValidationResult> updatedResults = new ArrayList<>(allResults);
 
         // If not all the same, add the new error code
         if (statusCodes.size() > ONE) {
@@ -349,7 +342,7 @@ public class RDAPValidationResultFile {
                                                    .code(-13018)
                                                    .value(tupleListJson)
                                                    .message("Queries do not produce the same HTTP status code.")
-                                                   .build());
+                                                   .build(queryContext));
         } else {
             logger.debug("All status codes are the same");
         }
@@ -357,7 +350,7 @@ public class RDAPValidationResultFile {
     }
 
     // New culling function
-    public Set<RDAPValidationResult> cullDuplicateIPAddressErrors(Set<RDAPValidationResult> results) {
+    public List<RDAPValidationResult> cullDuplicateIPAddressErrors(List<RDAPValidationResult> results) {
         int ipv4Count = ZERO;
         int ipv6Count = ZERO;
         Set<RDAPValidationResult> toRemove = new HashSet<>();
@@ -406,7 +399,7 @@ public class RDAPValidationResultFile {
      * @return list of validation results that are classified as errors
      */
     public List<RDAPValidationResult> getErrors() {
-        return this.results.getAll()
+        return this.results.getAllAsList()
                            .stream()
                            .filter(result -> this.configurationFile.isError(result.getCode()) || (
                                !this.configurationFile.isWarning(result.getCode())
@@ -475,7 +468,7 @@ public class RDAPValidationResultFile {
      * @return list containing all validation results
      */
     public List<RDAPValidationResult> getAllResults() {
-        return new ArrayList<>(this.results.getAll());
+        return this.results.getAllAsList();
     }
 
     /**
@@ -562,4 +555,5 @@ private void printCategoryExamples(String category, List<RDAPValidationResult> e
         }
     }
 }
+
 }

@@ -17,7 +17,6 @@ public class SchemaValidatorRolesTest extends SchemaValidatorForArrayOfStringTes
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     super.setUp();
     name = "roles";

@@ -1,12 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
-import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PREFIX;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PREFIX;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,10 +16,9 @@ import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.Map.Entry;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,16 +29,13 @@ public final class TigValidation1Dot2 extends ProfileValidation {
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final RDAPJsonComparator jsonComparator = new RDAPJsonComparator();
-  private final HttpResponse<String> rdapResponse;
-  private final RDAPValidatorConfiguration config;
+  private final QueryContext qctx;
 
-  public TigValidation1Dot2(HttpResponse<String> rdapResponse,
-      RDAPValidatorConfiguration config,
-      RDAPValidatorResults results) {
-    super(results);
-    this.rdapResponse = rdapResponse;
-    this.config = config;
+  public TigValidation1Dot2(QueryContext qctx) {
+    super(qctx.getResults());
+    this.qctx = qctx;
   }
+
 
   @Override
   public String getGroupName() {
@@ -50,37 +44,29 @@ public final class TigValidation1Dot2 extends ProfileValidation {
   @Override
   public boolean doValidate() {
     boolean isValid = true;
+    HttpResponse<String> rdapResponse = qctx.getCurrentHttpResponse();
+    RDAPValidatorConfiguration config = qctx.getConfig();
+
     if (rdapResponse.uri().getScheme().equals(HTTP)) {
-      results.add(RDAPValidationResult.builder()
-                  .httpMethod(DASH)
-                  .httpStatusCode(ZERO)
-                  .code(-20100)
-                  .value(rdapResponse.uri().toString())
-                  .message(
-                      "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 "
-                          + "shall be HTTPS only.")
-                  .build());
+      qctx.addError(-20100, rdapResponse.uri().toString(),
+                   "The URL is HTTP, per section 1.2 of the RDAP_Technical_Implementation_Guide_2_1 "
+                       + "shall be HTTPS only.");
       isValid = false;
     }
     if (rdapResponse.uri().getScheme().equals(HTTPS)) {
       try {
         URI uri = URI.create(rdapResponse.uri().toString().replaceFirst(HTTPS_PREFIX, HTTP_PREFIX));
         // the two false items are: it is not the main connection and do not record an error if the http connection fails - that's a good thing that it fails!
-        HttpResponse<String> httpResponse = RDAPHttpRequest.makeRequest(uri, config.getTimeout(), GET, false, false);
+        HttpResponse<String> httpResponse = RDAPHttpRequest.makeRequest(qctx, uri, config.getTimeout(), GET, false, false);
         JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
         JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
         if (!httpResponse.uri().getScheme().equals(HTTPS) // if redirect to https, do not validate
             && jsonComparator.compare(httpResponseJson,
             httpsResponseJson) == 0) {
-            results.add(RDAPValidationResult.builder()
-                                          .queriedURI(httpResponse.uri().toString())
-                                          .httpMethod(GET)
-                                          .httpStatusCode(httpResponse.statusCode())
-                                          .code(-20101)
-                                          .value(httpResponse.body() + "\n/\n" + rdapResponse.body())
-                                          .message("The RDAP response was provided over HTTP, per section 1.2 of the "
-                                              + "RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.")
-                                          .build());
+            qctx.addError(httpResponse.statusCode(), -20101,
+                         httpResponse.body() + "\n/\n" + rdapResponse.body(),
+                         "The RDAP response was provided over HTTP, per section 1.2 of the "
+                             + "RDAP_Technical_Implementation_Guide_2_1 shall be HTTPS only.");
           isValid = false;
         }
       } catch (Exception e) {

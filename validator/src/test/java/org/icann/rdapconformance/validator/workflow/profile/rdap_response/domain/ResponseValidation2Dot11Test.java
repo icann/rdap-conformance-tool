@@ -24,8 +24,7 @@ public class ResponseValidation2Dot11Test extends
     super("rdapResponseProfile_2_11_Validation", NOTICE_VALUE, 2);
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot11(jsonObject.toString(), results, queryType);
+    return new ResponseValidation2Dot11(queryContext);
   }
 }

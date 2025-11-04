@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.mockito.ArgumentCaptor;
@@ -26,13 +26,15 @@ public class ResponseValidationHelp_2024Test {
   private RDAPValidatorResults results;
   private ResponseValidationHelp_2024 responseValidator;
   private MockedStatic<RDAPHttpRequest> mockStaticRequest;
+  private QueryContext queryContext;
 
   @BeforeMethod
   public void setup() {
     mockConfig = mock(RDAPValidatorConfiguration.class);
-    results = RDAPValidatorResultsImpl.getInstance();
+    queryContext = QueryContext.forTesting(mockConfig);
+    results = queryContext.getResults();
     results.clear();
-    responseValidator = new ResponseValidationHelp_2024(mockConfig, results);
+    responseValidator = new ResponseValidationHelp_2024(queryContext);
   }
 
   @AfterMethod
@@ -60,7 +62,7 @@ public class ResponseValidationHelp_2024Test {
     when(mockResponse.uri()).thenReturn(URI.create("http://example.com/help"));
 
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
@@ -90,7 +92,7 @@ public class ResponseValidationHelp_2024Test {
     when(mockResponse.uri()).thenReturn(URI.create("http://example.com/help"));
 
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(mockResponse);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString())).thenReturn(mockResponse);
 
     boolean result = responseValidator.doValidate();
     assertTrue(result);
@@ -109,7 +111,7 @@ public class ResponseValidationHelp_2024Test {
     when(response.uri()).thenReturn(URI.create("http://example.com/help"));
 
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);
-    mockStaticRequest.when(() -> RDAPHttpRequest.makeHttpGetRequest(any(), anyInt())).thenReturn(response);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeRequest(any(QueryContext.class), any(URI.class), anyInt(), anyString())).thenReturn(response);
 
     assertThat(responseValidator.doValidate()).isFalse();
 

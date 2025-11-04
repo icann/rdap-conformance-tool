@@ -13,14 +13,12 @@ public abstract class SchemaValidatorForArrayTest extends SchemaValidatorTest {
     super(schemaName, validJson);
   }
 
-  @Override
   protected void insertForbiddenKey() {
     JSONObject value = new JSONObject();
     value.put("test", "value");
     jsonObject.getJSONArray(name).getJSONObject(0).put("unknown", List.of(value));
   }
 
-  @Override
   protected void validateSubValidation(String validationName, String keyValue, int errorCode) {
     if (!keyValue.contains(":")) {
       ((JSONArray) jsonObject.get(name)).getJSONObject(0).put(keyValue, 0);

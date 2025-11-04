@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.json.JSONArray;
@@ -17,14 +18,17 @@ public abstract class RDAPConformanceValidation extends ProfileJsonValidation {
   final int code;
   final String message;
   private final String requiredValue;
+  private final QueryContext queryContext;
 
-  public RDAPConformanceValidation(String rdapResponse, RDAPValidatorResults results,
-                                   String requiredValue, Integer code, String message) {
-    super(rdapResponse, results);
+  // QueryContext constructor for production use
+  public RDAPConformanceValidation(QueryContext queryContext, String requiredValue, Integer code, String message) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.queryContext = queryContext;
     this.requiredValue = requiredValue;
     this.code = code;
     this.message = message;
   }
+
 
   @Override
   protected boolean doValidate() {
@@ -34,11 +38,12 @@ public abstract class RDAPConformanceValidation extends ProfileJsonValidation {
 
     if (rdapConformance == null) {
       logger.info("The rdapConformance array is missing or null.");
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                                       .code(code)
                                       .value(getResultValue(jsonPointer))
-                                      .message(message) // Always use the passed-in message
-                                      .build());
+                                      .message(message); // Always use the passed-in message
+
+      results.add(builder.build(queryContext));
       return false;
     }
 
@@ -46,11 +51,12 @@ public abstract class RDAPConformanceValidation extends ProfileJsonValidation {
     rdapConformance.forEach(v -> values.add(v.toString()));
 
     if (!values.contains(requiredValue)) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                                       .code(code)
                                       .value(getResultValue(jsonPointer))
-                                      .message(message) // Always use the passed-in message
-                                      .build());
+                                      .message(message); // Always use the passed-in message
+
+      results.add(builder.build(queryContext));
       return false;
     }
 

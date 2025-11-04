@@ -20,12 +20,16 @@ public abstract class ResponseValidation2Dot7Dot1DotXAndRelatedTest extends
     super("rdapResponseProfile_2_7_1_X_and_2_7_2_X_and_2_7_3_X_and_2_7_4_X_Validation");
   }
 
-  @Override
   @BeforeMethod
   public void setUp() throws java.io.IOException {
     super.setUp();
+
+    // Create mock config
     config = mock(RDAPValidatorConfiguration.class);
     doReturn(true).when(config).isGtldRegistrar();
+
+    // Recreate QueryContext with our mocked config and dataset service
+    queryContext = org.icann.rdapconformance.validator.QueryContext.forTesting(rdapContent, results, config, datasets);
   }
 
   protected void remarkMemberIs(String key, String value) {
@@ -45,10 +49,9 @@ public abstract class ResponseValidation2Dot7Dot1DotXAndRelatedTest extends
   }
 
 
-  @Override
   public void testDoLaunch() {
     super.testDoLaunch();
-    queryType = RDAPQueryType.DOMAIN;
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
     doReturn(false).when(config).isGtldRegistry();
     doReturn(false).when(config).isGtldRegistrar();
     assertThat(getProfileValidation().doLaunch()).isFalse();

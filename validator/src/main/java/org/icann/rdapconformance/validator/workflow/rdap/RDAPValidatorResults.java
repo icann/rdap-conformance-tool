@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
+import java.util.List;
 import java.util.Set;
 
 public interface RDAPValidatorResults {
@@ -14,6 +15,8 @@ public interface RDAPValidatorResults {
   void removeGroups();
 
   Set<RDAPValidationResult> getAll();
+
+  List<RDAPValidationResult> getAllAsList();
 
   boolean isEmpty();
 

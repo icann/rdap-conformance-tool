@@ -12,17 +12,16 @@ public class ResponseValidation2Dot3Dot2_2024Test extends
     super("rdapResponseProfile_2_3_2_Validation", ResponseValidation2Dot3Dot2_2024.class);
   }
 
-  @Override
   public void testDoLaunch() {
-    queryType = RDAPQueryType.HELP;
+    queryContext.setQueryType(RDAPQueryType.HELP);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVERS;
+    queryContext.setQueryType(RDAPQueryType.NAMESERVERS);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.NAMESERVER;
+    queryContext.setQueryType(RDAPQueryType.NAMESERVER);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.ENTITY;
+    queryContext.setQueryType(RDAPQueryType.ENTITY);
     assertThat(getProfileValidation().doLaunch()).isFalse();
-    queryType = RDAPQueryType.DOMAIN;
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
     assertThat(getProfileValidation().doLaunch()).isTrue();
   }
 }

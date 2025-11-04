@@ -226,9 +226,10 @@ public class LocalFileSystemTest {
     }
 
     @Test
-    public void testExists_NullPath_ThrowsNullPointerException() {
-        assertThatThrownBy(() -> fileSystem.exists(null))
-            .isInstanceOf(NullPointerException.class);
+    public void testExists_NullPath_ReturnsFalse() {
+        boolean exists = fileSystem.exists(null);
+
+        assertThat(exists).isFalse();
     }
 
     @Test

@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.tool;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.testng.annotations.BeforeMethod;
@@ -21,12 +22,9 @@ public class IPv4v6ValidationSkipTest {
     private static final int IPV4_ERROR_CODE = -20400;
     private static final int IPV6_ERROR_CODE = -20401;
 
-    private RDAPValidatorResults results;
-
     @BeforeMethod
     public void setUp() {
-        results = RDAPValidatorResultsImpl.getInstance();
-        results.clear();
+        // No setup needed since we get results from tool's QueryContext
     }
 
     @Test
@@ -39,7 +37,10 @@ public class IPv4v6ValidationSkipTest {
             tool.setExecuteIPv6Queries(false);
             tool.call();
 
-            var allResults = results.getAll();
+            // Get results from the tool's QueryContext instead of singleton
+            QueryContext queryContext = tool.getQueryContext();
+            assertNotNull(queryContext, "QueryContext should be available after tool.call()");
+            var allResults = queryContext.getResults().getAll();
             assertEquals(1, allResults.size(), "Should have exactly one validation result");
             assertTrue(allResults.stream().anyMatch(r -> r.getCode() == IPV4_ERROR_CODE));
         }
@@ -56,7 +57,10 @@ public class IPv4v6ValidationSkipTest {
             tool.setExecuteIPv6Queries(true);
             tool.call();
 
-            var allResults = results.getAll();
+            // Get results from the tool's QueryContext instead of singleton
+            QueryContext queryContext = tool.getQueryContext();
+            assertNotNull(queryContext, "QueryContext should be available after tool.call()");
+            var allResults = queryContext.getResults().getAll();
             assertEquals(1, allResults.size(), "Should have exactly one validation result");
             assertTrue(allResults.stream().anyMatch(r -> r.getCode() == IPV6_ERROR_CODE));
         }

@@ -40,9 +40,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated5Test extends
     validate();
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot7Dot1DotXAndRelated5(jsonObject.toString(), results,
-        queryType, config);
+    return new ResponseValidation2Dot7Dot1DotXAndRelated5(queryContext);
   }
 }

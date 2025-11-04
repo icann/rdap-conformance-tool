@@ -11,7 +11,6 @@ public abstract class TopMostEventActionValidationTest<T extends TopMostEventAct
     ProfileJsonValidationTestBase {
 
   private final Class<T> validationClass;
-  protected RDAPQueryType queryType;
 
   public TopMostEventActionValidationTest(String testGroupName,
       Class<T> validationClass) {
@@ -19,17 +18,17 @@ public abstract class TopMostEventActionValidationTest<T extends TopMostEventAct
     this.validationClass = validationClass;
   }
 
-  @Override
   @BeforeMethod
   public void setUp() throws java.io.IOException {
     super.setUp();
-    queryType = RDAPQueryType.DOMAIN;
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
   }
 
-  @Override
   public TopMostEventActionValidation getProfileValidation() {
     try {
-      return validationClass.getConstructor(String.class, RDAPValidatorResults.class, RDAPQueryType.class).newInstance(jsonObject.toString(), results, queryType);
+      // Update QueryContext with current JSON data and query type before creating validation
+      updateQueryContextJsonData();
+      return validationClass.getConstructor(org.icann.rdapconformance.validator.QueryContext.class).newInstance(queryContext);
     } catch (Exception e) {
       return null;
     }

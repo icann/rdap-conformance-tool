@@ -12,7 +12,6 @@ import org.testng.annotations.Test;
 public class ResponseValidation2Dot7Dot1DotXAndRelated2HandleTest extends
     ResponseValidation2Dot7Dot1DotXAndRelatedTest {
 
-  @Override
   @BeforeMethod
   public void setUp() throws IOException {
     super.setUp();
@@ -20,16 +19,16 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated2HandleTest extends
     String jsonResponse = getResource(
         "/validators/profile/rdap_response/domain/entities/missing_handle_no_redacted_remark.json");
     jsonObject = new JSONObject(jsonResponse);
+
+    // Update QueryContext with the new JSON data
+    queryContext.setRdapResponseData(jsonObject.toString());
   }
 
-  @Override
   public ProfileValidation getProfileValidation() {
-    return new ResponseValidation2Dot7Dot1DotXAndRelated2(jsonObject.toString(), results,
-        queryType, config);
+    return new ResponseValidation2Dot7Dot1DotXAndRelated2(queryContext);
   }
 
   @Test
-  @Override
   public void testValidate_ok() {
     // This test should fail because our JSON is missing handle field
     // This demonstrates the bug fix is working correctly

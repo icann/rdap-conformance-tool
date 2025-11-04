@@ -18,8 +18,9 @@ public class UnknowKeyExceptionParser extends ExceptionParser {
   private Matcher matcher;
 
   public UnknowKeyExceptionParser(ValidationExceptionNode e, Schema schema,
-      JSONObject jsonObject, RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results);
+      JSONObject jsonObject, RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, queryContext);
   }
 
   public boolean matches(ValidationExceptionNode e) {
@@ -30,12 +31,13 @@ public class UnknowKeyExceptionParser extends ExceptionParser {
   @Override
   public void doParse() {
     String key = matcher.group(1);
-    results.add(RDAPValidationResult.builder()
+    RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(() -> (int) e.getPropertyFromViolatedSchema("unknownKeys")))
         .value(e.getPointerToViolation() + "/" + key + ":" + (((JSONObject) jsonObject
             .query(e.getPointerToViolation())).get(key)))
-        .message("The name in the name/value pair is not of: " + getAuthorizedProperties() + ".")
-        .build());
+        .message("The name in the name/value pair is not of: " + getAuthorizedProperties() + ".");
+
+    results.add(builder.build(queryContext));
   }
 
   private String getAuthorizedProperties() {

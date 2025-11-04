@@ -5,6 +5,7 @@ import static org.json.JSONObject.NULL;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
@@ -17,14 +18,12 @@ import org.json.JSONObject;
 public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidation {
 
   private final RDAPValidatorConfiguration config;
+  private final QueryContext queryContext;
 
-  public ResponseValidation2Dot9Dot1And2Dot9Dot2(RDAPValidatorConfiguration config,
-      String rdapResponse,
-      RDAPValidatorResults results,
-      RDAPDatasetService datasetService,
-      RDAPQueryType queryType) {
-    super(config, rdapResponse, results, datasetService, queryType, -47201, "nameserver");
-    this.config = config;
+  public ResponseValidation2Dot9Dot1And2Dot9Dot2(QueryContext qctx) {
+    super(qctx, -47201, "nameserver");
+    this.config = qctx.getConfig();
+    this.queryContext = qctx;
   }
 
   @Override
@@ -66,7 +65,7 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
               .code(-47203)
               .value(getResultValue(jsonPointer))
               .message("The handle or status in the nameserver object is not included.")
-              .build()));
+              .build(queryContext)));
       isValid = false;
     }
 
@@ -76,11 +75,12 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
   private boolean checkLdhName(String nameserverJsonPointer) {
     JSONObject nameserver = (JSONObject) jsonObject.query(nameserverJsonPointer);
     if (NULL.equals(nameserver.opt("ldhName"))) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-47200)
           .value(getResultValue(nameserverJsonPointer))
-          .message("A nameserver object without ldhName was found.")
-          .build());
+          .message("A nameserver object without ldhName was found.");
+
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;
@@ -126,7 +126,7 @@ public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidat
           .code(-47204)
           .value(getResultValue(statusJsonPointer))
           .message("The values of the status data structure does not comply with RFC5732.")
-          .build());
+          .build(queryContext));
       return false;
     }
     return true;

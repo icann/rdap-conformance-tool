@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard
 
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
@@ -24,9 +25,12 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
     private boolean isValid = true;
     private final RDAPValidatorConfiguration configuration;
 
-    public ResponseValidationTechEmail_2024(String rdapResponse, RDAPValidatorResults results, RDAPValidatorConfiguration configuration) {
-        super(rdapResponse, results);
-        this.configuration = configuration;
+    private final QueryContext queryContext;
+
+    public ResponseValidationTechEmail_2024(QueryContext qctx) {
+        super(qctx.getRdapResponseData(), qctx.getResults());
+        this.configuration = qctx.getConfig();
+        this.queryContext = qctx;
     }
 
     @Override
@@ -82,7 +86,7 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
                         .code(-65503)
                         .value(getResultValue(redactedPointersValue))
                         .message("a redaction of type Tech Email was found but email was not redacted.")
-                        .build());
+                        .build(queryContext));
                 return false;
             }
 
@@ -109,8 +113,8 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
             JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-            JSONObject name = (JSONObject) redacted.get("name");
             try {
+                JSONObject name = (JSONObject) redacted.get("name");
                 var nameValue = name.get("type");
                 if(nameValue instanceof String redactedName) {
                     if(redactedName.trim().equalsIgnoreCase(TECH_EMAIL_TYPE)) {
@@ -175,7 +179,7 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
                             .code(-65500)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath is invalid for Tech Email")
-                            .build());
+                            .build(queryContext));
                     return false;
                 }
 
@@ -186,7 +190,7 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
                             .code(-65501)
                             .value(getResultValue(redactedPointersValue))
                             .message("jsonpath must evaluate to a zero set for redaction by removal of Tech Email.")
-                            .build());
+                            .build(queryContext));
                     isValid = false;
                     return validateMethodProperty(redactedEmail);
                 }
@@ -214,7 +218,7 @@ public class ResponseValidationTechEmail_2024 extends ProfileJsonValidation {
                             .code(-65502)
                             .value(getResultValue(redactedPointersValue))
                             .message("Tech Email redaction method must be removal if present")
-                            .build());
+                            .build(queryContext));
                     isValid = false;
                 }
             }

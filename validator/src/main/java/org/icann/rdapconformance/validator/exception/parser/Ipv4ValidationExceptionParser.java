@@ -23,10 +23,12 @@ import org.json.JSONObject;
 
 public class Ipv4ValidationExceptionParser extends StringFormatExceptionParser<Ipv4FormatValidator> {
 
+
   protected Ipv4ValidationExceptionParser(ValidationExceptionNode e, Schema schema,
       JSONObject jsonObject,
-      RDAPValidatorResults results) {
-    super(e, schema, jsonObject, results, Ipv4FormatValidator.class);
+      RDAPValidatorResults results,
+      org.icann.rdapconformance.validator.QueryContext queryContext) {
+    super(e, schema, jsonObject, results, Ipv4FormatValidator.class, queryContext);
   }
 
   @Override
@@ -37,11 +39,12 @@ public class Ipv4ValidationExceptionParser extends StringFormatExceptionParser<I
     // First, determine if this is truly a syntax error using IPAddressString library
     if (!IPv4ValidationUtil.isValidIPv4Syntax(ipValue)) {
       // TRUE syntax error - generate syntax error only
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-10100)
           .value(e.getPointerToViolation() + ":" + ipValue)
-          .message("The IPv4 address is not syntactically valid in dot-decimal notation.")
-          .build());
+          .message("The IPv4 address is not syntactically valid in dot-decimal notation.");
+
+      results.add(builder.build(queryContext));
       return;
     }
 
@@ -50,26 +53,29 @@ public class Ipv4ValidationExceptionParser extends StringFormatExceptionParser<I
 
     if (errorMessage.contains(Ipv4FormatValidator.NOT_ALLOCATED_NOR_LEGACY)) {
       // Valid syntax but not allocated/legacy
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-10101)
           .value(e.getPointerToViolation() + ":" + ipValue)
-          .message(Ipv4FormatValidator.NOT_ALLOCATED_NOR_LEGACY)
-          .build());
+          .message(Ipv4FormatValidator.NOT_ALLOCATED_NOR_LEGACY);
+
+      results.add(builder.build(queryContext));
     } else if (errorMessage.contains(Ipv4FormatValidator.PART_OF_SPECIAL_ADDRESSES)) {
       // Valid syntax but in special address space
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(-10102)
           .value(e.getPointerToViolation() + ":" + ipValue)
-          .message(Ipv4FormatValidator.PART_OF_SPECIAL_ADDRESSES)
-          .build());
+          .message(Ipv4FormatValidator.PART_OF_SPECIAL_ADDRESSES);
+
+      results.add(builder.build(queryContext));
     } else {
       // Unknown format validation failure - default behavior
       // This handles cases where format validation fails for reasons other than allocation/special
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(parseErrorCode(e::getErrorCodeFromViolatedSchema))
           .value(e.getPointerToViolation() + ":" + ipValue)
-          .message(e.getMessage("The v4 structure is not syntactically valid."))
-          .build());
+          .message(e.getMessage("The v4 structure is not syntactically valid."));
+
+      results.add(builder.build(queryContext));
     }
   }
 

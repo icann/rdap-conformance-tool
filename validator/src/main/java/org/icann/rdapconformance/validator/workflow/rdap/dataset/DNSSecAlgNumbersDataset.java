@@ -12,4 +12,11 @@ public class DNSSecAlgNumbersDataset extends RDAPDataset<DNSSecAlgNumbers> {
               "https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xml"),
           fileSystem, DNSSecAlgNumbers.class);
     }
+
+    public DNSSecAlgNumbersDataset(FileSystem fileSystem, String datasetDirectory) {
+      super("dnsSecAlgNumbers",
+          URI.create(
+              "https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xml"),
+          fileSystem, datasetDirectory, DNSSecAlgNumbers.class);
+    }
   }

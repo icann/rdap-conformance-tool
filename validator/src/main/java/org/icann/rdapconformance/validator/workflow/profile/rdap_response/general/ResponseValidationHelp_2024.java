@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -23,10 +24,13 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
     public static final String HELP = "/help";
 
     private final RDAPValidatorConfiguration config;
+    private final QueryContext queryContext;
 
-    public ResponseValidationHelp_2024(RDAPValidatorConfiguration config, RDAPValidatorResults results) {
-        super(results);
-        this.config = config;
+
+    public ResponseValidationHelp_2024(QueryContext queryContext) {
+        super(queryContext.getResults());
+        this.config = queryContext.getConfig();
+        this.queryContext = queryContext;
     }
 
     @Override
@@ -58,9 +62,9 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
         String helpUriCleaned =  CommonUtils.cleanStringFromExtraSlash(helpUri);
 
         logger.debug("Making request to: {}", helpUriCleaned);
-        HttpResponse<String> response = null;
 
-        response = RDAPHttpRequest.makeHttpGetRequest(new URI(helpUriCleaned), this.config.getTimeout());
+        // Use QueryContext-aware request for proper IPv6/IPv4 protocol handling
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(queryContext, new URI(helpUriCleaned), this.config.getTimeout(), GET);
 
         // final response
         return validateHelpQuery(response, isValid);
@@ -73,14 +77,15 @@ public class ResponseValidationHelp_2024 extends ProfileValidation {
 
         jsonHelpResponse = new RDAPHttpQuery.JsonData(rdapHelpResponse);
         if(!isHelpJsonValid(jsonHelpResponse ) || HTTP_OK != httpHelpStatusCode) {
-            results.add(RDAPValidationResult.builder()
+            RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                                             .queriedURI(httpHelpResponse.uri().toString())
                                             .httpMethod(GET)
                                             .httpStatusCode(httpHelpStatusCode)
                                             .code(-20701)
                                             .value(rdapHelpResponse)
-                                            .message("Response to a /help query did not yield a proper status code or RDAP response.")
-                                            .build());
+                                            .message("Response to a /help query did not yield a proper status code or RDAP response.");
+
+            results.add(builder.build(queryContext));
             isValid = false;
         }
 

@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 import java.io.IOException;
 
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -41,13 +42,17 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
         super.setUp();
     }
 
-    @Override
     public ProfileValidation getProfileValidation() {
-        return new ResponseValidation2Dot2_1_2024(
-                jsonObject.toString(),
-                results,
-                datasets,
-                RDAPQueryType.DOMAIN);
+        QueryContext domainContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        domainContext.setRdapResponseData(queryContext.getRdapResponseData());
+        return new ResponseValidation2Dot2_1_2024(domainContext);
     }
 
     /**
@@ -157,8 +162,16 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
         
         // This should fail validation silently (no specific error message, just returns false)
         // The validation logic returns HandleObjectToValidate with isValid=false but doesn't add error
-        ResponseValidation2Dot2_1_2024 validation = new ResponseValidation2Dot2_1_2024(
-            jsonObject.toString(), results, datasets, RDAPQueryType.DOMAIN);
+        QueryContext testContext = new QueryContext(
+            queryContext.getQueryId(),
+            queryContext.getConfig(),
+            queryContext.getDatasetService(),
+            queryContext.getQuery(),
+            queryContext.getResults(),
+            RDAPQueryType.DOMAIN
+        );
+        testContext.setRdapResponseData(jsonObject.toString());
+        ResponseValidation2Dot2_1_2024 validation = new ResponseValidation2Dot2_1_2024(testContext);
         
         boolean result = validation.validate();
         assertThat(result).isFalse(); // Validation should fail

@@ -14,8 +14,12 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Integration test to reproduce and verify the fix for the bug where private IPv4 addresses
@@ -30,6 +34,8 @@ import org.testng.annotations.Test;
  */
 public class PrivateIpv4NameserverBugTest {
 
+    private QueryContext queryContext;
+    private RDAPValidatorConfiguration config;
     private RDAPValidatorResults results;
     private RDAPDatasetService datasets;
     private SchemaValidator domainValidator;
@@ -37,8 +43,13 @@ public class PrivateIpv4NameserverBugTest {
 
     @BeforeMethod
     public void setUp() throws IOException {
+        // Create mock configuration for testing
+        config = mock(RDAPValidatorConfiguration.class);
+        when(config.isGtldRegistrar()).thenReturn(true);
+        when(config.getUri()).thenReturn(java.net.URI.create("https://example.com/domain/test.example"));
+
         // Use real datasets for integration testing
-        datasets = RDAPDatasetServiceImpl.getInstance(new LocalFileSystem());
+        datasets = new RDAPDatasetServiceImpl(new LocalFileSystem());
 
         // Download real datasets - this gives us actual IPv4 allocation and special address data
         boolean downloadSuccess = datasets.download(true);
@@ -46,14 +57,16 @@ public class PrivateIpv4NameserverBugTest {
             throw new RuntimeException("Failed to download real datasets for integration testing");
         }
 
-        results = RDAPValidatorResultsImpl.getInstance();
+        // Create QueryContext for thread-safe operations (after dataset download)
+        queryContext = QueryContext.forTesting(config, datasets);
+        results = queryContext.getResults();
         results.clear();
 
         // Load the test JSON file that contains private IPv4 addresses in nameservers
         testJsonContent = SchemaValidatorTest.getResource("/validators/domain/private_ipv4_nameserver_bug.json");
 
-        // Create domain validator using the correct schema for nameserver validation
-        domainValidator = new SchemaValidator("rdap_domain.json", results, datasets);
+        // Create domain validator using QueryContext for thread-safe validation
+        domainValidator = new SchemaValidator("rdap_domain.json", results, datasets, queryContext);
     }
 
 
@@ -141,8 +154,8 @@ public class PrivateIpv4NameserverBugTest {
         // Load the original JSON from the bug report
         String originalJsonContent = SchemaValidatorTest.getResource("/validators/domain/private_ipv4_nameserver_bug.json");
 
-        // Create a domain validator using the correct schema
-        SchemaValidator validator = new SchemaValidator("rdap_domain.json", results, datasets);
+        // Create a domain validator using the correct schema with QueryContext
+        SchemaValidator validator = new SchemaValidator("rdap_domain.json", results, datasets, queryContext);
 
         // When: Validate the JSON content
         boolean isValid = validator.validate(originalJsonContent);

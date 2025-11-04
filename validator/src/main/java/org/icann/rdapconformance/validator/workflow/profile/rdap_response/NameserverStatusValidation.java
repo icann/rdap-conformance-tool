@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -13,12 +14,14 @@ public abstract class NameserverStatusValidation extends ProfileJsonValidation {
 
   protected final RDAPQueryType queryType;
   final int code;
+  private final QueryContext queryContext;
 
-  public NameserverStatusValidation(String rdapResponse,
-                                    RDAPValidatorResults results, RDAPQueryType queryType, int code) {
-    super(rdapResponse, results);
-    this.queryType = queryType;
+  // QueryContext constructor for production use
+  public NameserverStatusValidation(QueryContext queryContext, int code) {
+    super(queryContext.getRdapResponseData(), queryContext.getResults());
+    this.queryType = queryContext.getQueryType();
     this.code = code;
+    this.queryContext = queryContext;
   }
 
   public boolean validateStatus(String statusJsonPointer) {
@@ -39,11 +42,12 @@ public abstract class NameserverStatusValidation extends ProfileJsonValidation {
             .of("pending create", "pending delete", "pending renew", "pending transfer",
                 "pending update").contains(s))
             .count() > 1)) {
-      results.add(RDAPValidationResult.builder()
+      RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
           .code(code)
           .value(getResultValue(statusJsonPointer))
-          .message("The values of the status data structure does not comply with RFC5732.")
-          .build());
+          .message("The values of the status data structure does not comply with RFC5732.");
+
+      results.add(builder.build(queryContext));
       return false;
     }
     return true;

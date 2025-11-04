@@ -22,7 +22,6 @@ public class ProfileValidationTest {
     @Test
     public void testValidate_DoLaunchFalse_ReturnsTrue() {
         TestProfileValidation validation = new TestProfileValidation(mockResults) {
-            @Override
             public boolean doLaunch() {
                 return false;
             }
@@ -38,7 +37,6 @@ public class ProfileValidationTest {
     @Test
     public void testValidate_DoValidateReturnsTrue_Success() {
         TestProfileValidation validation = new TestProfileValidation(mockResults) {
-            @Override
             protected boolean doValidate() {
                 return true;
             }
@@ -54,7 +52,6 @@ public class ProfileValidationTest {
     @Test
     public void testValidate_DoValidateReturnsFalse_Failure() {
         TestProfileValidation validation = new TestProfileValidation(mockResults) {
-            @Override
             protected boolean doValidate() {
                 return false;
             }
@@ -70,7 +67,6 @@ public class ProfileValidationTest {
     @Test
     public void testValidate_DoValidateThrowsException_Failure() {
         TestProfileValidation validation = new TestProfileValidation(mockResults) {
-            @Override
             protected boolean doValidate() throws Exception {
                 throw new RuntimeException("Validation error");
             }
@@ -86,7 +82,6 @@ public class ProfileValidationTest {
     @Test
     public void testValidate_DoValidateThrowsCheckedException_Failure() {
         TestProfileValidation validation = new TestProfileValidation(mockResults) {
-            @Override
             protected boolean doValidate() throws Exception {
                 throw new Exception("Checked exception");
             }
@@ -102,7 +97,6 @@ public class ProfileValidationTest {
     @Test
     public void testValidate_MultipleCallsConsistent() {
         TestProfileValidation validation = new TestProfileValidation(mockResults) {
-            @Override
             protected boolean doValidate() {
                 return true;
             }
@@ -120,7 +114,6 @@ public class ProfileValidationTest {
     @Test
     public void testValidate_DefaultDoLaunchReturnsTrue() {
         TestProfileValidation validation = new TestProfileValidation(mockResults) {
-            @Override
             protected boolean doValidate() {
                 return true;
             }
@@ -138,7 +131,6 @@ public class ProfileValidationTest {
     @Test
     public void testValidate_NullResults_ThrowsNullPointerException() {
         TestProfileValidation validation = new TestProfileValidation(null) {
-            @Override
             protected boolean doValidate() {
                 return true;
             }
@@ -165,12 +157,10 @@ public class ProfileValidationTest {
             super(results);
         }
 
-        @Override
         public String getGroupName() {
             return "TestGroup";
         }
 
-        @Override
         protected boolean doValidate() throws Exception {
             // Default implementation returns false
             return false;
@@ -187,12 +177,10 @@ public class ProfileValidationTest {
             this.exceptionToThrow = exceptionToThrow;
         }
 
-        @Override
         public String getGroupName() {
             return "ExceptionTestGroup";
         }
 
-        @Override
         protected boolean doValidate() throws Exception {
             if (exceptionToThrow != null) {
                 throw exceptionToThrow;

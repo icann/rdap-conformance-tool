@@ -14,7 +14,6 @@ public class SchemaValidatorKeyDataTest extends SchemaValidatorForArrayTest {
   }
 
   @BeforeMethod
-  @Override
   public void setUp() throws IOException {
     super.setUp();
     name = "keyData";

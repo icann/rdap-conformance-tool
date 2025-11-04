@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 import org.icann.rdapconformance.validator.ConnectionStatus;
+import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
@@ -39,8 +40,8 @@ public class RDAPValidatorTest {
   public void setUp() throws IOException {
     doReturn(true).when(config).check();
     doReturn(URI.create("https://example.com")).when(config).getUri(); // Mock getUri to return a valid URI
-    validator = new RDAPValidator(config, query, datasetService);
-    doReturn(true).when(processor).check(datasetService);
+    validator = new RDAPValidator(QueryContext.create(config, datasetService, query));
+    doReturn(true).when(processor).check(eq(datasetService), any(QueryContext.class));
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile("Test", null, null, null, null, false, false, false, false, false))
         .when(configParser).parse(any());
@@ -93,9 +94,11 @@ public class RDAPValidatorTest {
     RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
 
+    // Provide URI for QueryContext creation but make config.check() fail
+    doReturn(java.net.URI.create("https://example.com/domain/test.example")).when(config).getUri();
     doReturn(false).when(config).check();
 
-    assertThatThrownBy(() -> new RDAPValidator(config, query, datasetService))
+    assertThatThrownBy(() -> new RDAPValidator(QueryContext.create(config, datasetService, query)))
         .isInstanceOf(RuntimeException.class)
         .hasMessage("Please fix the configuration");
   }
@@ -110,8 +113,10 @@ public class RDAPValidatorTest {
     RDAPValidatorResults results = mock(RDAPValidatorResults.class);
     RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
 
+    // Provide URI for QueryContext creation
+    doReturn(java.net.URI.create("https://example.com/domain/test.example")).when(config).getUri();
     doReturn(true).when(config).check();
-    doReturn(true).when(queryTypeProcessor).check(datasetService);
+    doReturn(true).when(queryTypeProcessor).check(eq(datasetService), any(QueryContext.class));
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile(
             "Test", null, null, null, null, false, false, false, false, false))
@@ -119,7 +124,7 @@ public class RDAPValidatorTest {
     doReturn(false).when(query).run();
     doReturn(null).when(query).getErrorStatus();
 
-    RDAPValidator validator = new RDAPValidator(config, query, datasetService);
+    RDAPValidator validator = new RDAPValidator(QueryContext.create(config, datasetService, query));
 
     assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
   }
@@ -151,15 +156,10 @@ public void testValidate_DomainQueryForTestInvalidWithHttpOK_LogsInfo() throws I
     doReturn(false).when(query).isErrorContent();
 
     // Create validator with real dependencies
-    RDAPValidator validator = new RDAPValidator(config, query, datasetService);
+    RDAPValidator validator = new RDAPValidator(QueryContext.create(config, datasetService, query));
 
-    // Create a mock query type processor and set it on the validator instance
-    RDAPQueryTypeProcessor mockProcessor = mock(RDAPQueryTypeProcessor.class);
-    doReturn(true).when(mockProcessor).check(datasetService);
-    doReturn(RDAPQueryType.DOMAIN).when(mockProcessor).getQueryType();
-
-    // Replace the singleton instance with our mock
-    validator.queryTypeProcessor = mockProcessor;
+    // Note: queryTypeProcessor is now encapsulated within QueryContext
+    // The validator will use its QueryContext's processor instead of a singleton
 
     assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
 }

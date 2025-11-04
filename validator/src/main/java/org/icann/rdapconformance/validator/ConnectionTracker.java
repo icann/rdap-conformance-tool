@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import static org.icann.rdapconformance.validator.CommonUtils.*;
 
 /**
- * Singleton class that tracks and monitors all HTTP connections made during RDAP validation.
+ * Connection tracker that monitors all HTTP connections made during RDAP validation.
  *
  * <p>This class provides comprehensive connection tracking functionality including:</p>
  * <ul>
@@ -33,12 +33,13 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  * {@link ConnectionRecord} containing timing information, network details, and
  * HTTP response metadata.</p>
  *
- * <p>The tracker is thread-safe and uses synchronized collections to support
- * concurrent validation operations.</p>
+ * <p>Now integrated into the QueryContext architecture for thread-safe operation in
+ * concurrent validation environments. Each QueryContext has its own ConnectionTracker
+ * instance to ensure complete isolation between validation sessions.</p>
  *
  * <p>Usage example:</p>
  * <pre>
- * ConnectionTracker tracker = ConnectionTracker.getInstance();
+ * ConnectionTracker tracker = queryContext.getConnectionTracker();
  * String trackingId = tracker.startTrackingNewConnection(uri, "GET", true);
  * // ... perform HTTP request ...
  * tracker.updateConnectionWithIpAddress(trackingId, "192.0.2.1");
@@ -50,27 +51,19 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  * @since 1.0.0
  */
 public class ConnectionTracker {
-    private static final ConnectionTracker INSTANCE = new ConnectionTracker();
     private static final Logger logger = LoggerFactory.getLogger(ConnectionTracker.class);
     private final List<ConnectionRecord> connections;
     private final Map<String, ConnectionRecord> connectionsByTrackingId;
     private ConnectionRecord currentConnection;
     private ConnectionRecord lastMainConnection;
 
-    private ConnectionTracker() {
+    // Public constructor for QueryContext usage
+    public ConnectionTracker() {
         this.connections = Collections.synchronizedList(new ArrayList<>());
         this.connectionsByTrackingId = Collections.synchronizedMap(new HashMap<>());
         this.lastMainConnection = null;
     }
 
-    /**
-     * Returns the singleton instance of the ConnectionTracker.
-     *
-     * @return the singleton ConnectionTracker instance
-     */
-    public static ConnectionTracker getInstance() {
-        return INSTANCE;
-    }
 
     /**
      * Generates a unique tracking ID
@@ -103,18 +96,21 @@ public class ConnectionTracker {
     }
 
 
+
     /**
-     * Start tracking a new connection using the current NetworkInfo state
+     * Start tracking a new connection with explicit protocol (QueryContext-aware)
      * @param uri The URI being requested
+     * @param httpMethod The HTTP method being used
      * @param isMainConnection Whether this is a main connection
+     * @param protocol The network protocol being used
      * @return The tracking ID of the new connection
      */
-    public synchronized String startTrackingNewConnection(URI uri, String httpMethod, boolean isMainConnection) {
+    public synchronized String startTrackingNewConnection(URI uri, String httpMethod, boolean isMainConnection, NetworkProtocol protocol) {
         String trackingId = generateTrackingId();
         ConnectionRecord record = new ConnectionRecord(
                 uri,
-                "UNKNOWN", // was NetworkInfo.getServerIpAddress(),
-                NetworkInfo.getNetworkProtocol(),
+                "UNKNOWN", // IP address will be set later
+                protocol,
                 ZERO,  // Status code not yet known
                 null,  // Duration not yet known
                 null,  // Status not yet known
@@ -130,9 +126,9 @@ public class ConnectionTracker {
 
         if (isMainConnection) {
             lastMainConnection = record;
-            logger.debug("Started tracking main connection: {}", trackingId);
+            logger.debug("Started tracking main connection: {} using protocol: {}", trackingId, protocol);
         } else {
-            logger.debug("Started tracking connection: {}", trackingId);
+            logger.debug("Started tracking connection: {} using protocol: {}", trackingId, protocol);
         }
 
         return trackingId;
@@ -396,39 +392,7 @@ public class ConnectionTracker {
         lastMainConnection = null;
     }
 
-    /**
-     * Get the current status code of the last connection
-     * @return The status code, or null if not available
-     */
-    public static Integer getCurrentStatusCode() {
-        ConnectionTracker tracker = getInstance();
-        if(tracker.getCurrentConnection() != null) {
-            return tracker.getCurrentConnection().getStatusCode();
-        }
-        // else
-        ConnectionRecord currentConnection = tracker.getLastConnection(); // Given the way it works, the _last_ connection is the one we want. Current would be set to null.
 
-        if (currentConnection == null || currentConnection.getStatusCode() == ZERO || currentConnection.getStatus() == null) {
-            return null;
-        }
-
-        return currentConnection.getStatusCode();
-    }
-
-    /**
-     * Get the status code of the last main connection
-     * @return The status code, or null if not available
-     */
-    public static Integer getMainStatusCode() {
-        ConnectionRecord mainConnection = getInstance().getLastMainConnection();
-
-        if (mainConnection == null || mainConnection.getStatusCode() == ZERO || mainConnection.getStatus() == null) {
-            return ZERO; // force to zero
-        }
-
-        // otherwise it's good and return it
-        return mainConnection.getStatusCode();
-    }
 
 
     /**
@@ -508,10 +472,11 @@ public class ConnectionTracker {
      * <p>This method is used to identify cases where a resource may be legitimately
      * unavailable, which may require different validation handling or warning generation.</p>
      *
+     * @param queryContext the QueryContext for thread-safe error reporting
      * @param config the validator configuration containing query settings
      * @return true if all relevant queries returned 404 status, false otherwise
      */
-    public synchronized boolean isResourceNotFoundNoteWarning(RDAPValidatorConfiguration config) {
+    public synchronized boolean isResourceNotFoundNoteWarning(QueryContext queryContext, RDAPValidatorConfiguration config) {
         boolean foundRelevant = false;
         for (ConnectionRecord record : connections) {
             if (record.isMainConnection() || HEAD.equalsIgnoreCase(record.getHttpMethod())) {
@@ -525,14 +490,14 @@ public class ConnectionTracker {
                 if((HEAD.equalsIgnoreCase(record.getHttpMethod()) || GET.equalsIgnoreCase(record.getHttpMethod()))
                         && (config.useRdapProfileFeb2024() || config.useRdapProfileFeb2019())
                         && (config.isGtldRegistrar() || config.isGtldRegistry())) {
-                    CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
+                    queryContext.addError(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
                             + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
                 }
                 // to get the error code we are looking for ->
                 // if no profile is selected and a GET results in 404 and no other errors occur, this should show up as a warning
                 //  then we put in the error code -13020
                 else if(GET.equalsIgnoreCase(record.getHttpMethod())) {
-                    CommonUtils.addErrorToResultsFile(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
+                    queryContext.addError(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
                             + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");
                 }
             }
@@ -702,4 +667,6 @@ public class ConnectionTracker {
             return toStringWithoutRedirectStatus() + redirectStatus;
         }
     }
+
+
 }
