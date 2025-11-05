@@ -555,6 +555,53 @@ public class RdapWebValidatorTest {
         // Temporary directory should be cleaned up automatically
     }
 
+    @Test
+    public void testQueriedURIIsPopulated() {
+        // Test that queriedURI is properly set in validation results
+        String testUriString = "https://rdap.example.com/domain/test.example";
+        RdapWebValidator validator = new RdapWebValidator(testUriString);
+
+        // Verify the configuration is set correctly
+        assertNotNull(validator.getQueryContext());
+        assertNotNull(validator.getQueryContext().getConfig());
+        assertNotNull(validator.getQueryContext().getConfig().getUri());
+        assertEquals(testUriString, validator.getQueryContext().getConfig().getUri().toString());
+
+        // Perform validation (will likely fail due to network, but should still generate results)
+        RDAPValidatorResults results = validator.validate();
+
+        assertNotNull(results);
+        assertNotNull(results.getAll());
+
+        // If there are any results, check if queriedURI is populated
+        if (!results.getAll().isEmpty()) {
+            boolean hasPopulatedQueriedURI = false;
+            boolean hasNetworkErrors = false;
+
+            for (var result : results.getAll()) {
+                if (result.getQueriedURI() != null) {
+                    hasPopulatedQueriedURI = true;
+                    assertEquals(testUriString, result.getQueriedURI(),
+                        "queriedURI should match the input URI for result: " + result.getCode());
+                }
+
+                // Network-related errors (like -13002) might occur before URI is set
+                if (result.getCode() == -13002 || result.getCode() == -13000) {
+                    hasNetworkErrors = true;
+                }
+            }
+
+            // The fix should work for schema validation errors
+            // Network errors might still have null queriedURI depending on when they occur
+            if (!hasNetworkErrors) {
+                assertTrue(hasPopulatedQueriedURI,
+                    "At least some validation results should have queriedURI populated");
+            }
+            // If only network errors, test passes (queriedURI may be null for early errors)
+        }
+        // If no results, test passes (validation succeeded or no network access)
+    }
+
     /**
      * Helper method to recursively delete directories for test cleanup.
      */

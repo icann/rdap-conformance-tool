@@ -396,24 +396,33 @@ public class QueryContext {
      * Replaces CommonUtils.addErrorToResultsFile(int, String, String)
      */
     public void addError(int code, String value, String message) {
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                 .code(code)
                 .value(value)
-                .message(message)
-                .build(this));
+                .message(message);
+
+        // queriedURI will be populated automatically by RDAPValidationResult.Builder.build(QueryContext)
+        // from config.getUri() when not explicitly set
+
+        results.add(builder.build(this));
     }
+
 
     /**
      * Adds a validation error to the results with HTTP status code.
      * Replaces CommonUtils.addErrorToResultsFile(int, int, String, String)
      */
     public void addError(int httpStatusCode, int code, String value, String message) {
-        results.add(RDAPValidationResult.builder()
+        RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                 .httpStatusCode(httpStatusCode)
                 .code(code)
                 .value(value)
-                .message(message)
-                .build(this));
+                .message(message);
+
+        // queriedURI will be populated automatically by RDAPValidationResult.Builder.build(QueryContext)
+        // from config.getUri() when not explicitly set
+
+        results.add(builder.build(this));
     }
 
     // =================

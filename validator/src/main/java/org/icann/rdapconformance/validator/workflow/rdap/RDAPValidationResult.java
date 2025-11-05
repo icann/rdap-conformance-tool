@@ -182,8 +182,34 @@ public class RDAPValidationResult {
           this.serverIpAddress != null ? this.serverIpAddress :
               (queryContext != null ? queryContext.getNetworkInfo().getServerIpAddressValue() : "-"),
           this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
-          this.queriedURI
+          this.queriedURI != null ? this.queriedURI :
+              (shouldUseConfigUri(this.code, queryContext) ? queryContext.getConfig().getUri().toString() : null)
       );
+    }
+
+    /**
+     * Determines if an error code should use the config URI as fallback for queriedURI.
+     * HTTP-related errors should have queriedURI, but schema/parsing errors should not.
+     */
+    private boolean shouldUseConfigUri(int code, org.icann.rdapconformance.validator.QueryContext queryContext) {
+        if (queryContext == null || queryContext.getConfig() == null || queryContext.getConfig().getUri() == null) {
+            return false;
+        }
+
+        // HTTP-related errors (13xxx range) should get queriedURI from config
+        // These are errors related to the actual HTTP request/response
+        if (code >= -13999 && code <= -13000) {
+            return true;
+        }
+
+        // DNS/Network errors (20xxx range) that relate to the URI should get it
+        if (code >= -20999 && code <= -20000) {
+            return true;
+        }
+
+        // Schema validation errors (like -12208, -999) should NOT get queriedURI
+        // These are JSON parsing/structure errors unrelated to the HTTP request
+        return false;
     }
 
     /**
