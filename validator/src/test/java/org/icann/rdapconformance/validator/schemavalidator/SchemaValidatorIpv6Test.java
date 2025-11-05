@@ -30,7 +30,7 @@ public class SchemaValidatorIpv6Test extends SchemaValidatorTest {
   @Test
   public void v6NotCanonical() {
     jsonObject.put("ipv6", "999");
-    validate(-10200, "#/ipv6:999",
+    validateWithoutGroupTests(-10200, "#/ipv6:999",
         "The IPv6 address is not syntactically valid.");
   }
 
@@ -40,7 +40,7 @@ public class SchemaValidatorIpv6Test extends SchemaValidatorTest {
   @Test
   public void v6NotAllocatedNorLegacy() {
     doReturn(true).when(datasets.get(Ipv6AddressSpace.class)).isInvalid(any());
-    validate(-10201, "#/ipv6:0:0:0:0:0:0:0:1",
+    validateWithoutGroupTests(-10201, "#/ipv6:0:0:0:0:0:0:0:1",
         "The IPv6 address is not included in a "
             + "prefix categorized as Global Unicast in the Internet Protocol Version 6 Address Space. Dataset: ipv6AddressSpace");
   }
@@ -51,7 +51,7 @@ public class SchemaValidatorIpv6Test extends SchemaValidatorTest {
   @Test
   public void v6PartOfSpecialv6Addresses() {
     doReturn(true).when(datasets.get(SpecialIPv6Addresses.class)).isInvalid(any());
-    validate(-10202, "#/ipv6:0:0:0:0:0:0:0:1",
+    validateWithoutGroupTests(-10202, "#/ipv6:0:0:0:0:0:0:0:1",
         "The IPv6 address is included in the IANA "
             + "IPv6 Special-Purpose Address Registry. Dataset: specialIPv6Addresses");
   }

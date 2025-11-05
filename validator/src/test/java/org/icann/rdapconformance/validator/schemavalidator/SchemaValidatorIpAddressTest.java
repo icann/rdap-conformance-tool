@@ -91,7 +91,7 @@ public class SchemaValidatorIpAddressTest extends SchemaValidatorTest {
   public void v6Invalid() {
     jsonObject.getJSONObject("ipAddress").remove("v4");
     jsonObject.getJSONObject("ipAddress").put("v6", List.of("0:0:0:wrong-ipv6"));
-    validate(-10200, "#/ipAddress/v6/0:0:0:0:wrong-ipv6",
+    validateWithoutGroupTests(-10200, "#/ipAddress/v6/0:0:0:0:wrong-ipv6",
         "The IPv6 address is not syntactically valid.");
   }
 
@@ -112,7 +112,7 @@ public class SchemaValidatorIpAddressTest extends SchemaValidatorTest {
   public void v6NotSyntacticallyValid() {
     jsonObject.getJSONObject("ipAddress").remove("v4");
     jsonObject.getJSONObject("ipAddress").put("v6", List.of("999"));
-    validate(-10200, "#/ipAddress/v6/0:999",
+    validateWithoutGroupTests(-10200, "#/ipAddress/v6/0:999",
         "The IPv6 address is not syntactically valid.");
   }
 }
