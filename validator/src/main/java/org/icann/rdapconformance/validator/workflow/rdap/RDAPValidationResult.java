@@ -182,7 +182,10 @@ public class RDAPValidationResult {
           this.serverIpAddress != null ? this.serverIpAddress :
               (queryContext != null ? queryContext.getNetworkInfo().getServerIpAddressValue() : "-"),
           this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
-          this.queriedURI
+          this.queriedURI != null ?
+                  this.queriedURI : (queryContext != null && queryContext.getConfig() != null && queryContext.getConfig().getUri() != null
+                  ? queryContext.getConfig().getUri().toString()
+                  : "-")
       );
     }
 
