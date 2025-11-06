@@ -181,6 +181,7 @@ public abstract class SchemaValidatorTest {
             .httpMethod("GET")
             .serverIpAddress("-")
             .httpStatusCode(0)
+            .queriedURI("https://example.com/domain/test.example")
             .build()
     );
     assertThat(results.getGroupErrorWarning()).contains(validationName);
