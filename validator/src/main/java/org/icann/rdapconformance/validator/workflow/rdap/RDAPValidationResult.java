@@ -182,12 +182,21 @@ public class RDAPValidationResult {
           this.serverIpAddress != null ? this.serverIpAddress :
               (queryContext != null ? queryContext.getNetworkInfo().getServerIpAddressValue() : "-"),
           this.httpStatusCode != null ? this.httpStatusCode : statusCodeFromCurrent,
-          this.queriedURI != null ?
-                  this.queriedURI : (queryContext != null && queryContext.getConfig() != null && queryContext.getConfig().getUri() != null
-                  ? queryContext.getConfig().getUri().toString()
-                  : "-")
+          this.queriedURI = getQueriedUriOrDefault(queryContext)
       );
     }
+
+      private String getQueriedUriOrDefault(org.icann.rdapconformance.validator.QueryContext queryContext) {
+          if (this.queriedURI != null) {
+              return this.queriedURI;
+          }
+
+          if (queryContext != null && queryContext.getConfig() != null && queryContext.getConfig().getUri() != null) {
+              return queryContext.getConfig().getUri().toString();
+          }
+
+          return "-";
+      }
 
     /**
      * Build method for testing purposes and fallback compatibility.
