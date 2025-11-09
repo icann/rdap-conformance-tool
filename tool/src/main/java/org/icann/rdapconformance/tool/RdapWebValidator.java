@@ -262,8 +262,13 @@ public class RdapWebValidator implements AutoCloseable {
             rdapValidator.validate();
         }
 
+        // Finalize results by culling duplicates and analyzing status codes
+        var rdapValidatorResults = queryContext.getResults();
+        rdapValidatorResults.cullDuplicateIPAddressErrors();
+        rdapValidatorResults.analyzeResultsWithStatusCheck();
+
         // Return the results that were collected during all validation passes
-        return queryContext.getResults();
+        return rdapValidatorResults;
     }
 
     /**
