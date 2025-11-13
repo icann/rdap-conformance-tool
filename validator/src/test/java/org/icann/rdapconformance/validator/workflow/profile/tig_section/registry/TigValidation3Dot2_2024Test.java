@@ -158,7 +158,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
         JSONObject link1 = new JSONObject();
         link1.put("value", config.getUri().toString()); // Must match for -23201 to pass
         link1.put("rel", "related");
-        link1.put("href", "https://api.registry.net/v1/rdap/domain/test.com");
+        link1.put("href", "https://rdap.corenic.net/domain/core.swiss");
         links.put(link1);
 
         jsonObject.put("links", links);

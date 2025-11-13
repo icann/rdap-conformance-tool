@@ -15,6 +15,7 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
     private final RDAPQueryType queryType;
     private final org.icann.rdapconformance.validator.QueryContext queryContext;
     private static final Pattern DOMAIN_QUERY_PATTERN = Pattern.compile("^https?://[^/]+/.*/domain/.+$");
+    private static final Pattern DOMAIN_QUERY_PATTERN_WS = Pattern.compile("^https?://[^/]+/.*domain/.+$");
     
     // Error messages
     private static final String ERROR_23201_MESSAGE = "a value property must be specified and it must match the URI of the query.";
@@ -96,7 +97,7 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
                 // Check links with rel="related" that have href (same as -23200 test)
                 if (l.optString(REL_FIELD).equals(REL_RELATED) && l.has(HREF_FIELD)) {
                     String href = l.optString(HREF_FIELD);
-                    if (href.isEmpty() || !DOMAIN_QUERY_PATTERN.matcher(href).matches()) {
+                    if (href.isEmpty() || !DOMAIN_QUERY_PATTERN_WS.matcher(href).matches()) {
                         RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                             .code(-23202)
                             .value(l.toString())
