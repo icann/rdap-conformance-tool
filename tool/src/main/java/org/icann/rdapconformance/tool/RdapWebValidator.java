@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
+
 import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -12,6 +14,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
+
+import static org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.falsePositivesCodesForIpvPrivateCheck;
 
 /**
  * Web-safe RDAP validation interface that avoids global state pollution.
@@ -264,6 +268,19 @@ public class RdapWebValidator implements AutoCloseable {
 
         // Finalize results by culling duplicates and analyzing status codes
         var rdapValidatorResults = queryContext.getResults();
+
+        boolean hasProperPrivateIPError = rdapValidatorResults.getAll().stream()
+                .anyMatch(r -> r.getCode() == -10101 ||
+                        r.getCode() == -10102);
+
+        if(hasProperPrivateIPError) {
+            var filteredResults = rdapValidatorResults.getAll().stream()
+                    .filter(r -> !falsePositivesCodesForIpvPrivateCheck.contains(Math.abs(r.getCode())))
+                    .collect(Collectors.toSet());
+            rdapValidatorResults.clear();
+            rdapValidatorResults.addAll(filteredResults);
+        }
+
         rdapValidatorResults.cullDuplicateIPAddressErrors();
         rdapValidatorResults.analyzeResultsWithStatusCheck();
 

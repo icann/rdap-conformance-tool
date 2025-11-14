@@ -4,14 +4,10 @@ import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,6 +19,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   public static final String CODE = "code=";
   public static final String HTTP_STATUS_CODE = ", httpStatusCode=";
   public static final String BRACKETS = "[]";
+  public static final List<Integer> falsePositivesCodesForIpvPrivateCheck = Arrays.asList(12208, 12407);
 
   private final List<RDAPValidationResult> results = new ArrayList<>();
   private final Set<String> groups = ConcurrentHashMap.newKeySet();
