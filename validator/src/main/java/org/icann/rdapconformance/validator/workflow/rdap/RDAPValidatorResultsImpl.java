@@ -19,7 +19,7 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
   public static final String CODE = "code=";
   public static final String HTTP_STATUS_CODE = ", httpStatusCode=";
   public static final String BRACKETS = "[]";
-  public static final List<Integer> falsePositivesCodesForIpvPrivateCheck = Arrays.asList(12208, 12407, 10101);
+  public static final List<Integer> falsePositivesCodesForIpvPrivateCheck = Arrays.asList(12208, 12407);
 
   private final List<RDAPValidationResult> results = new ArrayList<>();
   private final Set<String> groups = ConcurrentHashMap.newKeySet();
