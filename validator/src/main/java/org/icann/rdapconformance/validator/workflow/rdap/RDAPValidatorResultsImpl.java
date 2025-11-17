@@ -3,8 +3,11 @@ package org.icann.rdapconformance.validator.workflow.rdap;
 import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-
-import java.util.*;
+import java.util.List;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
