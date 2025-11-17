@@ -4,6 +4,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
+import static org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.falsePositivesCodesForIpvPrivateCheck;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -253,6 +254,16 @@ public class RDAPValidationResultFile {
                                                            .filter(r -> !codeToIgnore.contains(r.getCode())
                                                                && r.getCode() != UNKNOWN_ERROR_CODE)
                                                            .collect(Collectors.toList());
+
+        boolean hasProperPrivateIPError = filteredResults.stream()
+                .anyMatch(r -> r.getCode() == -10101 ||
+                        r.getCode() == -10102);
+
+        if (hasProperPrivateIPError) {
+            filteredResults = filteredResults.stream()
+                    .filter(r -> !falsePositivesCodesForIpvPrivateCheck.contains(Math.abs(r.getCode())))
+                    .collect(Collectors.toList());
+        }
 
         filteredResults = cullDuplicateIPAddressErrors(filteredResults);
         filteredResults = addErrorIfAllQueriesDoNotReturnSameStatusCode(filteredResults);
