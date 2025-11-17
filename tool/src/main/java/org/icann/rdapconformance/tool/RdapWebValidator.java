@@ -273,7 +273,7 @@ public class RdapWebValidator implements AutoCloseable {
                 .anyMatch(r -> r.getCode() == -10101 ||
                         r.getCode() == -10102);
 
-        if(hasProperPrivateIPError) {
+        if (hasProperPrivateIPError) {
             var filteredResults = rdapValidatorResults.getAll().stream()
                     .filter(r -> !falsePositivesCodesForIpvPrivateCheck.contains(Math.abs(r.getCode())))
                     .collect(Collectors.toSet());

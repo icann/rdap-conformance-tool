@@ -1,8 +1,6 @@
 package org.icann.rdapconformance.tool;
 
 import org.icann.rdapconformance.validator.QueryContext;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

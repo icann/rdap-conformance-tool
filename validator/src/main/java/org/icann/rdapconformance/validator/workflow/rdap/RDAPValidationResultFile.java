@@ -259,7 +259,7 @@ public class RDAPValidationResultFile {
                 .anyMatch(r -> r.getCode() == -10101 ||
                         r.getCode() == -10102);
 
-        if(hasProperPrivateIPError) {
+        if (hasProperPrivateIPError) {
             filteredResults = filteredResults.stream()
                     .filter(r -> !falsePositivesCodesForIpvPrivateCheck.contains(Math.abs(r.getCode())))
                     .collect(Collectors.toList());
