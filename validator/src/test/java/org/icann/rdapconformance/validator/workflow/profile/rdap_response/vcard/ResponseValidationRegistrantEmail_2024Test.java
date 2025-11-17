@@ -65,7 +65,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
         }
 
         redactedObject.getJSONObject("name").put("type", "test");
-        validate(-65400, emailPointer, "a redaction of type Registrant Email is required.");
+        validate(-65404, emailPointer, "A redaction of type Registrant Email is required.");
     }
 
     @Test
@@ -199,9 +199,9 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
         jsonObject.put("redacted", new JSONArray());
 
         // Expected: Should trigger -63700 because no "Registrant Email" redaction found
-        validate(-65400,
+        validate(-65404,
                 "",  // Empty redacted array results in empty value
-                "a redaction of type Registrant Email is required.");
+                "A redaction of type Registrant Email is required.");
     }
 
     @Test
