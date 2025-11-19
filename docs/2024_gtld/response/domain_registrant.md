@@ -616,3 +616,52 @@ Given the above, if the contact-uri property exists on any of the vCards, the fo
   "message": "jsonpath must evaluate to a non-empty set for redaction by replacementvalue of Registrant Email in replacementPath"
 }
 ```
+
+These tests only apply to an entity with the “registrant” role, if present, on queries of a gTLD registry (i.e. --gtld-registry).
+
+If the email property on the vCards for the entity with the role of “registrant” is NOT present, the following tests apply:
+
+1. Test case [-65400](#id-testCase-65400){ #id-testCase-65400 }: Verify that a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Email”.
+```json
+{
+  "code": -65400,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registrant Email is required."
+}
+```
+2. Test case [-65401](#id-testCase-65401){ #id-testCase-65401 }: In the redaction object from the above test, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
+```json
+{
+  "code": -65401,
+  "value": "<redaction object>",
+  "message": "jsonpath is invalid for Registrant Email"
+}
+```
+3. Test case [-65402](#id-testCase-65402){ #id-testCase-65402 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
+```json
+{
+  "code": -65402,
+  "value": "<redaction object>",
+  "message": "jsonpath must evaluate to a zero set for redaction by removal of Registrant Email."
+}
+```
+4. Test case [-65403](#id-testCase-65403){ #id-testCase-65403 }: In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
+```json
+{
+  "code": -65403,
+  "value": "<redaction object>",
+  "message": "Registrant Email redaction method must be removal if present"
+}
+```
+
+If the email property on the vCards for the entity with the role of registrant is present, the following tests apply:
+
+1. Test case [-65404](#id-testCase-65404){ #id-testCase-65404 }: If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Email”.
+```json
+{
+  "code": -65404,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registrant Email was found but email was not redacted."
+}
+```
+
