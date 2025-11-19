@@ -498,3 +498,18 @@ The response must include the removal redacted member, for example:
 
 Appendix E of the Response Profile provides the full list of required redaction members. 
 
+## Object ID (Handle) Requirements
+
+1. For domain objects, the RDAP response must either:
+    * Include a handle member with a value of the Registry Repository Object Identifier (ROID) in the domain object 
+    (i.e., Registry Domain ID). See also, Section 9.1.3.1 of the Registration Data Policy; or
+    * Remove the handle member for the domain object, in accordance with Section 2.7.7 and Appendix E 
+    of the Response Profile, and RFC 9537. If the handle member is removed, the RDAP response must include a 
+    redacted member (as identified in Appendix E). See also, Section 9.2.2.1.1 of the Registration Data Policy.
+2. For entity objects, the RDAP response must either:
+    1. Include a handle member with a value of:
+        * The ROID of the contact object (e.g. Registry Registrant ID) if available from the registry 
+        (i.e., if the applicable contact is transferred from the registrar to the registry). See also, Section 9.1.3.2 and 9.1.3.6; or
+        * [Registrar Only] The contact object’s unique identifier within the Registrar if not available from the registry 
+        (i.e., if the applicable contact is not transferred from the registrar to the registry). See Section 2.11.3 of the Response Profile.
+    2. Remove the handle member for the entity object, in accordance with Section 2.7.7 and Appendix E of the Response Profile, and RFC 9537. If the handle member is removed, the RDAP response must include a redacted member (as identified in Appendix E). See also, Section 9.2.2.1.2 and 9.2.2.1.10.
