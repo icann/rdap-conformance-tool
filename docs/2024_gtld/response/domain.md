@@ -213,11 +213,11 @@ Test group: [[rdapResponseProfile2024_2_4_6_Validation]](#id-rdapResponseProfile
 
 ## Registrar Expiration
 
-1. Test case [-65500](#id-testCase-65500){ #id-testCase-65500 }: If the query is of a gTLD Registrar (e.g., --gtld-registrar), 
+1. Test case [-65600](#id-testCase-65600){ #id-testCase-65600 }: If the query is of a gTLD Registrar (e.g., --gtld-registrar), 
 validate that an eventAction type “registrar expiration” exists in the topmost events structure.
 ```json
 {
-  "code": -65500,
+  "code": -65600,
   "value": "<events data structure>",
   "message": "An eventAction of type 'registrar expiration' is expected."
 }
