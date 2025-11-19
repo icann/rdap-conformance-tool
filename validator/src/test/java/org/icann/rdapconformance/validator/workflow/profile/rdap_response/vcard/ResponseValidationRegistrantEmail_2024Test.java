@@ -1,6 +1,5 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard;
 
-import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
@@ -9,11 +8,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertTrue;
 
 public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValidationTestBase {
 
@@ -50,7 +47,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
     }
 
     @Test
-    public void ResponseValidation2Dot7Dot4Dot8_2024_63700() {
+    public void ResponseValidation2Dot7Dot4Dot8_2024_65400() {
         when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Remove ALL tel properties from registrant entity to trigger validation
         JSONArray vcardArray = jsonObject.getJSONArray("entities").getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
@@ -65,7 +62,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
         }
 
         redactedObject.getJSONObject("name").put("type", "test");
-        validate(-65404, emailPointer, "A redaction of type Registrant Email is required.");
+        validate(-65400, emailPointer, "A redaction of type Registrant Email is required.");
     }
 
     @Test
@@ -198,8 +195,8 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
         // Clear the redacted array 
         jsonObject.put("redacted", new JSONArray());
 
-        // Expected: Should trigger -63700 because no "Registrant Email" redaction found
-        validate(-65404,
+        // Expected: Should trigger -65400 because no "Registrant Email" redaction found
+        validate(-65400,
                 "",  // Empty redacted array results in empty value
                 "A redaction of type Registrant Email is required.");
     }
