@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 
-import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
@@ -15,7 +14,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
 
-import static org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.falsePositivesCodesForIpvPrivateCheck;
+import static org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.falsePositivesCodesForCascadeIpCheck;
 
 /**
  * Web-safe RDAP validation interface that avoids global state pollution.
@@ -275,7 +274,7 @@ public class RdapWebValidator implements AutoCloseable {
 
         if (hasProperPrivateIPError) {
             var filteredResults = rdapValidatorResults.getAll().stream()
-                    .filter(r -> !falsePositivesCodesForIpvPrivateCheck.contains(Math.abs(r.getCode())))
+                    .filter(r -> !falsePositivesCodesForCascadeIpCheck.contains(Math.abs(r.getCode())))
                     .collect(Collectors.toSet());
             rdapValidatorResults.clear();
             rdapValidatorResults.addAll(filteredResults);

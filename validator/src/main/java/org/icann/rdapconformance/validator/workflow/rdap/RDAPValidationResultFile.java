@@ -4,7 +4,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 import static org.icann.rdapconformance.validator.exception.parser.ExceptionParser.UNKNOWN_ERROR_CODE;
-import static org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.falsePositivesCodesForIpvPrivateCheck;
+import static org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl.falsePositivesCodesForCascadeIpCheck;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -255,13 +255,13 @@ public class RDAPValidationResultFile {
                                                                && r.getCode() != UNKNOWN_ERROR_CODE)
                                                            .collect(Collectors.toList());
 
-        boolean hasProperPrivateIPError = filteredResults.stream()
+        boolean hasProperCascadeIPError = filteredResults.stream()
                 .anyMatch(r -> r.getCode() == -10101 ||
                         r.getCode() == -10102);
 
-        if (hasProperPrivateIPError) {
+        if (hasProperCascadeIPError) {
             filteredResults = filteredResults.stream()
-                    .filter(r -> !falsePositivesCodesForIpvPrivateCheck.contains(Math.abs(r.getCode())))
+                    .filter(r -> !falsePositivesCodesForCascadeIpCheck.contains(Math.abs(r.getCode())))
                     .collect(Collectors.toList());
         }
 
