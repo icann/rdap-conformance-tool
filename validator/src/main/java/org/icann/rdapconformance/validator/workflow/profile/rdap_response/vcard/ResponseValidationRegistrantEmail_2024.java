@@ -86,7 +86,7 @@ public class ResponseValidationRegistrantEmail_2024 extends ProfileJsonValidatio
         JSONObject redactedEmail = extractRedactedEmailObject();
         if(Objects.isNull(redactedEmail)) {
             results.add(RDAPValidationResult.builder()
-                    .code(-65404)
+                    .code(-65400)
                     .value(getResultValue(redactedPointersValue))
                     .message("A redaction of type Registrant Email is required.")
                     .build(queryContext));
