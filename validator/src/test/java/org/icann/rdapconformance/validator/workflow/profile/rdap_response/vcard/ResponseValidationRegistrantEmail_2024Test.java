@@ -177,7 +177,7 @@ public class ResponseValidationRegistrantEmail_2024Test extends ProfileJsonValid
     }
 
     @Test
-    public void testEmptyRedactedArray_ShouldTrigger63700() {
+    public void testEmptyRedactedArray_ShouldTrigger65400() {
         when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);
         // Test edge case where redacted array exists but is empty
 
