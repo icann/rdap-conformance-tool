@@ -339,6 +339,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-65501`: Tech Email redaction path validation (2024 profile) - "jsonpath must evaluate to a zero set for redaction by removal of Tech Email." [RFC 9537 Section 2, RDAP Response Profile 2024] {ResponseValidationTechEmail_2024.java}
 - `-65502`: Tech Email redaction method validation (2024 profile) - "Tech Email redaction method must be removal if present" [RFC 9537 Section 2, RDAP Response Profile 2024] {ResponseValidationTechEmail_2024.java}
 - `-65503`: Tech Email redaction consistency validation (2024 profile) - "a redaction of type Tech Email was found but email was not redacted." [RFC 9537 Section 2, RDAP Response Profile 2024] {ResponseValidationTechEmail_2024.java}
+- `-65600`: Pursuant to Registration Data Policy 9.1.1.5 validation (2024 profile) [RDAP Response Profile 2024] {ResponseValidation2Dot3Dot2_2024.java, TopMostEventActionValidation.java, RDAPValidationResultFile.java}
 
 ### vCard Validation Errors (2024 Profile) (-63XXX)
 - `-63000`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot2_2024.java}
