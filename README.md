@@ -7,7 +7,7 @@ Apart from generic RDAP tests, there are no specific tests for IP addresses and 
 
 # Installing and Using
 
-Instructions for installing and using this software can be found [here](https://github.com/icann/rdap-conformance-tool/wiki).
+Instructions for installing and using this software can be found [here](https://icann.github.io/rdap-conformance-tool/).
 This wiki also includes explanations for some of the common conformance issues.
 
 # General Structure
@@ -126,7 +126,7 @@ To publish, a release:
 
 # License
 
- Copyright 2021 Internet Corporation for Assigned Names and Numbers ("ICANN")
+ Copyright 2025 Internet Corporation for Assigned Names and Numbers ("ICANN")
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
