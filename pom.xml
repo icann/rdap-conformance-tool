@@ -24,7 +24,7 @@
     </distributionManagement>
 
     <properties>
-        <rdap-conformance.version>3.0.4</rdap-conformance.version>
+        <rdap-conformance.version>3.0.5</rdap-conformance.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
