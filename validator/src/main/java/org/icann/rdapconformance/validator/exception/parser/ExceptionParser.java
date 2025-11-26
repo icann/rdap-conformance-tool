@@ -82,7 +82,7 @@ public abstract class ExceptionParser {
     try {
       return getErrorCodeFn.get();
     } catch (Exception parseException) {
-      logger.info("Can't find the corresponding error in schema, replacing by {}", UNKNOWN_ERROR_CODE);
+      logger.debug("Can't find the corresponding error in schema, replacing by {}", UNKNOWN_ERROR_CODE);
       return UNKNOWN_ERROR_CODE;
     }
   }

@@ -202,7 +202,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         try {
             uri = createUri(href);
         } catch (Exception e) {
-            logger.info("47703, href = {}, syntax error = {}", href, e.getMessage());
+            logger.debug("47703, href = {}, syntax error = {}", href, e.getMessage());
             results.add(RDAPValidationResult.builder()
                 .code(-47703)
                 .value(getResultValue(linkPointer))

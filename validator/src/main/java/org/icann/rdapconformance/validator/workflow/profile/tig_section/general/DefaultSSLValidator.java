@@ -73,7 +73,7 @@ public class DefaultSSLValidator implements SSLValidator {
             logger.info("Cannot create SSL context", e);
             return SSLValidationResult.failure("Cannot create SSL context", e);
         } catch (IOException e) {
-            logger.info("Error during SSL connection setup", e);
+            logger.debug("Error during SSL connection setup", e);
             return SSLValidationResult.failure("Error during SSL connection setup", e);
         }
     }
@@ -127,7 +127,7 @@ public class DefaultSSLValidator implements SSLValidator {
             logger.info("Cannot create SSL context for TLS 1.2 cipher validation", e);
             return CipherValidationResult.failure("Cannot create SSL context for TLS 1.2 cipher validation", e);
         } catch (IOException e) {
-            logger.info("Connection error during TLS 1.2 cipher validation", e);
+            logger.debug("Connection error during TLS 1.2 cipher validation", e);
             return CipherValidationResult.failure("Connection error during TLS 1.2 cipher validation", e);
         }
     }

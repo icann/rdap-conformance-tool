@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import java.util.HashSet;
 import java.util.Set;
+import org.json.JSONArray;
 
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -28,7 +29,10 @@ public final class ResponseValidationRFC3915 extends ProfileJsonValidation {
   @Override
   protected boolean doValidate() {
     Set<String> status = new HashSet<>();
-    jsonObject.optJSONArray("status").forEach(s -> status.add((String) s));
+    JSONArray statusArray = jsonObject.optJSONArray("status");
+    if (statusArray != null) {
+      statusArray.forEach(s -> status.add((String) s));
+    }
     var statusError = 0;
 
     // Status -47000 was added into ignored list and changed for new codes -47001 and -47002

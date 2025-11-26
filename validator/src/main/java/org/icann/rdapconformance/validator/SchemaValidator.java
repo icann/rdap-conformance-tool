@@ -169,10 +169,12 @@ public class SchemaValidator {
       verifyUnicityOfEventAction("asEventActor", -11310, jsonObject);
 
       if (content.contains("\"vcardArray\"")) {
+        logger.info("Validating: vcardArrayGeneralValidation");
         new VcardArrayGeneralValidation(jsonObject.toString(), results, queryContext).validate();
       }
 
       if (content.contains("\"notices\"")) {
+        logger.info("Validating: noticesTopMostValidation");
         new NoticesTopMostValidation(jsonObject.toString(), results, schemaRootNode, queryContext).validate();
       }
     } catch (Exception e) {
