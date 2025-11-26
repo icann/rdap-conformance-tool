@@ -134,15 +134,25 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-11409`: IPv6 address validation - "The v6 structure is not syntactically valid." [RFC 9083 Section 5.2] {Ipv6ValidationExceptionParser.java}
 
 #### Variant Validation (-115XX)
+- `-11500`: Variant array structure validation [RFC 9083 Section 5.3] {rdap_variants.json}
+- `-11501`: Variant unknown keys validation [RFC 9083 Section 5.3] {rdap_variant.json}
 - `-11503`: Variant relation validation [RFC 9083 Section 5.3] {rdap_variant.json}
 - `-11504`: Variant relation format validation (not list of strings) [RFC 9083 Section 5.3] {rdap_variant.json}
 - `-11505`: Variant relation enum validation against datasets [RFC 9083 Section 5.3] {rdap_variant.json}
-- `-11506`: Variant structure validation [RFC 9083 Section 5.3] {rdap_variant.json}
+- `-11506`: Variant idnTable validation [RFC 9083 Section 5.3] {rdap_variant.json}
+- `-11507`: Variant names array structure validation [RFC 9083 Section 5.3] {rdap_variant.json}
+- `-11508`: Variant name unknown keys validation [RFC 9083 Section 5.3] {rdap_variantName.json}
+- `-11510`: Variant name ldhName validation (stdRdapLdhNameValidation) [RFC 9083 Section 5.3] {rdap_variantName.json}
+- `-11511`: Variant name unicodeName validation (stdRdapUnicodeNameValidation) [RFC 9083 Section 5.3] {rdap_variantName.json}
 
 #### Unicode/LDH Name Validation (-116XX, -117XX)
+- `-11600`: Unicode name label length validation (exceeding 63 characters) [RFC 9083 Section 3.1] {rdap_common.json}
+- `-11601`: Unicode name total length validation (exceeding 253 characters) [RFC 9083 Section 3.1] {rdap_common.json}
+- `-11602`: Unicode name label count validation (less than 2 labels) [RFC 9083 Section 3.1] {rdap_common.json}
 - `-11603`: Unicode name validation [RFC 9083 Section 3.1] {rdap_common.json}
-- `-11700`: LDH name length validation (exceeding 63 characters) [RFC 9083 Section 3.1] {NOT IMPLEMENTED}
-- `-11701`: LDH name total length validation (exceeding 253 characters) [RFC 9083 Section 3.1] {NOT IMPLEMENTED}
+- `-11700`: LDH name label length validation (exceeding 63 characters) [RFC 9083 Section 3.1] {rdap_common.json}
+- `-11701`: LDH name total length validation (exceeding 253 characters) [RFC 9083 Section 3.1] {rdap_common.json}
+- `-11702`: LDH name label count validation (less than 2 labels) [RFC 9083 Section 3.1] {rdap_common.json}
 - `-11703`: LDH name validation [RFC 9083 Section 3.1] {rdap_common.json}
 
 #### Roles Validation (-118XX)
@@ -184,8 +194,11 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-12108`: ErrorCode value mismatch (2024 profile) - "The errorCode value does not match the HTTP status code." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
 
 #### Domain Validation (-122XX)
-- `-12203`: Domain objectClassName validation [RFC 9083 Section 5.3] {rdap_domain.json}
-- `-12204`: Domain structure validation [RFC 9083 Section 5.3] {rdap_domain.json}
+- `-12203`: Domain objectClassName validation (must be "domain") [RFC 9083 Section 5.3] {rdap_domain.json}
+- `-12204`: Domain handle validation [RFC 9083 Section 5.3] {rdap_domain.json}
+- `-12205`: Domain ldhName validation (stdRdapLdhNameValidation) [RFC 9083 Section 5.3] {rdap_domain.json}
+- `-12206`: Domain unicodeName validation (stdRdapUnicodeNameValidation) [RFC 9083 Section 5.3] {rdap_domain.json}
+- `-12207`: Domain variants validation (stdRdapVariantsValidation) [RFC 9083 Section 5.3] {rdap_domain.json}
 
 #### Entity Validation (-123XX)
 - `-12300`: Entity validation [RFC 9083 Section 5.1]
@@ -196,8 +209,10 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-12305`: vCard array validation - "The vcard array does not contain valid values." or "The vCard array structure is incorrect." [RFC 9083 Section 5.1] {VcardArrayGeneralValidation.java, RDAPProfileVcardArrayValidation.java, VcardExceptionParser.java}
 
 #### Nameserver Validation (-124XX)
-- `-12403`: Nameserver objectClassName validation [RFC 9083 Section 5.2] {rdap_nameserver.json}
-- `-12404`: Nameserver structure validation [RFC 9083 Section 5.2] {rdap_nameserver.json}
+- `-12403`: Nameserver objectClassName validation (must be "nameserver") [RFC 9083 Section 5.2] {rdap_nameserver.json}
+- `-12404`: Nameserver handle validation [RFC 9083 Section 5.2] {rdap_nameserver.json}
+- `-12405`: Nameserver ldhName validation (stdRdapLdhNameValidation) [RFC 9083 Section 5.2] {rdap_nameserver.json}
+- `-12406`: Nameserver unicodeName validation (stdRdapUnicodeNameValidation) [RFC 9083 Section 5.2] {rdap_nameserver.json}
 
 #### Help Response Validation (-125XX)
 - `-12500`: Help response validation [RFC 9082 Section 4.3]

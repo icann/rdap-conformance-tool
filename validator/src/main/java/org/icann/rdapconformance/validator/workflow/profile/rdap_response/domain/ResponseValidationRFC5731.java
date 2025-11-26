@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domai
 
 import java.util.HashSet;
 import java.util.Set;
+import org.json.JSONArray;
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
@@ -27,7 +28,10 @@ public final class ResponseValidationRFC5731 extends ProfileJsonValidation {
   @Override
   protected boolean doValidate() {
     Set<String> status = new HashSet<>();
-    jsonObject.optJSONArray("status").forEach(s -> status.add((String) s));
+    JSONArray statusArray = jsonObject.optJSONArray("status");
+    if (statusArray != null) {
+      statusArray.forEach(s -> status.add((String) s));
+    }
 
     if ((status.contains("active") && status.stream().anyMatch(s -> !Set.of("active", "add period", "auto renew period", "renew period", "transfer period").contains(s))) ||
         (status.containsAll(Set.of("pending delete", "client delete prohibited")) ||

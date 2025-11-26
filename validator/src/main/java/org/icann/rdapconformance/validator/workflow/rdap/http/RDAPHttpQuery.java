@@ -673,13 +673,13 @@ public class RDAPHttpQuery implements RDAPQuery {
             } else if (errorCodeObj instanceof String) {
                 errorCode = Integer.parseInt((String) errorCodeObj);
             } else {
-                logger.info("Invalid errorCode type in response: {}", errorCodeObj.getClass());
+                logger.debug("Invalid errorCode type in response: {}", errorCodeObj.getClass());
                 return false;
             }
             
             return errorCode == httpStatusCode;
         } catch (Exception e) {
-            logger.info("Error parsing JSON response for error code match check", e);
+            logger.debug("Error parsing JSON response for error code match check", e);
             return false;
         }
     }

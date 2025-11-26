@@ -41,7 +41,7 @@ public abstract class TopMostEventActionValidation extends ProfileJsonValidation
 
     RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(code)
-        .value(jsonObject.get("events").toString())
+        .value(jsonObject.has("events") ? jsonObject.get("events").toString() : "[]")
         .message(message);
 
     results.add(builder.build(queryContext));

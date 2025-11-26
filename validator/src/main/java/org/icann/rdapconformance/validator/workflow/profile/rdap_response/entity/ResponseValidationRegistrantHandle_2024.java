@@ -127,7 +127,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
             isValid = false;
         }
     } catch (Exception e) {
-      logger.info("Entity handle is not found, next validations, Error: {}", e.getMessage());
+      logger.debug("Entity handle is not found, next validations, Error: {}", e.getMessage());
       return validateRedactedArrayForHandle();
     }
 

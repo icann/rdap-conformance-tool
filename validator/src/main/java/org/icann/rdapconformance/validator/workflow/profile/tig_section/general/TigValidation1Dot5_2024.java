@@ -61,7 +61,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                 SSLValidator.SSLValidationResult sslResult = sslValidator.validateSSL(hostname, port);
                 
                 if (!sslResult.isSuccessful()) {
-                    logger.info("SSL validation failed: {}", sslResult.getErrorMessage());
+                    logger.debug("SSL validation failed: {}", sslResult.getErrorMessage());
                     return false;
                 }
                 
@@ -99,10 +99,10 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
                             isValid = false;
                         }
                     } else if (cipherResult != null) {
-                        logger.info("Cannot validate TLS 1.2 cipher suites: {}", cipherResult.getErrorMessage());
+                        logger.debug("Cannot validate TLS 1.2 cipher suites: {}", cipherResult.getErrorMessage());
                         isValid = false;
                     } else {
-                        logger.info("Cannot validate TLS 1.2 cipher suites: SSL validator returned null result");
+                        logger.debug("Cannot validate TLS 1.2 cipher suites: SSL validator returned null result");
                         isValid = false;
                     }
                 }

@@ -143,6 +143,7 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         // fold the name stuff and send out another query to that URL
         if (rdapResponse != null && !queryContext.getQuery().isErrorContent() && queryContext.getConfig().isNetworkEnabled()) {
+            logger.info("Validating: domainCaseFoldingValidation");
             new DomainCaseFoldingValidation(rdapResponse, queryContext, queryType).validate(); // Network calls
         }
 
@@ -151,7 +152,9 @@ public class RDAPValidator implements ValidatorWorkflow {
             logger.info("Validations for additional conformance queries");
 
             // Sequential execution (always)
+            logger.info("Validating: rdapResponseHelp_2024_Validation");
             new ResponseValidationHelp_2024(queryContext).validate();  // Network calls
+            logger.info("Validating: rdapResponseDomainInvalid_2024_Validation");
             new ResponseValidationDomainInvalid_2024(queryContext).validate(); // Network calls
         }
 
