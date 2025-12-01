@@ -249,4 +249,105 @@ public class CommonUtils {
         return configFile;
     }
 
+    // Error code for resource not found warning
+    public static final int RESOURCE_NOT_FOUND_WARNING_CODE = -13020;
+
+    // Warning message for 404 responses
+    public static final String RESOURCE_NOT_FOUND_MESSAGE =
+        "This URL returned an HTTP 404 status code that was validly formed. If the provided URL " +
+        "does not reference a registered resource, then this warning may be ignored. If the provided URL " +
+        "does reference a registered resource, then this should be considered an error.";
+
+    /**
+     * Handles the resource not found (404) warning logic for both CLI and web validator.
+     *
+     * <p>This method checks if all relevant queries returned 404 status codes and, if so,
+     * adds the appropriate warning to the validation results. This centralizes the 404
+     * handling logic that was previously duplicated between RdapConformanceTool and
+     * RdapWebValidator.</p>
+     *
+     * <p>The warning is added when:</p>
+     * <ul>
+     *   <li>All HEAD and main GET queries returned 404 status</li>
+     *   <li>Either a gTLD profile is in use (Feb 2019 or Feb 2024) with registry/registrar mode</li>
+     *   <li>Or it's a plain GET request without profile requirements</li>
+     * </ul>
+     *
+     * @param queryContext the QueryContext containing connection tracker and results
+     * @param config the validator configuration with profile and mode settings
+     * @return true if all relevant queries returned 404 (caller may want to filter errors), false otherwise
+     */
+    public static boolean handleResourceNotFoundWarning(QueryContext queryContext,
+                                                        RDAPValidatorConfiguration config) {
+        ConnectionTracker tracker = queryContext.getConnectionTracker();
+
+        // Use the pure query method to check if all relevant queries returned 404
+        if (!tracker.areAllRelevantQueriesNotFound()) {
+            logger.debug("At least one HEAD or Main query returned a non-404 response code.");
+            return false;
+        }
+
+        logger.debug("All HEAD and Main queries returned a 404 Not Found response code.");
+
+        // Add the warning for 404 responses
+        // The warning is added for all 404 cases - categorization as warning vs error
+        // is handled by the configuration file's definitionWarning settings
+        queryContext.addError(HTTP_NOT_FOUND, RESOURCE_NOT_FOUND_WARNING_CODE,
+            config.getUri().toString(), RESOURCE_NOT_FOUND_MESSAGE);
+
+        return true;
+    }
+
+    /**
+     * Filters validation results for 404 responses, keeping only relevant results.
+     *
+     * <p>When all queries return 404, most validation errors are expected and should be
+     * removed. This method filters results to keep only:</p>
+     * <ul>
+     *   <li>The -13020 resource not found warning</li>
+     *   <li>Response format errors (-12100 to -12199) - validate error response structure</li>
+     *   <li>Domain validation errors (-10300 to -10303) - validate user input</li>
+     * </ul>
+     *
+     * <p>This matches the behavior of RDAPValidationResultFile.removeErrors() but works
+     * directly with RDAPValidatorResults for use in RdapWebValidator.</p>
+     *
+     * @param results the validation results to filter
+     */
+    public static void filterResultsForResourceNotFound(
+            org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults results) {
+        var allResults = results.getAll();
+        var filteredResults = allResults.stream()
+            .filter(result -> isResultToKeepFor404(result.getCode()))
+            .collect(java.util.stream.Collectors.toSet());
+
+        results.clear();
+        results.addAll(filteredResults);
+        results.removeGroups();
+
+        logger.debug("Filtered results for 404 response: kept {} of {} results",
+            filteredResults.size(), allResults.size());
+    }
+
+    /**
+     * Determines if a result should be kept when filtering for 404 responses.
+     *
+     * @param code the error/warning code
+     * @return true if the result should be kept, false if it should be filtered out
+     */
+    private static boolean isResultToKeepFor404(int code) {
+        // Keep the resource not found warning
+        if (code == RESOURCE_NOT_FOUND_WARNING_CODE) {
+            return true;
+        }
+        // Keep response format errors (-12100 to -12199)
+        if (code <= -12100 && code >= -12199) {
+            return true;
+        }
+        // Keep domain validation errors (-10300 to -10303)
+        if (code >= -10303 && code <= -10300) {
+            return true;
+        }
+        return false;
+    }
 }

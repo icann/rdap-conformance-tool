@@ -672,20 +672,14 @@ public void setShowProgress(boolean showProgress) {
 
 
       // Removing extra errors to avoid discrepancies between profiles when 404 status code is returned
-      boolean isResourceNotFound = false;
-      if (validator instanceof RDAPValidator) {
-          RDAPValidator rdapValidator = (RDAPValidator) validator;
-          isResourceNotFound = rdapValidator.getQueryContext().getConnectionTracker().isResourceNotFoundNoteWarning(rdapValidator.getQueryContext(), this);
-      } else {
-          isResourceNotFound = queryContext.getConnectionTracker().isResourceNotFoundNoteWarning(queryContext, this);
-      }
+      QueryContext effectiveQueryContext = (validator instanceof RDAPValidator)
+          ? ((RDAPValidator) validator).getQueryContext()
+          : queryContext;
+      boolean isResourceNotFound = CommonUtils.handleResourceNotFoundWarning(effectiveQueryContext, this);
 
       if(isResourceNotFound) {
-        logger.debug("All HEAD and Main queries returned a 404 Not Found response code.");
         resultFile.removeErrors();
         resultFile.removeResultGroups();
-      } else {
-        logger.debug("At least one HEAD or Main query returned a non-404 Not Found response code.");
       }
 
       // Build the result file

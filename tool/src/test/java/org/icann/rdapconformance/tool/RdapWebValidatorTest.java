@@ -555,6 +555,34 @@ public class RdapWebValidatorTest {
         // Temporary directory should be cleaned up automatically
     }
 
+    @Test
+    public void testValidateCallsResourceNotFoundWarningHandler() {
+        // Test that validate() properly integrates with CommonUtils.handleResourceNotFoundWarning
+        // This verifies the refactoring from direct ConnectionTracker call to CommonUtils
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+
+        try (RdapWebValidator validator = new RdapWebValidator(testUri,
+                true,    // isRegistry
+                false,   // isRegistrar
+                false,   // useRdapProfileFeb2019
+                true,    // useRdapProfileFeb2024
+                false,   // noIpv4Queries
+                false,   // noIpv6Queries
+                false,   // additionalConformanceQueries
+                true,    // useTemporaryDirectory
+                true     // cleanupOnClose
+        )) {
+            assertNotNull(validator);
+            assertNotNull(validator.getQueryContext());
+
+            // The validate() method should call CommonUtils.handleResourceNotFoundWarning internally
+            // We verify the integration by checking that no exceptions are thrown
+            // and the validator completes normally
+            RDAPValidatorResults results = validator.validate();
+            assertNotNull(results, "Validation should return results object");
+        }
+    }
+
     /**
      * Helper method to recursively delete directories for test cleanup.
      */

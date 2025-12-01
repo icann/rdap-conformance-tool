@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 
+import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
@@ -265,8 +266,17 @@ public class RdapWebValidator implements AutoCloseable {
             rdapValidator.validate();
         }
 
+        // Check for 404 resource not found and generate warning if applicable
+        // This matches the CLI tool behavior that generates -13020 warning
+        boolean isResourceNotFound = CommonUtils.handleResourceNotFoundWarning(queryContext, config);
+
         // Finalize results by culling duplicates and analyzing status codes
         var rdapValidatorResults = queryContext.getResults();
+
+        // If all queries returned 404, filter out most errors (matching CLI behavior)
+        if (isResourceNotFound) {
+            CommonUtils.filterResultsForResourceNotFound(rdapValidatorResults);
+        }
 
         boolean hasProperPrivateIPError = rdapValidatorResults.getAll().stream()
                 .anyMatch(r -> r.getCode() == -10101 ||

@@ -11,8 +11,14 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.anyInt;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertEquals;
 
 public class ConnectionTrackerTest {
 
@@ -112,5 +118,102 @@ public class ConnectionTrackerTest {
 
         boolean foundRelevant = connectionTracker.isResourceNotFoundNoteWarning(queryContext, config);
         assertFalse(foundRelevant, "Should return false if no relevant connections");
+    }
+
+    // Tests for the new pure query method areAllRelevantQueriesNotFound()
+
+    @Test
+    public void testAreAllRelevantQueriesNotFound_All404s_ReturnsTrue() {
+        connectionTracker.reset();
+
+        // Add a main connection with 404 status
+        connectionTracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);
+        connectionTracker.completeCurrentConnection(404, ConnectionStatus.SUCCESS);
+
+        // Add a HEAD connection with 404 status
+        connectionTracker.startTracking(URI.create("http://example.com"), "1.2.3.4", NetworkProtocol.IPv4, "HEAD", false);
+        connectionTracker.completeTrackingById(connectionTracker.getLastConnection().getTrackingId(), 404, ConnectionStatus.SUCCESS);
+
+        boolean result = connectionTracker.areAllRelevantQueriesNotFound();
+        assertTrue(result, "Should return true when all relevant queries returned 404");
+    }
+
+    @Test
+    public void testAreAllRelevantQueriesNotFound_Mixed404And200_ReturnsFalse() {
+        connectionTracker.reset();
+
+        // Add a main connection with 404 status
+        connectionTracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);
+        connectionTracker.completeCurrentConnection(404, ConnectionStatus.SUCCESS);
+
+        // Add a HEAD connection with 200 status (not 404)
+        connectionTracker.startTracking(URI.create("http://example.com"), "1.2.3.4", NetworkProtocol.IPv4, "HEAD", false);
+        connectionTracker.completeTrackingById(connectionTracker.getLastConnection().getTrackingId(), 200, ConnectionStatus.SUCCESS);
+
+        boolean result = connectionTracker.areAllRelevantQueriesNotFound();
+        assertFalse(result, "Should return false when any connection is not 404");
+    }
+
+    @Test
+    public void testAreAllRelevantQueriesNotFound_NoConnections_ReturnsFalse() {
+        connectionTracker.reset();
+
+        boolean result = connectionTracker.areAllRelevantQueriesNotFound();
+        assertFalse(result, "Should return false when no relevant connections exist");
+    }
+
+    @Test
+    public void testAreAllRelevantQueriesNotFound_OnlyNonRelevantConnections_ReturnsFalse() {
+        connectionTracker.reset();
+
+        // Add a non-main, non-HEAD connection (should be ignored)
+        connectionTracker.startTracking(URI.create("http://example.com/help"), "1.2.3.4", NetworkProtocol.IPv4, "GET", false);
+        connectionTracker.completeTrackingById(connectionTracker.getLastConnection().getTrackingId(), 200, ConnectionStatus.SUCCESS);
+
+        boolean result = connectionTracker.areAllRelevantQueriesNotFound();
+        assertFalse(result, "Should return false when only non-relevant connections exist");
+    }
+
+    @Test
+    public void testAreAllRelevantQueriesNotFound_MainGet404_ReturnsTrue() {
+        connectionTracker.reset();
+
+        // Add only a main GET connection with 404
+        connectionTracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);
+        connectionTracker.completeCurrentConnection(404, ConnectionStatus.SUCCESS);
+
+        boolean result = connectionTracker.areAllRelevantQueriesNotFound();
+        assertTrue(result, "Should return true for single main GET with 404");
+    }
+
+    @Test
+    public void testAreAllRelevantQueriesNotFound_HeadOnly404_ReturnsTrue() {
+        connectionTracker.reset();
+
+        // Add only a HEAD connection with 404
+        connectionTracker.startTracking(URI.create("http://example.com"), "1.2.3.4", NetworkProtocol.IPv4, "HEAD", false);
+        connectionTracker.completeTrackingById(connectionTracker.getLastConnection().getTrackingId(), 404, ConnectionStatus.SUCCESS);
+
+        boolean result = connectionTracker.areAllRelevantQueriesNotFound();
+        assertTrue(result, "Should return true for single HEAD with 404");
+    }
+
+    @Test
+    public void testAreAllRelevantQueriesNotFound_PureMethod_NoSideEffects() {
+        connectionTracker.reset();
+
+        // Add a main connection with 404
+        connectionTracker.startTrackingNewConnection(URI.create("http://example.com"), "GET", true, NetworkProtocol.IPv4);
+        connectionTracker.completeCurrentConnection(404, ConnectionStatus.SUCCESS);
+
+        int resultCountBefore = results.getResultCount();
+
+        // Call the pure method - should not add any results
+        boolean result = connectionTracker.areAllRelevantQueriesNotFound();
+
+        int resultCountAfter = results.getResultCount();
+
+        assertTrue(result, "Should return true for 404");
+        assertEquals(resultCountBefore, resultCountAfter, "Pure method should not add any results");
     }
 }

@@ -467,6 +467,28 @@ public class ConnectionTracker {
     }
 
     /**
+     * Checks if all HEAD and main (GET) queries returned 404 Not Found status codes.
+     *
+     * <p>This is a pure query method with no side effects - it only checks the connection
+     * records and returns a boolean. Use this method when you need to check 404 status
+     * without adding any warnings to results.</p>
+     *
+     * @return true if there are relevant queries and all returned 404 status, false otherwise
+     */
+    public synchronized boolean areAllRelevantQueriesNotFound() {
+        boolean foundRelevant = false;
+        for (ConnectionRecord record : connections) {
+            if (record.isMainConnection() || HEAD.equalsIgnoreCase(record.getHttpMethod())) {
+                foundRelevant = true;
+                if (record.getStatusCode() != HTTP_NOT_FOUND) {
+                    return false;
+                }
+            }
+        }
+        return foundRelevant;
+    }
+
+    /**
      * Determines if all HEAD and main queries returned 404 Not Found status codes.
      *
      * <p>This method is used to identify cases where a resource may be legitimately
@@ -475,7 +497,10 @@ public class ConnectionTracker {
      * @param queryContext the QueryContext for thread-safe error reporting
      * @param config the validator configuration containing query settings
      * @return true if all relevant queries returned 404 status, false otherwise
+     * @deprecated Use {@link #areAllRelevantQueriesNotFound()} for the pure check and
+     *             {@link CommonUtils#handleResourceNotFoundWarning} for the full handling.
      */
+    @Deprecated
     public synchronized boolean isResourceNotFoundNoteWarning(QueryContext queryContext, RDAPValidatorConfiguration config) {
         boolean foundRelevant = false;
         for (ConnectionRecord record : connections) {
