@@ -40,7 +40,18 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-13006`: Invalid redirect test (2024 profile) [RFC 7480 Section 5.2, RDAP Response Profile 2024] {ResponseValidationTestInvalidRedirect_2024.java}
 - `-13013`: Too many HTTP redirects - "Too many HTTP redirects." [RFC 7480 Section 5.2] {RDAPHttpQuery.java}
 - `-13018`: Mixed HTTP status codes in validation results - "Mixed HTTP status codes found in validation results." [RFC 7480 Section 5] {RDAPValidatorResultsImpl.java, RDAPValidationResultFile.java}
+- `-13007`: Connection failure - "Failed to connect to server." [RFC 7480 Section 5] {RDAPHttpRequest.java}
+- `-13008`: TLS handshake failure - "TLS handshake failed." [RFC 7481 Section 3] {RDAPHttpRequest.java}
+- `-13009`: Invalid TLS certificate - "Invalid TLS certificate." [RFC 7481 Section 3] {RDAPHttpRequest.java}
+- `-13010`: Revoked TLS certificate - "Revoked TLS certificate." [RFC 7481 Section 3] {RDAPHttpRequest.java}
+- `-13011`: Expired certificate - "Expired certificate." [RFC 7481 Section 3] {RDAPHttpRequest.java}
+- `-13012`: TLS certificate error - "TLS certificate error." [RFC 7481 Section 3] {RDAPHttpRequest.java}
+- `-13014`: HTTP error - "HTTP error." [RFC 7480 Section 5] {RDAPHttpRequest.java}
+- `-13016`: Network send failure - "Network send fail" [RFC 7480 Section 5] {RDAPHttpRequest.java}
+- `-13017`: Network receive failure - "Network receive fail" [RFC 7480 Section 5] {RDAPHttpRequest.java}
 - `-13019`: DNS resolution issues - "Unable to resolve an IP address endpoint using DNS." [RFC 7484 Section 3] {DNSCacheResolver.java}
+- `-13020`: Resource not found warning - "This URL returned an HTTP 404 status code that was validly formed. If the provided URL does not reference a registered resource, then this warning may be ignored." [RFC 7480 Section 5] {ConnectionTracker.java}
+- `-13021`: Connection refused - "Connection refused by host." [RFC 7480 Section 5] {RDAPHttpRequest.java}
 
 ### IP Address Validation (-10XXX)
 - `-10100`: IPv4 address validation - "The IPv4 address is not syntactically valid in dot-decimal notation." [RFC 9083 Section 5.2] {Ipv4ValidationExceptionParser.java}
@@ -97,6 +108,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-10908`: Event date format validation [RFC 9083 Section 4.5] {rdap_event.json}
 - `-10909`: Event structure validation [RFC 9083 Section 4.5] {rdap_event.json}
 - `-10910`: Event validation [RFC 9083 Section 4.5] {rdap_events.json}
+- `-10912`: Event action duplication validation - "An eventAction value exists more than once within the events array." [RFC 9083 Section 4.5] {SchemaValidator.java}
 
 ### Schema Validation Errors (-11XXX)
 
@@ -194,11 +206,13 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-12108`: ErrorCode value mismatch (2024 profile) - "The errorCode value does not match the HTTP status code." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
 
 #### Domain Validation (-122XX)
+- `-12199`: Response format error range check [RFC 9083 Section 6] {RDAPValidationResultFile.java}
 - `-12203`: Domain objectClassName validation (must be "domain") [RFC 9083 Section 5.3] {rdap_domain.json}
 - `-12204`: Domain handle validation [RFC 9083 Section 5.3] {rdap_domain.json}
 - `-12205`: Domain ldhName validation (stdRdapLdhNameValidation) [RFC 9083 Section 5.3] {rdap_domain.json}
 - `-12206`: Domain unicodeName validation (stdRdapUnicodeNameValidation) [RFC 9083 Section 5.3] {rdap_domain.json}
 - `-12207`: Domain variants validation (stdRdapVariantsValidation) [RFC 9083 Section 5.3] {rdap_domain.json}
+- `-12208`: Domain nameserver lookup validation (stdRdapNameserverLookupValidation) [RFC 9083 Section 5.3] {rdap_domain.json}
 
 #### Entity Validation (-123XX)
 - `-12300`: Entity validation [RFC 9083 Section 5.1]
@@ -213,6 +227,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-12404`: Nameserver handle validation [RFC 9083 Section 5.2] {rdap_nameserver.json}
 - `-12405`: Nameserver ldhName validation (stdRdapLdhNameValidation) [RFC 9083 Section 5.2] {rdap_nameserver.json}
 - `-12406`: Nameserver unicodeName validation (stdRdapUnicodeNameValidation) [RFC 9083 Section 5.2] {rdap_nameserver.json}
+- `-12407`: Nameserver IP addresses validation (stdRdapIpAddressesValidation) [RFC 9083 Section 5.2] {rdap_nameserver.json}
 
 #### Help Response Validation (-125XX)
 - `-12500`: Help response validation [RFC 9082 Section 4.3]
@@ -244,6 +259,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-20700`: TIG 3.3 and 3.4 validation [TIG Section 3.3, 3.4] {TigValidation3Dot3And3Dot4.java}
 - `-20701`: Help query validation (2024 profile) - "Response to a /help query did not yield a proper status code or RDAP response." [RFC 9082 Section 4.3, RDAP Response Profile 2024] {ResponseValidationHelp_2024.java}
 - `-20800`: TIG 4.1 validation [TIG Section 4.1] {TigValidation4Dot1.java, jcard.json}
+- `-20600`: TIG 1.14 validation - "The RDAP Conformance data structure does not include icann_rdap_technical_implementation_guide_0." [TIG Section 1.14] {TigValidation1Dot14.java}
 - `-20900`: TIG 7.1 and 7.2 validation - "Tel property without voice or fax type" [TIG Section 7.1, 7.2, RFC 6350] {TigValidation7Dot1And7Dot2.java}
 
 ### Registry-Specific Errors (-23XXX)
@@ -253,6 +269,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-23200`: Registry TIG 3.2 validation [TIG Section 3.2] {TigValidation3Dot2.java}
 - `-23201`: Registry TIG 3.2 validation (2024 profile) [TIG Section 3.2, RDAP Response Profile 2024] {TigValidation3Dot2_2024.java}
 - `-23202`: Registry href domain query validation (2024 profile) - "the href property must be domain query as defined by Section 3.1.3 of RFC 9082." [RFC 9082 Section 3.1.3, TIG Section 3.2, RDAP Response Profile 2024] {TigValidation3Dot2_2024.java}
+- `-23300`: Registry entity publicIds member missing validation [RFC 9083 Section 4.8, TIG Section 6.1] {TigValidation6Dot1.java}
 - `-23301`: Registry entity public IDs identifier validation [RFC 9083 Section 4.8, TIG Section 6.1] {TigValidation6Dot1.java}
 
 ### Registrar-Specific Errors (-26XXX)
@@ -261,7 +278,10 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-26102`: Registrar URL structure validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot12Dot1.java}
 
 ### Handle and Domain Validation Errors (-4XXXX)
+- `-40100`: Browser executable code validation - "The RDAP response contains browser executable code (e.g., JavaScript)." [RDAP Response Profile Section 1.2.2] {ResponseValidation1Dot2Dot2.java}
+- `-40200`: RDAP conformance validation - "The RDAP Conformance data structure does not include icann_rdap_response_profile_0." [RFC 9083 Section 4.1, RDAP Response Profile Section 1.3] {ResponseValidation1Dot3.java}
 - `-40400`: General response validation [RFC 9083 Section 4] {ResponseValidation1Dot4.java}
+- `-43100`: Last update event validation - "An eventAction type last update of RDAP database does not exists in the topmost events data structure." [RDAP Response Profile Section 2.3.1.3, 2.7.6, 3.3] {ResponseValidationLastUpdateEvent.java}
 - `-46100`: Domain validation (section 2.1) [RDAP Response Profile Section 2.1] {ResponseValidation2Dot1.java}
 - `-46101`: Domain validation (unicode name) [RDAP Response Profile Section 2.1] {ResponseValidation2Dot1.java}
 - `-46200`: Handle validation - "Handle format violation" [RFC 9083 Section 3.1] {ResponseValidation2Dot2.java, ResponseValidation2Dot2_1_2024.java}
@@ -272,6 +292,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-46205`: Handle validation (2024 profile) - ICANN testing EPPROID [RFC 9083 Section 3.1, RDAP Response Profile 2024] {ResponseValidation2Dot2_2024.java}
 - `-46206`: Handle validation (2024 profile) - Registry Domain ID redaction consistency [RFC 9537, RDAP Response Profile 2024] {ResponseValidation2Dot2_1_2024.java}
 - `-46300`: Domain validation (section 2.3.1.1) [RDAP Response Profile Section 2.3.1.1] {ResponseValidation2Dot3Dot1Dot1.java}
+- `-46400`: Expiration event validation - "An eventAction of type expiration does not exist in the topmost events data structure." [RDAP Response Profile Section 2.3.1.2] {ResponseValidation2Dot3Dot1Dot2.java}
 - `-46500`: Notices validation [RFC 9083 Section 4.3] {ResponseValidationNoticesIncluded.java}
 - `-46600`: Domain validation (section 2.6.3) [RDAP Response Profile Section 2.6.3] {ResponseValidation2Dot6Dot3.java}
 - `-46601`: Domain validation (2024 profile) [RDAP Response Profile 2024 Section 2.6.3] {ResponseValidation2Dot6Dot3_2024.java}
@@ -280,6 +301,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-46604`: Domain validation (2024 profile) [RDAP Response Profile 2024 Section 2.6.3] {ResponseValidation2Dot6Dot3_2024.java}
 - `-46605`: Domain validation (2024 profile) [RDAP Response Profile 2024 Section 2.6.3] {ResponseValidation2Dot6Dot3_2024.java}
 - `-46606`: Domain validation (2024 profile) [RDAP Response Profile 2024 Section 2.6.3] {ResponseValidation2Dot6Dot3_2024.java}
+- `-46700`: Domain notice validation (section 2.11) [RDAP Response Profile Section 2.11] {ResponseValidation2Dot11.java}
 - `-46701`: Domain validation (2024 profile) [RDAP Response Profile 2024] {ResponseValidation2Dot10_2024.java}
 - `-46702`: Domain validation (2024 profile) [RDAP Response Profile 2024] {ResponseValidation2Dot10_2024.java}
 - `-46703`: Domain validation (2024 profile) [RDAP Response Profile 2024] {ResponseValidation2Dot10_2024.java}
@@ -290,10 +312,17 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-46801`: Domain validation [RFC 9083 Section 5.3] {ResponseValidation2Dot10.java}
 - `-46802`: Domain validation [RFC 9083 Section 5.3] {ResponseValidation2Dot10.java}
 - `-46900`: Domain validation (RFC5731) [RFC 5731 EPP Domain Mapping] {ResponseValidationRFC5731.java}
+- `-47000`: Domain status validation (RFC3915) [RFC 3915 Domain Registry Grace Period] {ResponseValidationRFC3915.java}
 - `-47001`: Domain validation (RFC3915) [RFC 3915 Domain Registry Grace Period] {ResponseValidationRFC3915.java}
 - `-47002`: Domain validation (RFC3915) [RFC 3915 Domain Registry Grace Period] {ResponseValidationRFC3915.java}
 - `-47100`: Domain validation (section 2.6.1) [RDAP Response Profile Section 2.6.1] {ResponseValidation2Dot6Dot1.java}
+- `-47200`: Nameserver ldhName validation - "A nameserver object without ldhName was found." [RDAP Response Profile Section 2.9.1, 2.9.2] {ResponseValidation2Dot9Dot1And2Dot9Dot2.java}
+- `-47201`: Nameserver validation (section 2.9.1 and 2.9.2) [RDAP Response Profile Section 2.9.1, 2.9.2] {ResponseValidation2Dot9Dot1And2Dot9Dot2.java}
+- `-47202`: Nameserver handle EPPROID validation [RFC 9083 Section 5.2, RDAP Response Profile] {HandleValidation.java}
+- `-47203`: Nameserver handle/status validation - "The handle or status in the nameserver object is not included." [RDAP Response Profile Section 2.9.1, 2.9.2] {ResponseValidation2Dot9Dot1And2Dot9Dot2.java}
+- `-47204`: Nameserver status validation - "The values of the status data structure does not comply with RFC5732." [RFC 5732, RDAP Response Profile Section 2.9.1, 2.9.2] {ResponseValidation2Dot9Dot1And2Dot9Dot2.java}
 - `-47205`: Domain validation (section 2.9.1 and 2.9.2, 2024 profile) [RDAP Response Profile 2024 Section 2.9.1, 2.9.2] {ResponseValidation2Dot9Dot1And2Dot9Dot2_2024.java}
+- `-47400`: Domain status validation (section 2.4.2 and 2.4.3) [RDAP Response Profile Section 2.4.2, 2.4.3] {ResponseValidation2Dot4Dot2And2Dot4Dot3.java}
 - `-47300`: Domain validation [RFC 9083 Section 5.3] {ResponseValidation2Dot4Dot1.java}
 - `-47301`: Domain validation [RFC 9083 Section 5.3] {ResponseValidation2Dot4Dot1.java}
 - `-47302`: Domain validation [RFC 9083 Section 5.3] {ResponseValidation2Dot4Dot1.java}
@@ -311,10 +340,12 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-49104`: Nameserver handle validation (2024 profile) [RFC 9083 Section 5.2, RDAP Response Profile 2024] {ResponseValidation4Dot1Handle_2024.java}
 - `-49200`: Nameserver validation (section 4.3) [RDAP Response Profile Section 4.3] {ResponseValidation4Dot3.java}
 - `-49205`: Nameserver validation [RFC 9083 Section 5.2] {ResponseValidation4Dot3.java}
+- `-49300`: Nameserver status validation - "The values of the status data structure does not comply with RFC5732." [RFC 5732, RDAP Response Profile Section 4.3] {ResponseNameserverStatusValidation.java}
 
 ### Entity Validation Errors (-5XXXX)
 - `-52100`: Entity validation [RFC 9083 Section 5.1] {ResponseValidation2Dot7Dot1DotXAndRelated1.java}
 - `-52101`: Entity validation [RFC 9083 Section 5.1] {ResponseValidation2Dot7Dot1DotXAndRelated2.java}
+- `-52102`: Entity handle validation - "The handle in the entity object does not comply with the format (\\w|_){1,80}-\\w{1,8} specified in RFC5730." [RFC 5730, RFC 9083 Section 5.1] {ResponseValidation2Dot7Dot1DotXAndRelated3And4.java}
 - `-52104`: Entity validation (Related5) [RFC 9083 Section 5.1] {ResponseValidation2Dot7Dot1DotXAndRelated5.java}
 - `-52105`: Entity validation [RFC 9083 Section 5.1] {ResponseValidation2Dot7Dot1DotXAndRelated6.java}
 - `-52106`: Entity validation (2024 profile) [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024.java}
@@ -329,7 +360,13 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-60101`: Entity validation [RFC 9083 Section 5.1] {ResponseValidation3Dot1.java}
 - `-60200`: Entity validation [RFC 9083 Section 5.1] {ResponseValidation3Dot2.java}
 - `-61100`: SSL/TLS validation (2024 profile) - "The RDAP server must only use TLS 1.2 or TLS 1.3" [RFC 7481 Section 3, RDAP Response Profile 2024] {TigValidation1Dot5_2024.java}
+- `-61000`: TIG 1.3 validation (2024 profile) - "The RDAP Conformance data structure does not include icann_rdap_technical_implementation_guide_1." [TIG Section 1.3, RDAP Response Profile 2024] {TigValidation1Dot3_2024.java}
 - `-61101`: SSL/TLS certificate validation (2024 profile) - "The RDAP server must use one of the following cipher suites when using TLS 1.2: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384." [RFC 7481 Section 3, RDAP Response Profile 2024] {TigValidation1Dot5_2024.java}
+- `-61200`: Terms of service notice validation (2024 profile) - "The response must have one notice to the terms of service." [TIG Section 3.3, 3.4, RDAP Response Profile 2024] {TigValidation3Dot3And3Dot4_2024.java}
+- `-61201`: Terms of service link href validation (2024 profile) - "This link must have an href." [TIG Section 3.3, 3.4, RDAP Response Profile 2024] {TigValidation3Dot3And3Dot4_2024.java}
+- `-61202`: Terms of service link value validation (2024 profile) - "This link must have a value that is the same as the queried URI." [TIG Section 3.3, 3.4, RDAP Response Profile 2024] {TigValidation3Dot3And3Dot4_2024.java}
+- `-62000`: RDAP conformance validation (2024 profile) - "The RDAP Conformance data structure does not include icann_rdap_response_profile_1." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidation1Dot2_1_2024.java}
+- `-62001`: Redacted conformance validation (2024 profile) - "The RDAP Conformance data structure does not include redacted but RFC 9537 is being used." [RFC 9537, RDAP Response Profile 2024] {ResponseValidation1Dot2_2_2024.java}
 
 ### Redaction Validation Errors (2024 Profile) (-65XXX)
 - `-65000`: Technical contact fn property validation (2024 profile) - "The fn property is required on the vcard for the technical contact." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
@@ -337,10 +374,12 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-65002`: Technical name JSONPath validation (2024 profile) - "jsonpath is invalid for Tech Name" [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
 - `-65003`: Technical name redaction path validation (2024 profile) - "jsonpath must evaluate to a non-empty set for redaction by empty value of Tech Name." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
 - `-65004`: Technical name redaction method validation (2024 profile) - "Tech Name redaction method must be emptyValue" [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
+- `-65005`: Technical name redaction consistency validation (2024 profile) - "a redaction of type Tech Name was found but tech name was not redacted." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
 - `-65100`: Technical contact phone redaction validation (2024 profile) - "a redaction of type Tech Phone is required." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot2_2024.java}
 - `-65101`: Technical phone JSONPath validation (2024 profile) - "jsonpath is invalid for Tech Phone." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot2_2024.java}
 - `-65102`: Technical phone redaction path validation (2024 profile) - "jsonpath must evaluate to a zero set for redaction by removal of Tech Phone." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot2_2024.java}
 - `-65103`: Technical phone redaction method validation (2024 profile) - "Tech Phone redaction method must be removal if present" [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot2_2024.java}
+- `-65104`: Technical phone redaction consistency validation (2024 profile) - "a redaction of type Tech Phone was found but tech phone was not redacted." [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot2_2024.java}
 - `-65200`: Technical email contact validation (2024 profile) - "a redaction of Tech Email may not have both the email and contact-uri" [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
 - `-65201`: Technical email requirement validation (2024 profile) - "a redaction of Tech Email must have either the email or contact-uri" [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
 - `-65202`: Technical email redaction method validation (2024 profile) - "Tech Email redaction method must be replacementValue" [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot3_2024.java}
@@ -364,33 +403,40 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-63103`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
 - `-63104`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
 - `-63105`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
+- `-63106`: Registrant handle redaction consistency validation (2024 profile) - "a redaction of type Registry Registrant ID was found but the registrant handle was not redacted." [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
 - `-63200`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot1_2024.java}
 - `-63201`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63202`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63203`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63204`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
+- `-63205`: Registrant name redaction consistency validation (2024 profile) - "a redaction of type Registrant Name was found but registrant fn property was not redacted." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot1_2024.java}
 - `-63301`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RFC 9537, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot2_2024.java}
 - `-63302`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RFC 9537, RDAP Response Profile 2024]
 - `-63303`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RFC 9537, RDAP Response Profile 2024]
+- `-63304`: Registrant organization redaction consistency validation (2024 profile) - "a redaction of type Registrant Organization was found but organization name was not redacted." [RFC 9083 Section 5.1, RFC 6350, RFC 9537, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot2_2024.java}
 - `-63400`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot3_2024.java}
 - `-63401`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63402`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63403`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63404`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
+- `-63405`: Registrant street redaction consistency validation (2024 profile) - "a redaction of type Registrant Street was found but the registrant street was not redacted." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot3_2024.java}
 - `-63500`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot4_2024.java}
 - `-63501`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63502`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63503`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63504`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
+- `-63505`: Registrant city redaction consistency validation (2024 profile) - "a redaction of type Registrant City was found but the city was not redacted." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot4_2024.java}
 - `-63600`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot6_2024.java}
 - `-63601`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63602`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63603`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63604`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
-- `-63700`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
+- `-63605`: Registrant postal code redaction consistency validation (2024 profile) - "a redaction of type Registrant Postal Code was found but the postal code was not redacted." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot6_2024.java}
+- `-63700`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot8_2024.java}
 - `-63701`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63702`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63703`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
+- `-63704`: Registrant phone redaction consistency validation (2024 profile) - "a redaction of type Registrant Phone was found but the phone was not redacted." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot8_2024.java}
 - `-63800`: Entity validation (2024 profile) [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot5Dot1_2024.java}
 - `-63801`: Entity validation (2024 profile) [RFC 9083 Section 5.1, RDAP Response Profile 2024]
 - `-63802`: Entity validation (2024 profile) [RFC 9083 Section 5.1, RDAP Response Profile 2024]
@@ -484,10 +530,10 @@ The following 5 parsers are test files or do not generate error codes:
 ## Analysis Summary
 
 ### Error Code Statistics
-- **Total Error Codes Documented:** 284 codes
-- **HTTP Protocol Errors (-13XXX):** 10 codes
-- **Network and Address Validation (-10XXX):** 29 codes total
-  - IPv4 Address Validation (-101XX): 3 codes  
+- **Total Error Codes Documented:** 361 codes
+- **HTTP Protocol Errors (-13XXX):** 21 codes
+- **Network and Address Validation (-10XXX):** 30 codes total
+  - IPv4 Address Validation (-101XX): 3 codes
   - IPv6 Address Validation (-102XX): 3 codes
   - Domain Name Validation (-103XX): 4 codes
   - URI and Domain Validation (-104XX): 4 codes
@@ -495,7 +541,7 @@ The following 5 parsers are test files or do not generate error codes:
   - Links Validation (-106XX): 8 codes
   - Notices Validation (-107XX): 5 codes
   - Language Validation (-108XX): 1 code
-  - Event Validation (-109XX): 6 codes
+  - Event Validation (-109XX): 7 codes
 - **Schema Validation (-11XXX):** 35 codes (organized by subcategory)
   - Status Validation (-110XX): 3 codes
   - Port 43 Validation (-111XX): 1 code
@@ -505,25 +551,25 @@ The following 5 parsers are test files or do not generate error codes:
   - Variant Validation (-115XX): 4 codes
   - Unicode/LDH Name Validation (-116XX, -117XX): 4 codes
   - Roles Validation (-118XX): 4 codes
-- **JSON Structure Validation (-12XXX):** 53 codes (organized by subcategory)
+- **JSON Structure Validation (-12XXX):** 58 codes (organized by subcategory)
   - Secure DNS Validation (-120XX): 15 codes
   - Error Response Validation (-121XX): 9 codes
-  - Domain Validation (-122XX): 2 codes
+  - Domain Validation (-122XX): 6 codes
   - Entity Validation (-123XX): 3 codes
-  - Nameserver Validation (-124XX): 2 codes
+  - Nameserver Validation (-124XX): 5 codes
   - Help Response Validation (-125XX): 5 codes
   - Nameserver Search Validation (-126XX): 11 codes
-- **TIG Validation (-20XXX):** 11 codes
-- **Registry-Specific (-23XXX):** 6 codes
+- **TIG Validation (-20XXX):** 12 codes
+- **Registry-Specific (-23XXX):** 8 codes
 - **Registrar-Specific (-26XXX):** 3 codes
-- **Handle/Domain Validation (-4XXXX):** 44 codes
-- **Entity Validation (-5XXXX):** 8 codes
+- **Handle/Domain Validation (-4XXXX):** 63 codes
+- **Entity Validation (-5XXXX):** 9 codes
 - **Contact Validation (-58XXX):** 2 codes
-- **Security and vCard Validation (-6XXXX):** 58 codes (heavily used in 2024 profile)
-- **Redaction Validation (-65XXX):** 18 codes (2024 profile technical contact redaction)
+- **Security and vCard Validation (-6XXXX):** 100 codes (heavily used in 2024 profile)
+- **Redaction Validation (-65XXX):** 20 codes (2024 profile technical contact redaction)
 
 ### Error Code Numbering Convention
-The RDAP Conformance Tool uses a systematic numbering scheme for its 284 documented error codes:
+The RDAP Conformance Tool uses a systematic numbering scheme for its 361 documented error codes:
 
 - **-10XXX:** Network and address validation
   - **-101XX:** IPv4 address validation
