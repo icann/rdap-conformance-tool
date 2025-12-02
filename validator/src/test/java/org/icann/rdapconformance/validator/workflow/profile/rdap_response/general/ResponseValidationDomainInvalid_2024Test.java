@@ -149,4 +149,49 @@ public class ResponseValidationDomainInvalid_2024Test {
     boolean result = responseValidator.validateDomainInvalidQuery(mockResponse, true);
     assertFalse(result);
   }
+
+  @Test
+  public void testValidateDomainInvalidQuery_ConnectionRefused_SkipsValidation() {
+    // Mock HttpResponse with status code 0 (connection failed)
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+    when(mockResponse.statusCode()).thenReturn(0);
+    when(mockResponse.body()).thenReturn(null);
+
+    // Should return true (isValid unchanged) and not add -65300 error
+    boolean result = responseValidator.validateDomainInvalidQuery(mockResponse, true);
+    assertTrue(result, "Should return true when connection fails - validation skipped");
+
+    // Verify no -65300 error was added
+    assertThat(results.getAll().stream().noneMatch(r -> r.getCode() == -65300))
+        .as("No -65300 error should be added when connection fails")
+        .isTrue();
+  }
+
+  @Test
+  public void testValidateDomainInvalidQuery_ConnectionRefused_PreservesIsValidFalse() {
+    // Mock HttpResponse with status code 0 (connection failed)
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+    when(mockResponse.statusCode()).thenReturn(0);
+    when(mockResponse.body()).thenReturn(null);
+
+    // When isValid is already false, it should stay false
+    boolean result = responseValidator.validateDomainInvalidQuery(mockResponse, false);
+    assertFalse(result, "Should preserve isValid=false when connection fails");
+  }
+
+  @Test
+  public void testValidateDomainInvalidQuery_404Response_NoError() {
+    // Mock HttpResponse with status code 404
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+    when(mockResponse.statusCode()).thenReturn(404);
+    when(mockResponse.body()).thenReturn("{\"rdapConformance\":[], \"errorCode\":404}");
+
+    boolean result = responseValidator.validateDomainInvalidQuery(mockResponse, true);
+    assertTrue(result, "Should return true for 404 response");
+
+    // Verify no -65300 error was added
+    assertThat(results.getAll().stream().noneMatch(r -> r.getCode() == -65300))
+        .as("No -65300 error should be added for 404 response")
+        .isTrue();
+  }
 }
