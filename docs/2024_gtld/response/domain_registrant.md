@@ -511,7 +511,8 @@ Test group: [[rdapResponseProfile_2_7_5_3_Validation]][id-rdapResponseProfile_2_
 
 These tests only apply to an entity with the “registrant” role, if present.
 
-If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Fax Ext”, these tests apply:
+If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property 
+which is a JSON string of “Registrant Fax Ext”, these tests apply:
 
 1. Test case [-64000](#id-testCase-64000){ #id-testCase-64000 }: In the redaction object from the above, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
 ```json
@@ -542,9 +543,10 @@ If a redaction object (see RFC 9537) is in the redacted array with a name object
 
 Test group: [[rdapResponseProfile2024_2_7_4_9_Validation]](#id-rdapResponseProfile2024_2_7_4_9_Validation){ #id-rdapResponseProfile2024_2_7_4_9_Validation }
 
-These tests only apply to an entity with the “registrant” role, if present.
+These tests (-64100 through -64108) only apply to an entity with the “registrant” role, if present, on queries of a gTLD registrar (i.e. `--gtld-registrar`).
 
-If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registrant Email”, these tests apply:
+If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a
+JSON string of “Registrant Email”, these tests apply:
 
 1. Test case [-64100](#id-testCase-64100){ #id-testCase-64100 }: Verify that the contact-uri property and the email property do not exist together on any vCards for the entity with the role of “registrant”. 
 ```json
@@ -617,7 +619,19 @@ Given the above, if the contact-uri property exists on any of the vCards, the fo
 }
 ```
 
-These tests only apply to an entity with the “registrant” role, if present, on queries of a gTLD registry (i.e. --gtld-registry).
+If a redaction object (see RFC 9537) is NOT in the redacted array with a name object containing the type property which is a 
+JSON string of “Registrant Email”, these tests apply:
+
+1. Validate that a properly formed email address is in an email property on at least one of the vCards.
+```json
+{
+  "code": -64108,
+  "value": "<registrant entity>",
+  "message": "An email must either be present and valid or redacted for the registrant"
+}
+```
+
+These tests (-65400 through -65404) only apply to an entity with the “registrant” role, if present, on queries of a gTLD registry (i.e. `--gtld-registry`).
 
 If the email property on the vCards for the entity with the role of “registrant” is NOT present, the following tests apply:
 
