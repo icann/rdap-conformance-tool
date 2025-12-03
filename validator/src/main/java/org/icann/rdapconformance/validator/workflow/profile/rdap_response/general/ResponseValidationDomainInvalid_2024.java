@@ -75,6 +75,13 @@ boolean validateDomainInvalidQuery(HttpResponse<String> domainInvalidResponse, b
     int domainInvalidStatusCode = domainInvalidResponse.statusCode();
     String rdapDomainInvalidResponse = domainInvalidResponse.body();
 
+    // Skip validation if connection failed (status code 0 indicates no HTTP response received)
+    // Connection errors are already reported as -13021
+    if (domainInvalidStatusCode == ZERO) {
+        logger.debug("Connection failed for domain invalid query, skipping -65300 validation");
+        return isValid;
+    }
+
     jsonDomainInvalidResponse = new RDAPHttpQuery.JsonData(rdapDomainInvalidResponse);
     if(HTTP_NOT_FOUND != domainInvalidStatusCode) {
         if(!isDomainInvalidJsonValid(jsonDomainInvalidResponse )) {
