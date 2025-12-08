@@ -106,11 +106,13 @@ The RDAP SchemaValidator system is a comprehensive JSON schema validation framew
 
 #### `rdap_error.json`
 - **Purpose**: Validates RDAP error response structure
-- **Required Properties**: `errorCode`, `title`, `description`
+- **Required Properties**: `errorCode`
+- **Optional Properties**: `title`, `description`
 - **Error Code Range**: -12100 to -12106
 - **Key Validations**:
   - errorCode must be numeric
-  - title and description must be strings
+  - title (if present) must be a string
+  - description (if present) must be an array of strings
   - Optional notices array validation
 
 #### `rdap_help.json`
