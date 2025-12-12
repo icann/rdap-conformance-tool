@@ -50,6 +50,18 @@ If the fn property above is present but empty, the following tests apply:
 }
 ```
 
+If the fn property above is present but NOT empty, the following tests apply:
+
+1. Test case [-65005](#id-testCase-65005){ #id-testCase-65005 }: If a redaction object (see RFC 9537) is in the redacted array with a 
+name object containing the type property which is a JSON string of “Tech Name”.
+```json
+{
+  "code": -65005,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Tech Name was found but tech name was not redacted."
+}
+```
+
 ## RP 2024 Section 2.7.6.2
 
 Test group: [[rdapResponseProfile2024_2_7_6_2_Validation]](#id-rdapResponseProfile2024_2_7_6_2_Validation){ #id-rdapResponseProfile2024_2_7_6_2_Validation }
@@ -88,6 +100,18 @@ If a tel property with a “voice” parameter on the vCards for the entity with
   "code": -65103,
   "value": "<redaction object>",
   "message": "Tech Phone redaction method must be removal if present"
+}
+```
+
+If a tel property with a “voice” parameter on the vCards for the entity with the role of “technical” is present, the following tests apply:
+
+1. Test case [-65104](#id-testCase-65104){ #id-testCase-65104 }: If a redaction object (see RFC 9537) is in the redacted array with a 
+name object containing the type property which is a JSON string of “Tech Phone”.
+```json
+{
+  "code": -65104,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Tech Phone was found but tech phone was not redacted."
 }
 ```
 
@@ -167,5 +191,45 @@ Given the above, if the contact-uri property exists on any of the vCards, the fo
   "code": -65207,
   "value": "<redaction object>",
   "message": "jsonpath must evaluate to a non-empty set for redaction by replacementValue of Tech Email in replacementPath"
+}
+```
+
+These tests only apply to an entity on a domain with the “technical” role, if present, on queries of a gTLD registry (i.e. --gtld-registry).
+
+If there is a redaction object (see RFC 9537) in the redacted array with a “name” object containing the “type” property which as a JSON string of “Tech Email”, the following tests apply.:
+
+1. Test case [-65500](#id-testCase-65500){ #id-testCase-65500 }: In the redaction object with name/type property of “Tech Email”, if the pathLang property is either absent or is present as a JSON string of “jsonpath”, then verify that the prePath property is either absent or is present with a valid JSONPath expression.
+```json
+{
+  "code": -65500,
+  "value": "<redaction object>",
+  "message": "jsonpath is invalid for Tech Email"
+}
+```
+2. Test case [-65501](#id-testCase-65501){ #id-testCase-65501 }: With the JSONPath expression from above, if the pathLang property is either absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
+```json
+{
+  "code": -65501,
+  "value": "<redaction object>",
+  "message": "jsonpath must evaluate to a zero set for redaction by removal of Tech Email."
+}
+```
+3. Test case [-65502](#id-testCase-65502){ #id-testCase-65502 }: In the redaction object from the above test, verify that the method property is either absent or is present as is a JSON string of “removal”.
+```json
+{
+  "code": -65502,
+  "value": "<redaction object>",
+  "message": "Tech Email redaction method must be removal if present"
+}
+```
+
+If the email property on the vCards for the entity with the role of technical is present, the following tests apply:
+
+1. Test case [-65503](#id-testCase-65503){ #id-testCase-65503 }: If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Tech Email”.
+```json
+{
+  "code": -65503,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Tech Email was found but email was not redacted."
 }
 ```

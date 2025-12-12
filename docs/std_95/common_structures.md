@@ -1187,12 +1187,12 @@ The following steps should be used to test that an error data structure is valid
   "message": "The error structure is not syntactically valid."
 }
 ```
-2. Test case [-12101](#id-testCase-12101){ #id-testCase-12101 }: At least the following name/value pairs shall appear: _errorCode_, _title_ and _description_.
+2. Test case [-12101](#id-testCase-12101){ #id-testCase-12101 }: At least the _errorCode_ name/value pairs shall appear.
 ``` json
 {
   "code": -12101,
-  "value": "<name/value pair>",
-  "message": "At least the following name/value pairs shall exist: errorCode, title and description."
+  "value": "<error structure>",
+  "message": "The errorCode element does not exist."
 }
 ```
 3. Test case [-12102](#id-testCase-12102){ #id-testCase-12102 }: The JSON name/values of _errorCode_, _title_, and _description_ shall appear only once.

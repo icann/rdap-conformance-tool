@@ -6,22 +6,14 @@ Test group: [[rdapResponseProfile_2_2_Validation]][id-rdapResponseProfile_2_2_Va
 
 If the handle is in the topmost domain object, the following tests apply:
 
-1. Test case [-46200](#id-testCase-46200){ #id-testCase-46200 }: 
-The handle in the topmost domain object shall comply with the following format specified in RFC5730: "(\w|\_){1,80}-\w{1,8}".
+1. Run test case [-46200][id-testCase-46200]. 
+2. Run test case [-46201][id-testCase-46201]. 
+3. Test case [-46206](#id-testCase-46206){ #id-testCase-46206 }: If a redaction object (see RFC 9537) is in the redacted array with a name object containing the type property which is a JSON string of “Registry Domain ID”.
 ```json
 {
-  "code": -46200,
-  "value": "<domain object>",
-  "message": "The handle in the domain object does not comply with the format (\\w|_){1,80}-\\w{1,8} specified in RFC5730."
-}
-```
-2. Test case [-46201](#id-testCase-46201){ #id-testCase-46201 }: 
-If the handle in the topmost domain object comply with the format: "(\w|_){1,80}-\w{1,8}", validate that the string followed by a hyphen ("-", ASCII value 0x002D) is registered in EPPROID.
-```json
-{
-  "code": -46201,
-  "value": "<domain object>",
-  "message": "The globally unique identifier in the domain object handle is not registered in EPPROID."
+  "code": -46206,
+  "value": "<redacted data structure>",
+  "message": "a redaction of type Registry Domain ID was found but the domain handle was not redacted."
 }
 ```
 
@@ -51,6 +43,8 @@ If the handle is NOT in the topmost domain object, the following tests apply:
   "message": "Registry Domain ID redaction method must be removal if present"
 }
 ```
+Note [-46205][id-testCase-46205] proceeds immediately after [-46201][id-testCase-46201] in [[rdapResponseProfile_2_2_Validation]][id-rdapResponseProfile_2_2_Validation].
+Note [-46206][id-testCase-46206] proceeds immediately after [-46202][id-testCase-46202] above.
 
 ## RP Section 2.6.3
 
@@ -162,7 +156,8 @@ Test group: [[rdapResponseProfile_2_10_Validation]][id-rdapResponseProfile_2_10_
 Test group: [[rdapResponseProfile2024_2_7_3_Validation]](#id-rdapResponseProfile2024_2_7_3_Validation){ #id-rdapResponseProfile2024_2_7_3_Validation }
 
 1. Test case [-47600](#id-testCase-47600){ #id-testCase-47600 }: 
-For every entity of the domain (i.e. the top-level entities of the domain, not entities subordinate to other entities) excluding entities with the roles “registrar”, “registrant”, or “technical”, verify the handle is of the format: "(\w|_){1,80}-\w{1,8}".
+For every entity of the domain (i.e. the top-level entities of the domain, not entities subordinate to other entities) 
+excluding entities with the roles "reseller", “registrar”, “registrant”, or “technical”, verify the handle is of the format: "(\w|_){1,80}-\w{1,8}".
 ```json
 {
   "code": -47600,
@@ -213,5 +208,17 @@ Test group: [[rdapResponseProfile2024_2_4_6_Validation]](#id-rdapResponseProfile
   "code": -47703,
   "value": "<link structure>",
   "message": "The ‘value’ property is not a valid Web URI according to [webUriValidation]."
+}
+```
+
+## Registrar Expiration
+
+1. Test case [-65600](#id-testCase-65600){ #id-testCase-65600 }: If the query is of a gTLD Registrar (e.g., --gtld-registrar), 
+validate that an eventAction type “registrar expiration” exists in the topmost events structure.
+```json
+{
+  "code": -65600,
+  "value": "<events data structure>",
+  "message": "An eventAction of type 'registrar expiration' is expected."
 }
 ```
