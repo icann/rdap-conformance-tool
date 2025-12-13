@@ -7,18 +7,21 @@ This document describes the process flow of the RDAP Conformance Tool CLI, from 
 1. [Overview](#overview)
 2. [Entry Point](#entry-point)
 3. [Command Line Arguments](#command-line-arguments)
-4. [Execution Flow](#execution-flow)
-5. [Dataset Loading](#dataset-loading)
-6. [QueryContext](#querycontext)
-7. [DNS Resolution](#dns-resolution)
-8. [HTTP Query Execution](#http-query-execution)
-9. [Schema Validation](#schema-validation)
-10. [Profile Validation](#profile-validation)
-11. [Multiple Validation Rounds](#multiple-validation-rounds)
-12. [Results Collection](#results-collection)
-13. [Exit Codes](#exit-codes)
-14. [Web API Entry Point (RdapWebValidator)](#web-api-entry-point-rdapwebvalidator)
-15. [Key Design Patterns](#key-design-patterns)
+4. [Configuration File Format](#configuration-file-format)
+5. [Execution Flow](#execution-flow)
+6. [Dataset Loading](#dataset-loading)
+7. [QueryContext](#querycontext)
+8. [DNS Resolution](#dns-resolution)
+9. [HTTP Query Execution](#http-query-execution)
+10. [Schema Validation](#schema-validation)
+11. [SSL/TLS Validation](#ssltls-validation)
+12. [Profile Validation](#profile-validation)
+13. [Profile Differences (2019 vs 2024)](#profile-differences-2019-vs-2024)
+14. [Multiple Validation Rounds](#multiple-validation-rounds)
+15. [Results Collection](#results-collection)
+16. [Exit Codes](#exit-codes)
+17. [Web API Entry Point (RdapWebValidator)](#web-api-entry-point-rdapwebvalidator)
+18. [Key Design Patterns](#key-design-patterns)
 
 ## Overview
 
@@ -111,6 +114,34 @@ The tool uses picocli `@Command` and `@Option` annotations for argument parsing.
 | `-v, --verbose` | false | Enable verbose logging |
 | `--logging` | CLI | Logging level (CLI, INFO, DEBUG, ERROR, VERBOSE) |
 | `--dns-resolver` | system | Custom DNS server IP address |
+
+## Configuration File Format
+
+**File**: `validator/src/main/java/org/icann/rdapconformance/validator/configuration/ConfigurationFile.java`
+
+The configuration file (`-c, --config`) is a JSON file with the following structure:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `definitionIdentifier` | string | Yes | Identifier for this configuration |
+| `definitionError` | array | No | Error code customizations with `code` and `notes` fields |
+| `definitionWarning` | array | No | Warning code customizations with `code` and `notes` fields |
+| `definitionIgnore` | array | No | Array of error codes to move to "ignore" in results |
+| `definitionNotes` | array | No | Notes to include verbatim in results file |
+
+### Example Configuration
+
+```json
+{
+  "definitionIdentifier": "Standard gTLD RDAP Server Conformance",
+  "definitionIgnore": [-10601, -10701, -11201],
+  "definitionNotes": ["This conformance configuration is typical of gTLD RDAP server needs."]
+}
+```
+
+### Result Filtering
+
+Error codes listed in `definitionIgnore` are still validated but moved to the `ignore` section of the results file instead of `error`. This allows tracking validation issues without treating them as failures.
 
 ## Execution Flow
 
@@ -257,6 +288,21 @@ The tool makes requests with two different Accept headers:
 
 Both must return valid RDAP responses.
 
+### HEAD Request Comparison
+
+The tool also makes a HEAD request to verify it returns the same HTTP status code as the GET request. This validates TIG Section 1.6 requirements.
+
+**Error Code**: -20300 if HEAD and GET status codes differ
+
+### Redirect Handling
+
+The tool follows HTTP redirects with security validation:
+
+- **Supported codes**: 301, 302, 303, 307, 308
+- **Redirect limit**: Maximum redirects configurable (default: 3), error -13013 if exceeded
+- **Resolution**: Relative redirects resolved against current URI; absolute redirects used as-is
+- **Security check**: Error -13004 if redirect blindly copies query parameters from the original request (prevents redirect chain injection attacks)
+
 ### Response Validation
 
 1. Check HTTP status code (expects 200 or 404 for error responses)
@@ -296,6 +342,33 @@ The schema validator uses custom format validators:
 | `HostNameInUriFormatValidator` | Validates URIs |
 | `RdapExtensionsFormatValidator` | Validates RDAP extensions |
 
+## SSL/TLS Validation
+
+**File**: `validator/src/main/java/org/icann/rdapconformance/validator/workflow/profile/tig_section/general/DefaultSSLValidator.java`
+
+For HTTPS connections, the tool performs SSL/TLS validation as part of the TIG (Technical Implementation Guide) requirements.
+
+### Certificate Validation
+
+- Uses system default trust store via `SSLContext.getDefault()`
+- Validates full certificate chain to a trusted root CA
+- Performs hostname verification using SNI (Server Name Indication)
+- 5-second connection timeout for SSL handshake
+
+### Protocol Validation
+
+- Validates enabled TLS protocols on the server
+- Specifically validates TLS 1.2 support and cipher suites
+- IPv4/IPv6 aware - resolves addresses based on current network stack
+
+### Related Error Codes
+
+| Code | Description |
+|------|-------------|
+| -20100 | SSL/TLS connection failed |
+| -20101 | Certificate validation failed |
+| -20102 | TLS protocol version not supported |
+
 ## Profile Validation
 
 **File**: `validator/src/main/java/org/icann/rdapconformance/validator/workflow/profile/ProfileValidation.java`
@@ -324,6 +397,42 @@ Each `ProfileValidation` implementation:
 3. Execute doValidate() - actual validation logic
 4. Catch exceptions and report as group error
 ```
+
+## Profile Differences (2019 vs 2024)
+
+The tool supports two RDAP profiles with significant differences:
+
+### 2024 Profile Additions
+
+The 2024 profile includes stricter requirements:
+
+| Error Code | Description |
+|------------|-------------|
+| -12107 | `errorCode` required in error responses |
+| -12108 | `errorCode` must match HTTP status code |
+
+Additional 2024 requirements:
+- Stricter SSL/TLS validation (TIG 1.5)
+- Updated vCard/jCard requirements for entities
+- URI security validation for links
+- Enhanced status value validation
+
+### 2024 Profile Removals
+
+The following 2019 validations were removed or replaced:
+- TIG 1.14 validation
+- Response 1.3 validation
+- Generic notices requirement (replaced with specific notice validations)
+- Several entity validations (replaced with stricter 2024 versions)
+
+### Simultaneous Profile Testing
+
+Both profiles can be enabled simultaneously using:
+```bash
+--use-rdap-profile-february-2019 --use-rdap-profile-february-2024
+```
+
+This allows comparative testing to identify differences in validation results between profiles.
 
 ## Multiple Validation Rounds
 
@@ -381,11 +490,16 @@ Results are written to a JSON file with timestamp: `results-YYYYMMDDHHmmss.json`
 {
     "testedDate": "2025-01-15T10:30:00Z",
     "testedURI": "https://rdap.example.com/domain/example.com",
-    "conformanceToolVersion": "3.0.6",
+    "definitionIdentifier": "Standard gTLD RDAP Server Conformance",
     "rdapProfileFebruary2024": true,
+    "rdapProfileFebruary2019": false,
     "gtldRegistry": true,
-    "groupOK": ["validation1", "validation2", ...],
-    "groupErrorWarning": ["failedValidation1", ...],
+    "gtldRegistrar": false,
+    "thinRegistry": false,
+    "noIpv4": false,
+    "noIpv6": false,
+    "groupOK": ["stdRdapConformanceValidation", ...],
+    "groupErrorWarning": ["stdRdapErrorResponseBodyValidation", ...],
     "results": {
         "error": [...],
         "warning": [...],
