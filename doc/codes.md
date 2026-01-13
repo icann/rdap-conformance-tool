@@ -202,8 +202,8 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-12104`: Title validation (not a string) [RFC 9083 Section 6] {rdap_error.json}
 - `-12105`: Error response description validation [RFC 9083 Section 6]
 - `-12106`: Description format validation [RFC 9083 Section 6] {rdap_error.json}
-- `-12107`: Missing errorCode in error response (2024 profile) - "The errorCode value is required in an error response." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
-- `-12108`: ErrorCode value mismatch (2024 profile) - "The errorCode value does not match the HTTP status code." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
+- `-12107`: Missing errorCode in error response - "The errorCode value is required in an error response." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
+- `-12108`: ErrorCode value mismatch - "The errorCode value does not match the HTTP status code." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
 
 #### Domain Validation (-122XX)
 - `-12199`: Response format error range check [RFC 9083 Section 6] {RDAPValidationResultFile.java}
@@ -525,7 +525,7 @@ The following 5 parsers are test files or do not generate error codes:
 ### 2019 Profile vs 2024 Profile
 - Many validation classes have separate 2024 versions with enhanced checks
 - 2024 profile introduces new error codes (e.g., `-12610`, `-61100`, `-61101`)
-- 2024 profile has stricter requirements for error responses (e.g., `-12107`)
+- 2024 profile has stricter requirements for error responses
 
 ## Analysis Summary
 
