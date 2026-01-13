@@ -575,8 +575,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
             get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
                 .willReturn(aResponse().withStatus(statusCode).withBody(response)));
 
-        // Server errors (5xx) should continue validation to potentially gather more information
-        assertThat(rdapHttpQuery.run()).isTrue();
+        // Server errors (5xx) should not continue validation to potentially gather more information
+        assertThat(rdapHttpQuery.run()).isFalse();
         
         // Error -13002 should still be recorded
         assertThat(results.getAll()).contains(RDAPValidationResult.builder()
@@ -626,8 +626,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                     .withHeader("Content-Type", "application/rdap+json")
                     .withBody(response)));
 
-        // 404 is a special case - it should continue for error response validation
-        assertThat(rdapHttpQuery.run()).isTrue();
+        // 404 is a special case - it should not  continue for error response validation
+        assertThat(rdapHttpQuery.run()).isFalse();
         
         // Should NOT have error -13002 for 404 (since 404 is an accepted status code)
         assertThat(results.getAll()).noneMatch(result -> result.getCode() == -13002);
