@@ -1243,3 +1243,11 @@ The following steps should be used to test that an error data structure is valid
   "message": "The errorCode value is required in an error response."
 }
 ```
+9. Test case [-12108](#id-testCase-12108){ #id-testCase-12108 }: The value of "errorCode" must match the value of the HTTP status code.
+``` json
+{
+  "code": -12108,
+  "value": "<error structure>",
+  "message": "The errorCode value does not match the HTTP status code."
+}
+```
