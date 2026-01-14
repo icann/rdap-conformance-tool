@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
  *    generate the correct -13002 error with proper early termination logic for 4xx codes.
  * 
  * 2. -12108 Error Code Matching: Tests that errorCode field values match HTTP status codes
- *    for 2024 profile non-200 responses, ensuring proper validation order (-12107 before -12108).
+ *    for non-200 responses, ensuring proper validation order (-12107 before -12108).
  * 
  * 3. Early Termination: Verifies that 4xx client errors cause early termination, preventing
  *    further 2024 profile validation from occurring.
@@ -408,8 +408,8 @@ public class RDAPHttpQueryStatusCodeTest {
             // === Non-2024 Profile Tests ===
             
             // Non-2024 profile should NOT trigger -12108 even with mismatches
-            {"Non-2024: HTTP 404 with errorCode 500 - No Validation", false, 404, "500", false, false},
-            {"Non-2024: HTTP 500 with errorCode 404 - No Validation", false, 500, "404", false, false},
+            {"Non-2024: HTTP 404 with errorCode 500 - No Validation", false, 404, "500", true, false},
+            {"Non-2024: HTTP 500 with errorCode 404 - No Validation", false, 500, "404", true, false},
             
             // === Edge Cases ===
             

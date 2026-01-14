@@ -348,8 +348,8 @@ public class RDAPHttpQuery implements RDAPQuery {
             queryContext.addError(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
         }
 
-        // Check 2024 profile validations BEFORE early termination to ensure -12108 precedence
-        if (isQuerySuccessful() && httpResponse != null && config.useRdapProfileFeb2024()) {
+        // Check for errorCode presence and correctness in non-200 responses
+        if (isQuerySuccessful() && httpResponse != null) {
             int httpStatusCode = httpResponse.statusCode();
             String rdapResponse = httpResponse.body();
 
