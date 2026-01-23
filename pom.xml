@@ -31,7 +31,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.source>21</maven.compiler.source>
         <jackson-databind.version>2.18.1</jackson-databind.version>
-        <slf4j-api.version>1.7.30</slf4j-api.version>
+        <slf4j-api.version>2.0.13</slf4j-api.version>
         <ipaddress.version>5.5.1</ipaddress.version>
         <icu4j.version>69.1</icu4j.version>
         <json-path.version>2.9.0</json-path.version>
@@ -41,7 +41,7 @@
         <testng.version>7.9.0</testng.version>
         <assertj-core.version>3.19.0</assertj-core.version>
         <mockito-testng.version>0.5.2</mockito-testng.version>
-        <slf4j-simple.version>1.7.30</slf4j-simple.version>
+        <slf4j-simple.version>2.0.13</slf4j-simple.version>
         <wiremock.version>3.0.3</wiremock.version>
         <jaxb-impl.version>4.0.5</jaxb-impl.version>
         <jaxb.version>4.0.1</jaxb.version>
