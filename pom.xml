@@ -39,7 +39,7 @@
         <dnsjava.version>3.6.3</dnsjava.version>
         <commons-text.version>1.10.0</commons-text.version>
         <testng.version>7.9.0</testng.version>
-        <assertj-core.version>3.19.0</assertj-core.version>
+        <assertj-core.version>3.27.7</assertj-core.version>
         <mockito-testng.version>0.5.2</mockito-testng.version>
         <slf4j-simple.version>2.0.13</slf4j-simple.version>
         <wiremock.version>3.0.3</wiremock.version>
