@@ -88,7 +88,7 @@ public class SchemaValidatorNoticesTest extends SchemaValidatorForArrayTest {
         .first()
         .hasFieldOrPropertyWithValue("value", "#/notices/0/description:0")
         .hasFieldOrPropertyWithValue("message",
-            "The #/notices/0/description structure is not syntactically valid.");
+            "The description structure is not syntactically valid.");
   }
 
   /**

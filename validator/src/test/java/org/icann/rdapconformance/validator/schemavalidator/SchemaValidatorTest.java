@@ -86,7 +86,7 @@ public abstract class SchemaValidatorTest {
 
   protected void invalid(int error) {
     jsonObject.put(name, 0);
-    validate(error, "#/"+name+":0", "The #/" + name + " structure is not syntactically valid.");
+    validate(error, "#/"+name+":0", "The description structure is not syntactically valid.");
   }
 
   protected void insertForbiddenKey() {
