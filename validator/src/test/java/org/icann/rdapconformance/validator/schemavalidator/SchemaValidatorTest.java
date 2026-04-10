@@ -156,7 +156,7 @@ public abstract class SchemaValidatorTest {
 
   protected void validateInvalidJson(int error, String value) {
     String key = getKey(value);
-    validate(error, value, "The " + key + " structure is not syntactically valid.");
+    validate(error, value, "The description structure is not syntactically valid.");
   }
 
   protected void validateSubValidation(String validationName, String keyValue, int errorCode) {
