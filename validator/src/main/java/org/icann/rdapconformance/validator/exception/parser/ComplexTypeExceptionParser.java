@@ -36,7 +36,7 @@ public class ComplexTypeExceptionParser extends ExceptionParser {
     RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
         .code(parseErrorCode(() -> (int)e.getPropertyFromViolatedSchema("structureInvalid")))
         .value(e.getPointerToViolation() + ":" + jsonObject.query(e.getPointerToViolation()))
-        .message("The " + e.getPointerToViolation() + " structure is not syntactically valid.");
+        .message("The description structure is not syntactically valid.");
 
     results.add(builder.build(queryContext));
   }
