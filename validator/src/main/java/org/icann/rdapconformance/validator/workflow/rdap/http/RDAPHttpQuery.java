@@ -3,7 +3,9 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 
@@ -300,6 +302,11 @@ public class RDAPHttpQuery implements RDAPQuery {
                         redirectUri = currentUri.resolve(redirectUri);
                     }
 
+                    if (isBlockedRedirectDestination(redirectUri)) {
+                        logger.debug("Blocked redirect to potentially unsafe destination: {}", redirectUri);
+                        break; // Don't follow redirects to blocked destinations
+                    }
+
                     redirects.add(redirectUri);
                     logger.debug("Redirecting to: {}", redirectUri);
 
@@ -329,6 +336,71 @@ public class RDAPHttpQuery implements RDAPQuery {
             logger.debug("Exception when making HTTP request", e);
         }
     }
+
+
+
+    /**
+     * Determines whether a redirect destination URI points to a blocked (internal/private) address.
+     *
+     * <p>This method provides SSRF (Server-Side Request Forgery) protection by validating
+     * redirect destinations before following them. It prevents attackers from using external
+     * redirect services to bypass initial URL validation and reach internal network resources.</p>
+     *
+     * <p>The following destinations are blocked:</p>
+     * <ul>
+     *   <li><strong>Loopback addresses:</strong> {@code localhost}, {@code 127.0.0.0/8}, {@code ::1}</li>
+     *   <li><strong>Wildcard addresses:</strong> {@code 0.0.0.0}, {@code ::}</li>
+     *   <li><strong>Private/site-local addresses:</strong> {@code 10.0.0.0/8}, {@code 172.16.0.0/12},
+     *       {@code 192.168.0.0/16}</li>
+     *   <li><strong>Link-local addresses:</strong> {@code 169.254.0.0/16}, {@code fe80::/10}</li>
+     *   <li><strong>Cloud metadata endpoints:</strong> {@code 169.254.169.254}</li>
+     *   <li><strong>Unresolvable hostnames:</strong> any host that fails DNS resolution</li>
+     * </ul>
+     *
+     * <p>This check is performed after receiving an HTTP redirect (3xx) response and before
+     * following the redirect, as part of the redirect handling loop in
+     * {@link #makeRequest(URI)}.</p>
+     *
+     * @param uri the redirect destination URI to evaluate
+     * @return {@code true} if the destination is blocked and the redirect should not be followed,
+     *         {@code false} if the destination is safe to connect to
+     * @see #makeRequest(URI)
+     * @see <a href="https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html">
+     *      OWASP SSRF Prevention Cheat Sheet</a>
+     */
+    private boolean isBlockedRedirectDestination(URI uri) {
+        String host = uri.getHost();
+        if (host == null) return true;
+
+        // Block localhost hostnames
+        if ("localhost".equalsIgnoreCase(host) ||
+                "127.0.0.1".equals(host) ||
+                "::1".equals(host) ||
+                "0.0.0.0".equals(host)) {
+            return true;
+        }
+
+        // Resolve and check the IP address
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(host);
+            for (InetAddress addr : addresses) {
+                if (addr.isLoopbackAddress() ||      // 127.0.0.0/8, ::1
+                        addr.isSiteLocalAddress() ||     // 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+                        addr.isLinkLocalAddress() ||     // 169.254.0.0/16, fe80::/10
+                        addr.isAnyLocalAddress()) {      // 0.0.0.0, ::
+                    return true;
+                }
+                // Block cloud metadata endpoint
+                if ("169.254.169.254".equals(addr.getHostAddress())) {
+                    return true;
+                }
+            }
+        } catch (UnknownHostException e) {
+            return true; // Block if can't resolve
+        }
+        return false;
+    }
+
 
     /**
      * Validates the HTTP response according to RDAP specifications.

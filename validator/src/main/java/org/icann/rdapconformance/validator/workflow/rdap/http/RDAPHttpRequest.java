@@ -865,6 +865,18 @@ public class RDAPHttpRequest {
             localBindIp = InetAddress.getByName(LOCAL_IPv4);
         }
 
+        if (remoteAddress.isLoopbackAddress() ||
+                remoteAddress.isSiteLocalAddress() ||
+                remoteAddress.isLinkLocalAddress() ||
+                remoteAddress.isAnyLocalAddress() ||
+                "169.254.169.254".equals(remoteAddress.getHostAddress())) {
+            logger.warn("Blocked connection to internal/private IP: {}", remoteAddress.getHostAddress());
+            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
+            SimpleHttpResponse resp = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+            resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
+            return resp;
+        }
+
         URI ipUri = new URI(
             originalUri.getScheme(),
             null,
