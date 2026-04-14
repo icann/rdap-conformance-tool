@@ -870,6 +870,7 @@ public class RDAPHttpRequest {
                 remoteAddress.isSiteLocalAddress() ||
                 remoteAddress.isLinkLocalAddress() ||
                 remoteAddress.isAnyLocalAddress() ||
+                RDAPHttpQuery.isIPv6UniqueLocalAddress(remoteAddress) ||
                 AWS_GATEWAY_IP.equals(remoteAddress.getHostAddress()))) {
             logger.warn("Blocked connection to internal/private IP: {}", remoteAddress.getHostAddress());
             tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);

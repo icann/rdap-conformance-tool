@@ -341,6 +341,30 @@ public class RDAPHttpQuery implements RDAPQuery {
         }
     }
 
+    /**
+     * Checks if an address is an IPv6 Unique Local Address (fc00::/7).
+     *
+     * <p>{@link InetAddress#isSiteLocalAddress()} only covers the deprecated
+     * {@code fec0::/10} range (RFC 3879). Modern IPv6 private addressing uses
+     * Unique Local Addresses (ULA) defined in RFC 4193 as {@code fc00::/7},
+     * which covers all addresses starting with {@code fc} or {@code fd}.
+     * This method provides the missing check.</p>
+     *
+     * @param addr the InetAddress to check
+     * @return true if the address is an IPv6 ULA (fc00::/7), false otherwise
+     * @see <a href="https://datatracker.ietf.org/doc/html/rfc4193">RFC 4193 - Unique Local IPv6 Unicast Addresses</a>
+     */
+    static boolean isIPv6UniqueLocalAddress(InetAddress addr) {
+        if (addr instanceof java.net.Inet6Address) {
+            byte[] bytes = addr.getAddress();
+            // fc00::/7 — the first 7 bits are 1111110x, so the first byte
+            // masked with 0xFE must equal 0xFC (matches 0xFC and 0xFD)
+            return (bytes[0] & 0xFE) == 0xFC;
+        }
+        return false;
+    }
+
+
 
 
     /**
@@ -391,7 +415,8 @@ public class RDAPHttpQuery implements RDAPQuery {
                 if (addr.isLoopbackAddress() ||      // 127.0.0.0/8, ::1
                         addr.isSiteLocalAddress() ||     // 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
                         addr.isLinkLocalAddress() ||     // 169.254.0.0/16, fe80::/10
-                        addr.isAnyLocalAddress()) {      // 0.0.0.0, ::
+                        addr.isAnyLocalAddress() ||
+                        isIPv6UniqueLocalAddress(addr)) {      // 0.0.0.0, ::
                     return true;
                 }
                 // Block cloud metadata endpoint
