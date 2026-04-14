@@ -71,6 +71,7 @@ public class RDAPHttpQueryStatusCodeTest {
 
         // Create QueryContext for thread-safe operations
         queryContext = QueryContext.forTesting(config, datasets);
+        queryContext.setSsrfProtectionEnabled(false);
 
         // Clear any previous results
         queryContext.getResults().clear();
