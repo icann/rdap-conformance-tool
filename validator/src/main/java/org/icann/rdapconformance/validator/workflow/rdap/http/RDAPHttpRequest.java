@@ -128,6 +128,7 @@ public class RDAPHttpRequest {
 
     public static final String RETRY_AFTER = "Retry-After";
     public static final int MAX_RETRY_TIME = 120;
+    public static final String AWS_GATEWAY_IP = "169.254.169.254";
 
     // NOTE: Mutable for testing purposes - allows test timeouts to be reduced from 30 seconds to 1 second
     // This field is not modified in production code, only in test environments
@@ -865,11 +866,11 @@ public class RDAPHttpRequest {
             localBindIp = InetAddress.getByName(LOCAL_IPv4);
         }
 
-        if (remoteAddress.isLoopbackAddress() ||
+        if (qctx.isSsrfProtectionEnabled() && (remoteAddress.isLoopbackAddress() ||
                 remoteAddress.isSiteLocalAddress() ||
                 remoteAddress.isLinkLocalAddress() ||
                 remoteAddress.isAnyLocalAddress() ||
-                "169.254.169.254".equals(remoteAddress.getHostAddress())) {
+                AWS_GATEWAY_IP.equals(remoteAddress.getHostAddress()))) {
             logger.warn("Blocked connection to internal/private IP: {}", remoteAddress.getHostAddress());
             tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
             SimpleHttpResponse resp = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);

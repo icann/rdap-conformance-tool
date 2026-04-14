@@ -91,6 +91,10 @@ public class RDAPHttpQuery implements RDAPQuery {
     // QueryContext for thread-safe network operations
     private org.icann.rdapconformance.validator.QueryContext queryContext;
 
+    // Package-private: allows tests in the same package to disable SSRF protection
+    // for localhost-based testing (e.g., WireMock). Must remain enabled in production.
+    boolean ssrfProtectionEnabled = true;
+
     private static final Logger logger = LoggerFactory.getLogger(RDAPHttpQuery.class);
 
     /**
@@ -302,7 +306,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                         redirectUri = currentUri.resolve(redirectUri);
                     }
 
-                    if (isBlockedRedirectDestination(redirectUri)) {
+                    if (ssrfProtectionEnabled && isBlockedRedirectDestination(redirectUri)) {
                         logger.debug("Blocked redirect to potentially unsafe destination: {}", redirectUri);
                         break; // Don't follow redirects to blocked destinations
                     }

@@ -96,6 +96,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         prepareWiremock(wmConfig);
 
         rdapHttpQuery = new RDAPHttpQuery(config);
+        rdapHttpQuery.ssrfProtectionEnabled = false;
 
         // Create dataset service for QueryContext
         org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
@@ -107,6 +108,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
         // Create QueryContext for thread-safe operations with proper results
         queryContext = QueryContext.forTesting("", results, config, datasetService);
+        queryContext.setSsrfProtectionEnabled(false);
         rdapHttpQuery.setQueryContext(queryContext);
     }
 
@@ -1048,5 +1050,72 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     public void testVerifyIfObjectClassPropExits_NonMapElement_ReturnsFalse() {
         List<?> propertyCollection = List.of(Map.of("objectClassName", "domain"), "invalidElement");
         assertThat(rdapHttpQuery.verifyIfObjectClassPropExits(propertyCollection, "entities")).isFalse();
+    }
+
+    @Test
+    public void test_RedirectToLocalhost_IsBlocked() throws Exception {
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        String path1 = "/domain/test1.example";
+        URI uri1 = URI.create("http://external.example.com" + path1);
+        URI localhostUri = URI.create("http://127.0.0.1:8080/domain/secret");
+
+        doReturn(uri1).when(config).getUri();
+
+        // Re-enable SSRF protection for this specific test
+        rdapHttpQuery.ssrfProtectionEnabled = true;
+
+        RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response1.statusCode()).thenReturn(REDIRECT);
+        when(response1.body()).thenReturn("");
+        when(response1.uri()).thenReturn(uri1);
+        when(response1.headers()).thenReturn(
+                HttpHeaders.of(Map.of(LOCATION, List.of(localhostUri.toString())), (k, v) -> true));
+        when(response1.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response1);
+
+            rdapHttpQuery.run();
+
+            // The redirect to 127.0.0.1 should be blocked
+            List<URI> redirects = rdapHttpQuery.getRedirects();
+            assertThat(redirects).isEmpty(); // No redirects should be followed
+        }
+    }
+
+    @Test
+    public void test_RedirectToPrivateIP_IsBlocked() throws Exception {
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        URI uri1 = URI.create("http://external.example.com/domain/test.example");
+        URI privateUri = URI.create("http://10.0.0.1/admin");
+
+        doReturn(uri1).when(config).getUri();
+
+        rdapHttpQuery.ssrfProtectionEnabled = true;
+
+        RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response1.statusCode()).thenReturn(REDIRECT);
+        when(response1.body()).thenReturn("");
+        when(response1.uri()).thenReturn(uri1);
+        when(response1.headers()).thenReturn(
+                HttpHeaders.of(Map.of(LOCATION, List.of(privateUri.toString())), (k, v) -> true));
+        when(response1.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response1);
+
+            rdapHttpQuery.run();
+
+            List<URI> redirects = rdapHttpQuery.getRedirects();
+            assertThat(redirects).isEmpty();
+        }
     }
 }
