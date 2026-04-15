@@ -58,4 +58,13 @@ public class TigValidation3Dot3And3Dot4_2024Test extends ProfileJsonValidationTe
         link.put("value", "dummy");
         validate(-61202, link.toString(), "This link must have a value that is the same as the queried URI.");
     }
+
+    @Test
+    public void tigSection_3_3_and_3_4_Validation_2024_61202_CaseSensitive() {
+        JSONObject link = jsonObject.getJSONArray("notices").getJSONObject(0).getJSONArray("links").getJSONObject(0);
+
+        // Same URI but different case — must trigger -61202 (case-sensitive)
+        link.put("value", "HTTPS://WWW.EXAMPLE.COM/DOMAIN-NAMES/REGISTRATION-DATA-ACCESS-PROTOCOL/TERMS-SERVICE/INDEX.XHTML");
+        validate(-61202, link.toString(), "This link must have a value that is the same as the queried URI.");
+    }
 }

@@ -158,7 +158,7 @@ public final class ResponseValidation2Dot6Dot3_2024 extends ProfileJsonValidatio
                 return false;
             }
 
-            if(!statusLink.get().value().equalsIgnoreCase(this.config.getUri().toString())) {
+            if(!statusLink.get().value().equals(this.config.getUri().toString())) {
                 results.add(RDAPValidationResult.builder()
                         .code(-46606)
                         .value(getResultValue(noticePointersValue))

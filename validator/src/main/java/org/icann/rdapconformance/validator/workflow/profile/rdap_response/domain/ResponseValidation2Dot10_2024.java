@@ -159,7 +159,7 @@ public class ResponseValidation2Dot10_2024 extends ProfileJsonValidation {
                 return false;
             }
 
-            if(!inaccuracyComplaintLink.get().value().equalsIgnoreCase(this.config.getUri().toString())) {
+            if(!inaccuracyComplaintLink.get().value().equals(this.config.getUri().toString())) {
                 results.add(RDAPValidationResult.builder()
                         .code(-46706)
                         .value(getResultValue(noticePointersValue))

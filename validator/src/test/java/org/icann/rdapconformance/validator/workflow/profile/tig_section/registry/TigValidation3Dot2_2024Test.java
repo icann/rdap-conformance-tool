@@ -122,6 +122,21 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
             "a value property must be specified and it must match the URI of the query.");
     }
 
+    @Test
+    public void testValidate_CaseSensitiveValueMismatch_AddResults23201() throws URISyntaxException {
+        // Value differs only in case from the configured URI — must trigger -23201
+        JSONArray links = new JSONArray();
+        JSONObject link1 = new JSONObject();
+        link1.put("value", "https://rdap.example.com/com/v1/domain/example.com"); // lowercase domain
+        link1.put("rel", "related");
+        link1.put("href", "https://rdap.markmonitor.com/rdap/domain/EXAMPLE.COM");
+        links.put(link1);
+
+        jsonObject.put("links", links);
+        validate(-23201, links.toString(),
+                "a value property must be specified and it must match the URI of the query.");
+    }
+
     // -23202 Test cases: href domain query validation
     @Test
     public void testValidate_ValidDomainQueryHref_NoError() {

@@ -107,6 +107,17 @@ public class ResponseValidation2Dot10_2024Test extends ProfileJsonValidationTest
     }
 
     @Test
+    public void ResponseValidation2Dot10_2024_46706_CaseSensitive() {
+        JSONObject link = jsonObject.getJSONArray("notices").getJSONObject(0).getJSONArray("links").getJSONObject(0);
+
+        // Same URI but different case — should trigger -46706 (case-sensitive comparison)
+        link.put("value", "HTTPS://RDAP.CSCGLOBAL.COM/DBS/RDAP-API/V1/DOMAIN/CSCGLOBAL.COM");
+
+        String caseSensitiveValuePointer = "#/notices/0:" + jsonObject.getJSONArray("notices").getJSONObject(0).toString();
+        validate(-46706, caseSensitiveValuePointer, "The notice for RDDS Inaccuracy Complaint Form does not have a link value of the request URL.");
+    }
+
+    @Test
     public void testDoLaunch_DomainQueryType_ReturnsTrue() {
         QueryContext domainQueryContext = new QueryContext("test-domain",
                 queryContext.getConfig(),
