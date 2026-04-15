@@ -572,20 +572,22 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         String response = "{\"nameserverSearchResults\": [ {\"objectClassName\":\"nameserver\"} ]}";
         givenUri(HTTP);
         stubFor(
-            get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
-                .willReturn(aResponse().withStatus(statusCode).withBody(response)));
+                get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
+                        .willReturn(aResponse().withStatus(statusCode).withBody(response)));
 
-        // Server errors (5xx) should not continue validation to potentially gather more information
-        assertThat(rdapHttpQuery.run()).isFalse();
-        
+        // Server errors (5xx) now continue validation without blocking the query flow
+        // -12107/-12108 checks are only applied for 404 responses via addErrorsTo404RdapResponse()
+        assertThat(rdapHttpQuery.run()).isTrue();
+
         // Error -13002 should still be recorded
         assertThat(results.getAll()).contains(RDAPValidationResult.builder()
-                                                                  .code(-13002)
-                                                                  .value(String.valueOf(statusCode))
-                                                                  .message(
-                                                                      "The HTTP status code was neither 200 nor 404.")
-                                                                  .build(queryContext));
+                .code(-13002)
+                .value(String.valueOf(statusCode))
+                .message(
+                        "The HTTP status code was neither 200 nor 404.")
+                .build(queryContext));
     }
+
 
     @Test
     public void test_400ErrorSpecifically_DocumentsIntendedBehavior() {
@@ -621,14 +623,15 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         String response = "{\"errorCode\": 404, \"title\": \"Not Found\", \"description\": [\"Domain not found\"]}";
         givenUri(HTTP);
         stubFor(
-            get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
-                .willReturn(aResponse().withStatus(404)
-                    .withHeader("Content-Type", "application/rdap+json")
-                    .withBody(response)));
+                get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
+                        .willReturn(aResponse().withStatus(404)
+                                .withHeader("Content-Type", "application/rdap+json")
+                                .withBody(response)));
 
-        // 404 is a special case - it should not  continue for error response validation
-        assertThat(rdapHttpQuery.run()).isFalse();
-        
+        // 404 is a valid status code — run() succeeds, error validation happens
+        // later via addErrorsTo404RdapResponse() called from RDAPValidator
+        assertThat(rdapHttpQuery.run()).isTrue();
+
         // Should NOT have error -13002 for 404 (since 404 is an accepted status code)
         assertThat(results.getAll()).noneMatch(result -> result.getCode() == -13002);
     }

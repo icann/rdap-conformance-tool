@@ -379,112 +379,106 @@ public class RDAPHttpQueryStatusCodeTest {
     @DataProvider(name = "errorCodeMatchingScenarios")
     public Object[][] errorCodeMatchingScenarios() {
         return new Object[][] {
-            // Format: {testName, use2024Profile, httpStatus, errorCode, expectError12108, expectError12107}
-            
-            // === 2024 Profile Enabled Tests ===
-            
-            // Matching errorCode and HTTP status - should NOT trigger -12108
-            {"2024: HTTP 404 with errorCode 404 - Match", true, 404, "404", false, false},
-            {"2024: HTTP 500 with errorCode 500 - Match", true, 500, "500", false, false},
-            {"2024: HTTP 503 with errorCode 503 - Match", true, 503, "503", false, false},
-            
-            // Non-matching errorCode and HTTP status - should trigger -12108
-            // Both 4xx and 5xx codes are now tested because -12108 validation happens BEFORE early termination
-            {"2024: HTTP 500 with errorCode 404 - Mismatch", true, 500, "404", true, false},
-            {"2024: HTTP 503 with errorCode 500 - Mismatch", true, 503, "500", true, false},
-            {"2024: HTTP 502 with errorCode 404 - Mismatch", true, 502, "404", true, false},
+                // === 2024 Profile Enabled Tests ===
 
-            // 4xx codes with mismatched errorCode - should trigger -12108 BEFORE early termination
-            {"2024: HTTP 400 with errorCode 500 - Mismatch", true, 400, "500", true, false},
-            {"2024: HTTP 403 with errorCode 500 - Mismatch", true, 403, "500", true, false},
-            {"2024: HTTP 422 with errorCode 404 - Mismatch", true, 422, "404", true, false},
+                // Matching errorCode and HTTP status - should NOT trigger -12108
+                {"2024: HTTP 404 with errorCode 404 - Match", true, 404, "404", false, false},
+                {"2024: HTTP 500 with errorCode 500 - Match", true, 500, "500", false, false},
+                {"2024: HTTP 503 with errorCode 503 - Match", true, 503, "503", false, false},
 
-            // NOTE: 4xx codes still cause early termination, but -12108 is checked first for precedence
-            
-            // HTTP 200 responses - should NOT trigger -12108 regardless of errorCode
-            {"2024: HTTP 200 with errorCode 404 - Success Response", true, 200, "404", false, false},
-            {"2024: HTTP 200 with errorCode 500 - Success Response", true, 200, "500", false, false},
-            
-            // === Non-2024 Profile Tests ===
-            
-            // Non-2024 profile should NOT trigger -12108 even with mismatches
-            {"Non-2024: HTTP 404 with errorCode 500 - No Validation", false, 404, "500", true, false},
-            {"Non-2024: HTTP 500 with errorCode 404 - No Validation", false, 500, "404", true, false},
-            
-            // === Edge Cases ===
-            
-            // Numeric vs String errorCode - both should work (using 5xx to avoid early termination)
-            {"2024: HTTP 500 with numeric errorCode 404 - Mismatch", true, 500, 404, true, false},
-            {"2024: HTTP 500 with numeric errorCode 500 - Match", true, 500, 500, false, false}
+                // Non-404 mismatches: addErrorsTo404RdapResponse() is NOT called for non-404 status codes
+                {"2024: HTTP 500 with errorCode 404 - No 404 check", true, 500, "404", false, false},
+                {"2024: HTTP 503 with errorCode 500 - No 404 check", true, 503, "500", false, false},
+                {"2024: HTTP 502 with errorCode 404 - No 404 check", true, 502, "404", false, false},
+
+                // 4xx non-404: early termination, no addErrorsTo404RdapResponse call
+                {"2024: HTTP 400 with errorCode 500 - Early termination", true, 400, "500", false, false},
+                {"2024: HTTP 403 with errorCode 500 - Early termination", true, 403, "500", false, false},
+                {"2024: HTTP 422 with errorCode 404 - Early termination", true, 422, "404", false, false},
+
+                // HTTP 200 responses - should NOT trigger -12108 regardless of errorCode
+                {"2024: HTTP 200 with errorCode 404 - Success Response", true, 200, "404", false, false},
+                {"2024: HTTP 200 with errorCode 500 - Success Response", true, 200, "500", false, false},
+
+                // === Non-2024 Profile Tests ===
+
+                // 404 with mismatch: addErrorsTo404RdapResponse IS called (no profile check in method)
+                {"Non-2024: HTTP 404 with errorCode 500 - Mismatch", false, 404, "500", true, false},
+                // Non-404: addErrorsTo404RdapResponse NOT called
+                {"Non-2024: HTTP 500 with errorCode 404 - No 404 check", false, 500, "404", false, false},
+
+                // === Edge Cases (non-404, so no check) ===
+                {"2024: HTTP 500 with numeric errorCode 404 - No 404 check", true, 500, 404, false, false},
+                {"2024: HTTP 500 with numeric errorCode 500 - Match", true, 500, 500, false, false}
         };
     }
 
     @Test(dataProvider = "errorCodeMatchingScenarios")
-    public void testErrorCodeMatching(String testName, boolean use2024Profile, int httpStatus, 
-                                    Object errorCode, boolean expectError12108, boolean expectError12107) {
-        
+    public void testErrorCodeMatching(String testName, boolean use2024Profile, int httpStatus,
+                                      Object errorCode, boolean expectError12108, boolean expectError12107) {
+
         System.out.println("\n=== Testing " + testName + " ===");
-        
-        // Configure profile setting
+
         doReturn(use2024Profile).when(config).useRdapProfileFeb2024();
-        
-        // Setup test endpoint
+
         String testPath = "/rdap/domain/errorcode-test.com";
         String baseUrl = "http://localhost:" + wireMockServer.port();
         URI testUri = URI.create(baseUrl + testPath);
         doReturn(testUri).when(config).getUri();
-        
-        // Create response body with errorCode and rdapConformance
-        String responseBody = createResponseBody(errorCode);
-        
-        // Configure WireMock response
-        stubFor(get(urlEqualTo(testPath))
-            .willReturn(aResponse()
-                .withStatus(httpStatus)
-                .withHeader("Content-Type", "application/rdap+json")
-                .withBody(responseBody)));
 
-        // Execute the query
+        String responseBody = createResponseBody(errorCode);
+
+        stubFor(get(urlEqualTo(testPath))
+                .willReturn(aResponse()
+                        .withStatus(httpStatus)
+                        .withHeader("Content-Type", "application/rdap+json")
+                        .withBody(responseBody)));
+
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.setQueryContext(queryContext);
         boolean queryResult = query.run();
-        
+
+        // Simulate RDAPValidator flow: only call addErrorsTo404RdapResponse for 404
+        if (query.isErrorContent()) {
+            query.addErrorsTo404RdapResponse();
+        }
+
         // Analyze results
         Set<RDAPValidationResult> allResults = queryContext.getResults().getAll();
-        
+
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
-        
+
         System.out.println("Query result: " + queryResult);
         System.out.println("Total results: " + allResults.size());
         System.out.println("Has -12108: " + has12108 + " (expected: " + expectError12108 + ")");
         System.out.println("Has -12107: " + has12107 + " (expected: " + expectError12107 + ")");
-        
+
         // Print all results for debugging
         for (RDAPValidationResult result : allResults) {
             System.out.println("  Result: " + result.getCode() + " - " + result.getMessage());
         }
-        
+
         // Verify expectations
-        assertEquals(has12108, expectError12108, 
+        assertEquals(has12108, expectError12108,
             testName + ": -12108 error expectation failed");
-        assertEquals(has12107, expectError12107, 
+        assertEquals(has12107, expectError12107,
             testName + ": -12107 error expectation failed");
-        
+
         // If we expect -12108, verify the error details
         if (expectError12108) {
             RDAPValidationResult error12108 = allResults.stream()
                 .filter(r -> r.getCode() == -12108)
                 .findFirst()
                 .orElse(null);
-            
+
             assertTrue(error12108 != null, testName + ": Should have -12108 error");
             assertEquals(error12108.getMessage(), "The errorCode value does not match the HTTP status code.",
                 testName + ": -12108 should have correct message");
             assertEquals(error12108.getValue(), responseBody,
                 testName + ": -12108 should contain response body as value");
         }
-        
+
         System.out.println("SUCCESS: " + testName);
     }
 
@@ -511,16 +505,19 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.setQueryContext(queryContext);
         query.run();
-        
+
+        // Simulate RDAPValidator flow
+        if (query.isErrorContent()) {
+            query.addErrorsTo404RdapResponse();
+        }
+
         Set<RDAPValidationResult> allResults = queryContext.getResults().getAll();
-        
+
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
-        
+
         assertFalse(has12108, "Missing errorCode should NOT trigger -12108");
         assertTrue(has12107, "Missing errorCode should trigger -12107");
-        
-        System.out.println("SUCCESS: Missing errorCode correctly handled");
     }
 
     @Test
@@ -546,16 +543,19 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.setQueryContext(queryContext);
         query.run();
-        
+
+        // Simulate RDAPValidator flow
+        if (query.isErrorContent()) {
+            query.addErrorsTo404RdapResponse();
+        }
+
         Set<RDAPValidationResult> allResults = queryContext.getResults().getAll();
-        
+
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
-        
+
         assertTrue(has12108, "Invalid errorCode format should trigger -12108");
         assertFalse(has12107, "Invalid errorCode format should not trigger -12107 (errorCode exists)");
-        
-        System.out.println("SUCCESS: Invalid errorCode format correctly handled");
     }
 
     @Test  
@@ -581,15 +581,25 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.setQueryContext(queryContext);
         query.run();
-        
+
+        // Simulate RDAPValidator flow — but note: run() returns false for malformed JSON,
+        // so RDAPValidator would return early. addErrorsTo404RdapResponse is never reached.
+        // Even if we call it, isQuerySuccessful() is false so it's a no-op.
+        if (query.isErrorContent()) {
+            query.addErrorsTo404RdapResponse();
+        }
+
         Set<RDAPValidationResult> allResults = queryContext.getResults().getAll();
-        
+
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
-        
-        // Malformed JSON should cause parsing failure, triggering -12107 but NOT -12108
-        assertTrue(has12107, "Malformed JSON should trigger -12107");
-        assertFalse(has12108, "Malformed JSON should not trigger -12108 (parsing failed)");
+        boolean has13001 = allResults.stream().anyMatch(r -> r.getCode() == -13001);
+
+        // Malformed JSON is caught by -13001 in validate(). Since isQuerySuccessful=false,
+        // addErrorsTo404RdapResponse() is a no-op, so no -12107.
+        assertFalse(has12107, "Malformed JSON is captured by -13001, not -12107");
+        assertFalse(has12108, "Malformed JSON should not trigger -12108");
+        assertTrue(has13001, "Malformed JSON should trigger -13001");
         
         System.out.println("SUCCESS: Malformed JSON correctly handled");
     }
@@ -617,14 +627,16 @@ public class RDAPHttpQueryStatusCodeTest {
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.setQueryContext(queryContext);
         query.run();
-        
+
         Set<RDAPValidationResult> allResults = queryContext.getResults().getAll();
-        
+
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
-        
-        assertTrue(has12107, "Missing rdapConformance should trigger -12107");
-        assertFalse(has12108, "-12107 failure should prevent -12108 check");
+
+        // -12107/-12108 checks only apply to 404 responses now.
+        // Status 500 does not trigger addErrorsTo404RdapResponse().
+        assertFalse(has12107, "Non-404 status should not trigger -12107");
+        assertFalse(has12108, "Non-404 status should not trigger -12108");
         
         System.out.println("SUCCESS: Validation order is correct");
     }
@@ -660,14 +672,10 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
         boolean has13002 = allResults.stream().anyMatch(r -> r.getCode() == -13002);
 
-        System.out.println("Has -12108: " + has12108);
-        System.out.println("Has -12107: " + has12107);
-        System.out.println("Has -13002: " + has13002);
-
-        // -12108 gets precedence and is checked BEFORE early termination for 4xx errors
-        assertTrue(has12108, "4xx client error should still allow -12108 validation (precedence)");
-        assertFalse(has12107, "4xx client error should prevent -12107 validation");
-        assertTrue(has13002, "4xx client error should still trigger -13002");
+        // 4xx non-404 causes early termination. addErrorsTo404RdapResponse() is not called.
+        assertFalse(has12108, "4xx non-404 should not trigger -12108 (not a 404 response)");
+        assertFalse(has12107, "4xx non-404 should not trigger -12107");
+        assertTrue(has13002, "4xx non-404 should still trigger -13002");
 
         System.out.println("SUCCESS: 4xx precedence + early termination behavior confirmed");
     }
@@ -698,10 +706,11 @@ public class RDAPHttpQueryStatusCodeTest {
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
-        
-        // Null response body should trigger -12107 but not -12108 (can't validate what doesn't exist)
-        assertTrue(has12107, "Null response body should trigger -12107");
-        assertFalse(has12108, "Null response body should not trigger -12108");
+
+        // Status 500 is not 404, so addErrorsTo404RdapResponse() is never called.
+        // The null/empty/blank body issues are caught by -13001 (invalid JSON) instead.
+        assertFalse(has12107, "Non-404 status should not trigger -12107");
+        assertFalse(has12108, "Non-404 status should not trigger -12108");
         
         System.out.println("SUCCESS: Null response body correctly handled");
     }
@@ -732,11 +741,13 @@ public class RDAPHttpQueryStatusCodeTest {
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
-        
-        // Empty response body should trigger -12107 but not -12108
-        assertTrue(has12107, "Empty response body should trigger -12107");
-        assertFalse(has12108, "Empty response body should not trigger -12108");
-        
+
+        // Status 500 is not 404, so addErrorsTo404RdapResponse() is never called.
+        // The null/empty/blank body issues are caught by -13001 (invalid JSON) instead.
+        assertFalse(has12107, "Non-404 status should not trigger -12107");
+        assertFalse(has12108, "Non-404 status should not trigger -12108");
+
+
         System.out.println("SUCCESS: Empty response body correctly handled");
     }
 
@@ -766,10 +777,11 @@ public class RDAPHttpQueryStatusCodeTest {
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
-        
-        // Blank response body should trigger -12107 but not -12108
-        assertTrue(has12107, "Blank response body should trigger -12107");
-        assertFalse(has12108, "Blank response body should not trigger -12108");
+
+        // Status 500 is not 404, so addErrorsTo404RdapResponse() is never called.
+        // The null/empty/blank body issues are caught by -13001 (invalid JSON) instead.
+        assertFalse(has12107, "Non-404 status should not trigger -12107");
+        assertFalse(has12108, "Non-404 status should not trigger -12108");
         
         System.out.println("SUCCESS: Blank response body correctly handled");
     }
@@ -802,11 +814,11 @@ public class RDAPHttpQueryStatusCodeTest {
         
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
-        
-        // Missing errorCode should trigger -12107 but not -12108 (null errorCode case)
-        assertTrue(has12107, "Missing errorCode should trigger -12107");
-        assertFalse(has12108, "Missing errorCode should not trigger -12108");
-        
+
+        // Status 500 → addErrorsTo404RdapResponse() not called
+        assertFalse(has12107, "Non-404 status should not trigger -12107");
+        assertFalse(has12108, "Non-404 status should not trigger -12108");
+
         System.out.println("SUCCESS: Missing errorCode field correctly handled");
     }
 
@@ -840,9 +852,9 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
         
         // JSON parsing exception should trigger -12107 but not -12108
-        assertTrue(has12107, "JSON parsing exception should trigger -12107");
-        assertFalse(has12108, "JSON parsing exception should not trigger -12108");
-        
+        assertFalse(has12107, "Non-404 status should not trigger -12107");
+        assertFalse(has12108, "Non-404 status should not trigger -12108");
+
         System.out.println("SUCCESS: JSON parsing exception correctly handled");
     }
 
@@ -876,9 +888,10 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
         
         // String parsing exception should trigger -12108 (parsing failed, so return false)
-        assertTrue(has12108, "String parsing exception should trigger -12108");
-        assertFalse(has12107, "String parsing exception should not trigger -12107 (errorCode exists)");
-        
+        assertFalse(has12108, "Non-404 status should not trigger -12108");
+        assertFalse(has12107, "Non-404 status should not trigger -12107");
+
+
         System.out.println("SUCCESS: String parsing exception correctly handled");
     }
 
