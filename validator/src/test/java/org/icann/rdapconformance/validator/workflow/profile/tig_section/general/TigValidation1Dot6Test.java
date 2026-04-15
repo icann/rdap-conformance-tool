@@ -36,6 +36,7 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
     results = mock(RDAPValidatorResults.class);
     // Override queryContext to use our mock results
     queryContext = QueryContext.forTesting("{}", results, config);
+    queryContext.setSsrfProtectionEnabled(false);
   }
 
   public ProfileValidation getProfileValidation() {
@@ -91,6 +92,7 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
     when(mockResponse.statusCode()).thenReturn(400);
     QueryContext testContext = QueryContext.forTesting("{}", results, config);
     testContext.setCurrentHttpResponse(mockResponse);
+    testContext.setSsrfProtectionEnabled(false);
     TigValidation1Dot6 validation = new TigValidation1Dot6(testContext);
     assertThat(validation.validate()).isTrue();
   }
@@ -109,6 +111,7 @@ public class TigValidation1Dot6Test extends HttpTestingUtils implements Validati
       when(mockResponse.statusCode()).thenReturn(400);
       QueryContext testContext = QueryContext.forTesting("{}", results, config);
       testContext.setCurrentHttpResponse(mockResponse);
+      testContext.setSsrfProtectionEnabled(false);
       TigValidation1Dot6 validation = new TigValidation1Dot6(testContext);
       assertThat(validation.validate()).isFalse();
       

@@ -39,6 +39,7 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
     httpsResponse = mock(HttpResponse.class);
     queryContext = QueryContext.forTesting("{}", results, config);
     queryContext.setCurrentHttpResponse(httpsResponse);
+    queryContext.setSsrfProtectionEnabled(false);
   }
 
   public ProfileValidation getProfileValidation() {

@@ -64,6 +64,9 @@ public class QueryContext {
     private HttpResponse<String> currentHttpResponse;
     private JSONObject jsonResponseData;
 
+    // Flag for enable testing
+    private boolean ssrfProtectionEnabled = true;
+
     /**
      * Constructs a new QueryContext with the specified configuration and services.
      *
@@ -554,6 +557,14 @@ public class QueryContext {
     private static RDAPQuery createMockQuery() {
         // Return null for default testing - tests should provide their own mocks when needed
         return null;
+    }
+
+    public void setSsrfProtectionEnabled(boolean enabled) {
+        this.ssrfProtectionEnabled = enabled;
+    }
+
+    public boolean isSsrfProtectionEnabled() {
+        return ssrfProtectionEnabled;
     }
 
     @Override

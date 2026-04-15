@@ -34,6 +34,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
     results = mock(RDAPValidatorResults.class); // Mock results for verify() calls
     // Create QueryContext with our mock results instead of using the default one
     queryContext = QueryContext.forTesting("{}", results, config);
+    queryContext.setSsrfProtectionEnabled(false);
     httpsResponse = mock(HttpResponse.class);
     doReturn(URI.create("http://domain/test.example")).when(httpsResponse).uri();
   }

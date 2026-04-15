@@ -96,6 +96,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         prepareWiremock(wmConfig);
 
         rdapHttpQuery = new RDAPHttpQuery(config);
+        rdapHttpQuery.ssrfProtectionEnabled = false;
 
         // Create dataset service for QueryContext
         org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService datasetService =
@@ -107,6 +108,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
         // Create QueryContext for thread-safe operations with proper results
         queryContext = QueryContext.forTesting("", results, config, datasetService);
+        queryContext.setSsrfProtectionEnabled(false);
         rdapHttpQuery.setQueryContext(queryContext);
     }
 
@@ -1049,4 +1051,143 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         List<?> propertyCollection = List.of(Map.of("objectClassName", "domain"), "invalidElement");
         assertThat(rdapHttpQuery.verifyIfObjectClassPropExits(propertyCollection, "entities")).isFalse();
     }
+
+    @Test
+    public void test_RedirectToLocalhost_IsBlocked() throws Exception {
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        String path1 = "/domain/test1.example";
+        URI uri1 = URI.create("http://external.example.com" + path1);
+        URI localhostUri = URI.create("http://127.0.0.1:8080/domain/secret");
+
+        doReturn(uri1).when(config).getUri();
+
+        // Re-enable SSRF protection for this specific test
+        rdapHttpQuery.ssrfProtectionEnabled = true;
+
+        RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response1.statusCode()).thenReturn(REDIRECT);
+        when(response1.body()).thenReturn("");
+        when(response1.uri()).thenReturn(uri1);
+        when(response1.headers()).thenReturn(
+                HttpHeaders.of(Map.of(LOCATION, List.of(localhostUri.toString())), (k, v) -> true));
+        when(response1.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response1);
+
+            rdapHttpQuery.run();
+
+            // The redirect to 127.0.0.1 should be blocked
+            List<URI> redirects = rdapHttpQuery.getRedirects();
+            assertThat(redirects).isEmpty(); // No redirects should be followed
+        }
+    }
+
+    @Test
+    public void test_RedirectToPrivateIP_IsBlocked() throws Exception {
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        URI uri1 = URI.create("http://external.example.com/domain/test.example");
+        URI privateUri = URI.create("http://10.0.0.1/admin");
+
+        doReturn(uri1).when(config).getUri();
+
+        rdapHttpQuery.ssrfProtectionEnabled = true;
+
+        RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response1.statusCode()).thenReturn(REDIRECT);
+        when(response1.body()).thenReturn("");
+        when(response1.uri()).thenReturn(uri1);
+        when(response1.headers()).thenReturn(
+                HttpHeaders.of(Map.of(LOCATION, List.of(privateUri.toString())), (k, v) -> true));
+        when(response1.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response1);
+
+            rdapHttpQuery.run();
+
+            List<URI> redirects = rdapHttpQuery.getRedirects();
+            assertThat(redirects).isEmpty();
+        }
+    }
+
+    @Test
+    public void test_isIPv6UniqueLocalAddress_FdPrefix_ReturnsTrue() throws Exception {
+        InetAddress fdAddress = InetAddress.getByName("fd12:3456:789a::1");
+        assertThat(RDAPHttpQuery.isIPv6UniqueLocalAddress(fdAddress)).isTrue();
+    }
+
+    @Test
+    public void test_isIPv6UniqueLocalAddress_FcPrefix_ReturnsTrue() throws Exception {
+        InetAddress fcAddress = InetAddress.getByName("fc00::1");
+        assertThat(RDAPHttpQuery.isIPv6UniqueLocalAddress(fcAddress)).isTrue();
+    }
+
+    @Test
+    public void test_isIPv6UniqueLocalAddress_DeprecatedSiteLocal_ReturnsFalse() throws Exception {
+        // fec0::/10 is covered by isSiteLocalAddress(), not by our ULA check
+        InetAddress siteLocal = InetAddress.getByName("fec0::1");
+        assertThat(RDAPHttpQuery.isIPv6UniqueLocalAddress(siteLocal)).isFalse();
+    }
+
+    @Test
+    public void test_isIPv6UniqueLocalAddress_PublicIPv6_ReturnsFalse() throws Exception {
+        InetAddress publicAddr = InetAddress.getByName("2001:db8::1");
+        assertThat(RDAPHttpQuery.isIPv6UniqueLocalAddress(publicAddr)).isFalse();
+    }
+
+    @Test
+    public void test_isIPv6UniqueLocalAddress_IPv4_ReturnsFalse() throws Exception {
+        InetAddress ipv4 = InetAddress.getByName("192.168.1.1");
+        assertThat(RDAPHttpQuery.isIPv6UniqueLocalAddress(ipv4)).isFalse();
+    }
+
+    @Test
+    public void test_isIPv6UniqueLocalAddress_Loopback_ReturnsFalse() throws Exception {
+        InetAddress loopback = InetAddress.getByName("::1");
+        assertThat(RDAPHttpQuery.isIPv6UniqueLocalAddress(loopback)).isFalse();
+    }
+
+    @Test
+    public void test_RedirectToIPv6ULA_IsBlocked() throws Exception {
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        URI uri1 = URI.create("http://external.example.com/domain/test.example");
+        URI ulaUri = URI.create("http://[fd12:3456:789a::1]/admin");
+
+        doReturn(uri1).when(config).getUri();
+
+        // Re-enable SSRF protection for this specific test
+        rdapHttpQuery.ssrfProtectionEnabled = true;
+
+        RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response1.statusCode()).thenReturn(REDIRECT);
+        when(response1.body()).thenReturn("");
+        when(response1.uri()).thenReturn(uri1);
+        when(response1.headers()).thenReturn(
+                HttpHeaders.of(Map.of(LOCATION, List.of(ulaUri.toString())), (k, v) -> true));
+        when(response1.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response1);
+
+            rdapHttpQuery.run();
+
+            // The redirect to fd12:3456:789a::1 (ULA) should be blocked
+            List<URI> redirects = rdapHttpQuery.getRedirects();
+            assertThat(redirects).isEmpty();
+        }
+    }
+
 }
