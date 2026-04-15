@@ -61,6 +61,11 @@ public class RDAPFileQuery implements RDAPQuery {
   }
 
   @Override
+  public void addErrorsTo404RdapResponse() {
+    // No-op for file queries - errors are not expected to be in RDAP response format
+  }
+
+  @Override
   public String getData() {
     return this.data;
   }

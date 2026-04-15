@@ -196,7 +196,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 
 #### Error Response Validation (-121XX)
 - `-12100`: Error response validation [RFC 9083 Section 6]
-- `-12101`: Error response structure validation [RFC 9083 Section 6] {rdap_error.json}
+- `-12101`: Error response structure validation [RFC 9083 Section 6] {rdap_error.json} [Duplicated with -12107 but with a different message and validation focus]
 - `-12102`: Error response format validation [RFC 9083 Section 6]
 - `-12103`: Error code validation (not a number) [RFC 9083 Section 6] {rdap_error.json}
 - `-12104`: Title validation (not a string) [RFC 9083 Section 6] {rdap_error.json}

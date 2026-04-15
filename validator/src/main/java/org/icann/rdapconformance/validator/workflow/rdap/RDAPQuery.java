@@ -14,6 +14,8 @@ public interface RDAPQuery {
 
     boolean isErrorContent();
 
+    void addErrorsTo404RdapResponse();
+
     String getData();
 
     Object getRawResponse();

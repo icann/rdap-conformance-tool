@@ -201,6 +201,23 @@ public class RDAPHttpQuery implements RDAPQuery {
         return httpResponse.statusCode() == HTTP_NOT_FOUND;
     }
 
+    @Override
+    public void addErrorsTo404RdapResponse() {
+        // Check for errorCode presence and correctness in non-200 responses
+        if (isQuerySuccessful() && httpResponse != null) {
+            int httpStatusCode = httpResponse.statusCode();
+            String rdapResponse = httpResponse.body();
+
+            if (httpStatusCode != HTTP_OK) {
+                if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
+                    queryContext.addError(-12107, rdapResponse, "The errorCode value is required in an error response.");
+                } else if (!validateErrorCodeMatchesHttpStatus(httpStatusCode, rdapResponse)) {
+                    queryContext.addError(-12108, rdapResponse, "The errorCode value does not match the HTTP status code.");
+                }
+            }
+        }
+    }
+
     /**
      * Returns the raw response body data from the HTTP request.
      *
@@ -447,22 +464,6 @@ public class RDAPHttpQuery implements RDAPQuery {
             String statusValue =
                 httpResponse == null ? "no response available" : String.valueOf(httpResponse.statusCode());
             queryContext.addError(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
-        }
-
-        // Check for errorCode presence and correctness in non-200 responses
-        if (isQuerySuccessful() && httpResponse != null) {
-            int httpStatusCode = httpResponse.statusCode();
-            String rdapResponse = httpResponse.body();
-
-            if (httpStatusCode != HTTP_OK) {
-                if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
-                    queryContext.addError(-12107, rdapResponse, "The errorCode value is required in an error response.");
-                    isQuerySuccessful = false;
-                } else if (!validateErrorCodeMatchesHttpStatus(httpStatusCode, rdapResponse)) {
-                    queryContext.addError(-12108, rdapResponse, "The errorCode value does not match the HTTP status code.");
-                    isQuerySuccessful = false;
-                }
-            }
         }
 
         // Early termination for client errors (4xx) - these indicate issues with the request itself
