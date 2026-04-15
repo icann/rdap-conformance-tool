@@ -104,6 +104,18 @@ public class ResponseValidation2Dot6Dot3_2024Test extends ProfileJsonValidationT
     }
 
     @Test
+    public void ResponseValidation2Dot6Dot3_2024_46606_CaseSensitive() {
+        JSONObject link = jsonObject.getJSONArray("notices").getJSONObject(0).getJSONArray("links").getJSONObject(0);
+
+        // Same URI but with different case in the path — must trigger -46606
+        link.put("value", "HTTPS://EXAMPLE.NET/ENTITY/XXXX");
+
+        // Construct expected pointer with modified value (matching the pattern of other tests)
+        String caseSensitiveValuePointer = "#/notices/0:" + jsonObject.getJSONArray("notices").getJSONObject(0).toString();
+        validate(-46606, caseSensitiveValuePointer, "The notice for Status Codes does not have a link value of the request URL.");
+    }
+
+    @Test
     public void testDoLaunch_DomainQueryType_ReturnsTrue() {
         QueryContext domainContext = new QueryContext(
             queryContext.getQueryId(), queryContext.getConfig(), queryContext.getDatasetService(),
