@@ -418,10 +418,11 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
                     .withStatus(200)
                     .withHeader("Content-Type", "application/rdap+json")
                     .withBody(caseFoldedResponse)));
+    String expectedUrl = config.getUri().resolve(caseFoldedPath).toString();
 
     // Should FAIL — the "registration" event date differs, which is NOT ignored
     validateNotOk(results,
-            -10403, "http://127.0.0.1:8080/domain/tEsT.ExAmPlE",
+            -10403, expectedUrl,
             "RDAP responses do not match when handling domain label case folding.");
   }
 
