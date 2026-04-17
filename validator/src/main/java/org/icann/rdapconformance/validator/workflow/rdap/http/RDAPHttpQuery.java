@@ -728,7 +728,9 @@ public class RDAPHttpQuery implements RDAPQuery {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, Object> responseMap = mapper.readValue(rdapResponse, new TypeReference<Map<String, Object>>() {
             });
-            return responseMap.containsKey(RDAP_CONFORMANCE);
+            return responseMap.containsKey(RDAP_CONFORMANCE)
+                    && responseMap.get(RDAP_CONFORMANCE) instanceof List<?> list
+                    && list.stream().allMatch(item -> item instanceof String);
         } catch (Exception e) {
             logger.debug("Error parsing JSON response for error code check", e);
             return false;
