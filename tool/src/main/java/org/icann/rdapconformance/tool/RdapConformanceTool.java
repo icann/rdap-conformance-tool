@@ -6,7 +6,9 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 
 import java.io.File;
+import java.net.IDN;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.Security;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
 import org.slf4j.LoggerFactory;
 import org.icann.rdapconformance.tool.progress.ProgressTracker;
 import org.icann.rdapconformance.tool.progress.ProgressPhase;
+import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -1261,5 +1264,89 @@ public void setShowProgress(boolean showProgress) {
    */
   QueryContext getQueryContext() {
     return this.queryContext;
+  }
+
+  /** * Picocli type converter that handles IDN/Unicode URIs by normalizing them * before creating a java.net.URI. Supports both raw Unicode (nic.дети)  * and percent-encoded forms. */
+  static class IdnAwareUriConverter implements CommandLine.ITypeConverter<URI> {
+    @Override
+    public URI convert(String value) throws Exception {
+      // Always normalize IDN domains in the path, even if URI.create succeeds
+      // (e.g., percent-encoded Unicode like nic.%D0%B4%D0%B5%D1%82%D0%B8)
+      return normalizeIdnUri(value);
+    }
+
+    private URI normalizeIdnUri(String input) throws java.net.URISyntaxException {
+      int schemeEnd = input.indexOf("://");
+      if (schemeEnd < 0) {
+        throw new java.net.URISyntaxException(input, "Missing scheme");
+      }
+
+      String scheme = input.substring(0, schemeEnd);
+      String rest = input.substring(schemeEnd + 3);
+
+      int pathStart = rest.indexOf('/');
+      String hostPort = pathStart >= 0 ? rest.substring(0, pathStart) : rest;
+      String path = pathStart >= 0 ? rest.substring(pathStart) : "/";
+
+      String query = null;
+      int queryStart = path.indexOf('?');
+      if (queryStart >= 0) {
+        query = path.substring(queryStart + 1);
+        path = path.substring(0, queryStart);
+      }
+
+      String host = hostPort;
+      int port = -1;
+      int colonIdx = hostPort.lastIndexOf(':');
+      if (colonIdx >= 0) {
+        try {
+          port = Integer.parseInt(hostPort.substring(colonIdx + 1));
+          host = hostPort.substring(0, colonIdx);
+        } catch (NumberFormatException nfe) {
+          // Not a port
+        }
+      }
+
+      // Convert IDN host to ASCII (punycode)
+      host = java.net.IDN.toASCII(host);
+
+      // Convert IDN domain names in the RDAP path to A-label (punycode)
+      // e.g., /rdap/domain/nic.дети -> /rdap/domain/nic.xn--d1acj3b
+      path = convertIdnInPath(path);
+
+      return new URI(scheme, null, host, port, path, query, null);
+    }
+
+    /**
+     * Converts IDN domain names found in RDAP path segments to their A-label form.
+     * Handles paths like /rdap/domain/{domainName} and /rdap/nameserver/{nsName}
+     * where the domain/nameserver name may contain Unicode characters.
+     * Also handles percent-encoded Unicode by decoding first, then converting.
+     */
+    static String convertIdnInPath(String path) {
+      // Decode any percent-encoded characters first
+      String decodedPath;
+      try {
+        decodedPath = java.net.URLDecoder.decode(path, java.nio.charset.StandardCharsets.UTF_8);
+      } catch (Exception e) {
+        decodedPath = path;
+      }
+
+      // Match RDAP path patterns: /domain/{name} or /nameserver/{name}
+      // The domain name is the last segment after /domain/ or /nameserver/
+      String[] rdapPrefixes = {"/domain/", "/nameserver/"};
+      for (String prefix : rdapPrefixes) {
+        int idx = decodedPath.toLowerCase().lastIndexOf(prefix);
+        if (idx >= 0) {
+          String before = decodedPath.substring(0, idx + prefix.length());
+          String domainName = decodedPath.substring(idx + prefix.length());
+          // Convert each label to A-label
+          domainName = java.net.IDN.toASCII(domainName);
+          return before + domainName;
+        }
+      }
+
+      return decodedPath;
+    }
   }
 }

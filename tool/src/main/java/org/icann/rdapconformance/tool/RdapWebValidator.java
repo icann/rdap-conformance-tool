@@ -389,29 +389,23 @@ public class RdapWebValidator implements AutoCloseable {
      * @return a valid URI object
      * @throws IllegalArgumentException if the URI is invalid or has no scheme
      */
-    private static URI validateAndCreateURI(String uriString) {
+    static URI validateAndCreateURI(String uriString) {
         if (uriString == null || uriString.trim().isEmpty()) {
             throw new IllegalArgumentException("URI cannot be null or empty");
         }
-
         try {
-            URI uri = URI.create(uriString);
+            URI uri = new RdapConformanceTool.IdnAwareUriConverter().convert(uriString);
 
-            // Validate that the URI has a scheme (protocol)
             if (uri.getScheme() == null || uri.getScheme().trim().isEmpty()) {
                 throw new IllegalArgumentException("URI must have a valid scheme (e.g., https://): " + uriString);
             }
-
-            // Validate that it's an HTTP or HTTPS scheme for RDAP
             if (!uri.getScheme().equalsIgnoreCase("http") && !uri.getScheme().equalsIgnoreCase("https")) {
                 throw new IllegalArgumentException("URI must use HTTP or HTTPS scheme for RDAP: " + uriString);
             }
-
             return uri;
         } catch (IllegalArgumentException e) {
-            if (e.getMessage().contains("URI must")) {
-                throw e; // Re-throw our validation errors
-            }
+            throw e;
+        } catch (Exception e) {
             throw new IllegalArgumentException("Invalid URI format: " + uriString, e);
         }
     }
