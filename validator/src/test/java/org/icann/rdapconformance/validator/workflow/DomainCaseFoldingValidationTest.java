@@ -313,4 +313,117 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
     
     assertThat(validator.doLaunch()).isTrue();
   }
+
+  @Test
+  public void testDoValidate_DifferentLastUpdateEvent_ShouldPass() throws Exception {
+    WireMockConfiguration wmConfig = wireMockConfig()
+            .dynamicHttpsPort()
+            .bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    String originalResponse = "{\n"
+            + "  \"objectClassName\": \"domain\",\n"
+            + "  \"ldhName\": \"test.example\",\n"
+            + "  \"events\": [\n"
+            + "    {\n"
+            + "      \"eventAction\": \"registration\",\n"
+            + "      \"eventDate\": \"2020-01-01T00:00:00Z\"\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"eventAction\": \"last update of RDAP database\",\n"
+            + "      \"eventDate\": \"2025-01-01T00:00:00Z\"\n"
+            + "    }\n"
+            + "  ]\n"
+            + "}";
+
+    String caseFoldedResponse = "{\n"
+            + "  \"objectClassName\": \"domain\",\n"
+            + "  \"ldhName\": \"test.example\",\n"
+            + "  \"events\": [\n"
+            + "    {\n"
+            + "      \"eventAction\": \"registration\",\n"
+            + "      \"eventDate\": \"2020-01-01T00:00:00Z\"\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"eventAction\": \"last update of RDAP database\",\n"
+            + "      \"eventDate\": \"2025-06-15T12:30:00Z\"\n"
+            + "    }\n"
+            + "  ]\n"
+            + "}";
+
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(originalResponse).when(httpsResponse).body();
+
+    // Case-folded URL returns same content except different "last update of RDAP database" date
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    stubFor(get(urlEqualTo(caseFoldedPath))
+            .withScheme("http")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/rdap+json")
+                    .withBody(caseFoldedResponse)));
+
+    // Should PASS — the only difference is the "last update of RDAP database" event which must be ignored
+    validateOk(results);
+  }
+
+  @Test
+  public void testDoValidate_DifferentNonLastUpdateEvent_ShouldFail() throws Exception {
+    WireMockConfiguration wmConfig = wireMockConfig()
+            .dynamicHttpsPort()
+            .bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    String originalResponse = "{\n"
+            + "  \"objectClassName\": \"domain\",\n"
+            + "  \"ldhName\": \"test.example\",\n"
+            + "  \"events\": [\n"
+            + "    {\n"
+            + "      \"eventAction\": \"registration\",\n"
+            + "      \"eventDate\": \"2020-01-01T00:00:00Z\"\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"eventAction\": \"last update of RDAP database\",\n"
+            + "      \"eventDate\": \"2025-01-01T00:00:00Z\"\n"
+            + "    }\n"
+            + "  ]\n"
+            + "}";
+
+    String caseFoldedResponse = "{\n"
+            + "  \"objectClassName\": \"domain\",\n"
+            + "  \"ldhName\": \"test.example\",\n"
+            + "  \"events\": [\n"
+            + "    {\n"
+            + "      \"eventAction\": \"registration\",\n"
+            + "      \"eventDate\": \"2022-05-05T00:00:00Z\"\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"eventAction\": \"last update of RDAP database\",\n"
+            + "      \"eventDate\": \"2025-01-01T00:00:00Z\"\n"
+            + "    }\n"
+            + "  ]\n"
+            + "}";
+
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(originalResponse).when(httpsResponse).body();
+
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    stubFor(get(urlEqualTo(caseFoldedPath))
+            .withScheme("http")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/rdap+json")
+                    .withBody(caseFoldedResponse)));
+    String expectedUrl = config.getUri().resolve(caseFoldedPath).toString();
+
+    // Should FAIL — the "registration" event date differs, which is NOT ignored
+    validateNotOk(results,
+            -10403, expectedUrl,
+            "RDAP responses do not match when handling domain label case folding.");
+  }
+
 }
