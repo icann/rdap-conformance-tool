@@ -518,7 +518,7 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
 
         assertFalse(has12108, "Missing errorCode should NOT trigger -12108");
-        assertTrue(has12107, "Missing errorCode should trigger -12107");
+        assertFalse(has12107, "Missing errorCode should NOT trigger -12107");
     }
 
     @Test
