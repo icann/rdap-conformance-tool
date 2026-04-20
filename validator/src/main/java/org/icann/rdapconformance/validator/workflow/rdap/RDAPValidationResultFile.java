@@ -268,8 +268,20 @@ public class RDAPValidationResultFile {
         filteredResults = cullDuplicateIPAddressErrors(filteredResults);
         filteredResults = addErrorIfAllQueriesDoNotReturnSameStatusCode(filteredResults);
 
+        // En createResultsMap, justo después de filteredResults = addErrorIfAllQueriesDoNotReturnSameStatusCode(filteredResults);
+        logger.info("DEBUG: filteredResults count={}, has-20401={}",
+                filteredResults.size(),
+                filteredResults.stream().anyMatch(r -> r.getCode() == -20401));
+
         //  Finally build the resultMap
         for (RDAPValidationResult result : filteredResults) {
+
+            // Y luego en el loop de construcción de resultMap:
+            if (result.getCode() == -20401) {
+                logger.info("DEBUG: -20401 isError={}, isWarning={}",
+                        configurationFile.isError(result.getCode()),
+                        configurationFile.isWarning(result.getCode()));
+            }
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("code", result.getCode());
             resultMap.put("value", result.getValue());
@@ -362,27 +374,26 @@ public class RDAPValidationResultFile {
 
     // New culling function
     public List<RDAPValidationResult> cullDuplicateIPAddressErrors(List<RDAPValidationResult> results) {
-        int ipv4Count = ZERO;
-        int ipv6Count = ZERO;
-        Set<RDAPValidationResult> toRemove = new HashSet<>();
+        boolean seenV4 = false;
+        boolean seenV6 = false;
+        Iterator<RDAPValidationResult> iterator = results.iterator();
 
-        // First pass - count occurrences
-        for (RDAPValidationResult result : results) {
+        while (iterator.hasNext()) {
+            RDAPValidationResult result = iterator.next();
             if (result.getCode() == -20400) {
-                ipv4Count++;
-                if (ipv4Count > ONE) {
-                    toRemove.add(result);
+                if (seenV4) {
+                    iterator.remove(); // remove only the duplicate, not all equal entries
+                } else {
+                    seenV4 = true;
                 }
             } else if (result.getCode() == -20401) {
-                ipv6Count++;
-                if (ipv6Count > ONE) {
-                    toRemove.add(result);
+                if (seenV6) {
+                    iterator.remove();
+                } else {
+                    seenV6 = true;
                 }
             }
         }
-
-        // Remove duplicates
-        results.removeAll(toRemove);
         return results;
     }
 
