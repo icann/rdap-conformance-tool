@@ -6,9 +6,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 
 import java.io.File;
-import java.net.IDN;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.Security;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +43,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import static java.net.IDN.toASCII;
+import static java.net.URLDecoder.decode;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.icann.rdapconformance.validator.CommonUtils.*;
 
 
@@ -1266,7 +1267,12 @@ public void setShowProgress(boolean showProgress) {
     return this.queryContext;
   }
 
-  /** * Picocli type converter that handles IDN/Unicode URIs by normalizing them * before creating a java.net.URI. Supports both raw Unicode (nic.дети)  * and percent-encoded forms. */
+  /**
+   * Picocli type converter that handles IDN/Unicode URIs by normalizing them
+   * before creating a java.net.URI.
+   * Supports both raw Unicode (nic.дети)
+   * and percent-encoded forms.
+  */
   static class IdnAwareUriConverter implements CommandLine.ITypeConverter<URI> {
     @Override
     public URI convert(String value) throws Exception {
@@ -1276,45 +1282,43 @@ public void setShowProgress(boolean showProgress) {
     }
 
     private URI normalizeIdnUri(String input) throws java.net.URISyntaxException {
-      int schemeEnd = input.indexOf("://");
-      if (schemeEnd < 0) {
-        throw new java.net.URISyntaxException(input, "Missing scheme");
-      }
-
-      String scheme = input.substring(0, schemeEnd);
-      String rest = input.substring(schemeEnd + 3);
-
-      int pathStart = rest.indexOf('/');
-      String hostPort = pathStart >= 0 ? rest.substring(0, pathStart) : rest;
-      String path = pathStart >= 0 ? rest.substring(pathStart) : "/";
-
-      String query = null;
-      int queryStart = path.indexOf('?');
-      if (queryStart >= 0) {
-        query = path.substring(queryStart + 1);
-        path = path.substring(0, queryStart);
-      }
-
-      String host = hostPort;
-      int port = -1;
-      int colonIdx = hostPort.lastIndexOf(':');
-      if (colonIdx >= 0) {
-        try {
-          port = Integer.parseInt(hostPort.substring(colonIdx + 1));
-          host = hostPort.substring(0, colonIdx);
-        } catch (NumberFormatException nfe) {
-          // Not a port
+      // Pre-encode non-ASCII characters so java.net.URI can parse the structure
+      StringBuilder encoded = new StringBuilder();
+      for (char c : input.toCharArray()) {
+        if (c > 0x7F) {
+          for (byte b : String.valueOf(c).getBytes(UTF_8)) {
+            encoded.append(String.format("%%%02X", b & 0xFF));
+          }
+        } else {
+          encoded.append(c);
         }
       }
 
-      // Convert IDN host to ASCII (punycode)
-      host = java.net.IDN.toASCII(host);
+      // Now URI can parse the structure correctly (scheme, host, port, path, query, fragment)
+      URI parsed = new URI(encoded.toString());
+
+      String host = parsed.getHost();
+      if (host == null) {
+        throw new java.net.URISyntaxException(input, "No host found");
+      }
+
+      // Decode percent-encoded host back to Unicode, then convert to punycode
+      // Skip IDN conversion for IPv6 literals (URI.getHost() strips brackets but keeps colons)
+      String normalizedHost = decode(host, UTF_8);
+      if (!normalizedHost.contains(":")) {
+        // Regular hostname — apply IDN conversion
+        normalizedHost = toASCII(normalizedHost);
+      }
+      // else: IPv6 address — pass through as-is, URI constructor re-adds brackets
 
       // Convert IDN domain names in the RDAP path to A-label (punycode)
-      // e.g., /rdap/domain/nic.дети -> /rdap/domain/nic.xn--d1acj3b
-      path = convertIdnInPath(path);
+      String path = parsed.getRawPath();
+      if (path != null) {
+        path = convertIdnInPath(path);
+      }
 
-      return new URI(scheme, null, host, port, path, query, null);
+      return new URI(parsed.getScheme(), null, normalizedHost, parsed.getPort(),
+              path, parsed.getRawQuery(), parsed.getRawFragment());
     }
 
     /**
@@ -1327,7 +1331,7 @@ public void setShowProgress(boolean showProgress) {
       // Decode any percent-encoded characters first
       String decodedPath;
       try {
-        decodedPath = java.net.URLDecoder.decode(path, java.nio.charset.StandardCharsets.UTF_8);
+        decodedPath = decode(path, UTF_8);
       } catch (Exception e) {
         decodedPath = path;
       }
@@ -1341,7 +1345,7 @@ public void setShowProgress(boolean showProgress) {
           String before = decodedPath.substring(0, idx + prefix.length());
           String domainName = decodedPath.substring(idx + prefix.length());
           // Convert each label to A-label
-          domainName = java.net.IDN.toASCII(domainName);
+          domainName = toASCII(domainName);
           return before + domainName;
         }
       }

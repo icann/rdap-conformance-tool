@@ -383,11 +383,26 @@ public class RdapWebValidator implements AutoCloseable {
     }
 
     /**
-     * Validates and creates a URI from a string, throwing IllegalArgumentException for invalid URIs.
+     * Validates and creates a URI from a string, with IDN (Internationalized Domain Name) support.
      *
-     * @param uriString the URI string to validate
-     * @return a valid URI object
-     * @throws IllegalArgumentException if the URI is invalid or has no scheme
+     * <p>This method normalizes IDN domain names in both the host and RDAP path segments
+     * (e.g., {@code /domain/} and {@code /nameserver/}) to their A-label (punycode) form
+     * using {@link RdapConformanceTool.IdnAwareUriConverter}. It supports:</p>
+     * <ul>
+     *   <li>Raw Unicode domain names (e.g., {@code nic.дети})</li>
+     *   <li>Percent-encoded Unicode (e.g., {@code nic.%D0%B4%D0%B5%D1%82%D0%B8})</li>
+     *   <li>Already-punycode domains (e.g., {@code nic.xn--d1acj3b})</li>
+     *   <li>IPv6 literal hosts (e.g., {@code https://[2001:db8::1]/...})</li>
+     * </ul>
+     *
+     * <p>The URI must use an HTTP or HTTPS scheme. Inputs without a scheme produce
+     * an {@code IllegalArgumentException} with the message
+     * {@code "URI must have a valid scheme (e.g., https://): ..."}.</p>
+     *
+     * @param uriString the URI string to validate and normalize
+     * @return a valid, IDN-normalized URI object
+     * @throws IllegalArgumentException if the URI is null, empty, has no scheme,
+     *         uses a non-HTTP(S) scheme, or is otherwise malformed
      */
     static URI validateAndCreateURI(String uriString) {
         if (uriString == null || uriString.trim().isEmpty()) {
@@ -405,6 +420,12 @@ public class RdapWebValidator implements AutoCloseable {
             return uri;
         } catch (IllegalArgumentException e) {
             throw e;
+        } catch (java.net.URISyntaxException e) {
+            // Preserve specific error message for missing scheme
+            if (e.getReason() != null && e.getReason().contains("No host found")) {
+                throw new IllegalArgumentException("URI must have a valid scheme (e.g., https://): " + uriString, e);
+            }
+            throw new IllegalArgumentException("Invalid URI format: " + uriString, e);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid URI format: " + uriString, e);
         }
