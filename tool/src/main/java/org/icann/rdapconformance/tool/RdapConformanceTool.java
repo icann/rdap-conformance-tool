@@ -1283,8 +1283,48 @@ public void setShowProgress(boolean showProgress) {
 
     private URI normalizeIdnUri(String input) throws java.net.URISyntaxException {
       // Pre-encode non-ASCII characters so java.net.URI can parse the structure
+      // BUT convert the host part to punycode first (URI doesn't accept percent-encoded hosts)
+
+      int schemeEnd = input.indexOf("://");
+      if (schemeEnd < 0) {
+        throw new java.net.URISyntaxException(input, "Missing scheme");
+      }
+
+      String scheme = input.substring(0, schemeEnd);
+      String rest = input.substring(schemeEnd + 3);
+
+      // Find where host ends (first / or end of string)
+      int hostEnd = rest.indexOf('/');
+      String hostPort = hostEnd >= 0 ? rest.substring(0, hostEnd) : rest;
+      String afterHost = hostEnd >= 0 ? rest.substring(hostEnd) : "";
+
+      // Convert host to punycode (handles Unicode hosts like whois.nic.дети)
+      // Skip IPv6 literals
+      String normalizedHostPort;
+      if (hostPort.startsWith("[")) {
+        normalizedHostPort = hostPort; // IPv6 — leave as-is
+      } else {
+        // Separate host from port
+        int lastColon = hostPort.lastIndexOf(':');
+        String portSuffix = "";
+        String hostOnly = hostPort;
+        if (lastColon >= 0) {
+          String maybPort = hostPort.substring(lastColon + 1);
+          try {
+            Integer.parseInt(maybPort);
+            portSuffix = hostPort.substring(lastColon);
+            hostOnly = hostPort.substring(0, lastColon);
+          } catch (NumberFormatException e) {
+            // Not a port
+          }
+        }
+        normalizedHostPort = toASCII(hostOnly) + portSuffix;
+      }
+
+      // Now percent-encode non-ASCII in the remaining part (path/query/fragment)
       StringBuilder encoded = new StringBuilder();
-      for (char c : input.toCharArray()) {
+      encoded.append(scheme).append("://").append(normalizedHostPort);
+      for (char c : afterHost.toCharArray()) {
         if (c > 0x7F) {
           for (byte b : String.valueOf(c).getBytes(UTF_8)) {
             encoded.append(String.format("%%%02X", b & 0xFF));
@@ -1294,22 +1334,8 @@ public void setShowProgress(boolean showProgress) {
         }
       }
 
-      // Now URI can parse the structure correctly (scheme, host, port, path, query, fragment)
+      // Parse the now-valid URI
       URI parsed = new URI(encoded.toString());
-
-      String host = parsed.getHost();
-      if (host == null) {
-        throw new java.net.URISyntaxException(input, "No host found");
-      }
-
-      // Decode percent-encoded host back to Unicode, then convert to punycode
-      // Skip IDN conversion for IPv6 literals (URI.getHost() strips brackets but keeps colons)
-      String normalizedHost = decode(host, UTF_8);
-      if (!normalizedHost.contains(":")) {
-        // Regular hostname — apply IDN conversion
-        normalizedHost = toASCII(normalizedHost);
-      }
-      // else: IPv6 address — pass through as-is, URI constructor re-adds brackets
 
       // Convert IDN domain names in the RDAP path to A-label (punycode)
       String path = parsed.getRawPath();
@@ -1317,7 +1343,7 @@ public void setShowProgress(boolean showProgress) {
         path = convertIdnInPath(path);
       }
 
-      return new URI(parsed.getScheme(), null, normalizedHost, parsed.getPort(),
+      return new URI(parsed.getScheme(), null, parsed.getHost(), parsed.getPort(),
               path, parsed.getRawQuery(), parsed.getRawFragment());
     }
 
