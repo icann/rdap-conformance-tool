@@ -362,27 +362,26 @@ public class RDAPValidationResultFile {
 
     // New culling function
     public List<RDAPValidationResult> cullDuplicateIPAddressErrors(List<RDAPValidationResult> results) {
-        int ipv4Count = ZERO;
-        int ipv6Count = ZERO;
-        Set<RDAPValidationResult> toRemove = new HashSet<>();
+        boolean seenV4 = false;
+        boolean seenV6 = false;
+        Iterator<RDAPValidationResult> iterator = results.iterator();
 
-        // First pass - count occurrences
-        for (RDAPValidationResult result : results) {
+        while (iterator.hasNext()) {
+            RDAPValidationResult result = iterator.next();
             if (result.getCode() == -20400) {
-                ipv4Count++;
-                if (ipv4Count > ONE) {
-                    toRemove.add(result);
+                if (seenV4) {
+                    iterator.remove(); // remove only the duplicate, not all equal entries
+                } else {
+                    seenV4 = true;
                 }
             } else if (result.getCode() == -20401) {
-                ipv6Count++;
-                if (ipv6Count > ONE) {
-                    toRemove.add(result);
+                if (seenV6) {
+                    iterator.remove();
+                } else {
+                    seenV6 = true;
                 }
             }
         }
-
-        // Remove duplicates
-        results.removeAll(toRemove);
         return results;
     }
 

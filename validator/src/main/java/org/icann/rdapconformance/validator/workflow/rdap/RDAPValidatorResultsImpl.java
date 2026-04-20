@@ -3,11 +3,8 @@ package org.icann.rdapconformance.validator.workflow.rdap;
 import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.HashSet;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,27 +187,25 @@ public class RDAPValidatorResultsImpl implements RDAPValidatorResults {
 
   // New culling function
   public void cullDuplicateIPAddressErrors() {
-    int ipv4Count = ZERO;
-    int ipv6Count = ZERO;
-    Set<RDAPValidationResult> toRemove = new HashSet<>();
+    boolean seenV4 = false;
+    boolean seenV6 = false;
+    Iterator<RDAPValidationResult> iterator = results.iterator();
 
-    // First pass - count occurrences
-    for (RDAPValidationResult result : results) {
+    while (iterator.hasNext()) {
+      RDAPValidationResult result = iterator.next();
       if (result.getCode() == -20400) {
-        ipv4Count++;
-        if (ipv4Count > ONE) {
-          toRemove.add(result);
+        if (seenV4) {
+          iterator.remove();
+        } else {
+          seenV4 = true;
         }
       } else if (result.getCode() == -20401) {
-        ipv6Count++;
-        if (ipv6Count > ONE) {
-          toRemove.add(result);
+        if (seenV6) {
+          iterator.remove();
+        } else {
+          seenV6 = true;
         }
       }
     }
-
-    // Remove duplicates
-    results.removeAll(toRemove);
   }
-
 }

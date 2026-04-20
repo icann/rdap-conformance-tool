@@ -1,12 +1,10 @@
 package org.icann.rdapconformance.validator;
 
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.Collections;
 
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 import org.testng.annotations.BeforeMethod;
