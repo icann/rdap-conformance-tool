@@ -210,7 +210,7 @@ public class RDAPHttpQuery implements RDAPQuery {
 
             if (httpStatusCode != HTTP_OK) {
                 if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
-                    queryContext.addError(-12107, rdapResponse, "The errorCode value is required in an error response.");
+                    queryContext.addError(-12107, rdapResponse, "The rdapConformance must be present and must be an array of strings.");
                 } else if (!validateErrorCodeMatchesHttpStatus(httpStatusCode, rdapResponse)) {
                     queryContext.addError(-12108, rdapResponse, "The errorCode value does not match the HTTP status code.");
                 }
@@ -728,7 +728,9 @@ public class RDAPHttpQuery implements RDAPQuery {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, Object> responseMap = mapper.readValue(rdapResponse, new TypeReference<Map<String, Object>>() {
             });
-            return responseMap.containsKey(ERROR_CODE) && responseMap.containsKey(RDAP_CONFORMANCE);
+            return responseMap.containsKey(RDAP_CONFORMANCE)
+                    && responseMap.get(RDAP_CONFORMANCE) instanceof List<?> list
+                    && list.stream().allMatch(item -> item instanceof String);
         } catch (Exception e) {
             logger.debug("Error parsing JSON response for error code check", e);
             return false;

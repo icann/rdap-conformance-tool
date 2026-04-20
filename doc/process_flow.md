@@ -408,7 +408,7 @@ The 2024 profile includes stricter requirements:
 
 | Error Code | Description |
 |------------|-------------|
-| -12107 | `errorCode` required in error responses |
+| -12107 | `rdapConformance` required in error responses |
 | -12108 | `errorCode` must match HTTP status code |
 
 Additional 2024 requirements:

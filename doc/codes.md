@@ -196,13 +196,13 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 
 #### Error Response Validation (-121XX)
 - `-12100`: Error response validation [RFC 9083 Section 6]
-- `-12101`: Error response structure validation [RFC 9083 Section 6] {rdap_error.json} [Duplicated with -12107 but with a different message and validation focus]
+- `-12101`: Error response structure validation (errorCode missing) [RFC 9083 Section 6] {rdap_error.json}
 - `-12102`: Error response format validation [RFC 9083 Section 6]
 - `-12103`: Error code validation (not a number) [RFC 9083 Section 6] {rdap_error.json}
 - `-12104`: Title validation (not a string) [RFC 9083 Section 6] {rdap_error.json}
 - `-12105`: Error response description validation [RFC 9083 Section 6]
 - `-12106`: Description format validation [RFC 9083 Section 6] {rdap_error.json}
-- `-12107`: Missing errorCode in error response - "The errorCode value is required in an error response." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
+- `-12107`: Missing rdapConformance in error response - "The rdapConformance must be present and must be an array of strings." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
 - `-12108`: ErrorCode value mismatch - "The errorCode value does not match the HTTP status code." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
 
 #### Domain Validation (-122XX)
@@ -613,7 +613,7 @@ The RDAP Conformance Tool uses a systematic numbering scheme for its 361 documen
 #### 2019 Profile vs 2024 Profile
 - **2024 Profile introduces 118+ new error codes** primarily in the -63XXX, -64XXX, and -65XXX ranges for vCard and redaction validation
 - **Enhanced SSL/TLS validation** with specific cipher suite requirements (-61100, -61101)
-- **Stricter error response requirements** (-12107 for mandatory errorCode, -12108 for errorCode matching HTTP status)
+- **Stricter error response requirements** (-12107 for mandatory rdapConformance, -12108 for errorCode matching HTTP status)
 - **New help query validation** (-20701)
 - **Enhanced redirect validation** (-13005, -13006)
 - **Comprehensive vCard validation** covering administrative, technical, and billing contacts
