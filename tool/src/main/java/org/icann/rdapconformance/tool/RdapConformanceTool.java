@@ -20,6 +20,7 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
 import org.slf4j.LoggerFactory;
 import org.icann.rdapconformance.tool.progress.ProgressTracker;
 import org.icann.rdapconformance.tool.progress.ProgressPhase;
+import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -42,6 +43,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetServiceImpl;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import static java.net.IDN.toASCII;
+import static java.net.URLDecoder.decode;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.icann.rdapconformance.validator.CommonUtils.*;
 
 
@@ -1261,5 +1265,118 @@ public void setShowProgress(boolean showProgress) {
    */
   QueryContext getQueryContext() {
     return this.queryContext;
+  }
+
+  /**
+   * Picocli type converter that handles IDN/Unicode URIs by normalizing them
+   * before creating a java.net.URI.
+   * Supports both raw Unicode (nic.дети)
+   * and percent-encoded forms.
+  */
+  static class IdnAwareUriConverter implements CommandLine.ITypeConverter<URI> {
+    @Override
+    public URI convert(String value) throws Exception {
+      // Always normalize IDN domains in the path, even if URI.create succeeds
+      // (e.g., percent-encoded Unicode like nic.%D0%B4%D0%B5%D1%82%D0%B8)
+      return normalizeIdnUri(value);
+    }
+
+    private URI normalizeIdnUri(String input) throws java.net.URISyntaxException {
+      // Pre-encode non-ASCII characters so java.net.URI can parse the structure
+      // BUT convert the host part to punycode first (URI doesn't accept percent-encoded hosts)
+
+      int schemeEnd = input.indexOf("://");
+      if (schemeEnd < 0) {
+        throw new java.net.URISyntaxException(input, "Missing scheme");
+      }
+
+      String scheme = input.substring(0, schemeEnd);
+      String rest = input.substring(schemeEnd + 3);
+
+      // Find where host ends (first / or end of string)
+      int hostEnd = rest.indexOf('/');
+      String hostPort = hostEnd >= 0 ? rest.substring(0, hostEnd) : rest;
+      String afterHost = hostEnd >= 0 ? rest.substring(hostEnd) : "";
+
+      // Convert host to punycode (handles Unicode hosts like whois.nic.дети)
+      // Skip IPv6 literals
+      String normalizedHostPort;
+      if (hostPort.startsWith("[")) {
+        normalizedHostPort = hostPort; // IPv6 — leave as-is
+      } else {
+        // Separate host from port
+        int lastColon = hostPort.lastIndexOf(':');
+        String portSuffix = "";
+        String hostOnly = hostPort;
+        if (lastColon >= 0) {
+          String maybPort = hostPort.substring(lastColon + 1);
+          try {
+            Integer.parseInt(maybPort);
+            portSuffix = hostPort.substring(lastColon);
+            hostOnly = hostPort.substring(0, lastColon);
+          } catch (NumberFormatException e) {
+            // Not a port
+          }
+        }
+        normalizedHostPort = toASCII(hostOnly) + portSuffix;
+      }
+
+      // Now percent-encode non-ASCII in the remaining part (path/query/fragment)
+      StringBuilder encoded = new StringBuilder();
+      encoded.append(scheme).append("://").append(normalizedHostPort);
+      for (char c : afterHost.toCharArray()) {
+        if (c > 0x7F) {
+          for (byte b : String.valueOf(c).getBytes(UTF_8)) {
+            encoded.append(String.format("%%%02X", b & 0xFF));
+          }
+        } else {
+          encoded.append(c);
+        }
+      }
+
+      // Parse the now-valid URI
+      URI parsed = new URI(encoded.toString());
+
+      // Convert IDN domain names in the RDAP path to A-label (punycode)
+      String path = parsed.getRawPath();
+      if (path != null) {
+        path = convertIdnInPath(path);
+      }
+
+      return new URI(parsed.getScheme(), null, parsed.getHost(), parsed.getPort(),
+              path, parsed.getRawQuery(), parsed.getRawFragment());
+    }
+
+    /**
+     * Converts IDN domain names found in RDAP path segments to their A-label form.
+     * Handles paths like /rdap/domain/{domainName} and /rdap/nameserver/{nsName}
+     * where the domain/nameserver name may contain Unicode characters.
+     * Also handles percent-encoded Unicode by decoding first, then converting.
+     */
+    static String convertIdnInPath(String path) {
+      // Decode any percent-encoded characters first
+      String decodedPath;
+      try {
+        decodedPath = decode(path, UTF_8);
+      } catch (Exception e) {
+        decodedPath = path;
+      }
+
+      // Match RDAP path patterns: /domain/{name} or /nameserver/{name}
+      // The domain name is the last segment after /domain/ or /nameserver/
+      String[] rdapPrefixes = {"/domain/", "/nameserver/"};
+      for (String prefix : rdapPrefixes) {
+        int idx = decodedPath.toLowerCase().lastIndexOf(prefix);
+        if (idx >= 0) {
+          String before = decodedPath.substring(0, idx + prefix.length());
+          String domainName = decodedPath.substring(idx + prefix.length());
+          // Convert each label to A-label
+          domainName = toASCII(domainName);
+          return before + domainName;
+        }
+      }
+
+      return decodedPath;
+    }
   }
 }

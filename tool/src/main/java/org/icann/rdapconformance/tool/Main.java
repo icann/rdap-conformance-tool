@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
+import java.net.URI;
+
 
 public class Main {
   private static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -12,6 +14,7 @@ public class Main {
   public static void main(String[] args) {
     RdapConformanceTool tool = new RdapConformanceTool();
     CommandLine commandLine = new CommandLine(tool);
+    commandLine.registerConverter(URI.class, new RdapConformanceTool.IdnAwareUriConverter());
     
     String errorMessage = UserInputValidator.parseOptions(args, tool, commandLine);
     

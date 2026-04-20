@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.tool;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.*;
 
 import java.io.IOException;
@@ -581,6 +582,15 @@ public class RdapWebValidatorTest {
             RDAPValidatorResults results = validator.validate();
             assertNotNull(results, "Validation should return results object");
         }
+    }
+
+    @Test
+    public void testValidateAndCreateURI_WithIdnDomain() {
+        // This tests that the web validator correctly handles IDN URIs
+        URI result = RdapWebValidator.validateAndCreateURI(
+                "https://whois.nic.xn--d1acj3b/rdap/domain/nic.дети");
+        assertThat(result.toString())
+                .isEqualTo("https://whois.nic.xn--d1acj3b/rdap/domain/nic.xn--d1acj3b");
     }
 
     /**
