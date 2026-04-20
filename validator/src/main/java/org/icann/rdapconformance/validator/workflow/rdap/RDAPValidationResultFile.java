@@ -268,20 +268,8 @@ public class RDAPValidationResultFile {
         filteredResults = cullDuplicateIPAddressErrors(filteredResults);
         filteredResults = addErrorIfAllQueriesDoNotReturnSameStatusCode(filteredResults);
 
-        // En createResultsMap, justo después de filteredResults = addErrorIfAllQueriesDoNotReturnSameStatusCode(filteredResults);
-        logger.info("DEBUG: filteredResults count={}, has-20401={}",
-                filteredResults.size(),
-                filteredResults.stream().anyMatch(r -> r.getCode() == -20401));
-
         //  Finally build the resultMap
         for (RDAPValidationResult result : filteredResults) {
-
-            // Y luego en el loop de construcción de resultMap:
-            if (result.getCode() == -20401) {
-                logger.info("DEBUG: -20401 isError={}, isWarning={}",
-                        configurationFile.isError(result.getCode()),
-                        configurationFile.isWarning(result.getCode()));
-            }
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("code", result.getCode());
             resultMap.put("value", result.getValue());
