@@ -85,6 +85,9 @@ public class RDAPValidator implements ValidatorWorkflow {
 
     @Override
     public int validate() {
+        // Reset stale HTTP context from previous rounds
+        queryContext.setCurrentHttpResponse(null);
+
         SchemaValidator validator = null;
         Map<RDAPQueryType, String> schemaMap = getDomainMap();
 
