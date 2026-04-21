@@ -136,6 +136,11 @@ public class RDAPHttpQuery implements RDAPQuery {
         // continue on
         this.makeRequest(this.config.getUri());
         this.validate();
+
+        if (this.httpResponse == null) {
+            this.isQuerySuccessful = false;
+        }
+
         return this.isQuerySuccessful();
     }
 
