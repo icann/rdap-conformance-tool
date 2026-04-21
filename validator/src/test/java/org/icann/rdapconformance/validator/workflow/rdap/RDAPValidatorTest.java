@@ -162,5 +162,51 @@ public void testValidate_DomainQueryForTestInvalidWithHttpOK_LogsInfo() throws I
     // The validator will use its QueryContext's processor instead of a singleton
 
     assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
-}
+    }
+
+    @Test
+    public void testValidate_TwoRoundsOnSameContext_SecondRoundDoesNotInheritFirstRoundHttpStatus() {
+        // Simulate the regression: first round succeeds with 200, second round fails
+        // (e.g., server rate-limits with 429). Without the fix, the second round's
+        // RDAPValidationResult.build(queryContext) would inherit the 200 status from round 1.
+
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        RDAPQuery query = mock(RDAPQuery.class);
+        RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
+
+        doReturn(URI.create("https://example.com/rdap/domain/test.example")).when(config).getUri();
+        doReturn(true).when(config).check();
+        doReturn(false).when(config).useRdapProfileFeb2019();
+        doReturn(false).when(config).useRdapProfileFeb2024();
+        doReturn(false).when(config).isAdditionalConformanceQueries();
+        doReturn(false).when(config).isNetworkEnabled();
+        doReturn(true).when(datasetService).download(anyBoolean());
+
+        // Round 1: query succeeds, raw response has HTTP 200
+        RDAPHttpRequest.SimpleHttpResponse round1Response = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(round1Response.statusCode()).thenReturn(HTTP_OK);
+        when(round1Response.body()).thenReturn("{\"objectClassName\":\"domain\"}");
+        when(round1Response.uri()).thenReturn(URI.create("https://example.com/rdap/domain/test.example"));
+
+        // Round 2: query fails (run() returns false), simulating a 429 or network error
+        // At this point getRawResponse() returns null — no new response was set
+        doReturn(false).when(query).run();
+        doReturn(null).when(query).getErrorStatus();   // null → ToolResult.SUCCESS path
+        doReturn(null).when(query).getRawResponse();
+
+        QueryContext queryContext = QueryContext.create(config, datasetService, query);
+        RDAPValidator validator = new RDAPValidator(queryContext);
+
+        // Round 1: manually prime currentHttpResponse as if round 1 had succeeded
+        queryContext.setCurrentHttpResponse(round1Response);
+
+        // Round 2: call validate() again on the same QueryContext
+        validator.validate();
+
+        // After the fix, currentHttpResponse must be null at the start of round 2,
+        // so no stale HTTP 200 leaks into error results produced in this round.
+        assertThat(queryContext.getCurrentHttpResponse())
+                .as("currentHttpResponse should be null after a failed round; stale response from round 1 must not persist")
+                .isNull();
+    }
 }

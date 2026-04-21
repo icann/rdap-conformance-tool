@@ -131,9 +131,16 @@ public class RDAPHttpQuery implements RDAPQuery {
         // without this we error out forever after a single failure
         this.isQuerySuccessful = true; // reset to the default state
         this.status = null; // same
+        this.httpResponse = null;
+        this.redirects = new ArrayList<>();
         // continue on
         this.makeRequest(this.config.getUri());
         this.validate();
+
+        if (this.httpResponse == null) {
+            this.isQuerySuccessful = false;
+        }
+
         return this.isQuerySuccessful();
     }
 
