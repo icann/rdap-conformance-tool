@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.validator;
 
+import java.net.InetAddress;
 import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.HashSet;
@@ -576,7 +577,21 @@ public class QueryContext {
     }
 
     public void addSsrfAllowedHost(String host) {
-        this.ssrfAllowedHosts.add(host.toLowerCase());
+        if (host == null || host.isBlank()) return;
+        String trimmed = host.trim();
+
+        // Try to parse as an IP address and store its canonical form.
+        // This normalizes IPv6 representations so that user-provided values like
+        // "::1", "0:0:0:0:0:0:0:1", "2620:0:2830:270:0:0:0:173", or
+        // "2620:0:2830:270::173" all resolve to the same canonical string
+        // that InetAddress.getHostAddress() will produce at comparison time.
+        try {
+            InetAddress addr = InetAddress.getByName(trimmed);
+            this.ssrfAllowedHosts.add(addr.getHostAddress());
+        } catch (java.net.UnknownHostException e) {
+            // Not a valid IP literal — treat it as a hostname, store lowercase
+            this.ssrfAllowedHosts.add(trimmed.toLowerCase());
+        }
     }
 
     public Set<String> getSsrfAllowedHosts() {

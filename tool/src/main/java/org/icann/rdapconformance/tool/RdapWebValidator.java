@@ -210,7 +210,6 @@ public class RdapWebValidator implements AutoCloseable {
 
         // Create QueryContext - this is the central "world object" for validation
         this.queryContext = QueryContext.create(config, datasetService, query);
-        config.getSsrfAllowedHosts().forEach(queryContext::addSsrfAllowedHost);
 
         // Create the RDAP validator using our QueryContext
         this.rdapValidator = new RDAPValidator(queryContext);

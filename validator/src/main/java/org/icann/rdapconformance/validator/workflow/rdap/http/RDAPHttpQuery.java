@@ -424,38 +424,56 @@ public class RDAPHttpQuery implements RDAPQuery {
         String host = uri.getHost();
         if (host == null) return true;
 
-        // Block localhost hostnames
+        // Normalize host: if it's an IP literal (v4 or v6), resolve to canonical form
+        // so that allowlist comparison matches the same canonical form stored at insertion time.
+        // e.g., uri.getHost() on "[2620:0:2830:270::173]" yields "2620:0:2830:270::173"
+        // which must be normalized to "2620:0:2830:270:0:0:0:173" to match the stored entry.
+        String normalizedHost;
+        try {
+            InetAddress parsed = InetAddress.getByName(host);
+            normalizedHost = parsed.getHostAddress(); // canonical form
+        } catch (UnknownHostException e) {
+            normalizedHost = host.toLowerCase(); // treat as hostname, lowercase
+        }
+
+        // Block well-known localhost literals before DNS resolution
         if ("localhost".equalsIgnoreCase(host) ||
-                "127.0.0.1".equals(host) ||
-                "::1".equals(host) ||
-                "0.0.0.0".equals(host)) {
+                "127.0.0.1".equals(normalizedHost) ||
+                "0:0:0:0:0:0:0:1".equals(normalizedHost) || // ::1 normalized
+                "0.0.0.0".equals(normalizedHost)) {
             return true;
         }
 
-        // Resolve and check the IP address
+        InetAddress[] addresses;
         try {
-            InetAddress[] addresses = InetAddress.getAllByName(host);
-            for (InetAddress addr : addresses) {
-                String ip = addr.getHostAddress();
-
-                // Allowlist check - if any IP Host is in the allowlist, allows
-                if (queryContext.getSsrfAllowedHosts().contains(ip) ||
-                        queryContext.getSsrfAllowedHosts().contains(host.toLowerCase())) {
-                    return false; // explicitly allowed
-                }
-
-                if (addr.isLoopbackAddress() ||
-                        addr.isSiteLocalAddress() ||
-                        addr.isLinkLocalAddress() ||
-                        addr.isAnyLocalAddress() ||
-                        isIPv6UniqueLocalAddress(addr) ||
-                        "169.254.169.254".equals(ip)) {
-                    return true;
-                }
-            }
+            addresses = InetAddress.getAllByName(host);
         } catch (UnknownHostException e) {
             return true;
         }
+
+        // PASS 1: allowlist check — use normalizedHost so IPv6 literals match canonical stored form
+        if (queryContext.getSsrfAllowedHosts().contains(normalizedHost)) {
+            return false;
+        }
+        for (InetAddress addr : addresses) {
+            if (queryContext.getSsrfAllowedHosts().contains(addr.getHostAddress())) {
+                return false;
+            }
+        }
+
+        // PASS 2: block if any address is private/reserved
+        for (InetAddress addr : addresses) {
+            String ip = addr.getHostAddress();
+            if (addr.isLoopbackAddress() ||
+                    addr.isSiteLocalAddress() ||
+                    addr.isLinkLocalAddress() ||
+                    addr.isAnyLocalAddress() ||
+                    isIPv6UniqueLocalAddress(addr) ||
+                    "169.254.169.254".equals(ip)) {
+                return true;
+            }
+        }
+
         return false;
     }
 

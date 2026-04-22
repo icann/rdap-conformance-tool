@@ -164,7 +164,8 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   @Option(names = {"--ssrf-allowed-hosts"},
           description = "Hosts/IPs to allow through SSRF protection (for QA/testing environments). " +
                   "Can be specified multiple times.",
-          paramLabel = "HOST")
+          paramLabel = "HOST",
+          hidden = true)
   private List<String> ssrfAllowedHosts = new java.util.ArrayList<>();
 
   // Progress tracking
