@@ -1,4 +1,10 @@
 {
+  "links": [
+    {
+      "rel": "test",
+      "href": "https://example.com/domain/test.example"
+    }
+  ],
   "entities": [
     {
       "roles": [

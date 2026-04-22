@@ -19,6 +19,7 @@ public class RegistrarIdTest extends BaseUnmarshallingTest<RegistrarId> {
                 292,
                 "Test",
                 "https://example.com/",
+                "Accredited",
                 ""
                         + "    <record date=\"2020-11-25\" updated=\"2021-01-28\">\n"
                         + "      <value>292</value>\n"

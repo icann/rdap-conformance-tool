@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.registr
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
@@ -99,5 +100,22 @@ public class TigValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
     assertThat(getProfileValidation().doLaunch()).isFalse();
     queryContext.setQueryType(RDAPQueryType.NAMESERVERS);
     assertThat(getProfileValidation().doLaunch()).isFalse();
+  }
+
+  @Test
+  public void relatedLinkMissing_reportsMinus26103() {
+    when(config.isGtldRegistry()).thenReturn(true);
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
+
+    RegistrarId.Record accreditedRecord = new RegistrarId.Record(
+            292, "Test", "https://example.com/", "Accredited", "<record>...</record>");
+    RegistrarId.Record accreditedRecord293 = new RegistrarId.Record(
+            293, "Test2", "https://example.com/", "Accredited", "<record>...</record>");
+
+    doReturn(accreditedRecord).when(datasets.get(RegistrarId.class)).getById(292);
+    doReturn(accreditedRecord293).when(datasets.get(RegistrarId.class)).getById(293);
+
+    validate(-26103, "",
+            "Referral to registrar is either unregistered with IANA or invalid.");
   }
 }

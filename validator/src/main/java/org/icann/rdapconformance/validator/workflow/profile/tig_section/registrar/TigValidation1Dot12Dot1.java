@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.registr
 import java.util.Set;
 
 import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -37,13 +38,13 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
   @Override
   protected boolean doValidate() {
     Set<String> publicIdsPaths = getPointerFromJPath(
-        "$.entities[?(@.roles contains 'registrar')]..publicIds.*");
-    boolean isValid = true;
+            "$.entities[?(@.roles contains 'registrar')]..publicIds.*");
     for (String jsonPointer : publicIdsPaths) {
-      isValid &= checkPublicId(jsonPointer, (JSONObject) jsonObject.query(jsonPointer));
+      if (!checkPublicId(jsonPointer, (JSONObject) jsonObject.query(jsonPointer))) {
+        return false;
+      }
     }
-    
-    return isValid;
+    return true;
   }
 
   private boolean checkPublicId(String jsonPointer, JSONObject publicId) {
@@ -82,8 +83,58 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
           results.add(builder.build(queryContext));
           return false;
         }
+
+        // -26103 check — only for gTLD registry domain queries
+        if (queryType.equals(RDAPQueryType.DOMAIN)
+                && queryContext.getConfig().isGtldRegistry()
+                && record.isAccredited()
+                && !record.getRdapUrl().isBlank()) {
+          return checkRegistrarReferralLink(record.getRdapUrl());
+        }
       }
     return true;
+  }
+
+  private boolean checkRegistrarReferralLink(String registrarBaseUrl) {
+    // Normalize base URL: ensure no trailing slash for prefix matching
+    String baseUrl = registrarBaseUrl.endsWith("/")
+            ? registrarBaseUrl.substring(0, registrarBaseUrl.length() - 1)
+            : registrarBaseUrl;
+    String expectedPrefix = baseUrl + "/domain/";
+
+    Set<String> relatedLinkPointers = getPointerFromJPath(
+            "$.links[?(@.rel == 'related')]");
+
+    for (String linkPointer : relatedLinkPointers) {
+      Object hrefObj = jsonObject.query(linkPointer + "/href");
+      if (hrefObj != null) {
+        String href = hrefObj.toString();
+        if (href.startsWith(expectedPrefix)) {
+          String afterDomain = href.substring(expectedPrefix.length());
+          // A valid domain name: non-empty, contains a dot, no spaces
+          if (!afterDomain.isBlank() && afterDomain.contains(".") && !afterDomain.contains(" ")) {
+            return true;
+          }
+        }
+      }
+    }
+
+    // No valid referral link found — report with the first related link href, or empty
+    String foundHref = relatedLinkPointers.stream()
+            .map(p -> {
+              Object o = jsonObject.query(p + "/href");
+              return o != null ? o.toString() : "";
+            })
+            .findFirst()
+            .orElse("");
+
+    results.add(RDAPValidationResult.builder()
+            .code(-26103)
+            .value(foundHref)
+            .message("Referral to registrar is either unregistered with IANA or invalid.")
+            .build(queryContext));
+
+    return false;
   }
 
   @Override
