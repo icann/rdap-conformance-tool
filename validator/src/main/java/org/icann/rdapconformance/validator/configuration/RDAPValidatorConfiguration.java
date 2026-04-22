@@ -3,6 +3,9 @@ package org.icann.rdapconformance.validator.configuration;
 import com.ibm.icu.text.IDNA;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.List;
+
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +53,15 @@ public interface RDAPValidatorConfiguration {
    */
   default String getDatasetDirectory() {
     return null;
+  }
+
+
+  /**
+   *
+   * @return
+   */
+  default List<String> getSsrfAllowedHosts() {
+    return Collections.emptyList();
   }
 
   /**

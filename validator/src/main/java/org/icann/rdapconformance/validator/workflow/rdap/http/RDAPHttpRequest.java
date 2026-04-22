@@ -866,17 +866,36 @@ public class RDAPHttpRequest {
             localBindIp = InetAddress.getByName(LOCAL_IPv4);
         }
 
-        if (qctx.isSsrfProtectionEnabled() && (remoteAddress.isLoopbackAddress() ||
-                remoteAddress.isSiteLocalAddress() ||
-                remoteAddress.isLinkLocalAddress() ||
-                remoteAddress.isAnyLocalAddress() ||
-                RDAPHttpQuery.isIPv6UniqueLocalAddress(remoteAddress) ||
-                AWS_GATEWAY_IP.equals(remoteAddress.getHostAddress()))) {
-            logger.warn("Blocked connection to internal/private IP: {}", remoteAddress.getHostAddress());
-            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
-            SimpleHttpResponse resp = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
-            resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
-            return resp;
+        if (qctx.isSsrfProtectionEnabled()) {
+            String resolvedIp = remoteAddress.getHostAddress();
+            String resolvedHost = originalUri.getHost();
+
+            // Check allowlist first (for QA/testing environments)
+            boolean isAllowed = qctx.getSsrfAllowedHosts().contains(resolvedIp) ||
+                    qctx.getSsrfAllowedHosts().contains(resolvedHost.toLowerCase());
+
+            if (!isAllowed) {
+                // Check the specific remote address being used
+                boolean directlyBlocked = remoteAddress.isLoopbackAddress() ||
+                        remoteAddress.isSiteLocalAddress() ||
+                        remoteAddress.isLinkLocalAddress() ||
+                        remoteAddress.isAnyLocalAddress() ||
+                        RDAPHttpQuery.isIPv6UniqueLocalAddress(remoteAddress) ||
+                        AWS_GATEWAY_IP.equals(resolvedIp);
+
+                // Cross-family check: if ANY resolved IP for this hostname is private,
+                // block ALL connections to it regardless of which address family is used.
+                // This prevents IPv6 bypass when the same host also has a private IPv4.
+                boolean crossFamilyBlocked = isAnyResolvedAddressPrivate(qctx, resolvedHost);
+
+                if (directlyBlocked || crossFamilyBlocked) {
+                    logger.warn("Blocked connection to internal/private IP: {} (host: {})", resolvedIp, resolvedHost);
+                    tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
+                    SimpleHttpResponse resp = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+                    resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
+                    return resp;
+                }
+            }
         }
 
         URI ipUri = new URI(
@@ -976,6 +995,39 @@ public class RDAPHttpRequest {
         // If all retries are exhausted
         tracker.completeTrackingById(trackingId, HTTP_TOO_MANY_REQUESTS, ConnectionStatus.TOO_MANY_REQUESTS);
         return new SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[ZERO]);
+    }
+
+    /**
+     * Checks if ANY resolved address for the given hostname (across both IPv4 and IPv6)
+     * falls into a private/reserved range.
+     *
+     * This cross-family check prevents SSRF bypass scenarios where a hostname resolves
+     * to both a private IPv4 (e.g., 10.x.x.x) and a public IPv6 address. An attacker
+     * (or internal test server) could exploit the IPv6 path to reach an otherwise
+     * blocked internal service.
+     *
+     * @param qctx the QueryContext providing DNS resolver access
+     * @param host the hostname to check
+     * @return true if any resolved IP is private/reserved, false if all are public
+     */
+    private static boolean isAnyResolvedAddressPrivate(QueryContext qctx, String host) {
+        List<InetAddress> allAddresses = new ArrayList<>();
+        allAddresses.addAll(qctx.getDnsResolver().getAllV4Addresses(host));
+        allAddresses.addAll(qctx.getDnsResolver().getAllV6Addresses(host));
+
+        for (InetAddress addr : allAddresses) {
+            if (addr.isLoopbackAddress() ||
+                    addr.isSiteLocalAddress() ||
+                    addr.isLinkLocalAddress() ||
+                    addr.isAnyLocalAddress() ||
+                    RDAPHttpQuery.isIPv6UniqueLocalAddress(addr) ||
+                    AWS_GATEWAY_IP.equals(addr.getHostAddress())) {
+                logger.debug("Cross-family SSRF block triggered: {} has private address {}",
+                        host, addr.getHostAddress());
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

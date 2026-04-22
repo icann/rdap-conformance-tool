@@ -161,6 +161,12 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
           description = "Custom DNS resolver IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888)")
   private String customDnsResolver;
 
+  @Option(names = {"--ssrf-allowed-hosts"},
+          description = "Hosts/IPs to allow through SSRF protection (for QA/testing environments). " +
+                  "Can be specified multiple times.",
+          paramLabel = "HOST")
+  private List<String> ssrfAllowedHosts = new java.util.ArrayList<>();
+
   // Progress tracking
   private ProgressTracker progressTracker;
   private boolean showProgress = true; // Default to true for CLI usage
@@ -358,6 +364,11 @@ public void setShowProgress(boolean showProgress) {
 
   public String getCustomDnsResolver() {
       return this.customDnsResolver;
+  }
+
+  @Override
+  public List<String> getSsrfAllowedHosts() {
+    return ssrfAllowedHosts;
   }
 
   @Override

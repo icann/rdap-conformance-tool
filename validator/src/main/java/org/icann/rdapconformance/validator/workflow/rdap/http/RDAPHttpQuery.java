@@ -436,20 +436,25 @@ public class RDAPHttpQuery implements RDAPQuery {
         try {
             InetAddress[] addresses = InetAddress.getAllByName(host);
             for (InetAddress addr : addresses) {
-                if (addr.isLoopbackAddress() ||      // 127.0.0.0/8, ::1
-                        addr.isSiteLocalAddress() ||     // 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
-                        addr.isLinkLocalAddress() ||     // 169.254.0.0/16, fe80::/10
-                        addr.isAnyLocalAddress() ||
-                        isIPv6UniqueLocalAddress(addr)) {      // 0.0.0.0, ::
-                    return true;
+                String ip = addr.getHostAddress();
+
+                // Allowlist check - if any IP Host is in the allowlist, allows
+                if (queryContext.getSsrfAllowedHosts().contains(ip) ||
+                        queryContext.getSsrfAllowedHosts().contains(host.toLowerCase())) {
+                    return false; // explicitly allowed
                 }
-                // Block cloud metadata endpoint
-                if ("169.254.169.254".equals(addr.getHostAddress())) {
+
+                if (addr.isLoopbackAddress() ||
+                        addr.isSiteLocalAddress() ||
+                        addr.isLinkLocalAddress() ||
+                        addr.isAnyLocalAddress() ||
+                        isIPv6UniqueLocalAddress(addr) ||
+                        "169.254.169.254".equals(ip)) {
                     return true;
                 }
             }
         } catch (UnknownHostException e) {
-            return true; // Block if can't resolve
+            return true;
         }
         return false;
     }

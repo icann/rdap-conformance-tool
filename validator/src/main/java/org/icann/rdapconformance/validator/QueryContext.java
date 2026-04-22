@@ -1,6 +1,9 @@
 package org.icann.rdapconformance.validator;
 
 import java.net.http.HttpResponse;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -67,6 +70,9 @@ public class QueryContext {
     // Flag for enable testing
     private boolean ssrfProtectionEnabled = true;
 
+    // Set of allowed hosts for SSRF protection (can be configured for testing)
+    private Set<String> ssrfAllowedHosts = new HashSet<>();
+
     /**
      * Constructs a new QueryContext with the specified configuration and services.
      *
@@ -127,6 +133,8 @@ public class QueryContext {
         if (query instanceof org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery) {
             ((org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery) query).setQueryContext(this);
         }
+
+        config.getSsrfAllowedHosts().forEach(this::addSsrfAllowedHost);
     }
 
     /**
@@ -565,6 +573,14 @@ public class QueryContext {
 
     public boolean isSsrfProtectionEnabled() {
         return ssrfProtectionEnabled;
+    }
+
+    public void addSsrfAllowedHost(String host) {
+        this.ssrfAllowedHosts.add(host.toLowerCase());
+    }
+
+    public Set<String> getSsrfAllowedHosts() {
+        return Collections.unmodifiableSet(ssrfAllowedHosts);
     }
 
     @Override
