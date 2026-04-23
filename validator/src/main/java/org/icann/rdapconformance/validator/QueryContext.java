@@ -1,6 +1,10 @@
 package org.icann.rdapconformance.validator;
 
+import java.net.InetAddress;
 import java.net.http.HttpResponse;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -67,6 +71,9 @@ public class QueryContext {
     // Flag for enable testing
     private boolean ssrfProtectionEnabled = true;
 
+    // Set of allowed hosts for SSRF protection (can be configured for testing)
+    private Set<String> ssrfAllowedHosts = new HashSet<>();
+
     /**
      * Constructs a new QueryContext with the specified configuration and services.
      *
@@ -127,6 +134,8 @@ public class QueryContext {
         if (query instanceof org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery) {
             ((org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery) query).setQueryContext(this);
         }
+
+        config.getSsrfAllowedHosts().forEach(this::addSsrfAllowedHost);
     }
 
     /**
@@ -565,6 +574,28 @@ public class QueryContext {
 
     public boolean isSsrfProtectionEnabled() {
         return ssrfProtectionEnabled;
+    }
+
+    public void addSsrfAllowedHost(String host) {
+        if (host == null || host.isBlank()) return;
+        String trimmed = host.trim();
+
+        // Try to parse as an IP address and store its canonical form.
+        // This normalizes IPv6 representations so that user-provided values like
+        // "::1", "0:0:0:0:0:0:0:1", "2620:0:2830:270:0:0:0:173", or
+        // "2620:0:2830:270::173" all resolve to the same canonical string
+        // that InetAddress.getHostAddress() will produce at comparison time.
+        try {
+            InetAddress addr = InetAddress.getByName(trimmed);
+            this.ssrfAllowedHosts.add(addr.getHostAddress());
+        } catch (java.net.UnknownHostException e) {
+            // Not a valid IP literal — treat it as a hostname, store lowercase
+            this.ssrfAllowedHosts.add(trimmed.toLowerCase());
+        }
+    }
+
+    public Set<String> getSsrfAllowedHosts() {
+        return Collections.unmodifiableSet(ssrfAllowedHosts);
     }
 
     @Override
