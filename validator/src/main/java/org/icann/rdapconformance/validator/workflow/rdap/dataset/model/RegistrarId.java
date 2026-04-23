@@ -42,8 +42,11 @@ public class RegistrarId implements RDAPDatasetModel {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class Record {
 
+        public static final String ACCREDITED = "Accredited";
         @XmlElement(name = "value", namespace = "http://www.iana.org/assignments")
         private int value;
+        @XmlElement(name = "status", namespace = "http://www.iana.org/assignments")
+        private String status;
         @XmlElement(name = "name", namespace = "http://www.iana.org/assignments")
         private String name;
         private String xmlRepresentation;
@@ -56,6 +59,14 @@ public class RegistrarId implements RDAPDatasetModel {
             this.value = value;
             this.name = name;
             this.rdapUrl = rdapUrl;
+            this.xmlRepresentation = xmlRepresentation;
+        }
+
+        public Record(int value, String name, String rdapUrl, String status, String xmlRepresentation) {
+            this.value = value;
+            this.name = name;
+            this.rdapUrl = rdapUrl;
+            this.status = status;
             this.xmlRepresentation = xmlRepresentation;
         }
 
@@ -87,6 +98,10 @@ public class RegistrarId implements RDAPDatasetModel {
                     .equals(rdapUrl, record.rdapUrl);
         }
 
+        public boolean isAccredited() {
+            return ACCREDITED.equalsIgnoreCase(status);
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(value, name, rdapUrl);
@@ -96,6 +111,7 @@ public class RegistrarId implements RDAPDatasetModel {
         public String toString() {
             return xmlRepresentation;
         }
+
 
         private void loadRdapUrl() {
             if (rdapUrlObj != null) {
