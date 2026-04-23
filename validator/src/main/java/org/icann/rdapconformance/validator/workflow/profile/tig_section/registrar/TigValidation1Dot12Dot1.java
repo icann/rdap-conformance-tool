@@ -3,12 +3,11 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.registr
 import java.util.Set;
 
 import org.icann.rdapconformance.validator.QueryContext;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.customvalidator.IdnHostNameFormatValidator;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
 import org.json.JSONObject;
 
@@ -22,6 +21,7 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
       RDAPQueryType.NAMESERVER,
       RDAPQueryType.ENTITY
   );
+  private static final IdnHostNameFormatValidator DOMAIN_VALIDATOR = new IdnHostNameFormatValidator();
 
   public TigValidation1Dot12Dot1(QueryContext queryContext) {
     super(queryContext.getRdapResponseData(), queryContext.getResults());
@@ -95,31 +95,43 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
     return true;
   }
 
+  /**
+   * Validates that the RDAP response contains a valid registrar referral link for gTLD registry
+   * domain queries. Specifically, checks that at least one link with {@code rel} containing
+   * {@code "related"} has an {@code href} that starts with the registrar's RDAP base URL
+   * (as registered in the IANA registrar-ids dataset) followed by a valid domain name.
+   * <p>If no valid referral link is found, a validation result with code {@code -26103} is added.
+   * @param registrarBaseUrl the registrar's RDAP base URL from the IANA dataset
+   *       (e.g. {@code https://www.example-registrar.com/rdap/domain/}).
+   *       This value is used directly as the expected href prefix.
+   * @return {@code true} if a valid referral link is found; {@code false} otherwise
+   * */
   private boolean checkRegistrarReferralLink(String registrarBaseUrl) {
-    // Normalize base URL: ensure no trailing slash for prefix matching
-    String baseUrl = registrarBaseUrl.endsWith("/")
-            ? registrarBaseUrl.substring(0, registrarBaseUrl.length() - 1)
-            : registrarBaseUrl;
-    String expectedPrefix = baseUrl + "/domain/";
+    String expectedPrefix = registrarBaseUrl.endsWith("/")
+            ? registrarBaseUrl
+            : registrarBaseUrl + "/";
 
     Set<String> relatedLinkPointers = getPointerFromJPath(
-            "$.links[?(@.rel == 'related')]");
+            "$.links[?(@.rel contains 'related')]");
 
     for (String linkPointer : relatedLinkPointers) {
       Object hrefObj = jsonObject.query(linkPointer + "/href");
       if (hrefObj != null) {
         String href = hrefObj.toString();
         if (href.startsWith(expectedPrefix)) {
-          String afterDomain = href.substring(expectedPrefix.length());
-          // A valid domain name: non-empty, contains a dot, no spaces
-          if (!afterDomain.isBlank() && afterDomain.contains(".") && !afterDomain.contains(" ")) {
+          String afterPrefix = href.substring(expectedPrefix.length());
+          // Strip trailing slash if present before validating
+          String domainPart = afterPrefix.endsWith("/")
+                  ? afterPrefix.substring(0, afterPrefix.length() - 1)
+                  : afterPrefix;
+          if (!domainPart.isBlank() && DOMAIN_VALIDATOR.validate(domainPart).isEmpty()) {
             return true;
           }
         }
       }
     }
 
-    // No valid referral link found — report with the first related link href, or empty
+    // No valid referral link found
     String foundHref = relatedLinkPointers.stream()
             .map(p -> {
               Object o = jsonObject.query(p + "/href");

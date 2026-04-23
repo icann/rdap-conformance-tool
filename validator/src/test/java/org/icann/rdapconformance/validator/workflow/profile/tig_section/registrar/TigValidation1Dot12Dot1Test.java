@@ -118,4 +118,34 @@ public class TigValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
     validate(-26103, "",
             "Referral to registrar is either unregistered with IANA or invalid.");
   }
+
+  /**
+   * 8.3.1.4 — passing path for -26103:
+   * When the response has a "related" link whose href starts with the registrar's
+   * IANA rdapUrl prefix and ends with a valid domain name, validation must pass.
+   * This also guards against the double-/domain/ prefix regression.
+   */
+  @Test
+  public void relatedLinkPresent_withValidDomain_passes() {
+    when(config.isGtldRegistry()).thenReturn(true);
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
+
+    // Dataset URL already ends with /domain/ — the href must NOT add another /domain/
+    RegistrarId.Record accreditedRecord = new RegistrarId.Record(
+            292, "Test", "https://rdap.example-registrar.com/rdap/domain/",
+            "Accredited", "<record>...</record>");
+    RegistrarId.Record accreditedRecord293 = new RegistrarId.Record(
+            293, "Test2", "https://rdap.example-registrar.com/rdap/domain/",
+            "Accredited", "<record>...</record>");
+
+    doReturn(accreditedRecord).when(datasets.get(RegistrarId.class)).getById(292);
+    doReturn(accreditedRecord293).when(datasets.get(RegistrarId.class)).getById(293);
+
+    // Add a top-level "related" link whose href = rdapUrl + valid domain name
+    putValue("$['links'][0]", "rel", "related");
+    putValue("$['links'][0]", "href",
+            "https://rdap.example-registrar.com/rdap/domain/example.com");
+
+    validate(); // expects no errors
+  }
 }
