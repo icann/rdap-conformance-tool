@@ -11,11 +11,7 @@ import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.icann.rdapconformance.validator.workflow.rdap.*;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeProcessor;
 
@@ -139,6 +135,63 @@ public class RdapConformanceToolTest {
       assertThat(result).isEqualTo(ToolResult.USES_THIN_MODEL.getCode());
     }
   }
+
+    @Test
+    public void testValidateWithoutNetworkWritesResultsToFile() throws Exception {
+        // Setup a temp file as the results output
+        Path tempResultsFile = Files.createTempFile("test-results", ".json");
+        tempResultsFile.toFile().deleteOnExit();
+
+        tool.uri = URI.create("file:///tmp/example.json");
+        tool.queryType = RDAPQueryType.DOMAIN;
+
+        // Create a real validation result to simulate an error
+        RDAPValidationResult expectedError = RDAPValidationResult.builder()
+                .code(-64100)
+                .message("a redaction of Registrant Email may not have both the email and contact-uri")
+                .value("test-value")
+                .httpStatusCode(200)
+                .queriedURI("file:///tmp/example.json")
+                .build();
+
+        // Mock QueryContext with results
+        QueryContext mockQueryContext = mock(QueryContext.class);
+        RDAPValidatorResults mockResults = mock(RDAPValidatorResults.class);
+        when(mockQueryContext.getResults()).thenReturn(mockResults);
+
+        // Mock validator that returns the mocked QueryContext
+        RDAPValidator mockValidator = mock(RDAPValidator.class);
+        when(mockValidator.validate()).thenReturn(0);
+        when(mockValidator.getQueryContext()).thenReturn(mockQueryContext);
+        when(mockValidator.getResultsPath()).thenReturn(tempResultsFile.toString());
+
+        // Mock result file: build() writes to the temp file and returns true
+        RDAPValidationResultFile mockResultFile = mock(RDAPValidationResultFile.class);
+        when(mockResultFile.build()).thenAnswer(invocation -> {
+            // Simulate writing a JSON with the expected error code
+            String json = String.format(
+                    "{\"results\":{\"error\":[{\"code\":%d,\"message\":\"%s\"}],\"warning\":[],\"ignore\":[],\"notes\":[]}}",
+                    expectedError.getCode(), expectedError.getMessage()
+            );
+            Files.writeString(tempResultsFile, json);
+            return true;
+        });
+        when(mockResultFile.getResultsPath()).thenReturn(tempResultsFile.toString());
+
+        tool.setQueryContext(mockQueryContext);
+
+        int result = tool.validateWithoutNetwork(mockResultFile, mockValidator);
+
+        // Validate exit code
+        assertThat(result).isEqualTo(0);
+
+        // Validate the results file was written and contains the expected error code
+        String fileContent = Files.readString(tempResultsFile);
+        assertThat(fileContent).contains("-64100");
+        assertThat(fileContent).contains("a redaction of Registrant Email may not have both the email and contact-uri");
+
+        Files.deleteIfExists(tempResultsFile);
+    }
 
 @Test
 public void testBuildResultFileFailure() throws Exception {
