@@ -765,10 +765,13 @@ public void setShowProgress(boolean showProgress) {
     }
 
     updateProgressPhase(ProgressPhase.RESULTS_GENERATION);
-    //resultFile.addResultsFromQueryContext(validator.);
-    RDAPValidator rdapValidator = (RDAPValidator) validator;
-    queryContext = rdapValidator.getQueryContext();
-    resultFile.addResultsFromQueryContext(queryContext.getResults());
+    if (validator instanceof RDAPValidator rdapValidator) {
+      queryContext = rdapValidator.getQueryContext();
+      if (queryContext != null) {
+        resultFile.addResultsFromQueryContext(queryContext);
+      }
+    }
+
     if(!resultFile.build()) {
       logger.error("Unable to write to results file: " + validator.getResultsPath());
       return ToolResult.FILE_WRITE_ERROR.getCode();

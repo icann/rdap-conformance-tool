@@ -143,8 +143,15 @@ public class RDAPValidationResultFile {
         initialize(results, config, configurationFile, fileSystem, null);
     }
 
-    public void addResultsFromQueryContext(RDAPValidatorResults results) {
-        this.results = results;
+    /**
+     * Replaces the current results using the supplied query context and keeps
+     * the internal results/queryContext state synchronized.
+     *
+     * @param queryContext the query context providing the current results
+     */
+    public void addResultsFromQueryContext(QueryContext queryContext) {
+        this.queryContext = queryContext;
+        this.results = queryContext != null ? queryContext.getResults() : null;
     }
 
     private static String getFilename() {
