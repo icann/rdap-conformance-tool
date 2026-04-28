@@ -146,12 +146,18 @@ public class RDAPValidationResultFile {
     /**
      * Replaces the current results using the supplied query context and keeps
      * the internal results/queryContext state synchronized.
+     * If the provided queryContext is null, this method is a no-op and the
+     * existing results and queryContext are preserved.
      *
-     * @param queryContext the query context providing the current results
+     * @param queryContext the query context providing the current results; must not be null
      */
     public void addResultsFromQueryContext(QueryContext queryContext) {
+        if (queryContext == null) {
+            logger.debug("addResultsFromQueryContext called with null queryContext, skipping to preserve existing state");
+            return;
+        }
         this.queryContext = queryContext;
-        this.results = queryContext != null ? queryContext.getResults() : null;
+        this.results = queryContext.getResults();
     }
 
     private static String getFilename() {

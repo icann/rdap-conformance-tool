@@ -773,13 +773,14 @@ public void setShowProgress(boolean showProgress) {
     }
 
     if(!resultFile.build()) {
-      logger.error("Unable to write to results file: " + validator.getResultsPath());
+      logger.error("Unable to write to results file: {}",
+              resultFile.getResultsPath() != null ? resultFile.getResultsPath() : getResultsFile());
       return ToolResult.FILE_WRITE_ERROR.getCode();
     }
 
     incrementProgress(); // Results generation step
     logger.info("Results file: {}",  resultFile.getResultsPath());
-    setResultsFile(validator.getResultsPath());
+    setResultsFile(resultFile.getResultsPath());
     
     // Show results file location for CLI and VERBOSE modes
     LoggingLevel currentEffectiveLevel = isVerbose ? LoggingLevel.VERBOSE : loggingLevel;
