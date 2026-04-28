@@ -765,18 +765,23 @@ public void setShowProgress(boolean showProgress) {
     }
 
     updateProgressPhase(ProgressPhase.RESULTS_GENERATION);
+    //resultFile.addResultsFromQueryContext(validator.);
+    RDAPValidator rdapValidator = (RDAPValidator) validator;
+    queryContext = rdapValidator.getQueryContext();
+    resultFile.addResultsFromQueryContext(queryContext.getResults());
     if(!resultFile.build()) {
       logger.error("Unable to write to results file: " + validator.getResultsPath());
       return ToolResult.FILE_WRITE_ERROR.getCode();
     }
+
     incrementProgress(); // Results generation step
-    logger.info("Results file: {}",  validator.getResultsPath());
+    logger.info("Results file: {}",  resultFile.getResultsPath());
     setResultsFile(validator.getResultsPath());
     
     // Show results file location for CLI and VERBOSE modes
     LoggingLevel currentEffectiveLevel = isVerbose ? LoggingLevel.VERBOSE : loggingLevel;
     if (currentEffectiveLevel == LoggingLevel.CLI || currentEffectiveLevel == LoggingLevel.VERBOSE) {
-      System.out.println("Results saved to: " + validator.getResultsPath());
+      System.out.println("Results saved to: " + resultFile.getResultsPath());
     }
     
     // Complete progress tracking

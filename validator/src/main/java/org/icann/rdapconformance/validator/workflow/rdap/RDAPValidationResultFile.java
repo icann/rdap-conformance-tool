@@ -143,6 +143,9 @@ public class RDAPValidationResultFile {
         initialize(results, config, configurationFile, fileSystem, null);
     }
 
+    public void addResultsFromQueryContext(RDAPValidatorResults results) {
+        this.results = results;
+    }
 
     private static String getFilename() {
         String datetimePattern = "yyyyMMddHHmmss";
