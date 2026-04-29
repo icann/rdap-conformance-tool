@@ -535,7 +535,7 @@ public class RdapWebValidator implements AutoCloseable {
         }
 
         public ConfigurableRDAPValidatorConfiguration(URI uri, boolean isRegistry, boolean isRegistrar,
-                                                    boolean useLocalDatasets,boolean useRdapProfileFeb2024,
+                                                    boolean useLocalDatasets, boolean useRdapProfileFeb2024,
                                                     boolean noIpv4Queries, boolean noIpv6Queries,
                                                     boolean additionalConformanceQueries) {
             this.uri = uri;
