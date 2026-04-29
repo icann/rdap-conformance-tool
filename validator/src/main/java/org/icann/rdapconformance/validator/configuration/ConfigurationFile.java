@@ -63,7 +63,6 @@ public class ConfigurationFile {
   private final boolean gtldRegistrar;
   private final boolean gtldRegistry;
   private final boolean thinRegistry;
-  private final boolean rdapProfileFebruary2019;
   private final boolean rdapProfileFebruary2024;
 
   @JsonCreator
@@ -76,7 +75,6 @@ public class ConfigurationFile {
       @JsonProperty(value = "gtldRegistrar") boolean gtldRegistrar,
       @JsonProperty(value = "gtldRegistry") boolean gtldRegistry,
       @JsonProperty(value = "thinRegistry") boolean thinRegistry,
-      @JsonProperty(value = "rdapProfileFebruary2019") boolean rdapProfileFebruary2019,
       @JsonProperty(value = "rdapProfileFebruary2024") boolean rdapProfileFebruary2024) {
     this.definitionIdentifier = definitionIdentifier;
     this.definitionError = emptyListIfNull(definitionError);
@@ -86,7 +84,6 @@ public class ConfigurationFile {
     this.gtldRegistrar = gtldRegistrar;
     this.gtldRegistry = gtldRegistry;
     this.thinRegistry = thinRegistry;
-    this.rdapProfileFebruary2019 = rdapProfileFebruary2019;
     this.rdapProfileFebruary2024 = rdapProfileFebruary2024;
     if (null != definitionError) {
       this.errorCodes = definitionError.stream()
@@ -155,10 +152,6 @@ public class ConfigurationFile {
 
   public boolean isThinRegistry() {
     return thinRegistry;
-  }
-
-  public boolean isRdapProfileFebruary2019() {
-    return rdapProfileFebruary2019;
   }
 
   public boolean isRdapProfileFebruary2024() {

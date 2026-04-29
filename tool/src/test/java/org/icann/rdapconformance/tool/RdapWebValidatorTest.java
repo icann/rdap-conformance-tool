@@ -401,7 +401,6 @@ public class RdapWebValidatorTest {
         try (RdapWebValidator validator = new RdapWebValidator(testUri,
                 true,    // isRegistry
                 false,   // isRegistrar
-                true,    // useRdapProfileFeb2019
                 false,   // useRdapProfileFeb2024
                 true,    // noIpv4Queries
                 false,   // noIpv6Queries
@@ -416,7 +415,6 @@ public class RdapWebValidatorTest {
             assertEquals(testUri, validator.getUri());
             assertTrue(validator.getQueryContext().getConfig().isGtldRegistry());
             assertFalse(validator.getQueryContext().getConfig().isGtldRegistrar());
-            assertTrue(validator.getQueryContext().getConfig().useRdapProfileFeb2019());
             assertFalse(validator.getQueryContext().getConfig().useRdapProfileFeb2024());
             assertTrue(validator.getQueryContext().getConfig().isNoIpv4Queries());
             assertFalse(validator.getQueryContext().getConfig().isNoIpv6Queries());
@@ -432,7 +430,6 @@ public class RdapWebValidatorTest {
         try (RdapWebValidator validator = new RdapWebValidator(testUri,
                 false,   // isRegistry
                 true,    // isRegistrar
-                false,   // useRdapProfileFeb2019 (default)
                 true,    // useRdapProfileFeb2024 (default)
                 false,   // noIpv4Queries (default)
                 false,   // noIpv6Queries (default)
@@ -445,7 +442,6 @@ public class RdapWebValidatorTest {
             // Verify configuration values match what we set
             assertFalse(validator.getQueryContext().getConfig().isGtldRegistry());
             assertTrue(validator.getQueryContext().getConfig().isGtldRegistrar());
-            assertFalse(validator.getQueryContext().getConfig().useRdapProfileFeb2019());
             assertTrue(validator.getQueryContext().getConfig().useRdapProfileFeb2024());
             assertFalse(validator.getQueryContext().getConfig().isNoIpv4Queries());
             assertFalse(validator.getQueryContext().getConfig().isNoIpv6Queries());
@@ -457,25 +453,10 @@ public class RdapWebValidatorTest {
     public void testProfileConfigurationOptions() {
         URI testUri = URI.create("https://rdap.example.com/domain/test.example");
 
-        // Test RDAP Profile 2019 enabled
-        try (RdapWebValidator validator2019 = new RdapWebValidator(testUri,
-                true, false, true, false, false, false, false, false, false)) {
-            assertTrue(validator2019.getQueryContext().getConfig().useRdapProfileFeb2019());
-            assertFalse(validator2019.getQueryContext().getConfig().useRdapProfileFeb2024());
-        }
-
         // Test RDAP Profile 2024 enabled
         try (RdapWebValidator validator2024 = new RdapWebValidator(testUri,
-                true, false, false, true, false, false, false, false, false)) {
-            assertFalse(validator2024.getQueryContext().getConfig().useRdapProfileFeb2019());
+                true, false, true, false, false, false, false, false)) {
             assertTrue(validator2024.getQueryContext().getConfig().useRdapProfileFeb2024());
-        }
-
-        // Test both profiles enabled
-        try (RdapWebValidator validatorBoth = new RdapWebValidator(testUri,
-                true, false, true, true, false, false, false, false, false)) {
-            assertTrue(validatorBoth.getQueryContext().getConfig().useRdapProfileFeb2019());
-            assertTrue(validatorBoth.getQueryContext().getConfig().useRdapProfileFeb2024());
         }
     }
 
@@ -485,21 +466,21 @@ public class RdapWebValidatorTest {
 
         // Test IPv4 disabled
         try (RdapWebValidator validatorNoIPv4 = new RdapWebValidator(testUri,
-                true, false, false, true, true, false, false, false, false)) {
+                true, false, true, true, false, false, false, false)) {
             assertTrue(validatorNoIPv4.getQueryContext().getConfig().isNoIpv4Queries());
             assertFalse(validatorNoIPv4.getQueryContext().getConfig().isNoIpv6Queries());
         }
 
         // Test IPv6 disabled
         try (RdapWebValidator validatorNoIPv6 = new RdapWebValidator(testUri,
-                true, false, false, true, false, true, false, false, false)) {
+                true, false, true, false, true, false, false, false)) {
             assertFalse(validatorNoIPv6.getQueryContext().getConfig().isNoIpv4Queries());
             assertTrue(validatorNoIPv6.getQueryContext().getConfig().isNoIpv6Queries());
         }
 
         // Test both IP versions disabled
         try (RdapWebValidator validatorNoIP = new RdapWebValidator(testUri,
-                true, false, false, true, true, true, false, false, false)) {
+                true, false, true, true, true, false, false, false)) {
             assertTrue(validatorNoIP.getQueryContext().getConfig().isNoIpv4Queries());
             assertTrue(validatorNoIP.getQueryContext().getConfig().isNoIpv6Queries());
         }
@@ -511,13 +492,13 @@ public class RdapWebValidatorTest {
 
         // Test additional conformance queries enabled
         try (RdapWebValidator validator = new RdapWebValidator(testUri,
-                true, false, false, true, false, false, true, false, false)) {
+                true, false, true, false, false, true, false, false)) {
             assertTrue(validator.getQueryContext().getConfig().isAdditionalConformanceQueries());
         }
 
         // Test additional conformance queries disabled (default)
         try (RdapWebValidator validator = new RdapWebValidator(testUri,
-                true, false, false, true, false, false, false, false, false)) {
+                true, false, true, false, false, false, false, false)) {
             assertFalse(validator.getQueryContext().getConfig().isAdditionalConformanceQueries());
         }
     }
@@ -530,7 +511,6 @@ public class RdapWebValidatorTest {
         try (RdapWebValidator validator = new RdapWebValidator(testUri,
                 false,   // isRegistry
                 true,    // isRegistrar
-                true,    // useRdapProfileFeb2019
                 true,    // useRdapProfileFeb2024
                 true,    // noIpv4Queries
                 true,    // noIpv6Queries
@@ -543,7 +523,6 @@ public class RdapWebValidatorTest {
             // Verify all configuration options are set as expected
             assertFalse(validator.getQueryContext().getConfig().isGtldRegistry());
             assertTrue(validator.getQueryContext().getConfig().isGtldRegistrar());
-            assertTrue(validator.getQueryContext().getConfig().useRdapProfileFeb2019());
             assertTrue(validator.getQueryContext().getConfig().useRdapProfileFeb2024());
             assertTrue(validator.getQueryContext().getConfig().isNoIpv4Queries());
             assertTrue(validator.getQueryContext().getConfig().isNoIpv6Queries());
@@ -565,7 +544,6 @@ public class RdapWebValidatorTest {
         try (RdapWebValidator validator = new RdapWebValidator(testUri,
                 true,    // isRegistry
                 false,   // isRegistrar
-                false,   // useRdapProfileFeb2019
                 true,    // useRdapProfileFeb2024
                 false,   // noIpv4Queries
                 false,   // noIpv6Queries

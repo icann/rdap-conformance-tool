@@ -16,12 +16,11 @@ This document describes the process flow of the RDAP Conformance Tool CLI, from 
 10. [Schema Validation](#schema-validation)
 11. [SSL/TLS Validation](#ssltls-validation)
 12. [Profile Validation](#profile-validation)
-13. [Profile Differences (2019 vs 2024)](#profile-differences-2019-vs-2024)
-14. [Multiple Validation Rounds](#multiple-validation-rounds)
-15. [Results Collection](#results-collection)
-16. [Exit Codes](#exit-codes)
-17. [Web API Entry Point (RdapWebValidator)](#web-api-entry-point-rdapwebvalidator)
-18. [Key Design Patterns](#key-design-patterns)
+13. [Multiple Validation Rounds](#multiple-validation-rounds)
+14. [Results Collection](#results-collection)
+15. [Exit Codes](#exit-codes)
+16. [Web API Entry Point (RdapWebValidator)](#web-api-entry-point-rdapwebvalidator)
+17. [Key Design Patterns](#key-design-patterns)
 
 ## Overview
 
@@ -30,7 +29,7 @@ The RDAP Conformance Tool validates RDAP (Registration Data Access Protocol) ser
 1. Downloads IANA reference datasets
 2. Makes HTTP queries to the target RDAP server
 3. Validates responses against JSON schemas
-4. Validates responses against profile requirements (2019 or 2024)
+4. Validates responses against profile requirements (2024)
 5. Generates a JSON results file with errors, warnings, and notes
 
 ```
@@ -107,7 +106,6 @@ The tool uses picocli `@Command` and `@Option` annotations for argument parsing.
 | `--gtld-registrar` | false | Enable gTLD Registrar profile |
 | `--gtld-registry` | false | Enable gTLD Registry profile |
 | `--thin` | false | TLD uses thin registration model |
-| `--use-rdap-profile-february-2019` | false | Use 2019 RDAP profile |
 | `--use-rdap-profile-february-2024` | false | Use 2024 RDAP profile |
 | `--no-ipv4-queries` | false | Skip IPv4 queries |
 | `--no-ipv6-queries` | false | Skip IPv6 queries |
@@ -373,7 +371,7 @@ For HTTPS connections, the tool performs SSL/TLS validation as part of the TIG (
 
 **File**: `validator/src/main/java/org/icann/rdapconformance/validator/workflow/profile/ProfileValidation.java`
 
-After schema validation, the tool runs profile-specific validations based on the selected RDAP profile (2019 or 2024).
+After schema validation, the tool runs profile-specific validations based on the selected RDAP profile (2024).
 
 ### Validation Categories
 
@@ -397,10 +395,6 @@ Each `ProfileValidation` implementation:
 3. Execute doValidate() - actual validation logic
 4. Catch exceptions and report as group error
 ```
-
-## Profile Differences (2019 vs 2024)
-
-The tool supports two RDAP profiles with significant differences:
 
 ### 2024 Profile Additions
 
@@ -429,7 +423,7 @@ The following 2019 validations were removed or replaced:
 
 Both profiles can be enabled simultaneously using:
 ```bash
---use-rdap-profile-february-2019 --use-rdap-profile-february-2024
+--use-rdap-profile-february-2024
 ```
 
 This allows comparative testing to identify differences in validation results between profiles.
@@ -492,7 +486,6 @@ Results are written to a JSON file with timestamp: `results-YYYYMMDDHHmmss.json`
     "testedURI": "https://rdap.example.com/domain/example.com",
     "definitionIdentifier": "Standard gTLD RDAP Server Conformance",
     "rdapProfileFebruary2024": true,
-    "rdapProfileFebruary2019": false,
     "gtldRegistry": true,
     "gtldRegistrar": false,
     "thinRegistry": false,
@@ -556,7 +549,7 @@ For web applications (like the RDAP Conformance Tool Frontend), the `RdapWebVali
 
 **ConfigurableRDAPValidatorConfiguration**: Extended settings
 - All of `SimpleRDAPValidatorConfiguration` plus:
-- `rdapProfile2019` / `rdapProfile2024` - Profile selection
+- `rdapProfile2024` - Profile selection
 - `tempDir` - Custom temporary directory
 
 ### Validation Flow

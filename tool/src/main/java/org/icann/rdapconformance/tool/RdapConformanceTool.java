@@ -66,7 +66,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  *
  * <p>The tool can validate RDAP responses from live servers via HTTP or from local JSON files.
  * It supports both gTLD registry and registrar profiles, with options for different RDAP
- * profile versions (February 2019 and February 2024).</p>
+ * profile versions (February 2024).</p>
  *
  * <p><strong>For Web Applications: Use {@link RdapWebValidator} instead</strong></p>
  * <pre>{@code
@@ -275,15 +275,6 @@ public void setUseRdapProfileFeb2024(boolean value) {
 }
 
 /**
- * Sets whether to use the RDAP Profile February 2019 specification.
- *
- * @param value true to use February 2019 profile
- */
-public void setUseRdapProfileFeb2019(boolean value) {
-    this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2019 = value;
-}
-
-/**
  * Configures validation for gTLD registry responses.
  *
  * @param value true to validate as gTLD registry
@@ -351,7 +342,7 @@ public void setShowProgress(boolean showProgress) {
    * </ol>
    *
    * <p>The tool validates RDAP responses against the appropriate specification profile
-   * (February 2019 or February 2024) and generates a comprehensive results file containing
+   * (February 2024) and generates a comprehensive results file containing
    * errors, warnings, and validation details.</p>
    *
    * @return exit code: 0 for success, non-zero for various error conditions
@@ -829,10 +820,6 @@ public void setShowProgress(boolean showProgress) {
   }
 
   @Override
-  public boolean useRdapProfileFeb2019() {
-    return this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2019;}
-
-  @Override
   public boolean useRdapProfileFeb2024() { return this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2024; }
 
 
@@ -1035,9 +1022,6 @@ public void setShowProgress(boolean showProgress) {
   }
 
   private static class DependantRdapProfile {
-    @Option(names = {"--use-rdap-profile-february-2019"},
-            description = "Use RDAP Profile February 2019", defaultValue = "false")
-    boolean useRdapProfileFeb2019 = false;
     @Option(names = {"--use-rdap-profile-february-2024"},
             description = "Use RDAP Profile February 2024", defaultValue = "false", required = true)
     private boolean useRdapProfileFeb2024 = false;

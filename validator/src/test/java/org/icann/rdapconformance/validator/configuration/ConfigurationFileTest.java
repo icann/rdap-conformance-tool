@@ -17,7 +17,7 @@ public class ConfigurationFileTest {
     public void testConstructor_MinimalRequiredFields() {
         ConfigurationFile config = new ConfigurationFile(
             "Test Profile 1.0", null, null, null, null,
-            false, false, false, false, false);
+            false, false, false, false);
         
         assertThat(config.getDefinitionIdentifier()).isEqualTo("Test Profile 1.0");
         assertThat(config.getDefinitionIgnore()).isEmpty();
@@ -25,7 +25,6 @@ public class ConfigurationFileTest {
         assertThat(config.isGtldRegistrar()).isFalse();
         assertThat(config.isGtldRegistry()).isFalse();
         assertThat(config.isThinRegistry()).isFalse();
-        assertThat(config.isRdapProfileFebruary2019()).isFalse();
         assertThat(config.isRdapProfileFebruary2024()).isFalse();
     }
     
@@ -44,7 +43,7 @@ public class ConfigurationFileTest {
         
         ConfigurationFile config = new ConfigurationFile(
             "Full Test Profile 1.0", errors, warnings, ignores, notes,
-            true, false, true, false, true);
+            true, false, true, true);
         
         assertThat(config.getDefinitionIdentifier()).isEqualTo("Full Test Profile 1.0");
         assertThat(config.getDefinitionIgnore()).containsExactly(3001, 3002, 3003);
@@ -52,7 +51,6 @@ public class ConfigurationFileTest {
         assertThat(config.isGtldRegistrar()).isTrue();
         assertThat(config.isGtldRegistry()).isFalse();
         assertThat(config.isThinRegistry()).isTrue();
-        assertThat(config.isRdapProfileFebruary2019()).isFalse();
         assertThat(config.isRdapProfileFebruary2024()).isTrue();
     }
     
@@ -65,7 +63,7 @@ public class ConfigurationFileTest {
         
         ConfigurationFile config = new ConfigurationFile(
             "Error Test Profile", errors, null, null, null,
-            false, false, false, false, false);
+            false, false, false, false);
         
         assertThat(config.isError(1001)).isTrue();
         assertThat(config.isError(1002)).isTrue();
@@ -82,7 +80,7 @@ public class ConfigurationFileTest {
         
         ConfigurationFile config = new ConfigurationFile(
             "Warning Test Profile", null, warnings, null, null,
-            false, false, false, false, false);
+            false, false, false, false);
         
         assertThat(config.isWarning(2001)).isTrue();
         assertThat(config.isWarning(2002)).isTrue();
@@ -99,7 +97,7 @@ public class ConfigurationFileTest {
         
         ConfigurationFile config = new ConfigurationFile(
             "Alert Notes Test", errors, null, null, null,
-            false, false, false, false, false);
+            false, false, false, false);
         
         assertThat(config.getAlertNotes(1001)).isEqualTo("Specific error message");
         assertThat(config.getAlertNotes(1002)).isEqualTo("Another error message");
@@ -115,7 +113,7 @@ public class ConfigurationFileTest {
         
         ConfigurationFile config = new ConfigurationFile(
             "Alert Notes Test", null, warnings, null, null,
-            false, false, false, false, false);
+            false, false, false, false);
         
         assertThat(config.getAlertNotes(2001)).isEqualTo("Specific warning message");
         assertThat(config.getAlertNotes(2002)).isEqualTo("Another warning message");
@@ -126,7 +124,7 @@ public class ConfigurationFileTest {
     public void testGetAlertNotes_NonExistentCode() {
         ConfigurationFile config = new ConfigurationFile(
             "Empty Alert Test", null, null, null, null,
-            false, false, false, false, false);
+            false, false, false, false);
         
         assertThat(config.getAlertNotes(9999)).isEmpty();
     }
@@ -135,7 +133,7 @@ public class ConfigurationFileTest {
     public void testEmptyListIfNull_NullLists() {
         ConfigurationFile config = new ConfigurationFile(
             "Null Lists Test", null, null, null, null,
-            false, false, false, false, false);
+            false, false, false, false);
         
         assertThat(config.getDefinitionIgnore()).isNotNull().isEmpty();
         assertThat(config.getDefinitionNotes()).isNotNull().isEmpty();
@@ -146,7 +144,7 @@ public class ConfigurationFileTest {
         ConfigurationFile config = new ConfigurationFile(
             "Empty Lists Test", Collections.emptyList(), Collections.emptyList(), 
             Collections.emptyList(), Collections.emptyList(),
-            false, false, false, false, false);
+            false, false, false, false);
         
         assertThat(config.getDefinitionIgnore()).isEmpty();
         assertThat(config.getDefinitionNotes()).isEmpty();
@@ -156,7 +154,7 @@ public class ConfigurationFileTest {
     public void testErrorAndWarningCodes_EmptyWhenNull() {
         ConfigurationFile config = new ConfigurationFile(
             "Empty Codes Test", null, null, null, null,
-            false, false, false, false, false);
+            false, false, false, false);
         
         assertThat(config.isError(1001)).isFalse();
         assertThat(config.isWarning(2001)).isFalse();
@@ -178,7 +176,6 @@ public class ConfigurationFileTest {
             + "\"gtldRegistrar\": true,"
             + "\"gtldRegistry\": false,"
             + "\"thinRegistry\": false,"
-            + "\"rdapProfileFebruary2019\": true,"
             + "\"rdapProfileFebruary2024\": false"
             + "}";
         
@@ -192,7 +189,6 @@ public class ConfigurationFileTest {
         assertThat(config.getDefinitionNotes()).containsExactly("JSON Note 1", "JSON Note 2");
         assertThat(config.isGtldRegistrar()).isTrue();
         assertThat(config.isGtldRegistry()).isFalse();
-        assertThat(config.isRdapProfileFebruary2019()).isTrue();
         assertThat(config.isRdapProfileFebruary2024()).isFalse();
     }
     
@@ -200,22 +196,20 @@ public class ConfigurationFileTest {
     public void testBooleanFlags_AllCombinations() {
         ConfigurationFile config1 = new ConfigurationFile(
             "Flags Test 1", null, null, null, null,
-            true, true, true, true, true);
+            true, true, true, true);
         
         assertThat(config1.isGtldRegistrar()).isTrue();
         assertThat(config1.isGtldRegistry()).isTrue();
         assertThat(config1.isThinRegistry()).isTrue();
-        assertThat(config1.isRdapProfileFebruary2019()).isTrue();
         assertThat(config1.isRdapProfileFebruary2024()).isTrue();
         
         ConfigurationFile config2 = new ConfigurationFile(
             "Flags Test 2", null, null, null, null,
-            false, false, false, false, false);
+            false, false, false, false);
         
         assertThat(config2.isGtldRegistrar()).isFalse();
         assertThat(config2.isGtldRegistry()).isFalse();
         assertThat(config2.isThinRegistry()).isFalse();
-        assertThat(config2.isRdapProfileFebruary2019()).isFalse();
         assertThat(config2.isRdapProfileFebruary2024()).isFalse();
     }
 }

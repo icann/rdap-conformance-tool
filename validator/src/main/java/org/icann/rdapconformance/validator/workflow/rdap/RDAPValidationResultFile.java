@@ -192,7 +192,6 @@ public class RDAPValidationResultFile {
         fileMap.put("gtldRegistrar", config.isGtldRegistrar());
         fileMap.put("gtldRegistry", config.isGtldRegistry());
         fileMap.put("thinRegistry", config.isThin());
-        fileMap.put("rdapProfileFebruary2019", config.useRdapProfileFeb2019());
         fileMap.put("rdapProfileFebruary2024", config.useRdapProfileFeb2024());
         fileMap.put("additionalConformanceQueries", config.isAdditionalConformanceQueries());
         fileMap.put("noIpv4", config.isNoIpv4Queries());

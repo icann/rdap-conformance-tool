@@ -26,7 +26,6 @@ public interface RDAPValidatorConfiguration {
 
   boolean useLocalDatasets();
 
-  boolean useRdapProfileFeb2019();
   boolean useRdapProfileFeb2024();
 
   boolean isGtldRegistrar();
@@ -122,11 +121,6 @@ public interface RDAPValidatorConfiguration {
       logger.error("Thin only applies for gTLD registry");
       return false;
     }
-    if (useRdapProfileFeb2019() && !(isGtldRegistry() || isGtldRegistrar())) {
-      logger.error("RDAP profile February 2019 need gTLD type to be specified");
-      return false;
-    }
-
     // transform URI host from U-label to A-label if necessary, ignore errors
     if (null == getUri().getHost() && null != getUri().getAuthority()) {
       // for U-label, URI host is null

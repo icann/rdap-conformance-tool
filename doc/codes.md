@@ -19,7 +19,6 @@ Each error code has been systematically mapped to the most appropriate RFC secti
 - **RFC 3915** (Domain Registry Grace Period Mapping for EPP)
 
 ### Profile Documents Referenced:
-- **RDAP Response Profile 2019**
 - **RDAP Response Profile 2024**
 - **Technical Implementation Guide (TIG)** - ICANN RDAP Technical Implementation Guide
 
@@ -522,7 +521,7 @@ The following 5 parsers are test files or do not generate error codes:
 
 ## Profile Differences
 
-### 2019 Profile vs 2024 Profile
+### 2024 Profile
 - Many validation classes have separate 2024 versions with enhanced checks
 - 2024 profile introduces new error codes (e.g., `-12610`, `-61100`, `-61101`)
 - 2024 profile has stricter requirements for error responses
@@ -610,7 +609,7 @@ The RDAP Conformance Tool uses a systematic numbering scheme for its 361 documen
 
 ### Profile Differences Summary
 
-#### 2019 Profile vs 2024 Profile
+####  2024 Profile
 - **2024 Profile introduces 118+ new error codes** primarily in the -63XXX, -64XXX, and -65XXX ranges for vCard and redaction validation
 - **Enhanced SSL/TLS validation** with specific cipher suite requirements (-61100, -61101)
 - **Stricter error response requirements** (-12107 for mandatory rdapConformance, -12108 for errorCode matching HTTP status)

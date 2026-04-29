@@ -121,7 +121,6 @@ public class RdapWebValidator implements AutoCloseable {
      * @param uri the RDAP URI to validate
      * @param isRegistry true if this is a gTLD registry
      * @param isRegistrar true if this is a gTLD registrar
-     * @param useRdapProfileFeb2019 true to use RDAP Profile Feb 2019
      * @param useRdapProfileFeb2024 true to use RDAP Profile Feb 2024
      * @param noIpv4Queries true to disable IPv4 queries
      * @param noIpv6Queries true to disable IPv6 queries
@@ -132,12 +131,12 @@ public class RdapWebValidator implements AutoCloseable {
      * @throws RuntimeException if the configuration is invalid or temp directory creation fails
      */
     public RdapWebValidator(URI uri, boolean isRegistry, boolean isRegistrar,
-                           boolean useRdapProfileFeb2019, boolean useRdapProfileFeb2024,
+                           boolean useRdapProfileFeb2024,
                            boolean noIpv4Queries, boolean noIpv6Queries,
                            boolean additionalConformanceQueries,
                            boolean useTemporaryDirectory, boolean cleanupOnClose) {
         this(uri, new ConfigurableRDAPValidatorConfiguration(uri, isRegistry, isRegistrar, false,
-                                                           useRdapProfileFeb2019, useRdapProfileFeb2024,
+                                                            useRdapProfileFeb2024,
                                                            noIpv4Queries, noIpv6Queries,
                                                            additionalConformanceQueries),
              useTemporaryDirectory ? createTempDirectory() : null, cleanupOnClose);
@@ -463,9 +462,6 @@ public class RdapWebValidator implements AutoCloseable {
         public boolean useLocalDatasets() { return false; }
 
         @Override
-        public boolean useRdapProfileFeb2019() { return false; }
-
-        @Override
         public boolean useRdapProfileFeb2024() { return true; }
 
         @Override
@@ -520,7 +516,6 @@ public class RdapWebValidator implements AutoCloseable {
         private final boolean isRegistry;
         private final boolean isRegistrar;
         private final boolean useLocalDatasets;
-        private final boolean useRdapProfileFeb2019;
         private final boolean useRdapProfileFeb2024;
         private final boolean noIpv4Queries;
         private final boolean noIpv6Queries;
@@ -532,7 +527,6 @@ public class RdapWebValidator implements AutoCloseable {
 
         public ConfigurableRDAPValidatorConfiguration(URI uri, boolean isRegistry, boolean isRegistrar, boolean useLocalDatasets) {
             this(uri, isRegistry, isRegistrar, useLocalDatasets,
-                 false, // useRdapProfileFeb2019 - default to false
                  true,  // useRdapProfileFeb2024 - default to true
                  false, // noIpv4Queries - default to false (IPv4 enabled)
                  false, // noIpv6Queries - default to false (IPv6 enabled)
@@ -541,15 +535,13 @@ public class RdapWebValidator implements AutoCloseable {
         }
 
         public ConfigurableRDAPValidatorConfiguration(URI uri, boolean isRegistry, boolean isRegistrar,
-                                                    boolean useLocalDatasets,
-                                                    boolean useRdapProfileFeb2019, boolean useRdapProfileFeb2024,
+                                                    boolean useLocalDatasets, boolean useRdapProfileFeb2024,
                                                     boolean noIpv4Queries, boolean noIpv6Queries,
                                                     boolean additionalConformanceQueries) {
             this.uri = uri;
             this.isRegistry = isRegistry;
             this.isRegistrar = isRegistrar;
             this.useLocalDatasets = useLocalDatasets;
-            this.useRdapProfileFeb2019 = useRdapProfileFeb2019;
             this.useRdapProfileFeb2024 = useRdapProfileFeb2024;
             this.noIpv4Queries = noIpv4Queries;
             this.noIpv6Queries = noIpv6Queries;
@@ -573,9 +565,6 @@ public class RdapWebValidator implements AutoCloseable {
 
         @Override
         public boolean useLocalDatasets() { return useLocalDatasets; }
-
-        @Override
-        public boolean useRdapProfileFeb2019() { return useRdapProfileFeb2019; }
 
         @Override
         public boolean useRdapProfileFeb2024() { return useRdapProfileFeb2024; }

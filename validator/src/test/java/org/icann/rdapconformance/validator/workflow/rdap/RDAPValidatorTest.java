@@ -43,7 +43,7 @@ public class RDAPValidatorTest {
     validator = new RDAPValidator(QueryContext.create(config, datasetService, query));
     doReturn(true).when(processor).check(eq(datasetService), any(QueryContext.class));
     doReturn(true).when(datasetService).download(anyBoolean());
-    doReturn(new ConfigurationFile("Test", null, null, null, null, false, false, false, false, false))
+    doReturn(new ConfigurationFile("Test", null, null, null, null, false, false, false, false))
         .when(configParser).parse(any());
   }
 
@@ -119,7 +119,7 @@ public class RDAPValidatorTest {
     doReturn(true).when(queryTypeProcessor).check(eq(datasetService), any(QueryContext.class));
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile(
-            "Test", null, null, null, null, false, false, false, false, false))
+            "Test", null, null, null, null, false, false, false, false))
             .when(configParser).parse(any());
     doReturn(false).when(query).run();
     doReturn(null).when(query).getErrorStatus();
@@ -148,7 +148,7 @@ public void testValidate_DomainQueryForTestInvalidWithHttpOK_LogsInfo() throws I
     doReturn(URI.create("https://example.com")).when(config).getUri();
     doReturn(true).when(datasetService).download(anyBoolean());
     doReturn(new ConfigurationFile(
-        "definitionIdentifier", null, null, null, null, false, false, false, false, false))
+        "definitionIdentifier", null, null, null, null, false, false, false, false))
         .when(configParser).parse(any());
     doReturn(true).when(query).run();
     doReturn("test.invalid").when(query).getData();
@@ -176,7 +176,6 @@ public void testValidate_DomainQueryForTestInvalidWithHttpOK_LogsInfo() throws I
 
         doReturn(URI.create("https://example.com/rdap/domain/test.example")).when(config).getUri();
         doReturn(true).when(config).check();
-        doReturn(false).when(config).useRdapProfileFeb2019();
         doReturn(false).when(config).useRdapProfileFeb2024();
         doReturn(false).when(config).isAdditionalConformanceQueries();
         doReturn(false).when(config).isNetworkEnabled();
