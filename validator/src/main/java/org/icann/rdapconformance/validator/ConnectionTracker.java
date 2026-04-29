@@ -513,7 +513,7 @@ public class ConnectionTracker {
                 // It's ok to return true here so we can log the message in verbose mode
                 // If a profile is used, and both HEAD and GET result in 404, then this should be a warning
                 if((HEAD.equalsIgnoreCase(record.getHttpMethod()) || GET.equalsIgnoreCase(record.getHttpMethod()))
-                        && (config.useRdapProfileFeb2024() || config.useRdapProfileFeb2019())
+                        && (config.useRdapProfileFeb2024())
                         && (config.isGtldRegistrar() || config.isGtldRegistry())) {
                     queryContext.addError(record.getStatusCode(), -13020, config.getUri().toString(), "This URL returned an HTTP 404 status code that was validly formed. If the provided URL "
                             + "does not reference a registered resource, then this warning may be ignored. If the provided URL does reference a registered resource, then this should be considered an error.");

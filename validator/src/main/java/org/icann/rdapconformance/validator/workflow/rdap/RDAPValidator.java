@@ -34,28 +34,17 @@ import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfile;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated1;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated2;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated3And4;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated5;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated6;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot3;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidation3Dot1;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidation3Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous.ResponseValidationLastUpdateEvent;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseNameserverStatusValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Query;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot13;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot14;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot3;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot3_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot6;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation4Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation7Dot1And7Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation1Dot11Dot1;
@@ -162,14 +151,6 @@ public class RDAPValidator implements ValidatorWorkflow {
             new ResponseValidationDomainInvalid_2024(queryContext).validate(); // Network calls
         }
 
-        // get all the 2019 profile validations and run them
-        if (queryContext.getConfig().useRdapProfileFeb2019()) {
-            logger.info("Validations for 2019 profile");
-            RDAPProfile rdapProfile = new RDAPProfile(
-                get2019RdapValidations(rdapResponse, validator));
-            rdapProfile.validate();
-        }
-
         // get all the 2024 profile validations and run them
         if (queryContext.getConfig().useRdapProfileFeb2024()) {
             logger.info("Validations for 2024 profile");
@@ -224,7 +205,6 @@ public class RDAPValidator implements ValidatorWorkflow {
         List<ProfileValidation> validations = new ArrayList<>();
 
         // All validations in original order
-        // From 2019 profile validations
         validations.add(new TigValidation3Dot2(queryContext));
         validations.add(new TigValidation4Dot1(queryContext));
         validations.add(new TigValidation7Dot1And7Dot2(queryContext));
@@ -300,69 +280,6 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new TigValidation1Dot11Dot1(queryContext)); // URL-based validation
             validations.add(new TigValidation1Dot5_2024(queryContext)); // SSL Network connection
             validations.add(new ResponseValidationTestInvalidRedirect_2024(queryContext)); // Network connection
-        }
-
-        return validations;
-    }
-
-
-    private List<ProfileValidation> get2019RdapValidations(HttpResponse<String> rdapResponse, SchemaValidator validator) {
-        // Extract commonly used values from queryContext for convenience
-        RDAPValidatorConfiguration config = queryContext.getConfig();
-        List<ProfileValidation> validations = new ArrayList<>();
-
-        // All validations in original order
-        validations.add(new TigValidation1Dot14(queryContext));
-        validations.add(new TigValidation3Dot2(queryContext));
-        validations.add(new TigValidation3Dot3And3Dot4(queryContext));
-        validations.add(new TigValidation4Dot1(queryContext));
-        validations.add(new TigValidation7Dot1And7Dot2(queryContext));
-        validations.add(new ResponseValidation1Dot2Dot2(queryContext));
-        validations.add(new ResponseValidation1Dot3(queryContext));
-        validations.add(new ResponseValidation1Dot4(queryContext));
-        validations.add(new ResponseValidationLastUpdateEvent(queryContext));
-        validations.add(new ResponseValidation2Dot1(queryContext));
-        validations.add(new ResponseValidation2Dot2(queryContext));
-        validations.add(new ResponseValidation2Dot3Dot1Dot1(queryContext));
-
-        // Only run this validation if it's a gTLD registry
-        if(config.isGtldRegistry()) {
-            validations.add(new ResponseValidation2Dot3Dot1Dot2(queryContext));
-        }
-
-        validations.add(new ResponseValidationNoticesIncluded(queryContext));
-        validations.add(new ResponseValidation2Dot6Dot3(queryContext));
-        validations.add(new ResponseValidation2Dot11(queryContext));
-        validations.add(new ResponseValidation2Dot10(queryContext));
-        validations.add(new ResponseValidationRFC5731(queryContext));
-        validations.add(new ResponseValidationRFC3915(queryContext));
-        validations.add(new ResponseValidation2Dot6Dot1(queryContext));
-        validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2(queryContext));
-        validations.add(new ResponseValidation2Dot4Dot1(queryContext));
-        validations.add(new ResponseValidation2Dot4Dot2And2Dot4Dot3(queryContext));
-        validations.add(new ResponseValidation2Dot4Dot5(queryContext));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated1(queryContext));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated2(queryContext));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated3And4(queryContext));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated5(queryContext));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated6(queryContext));
-        validations.add(new ResponseValidation2Dot7Dot5Dot2(queryContext));
-        validations.add(new ResponseValidation2Dot7Dot5Dot3(queryContext));
-        validations.add(new ResponseValidation3Dot1(queryContext));
-        validations.add(new ResponseValidation3Dot2(queryContext));
-        validations.add(new ResponseNameserverStatusValidation(queryContext));
-        validations.add(new ResponseValidation4Dot1Handle(queryContext));
-        validations.add(new ResponseValidation4Dot1Query(queryContext));
-        validations.add(new ResponseValidation4Dot3(queryContext));
-
-        // Network-dependent validations
-        if (config.isNetworkEnabled()) {
-            validations.add(new TigValidation1Dot3(queryContext)); // SSL context
-            validations.add(new TigValidation1Dot6(queryContext)); // HTTP head request
-            validations.add(new TigValidation1Dot13(queryContext)); // reads HTTP headers
-            validations.add(new TigValidation1Dot2(queryContext)); // SSL Network connection
-            validations.add(new TigValidation1Dot8(queryContext)); // DNS queries
-            validations.add(new TigValidation1Dot11Dot1(queryContext)); // URL-based validation
         }
 
         return validations;

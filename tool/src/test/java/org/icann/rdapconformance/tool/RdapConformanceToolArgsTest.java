@@ -30,36 +30,6 @@ public class RdapConformanceToolArgsTest {
   }
 
   @Test
-  public void testUseRdapProfileArg_RequiresGtldRegistryOrGtldRegistrar() {
-    String[] args = "--config=/tmp/test --use-rdap-profile-february-2019 http://example.org"
-        .split(" ");
-
-    assertThatExceptionOfType(MissingParameterException.class).isThrownBy(
-        () -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
-        .withMessageStartingWith("Error: Missing required argument(s): ");
-  }
-
-  @Test
-  public void testUseRdapProfileArg_WithGtldRegistry_isOK() {
-    String[] args = "--config=/tmp/test --use-rdap-profile-february-2019 --gtld-registry http://example.org"
-        .split(" ");
-
-    assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
-        .doesNotThrowAnyException();
-
-  }
-
-  @Test
-  public void testUseRdapProfileArg_WithGtldRegistrar_isOK() {
-    String[] args = "--config=/tmp/test --use-rdap-profile-february-2019 --gtld-registrar http://example.org"
-        .split(" ");
-
-    assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
-        .doesNotThrowAnyException();
-  }
-
-
-  @Test
   public void testGtldRegistryAndGtldRegistrarArgs_AreExclusive() {
     String[] args = "--config=/tmp/test --gtld-registry --gtld-registrar http://example.org"
         .split(" ");
@@ -81,7 +51,7 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testThinArg_WithGtldRegistry_IsOk() {
-    String[] args = "--config=/tmp/test --thin --gtld-registry http://example.org --use-rdap-profile-february-2019".split(" ");
+    String[] args = "--config=/tmp/test --thin --gtld-registry http://example.org --use-rdap-profile-february-2024".split(" ");
 
     assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
         .doesNotThrowAnyException();
@@ -89,7 +59,7 @@ public class RdapConformanceToolArgsTest {
 
   @Test
   public void testAdditionalConformanceQueries_Arg_IsOk() {
-    String[] args = "--config=/tmp/test --thin --gtld-registry http://example.org --use-rdap-profile-february-2019 --additional-conformance-queries".split(" ");
+    String[] args = "--config=/tmp/test --thin --gtld-registry http://example.org --use-rdap-profile-february-2024 --additional-conformance-queries".split(" ");
 
     assertThatCode(() -> new CommandLine(new RdapConformanceTool()).parseArgs(args))
             .doesNotThrowAnyException();

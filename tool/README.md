@@ -8,7 +8,7 @@ Usage: rdap-conformance-tool [-hV] [--use-local-datasets]
                              -c=<configurationFile>
                              [--maximum-redirects=<maxRedirects>]
                              [--timeout=<timeout>]
-                             [[--use-rdap-profile-february-2019]
+                             [[--use-rdap-profile-february-2024]
                              ([--gtld-registrar] | [--gtld-registry [--thin]])]
                              RDAP_URI
       RDAP_URI               The URI to be tested
@@ -24,8 +24,6 @@ Usage: rdap-conformance-tool [-hV] [--use-local-datasets]
       --thin                 The TLD uses the thin model
       --timeout=<timeout>    Timeout for connecting to the server
       --use-local-datasets   Use locally-persisted datasets
-      --use-rdap-profile-february-2019
-                             Use RDAP Profile February 2019
   -V, --version              Print version information and exit.
 ```
 

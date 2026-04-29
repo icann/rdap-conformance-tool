@@ -9,7 +9,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,7 +33,6 @@ import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.json.JSONObject;
-import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -142,14 +140,6 @@ public class RDAPValidationResultFileTest {
 
         verify(fileSystem).write(any(), contains("\"buildDate\": \"" + BuildInfo.getBuildDate() + "\""));
     }
-
-
-
-  @Test
-  public void testProfileFebruary2019() throws IOException {
-    file.build();
-    verify(fileSystem).write(any(), contains("\"rdapProfileFebruary2019\": false"));
-  }
 
   @Test
   public void testProfileFebruary2024() throws IOException {
