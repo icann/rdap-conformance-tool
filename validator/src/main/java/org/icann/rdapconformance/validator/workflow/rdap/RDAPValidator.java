@@ -270,6 +270,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new TigValidation3Dot3And3Dot4_2024(queryContext));
         validations.add(new ResponseValidation2Dot6Dot3_2024(queryContext));
         validations.add(new ResponseValidation2Dot10_2024(queryContext));
+        validations.add(new ResponseValidation2024_1_4(queryContext));
 
         // Network-dependent validations
         if (config.isNetworkEnabled()) {
