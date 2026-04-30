@@ -25,9 +25,18 @@ public class ResponseValidation2024_1_4 extends RDAPProfileVcardArrayValidation 
     protected boolean validateVcardArray(String category, JSONArray categoryJsonArray,
                                          String jsonExceptionPointer, JcardCategoriesSchemas jcardCategoriesSchemas) {
         if (category.equals(ADDRESS_CATEGORY)) {
-            Object address = categoryJsonArray.get(3);
-            if (address instanceof JSONArray) {
-                Object countryObj = ((JSONArray) address).get(6);
+            Object address = categoryJsonArray.length() > 3 ? categoryJsonArray.get(3) : null;
+            if (address instanceof JSONArray addressArray) {
+                if (addressArray.length() <= 6) {
+                    // adr array too short — country name is missing → fail with -62100
+                    results.add(RDAPValidationResult.builder()
+                            .code(-62100)
+                            .value(jsonExceptionPointer + ":" + categoryJsonArray)
+                            .message("All country names MUST be an empty string.")
+                            .build(queryContext));
+                    return false;
+                }
+                Object countryObj = addressArray.get(6);
                 if (!(countryObj instanceof String) || !((String) countryObj).isEmpty()) {
                     results.add(RDAPValidationResult.builder()
                             .code(-62100)
