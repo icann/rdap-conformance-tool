@@ -8,9 +8,10 @@ import org.testng.annotations.Test;
 public class ResponseValidation1Dot2_4_2024Test extends ProfileJsonValidationTestBase {
 
     public static final String VCARD_STRUCTURE = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"],[\"adr\",{},\"text\",[\"\",\"\",\"123 Main St\",\"Anytown\",\"CA\",\"12345\",\"\"]]]]";
-    public static final String VCARD_STRUCTURE_INVALID = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"],[\"adr\",{\"cc\":\"us\"},\"text\",[\"\",\"\",\"123 Main St\",\"Anytown\",\"CA\",\"12345\",\"\"]]]]";
     public static final String VCARD_STRUCTURE_USA = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"],[\"adr\",{\"cc\":\"USA\"},\"text\",[\"\",\"\",\"123 Main St\",\"Anytown\",\"CA\",\"12345\",\"\"]]]]";
     public static final String VCARD_STRUCTURE_NO_ADR = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"]]]";
+    public static final String VCARD_STRUCTURE_ISO = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"],[\"adr\",{\"cc\":\"AA\"},\"text\",[\"\",\"\",\"123 Main St\",\"Anytown\",\"CA\",\"12345\",\"\"]]]]";
+    public static final String VCARD_STRUCTURE_NON_ASCII = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"],[\"adr\",{\"cc\":\"ÅÄ\"},\"text\",[\"\",\"\",\"123 Main St\",\"Anytown\",\"CA\",\"12345\",\"\"]]]]";
 
     public ResponseValidation1Dot2_4_2024Test() {
         super("/validators/profile/response_validations/general/valid_cc.json",
@@ -61,23 +62,6 @@ public class ResponseValidation1Dot2_4_2024Test extends ProfileJsonValidationTes
     }
 
     @Test
-    public void test62101_InvalidCcParameter_LowerCase_ShouldFail() {
-        // Set cc to lowercase (not valid ISO 3166-1 alpha-2)
-        JSONObject params = new JSONObject();
-        params.put("cc", "us");
-        jsonObject.getJSONArray("entities")
-                .getJSONObject(0)
-                .getJSONArray("vcardArray")
-                .getJSONArray(1)
-                .getJSONArray(2)
-                .put(1, params);
-        updateQueryContextJsonData();
-
-        validate(-62101, VCARD_STRUCTURE_INVALID,
-                "All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter");
-    }
-
-    @Test
     public void test62101_NoAdrProperty_ShouldFail() {
         // Remove the adr entry entirely from the vcard
         jsonObject.getJSONArray("entities")
@@ -88,6 +72,40 @@ public class ResponseValidation1Dot2_4_2024Test extends ProfileJsonValidationTes
         updateQueryContextJsonData();
 
         validate(-62101, VCARD_STRUCTURE_NO_ADR,
+                "All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter");
+    }
+
+    @Test
+    public void test62101_InvalidCcParameter_NonExistentCountry_ShouldFail() {
+        // "AA" has valid shape (2 uppercase letters) but is not a real ISO 3166-1 alpha-2 code
+        JSONObject params = new JSONObject();
+        params.put("cc", "AA");
+        jsonObject.getJSONArray("entities")
+                .getJSONObject(0)
+                .getJSONArray("vcardArray")
+                .getJSONArray(1)
+                .getJSONArray(2)
+                .put(1, params);
+        updateQueryContextJsonData();
+
+        validate(-62101, VCARD_STRUCTURE_ISO,
+                "All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter");
+    }
+
+    @Test
+    public void test62101_InvalidCcParameter_NonAsciiUppercase_ShouldFail() {
+        // "ÅÄ" is 2 uppercase letters but non-ASCII — must be rejected
+        JSONObject params = new JSONObject();
+        params.put("cc", "ÅÄ");
+        jsonObject.getJSONArray("entities")
+                .getJSONObject(0)
+                .getJSONArray("vcardArray")
+                .getJSONArray(1)
+                .getJSONArray(2)
+                .put(1, params);
+        updateQueryContextJsonData();
+
+        validate(-62101, VCARD_STRUCTURE_NON_ASCII,
                 "All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter");
     }
 

@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 public class ResponseValidation1Dot2_4_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation1Dot2_4_2024.class);
+    private static final Set<String> ISO_3166_1_ALPHA2_CODES = Set.of(Locale.getISOCountries());
 
     private static final String ALL_ENTITIES_PATH = "$.entities[*].vcardArray";
     private static final String ADR_PROPERTY = "adr";
@@ -82,13 +83,14 @@ public class ResponseValidation1Dot2_4_2024 extends ProfileJsonValidation {
         return isValid;
     }
 
-    /**     * Returns true if the value is a valid ISO 3166-1 alpha-2 country code (2 uppercase letters).     */
+    /**
+     * Returns true if the value is a valid ISO 3166-1 alpha-2 country code,
+     * validated against the JDK's built-in ISO country list (not just shape checking).
+     */
     private boolean isValidIso3166Alpha2(String value) {
         if (value == null || value.length() != 2) {
             return false;
         }
-        // Must be exactly 2 ASCII letters
-        return value.chars().allMatch(Character::isLetter)
-                && value.equals(value.toUpperCase(Locale.ROOT));
+        return ISO_3166_1_ALPHA2_CODES.contains(value.toUpperCase(Locale.ROOT));
     }
 }
