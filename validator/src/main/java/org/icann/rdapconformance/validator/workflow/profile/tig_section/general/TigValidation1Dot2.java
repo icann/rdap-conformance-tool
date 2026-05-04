@@ -6,7 +6,6 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PREFIX;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PREFIX;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -14,7 +13,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.*;
-import java.util.Map.Entry;
 
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -88,13 +86,9 @@ public final class TigValidation1Dot2 extends ProfileValidation {
      * Ignore event with action "last updateof RDAP database"
      */
     private boolean shouldAddElement(JsonNode node) {
-      if (!node.isArray()) {
-        if (node instanceof ObjectNode) {
-          Map<String, Object> event = mapper
-              .convertValue(node, new TypeReference<>() {
-              });
-          return !event.getOrDefault("eventAction", "").equals("last update of RDAP database");
-        }
+      if (!node.isArray() && node instanceof ObjectNode) {
+        JsonNode eventAction = node.get("eventAction");
+        return eventAction == null || !eventAction.asText().equals("last update of RDAP database");
       }
       return true;
     }
@@ -103,26 +97,18 @@ public final class TigValidation1Dot2 extends ProfileValidation {
      * ObjectNode comparator taken from ObjectNode.equals method but updated for our need.
      */
     private int compareObjectNodes(ObjectNode o1, ObjectNode o2) {
-      Map<String, JsonNode> m1 = mapper.convertValue(o1, new TypeReference<>() {
-      });
-      Map<String, JsonNode> m2 = mapper.convertValue(o2, new TypeReference<>() {
-      });
-      int len = m1.size();
-      if (m2.size() == len) {
-        Iterator<Entry<String, JsonNode>> var7 = m1.entrySet().iterator();
-
-        Entry<String, JsonNode> entry;
-        JsonNode v2;
-        do {
-          if (!var7.hasNext()) {
-            return 0;
-          }
-
-          entry = var7.next();
-          v2 = m2.get(entry.getKey());
-        } while (v2 != null && compareNested(entry.getKey(), entry.getValue(), v2) == 0);
+      if (o1.size() != o2.size()) {
+        return 1;
       }
-      return 1;
+      Iterator<Map.Entry<String, JsonNode>> fields = o1.fields();
+      while (fields.hasNext()) {
+        Map.Entry<String, JsonNode> entry = fields.next();
+        JsonNode v2 = o2.get(entry.getKey());
+        if (v2 == null || compareNested(entry.getKey(), entry.getValue(), v2) != 0) {
+          return 1;
+        }
+      }
+      return 0;
     }
 
     /**
@@ -130,7 +116,8 @@ public final class TigValidation1Dot2 extends ProfileValidation {
      */
     private int compareNested(String key, JsonNode n1, JsonNode n2) {
       if (key.equals("vcardArray")) {
-        return n1.equals(n2) ? 0 : 1;
+        // Use equals() first (fast path), fallback to comparator for re-serialization safety
+        return n1.equals(n2) ? 0 : jsonComparator.compare(n1, n2);
       }
       return jsonComparator.compare(n1, n2);
     }

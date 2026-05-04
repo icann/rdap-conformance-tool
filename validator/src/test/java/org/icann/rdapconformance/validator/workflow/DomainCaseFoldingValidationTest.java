@@ -65,6 +65,113 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   }
 
   @Test
+  public void testDoValidate_EntitiesInDifferentOrder_ShouldPass() throws Exception {
+    WireMockConfiguration wmConfig = wireMockConfig()
+            .dynamicHttpsPort()
+            .bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    String originalResponse = "{\n"
+            + "  \"objectClassName\": \"domain\",\n"
+            + "  \"ldhName\": \"test.example\",\n"
+            + "  \"entities\": [\n"
+            + "    {\"objectClassName\": \"entity\", \"handle\": \"REG-001\", \"roles\": [\"registrant\"]},\n"
+            + "    {\"objectClassName\": \"entity\", \"handle\": \"ADM-001\", \"roles\": [\"administrative\"]},\n"
+            + "    {\"objectClassName\": \"entity\", \"handle\": \"REGT-001\", \"roles\": [\"registrar\"]}\n"
+            + "  ]\n"
+            + "}";
+
+    // Same data but entities in different order
+    String caseFoldedResponse = "{\n"
+            + "  \"objectClassName\": \"domain\",\n"
+            + "  \"ldhName\": \"test.example\",\n"
+            + "  \"entities\": [\n"
+            + "    {\"objectClassName\": \"entity\", \"handle\": \"REGT-001\", \"roles\": [\"registrar\"]},\n"
+            + "    {\"objectClassName\": \"entity\", \"handle\": \"REG-001\", \"roles\": [\"registrant\"]},\n"
+            + "    {\"objectClassName\": \"entity\", \"handle\": \"ADM-001\", \"roles\": [\"administrative\"]}\n"
+            + "  ]\n"
+            + "}";
+
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(originalResponse).when(httpsResponse).body();
+
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    stubFor(get(urlEqualTo(caseFoldedPath))
+            .withScheme("http")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/rdap+json")
+                    .withBody(caseFoldedResponse)));
+
+    // Should PASS — entities are the same, just in different order
+    validateOk(results);
+  }
+
+  @Test
+  public void testDoValidate_RealWorldSnapnamesCaseFolding_ShouldPass() throws Exception {
+    WireMockConfiguration wmConfig = wireMockConfig()
+            .dynamicHttpsPort()
+            .bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    // addresscreation_com_mixed.json — respuesta de aDdReSsCrEaTiOn.cOm
+    // (entities: registrar, registrant, technical — redacted: registrant first)
+    String mixedCaseResponse = "{\n"
+            + "\"entities\": [\n"
+            + "  {\"handle\":\"270\",\"objectClassName\":\"entity\",\"roles\":[\"registrar\"],\n"
+            + "   \"entities\":[{\"objectClassName\":\"entity\",\"roles\":[\"abuse\"],\"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Address Creation, LLC\"],[\"email\",{},\"text\",\"domain.operations@web.com\"],[\"tel\",{\"type\":\"voice\"},\"text\",\"+1.8777228662\"]]]}],\n"
+            + "   \"links\":[{\"href\":\"https://rdap.snapnames.com/rdap/\",\"rel\":\"about\",\"type\":\"text/html\",\"value\":\"https://rdap.snapnames.com/rdap/\"}],\n"
+            + "   \"publicIds\":[{\"identifier\":\"270\",\"type\":\"IANA Registrar ID\"}],\n"
+            + "   \"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Address Creation, LLC\"]]]},\n"
+            + "  {\"handle\":\" \",\"objectClassName\":\"entity\",\"roles\":[\"registrant\"],\n"
+            + "   \"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"NewFold Digital, Inc.\"],[\"org\",{},\"text\",\"NewFold Digital, Inc.\"],[\"email\",{},\"text\",\"corpdomains@newfold.com\"],[\"tel\",{\"type\":\"voice\"},\"text\",\"+1.9046806600\"],[\"adr\",{\"cc\":\"US\"},\"text\",[\"\",\"\",\"5335 Gate Parkway\",\"Jacksonville\",\"FL\",\"32256\",\"\"]]]]},\n"
+            + "  {\"handle\":\" \",\"objectClassName\":\"entity\",\"roles\":[\"technical\"],\n"
+            + "   \"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"NewFold Digital, Inc.\"],[\"email\",{},\"text\",\"corpdomains@newfold.com\"],[\"tel\",{\"type\":\"voice\"},\"text\",\"+1.9046806600\"],[\"adr\",{},\"text\",[\"\",\"\",\"\",\"\",\"\",\"\",\"\"]]]]}\n"
+            + "],\n"
+            + "\"objectClassName\":\"domain\",\"handle\":\"28766829_DOMAIN_COM-VRSN\",\"ldhName\":\"addresscreation.com.\",\n"
+            + "\"notices\":[{\"title\":\"Status Codes\",\"description\":[\"For more information on domain status codes, please visit https://icann.org/epp\"],\"links\":[{\"href\":\"https://icann.org/epp\",\"rel\":\"glossary\",\"type\":\"text/html\",\"value\":\"https://rdap.snapnames.com/rdap/domain/aDdReSsCrEaTiOn.cOm\"}]}],\n"
+            + "\"redacted\":[{\"method\":\"removal\",\"name\":{\"description\":\"registrant Handle\"},\"pathLang\":\"jsonpath\",\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].handle\",\"reason\":{\"description\":\"Server policy\"}},{\"method\":\"removal\",\"name\":{\"description\":\"technical Handle\"},\"pathLang\":\"jsonpath\",\"postPath\":\"$.entities[?(@.roles[0]=='technical')].handle\",\"reason\":{\"description\":\"Server policy\"}}]\n"
+            + "}";
+
+    // addresscreation_com(1).json — respuesta de addresscreation.com
+    // (entities: registrar, technical, registrant — redacted: technical first)
+    String normalResponse = "{\n"
+            + "\"entities\": [\n"
+            + "  {\"handle\":\"270\",\"objectClassName\":\"entity\",\"roles\":[\"registrar\"],\n"
+            + "   \"entities\":[{\"objectClassName\":\"entity\",\"roles\":[\"abuse\"],\"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Address Creation, LLC\"],[\"email\",{},\"text\",\"domain.operations@web.com\"],[\"tel\",{\"type\":\"voice\"},\"text\",\"+1.8777228662\"]]]}],\n"
+            + "   \"links\":[{\"href\":\"https://rdap.snapnames.com/rdap/\",\"rel\":\"about\",\"type\":\"text/html\",\"value\":\"https://rdap.snapnames.com/rdap/\"}],\n"
+            + "   \"publicIds\":[{\"identifier\":\"270\",\"type\":\"IANA Registrar ID\"}],\n"
+            + "   \"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Address Creation, LLC\"]]]},\n"
+            + "  {\"handle\":\" \",\"objectClassName\":\"entity\",\"roles\":[\"technical\"],\n"
+            + "   \"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"NewFold Digital, Inc.\"],[\"email\",{},\"text\",\"corpdomains@newfold.com\"],[\"tel\",{\"type\":\"voice\"},\"text\",\"+1.9046806600\"],[\"adr\",{},\"text\",[\"\",\"\",\"\",\"\",\"\",\"\",\"\"]]]]},\n"
+            + "  {\"handle\":\" \",\"objectClassName\":\"entity\",\"roles\":[\"registrant\"],\n"
+            + "   \"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"NewFold Digital, Inc.\"],[\"org\",{},\"text\",\"NewFold Digital, Inc.\"],[\"email\",{},\"text\",\"corpdomains@newfold.com\"],[\"tel\",{\"type\":\"voice\"},\"text\",\"+1.9046806600\"],[\"adr\",{\"cc\":\"US\"},\"text\",[\"\",\"\",\"5335 Gate Parkway\",\"Jacksonville\",\"FL\",\"32256\",\"\"]]]]}\n"
+            + "],\n"
+            + "\"objectClassName\":\"domain\",\"handle\":\"28766829_DOMAIN_COM-VRSN\",\"ldhName\":\"addresscreation.com.\",\n"
+            + "\"notices\":[{\"title\":\"Status Codes\",\"description\":[\"For more information on domain status codes, please visit https://icann.org/epp\"],\"links\":[{\"href\":\"https://icann.org/epp\",\"rel\":\"glossary\",\"type\":\"text/html\",\"value\":\"https://rdap.snapnames.com/rdap/domain/addresscreation.com\"}]}],\n"
+            + "\"redacted\":[{\"method\":\"removal\",\"name\":{\"description\":\"technical Handle\"},\"pathLang\":\"jsonpath\",\"postPath\":\"$.entities[?(@.roles[0]=='technical')].handle\",\"reason\":{\"description\":\"Server policy\"}},{\"method\":\"removal\",\"name\":{\"description\":\"registrant Handle\"},\"pathLang\":\"jsonpath\",\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].handle\",\"reason\":{\"description\":\"Server policy\"}}]\n"
+            + "}";
+
+    doReturn(URI.create("http://127.0.0.1:8080/domain/addresscreation.com.")).when(httpsResponse).uri();
+    givenUri("http", "/domain/addresscreation.com.");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(normalResponse).when(httpsResponse).body();
+
+    String caseFoldedPath = "/domain/aDdReSsCrEaTiOn.cOm.";
+    stubFor(get(urlEqualTo(caseFoldedPath))
+            .withScheme("http")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/rdap+json")
+                    .withBody(mixedCaseResponse)));
+
+    validateOk(results);
+  }
+
+  @Test
   public void testNrLdhLabel() {
     WireMockConfiguration wmConfig = wireMockConfig()
         .dynamicHttpsPort()
