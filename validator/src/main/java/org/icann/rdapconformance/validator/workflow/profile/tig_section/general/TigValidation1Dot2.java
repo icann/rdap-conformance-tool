@@ -114,10 +114,13 @@ public final class TigValidation1Dot2 extends ProfileValidation {
     /**
      * Use our comparator instead of in jCards.
      */
+    /**
+     * Use strict equality for vcardArray (jCard property order is significant)
+     * and order-independent comparison for all other fields.
+     */
     private int compareNested(String key, JsonNode n1, JsonNode n2) {
       if (key.equals("vcardArray")) {
-        // Use equals() first (fast path), fallback to comparator for re-serialization safety
-        return n1.equals(n2) ? 0 : jsonComparator.compare(n1, n2);
+        return n1.equals(n2) ? 0 : 1;
       }
       return jsonComparator.compare(n1, n2);
     }

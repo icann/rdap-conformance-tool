@@ -328,7 +328,7 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
   }
 
   @Test
-  public void testRDAPJsonComparator_WithUnorderedVCardArray_IsEqual()
+  public void testRDAPJsonComparator_WithUnorderedVCardArray_IsNotEqual()
       throws JsonProcessingException {
     String rdap1 = "{\n"
         + "  \"entities\": [\n"
@@ -368,6 +368,6 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
     ObjectMapper mapper = new ObjectMapper();
     Comparator<JsonNode> rdapJsonComparator = new RDAPJsonComparator();
     assertThat(rdapJsonComparator.compare(mapper.readTree(rdap1), mapper.readTree(rdap2)))
-        .isEqualTo(0);
+        .isEqualTo(1);
   }
 }

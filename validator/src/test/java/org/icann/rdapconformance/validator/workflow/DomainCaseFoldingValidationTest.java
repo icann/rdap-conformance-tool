@@ -116,7 +116,6 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
             .bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
-    // addresscreation_com_mixed.json — respuesta de aDdReSsCrEaTiOn.cOm
     // (entities: registrar, registrant, technical — redacted: registrant first)
     String mixedCaseResponse = "{\n"
             + "\"entities\": [\n"
@@ -135,7 +134,6 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
             + "\"redacted\":[{\"method\":\"removal\",\"name\":{\"description\":\"registrant Handle\"},\"pathLang\":\"jsonpath\",\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].handle\",\"reason\":{\"description\":\"Server policy\"}},{\"method\":\"removal\",\"name\":{\"description\":\"technical Handle\"},\"pathLang\":\"jsonpath\",\"postPath\":\"$.entities[?(@.roles[0]=='technical')].handle\",\"reason\":{\"description\":\"Server policy\"}}]\n"
             + "}";
 
-    // addresscreation_com(1).json — respuesta de addresscreation.com
     // (entities: registrar, technical, registrant — redacted: technical first)
     String normalResponse = "{\n"
             + "\"entities\": [\n"
