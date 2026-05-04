@@ -1,0 +1,19 @@
+{
+  "objectClassName": "domain",
+  "handle": "TEST-HANDLE",
+  "rdapConformance": ["rdap_level_0", "icann_rdap_response_profile_1"],
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "roles": ["registrant"],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Example Registrant"],
+          ["adr", {"cc": "US"}, "text", ["", "", "123 Main St", "Anytown", "CA", "12345", ""]]
+        ]
+      ]
+    }
+  ]
+}
