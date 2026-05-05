@@ -1012,8 +1012,14 @@ public class RDAPHttpRequest {
      */
     private static boolean isAnyResolvedAddressPrivate(QueryContext qctx, String host) {
         List<InetAddress> allAddresses = new ArrayList<>();
-        allAddresses.addAll(qctx.getDnsResolver().getAllV4Addresses(host));
-        allAddresses.addAll(qctx.getDnsResolver().getAllV6Addresses(host));
+        NetworkProtocol protocol = qctx.getNetworkProtocol();
+
+        // Only check the address family being used for this round
+        if (protocol == NetworkProtocol.IPv4) {
+            allAddresses.addAll(qctx.getDnsResolver().getAllV4Addresses(host));
+        } else {
+            allAddresses.addAll(qctx.getDnsResolver().getAllV6Addresses(host));
+        }
 
         for (InetAddress addr : allAddresses) {
             if (addr.isLoopbackAddress() ||
