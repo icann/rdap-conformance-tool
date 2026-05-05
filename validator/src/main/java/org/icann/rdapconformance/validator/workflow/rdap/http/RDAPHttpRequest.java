@@ -998,17 +998,23 @@ public class RDAPHttpRequest {
     }
 
     /**
-     * Checks if ANY resolved address for the given hostname (across both IPv4 and IPv6)
+     * Checks if any resolved address for the active address family of the given hostname
      * falls into a private/reserved range.
      *
-     * This cross-family check prevents SSRF bypass scenarios where a hostname resolves
-     * to both a private IPv4 (e.g., 10.x.x.x) and a public IPv6 address. An attacker
-     * (or internal test server) could exploit the IPv6 path to reach an otherwise
-     * blocked internal service.
+     * <p>This check prevents SSRF bypass scenarios where a hostname resolves to a
+     * private address on the currently active protocol (IPv4 or IPv6). Only the
+     * address family matching the active {@link NetworkProtocol} from the
+     * {@link QueryContext} is evaluated — IPv4 rounds check only IPv4 addresses,
+     * IPv6 rounds check only IPv6 addresses.</p>
      *
-     * @param qctx the QueryContext providing DNS resolver access
+     * <p>This design ensures that {@code --no-ipv4-queries} and {@code --no-ipv6-queries}
+     * flags are respected: a private address on the inactive protocol does not
+     * block connections on the active one.</p>
+     *
+     * @param qctx the QueryContext providing DNS resolver access and active protocol
      * @param host the hostname to check
-     * @return true if any resolved IP is private/reserved, false if all are public
+     * @return true if any resolved IP in the active address family is private/reserved,
+     *         false otherwise
      */
     private static boolean isAnyResolvedAddressPrivate(QueryContext qctx, String host) {
         List<InetAddress> allAddresses = new ArrayList<>();
@@ -1028,8 +1034,8 @@ public class RDAPHttpRequest {
                     addr.isAnyLocalAddress() ||
                     RDAPHttpQuery.isIPv6UniqueLocalAddress(addr) ||
                     AWS_GATEWAY_IP.equals(addr.getHostAddress())) {
-                logger.debug("Cross-family SSRF block triggered: {} has private address {}",
-                        host, addr.getHostAddress());
+                logger.debug("SSRF block triggered for active protocol {}: {} resolves to private address {}",
+                        protocol, host, addr.getHostAddress());
                 return true;
             }
         }
