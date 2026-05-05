@@ -58,6 +58,8 @@ import org.xbill.DNS.Record;
 public class DNSCacheResolver {
 
     private static final Logger logger = LoggerFactory.getLogger(DNSCacheResolver.class);
+    protected Map<String, List<InetAddress>> getCacheV4() { return cacheV4; }
+    protected Map<String, List<InetAddress>> getCacheV6() { return cacheV6; }
 
     // Instance-based caches for thread safety
     private final Map<String, List<InetAddress>> cacheV4 = new ConcurrentHashMap<>();

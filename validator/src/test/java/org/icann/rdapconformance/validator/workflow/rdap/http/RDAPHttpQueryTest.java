@@ -49,7 +49,6 @@ import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import org.icann.rdapconformance.validator.ConnectionStatus;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
