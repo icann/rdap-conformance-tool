@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidationTestBase {
 
-    static final String techHandlePointer = "2138514test";
+    static final String invalidTechHandleValue = "2138514test";
 
     public ResponseValidationTechHandle_2024Test() {
         super("/validators/profile/response_validations/entity/valid.json",
@@ -52,8 +52,8 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
     public void ResponseValidationTechHandle_2024_65700() {
         JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
         techEntity.put("handle", "2138514test"); // no dash → invalid
-        validate(-65700, techHandlePointer,
-                "The handle of the technical entity does not comply with with the format "
+        validate(-65700, invalidTechHandleValue,
+                "The handle of the technical entity does not comply with the format "
                         + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
     }
 

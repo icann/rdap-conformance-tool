@@ -65,7 +65,7 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
                     results.add(RDAPValidationResult.builder()
                             .code(-65700)
                             .value(handle)
-                            .message("The handle of the technical entity does not comply with with the format "
+                            .message("The handle of the technical entity does not comply with the format "
                                     + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.")
                             .build(queryContext));
                     isValid = false;
