@@ -1,15 +1,22 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity;
 
 import static org.mockito.Mockito.doReturn;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
+import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceTestMock;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidationTestBase {
 
@@ -46,7 +53,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
     }
 
     /**
-     * Test -65700: technical entity handle does NOT comply with RFC5730 pattern
+     * Test -65700: technical entity handle does NOT comply with RFC5730 pattern.
      */
     @Test
     public void ResponseValidationTechHandle_2024_65700() {
@@ -58,7 +65,33 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
     }
 
     /**
-     * Valid case: technical entity handle matches RFC5730 pattern → no error
+     * Test -65701: handle format is valid (passes RFC5730) but EPPROID is not registered.
+     */
+    @Test
+    public void ResponseValidationTechHandle_2024_65701() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.put("handle", "TESTTECH-INVALID8"); // valid format, bad EPPROID
+
+        // Custom dataset mock that marks "INVALID8" as an invalid EPPROID
+        RDAPDatasetServiceTestMock customDatasets = new RDAPDatasetServiceTestMock(Set.of("INVALID8"));
+        assertTrue(customDatasets.get(EPPRoid.class).isInvalid("INVALID8"));
+
+        QueryContext testContext = new QueryContext(
+                queryContext.getQueryId(),
+                queryContext.getConfig(),
+                customDatasets,
+                queryContext.getQuery(),
+                queryContext.getResults(),
+                RDAPQueryType.DOMAIN
+        );
+        testContext.setRdapResponseData(jsonObject.toString());
+
+        ResponseValidationTechHandle_2024 validator = new ResponseValidationTechHandle_2024(testContext);
+        assertFalse(validator.doValidate());
+    }
+
+    /**
+     * Valid case: handle matches RFC5730 and EPPROID is registered → no error.
      */
     @Test
     public void testValidTechHandle_passesValidation() {
@@ -68,7 +101,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
     }
 
     /**
-     * No technical entity present → skip, no error
+     * No technical entity present → skip, no error.
      */
     @Test
     public void testNoTechnicalEntity_skipsValidation() {
@@ -78,7 +111,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
     }
 
     /**
-     * Technical entity present but no handle → skip, no error (handle is optional)
+     * Technical entity present but no handle → skip, no error (handle is optional).
      */
     @Test
     public void testTechnicalEntityNoHandle_skipsValidation() {

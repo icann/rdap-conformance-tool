@@ -3,13 +3,17 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.entit
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
+
+import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 
 public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidation {
 
@@ -19,11 +23,13 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
     public static final String ENTITY_TECH_HANDLE_PATH = "$.entities[?(@.roles contains 'technical')].handle";
 
     private final RDAPQueryType queryType;
+    private final RDAPDatasetService datasetService;
     private final QueryContext queryContext;
 
     public ResponseValidationTechHandle_2024(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
         this.queryType = qctx.getQueryType();
+        this.datasetService = qctx.getDatasetService();
         this.queryContext = qctx;
     }
 
@@ -39,12 +45,10 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
 
     @Override
     public boolean doValidate() {
-        // No technical entity at top level — nothing to validate
         if (getPointerFromJPath(ENTITY_ROLE_PATH).isEmpty()) {
             return true;
         }
 
-        // No handle present — nothing to validate (handle is optional)
         if (getPointerFromJPath(ENTITY_TECH_HANDLE_PATH).isEmpty()) {
             return true;
         }
@@ -56,12 +60,13 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
             JSONObject entity = (JSONObject) jsonObject.query(jsonPointer);
 
             if (!entity.has("handle")) {
-                continue; // handle absent for this entity, skip
+                continue;
             }
 
             Object handleObj = entity.get("handle");
             if (handleObj instanceof String handle) {
                 if (!handle.matches(CommonUtils.HANDLE_PATTERN)) {
+                    // -65700: format does not comply with RFC5730
                     results.add(RDAPValidationResult.builder()
                             .code(-65700)
                             .value(handle)
@@ -69,6 +74,18 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
                                     + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.")
                             .build(queryContext));
                     isValid = false;
+                } else {
+                    // -65701: format is valid, now check EPPROID
+                    String roid = handle.substring(handle.indexOf(DASH) + 1);
+                    EPPRoid eppRoid = datasetService.get(EPPRoid.class);
+                    if (eppRoid.isInvalid(roid)) {
+                        results.add(RDAPValidationResult.builder()
+                                .code(-65701)
+                                .value(handle)
+                                .message("The globally unique identifier in the technical entity handle is not registered in EPPROID.")
+                                .build(queryContext));
+                        isValid = false;
+                    }
                 }
             }
         }
