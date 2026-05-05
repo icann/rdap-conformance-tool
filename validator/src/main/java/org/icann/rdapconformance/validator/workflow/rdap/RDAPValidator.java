@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot3_2024;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidationTechHandle_2024;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -254,6 +255,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation2Dot9Dot1And2Dot9Dot2_2024(queryContext));
         validations.add(new ResponseValidation4Dot1Handle_2024(queryContext));
         validations.add(new ResponseValidationRegistrantHandle_2024(queryContext));
+        validations.add(new ResponseValidationTechHandle_2024(queryContext));
         validations.add(new ResponseValidationLinkElements_2024(queryContext));
         validations.add(new ResponseValidation2Dot7Dot2_2024(queryContext));
         validations.add(new ResponseValidation2Dot7Dot4Dot1_2024(queryContext));
