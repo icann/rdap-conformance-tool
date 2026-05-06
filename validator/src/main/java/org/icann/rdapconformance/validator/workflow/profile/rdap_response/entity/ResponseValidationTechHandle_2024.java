@@ -23,6 +23,7 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
     public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'technical')]";
     public static final String ENTITY_TECH_HANDLE_PATH = "$.entities[?(@.roles contains 'technical')].handle";
     private static final String REDACTED_PATH = "$.redacted[*]";
+    public static final String REGISTRY_TECH_ID = "Registry Tech ID";
 
     private Set<String> redactedPointersValue = null;
     private final RDAPQueryType queryType;
@@ -118,7 +119,7 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
             try {
                 var nameValue = name.get("type");
                 if (nameValue instanceof String redactedName) {
-                    if (redactedName.trim().equalsIgnoreCase("Registry Tech ID")) {
+                    if (redactedName.trim().equalsIgnoreCase(REGISTRY_TECH_ID)) {
                         redactedTechId = redacted;
                         break;
                     }
