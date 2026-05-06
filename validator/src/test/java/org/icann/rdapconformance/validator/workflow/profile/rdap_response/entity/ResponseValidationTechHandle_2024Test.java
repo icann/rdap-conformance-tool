@@ -1,17 +1,19 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceTestMock;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -65,32 +67,6 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
     }
 
     /**
-     * Test -65701: handle format is valid (passes RFC5730) but EPPROID is not registered.
-     */
-    @Test
-    public void ResponseValidationTechHandle_2024_65701() {
-        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
-        techEntity.put("handle", "TESTTECH-INVALID8"); // valid format, bad EPPROID
-
-        // Custom dataset mock that marks "INVALID8" as an invalid EPPROID
-        RDAPDatasetServiceTestMock customDatasets = new RDAPDatasetServiceTestMock(Set.of("INVALID8"));
-        assertTrue(customDatasets.get(EPPRoid.class).isInvalid("INVALID8"));
-
-        QueryContext testContext = new QueryContext(
-                queryContext.getQueryId(),
-                queryContext.getConfig(),
-                customDatasets,
-                queryContext.getQuery(),
-                queryContext.getResults(),
-                RDAPQueryType.DOMAIN
-        );
-        testContext.setRdapResponseData(jsonObject.toString());
-
-        ResponseValidationTechHandle_2024 validator = new ResponseValidationTechHandle_2024(testContext);
-        assertFalse(validator.doValidate());
-    }
-
-    /**
      * Valid case: handle matches RFC5730 and EPPROID is registered → no error.
      */
     @Test
@@ -118,5 +94,44 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
         JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
         techEntity.remove("handle");
         validate();
+    }
+
+    /**
+     * Test -65701: handle format is valid (passes RFC5730) but EPPROID is not registered.
+     */
+    @Test
+    public void ResponseValidationTechHandle_2024_65701() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.put("handle", "TESTTECH-INVALID8"); // valid RFC5730 format, unregistered EPPROID
+
+        // Custom dataset mock that marks "INVALID8" as an invalid EPPROID
+        RDAPDatasetServiceTestMock customDatasets = new RDAPDatasetServiceTestMock(Set.of("INVALID8"));
+
+        // Build a QueryContext with the custom dataset but sharing the same results mock,
+        // so that validateNotOk() can capture and assert the exact -65701 result produced.
+        QueryContext testContext = new QueryContext(
+                queryContext.getQueryId(),
+                queryContext.getConfig(),
+                customDatasets,
+                queryContext.getQuery(),
+                queryContext.getResults(),
+                RDAPQueryType.DOMAIN
+        );
+        testContext.setRdapResponseData(jsonObject.toString());
+
+        // Override getProfileValidation() result inline via the validate helper
+        // by temporarily replacing the queryContext used by the base class.
+        ArgumentCaptor<RDAPValidationResult> captor = ArgumentCaptor.forClass(RDAPValidationResult.class);
+        ResponseValidationTechHandle_2024 validator = new ResponseValidationTechHandle_2024(testContext);
+
+        assertFalse(validator.validate());
+        verify(results).add(captor.capture());
+        RDAPValidationResult result = captor.getValue();
+        assertThat(result)
+                .hasFieldOrPropertyWithValue("code", -65701)
+                .hasFieldOrPropertyWithValue("value", "TESTTECH-INVALID8")
+                .hasFieldOrPropertyWithValue("message",
+                        "The globally unique identifier in the technical entity handle is not registered in EPPROID.");
+        verify(results).addGroupErrorWarning(validator.getGroupName());
     }
 }
