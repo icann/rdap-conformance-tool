@@ -134,4 +134,44 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
                         "The globally unique identifier in the technical entity handle is not registered in EPPROID.");
         verify(results).addGroupErrorWarning(validator.getGroupName());
     }
+
+    /**
+     * Test -65702: handle is present AND a "Registry Tech ID" redaction exists — contradiction.
+     */
+    @Test
+    public void testHandlePresentAndRedactedRegistryTechIdPresent_ShouldTrigger65702() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.put("handle", "TECH1-IANA"); // valid handle, present
+
+        // Add a "Registry Tech ID" redaction entry to the redacted array
+        JSONObject redactedTechId = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redactedTechId.put("name", name);
+        redactedTechId.put("method", "removal");
+        redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
+        jsonObject.getJSONArray("redacted").put(redactedTechId);
+
+        validate(-65702, getResultValueFromRedactedPointers(),
+                "a redaction of type Registry Tech ID was found but the registrant handle was not redacted.");
+    }
+
+    /**
+     * Handle present, no "Registry Tech ID" redaction → no -65702.
+     */
+    @Test
+    public void testHandlePresentAndNoRedactedRegistryTechId_ShouldNotTrigger65702() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.put("handle", "TECH1-IANA");
+        // redacted array in valid.json has no "Registry Tech ID" entry
+        validate();
+    }
+
+    // Helper — mirrors the one in ResponseValidationRegistrantHandle_2024Test
+    private String getResultValueFromRedactedPointers() {
+        // The redacted entry added in the test is the last one in the array
+        JSONArray redacted = jsonObject.getJSONArray("redacted");
+        int lastIndex = redacted.length() - 1;
+        return "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registry Tech ID\"}}";
+    }
 }

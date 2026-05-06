@@ -163,6 +163,12 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
           }
         }
       } catch (Exception e) {
+        // FIXED: Don't fail immediately when encountering an exception
+        // Real-world redacted arrays contain mixed objects:
+        // - Some have name.type (e.g., "Registry Registrant ID", "Registrant Phone")
+        // - Some have name.description (e.g., "Administrative Contact", "Technical Contact")
+        // - The exception occurs when trying to extract "type" from objects that only have "description"
+        // We should skip these objects and continue searching, not fail the entire validation
         logger.debug("Redacted object at {} does not have extractable type property, skipping: {}",
                 redactedJsonPointer, e.getMessage());
       }
@@ -176,6 +182,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
       return true;
     }
 
+    // If the pathLang property is either absent or is present as a JSON string of “jsonpath” verify prePath
     try {
       logger.info("Extracting pathLang...");
       Object pathLangValue = redactedHandleName.get("pathLang");
@@ -191,6 +198,7 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
     }
   }
 
+  // Verify that the prePath property is either absent or is present with a valid JSONPath expression.
   public boolean validatePostPathBasedOnPathLang(JSONObject redactedRegistrantName) {
     if (Objects.isNull(redactedRegistrantName)) {
       logger.info("redactedRegistrantName object for postPath validations is null");
@@ -246,8 +254,13 @@ public final class ResponseValidationRegistrantHandle_2024 extends ProfileJsonVa
     return true;
   }
 
+  /**
+   * Extracts the domain name from the RDAP response.
+   * @return Domain name (ldhName or unicodeName), or null if not found
+   */
   private String getDomainName() {
     try {
+      // Try ldhName first, then unicodeName as fallback
       if (jsonObject.has("ldhName")) {
         return jsonObject.getString("ldhName");
       }
