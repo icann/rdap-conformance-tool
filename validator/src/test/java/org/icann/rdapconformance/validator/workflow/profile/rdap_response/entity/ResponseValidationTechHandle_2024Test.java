@@ -153,7 +153,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
         jsonObject.getJSONArray("redacted").put(redactedTechId);
 
         validate(-65702, getResultValueFromRedactedPointers(),
-                "a redaction of type Registry Tech ID was found but the registrant handle was not redacted.");
+                "a redaction of type Registry Tech ID was found but the technical handle was not redacted.");
     }
 
     /**
@@ -169,9 +169,12 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
 
     // Helper — mirrors the one in ResponseValidationRegistrantHandle_2024Test
     private String getResultValueFromRedactedPointers() {
-        // The redacted entry added in the test is the last one in the array
         JSONArray redacted = jsonObject.getJSONArray("redacted");
-        int lastIndex = redacted.length() - 1;
-        return "#/redacted/0:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"emptyValue\",\"name\":{\"type\":\"Registrant Name\"},\"postPath\":\"$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]\",\"pathLang\":\"jsonpath\"}, #/redacted/1:{\"reason\":{\"description\":\"Server policy\"},\"method\":\"removal\",\"name\":{\"type\":\"Registry Tech ID\"}}";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < redacted.length(); i++) {
+            if (i > 0) sb.append(", ");
+            sb.append("#/redacted/").append(i).append(":").append(redacted.getJSONObject(i).toString());
+        }
+        return sb.toString();
     }
 }

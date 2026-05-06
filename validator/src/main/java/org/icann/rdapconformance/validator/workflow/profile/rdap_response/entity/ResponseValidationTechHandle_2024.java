@@ -102,7 +102,7 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
             results.add(RDAPValidationResult.builder()
                     .code(-65702)
                     .value(getResultValue(redactedPointersValue))
-                    .message("a redaction of type Registry Tech ID was found but the registrant handle was not redacted.")
+                    .message("a redaction of type Registry Tech ID was found but the technical handle was not redacted.")
                     .build(queryContext));
             isValid = false;
         }
@@ -114,10 +114,14 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
         JSONObject redactedTechId = null;
         redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
         for (String redactedJsonPointer : redactedPointersValue) {
-            JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
-            JSONObject name = (JSONObject) redacted.get("name");
             try {
-                var nameValue = name.get("type");
+                JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
+                JSONObject name = redacted.optJSONObject("name");
+                if (name == null) {
+                    logger.debug("Redacted object at {} has no 'name' object, skipping", redactedJsonPointer);
+                    continue;
+                }
+                var nameValue = name.opt("type");
                 if (nameValue instanceof String redactedName) {
                     if (redactedName.trim().equalsIgnoreCase(REGISTRY_TECH_ID)) {
                         redactedTechId = redacted;
@@ -125,7 +129,7 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
                     }
                 }
             } catch (Exception e) {
-                logger.debug("Redacted object at {} does not have extractable type property, skipping: {}",
+                logger.debug("Redacted object at {} is malformed, skipping: {}",
                         redactedJsonPointer, e.getMessage());
             }
         }
