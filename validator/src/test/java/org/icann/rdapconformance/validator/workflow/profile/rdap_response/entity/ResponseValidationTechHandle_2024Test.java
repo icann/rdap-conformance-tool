@@ -87,16 +87,6 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
     }
 
     /**
-     * Technical entity present but no handle → skip, no error (handle is optional).
-     */
-    @Test
-    public void testTechnicalEntityNoHandle_skipsValidation() {
-        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
-        techEntity.remove("handle");
-        validate();
-    }
-
-    /**
      * Test -65701: handle format is valid (passes RFC5730) but EPPROID is not registered.
      */
     @Test
@@ -164,6 +154,39 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
         JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
         techEntity.put("handle", "TECH1-IANA");
         // redacted array in valid.json has no "Registry Tech ID" entry
+        validate();
+    }
+
+    /**
+     * Test -65703: no handle present AND no "Registry Tech ID" redaction → error required.
+     */
+    @Test
+    public void ResponseValidationTechHandle_2024_65703() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle"); // no handle present
+
+        // valid.json redacted array has no "Registry Tech ID" entry
+        validate(-65703, getResultValueFromRedactedPointers(),
+                "a redaction of type Registry Tech ID is required.");
+    }
+
+    /**
+     * No handle present but "Registry Tech ID" redaction exists → no -65703, passes.
+     */
+    @Test
+    public void testNoHandleWithRegistryTechIdRedaction_skips65703() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle"); // no handle
+
+        // Add the required "Registry Tech ID" redaction
+        JSONObject redactedTechId = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redactedTechId.put("name", name);
+        redactedTechId.put("method", "removal");
+        redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
+        jsonObject.getJSONArray("redacted").put(redactedTechId);
+
         validate();
     }
 
