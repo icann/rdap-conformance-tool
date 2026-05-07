@@ -124,6 +124,43 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
             return false;
         }
 
+        return validateRedactedProperties(redactedTechId);
+    }
+
+    private boolean validateRedactedProperties(JSONObject redactedTechId) {
+        // If pathLang is absent or is "jsonpath", verify prePath
+        try {
+            Object pathLangValue = redactedTechId.get("pathLang");
+            if (pathLangValue instanceof String pathLang) {
+                if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
+                    return validatePrePath(redactedTechId);
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            // pathLang is absent — still need to validate prePath
+            logger.debug("pathLang is not found due to {}", e.getMessage());
+            return validatePrePath(redactedTechId);
+        }
+    }
+
+    private boolean validatePrePath(JSONObject redactedTechId) {
+        try {
+            var prePathValue = redactedTechId.get("prePath");
+            if (prePathValue instanceof String prePath) {
+                if (!isValidJsonPath(prePath)) {
+                    results.add(RDAPValidationResult.builder()
+                            .code(-65704)
+                            .value(redactedTechId.toString())
+                            .message("jsonpath is invalid for Registry Tech ID")
+                            .build(queryContext));
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            // prePath is absent — no validation required
+            logger.debug("prePath property is not found, no validations defined. Error: {}", e.getMessage());
+        }
         return true;
     }
 
