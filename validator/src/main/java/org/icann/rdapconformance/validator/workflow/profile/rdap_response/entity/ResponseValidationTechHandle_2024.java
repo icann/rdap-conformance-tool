@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Set;
 
 import static org.icann.rdapconformance.validator.CommonUtils.DASH;
@@ -21,7 +22,10 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
 
     public static final String ENTITY_ROLE_PATH = "$.entities[?(@.roles contains 'technical')]";
     public static final String ENTITY_TECH_HANDLE_PATH = "$.entities[?(@.roles contains 'technical')].handle";
+    private static final String REDACTED_PATH = "$.redacted[*]";
+    public static final String REGISTRY_TECH_ID = "Registry Tech ID";
 
+    private Set<String> redactedPointersValue = null;
     private final RDAPQueryType queryType;
     private final RDAPDatasetService datasetService;
     private final QueryContext queryContext;
@@ -56,6 +60,9 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
         boolean isValid = true;
         Set<String> entityPointers = getPointerFromJPath(ENTITY_ROLE_PATH);
 
+        // Retrieve EPPRoid dataset once before the loop — it is invariant across iterations
+        EPPRoid eppRoid = datasetService.get(EPPRoid.class);
+
         for (String jsonPointer : entityPointers) {
             JSONObject entity = (JSONObject) jsonObject.query(jsonPointer);
 
@@ -77,7 +84,6 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
                 } else {
                     // -65701: format is valid, now check EPPROID
                     String roid = handle.substring(handle.indexOf(DASH) + 1);
-                    EPPRoid eppRoid = datasetService.get(EPPRoid.class);
                     if (eppRoid.isInvalid(roid)) {
                         results.add(RDAPValidationResult.builder()
                                 .code(-65701)
@@ -90,6 +96,43 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
             }
         }
 
+        // -65702: handle is present but a "Registry Tech ID" redaction also exists
+        JSONObject redactedTechId = extractRedactedTechId();
+        if (Objects.nonNull(redactedTechId)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-65702)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registry Tech ID was found but the technical handle was not redacted.")
+                    .build(queryContext));
+            isValid = false;
+        }
+
         return isValid;
+    }
+
+    private JSONObject extractRedactedTechId() {
+        JSONObject redactedTechId = null;
+        redactedPointersValue = getPointerFromJPath(REDACTED_PATH);
+        for (String redactedJsonPointer : redactedPointersValue) {
+            try {
+                JSONObject redacted = (JSONObject) jsonObject.query(redactedJsonPointer);
+                JSONObject name = redacted.optJSONObject("name");
+                if (name == null) {
+                    logger.debug("Redacted object at {} has no 'name' object, skipping", redactedJsonPointer);
+                    continue;
+                }
+                var nameValue = name.opt("type");
+                if (nameValue instanceof String redactedName) {
+                    if (redactedName.trim().equalsIgnoreCase(REGISTRY_TECH_ID)) {
+                        redactedTechId = redacted;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Redacted object at {} is malformed, skipping: {}",
+                        redactedJsonPointer, e.getMessage());
+            }
+        }
+        return redactedTechId;
     }
 }
