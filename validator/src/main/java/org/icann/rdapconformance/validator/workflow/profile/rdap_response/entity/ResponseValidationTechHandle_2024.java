@@ -145,22 +145,33 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
     }
 
     private boolean validatePrePath(JSONObject redactedTechId) {
-        try {
-            var prePathValue = redactedTechId.get("prePath");
-            if (prePathValue instanceof String prePath) {
-                if (!isValidJsonPath(prePath)) {
-                    results.add(RDAPValidationResult.builder()
-                            .code(-65704)
-                            .value(redactedTechId.toString())
-                            .message("jsonpath is invalid for Registry Tech ID")
-                            .build(queryContext));
-                    return false;
-                }
-            }
-        } catch (Exception e) {
+        if (!redactedTechId.has("prePath")) {
             // prePath is absent — no validation required
-            logger.debug("prePath property is not found, no validations defined. Error: {}", e.getMessage());
+            return true;
         }
+
+        Object prePathValue = redactedTechId.get("prePath");
+
+        // prePath is present but not a String — cannot be a valid JSONPath expression
+        if (!(prePathValue instanceof String prePath)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-65704)
+                    .value(redactedTechId.toString())
+                    .message("jsonpath is invalid for Registry Tech ID")
+                    .build(queryContext));
+            return false;
+        }
+
+        // prePath is a String — verify it is a valid JSONPath expression
+        if (!isValidJsonPath(prePath)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-65704)
+                    .value(redactedTechId.toString())
+                    .message("jsonpath is invalid for Registry Tech ID")
+                    .build(queryContext));
+            return false;
+        }
+
         return true;
     }
 

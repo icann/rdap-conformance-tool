@@ -60,7 +60,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
     @Test
     public void ResponseValidationTechHandle_2024_65700() {
         JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
-        techEntity.put("handle", "2138514test"); // no dash → invalid
+        techEntity.put("handle", "2138514test"); // no dash, does not match RFC5730 pattern
         validate(-65700, invalidTechHandleValue,
                 "The handle of the technical entity does not comply with the format "
                         + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
@@ -204,7 +204,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
         redactedTechId.put("name", name);
         redactedTechId.put("method", "removal");
         redactedTechId.put("pathLang", "jsonpath");
-        redactedTechId.put("prePath", "$.[");  // ← definitivamente inválido según JpathUtilTest
+        redactedTechId.put("prePath", "$.[");  // definitively invalid per JpathUtilTest
         redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
         jsonObject.getJSONArray("redacted").put(redactedTechId);
 
@@ -251,7 +251,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
         name.put("type", "Registry Tech ID");
         redactedTechId.put("name", name);
         redactedTechId.put("method", "removal");
-        redactedTechId.put("prePath", "$.[");  // ← definitivamente inválido
+        redactedTechId.put("prePath", "$.[");  // definitively invalid per JpathUtilTest
         redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
         jsonObject.getJSONArray("redacted").put(redactedTechId);
 
