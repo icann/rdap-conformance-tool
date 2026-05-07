@@ -53,8 +53,10 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
             return true;
         }
 
+        // -65703: no handle present — verify the required redaction exists
         if (getPointerFromJPath(ENTITY_TECH_HANDLE_PATH).isEmpty()) {
-            return true;
+            logger.info("Handle is NOT in the technical entity, verifying redacted array");
+            return validateRedactedArrayForHandle();
         }
 
         boolean isValid = true;
@@ -108,6 +110,21 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
         }
 
         return isValid;
+    }
+
+    private boolean validateRedactedArrayForHandle() {
+        JSONObject redactedTechId = extractRedactedTechId();
+
+        if (Objects.isNull(redactedTechId)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-65703)
+                    .value(getResultValue(redactedPointersValue))
+                    .message("a redaction of type Registry Tech ID is required.")
+                    .build(queryContext));
+            return false;
+        }
+
+        return true;
     }
 
     private JSONObject extractRedactedTechId() {
