@@ -60,7 +60,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
     @Test
     public void ResponseValidationTechHandle_2024_65700() {
         JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
-        techEntity.put("handle", "2138514test"); // no dash → invalid
+        techEntity.put("handle", "2138514test"); // no dash, does not match RFC5730 pattern
         validate(-65700, invalidTechHandleValue,
                 "The handle of the technical entity does not comply with the format "
                         + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
@@ -184,6 +184,101 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
         name.put("type", "Registry Tech ID");
         redactedTechId.put("name", name);
         redactedTechId.put("method", "removal");
+        redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
+        jsonObject.getJSONArray("redacted").put(redactedTechId);
+
+        validate();
+    }
+
+    /**
+     * Test -65704: no handle, redaction present with pathLang "jsonpath" and invalid prePath.
+     */
+    @Test
+    public void ResponseValidationTechHandle_2024_65704() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle");
+
+        JSONObject redactedTechId = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redactedTechId.put("name", name);
+        redactedTechId.put("method", "removal");
+        redactedTechId.put("pathLang", "jsonpath");
+        redactedTechId.put("prePath", "$.[");  // definitively invalid per JpathUtilTest
+        redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
+        jsonObject.getJSONArray("redacted").put(redactedTechId);
+
+        int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
+        String expectedValue = jsonObject.getJSONArray("redacted")
+                .getJSONObject(insertedIndex)
+                .toString();
+
+        validate(-65704, expectedValue,
+                "jsonpath is invalid for Registry Tech ID");
+    }
+
+    /**
+     * No handle, redaction present with pathLang "jsonpath" and valid prePath → no error.
+     */
+    @Test
+    public void testNoHandleRedactionWithValidPrePath_passes() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle");
+
+        JSONObject redactedTechId = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redactedTechId.put("name", name);
+        redactedTechId.put("method", "removal");
+        redactedTechId.put("pathLang", "jsonpath");
+        redactedTechId.put("prePath", "$.entities[?(@.roles[0]=='technical')].handle"); // valid JSONPath
+        redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
+        jsonObject.getJSONArray("redacted").put(redactedTechId);
+
+        validate();
+    }
+
+    /**
+     * No handle, redaction present with pathLang absent and invalid prePath → -65704.
+     */
+    @Test
+    public void testNoHandleRedactionNoPathLangInvalidPrePath_triggers65704() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle");
+
+        JSONObject redactedTechId = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redactedTechId.put("name", name);
+        redactedTechId.put("method", "removal");
+        redactedTechId.put("prePath", "$.[");  // definitively invalid per JpathUtilTest
+        redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
+        jsonObject.getJSONArray("redacted").put(redactedTechId);
+
+        int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
+        String expectedValue = jsonObject.getJSONArray("redacted")
+                .getJSONObject(insertedIndex)
+                .toString();
+
+        validate(-65704, expectedValue,
+                "jsonpath is invalid for Registry Tech ID");
+    }
+
+    /**
+     * No handle, redaction present, prePath absent → no -65704 (prePath is optional).
+     */
+    @Test
+    public void testNoHandleRedactionNoPrePath_passes() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle");
+
+        JSONObject redactedTechId = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redactedTechId.put("name", name);
+        redactedTechId.put("method", "removal");
+        redactedTechId.put("pathLang", "jsonpath");
+        // no prePath — optional, should pass
         redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
         jsonObject.getJSONArray("redacted").put(redactedTechId);
 

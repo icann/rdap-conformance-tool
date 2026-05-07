@@ -124,6 +124,54 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
             return false;
         }
 
+        return validateRedactedProperties(redactedTechId);
+    }
+
+    private boolean validateRedactedProperties(JSONObject redactedTechId) {
+        // If pathLang is absent or is "jsonpath", verify prePath
+        try {
+            Object pathLangValue = redactedTechId.get("pathLang");
+            if (pathLangValue instanceof String pathLang) {
+                if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
+                    return validatePrePath(redactedTechId);
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            // pathLang is absent — still need to validate prePath
+            logger.debug("pathLang is not found due to {}", e.getMessage());
+            return validatePrePath(redactedTechId);
+        }
+    }
+
+    private boolean validatePrePath(JSONObject redactedTechId) {
+        if (!redactedTechId.has("prePath")) {
+            // prePath is absent — no validation required
+            return true;
+        }
+
+        Object prePathValue = redactedTechId.get("prePath");
+
+        // prePath is present but not a String — cannot be a valid JSONPath expression
+        if (!(prePathValue instanceof String prePath)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-65704)
+                    .value(redactedTechId.toString())
+                    .message("jsonpath is invalid for Registry Tech ID")
+                    .build(queryContext));
+            return false;
+        }
+
+        // prePath is a String — verify it is a valid JSONPath expression
+        if (!isValidJsonPath(prePath)) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-65704)
+                    .value(redactedTechId.toString())
+                    .message("jsonpath is invalid for Registry Tech ID")
+                    .build(queryContext));
+            return false;
+        }
+
         return true;
     }
 
