@@ -172,6 +172,17 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
             return false;
         }
 
+        // -65705: valid JSONPath expression must evaluate to an empty set
+        var prePathPointer = getPointerFromJPath(prePath);
+        if (prePathPointer != null && !prePathPointer.isEmpty()) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-65705)
+                    .value(redactedTechId.toString())
+                    .message("jsonpath must evaluate to a zero set for redaction removal of Registry Tech ID.")
+                    .build(queryContext));
+            return false;
+        }
+
         return true;
     }
 
