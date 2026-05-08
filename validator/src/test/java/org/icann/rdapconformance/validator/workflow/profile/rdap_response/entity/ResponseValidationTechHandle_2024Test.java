@@ -217,9 +217,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
                 "jsonpath is invalid for Registry Tech ID");
     }
 
-    /**
-     * No handle, redaction present with pathLang "jsonpath" and valid prePath → no error.
-     */
+    /** * No handle, redaction present with pathLang "jsonpath" and valid prePath -> no error. */
     @Test
     public void testNoHandleRedactionWithValidPrePath_passes() {
         JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
@@ -231,7 +229,8 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
         redactedTechId.put("name", name);
         redactedTechId.put("method", "removal");
         redactedTechId.put("pathLang", "jsonpath");
-        redactedTechId.put("prePath", "$.entities[?(@.roles[0]=='technical')].handle"); // valid JSONPath
+        // reuse the same filter used by the validator — order-independent roles check
+        redactedTechId.put("prePath", "$.entities[?(@.roles contains 'technical')].handle");
         redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
         jsonObject.getJSONArray("redacted").put(redactedTechId);
 
@@ -283,6 +282,82 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
         jsonObject.getJSONArray("redacted").put(redactedTechId);
 
         validate();
+    }
+
+    /**
+     * Test -65705: no handle, redaction present, prePath is valid JSONPath but evaluates
+     * to a non-empty set (field still exists in the response) -> -65705.
+     */
+    @Test
+    public void ResponseValidationTechHandle_2024_65705() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle"); // no handle
+
+        JSONObject redactedTechId = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redactedTechId.put("name", name);
+        redactedTechId.put("method", "removal");
+        redactedTechId.put("pathLang", "jsonpath");
+        // "objectClassName" is always present in entity objects — guaranteed non-empty set
+        redactedTechId.put("prePath", "$.entities[1].objectClassName");
+        redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
+        jsonObject.getJSONArray("redacted").put(redactedTechId);
+
+        int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
+        String expectedValue = jsonObject.getJSONArray("redacted")
+                .getJSONObject(insertedIndex)
+                .toString();
+
+        validate(-65705, expectedValue,
+                "jsonpath must evaluate to a zero set for redaction removal of Registry Tech ID.");
+    }
+
+    /** * No handle, redaction present, valid prePath evaluates to empty set -> no -65705. */
+    @Test
+    public void testNoHandleRedactionPrePathEmptySet_passes() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle"); // handle removed, so path evaluates to empty set
+
+        JSONObject redactedTechId = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redactedTechId.put("name", name);
+        redactedTechId.put("method", "removal");
+        redactedTechId.put("pathLang", "jsonpath");
+        // reuse the same filter used by the validator — order-independent roles check
+        redactedTechId.put("prePath", "$.entities[?(@.roles contains 'technical')].handle");
+        redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
+        jsonObject.getJSONArray("redacted").put(redactedTechId);
+
+        validate();
+    }
+
+    /**
+     * No handle, redaction present, pathLang absent, valid prePath evaluates to non-empty set -> -65705.
+     */
+    @Test
+    public void testNoHandleRedactionNoPathLangPrePathNonEmpty_triggers65705() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle");
+
+        JSONObject redactedTechId = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redactedTechId.put("name", name);
+        redactedTechId.put("method", "removal");
+        // no pathLang — spec says absent pathLang also triggers prePath validation
+        redactedTechId.put("prePath", "$.entities[1].objectClassName"); // non-empty set
+        redactedTechId.put("reason", new JSONObject().put("description", "Server policy"));
+        jsonObject.getJSONArray("redacted").put(redactedTechId);
+
+        int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
+        String expectedValue = jsonObject.getJSONArray("redacted")
+                .getJSONObject(insertedIndex)
+                .toString();
+
+        validate(-65705, expectedValue,
+                "jsonpath must evaluate to a zero set for redaction removal of Registry Tech ID.");
     }
 
     // Helper — mirrors the one in ResponseValidationRegistrantHandle_2024Test
