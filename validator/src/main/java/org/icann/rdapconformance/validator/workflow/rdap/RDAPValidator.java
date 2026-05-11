@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot3_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidationTechHandle_2024;
+import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,8 +25,6 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.genera
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.*;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.vcard.ResponseValidationTechEmail_2024;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot5_2024;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation3Dot3And3Dot4_2024;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2_2024;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest.SimpleHttpResponse;
 import org.icann.rdapconformance.validator.SchemaValidator;
@@ -41,13 +40,6 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.namese
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Query;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot3;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot13;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot3_2024;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot6;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot8;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation4Dot1;
-import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation7Dot1And7Dot2;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation1Dot11Dot1;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.registry.TigValidation3Dot2;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQuery;
@@ -238,6 +230,7 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         // 2024 specific validations
         validations.add(new TigValidation1Dot3_2024(queryContext));
+        validations.add(new TigValidation1Dot3Dot1_2024(queryContext));
         validations.add(new ResponseValidationObsoleteProfile_2024(queryContext));
         validations.add(new ResponseValidation1Dot2_1_2024(queryContext));
         validations.add(new ResponseValidation1Dot2_2_2024(queryContext));
