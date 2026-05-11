@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot3_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidationTechHandle_2024;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationObsoleteProfile_2024;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -238,6 +239,7 @@ public class RDAPValidator implements ValidatorWorkflow {
 
         // 2024 specific validations
         validations.add(new TigValidation1Dot3_2024(queryContext));
+        validations.add(new ResponseValidationObsoleteProfile_2024(queryContext));
         validations.add(new ResponseValidation1Dot2_1_2024(queryContext));
         validations.add(new ResponseValidation1Dot2_2_2024(queryContext));
         validations.add(new ResponseValidation1Dot2_4_2024(queryContext));
