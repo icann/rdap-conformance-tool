@@ -37,7 +37,7 @@ public class TigValidation1Dot3Dot1_2024Test extends ProfileJsonValidationTestBa
      * Test -61001: rdapConformance contains the obsolete value -> error.
      */
     @Test
-    public void TigValidation1Dot3Dot1_2024_61001() {
+    public void tigValidation1Dot3Dot1_2024_61001() {
         // valid.json already contains icann_rdap_technical_implementation_guide_0 — no changes needed
         validate(-61001,
                 "#/rdapConformance:[\"rdap_level_0\",\"icann_rdap_technical_implementation_guide_0\",\"icann_rdap_response_profile_0\"]",
