@@ -39,7 +39,7 @@ public class ResponseValidationObsoleteProfile_2024 extends ProfileJsonValidatio
                 results.add(RDAPValidationResult.builder()
                         .code(-62002)
                         .value(getResultValue(JSON_POINTER))
-                        .message("The RDAP Conformance data structure includes icann_rdap_response_profile_0, which is obsolete.")
+                        .message("The RDAP Conformance data structure includes " + FORBIDDEN_VALUE + ", which is obsolete.")
                         .build(queryContext));
                 return false;
             }
