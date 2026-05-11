@@ -231,6 +231,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         // 2024 specific validations
         validations.add(new TigValidation1Dot3_2024(queryContext));
         validations.add(new TigValidation1Dot3Dot1_2024(queryContext));
+        validations.add(new ResponseValidationObsoleteProfile_2024(queryContext));
         validations.add(new ResponseValidation1Dot2_1_2024(queryContext));
         validations.add(new ResponseValidation1Dot2_2_2024(queryContext));
         validations.add(new ResponseValidation1Dot2_4_2024(queryContext));
