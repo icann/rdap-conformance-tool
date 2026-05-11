@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot5Dot3_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.entity.ResponseValidationTechHandle_2024;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationObsoleteProfile_2024;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

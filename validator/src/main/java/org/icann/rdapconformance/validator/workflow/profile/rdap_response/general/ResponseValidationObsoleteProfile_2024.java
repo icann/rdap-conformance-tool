@@ -30,7 +30,7 @@ public class ResponseValidationObsoleteProfile_2024 extends ProfileJsonValidatio
         JSONArray rdapConformance = jsonObject.optJSONArray("rdapConformance");
 
         if (rdapConformance == null) {
-            logger.info("The rdapConformance array is missing or null, skipping -62002 check.");
+            logger.debug("The rdapConformance array is missing or null, skipping -62002 check.");
             return true;
         }
 

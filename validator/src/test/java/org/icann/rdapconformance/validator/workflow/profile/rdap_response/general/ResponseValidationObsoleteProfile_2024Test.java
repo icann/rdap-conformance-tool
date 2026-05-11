@@ -2,7 +2,6 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationObsoleteProfile_2024;
 import org.testng.annotations.Test;
 
 import java.util.List;
