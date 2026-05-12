@@ -15,6 +15,10 @@
     },
     {
       "code": -13020
+    },
+    {
+      "code": -65800,
+      "notes": "A redaction object with a description of Registry Domain ID exists."
     }
   ],
   "definitionIgnore": [
