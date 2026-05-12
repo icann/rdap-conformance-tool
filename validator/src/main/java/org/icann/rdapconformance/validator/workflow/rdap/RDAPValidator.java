@@ -250,6 +250,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation4Dot1Handle_2024(queryContext));
         validations.add(new ResponseValidationRegistrantHandle_2024(queryContext));
         validations.add(new ResponseValidationTechHandle_2024(queryContext));
+        validations.add(new ResponseValidationRedactionDescriptionWarning(queryContext));
         validations.add(new ResponseValidationLinkElements_2024(queryContext));
         validations.add(new ResponseValidation2Dot7Dot2_2024(queryContext));
         validations.add(new ResponseValidation2Dot7Dot4Dot1_2024(queryContext));

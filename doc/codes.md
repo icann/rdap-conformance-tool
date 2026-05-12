@@ -199,9 +199,9 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-12102`: Error response format validation [RFC 9083 Section 6]
 - `-12103`: Error code validation (not a number) [RFC 9083 Section 6] {rdap_error.json}
 - `-12104`: Title validation (not a string) [RFC 9083 Section 6] {rdap_error.json}
-- `-12105`: Error response description validation [RFC 9083 Section 6]
+- `-12105`: Error response description validation - "The description in the error response must be an array of strings." [RFC 9083 Section 6] {rdap_error.json}
 - `-12106`: Description format validation [RFC 9083 Section 6] {rdap_error.json}
-- `-12107`: Missing rdapConformance in error response - "The rdapConformance must be present and must be an array of strings." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
+- `-12107`: Missing rdapConformance in error response (2024 profile) - "The rdapConformance must be present and must be an array of strings." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java} *(Updated: no longer checks for errorCode, only rdapConformance)*
 - `-12108`: ErrorCode value mismatch - "The errorCode value does not match the HTTP status code." [RFC 9083 Section 6, RDAP Response Profile 2024] {RDAPHttpQuery.java}
 
 #### Domain Validation (-122XX)
@@ -275,6 +275,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-26100`: Registrar URL validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot12Dot1.java}
 - `-26101`: Registrar URL format validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot12Dot1.java}
 - `-26102`: Registrar URL structure validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot12Dot1.java}
+- `-26103`: Registrar base URL link validation (2024 profile) - "The related link in a domain response must match the registrar's base URL registered in the IANA registry." [RFC 7484, RDAP Response Profile 2024] {ResponseValidationRegistrarLink_2024.java}
 
 ### Handle and Domain Validation Errors (-4XXXX)
 - `-40100`: Browser executable code validation - "The RDAP response contains browser executable code (e.g., JavaScript)." [RDAP Response Profile Section 1.2.2] {ResponseValidation1Dot2Dot2.java}
@@ -366,6 +367,8 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-61202`: Terms of service link value validation (2024 profile) - "This link must have a value that is the same as the queried URI." [TIG Section 3.3, 3.4, RDAP Response Profile 2024] {TigValidation3Dot3And3Dot4_2024.java}
 - `-62000`: RDAP conformance validation (2024 profile) - "The RDAP Conformance data structure does not include icann_rdap_response_profile_1." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidation1Dot2_1_2024.java}
 - `-62001`: Redacted conformance validation (2024 profile) - "The RDAP Conformance data structure does not include redacted but RFC 9537 is being used." [RFC 9537, RDAP Response Profile 2024] {ResponseValidation1Dot2_2_2024.java}
+- `-61001`: TIG conformance validation (2024 profile) - "The RDAP Conformance data structure must not include icann_rdap_technical_implementation_guide_0." [TIG Section 1.3, RDAP Response Profile 2024] {TigValidation1Dot3_2024.java}
+- `-62002`: RDAP conformance old profile validation (2024 profile) - "The RDAP Conformance data structure must not include icann_rdap_response_profile_0." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidation1Dot2_X_2024.java}
 
 ### Redaction Validation Errors (2024 Profile) (-65XXX)
 - `-65000`: Technical contact fn property validation (2024 profile) - "The fn property is required on the vcard for the technical contact." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
@@ -393,6 +396,14 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-65502`: Tech Email redaction method validation (2024 profile) - "Tech Email redaction method must be removal if present" [RFC 9537 Section 2, RDAP Response Profile 2024] {ResponseValidationTechEmail_2024.java}
 - `-65503`: Tech Email redaction consistency validation (2024 profile) - "a redaction of type Tech Email was found but email was not redacted." [RFC 9537 Section 2, RDAP Response Profile 2024] {ResponseValidationTechEmail_2024.java}
 - `-65600`: Pursuant to Registration Data Policy 9.1.1.5 validation (2024 profile) [RDAP Response Profile 2024] {ResponseValidation2Dot3Dot2_2024.java, TopMostEventActionValidation.java, RDAPValidationResultFile.java}
+- `-65700`: Tech handle RFC5730 format validation (2024 profile) - "The handle of the technical entity does not comply with the format (\\w|_){1,80}-\\w{1,8} specified in RFC5730." [RFC 5730, RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
+- `-65701`: Tech handle EPPROID validation (2024 profile) - "The globally unique identifier in the technical entity handle is not registered in EPPROID." [RFC 5730, RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
+- `-65702`: Tech handle present but redacted validation (2024 profile) - "a redaction of type Registry Tech ID was found but the technical handle was not redacted." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
+- `-65703`: Tech handle absent, redaction required validation (2024 profile) - "a redaction of type Registry Tech ID is required." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
+- `-65704`: Tech handle redaction pathLang/prePath validation (2024 profile) - "jsonpath is invalid for Registry Tech ID" [RFC 9537, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
+- `-65705`: Tech handle redaction prePath empty set validation (2024 profile) - "jsonpath must evaluate to a zero set for redaction removal of Registry Tech ID." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
+- `-65706`: Tech handle redaction method validation (2024 profile) - "Registry Tech ID redaction method must be removal if present." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
+- `-65800`: Registry Domain ID redaction description warning (2024 profile) - "A redaction object with a description of Registry Domain ID exists. This warning may be ignored if the redaction is should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 
 ### vCard Validation Errors (2024 Profile) (-63XXX)
 - `-63000`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot2_2024.java}
@@ -403,6 +414,8 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-63104`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
 - `-63105`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
 - `-63106`: Registrant handle redaction consistency validation (2024 profile) - "a redaction of type Registry Registrant ID was found but the registrant handle was not redacted." [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
+- `-62100`: jCard country code (cc) must be empty validation (2024 profile) - "The cc parameter of the registrant's jCard adr property must be empty." [RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4DotX_2024.java}
+- `-62101`: Every entity must have a "cc" parameter validation (2024 profile) - "Every entity must include a 'cc' parameter in the jCard adr property." [RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4DotX_2024.java}
 - `-63200`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot1_2024.java}
 - `-63201`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63202`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
