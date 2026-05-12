@@ -360,6 +360,59 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
                 "jsonpath must evaluate to a zero set for redaction removal of Registry Tech ID.");
     }
 
+
+    @Test
+    public void test65706_MethodPresentNotRemoval_ShouldTrigger() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle");
+
+        JSONObject redactedObject = buildRegistryTechIdRedactionWithMethod("partiallyObscured");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+
+        int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
+        String expectedValue = jsonObject.getJSONArray("redacted")
+                .getJSONObject(insertedIndex).toString();
+
+        validate(-65706, expectedValue, "Registry Tech ID redaction method must be removal if present.");
+    }
+
+    @Test
+    public void test65706_MethodPresentRemoval_ShouldPass() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle");
+
+        JSONObject redactedObject = buildRegistryTechIdRedactionWithMethod("removal");
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+
+        validate();
+    }
+
+    @Test
+    public void test65706_MethodAbsent_ShouldPass() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle");
+
+        JSONObject redactedObject = buildRegistryTechIdRedactionWithoutMethod();
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+
+        validate();
+    }
+
+    @Test
+    public void test65706_MethodNull_ShouldTrigger() {
+        JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
+        techEntity.remove("handle");
+
+        JSONObject redactedObject = buildRegistryTechIdRedactionWithNullMethod();
+        jsonObject.getJSONArray("redacted").put(redactedObject);
+
+        int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
+        String expectedValue = jsonObject.getJSONArray("redacted")
+                .getJSONObject(insertedIndex).toString();
+
+        validate(-65706, expectedValue, "Registry Tech ID redaction method must be removal if present.");
+    }
+
     // Helper — mirrors the one in ResponseValidationRegistrantHandle_2024Test
     private String getResultValueFromRedactedPointers() {
         JSONArray redacted = jsonObject.getJSONArray("redacted");
@@ -369,5 +422,34 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
             sb.append("#/redacted/").append(i).append(":").append(redacted.getJSONObject(i).toString());
         }
         return sb.toString();
+    }
+
+    private JSONObject buildRegistryTechIdRedactionWithMethod(String method) {
+        JSONObject redacted = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redacted.put("name", name);
+        redacted.put("method", method);
+        redacted.put("reason", new JSONObject().put("description", "Server policy"));
+        return redacted;
+    }
+
+    private JSONObject buildRegistryTechIdRedactionWithoutMethod() {
+        JSONObject redacted = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redacted.put("name", name);
+        redacted.put("reason", new JSONObject().put("description", "Server policy"));
+        return redacted;
+    }
+
+    private JSONObject buildRegistryTechIdRedactionWithNullMethod() {
+        JSONObject redacted = new JSONObject();
+        JSONObject name = new JSONObject();
+        name.put("type", "Registry Tech ID");
+        redacted.put("name", name);
+        redacted.put("method", JSONObject.NULL);
+        redacted.put("reason", new JSONObject().put("description", "Server policy"));
+        return redacted;
     }
 }
