@@ -403,7 +403,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
         JSONObject techEntity = jsonObject.getJSONArray("entities").getJSONObject(1);
         techEntity.remove("handle");
 
-        JSONObject redactedObject = buildRegistryTechIdRedactionWithNull();
+        JSONObject redactedObject = buildRegistryTechIdRedactionWithNullMethod();
         jsonObject.getJSONArray("redacted").put(redactedObject);
 
         int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
@@ -443,7 +443,7 @@ public class ResponseValidationTechHandle_2024Test extends ProfileJsonValidation
         return redacted;
     }
 
-    private JSONObject buildRegistryTechIdRedactionWithNull() {
+    private JSONObject buildRegistryTechIdRedactionWithNullMethod() {
         JSONObject redacted = new JSONObject();
         JSONObject name = new JSONObject();
         name.put("type", "Registry Tech ID");

@@ -147,12 +147,7 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
         }
 
         // -65706: method must be absent or "removal"
-        Object method = null;
-        try {
-            method = redactedTechId.get("method");
-        } catch (Exception e) {
-            logger.info("method is absent: {}", e.getMessage());
-        }
+        Object method = redactedTechId.opt("method");
 
         if (method != null && !"removal".equals(method.toString())) {
             results.add(RDAPValidationResult.builder()
