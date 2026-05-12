@@ -49,12 +49,12 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
         jsonObject.getJSONArray("redacted").put(redacted);
 
         int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
-        String expectedValue = jsonObject.getJSONArray("redacted")
-                .getJSONObject(insertedIndex).toString();
+        String expectedValue = "#/redacted/" + insertedIndex + ":" +
+                jsonObject.getJSONArray("redacted").getJSONObject(insertedIndex).toString();
 
         validate(-65800, expectedValue,
                 "A redaction object with a description of Registry Domain ID exists. " +
-                        "This warning may be ignored if the redaction is should not use the 'type' property.");
+                        "This warning may be ignored if the redaction should not use the 'type' property.");
     }
 
     /**

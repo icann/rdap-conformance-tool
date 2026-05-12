@@ -19,7 +19,7 @@ public final class ResponseValidationRedactionDescriptionWarning extends Profile
 
     private static final String MESSAGE_TEMPLATE =
             "A redaction object with a description of %s exists. " +
-                    "This warning may be ignored if the redaction is should not use the 'type' property.";
+                    "This warning may be ignored if the redaction should not use the 'type' property.";
 
     // description value → warning code  (add new entries as user stories arrive)
     private static final Map<String, Integer> DESCRIPTION_TO_CODE = new LinkedHashMap<>();
@@ -69,7 +69,7 @@ public final class ResponseValidationRedactionDescriptionWarning extends Profile
                 if (code != null) {
                     results.add(RDAPValidationResult.builder()
                             .code(code)
-                            .value(redacted.toString())
+                            .value(getResultValue(pointer))
                             .message(String.format(MESSAGE_TEMPLATE, description.trim()))
                             .build(queryContext));
                     isValid = false;

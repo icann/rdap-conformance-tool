@@ -275,7 +275,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-26100`: Registrar URL validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot12Dot1.java}
 - `-26101`: Registrar URL format validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot12Dot1.java}
 - `-26102`: Registrar URL structure validation [RFC 7484 Section 3, RDAP Response Profile] {TigValidation1Dot12Dot1.java}
-- `-26103`: Registrar base URL link validation (2024 profile) - "The related link in a domain response must match the registrar's base URL registered in the IANA registry." [RFC 7484, RDAP Response Profile 2024] {ResponseValidationRegistrarLink_2024.java}
+- `-26103`: Registrar base URL link validation - "The related link in a domain response must match the registrar's base URL registered in the IANA registry." [RFC 7484, RDAP Response Profile 2024] {TigValidation1Dot12Dot1.java}
 
 ### Handle and Domain Validation Errors (-4XXXX)
 - `-40100`: Browser executable code validation - "The RDAP response contains browser executable code (e.g., JavaScript)." [RDAP Response Profile Section 1.2.2] {ResponseValidation1Dot2Dot2.java}
@@ -367,8 +367,8 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-61202`: Terms of service link value validation (2024 profile) - "This link must have a value that is the same as the queried URI." [TIG Section 3.3, 3.4, RDAP Response Profile 2024] {TigValidation3Dot3And3Dot4_2024.java}
 - `-62000`: RDAP conformance validation (2024 profile) - "The RDAP Conformance data structure does not include icann_rdap_response_profile_1." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidation1Dot2_1_2024.java}
 - `-62001`: Redacted conformance validation (2024 profile) - "The RDAP Conformance data structure does not include redacted but RFC 9537 is being used." [RFC 9537, RDAP Response Profile 2024] {ResponseValidation1Dot2_2_2024.java}
-- `-61001`: TIG conformance validation (2024 profile) - "The RDAP Conformance data structure must not include icann_rdap_technical_implementation_guide_0." [TIG Section 1.3, RDAP Response Profile 2024] {TigValidation1Dot3_2024.java}
-- `-62002`: RDAP conformance old profile validation (2024 profile) - "The RDAP Conformance data structure must not include icann_rdap_response_profile_0." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidation1Dot2_X_2024.java}
+- `-61001`: TIG conformance validation (2024 profile) - "The RDAP Conformance data structure must not include icann_rdap_technical_implementation_guide_0." [TIG Section 1.3, RDAP Response Profile 2024] {TigValidation1Dot3Dot1_2024.java}
+- `-62002`: RDAP conformance old profile validation (2024 profile) - "The RDAP Conformance data structure must not include icann_rdap_response_profile_0." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidationObsoleteProfile_2024.java}
 
 ### Redaction Validation Errors (2024 Profile) (-65XXX)
 - `-65000`: Technical contact fn property validation (2024 profile) - "The fn property is required on the vcard for the technical contact." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
@@ -403,7 +403,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-65704`: Tech handle redaction pathLang/prePath validation (2024 profile) - "jsonpath is invalid for Registry Tech ID" [RFC 9537, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
 - `-65705`: Tech handle redaction prePath empty set validation (2024 profile) - "jsonpath must evaluate to a zero set for redaction removal of Registry Tech ID." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
 - `-65706`: Tech handle redaction method validation (2024 profile) - "Registry Tech ID redaction method must be removal if present." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
-- `-65800`: Registry Domain ID redaction description warning (2024 profile) - "A redaction object with a description of Registry Domain ID exists. This warning may be ignored if the redaction is should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
+- `-65800`: Registry Domain ID redaction description warning (2024 profile) - "A redaction object with a description of Registry Domain ID exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 
 ### vCard Validation Errors (2024 Profile) (-63XXX)
 - `-63000`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot2_2024.java}
