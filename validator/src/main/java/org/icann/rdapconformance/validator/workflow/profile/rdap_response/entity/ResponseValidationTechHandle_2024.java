@@ -133,46 +133,64 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
             Object pathLangValue = redactedTechId.get("pathLang");
             if (pathLangValue instanceof String pathLang) {
                 if (pathLang.trim().equalsIgnoreCase("jsonpath")) {
-                    return validatePrePath(redactedTechId);
+                    if (isPrePathInvalid(redactedTechId)) {
+                        return false;
+                    }
                 }
             }
-            return true;
         } catch (Exception e) {
             // pathLang is absent — still need to validate prePath
             logger.debug("pathLang is not found due to {}", e.getMessage());
-            return validatePrePath(redactedTechId);
+            if (isPrePathInvalid(redactedTechId)) {
+                return false;
+            }
         }
+
+        // -65706: method must be absent or "removal"
+        Object method = null;
+        try {
+            method = redactedTechId.get("method");
+        } catch (Exception e) {
+            logger.info("method is absent: {}", e.getMessage());
+        }
+
+        if (method != null && !"removal".equals(method.toString())) {
+            results.add(RDAPValidationResult.builder()
+                    .code(-65706)
+                    .value(redactedTechId.toString())
+                    .message("Registry Tech ID redaction method must be removal if present.")
+                    .build(queryContext));
+            return false;
+        }
+
+        return true;
     }
 
-    private boolean validatePrePath(JSONObject redactedTechId) {
+    private boolean isPrePathInvalid(JSONObject redactedTechId) {
         if (!redactedTechId.has("prePath")) {
-            // prePath is absent — no validation required
-            return true;
+            return false; // no prePath → valid, not invalid
         }
 
         Object prePathValue = redactedTechId.get("prePath");
 
-        // prePath is present but not a String — cannot be a valid JSONPath expression
         if (!(prePathValue instanceof String prePath)) {
             results.add(RDAPValidationResult.builder()
                     .code(-65704)
                     .value(redactedTechId.toString())
                     .message("jsonpath is invalid for Registry Tech ID")
                     .build(queryContext));
-            return false;
+            return true; // invalid
         }
 
-        // prePath is a String — verify it is a valid JSONPath expression
         if (!isValidJsonPath(prePath)) {
             results.add(RDAPValidationResult.builder()
                     .code(-65704)
                     .value(redactedTechId.toString())
                     .message("jsonpath is invalid for Registry Tech ID")
                     .build(queryContext));
-            return false;
+            return true; // invalid
         }
 
-        // -65705: valid JSONPath expression must evaluate to an empty set
         var prePathPointer = getPointerFromJPath(prePath);
         if (prePathPointer != null && !prePathPointer.isEmpty()) {
             results.add(RDAPValidationResult.builder()
@@ -180,10 +198,10 @@ public final class ResponseValidationTechHandle_2024 extends ProfileJsonValidati
                     .value(redactedTechId.toString())
                     .message("jsonpath must evaluate to a zero set for redaction removal of Registry Tech ID.")
                     .build(queryContext));
-            return false;
+            return true; // invalid
         }
 
-        return true;
+        return false; // all good, not invalid
     }
 
     private JSONObject extractRedactedTechId() {
