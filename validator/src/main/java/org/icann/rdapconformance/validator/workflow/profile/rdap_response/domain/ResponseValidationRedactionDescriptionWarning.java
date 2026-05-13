@@ -21,11 +21,11 @@ public final class ResponseValidationRedactionDescriptionWarning extends Profile
             "A redaction object with a description of %s exists. " +
                     "This warning may be ignored if the redaction should not use the 'type' property.";
 
-    // description value → warning code  (add new entries as user stories arrive)
     private static final Map<String, Integer> DESCRIPTION_TO_CODE = new LinkedHashMap<>();
     static {
         DESCRIPTION_TO_CODE.put("Registry Domain ID", -65800);
         DESCRIPTION_TO_CODE.put("Registry Registrant ID", -65801);
+        DESCRIPTION_TO_CODE.put("Registrant Name", -65802);
         // -6580XXX Registry Registrant ID → add when that story arrives ....
     }
 
