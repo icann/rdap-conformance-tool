@@ -91,6 +91,24 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
         validate();
     }
 
+    /** * Test -65801: redaction object with name.description = "Registry Registrant ID" → warning emitted.
+     *  Note: validateNotOk verifies exactly one results.add() call via Mockito,
+     *  so this test also implicitly guarantees that -65800 does NOT fire.
+     */
+    @Test
+    public void test65801_RegistryRegistrantIdDescription_ShouldTrigger() {
+        JSONObject redacted = buildRedactionWithDescription("Registry Registrant ID");
+        jsonObject.getJSONArray("redacted").put(redacted);
+
+        int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
+        String expectedValue = "#/redacted/" + insertedIndex + ":" +
+                jsonObject.getJSONArray("redacted").getJSONObject(insertedIndex).toString();
+
+        validate(-65801, expectedValue,
+                "A redaction object with a description of Registry Registrant ID exists. " +
+                        "This warning may be ignored if the redaction should not use the 'type' property.");
+    }
+
     // ── helpers ────────────────────────────────────────────────────────────────
 
     private JSONObject buildRedactionWithDescription(String description) {
