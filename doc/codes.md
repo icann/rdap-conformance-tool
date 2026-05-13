@@ -405,6 +405,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-65706`: Tech handle redaction method validation (2024 profile) - "Registry Tech ID redaction method must be removal if present." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationTechHandle_2024.java}
 - `-65800`: Registry Domain ID redaction description warning (2024 profile) - "A redaction object with a description of Registry Domain ID exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 - `-65801`: Registry Registrant ID redaction description warning (2024 profile) - "A redaction object with a description of Registry Registrant ID exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
+- `-65802`: Registrant Name redaction description warning (2024 profile) - "A redaction object with a description of Registrant Name exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 
 ### vCard Validation Errors (2024 Profile) (-63XXX)
 - `-63000`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot2_2024.java}
