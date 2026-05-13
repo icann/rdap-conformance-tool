@@ -157,7 +157,7 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
 
     /**
      * Multiple redaction objects each with a distinct description → all corresponding
-     * warnings (-65800, -65801, -65802) are emitted in a single validation run.
+     * warnings (-65800, -65801, -65802, -65803) are emitted in a single validation run.
      */
     @Test
     public void testMultipleDescriptions_AllWarningsTriggered() {
