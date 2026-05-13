@@ -173,7 +173,7 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
 
         ArgumentCaptor<RDAPValidationResult> captor =
                 ArgumentCaptor.forClass(RDAPValidationResult.class);
-        verify(results, times(3)).add(captor.capture());
+        verify(results, times(4)).add(captor.capture());
 
         List<Integer> codes = captor.getAllValues().stream()
                 .map(RDAPValidationResult::getCode)
