@@ -25,6 +25,7 @@ public final class ResponseValidationRedactionDescriptionWarning extends Profile
     private static final Map<String, Integer> DESCRIPTION_TO_CODE = new LinkedHashMap<>();
     static {
         DESCRIPTION_TO_CODE.put("Registry Domain ID", -65800);
+        DESCRIPTION_TO_CODE.put("Registry Registrant ID", -65801);
         // -6580XXX Registry Registrant ID → add when that story arrives ....
     }
 
