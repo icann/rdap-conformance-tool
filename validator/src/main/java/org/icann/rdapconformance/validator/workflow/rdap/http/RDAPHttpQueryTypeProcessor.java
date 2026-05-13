@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 
+import org.icann.rdapconformance.validator.DomainLabelUtils;
 import org.icann.rdapconformance.validator.QueryContext;
 
 import java.util.Set;
@@ -17,6 +18,8 @@ import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.workflow.SchemaValidatorCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
@@ -67,9 +70,14 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         }
 
         if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
-            String domainName = queryType.getValue(this.config.getUri().toString());
+            String rawDomainName = queryType.getValue(this.config.getUri().getRawPath());
+            String domainName;
+            try {
+                domainName = URLDecoder.decode(rawDomainName, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                domainName = rawDomainName;
+            }
 
-            // Check for mixed labels first
             if (hasMixedLabels(domainName)) {
                 logger.error("Mixed label format detected in domain name: {}", domainName);
                 status = ToolResult.MIXED_LABEL_FORMAT;
@@ -128,29 +136,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
      * @return true if the domain name contains mixed labels, false otherwise
      */
     public boolean hasMixedLabels(String domainName) {
-        if (domainName == null || domainName.isEmpty()) {
-            return false;
-        }
-
-        String[] labels = domainName.split("\\.");
-        boolean hasALabel = false;
-        boolean hasULabel = false;
-
-        for (String label : labels) {
-            if (label.toLowerCase().startsWith("xn--")) {
-                hasALabel = true;
-            } else if (!isAscii(label)) {
-                hasULabel = true;
-            }
-
-            // If we found both types, we have mixed labels
-            if (hasALabel && hasULabel) {
-                logger.debug("Domain name contains mixed A-labels and U-labels: {}", domainName);
-                return true;
-            }
-        }
-
-        return false;
+        return DomainLabelUtils.hasMixedLabels(domainName);
     }
 
     /**
@@ -160,12 +146,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
      * @return true if the string contains only ASCII characters, false otherwise
      */
     public boolean isAscii(String s) {
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) > 127) {
-                return false;
-            }
-        }
-        return true;
+        return DomainLabelUtils.isAscii(s);
     }
 
     public enum RDAPHttpQueryType {
