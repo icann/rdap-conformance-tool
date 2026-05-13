@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 
+import org.icann.rdapconformance.validator.DomainLabelUtils;
 import org.icann.rdapconformance.validator.QueryContext;
 
 import java.util.Set;
@@ -17,6 +18,8 @@ import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.workflow.SchemaValidatorCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
 
@@ -70,12 +73,10 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             String rawDomainName = queryType.getValue(this.config.getUri().getRawPath());
             String domainName;
             try {
-                domainName = java.net.URLDecoder.decode(rawDomainName, java.nio.charset.StandardCharsets.UTF_8);
+                domainName = URLDecoder.decode(rawDomainName, StandardCharsets.UTF_8);
             } catch (Exception e) {
                 domainName = rawDomainName;
             }
-            logger.error("DEBUG domainName for mixed label check: [{}]", domainName); // ← temporal
-            logger.error("DEBUG hasMixedLabels result: [{}]", hasMixedLabels(domainName)); // ← temporal
 
             if (hasMixedLabels(domainName)) {
                 logger.error("Mixed label format detected in domain name: {}", domainName);
@@ -135,56 +136,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
      * @return true if the domain name contains mixed labels, false otherwise
      */
     public boolean hasMixedLabels(String domainName) {
-        if (domainName == null || domainName.isEmpty()) {
-            return false;
-        }
-
-        // Try to decode percent-encoded chars first
-        String decoded = domainName;
-        try {
-            decoded = java.net.URLDecoder.decode(domainName, "UTF-8");
-        } catch (Exception e) {
-            // if decode fails, work with original but also check percent-encoded patterns
-        }
-
-        String[] labels = decoded.split("\\.");
-        boolean hasALabel = false;
-        boolean hasULabel = false;
-
-        for (String label : labels) {
-            if (label.toLowerCase().startsWith("xn--")) {
-                hasALabel = true;
-            } else if (!isAscii(label)) {
-                hasULabel = true;
-            }
-            if (hasALabel && hasULabel) return true;
-        }
-
-        // Also check original (undecoded) for percent-encoded non-ASCII
-        // e.g. %E4%BE%8B%E5%AD%90 where first byte > 0x7F
-        if (!decoded.equals(domainName)) {
-            return false; // already decoded successfully above
-        }
-
-        // decoded == domainName means decode failed — check raw percent sequences
-        for (String label : domainName.split("\\.")) {
-            if (label.toLowerCase().startsWith("xn--")) {
-                hasALabel = true;
-            } else if (label.contains("%")) {
-                // Check if any percent-encoded byte is > 0x7F (non-ASCII)
-                java.util.regex.Matcher m = java.util.regex.Pattern.compile("%([0-9A-Fa-f]{2})").matcher(label);
-                while (m.find()) {
-                    int byteVal = Integer.parseInt(m.group(1), 16);
-                    if (byteVal > 0x7F) {
-                        hasULabel = true;
-                        break;
-                    }
-                }
-            }
-            if (hasALabel && hasULabel) return true;
-        }
-
-        return false;
+        return DomainLabelUtils.hasMixedLabels(domainName);
     }
 
     /**
@@ -194,12 +146,7 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
      * @return true if the string contains only ASCII characters, false otherwise
      */
     public boolean isAscii(String s) {
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) > 127) {
-                return false;
-            }
-        }
-        return true;
+        return DomainLabelUtils.isAscii(s);
     }
 
     public enum RDAPHttpQueryType {

@@ -15,6 +15,7 @@ import java.util.concurrent.Callable;
 import org.apache.commons.lang3.SystemUtils;
 import org.everit.json.schema.internal.IPV4Validator;
 import org.everit.json.schema.internal.IPV6Validator;
+import org.icann.rdapconformance.validator.*;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
 import org.slf4j.LoggerFactory;
@@ -26,11 +27,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-import org.icann.rdapconformance.validator.CommonUtils;
-import org.icann.rdapconformance.validator.DNSCacheResolver;
-import org.icann.rdapconformance.validator.ProgressCallback;
-import org.icann.rdapconformance.validator.QueryContext;
-import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
@@ -1398,22 +1394,7 @@ public void setShowProgress(boolean showProgress) {
     }
 
     private static boolean hasMixedLabelsInDomain(String domainName) {
-      boolean hasALabel = false;
-      boolean hasULabel = false;
-      for (String label : domainName.split("\\.")) {
-        if (label.toLowerCase().startsWith("xn--")) {
-          hasALabel = true;
-        } else {
-          for (char c : label.toCharArray()) {
-            if (c > 127) {
-              hasULabel = true;
-              break;
-            }
-          }
-        }
-        if (hasALabel && hasULabel) return true;
-      }
-      return false;
+      return DomainLabelUtils.hasMixedLabels(domainName);
     }
   }
 }
