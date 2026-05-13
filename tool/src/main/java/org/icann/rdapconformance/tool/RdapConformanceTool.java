@@ -1281,10 +1281,9 @@ public void setShowProgress(boolean showProgress) {
   static class IdnAwareUriConverter implements CommandLine.ITypeConverter<URI> {
     @Override
     public URI convert(String value) throws Exception {
-      // Always normalize IDN domains in the path, even if URI.create succeeds
-      // (e.g., percent-encoded Unicode like nic.%D0%B4%D0%B5%D1%82%D0%B8)
       return normalizeIdnUri(value);
     }
+
 
     private URI normalizeIdnUri(String input) throws java.net.URISyntaxException {
       // Pre-encode non-ASCII characters so java.net.URI can parse the structure
@@ -1359,7 +1358,6 @@ public void setShowProgress(boolean showProgress) {
      * Also handles percent-encoded Unicode by decoding first, then converting.
      */
     static String convertIdnInPath(String path) {
-      // Decode any percent-encoded characters first
       String decodedPath;
       try {
         decodedPath = decode(path, UTF_8);
@@ -1367,21 +1365,55 @@ public void setShowProgress(boolean showProgress) {
         decodedPath = path;
       }
 
-      // Match RDAP path patterns: /domain/{name} or /nameserver/{name}
-      // The domain name is the last segment after /domain/ or /nameserver/
       String[] rdapPrefixes = {"/domain/", "/nameserver/"};
       for (String prefix : rdapPrefixes) {
         int idx = decodedPath.toLowerCase().lastIndexOf(prefix);
         if (idx >= 0) {
           String before = decodedPath.substring(0, idx + prefix.length());
           String domainName = decodedPath.substring(idx + prefix.length());
-          // Convert each label to A-label
+
+          // If mixed labels: percent-encode as-is (don't convert to punycode)
+          // so RDAPHttpQueryTypeProcessor.hasMixedLabels() can detect it after URLDecoding
+          if (hasMixedLabelsInDomain(domainName)) {
+            // percent-encode non-ASCII chars without punycode conversion
+            StringBuilder encoded = new StringBuilder();
+            for (char c : domainName.toCharArray()) {
+              if (c > 0x7F) {
+                for (byte b : String.valueOf(c).getBytes(UTF_8)) {
+                  encoded.append(String.format("%%%02X", b & 0xFF));
+                }
+              } else {
+                encoded.append(c);
+              }
+            }
+            return before + encoded;
+          }
+
           domainName = toASCII(domainName);
           return before + domainName;
         }
       }
 
       return decodedPath;
+    }
+
+    private static boolean hasMixedLabelsInDomain(String domainName) {
+      boolean hasALabel = false;
+      boolean hasULabel = false;
+      for (String label : domainName.split("\\.")) {
+        if (label.toLowerCase().startsWith("xn--")) {
+          hasALabel = true;
+        } else {
+          for (char c : label.toCharArray()) {
+            if (c > 127) {
+              hasULabel = true;
+              break;
+            }
+          }
+        }
+        if (hasALabel && hasULabel) return true;
+      }
+      return false;
     }
   }
 }

@@ -67,9 +67,16 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         }
 
         if (Set.of(RDAPHttpQueryType.DOMAIN, RDAPHttpQueryType.NAMESERVER).contains(queryType)) {
-            String domainName = queryType.getValue(this.config.getUri().toString());
+            String rawDomainName = queryType.getValue(this.config.getUri().getRawPath());
+            String domainName;
+            try {
+                domainName = java.net.URLDecoder.decode(rawDomainName, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                domainName = rawDomainName;
+            }
+            logger.error("DEBUG domainName for mixed label check: [{}]", domainName); // ← temporal
+            logger.error("DEBUG hasMixedLabels result: [{}]", hasMixedLabels(domainName)); // ← temporal
 
-            // Check for mixed labels first
             if (hasMixedLabels(domainName)) {
                 logger.error("Mixed label format detected in domain name: {}", domainName);
                 status = ToolResult.MIXED_LABEL_FORMAT;
@@ -132,7 +139,15 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             return false;
         }
 
-        String[] labels = domainName.split("\\.");
+        // Try to decode percent-encoded chars first
+        String decoded = domainName;
+        try {
+            decoded = java.net.URLDecoder.decode(domainName, "UTF-8");
+        } catch (Exception e) {
+            // if decode fails, work with original but also check percent-encoded patterns
+        }
+
+        String[] labels = decoded.split("\\.");
         boolean hasALabel = false;
         boolean hasULabel = false;
 
@@ -142,12 +157,31 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
             } else if (!isAscii(label)) {
                 hasULabel = true;
             }
+            if (hasALabel && hasULabel) return true;
+        }
 
-            // If we found both types, we have mixed labels
-            if (hasALabel && hasULabel) {
-                logger.debug("Domain name contains mixed A-labels and U-labels: {}", domainName);
-                return true;
+        // Also check original (undecoded) for percent-encoded non-ASCII
+        // e.g. %E4%BE%8B%E5%AD%90 where first byte > 0x7F
+        if (!decoded.equals(domainName)) {
+            return false; // already decoded successfully above
+        }
+
+        // decoded == domainName means decode failed — check raw percent sequences
+        for (String label : domainName.split("\\.")) {
+            if (label.toLowerCase().startsWith("xn--")) {
+                hasALabel = true;
+            } else if (label.contains("%")) {
+                // Check if any percent-encoded byte is > 0x7F (non-ASCII)
+                java.util.regex.Matcher m = java.util.regex.Pattern.compile("%([0-9A-Fa-f]{2})").matcher(label);
+                while (m.find()) {
+                    int byteVal = Integer.parseInt(m.group(1), 16);
+                    if (byteVal > 0x7F) {
+                        hasULabel = true;
+                        break;
+                    }
+                }
             }
+            if (hasALabel && hasULabel) return true;
         }
 
         return false;
