@@ -35,6 +35,10 @@
     {
       "code": -65804,
       "notes": "A redaction object with a description of Registrant Street exists."
+    },
+    {
+      "code": -65805,
+      "notes": "A redaction object with a description of Registrant City exists."
     }
   ],
   "definitionIgnore": [
