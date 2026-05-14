@@ -584,8 +584,7 @@ public class RdapWebValidatorTest {
         URI result = RdapWebValidator.validateAndCreateURI(uri);
 
         assertNotNull(result);
-        assertThat(result.toString()).contains(
-                "reallylongdnslabelthatislongerthan63characterswegowithinvalid064.registryok");
+        assertThat(result.toString()).isEqualTo(uri);
     }
 
     /**

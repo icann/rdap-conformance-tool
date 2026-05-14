@@ -122,13 +122,17 @@ public class IdnAwareUriConverterTest {
         assertThat(result.getQuery()).isEqualTo("foo=bar");
     }
 
-    /** * A domain label longer than 63 characters must pass through as-is * so that downstream validation can report -10300. * Before the fix, toASCII() threw IllegalArgumentException causing exit 25. */
+    /**
+     * A domain label longer than 63 characters must pass through as-is
+     * so that downstream validation can report -10300.
+     * Before the fix, toASCII() threw IllegalArgumentException causing exit 25.
+     **/
     @Test
     public void testConvertIdnInPath_LabelTooLong_PassesThrough() {
         String longLabel = "reallylongdnslabelthatislongerthan63characterswegowithinvalid064";
         String path = "/rdap/domain/" + longLabel + ".registryok";
         String result = RdapConformanceTool.IdnAwareUriConverter.convertIdnInPath(path);
-        // Must not throw, must return the domain unchanged
-        assertThat(result).contains(longLabel + ".registryok");
+        // Must not throw, must return the path unchanged
+        assertThat(result).isEqualTo(path);
     }
 }
