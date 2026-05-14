@@ -1,5 +1,10 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doReturn;
+
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONObject;
@@ -8,7 +13,10 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 
-import static org.mockito.Mockito.doReturn;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.mockito.ArgumentCaptor;
+
+import java.util.List;
 
 public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJsonValidationTestBase {
 
@@ -126,6 +134,51 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
         validate(-65802, expectedValue,
                 "A redaction object with a description of Registrant Name exists. " +
                         "This warning may be ignored if the redaction should not use the 'type' property.");
+    }
+
+    /**
+     * Test -65803: redaction object with name.description = "Registrant Organization" → warning emitted.
+     * Note: validateNotOk verifies exactly one results.add() call via Mockito,
+     * so this test also implicitly guarantees that no other warning code fires.
+     */
+    @Test
+    public void test65803_RegistrantOrganizationDescription_ShouldTrigger() {
+        JSONObject redacted = buildRedactionWithDescription("Registrant Organization");
+        jsonObject.getJSONArray("redacted").put(redacted);
+
+        int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
+        String expectedValue = "#/redacted/" + insertedIndex + ":" +
+                jsonObject.getJSONArray("redacted").getJSONObject(insertedIndex).toString();
+
+        validate(-65803, expectedValue,
+                "A redaction object with a description of Registrant Organization exists. " +
+                        "This warning may be ignored if the redaction should not use the 'type' property.");
+    }
+
+    /**
+     * Multiple redaction objects each with a distinct description → all corresponding
+     * warnings (-65800, -65801, -65802, -65803) are emitted in a single validation run.
+     */
+    @Test
+    public void testMultipleDescriptions_AllWarningsTriggered() {
+        jsonObject.getJSONArray("redacted")
+                .put(buildRedactionWithDescription("Registry Domain ID"))
+                .put(buildRedactionWithDescription("Registry Registrant ID"))
+                .put(buildRedactionWithDescription("Registrant Name"))
+                .put(buildRedactionWithDescription("Registrant Organization"));
+
+        updateQueryContextJsonData();
+        ProfileValidation validation = getProfileValidation();
+        assertThat(validation.validate()).isFalse();
+
+        ArgumentCaptor<RDAPValidationResult> captor =
+                ArgumentCaptor.forClass(RDAPValidationResult.class);
+        verify(results, times(4)).add(captor.capture());
+
+        List<Integer> codes = captor.getAllValues().stream()
+                .map(RDAPValidationResult::getCode)
+                .toList();
+        assertThat(codes).containsExactlyInAnyOrder(-65800, -65801, -65802, -65803);
     }
 
     // ── helpers ────────────────────────────────────────────────────────────────
