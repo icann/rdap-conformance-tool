@@ -32,6 +32,8 @@ public class IdnAwareUriConverterTest {
                 { "/rdap/help", "/rdap/help" },
                 // Unicode TLD only
                 { "/rdap/domain/test.münchen", "/rdap/domain/test.xn--mnchen-3ya" },
+                { "/rdap/domain/reallylongdnslabelthatislongerthan63characterswegowithinvalid064.registryok",
+                "/rdap/domain/reallylongdnslabelthatislongerthan63characterswegowithinvalid064.registryok" },
         };
     }
 
@@ -65,6 +67,11 @@ public class IdnAwareUriConverterTest {
                 {
                         "https://whois.nic.дети/rdap/domain/nic.дети",
                         "https://whois.nic.xn--d1acj3b/rdap/domain/nic.xn--d1acj3b"
+                },
+                // Label > 63 chars in full URI — must not throw, passes through as-is
+                {
+                        "https://ts-wire-mock.icann.org/rdap/v2/code_10202/domain/reallylongdnslabelthatislongerthan63characterswegowithinvalid064.registryok",
+                        "https://ts-wire-mock.icann.org/rdap/v2/code_10202/domain/reallylongdnslabelthatislongerthan63characterswegowithinvalid064.registryok"
                 },
         };
     }
@@ -113,5 +120,15 @@ public class IdnAwareUriConverterTest {
         URI result = converter.convert("https://example.com/rdap/domain/nic.дети?foo=bar");
         assertThat(result.getPath()).isEqualTo("/rdap/domain/nic.xn--d1acj3b");
         assertThat(result.getQuery()).isEqualTo("foo=bar");
+    }
+
+    /** * A domain label longer than 63 characters must pass through as-is * so that downstream validation can report -10300. * Before the fix, toASCII() threw IllegalArgumentException causing exit 25. */
+    @Test
+    public void testConvertIdnInPath_LabelTooLong_PassesThrough() {
+        String longLabel = "reallylongdnslabelthatislongerthan63characterswegowithinvalid064";
+        String path = "/rdap/domain/" + longLabel + ".registryok";
+        String result = RdapConformanceTool.IdnAwareUriConverter.convertIdnInPath(path);
+        // Must not throw, must return the domain unchanged
+        assertThat(result).contains(longLabel + ".registryok");
     }
 }

@@ -572,6 +572,23 @@ public class RdapWebValidatorTest {
     }
 
     /**
+     * A URI with a DNS label longer than 63 characters must not throw
+     * IllegalArgumentException from IDN toASCII — it should be accepted as-is
+     * so downstream validation can report -10300.
+     */
+    @Test
+    public void testValidateAndCreateURI_LabelTooLong_DoesNotThrow() {
+        String uri = "https://ts-wire-mock.icann.org/rdap/v2/code_10202/domain/" +
+                "reallylongdnslabelthatislongerthan63characterswegowithinvalid064.registryok";
+
+        URI result = RdapWebValidator.validateAndCreateURI(uri);
+
+        assertNotNull(result);
+        assertThat(result.toString()).contains(
+                "reallylongdnslabelthatislongerthan63characterswegowithinvalid064.registryok");
+    }
+
+    /**
      * Helper method to recursively delete directories for test cleanup.
      */
     private void deleteDirectoryRecursively(Path directory) throws IOException {
