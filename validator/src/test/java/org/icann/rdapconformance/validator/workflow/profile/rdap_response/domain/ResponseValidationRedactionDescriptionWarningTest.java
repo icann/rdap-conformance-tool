@@ -185,7 +185,7 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
                 .put(buildRedactionWithDescription("Registry Registrant ID"))
                 .put(buildRedactionWithDescription("Registrant Name"))
                 .put(buildRedactionWithDescription("Registrant Organization"))
-                .put(buildRedactionWithDescription("Registrant Street"));;
+                .put(buildRedactionWithDescription("Registrant Street"));
 
         updateQueryContextJsonData();
         ProfileValidation validation = getProfileValidation();
