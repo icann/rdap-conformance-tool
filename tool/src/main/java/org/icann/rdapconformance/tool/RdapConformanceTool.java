@@ -1318,7 +1318,15 @@ public void setShowProgress(boolean showProgress) {
             // Not a port
           }
         }
-        normalizedHostPort = toASCII(hostOnly) + portSuffix;
+        String convertedHost;
+        try {
+          convertedHost = toASCII(hostOnly);
+        } catch (IllegalArgumentException e) {
+          // Host label too long or invalid — leave as-is
+          logger.debug("IDN toASCII skipped for host '{}': {}", hostOnly, e.getMessage());
+          convertedHost = hostOnly;
+        }
+        normalizedHostPort = convertedHost + portSuffix;
       }
 
       // Now percent-encode non-ASCII in the remaining part (path/query/fragment)
@@ -1385,7 +1393,13 @@ public void setShowProgress(boolean showProgress) {
             return before + encoded;
           }
 
-          domainName = toASCII(domainName);
+          try {
+            domainName = toASCII(domainName);
+          } catch (IllegalArgumentException e) {
+            // Label too long or otherwise invalid for IDN conversion — leave as-is
+            // so downstream schema validation can detect and report it (e.g. -10300)
+            logger.debug("IDN toASCII skipped for '{}': {}", domainName, e.getMessage());
+          }
           return before + domainName;
         }
       }
