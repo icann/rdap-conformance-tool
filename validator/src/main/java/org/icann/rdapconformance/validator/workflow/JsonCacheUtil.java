@@ -76,7 +76,7 @@ public class JsonCacheUtil {
             try {
                 return new JSONObject(content);
             } catch (JSONException e) {
-                throw new RuntimeException("Failed to parse JSON object", e);
+                throw new RuntimeException(e.getMessage(), e);  // propagate as unchecked to avoid wrapping in RuntimeException at call site
             }
         });
     }
