@@ -103,18 +103,18 @@ public class JsonCacheUtilTest {
     
     // Should throw exception due to duplicate keys
     assertThatThrownBy(() -> JsonCacheUtil.getCachedJsonObject(jsonWithDuplicates))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessageContaining("Failed to parse JSON object");
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Duplicate key \"key\"");
   }
 
   @Test
   public void testInvalidJsonThrowsException() {
     String invalidJson = "{invalid json}";
-    
+
     assertThatThrownBy(() -> JsonCacheUtil.getCachedJsonObject(invalidJson))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessageContaining("Failed to parse JSON object");
-    
+            .isInstanceOf(RuntimeException.class)
+            .hasCauseInstanceOf(org.json.JSONException.class);
+
     assertThatThrownBy(() -> JsonCacheUtil.getCachedJsonArray(invalidJson))
         .isInstanceOf(RuntimeException.class)
         .hasMessageContaining("Failed to parse JSON array");

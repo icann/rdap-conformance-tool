@@ -52,7 +52,6 @@ public abstract class SchemaValidatorObjectTest extends SchemaValidatorTest {
     Ignoring test due to new cache implementation where new JSONException is handling duplicates
    */
   @Test
-  @Ignore
   public void testValidate_DuplicatedKey() {
     String key = authorizedKeys.stream().findFirst().get();
     String invalidRdapContent =
