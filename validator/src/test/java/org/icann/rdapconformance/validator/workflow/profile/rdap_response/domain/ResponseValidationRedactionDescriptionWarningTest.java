@@ -190,6 +190,23 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
     }
 
     /**
+     * Test -65806: redaction object with name.description = "Registrant Postal Code" → warning emitted.
+     */
+    @Test
+    public void test65806_RegistrantPostalCodeDescription_ShouldTrigger() {
+        JSONObject redacted = buildRedactionWithDescription("Registrant Postal Code");
+        jsonObject.getJSONArray("redacted").put(redacted);
+
+        int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
+        String expectedValue = "#/redacted/" + insertedIndex + ":" +
+                jsonObject.getJSONArray("redacted").getJSONObject(insertedIndex).toString();
+
+        validate(-65806, expectedValue,
+                "A redaction object with a description of Registrant Postal Code exists. " +
+                        "This warning may be ignored if the redaction should not use the 'type' property.");
+    }
+
+    /**
      * Multiple redaction objects each with a distinct description → all corresponding
      * warnings (-65800, -65801, -65802, -65803, -65804) are emitted in a single validation run.
      */
@@ -201,7 +218,8 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
                 .put(buildRedactionWithDescription("Registrant Name"))
                 .put(buildRedactionWithDescription("Registrant Organization"))
                 .put(buildRedactionWithDescription("Registrant Street"))
-                .put(buildRedactionWithDescription("Registrant City"));
+                .put(buildRedactionWithDescription("Registrant City"))
+                .put(buildRedactionWithDescription("Registrant Postal Code"));
 
         updateQueryContextJsonData();
         ProfileValidation validation = getProfileValidation();
@@ -209,12 +227,12 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
 
         ArgumentCaptor<RDAPValidationResult> captor =
                 ArgumentCaptor.forClass(RDAPValidationResult.class);
-        verify(results, times(6)).add(captor.capture());
+        verify(results, times(7)).add(captor.capture());
 
         List<Integer> codes = captor.getAllValues().stream()
                 .map(RDAPValidationResult::getCode)
                 .toList();
-        assertThat(codes).containsExactlyInAnyOrder(-65800, -65801, -65802, -65803, -65804, -65805);
+        assertThat(codes).containsExactlyInAnyOrder(-65800, -65801, -65802, -65803, -65804, -65805, -65806);
     }
 
     // ── helpers ────────────────────────────────────────────────────────────────
