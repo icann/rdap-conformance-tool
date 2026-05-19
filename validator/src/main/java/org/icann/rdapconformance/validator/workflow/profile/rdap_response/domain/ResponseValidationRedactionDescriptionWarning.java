@@ -31,6 +31,7 @@ public final class ResponseValidationRedactionDescriptionWarning extends Profile
         DESCRIPTION_TO_CODE.put("Registrant City", -65805);
         DESCRIPTION_TO_CODE.put("Registrant Postal Code", -65806);
         DESCRIPTION_TO_CODE.put("Registrant Phone", -65807);
+        DESCRIPTION_TO_CODE.put("Registrant Phone Ext", -65808);
         // -6580XXX Registry Registrant xxxx→ add when that story arrives ....
     }
 
