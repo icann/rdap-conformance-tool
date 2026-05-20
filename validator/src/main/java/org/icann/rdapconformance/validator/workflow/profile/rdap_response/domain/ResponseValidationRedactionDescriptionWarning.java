@@ -34,6 +34,7 @@ public final class ResponseValidationRedactionDescriptionWarning extends Profile
         DESCRIPTION_TO_CODE.put("Registrant Phone Ext", -65808);
         DESCRIPTION_TO_CODE.put("Registrant Fax", -65809);
         DESCRIPTION_TO_CODE.put("Registrant Fax Ext", -65810);
+        DESCRIPTION_TO_CODE.put("Registrant Email", -65811);
         // -6580XXX Registry Registrant xxxx→ add when that story arrives ....
     }
 
