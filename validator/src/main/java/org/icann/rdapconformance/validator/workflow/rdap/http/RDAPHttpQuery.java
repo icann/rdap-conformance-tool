@@ -210,12 +210,15 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     @Override
     public void addErrorsTo404RdapResponse() {
-        // Check for errorCode presence and correctness in non-200 responses
         if (isQuerySuccessful() && httpResponse != null) {
             int httpStatusCode = httpResponse.statusCode();
             String rdapResponse = httpResponse.body();
 
             if (httpStatusCode != HTTP_OK) {
+                // Skip if body is not a valid JSON object — -13001 and -12100 already cover this
+                if (rdapResponse == null || !rdapResponse.trim().startsWith("{")) {
+                    return;
+                }
                 if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
                     queryContext.addError(-12107, rdapResponse, "The rdapConformance must be present and must be an array of strings.");
                 } else if (!validateErrorCodeMatchesHttpStatus(httpStatusCode, rdapResponse)) {

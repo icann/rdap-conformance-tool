@@ -559,32 +559,36 @@ public class RDAPHttpQueryStatusCodeTest {
         assertFalse(has12107, "Invalid errorCode format should not trigger -12107 (errorCode exists)");
     }
 
-    @Test  
+    @Test
     public void testMalformedJsonResponse() {
-        System.out.println("\n=== Test: Malformed JSON Response ===");
-        
+        System.out.println("\n=== Test: Malformed JSON Response (404 + incomplete JSON) ===");
+
         doReturn(true).when(config).useRdapProfileFeb2024();
-        
+
         String testPath = "/rdap/domain/malformed.com";
         String baseUrl = "http://localhost:" + wireMockServer.port();
         URI testUri = URI.create(baseUrl + testPath);
         doReturn(testUri).when(config).getUri();
-        
-        // Malformed JSON response
-        String responseBody = "{\"rdapConformance\": [\"rdap_level_0\"], \"errorCode\":"; // incomplete JSON
-        
+
+        // Malformed JSON — starts with '{' but is incomplete
+        String responseBody = "{\"rdapConformance\": [\"rdap_level_0\"], \"errorCode\":";
+
         stubFor(get(urlEqualTo(testPath))
-            .willReturn(aResponse()
-                .withStatus(404)
-                .withHeader("Content-Type", "application/rdap+json")
-                .withBody(responseBody)));
+                .willReturn(aResponse()
+                        .withStatus(404)
+                        .withHeader("Content-Type", "application/rdap+json")
+                        .withBody(responseBody)));
 
         RDAPHttpQuery query = new RDAPHttpQuery(config);
         query.setQueryContext(queryContext);
-        query.run();
 
-        // Simulate RDAPValidator flow — with the fix, run() stays successful for 404
-        // even with malformed JSON, so addErrorsTo404RdapResponse() IS reached.
+        // run() must return true for 404 even with invalid JSON so RDAPValidator
+        // can continue and schema validation can emit -12100
+        boolean runResult = query.run();
+        assertTrue(runResult, "run() should return true for 404 even with malformed JSON");
+        assertTrue(query.isErrorContent(), "404 should be treated as error content");
+
+        // Simulate RDAPValidator flow
         if (query.isErrorContent()) {
             query.addErrorsTo404RdapResponse();
         }
@@ -595,15 +599,52 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
         boolean has13001 = allResults.stream().anyMatch(r -> r.getCode() == -13001);
 
-        // With the fix, malformed JSON on a 404 response:
-        // - triggers -13001 (invalid JSON at HTTP level)
-        // - triggers -12107 (rdapConformance missing, because JSON can't be parsed)
-        // - does NOT trigger -12108
+        // -13001: invalid JSON at HTTP level
+        // -12107: rdapConformance missing (JSON parse fails in validateIfContainsErrorCode)
+        // -12108: should NOT appear
         assertTrue(has13001, "Malformed JSON should trigger -13001");
-        assertTrue(has12107, "Malformed 404 JSON triggers -12107 since rdapConformance cannot be found");
+        assertTrue(has12107, "Malformed 404 JSON triggers -12107 since rdapConformance cannot be parsed");
         assertFalse(has12108, "Malformed JSON should not trigger -12108");
-        
-        System.out.println("SUCCESS: Malformed JSON correctly handled");
+    }
+
+    @Test
+    public void testArrayBodyOnErrorResponse_DoesNotTriggerFalsePositive12107() {
+        System.out.println("\n=== Test: Array body on 404 — no false -12107 ===");
+
+        doReturn(true).when(config).useRdapProfileFeb2024();
+
+        String testPath = "/rdap/domain/array-body.com";
+        String baseUrl = "http://localhost:" + wireMockServer.port();
+        URI testUri = URI.create(baseUrl + testPath);
+        doReturn(testUri).when(config).getUri();
+
+        stubFor(get(urlEqualTo(testPath))
+                .willReturn(aResponse()
+                        .withStatus(404)
+                        .withHeader("Content-Type", "application/rdap+json")
+                        .withBody("[]")));
+
+        RDAPHttpQuery query = new RDAPHttpQuery(config);
+        query.setQueryContext(queryContext);
+
+        // [] is valid JSON (a list), so run() stays true for 404
+        boolean runResult = query.run();
+        assertTrue(runResult, "run() should return true for 404 with array body");
+        assertTrue(query.isErrorContent(), "404 should be treated as error content");
+
+        if (query.isErrorContent()) {
+            query.addErrorsTo404RdapResponse();
+        }
+
+        Set<RDAPValidationResult> allResults = queryContext.getResults().getAll();
+
+        boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
+        boolean has13001 = allResults.stream().anyMatch(r -> r.getCode() == -13001);
+
+        // [] is valid JSON so -13001 is NOT emitted
+        // [] does not start with '{' so addErrorsTo404RdapResponse() guard skips -12107
+        assertFalse(has13001, "[] is valid JSON — -13001 should NOT be emitted");
+        assertFalse(has12107, "Array body should NOT trigger -12107 — guard prevents false positive");
     }
 
     @Test
