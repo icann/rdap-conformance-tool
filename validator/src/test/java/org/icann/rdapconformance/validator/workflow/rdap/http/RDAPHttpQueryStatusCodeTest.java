@@ -19,7 +19,7 @@ import java.util.Set;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -969,8 +969,8 @@ public class RDAPHttpQueryStatusCodeTest {
         QueryContext integrationContext = QueryContext.create(config, queryContext.getDatasetService(), rdapHttpQuery);
         integrationContext.setSsrfProtectionEnabled(false);
 
-        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator validator =
-                new org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator(integrationContext);
+        RDAPValidator validator =
+                new RDAPValidator(integrationContext);
 
         validator.validate();
 
@@ -1008,8 +1008,8 @@ public class RDAPHttpQueryStatusCodeTest {
         QueryContext integrationContext = QueryContext.create(config, queryContext.getDatasetService(), rdapHttpQuery);
         integrationContext.setSsrfProtectionEnabled(false);
 
-        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator validator =
-                new org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator(integrationContext);
+        RDAPValidator validator =
+                new RDAPValidator(integrationContext);
 
         validator.validate();
 
