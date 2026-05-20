@@ -257,7 +257,9 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
                         "This warning may be ignored if the redaction should not use the 'type' property.");
     }
 
-    /** * Test -65810: redaction object with name.description = "Registrant Fax Ext" → warning emitted. */
+    /**
+     * Test -65810: redaction object with name.description = "Registrant Fax Ext" → warning emitted.
+     */
     @Test
     public void test65810_RegistrantFaxExtDescription_ShouldTrigger() {
         JSONObject redacted = buildRedactionWithDescription("Registrant Fax Ext");
