@@ -39,6 +39,26 @@
     {
       "code": -65805,
       "notes": "A redaction object with a description of Registrant City exists."
+    },
+    {
+      "code": -65806,
+      "notes": "A redaction object with a description of Registrant Postal Code exists."
+    },
+    {
+      "code": -65807,
+      "notes": "A redaction object with a description of Registrant Phone exists."
+    },
+    {
+      "code": -65808,
+      "notes": "A redaction object with a description of Registrant Phone Ext exists."
+    },
+    {
+      "code": -65809,
+      "notes": "A redaction object with a description of Registrant Fax exists."
+    },
+    {
+      "code": -65810,
+      "notes": "A redaction object with a description of Registrant Fax Ext exists."
     }
   ],
   "definitionIgnore": [

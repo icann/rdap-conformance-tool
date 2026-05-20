@@ -1,15 +1,13 @@
 package org.icann.rdapconformance.validator.workflow.rdap;
 
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Optional;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.ToolResult;
@@ -207,5 +205,45 @@ public void testValidate_DomainQueryForTestInvalidWithHttpOK_LogsInfo() throws I
         assertThat(queryContext.getCurrentHttpResponse())
                 .as("currentHttpResponse should be null after a failed round; stale response from round 1 must not persist")
                 .isNull();
+    }
+
+    @Test
+    public void testValidate_404ErrorContent_2024ProfileValidationsNotInvoked() {
+        // Arrange
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        RDAPQuery query = mock(RDAPQuery.class);
+        RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
+        RDAPHttpRequest.SimpleHttpResponse mockResponse = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+
+        doReturn(URI.create("https://example.com/rdap/domain/test.example")).when(config).getUri();
+        doReturn(true).when(config).check();
+        doReturn(true).when(config).useRdapProfileFeb2024();  // 2024 profile enabled
+        doReturn(false).when(config).isAdditionalConformanceQueries();
+        doReturn(false).when(config).isNetworkEnabled();
+        doReturn(true).when(datasetService).download(anyBoolean());
+
+        // Simulate 404 error response with invalid body (array)
+        when(mockResponse.statusCode()).thenReturn(404);
+        when(mockResponse.body()).thenReturn("[]");
+        when(mockResponse.uri()).thenReturn(URI.create("https://example.com/rdap/domain/test.example"));
+
+        doReturn(true).when(query).run();
+        doReturn("[]").when(query).getData();
+        doReturn(mockResponse).when(query).getRawResponse();
+        doReturn(true).when(query).isErrorContent();  // ← 404 error content
+
+        QueryContext queryContext = QueryContext.create(config, datasetService, query);
+        RDAPValidator validator = new RDAPValidator(queryContext);
+
+        // Act — should NOT throw RuntimeException from ProfileJsonValidation
+        // (which would happen if get2024ProfileValidations() was called with "[]")
+        assertThatCode(validator::validate).doesNotThrowAnyException();
+
+        // -12100 is expected: schema validator correctly catches "[]" as invalid error structure.
+        // The key assertion is that no RuntimeException was thrown from ProfileJsonValidation
+        // (which would happen if get2024ProfileValidations() ran with "[]").
+        // assertThatCode above already covers that — just verify -12100 is present.
+        assertThat(queryContext.getResults().getAll())
+                .anyMatch(r -> r.getCode() == -12100);
     }
 }
