@@ -8,10 +8,8 @@ import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Optional;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.QueryContext;
-import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.ConfigurationFileParser;
