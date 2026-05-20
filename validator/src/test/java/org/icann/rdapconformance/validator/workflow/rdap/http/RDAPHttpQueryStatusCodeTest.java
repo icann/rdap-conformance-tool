@@ -583,9 +583,8 @@ public class RDAPHttpQueryStatusCodeTest {
         query.setQueryContext(queryContext);
         query.run();
 
-        // Simulate RDAPValidator flow — but note: run() returns false for malformed JSON,
-        // so RDAPValidator would return early. addErrorsTo404RdapResponse is never reached.
-        // Even if we call it, isQuerySuccessful() is false so it's a no-op.
+        // Simulate RDAPValidator flow — with the fix, run() stays successful for 404
+        // even with malformed JSON, so addErrorsTo404RdapResponse() IS reached.
         if (query.isErrorContent()) {
             query.addErrorsTo404RdapResponse();
         }
@@ -596,11 +595,13 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
         boolean has13001 = allResults.stream().anyMatch(r -> r.getCode() == -13001);
 
-        // Malformed JSON is caught by -13001 in validate(). Since isQuerySuccessful=false,
-        // addErrorsTo404RdapResponse() is a no-op, so no -12107.
-        assertFalse(has12107, "Malformed JSON is captured by -13001, not -12107");
-        assertFalse(has12108, "Malformed JSON should not trigger -12108");
+        // With the fix, malformed JSON on a 404 response:
+        // - triggers -13001 (invalid JSON at HTTP level)
+        // - triggers -12107 (rdapConformance missing, because JSON can't be parsed)
+        // - does NOT trigger -12108
         assertTrue(has13001, "Malformed JSON should trigger -13001");
+        assertTrue(has12107, "Malformed 404 JSON triggers -12107 since rdapConformance cannot be found");
+        assertFalse(has12108, "Malformed JSON should not trigger -12108");
         
         System.out.println("SUCCESS: Malformed JSON correctly handled");
     }
