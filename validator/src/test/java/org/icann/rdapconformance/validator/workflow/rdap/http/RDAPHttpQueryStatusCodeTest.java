@@ -599,11 +599,9 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
         boolean has13001 = allResults.stream().anyMatch(r -> r.getCode() == -13001);
 
-        // -13001: invalid JSON at HTTP level
-        // -12107: rdapConformance missing (JSON parse fails in validateIfContainsErrorCode)
-        // -12108: should NOT appear
+        // JSON malformed (isValid=false) → addErrorsTo404RdapResponse() is no-op only -13001 is emitted
         assertTrue(has13001, "Malformed JSON should trigger -13001");
-        assertTrue(has12107, "Malformed 404 JSON triggers -12107 since rdapConformance cannot be parsed");
+        assertFalse(has12107, "Malformed JSON: body is not parseable, -12107 should NOT be emitted");
         assertFalse(has12108, "Malformed JSON should not trigger -12108");
     }
 
@@ -936,6 +934,89 @@ public class RDAPHttpQueryStatusCodeTest {
 
 
         System.out.println("SUCCESS: String parsing exception correctly handled");
+    }
+
+    /**
+     * Integration test: RDAPValidator + RDAPHttpQuery end-to-end for 404 + invalid JSON body.
+     * Verifies RCT-475 regression: -12100 must be emitted when error response body is malformed JSON.
+     */
+    @Test
+    public void testIntegration_404WithMalformedJson_Emits12100() {
+        doReturn(true).when(config).check();
+        doReturn(false).when(config).isAdditionalConformanceQueries();
+        doReturn(false).when(config).isNetworkEnabled();
+        doReturn(false).when(config).isThin();
+        doReturn(false).when(config).isGtldRegistry();
+        doReturn(false).when(config).useRdapProfileFeb2024();
+        doReturn(false).when(config).isGtldRegistrar();
+
+        String testPath = "/rdap/domain/malformed-integration.com";
+        String baseUrl = "http://localhost:" + wireMockServer.port();
+        URI testUri = URI.create(baseUrl + testPath);
+        doReturn(testUri).when(config).getUri();
+
+        stubFor(get(urlEqualTo(testPath))
+                .willReturn(aResponse()
+                        .withStatus(404)
+                        .withHeader("Content-Type", "application/rdap+json")
+                        .withBody("{\"rdapConformance\": [\"rdap_level_0\"], \"errorCode\":")));
+
+        RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+        rdapHttpQuery.ssrfProtectionEnabled = false;
+        rdapHttpQuery.setQueryContext(queryContext);
+
+        // Reuse the same queryContext — replace its query with rdapHttpQuery
+        QueryContext integrationContext = QueryContext.create(config, queryContext.getDatasetService(), rdapHttpQuery);
+        integrationContext.setSsrfProtectionEnabled(false);
+
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator validator =
+                new org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator(integrationContext);
+
+        validator.validate();
+
+        Set<RDAPValidationResult> allResults = integrationContext.getResults().getAll();
+        boolean has12100 = allResults.stream().anyMatch(r -> r.getCode() == -12100);
+
+        assertTrue(has12100, "RDAPValidator must emit -12100 for 404 + malformed JSON (RCT-475)");
+    }
+
+    @Test
+    public void testIntegration_404WithArrayBody_Emits12100() {
+        doReturn(true).when(config).check();
+        doReturn(false).when(config).isAdditionalConformanceQueries();
+        doReturn(false).when(config).isNetworkEnabled();
+        doReturn(false).when(config).isThin();
+        doReturn(false).when(config).isGtldRegistry();
+        doReturn(false).when(config).useRdapProfileFeb2024();
+        doReturn(false).when(config).isGtldRegistrar();
+
+        String testPath = "/rdap/domain/array-integration.com";
+        String baseUrl = "http://localhost:" + wireMockServer.port();
+        URI testUri = URI.create(baseUrl + testPath);
+        doReturn(testUri).when(config).getUri();
+
+        stubFor(get(urlEqualTo(testPath))
+                .willReturn(aResponse()
+                        .withStatus(404)
+                        .withHeader("Content-Type", "application/rdap+json")
+                        .withBody("[]")));
+
+        RDAPHttpQuery rdapHttpQuery = new RDAPHttpQuery(config);
+        rdapHttpQuery.ssrfProtectionEnabled = false;
+        rdapHttpQuery.setQueryContext(queryContext);
+
+        QueryContext integrationContext = QueryContext.create(config, queryContext.getDatasetService(), rdapHttpQuery);
+        integrationContext.setSsrfProtectionEnabled(false);
+
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator validator =
+                new org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator(integrationContext);
+
+        validator.validate();
+
+        Set<RDAPValidationResult> allResults = integrationContext.getResults().getAll();
+        boolean has12100 = allResults.stream().anyMatch(r -> r.getCode() == -12100);
+
+        assertTrue(has12100, "RDAPValidator must emit -12100 for 404 + array body (RCT-475)");
     }
 
     /**

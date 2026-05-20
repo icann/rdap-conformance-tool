@@ -215,8 +215,10 @@ public class RDAPHttpQuery implements RDAPQuery {
             String rdapResponse = httpResponse.body();
 
             if (httpStatusCode != HTTP_OK) {
-                // Skip if body is not a valid JSON object — -13001 and -12100 already cover this
-                if (rdapResponse == null || !rdapResponse.trim().startsWith("{")) {
+                // Skip if body is not a JSON object (e.g. array or unparseable).
+                // jsonResponse is populated by validate(); if it's null or an array,
+                // -13001 or -12100 already cover the structural issue.
+                if (jsonResponse == null || !jsonResponse.isValid() || jsonResponse.isArray()) {
                     return;
                 }
                 if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
