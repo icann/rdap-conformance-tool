@@ -530,7 +530,11 @@ public class RDAPHttpQuery implements RDAPQuery {
         jsonResponse = new JsonData(rdapResponse);
         if (!jsonResponse.isValid()) {
             queryContext.addError(-13001, "response body not given", "The response was not valid JSON.");
-            isQuerySuccessful = false;
+            // For 404 responses, allow validation to continue so rdap_error.json
+            // schema validator can emit -12100. For all other status codes, stop.
+            if (httpStatusCode != HTTP_NOT_FOUND) {
+                isQuerySuccessful = false;
+            }
         }
     }
 
