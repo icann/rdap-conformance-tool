@@ -210,12 +210,17 @@ public class RDAPHttpQuery implements RDAPQuery {
 
     @Override
     public void addErrorsTo404RdapResponse() {
-        // Check for errorCode presence and correctness in non-200 responses
         if (isQuerySuccessful() && httpResponse != null) {
             int httpStatusCode = httpResponse.statusCode();
             String rdapResponse = httpResponse.body();
 
             if (httpStatusCode != HTTP_OK) {
+                // Skip if the body was not parsed as a JSON object (null, unparseable, or a JSON array).
+                // Non-object bodies are already covered by -13001 (invalid JSON) or -12100 (schema invalid);
+                // running -12107/-12108 on them would produce false positives.
+                if (jsonResponse == null || !jsonResponse.isValid() || jsonResponse.isArray()) {
+                    return;
+                }
                 if (!validateIfContainsErrorCode(httpStatusCode, rdapResponse)) {
                     queryContext.addError(-12107, rdapResponse, "The rdapConformance must be present and must be an array of strings.");
                 } else if (!validateErrorCodeMatchesHttpStatus(httpStatusCode, rdapResponse)) {
@@ -530,7 +535,11 @@ public class RDAPHttpQuery implements RDAPQuery {
         jsonResponse = new JsonData(rdapResponse);
         if (!jsonResponse.isValid()) {
             queryContext.addError(-13001, "response body not given", "The response was not valid JSON.");
-            isQuerySuccessful = false;
+            // For 404 responses, allow validation to continue so rdap_error.json
+            // schema validator can emit -12100. For all other status codes, stop.
+            if (httpStatusCode != HTTP_NOT_FOUND) {
+                isQuerySuccessful = false;
+            }
         }
     }
 
