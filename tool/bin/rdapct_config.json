@@ -59,6 +59,10 @@
     {
       "code": -65810,
       "notes": "A redaction object with a description of Registrant Fax Ext exists."
+    },
+    {
+      "code": -65811,
+      "notes": "A redaction object with a description of Registrant Email exists."
     }
   ],
   "definitionIgnore": [
