@@ -309,8 +309,25 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
     }
 
     /**
+     * Test -65813: redaction object with name.description = "Tech Name" → warning emitted.
+     */
+    @Test
+    public void test65813_TechNameDescription_ShouldTrigger() {
+        JSONObject redacted = buildRedactionWithDescription("Tech Name");
+        jsonObject.getJSONArray("redacted").put(redacted);
+
+        int insertedIndex = jsonObject.getJSONArray("redacted").length() - 1;
+        String expectedValue = "#/redacted/" + insertedIndex + ":" +
+                jsonObject.getJSONArray("redacted").getJSONObject(insertedIndex).toString();
+
+        validate(-65813, expectedValue,
+                "A redaction object with a description of Tech Name exists. " +
+                        "This warning may be ignored if the redaction should not use the 'type' property.");
+    }
+
+    /**
      * Multiple redaction objects each with a distinct description → all corresponding
-     * warnings (-65800, -65801, -65802, -65803, -65804, -65805, -65806, -65807, -65808, -65809, -65810, -65811, -65812)
+     * warnings (-65800, -65801, -65802, -65803, -65804, -65805, -65806, -65807, -65808, -65809, -65810, -65811, -65812, -65813)
      * are emitted in a single validation run.
      */
     @Test
@@ -328,7 +345,8 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
                 .put(buildRedactionWithDescription("Registrant Fax"))
                 .put(buildRedactionWithDescription("Registrant Fax Ext"))
                 .put(buildRedactionWithDescription("Registrant Email"))
-                .put(buildRedactionWithDescription("Registry Tech ID"));
+                .put(buildRedactionWithDescription("Registry Tech ID"))
+                .put(buildRedactionWithDescription("Tech Name"));
 
         updateQueryContextJsonData();
         ProfileValidation validation = getProfileValidation();
@@ -336,14 +354,15 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
 
         ArgumentCaptor<RDAPValidationResult> captor =
                 ArgumentCaptor.forClass(RDAPValidationResult.class);
-        verify(results, times(13)).add(captor.capture());
+        verify(results, times(14)).add(captor.capture());
 
         List<Integer> codes = captor.getAllValues().stream()
                 .map(RDAPValidationResult::getCode)
                 .toList();
         assertThat(codes).containsExactlyInAnyOrder(
                 -65800, -65801, -65802, -65803, -65804, -65805,
-                -65806, -65807, -65808, -65809, -65810, -65811, -65812);
+                -65806, -65807, -65808, -65809, -65810, -65811, -65812,
+                -65813);
     }
 
     // ── helpers ────────────────────────────────────────────────────────────────
