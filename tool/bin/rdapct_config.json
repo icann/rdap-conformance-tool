@@ -67,6 +67,10 @@
     {
       "code": -65812,
       "notes": "A redaction object with a description of Registry Tech ID exists."
+    },
+    {
+      "code": -65813,
+      "notes": "A redaction object with a description of Tech Name exists."
     }
   ],
   "definitionIgnore": [
