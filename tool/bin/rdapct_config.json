@@ -71,6 +71,10 @@
     {
       "code": -65813,
       "notes": "A redaction object with a description of Tech Name exists."
+    },
+    {
+      "code": -65814,
+      "notes": "A redaction object with a description of Tech Phone exists."
     }
   ],
   "definitionIgnore": [
