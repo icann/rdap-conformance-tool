@@ -199,7 +199,7 @@ public class RDAPHttpQuery implements RDAPQuery {
      * <p>This method checks if the HTTP status code indicates an error response.
      * Any non-200 status code is considered error content, including 4xx client
      * errors and 5xx server errors.</p>
-     * * @return true if the response status code is not 200 (OK), false otherwise
+     * @return true if the response status code is not 200 (OK), false otherwise
      */
     @Override
     public boolean isErrorContent() {
