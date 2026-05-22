@@ -89,8 +89,8 @@ public class RDAPValidator implements ValidatorWorkflow {
         queryContext.getQuery().validateStructureByQueryType(queryType);
 
         if (queryContext.getQuery().isErrorContent()) {
-            // if they return a 404 then we need a schema validator that checks the error response content itself
-            queryContext.getQuery().addErrorsTo404RdapResponse();
+            // if they return any different success http code then we need a schema validator that checks the error response content itself
+            queryContext.getQuery().addErrorsToErrorRdapResponse();
             validator = SchemaValidatorCache.getCachedValidator("rdap_error.json", queryContext.getResults(), queryContext.getDatasetService(), queryContext);
         } else {
             // else we check the schema of the data pertaining to the query type

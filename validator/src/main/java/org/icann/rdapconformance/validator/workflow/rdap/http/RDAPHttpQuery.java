@@ -205,11 +205,11 @@ public class RDAPHttpQuery implements RDAPQuery {
      */
     @Override
     public boolean isErrorContent() {
-        return httpResponse.statusCode() == HTTP_NOT_FOUND;
+        return httpResponse.statusCode() != HTTP_OK;
     }
 
     @Override
-    public void addErrorsTo404RdapResponse() {
+    public void addErrorsToErrorRdapResponse() {
         if (isQuerySuccessful() && httpResponse != null) {
             int httpStatusCode = httpResponse.statusCode();
             String rdapResponse = httpResponse.body();
