@@ -195,13 +195,11 @@ public class RDAPHttpQuery implements RDAPQuery {
         return structureValid;
     }
 
-    /**
-     * Determines if the HTTP response represents error content.
-     *
+    /** * Determines if the HTTP response represents error content.
      * <p>This method checks if the HTTP status code indicates an error response.
-     * Currently, it considers 404 (Not Found) as the primary error indicator.</p>
-     *
-     * @return true if the response status code indicates error content, false otherwise
+     * Any non-200 status code is considered error content, including 4xx client
+     * errors and 5xx server errors.</p>
+     * * @return true if the response status code is not 200 (OK), false otherwise
      */
     @Override
     public boolean isErrorContent() {

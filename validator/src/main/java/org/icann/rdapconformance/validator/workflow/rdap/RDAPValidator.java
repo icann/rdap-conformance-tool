@@ -89,7 +89,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         queryContext.getQuery().validateStructureByQueryType(queryType);
 
         if (queryContext.getQuery().isErrorContent()) {
-            // if they return any different success http code then we need a schema validator that checks the error response content itself
+            // if they return any non-200 HTTP status code then we need a schema validator that checks the error response content itself
             queryContext.getQuery().addErrorsToErrorRdapResponse();
             validator = SchemaValidatorCache.getCachedValidator("rdap_error.json", queryContext.getResults(), queryContext.getDatasetService(), queryContext);
         } else {

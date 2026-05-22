@@ -435,7 +435,8 @@ public class RDAPHttpQueryStatusCodeTest {
         query.setQueryContext(queryContext);
         boolean queryResult = query.run();
 
-        // Simulate RDAPValidator flow: only call addErrorsTo404RdapResponse for 404
+        // Simulate current RDAPValidator flow: call addErrorsToErrorRdapResponse()
+        // for any error content response, not just 404.
         if (query.isErrorContent()) {
             query.addErrorsToErrorRdapResponse();
         }
@@ -595,7 +596,7 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
         boolean has13001 = allResults.stream().anyMatch(r -> r.getCode() == -13001);
 
-        // JSON malformed (isValid=false) → addErrorsTo404RdapResponse() is no-op only -13001 is emitted
+        // JSON malformed (isValid=false) → addErrorsToErrorRdapResponse() is no-op only -13001 is emitted
         assertTrue(has13001, "Malformed JSON should trigger -13001");
         assertFalse(has12107, "Malformed JSON: body is not parseable, -12107 should NOT be emitted");
         assertFalse(has12108, "Malformed JSON should not trigger -12108");
@@ -636,7 +637,7 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has13001 = allResults.stream().anyMatch(r -> r.getCode() == -13001);
 
         // [] is valid JSON so -13001 is NOT emitted
-        // [] does not start with '{' so addErrorsTo404RdapResponse() guard skips -12107
+        // [] does not start with '{' so addErrorsToErrorRdapResponse() guard skips -12107
         assertFalse(has13001, "[] is valid JSON — -13001 should NOT be emitted");
         assertFalse(has12107, "Array body should NOT trigger -12107 — guard prevents false positive");
     }
@@ -670,8 +671,8 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
 
-        // -12107/-12108 checks only apply to 404 responses now.
-        // Status 500 does not trigger addErrorsTo404RdapResponse().
+        // -12107/-12108 checks for non-200 status.
+        // Status 500 does not trigger addErrorsToErrorRdapResponse().
         assertFalse(has12107, "Non-404 status should not trigger -12107");
         assertFalse(has12108, "Non-404 status should not trigger -12108");
         
@@ -709,7 +710,7 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
         boolean has13002 = allResults.stream().anyMatch(r -> r.getCode() == -13002);
 
-        // 4xx non-404 causes early termination. addErrorsTo404RdapResponse() is not called.
+        // 4xx non-404 causes early termination. addErrorsToErrorRdapResponse() is not called.
         assertFalse(has12108, "4xx non-404 should not trigger -12108 (not a 404 response)");
         assertFalse(has12107, "4xx non-404 should not trigger -12107");
         assertTrue(has13002, "4xx non-404 should still trigger -13002");
@@ -744,7 +745,7 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
 
-        // Status 500 is not 404, so addErrorsTo404RdapResponse() is never called.
+        // Status 500 is not 404, so addErrorsToErrorRdapResponse() is never called.
         // The null/empty/blank body issues are caught by -13001 (invalid JSON) instead.
         assertFalse(has12107, "Non-404 status should not trigger -12107");
         assertFalse(has12108, "Non-404 status should not trigger -12108");
@@ -779,7 +780,7 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
 
-        // Status 500 is not 404, so addErrorsTo404RdapResponse() is never called.
+        // Status 500 is not 404, so addErrorsToErrorRdapResponse() is never called.
         // The null/empty/blank body issues are caught by -13001 (invalid JSON) instead.
         assertFalse(has12107, "Non-404 status should not trigger -12107");
         assertFalse(has12108, "Non-404 status should not trigger -12108");
@@ -815,7 +816,7 @@ public class RDAPHttpQueryStatusCodeTest {
         boolean has12108 = allResults.stream().anyMatch(r -> r.getCode() == -12108);
         boolean has12107 = allResults.stream().anyMatch(r -> r.getCode() == -12107);
 
-        // Status 500 is not 404, so addErrorsTo404RdapResponse() is never called.
+        // Status 500 is not 404, so addErrorsToErrorRdapResponse() is never called.
         // The null/empty/blank body issues are caught by -13001 (invalid JSON) instead.
         assertFalse(has12107, "Non-404 status should not trigger -12107");
         assertFalse(has12108, "Non-404 status should not trigger -12108");
