@@ -418,6 +418,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-65812`: Registry Tech ID redaction description warning (2024 profile) - "A redaction object with a description of Registry Tech ID exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 - `-65813`: Tech Name redaction description warning (2024 profile) - "A redaction object with a description of Tech Name exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 - `-65814`: Tech Phone redaction description warning (2024 profile) - "A redaction object with a description of Tech Phone exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
+- `-65815`: Tech Phone Ext redaction description warning (2024 profile) - "A redaction object with a description of Tech Phone Ext exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 
 ### vCard Validation Errors (2024 Profile) (-63XXX)
 - `-63000`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot2_2024.java}
