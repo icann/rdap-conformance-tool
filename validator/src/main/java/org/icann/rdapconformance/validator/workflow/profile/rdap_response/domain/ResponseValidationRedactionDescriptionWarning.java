@@ -37,7 +37,7 @@ public final class ResponseValidationRedactionDescriptionWarning extends Profile
         DESCRIPTION_TO_CODE.put("Registrant Email", -65811);
         DESCRIPTION_TO_CODE.put("Registry Tech ID", -65812);
         DESCRIPTION_TO_CODE.put("Tech Name", -65813);
-        // -6580XXX Registry Registrant xxxx→ add when that story arrives ....
+        DESCRIPTION_TO_CODE.put("Tech Phone", -65814);
     }
 
     private final RDAPQueryType queryType;
