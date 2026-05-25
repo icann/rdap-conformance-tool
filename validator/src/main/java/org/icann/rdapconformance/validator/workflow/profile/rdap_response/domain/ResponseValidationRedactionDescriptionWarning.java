@@ -38,6 +38,7 @@ public final class ResponseValidationRedactionDescriptionWarning extends Profile
         DESCRIPTION_TO_CODE.put("Registry Tech ID", -65812);
         DESCRIPTION_TO_CODE.put("Tech Name", -65813);
         DESCRIPTION_TO_CODE.put("Tech Phone", -65814);
+        DESCRIPTION_TO_CODE.put("Tech Phone Ext", -65815);
     }
 
     private final RDAPQueryType queryType;
