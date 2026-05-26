@@ -12,10 +12,13 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/**
- * Validates that every "email" property value in every vCardArray of every entity
- * conforms to the addr-spec format defined in RFC 5322 Section 3.4.1.
- * Error code -12320.
+/** * Validates that every "email" property value in every vCardArray of every entity
+ * conforms to the dot-atom form of RFC 5322 addr-spec (Section 3.4.1).
+ * * <p>Note: The full RFC 5322 addr-spec grammar also permits quoted-string local-parts
+ * (e.g., "user name"@domain.com) and domain-literals (e.g., user@[127.0.0.1]).
+ * These forms are not used in RDAP/EPP registration data and are intentionally
+ * out of scope for this validator. If such values are encountered they will be
+ * flagged as invalid. * * Error code -12320.
  */
 public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
 
@@ -23,6 +26,13 @@ public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
     private static final int CODE = -12320;
     private static final String MESSAGE = "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1";
     private static final String ALL_ENTITIES_PATH = "$..entities[*]";
+    // RFC 5322 Section 3.4.1 dot-atom allowed chars in local-part
+    private static final Pattern LOCAL_PART_PATTERN =
+            Pattern.compile("^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*$");
+
+    // RFC 5322 dot-atom-text for domain labels (letters, digits, hyphens; no leading/trailing hyphen)
+    private static final Pattern DOMAIN_LABEL_PATTERN =
+            Pattern.compile("^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$");
 
     private final QueryContext queryContext;
     private final EmailValidator emailValidator;
@@ -108,10 +118,6 @@ public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
         return isValid;
     }
 
-    // RFC 5322 Section 3.4.1 dot-atom allowed chars in local-part
-    private static final Pattern LOCAL_PART_PATTERN =
-            Pattern.compile("^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*$");
-
     private boolean isValidAddrSpec(String email) {
         if (email == null || email.contains(" ")) {
             return false;
@@ -126,14 +132,29 @@ public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
         String localPart = email.substring(0, atIndex);
         String domain = email.substring(atIndex + 1);
 
-        // Validate local-part with dot-atom rules (RFC 5322 Section 3.2.3)
-        // - no leading/trailing dots
-        // - no consecutive dots
+        // Validate local-part: dot-atom rules (no leading/trailing/consecutive dots)
         if (!LOCAL_PART_PATTERN.matcher(localPart).matches()) {
             return false;
         }
 
-        // Delegate domain validation to EmailValidator
-        return emailValidator.validateEmail("test@" + domain);
+        // Validate domain directly (RFC 5322 dot-atom-text):
+        // - must not be blank
+        // - must contain at least one dot (no dotless domains)
+        // - no leading or trailing dot (no empty labels)
+        // - each label must match DOMAIN_LABEL_PATTERN
+        if (!domain.contains(".")) {
+            return false;
+        }
+        if (domain.startsWith(".") || domain.endsWith(".")) {
+            return false;
+        }
+        String[] labels = domain.split("\\.", -1);
+        for (String label : labels) {
+            if (label.isEmpty() || !DOMAIN_LABEL_PATTERN.matcher(label).matches()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

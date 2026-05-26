@@ -25,42 +25,14 @@ public class ResponseValidationVcardEmailFormatTest extends ProfileJsonValidatio
 
     @Test
     public void test12320_UrlInsteadOfEmail_ShouldFail() {
-        // Replace the registrant email value (index 3 in the property array) with a URL
-        JSONArray vcardProperties = jsonObject.getJSONArray("entities")
-                .getJSONObject(0)
-                .getJSONArray("vcardArray")
-                .getJSONArray(1);
-
-        // Find the email property and replace its value
-        for (int i = 0; i < vcardProperties.length(); i++) {
-            JSONArray prop = vcardProperties.getJSONArray(i);
-            if ("email".equals(prop.getString(0))) {
-                prop.put(3, "https://whois.xinnet.com/sendemail/xinnet.com");
-                break;
-            }
-        }
-        updateQueryContextJsonData();
-
+        replaceRegistrantEmail("https://whois.xinnet.com/sendemail/xinnet.com");
         validate(-12320, "https://whois.xinnet.com/sendemail/xinnet.com",
                 "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1");
     }
 
     @Test
     public void test12320_EmptyEmail_ShouldFail() {
-        JSONArray vcardProperties = jsonObject.getJSONArray("entities")
-                .getJSONObject(0)
-                .getJSONArray("vcardArray")
-                .getJSONArray(1);
-
-        for (int i = 0; i < vcardProperties.length(); i++) {
-            JSONArray prop = vcardProperties.getJSONArray(i);
-            if ("email".equals(prop.getString(0))) {
-                prop.put(3, "");
-                break;
-            }
-        }
-        updateQueryContextJsonData();
-
+        replaceRegistrantEmail("");
         validate(-12320, "",
                 "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1");
     }
@@ -85,18 +57,8 @@ public class ResponseValidationVcardEmailFormatTest extends ProfileJsonValidatio
 
     @Test
     public void test12320_SpaceInLocalPart_ShouldFail() {
-        // "user @domain.com" — EmailValidator passes this but addr-spec does not
-        JSONArray vcardProperties = jsonObject.getJSONArray("entities")
-                .getJSONObject(0).getJSONArray("vcardArray").getJSONArray(1);
-        for (int i = 0; i < vcardProperties.length(); i++) {
-            JSONArray prop = vcardProperties.getJSONArray(i);
-            if ("email".equals(prop.getString(0))) {
-                prop.put(3, "user @domain.com");
-                break;
-            }
-        }
-        updateQueryContextJsonData();
-
+        // "user @domain.com" — unquoted space violates RFC 5322 addr-spec dot-atom rules
+        replaceRegistrantEmail("user @domain.com");
         validate(-12320, "user @domain.com",
                 "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1");
     }
@@ -155,5 +117,36 @@ public class ResponseValidationVcardEmailFormatTest extends ProfileJsonValidatio
         updateQueryContextJsonData();
 
         validateOk(results);
+    }
+
+    @Test
+    public void test12320_QuotedStringLocalPart_ShouldFail() {
+        // Quoted-string local-parts are out of scope for RDAP registration data
+        replaceRegistrantEmail("\"john doe\"@example.com");
+        validate(-12320, "\"john doe\"@example.com",
+                "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1");
+    }
+
+    @Test
+    public void test12320_DomainLiteral_ShouldFail() {
+        // Domain-literals are out of scope for RDAP registration data
+        replaceRegistrantEmail("user@[192.0.2.1]");
+        validate(-12320, "user@[192.0.2.1]",
+                "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1");
+    }
+
+    private void replaceRegistrantEmail(String emailValue) {
+        JSONArray vcardProperties = jsonObject.getJSONArray("entities")
+                .getJSONObject(0)
+                .getJSONArray("vcardArray")
+                .getJSONArray(1);
+        for (int i = 0; i < vcardProperties.length(); i++) {
+            JSONArray prop = vcardProperties.getJSONArray(i);
+            if ("email".equals(prop.getString(0))) {
+                prop.put(3, emailValue);
+                break;
+            }
+        }
+        updateQueryContextJsonData();
     }
 }
