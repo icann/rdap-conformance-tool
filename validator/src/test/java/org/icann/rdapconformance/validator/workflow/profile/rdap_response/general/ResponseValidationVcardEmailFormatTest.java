@@ -135,6 +135,15 @@ public class ResponseValidationVcardEmailFormatTest extends ProfileJsonValidatio
                 "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1");
     }
 
+    @Test
+    public void test12320_DotlessDomain_ShouldFail() {
+        // user@localhost — single-atom domain is technically RFC 5322 valid
+        // but not acceptable in RDAP registration data (FQDN required)
+        replaceRegistrantEmail("user@localhost");
+        validate(-12320, "user@localhost",
+                "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1");
+    }
+
     private void replaceRegistrantEmail(String emailValue) {
         JSONArray vcardProperties = jsonObject.getJSONArray("entities")
                 .getJSONObject(0)

@@ -1,7 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import org.icann.rdapconformance.validator.QueryContext;
-import org.icann.rdapconformance.validator.utils.EmailValidator;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.json.JSONArray;
@@ -12,13 +11,14 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/** * Validates that every "email" property value in every vCardArray of every entity
+/** Validates that every "email" property value in every vCardArray of every entity
  * conforms to the dot-atom form of RFC 5322 addr-spec (Section 3.4.1).
- * * <p>Note: The full RFC 5322 addr-spec grammar also permits quoted-string local-parts
+ * <p>Note: The full RFC 5322 addr-spec grammar also permits quoted-string local-parts
  * (e.g., "user name"@domain.com) and domain-literals (e.g., user@[127.0.0.1]).
  * These forms are not used in RDAP/EPP registration data and are intentionally
  * out of scope for this validator. If such values are encountered they will be
- * flagged as invalid. * * Error code -12320.
+ * flagged as invalid.
+ * Error code -12320.
  */
 public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
 
@@ -35,12 +35,10 @@ public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
             Pattern.compile("^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$");
 
     private final QueryContext queryContext;
-    private final EmailValidator emailValidator;
 
     public ResponseValidationVcardEmailFormat(QueryContext qctx) {
         super(qctx.getRdapResponseData(), qctx.getResults());
         this.queryContext = qctx;
-        this.emailValidator = new EmailValidator();
     }
 
     @Override
@@ -138,8 +136,8 @@ public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
         }
 
         // Validate domain directly (RFC 5322 dot-atom-text):
-        // - must not be blank
-        // - must contain at least one dot (no dotless domains)
+        // - must contain at least one dot — RFC 5322 allows single-atom domains (e.g., user@localhost)
+        //   but dotless domains are not valid in RDAP/EPP registration data where an FQDN is required
         // - no leading or trailing dot (no empty labels)
         // - each label must match DOMAIN_LABEL_PATTERN
         if (!domain.contains(".")) {
