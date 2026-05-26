@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Validates that every "email" property value in every vCardArray of every entity
@@ -58,16 +59,32 @@ public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
     }
 
     private boolean validateVcardEmails(String entityPointer) {
-        JSONObject entity = (JSONObject) jsonObject.query(entityPointer);
-        JSONArray vcardArray = entity.optJSONArray("vcardArray");
-        if (vcardArray == null || vcardArray.length() < 2) {
+        try {
+            JSONObject entity = (JSONObject) jsonObject.query(entityPointer);
+            JSONArray vcardArray = entity.optJSONArray("vcardArray");
+            if (vcardArray == null || vcardArray.length() < 2) {
+                return true;
+            }
+            return validateVcardEmailsDirect(vcardArray);
+        } catch (Exception e) {
+            logger.debug("Skipping malformed entity at {}: {}", entityPointer, e.getMessage());
             return true;
         }
-        return validateVcardEmailsDirect(vcardArray);
     }
 
     private boolean validateVcardEmailsDirect(JSONArray vcardArray) {
-        JSONArray vcardProperties = vcardArray.getJSONArray(1);
+        // Defensive checks — malformed vCard structure is handled by -12305
+        if (vcardArray == null || vcardArray.length() < 2) {
+            logger.debug("vcardArray is null or has fewer than 2 elements, skipping email format validation");
+            return true;
+        }
+
+        Object propertiesObj = vcardArray.get(1);
+        if (!(propertiesObj instanceof JSONArray vcardProperties)) {
+            logger.debug("vcardArray[1] is not a JSONArray, skipping email format validation");
+            return true;
+        }
+
         boolean isValid = true;
         for (int i = 0; i < vcardProperties.length(); i++) {
             try {
@@ -91,15 +108,32 @@ public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
         return isValid;
     }
 
+    // RFC 5322 Section 3.4.1 dot-atom allowed chars in local-part
+    private static final Pattern LOCAL_PART_PATTERN =
+            Pattern.compile("^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*$");
+
     private boolean isValidAddrSpec(String email) {
-        // addr-spec prohibits unquoted spaces (RFC 5322 Section 3.4.1)
         if (email == null || email.contains(" ")) {
             return false;
         }
+
         // Must contain exactly one @
-        if (email.chars().filter(c -> c == '@').count() != 1) {
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 0 || atIndex != email.lastIndexOf('@')) {
             return false;
         }
-        return emailValidator.validateEmail(email);
+
+        String localPart = email.substring(0, atIndex);
+        String domain = email.substring(atIndex + 1);
+
+        // Validate local-part with dot-atom rules (RFC 5322 Section 3.2.3)
+        // - no leading/trailing dots
+        // - no consecutive dots
+        if (!LOCAL_PART_PATTERN.matcher(localPart).matches()) {
+            return false;
+        }
+
+        // Delegate domain validation to EmailValidator
+        return emailValidator.validateEmail("test@" + domain);
     }
 }
