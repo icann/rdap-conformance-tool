@@ -30,14 +30,14 @@ public class ResponseValidationObsoleteProfile_2024 extends ProfileJsonValidatio
         JSONArray rdapConformance = jsonObject.optJSONArray("rdapConformance");
 
         if (rdapConformance == null) {
-            logger.debug("The rdapConformance array is missing or null, skipping -62002 check.");
+            logger.debug("The rdapConformance array is missing or null, skipping -62006 check.");
             return true;
         }
 
         for (int i = 0; i < rdapConformance.length(); i++) {
             if (FORBIDDEN_VALUE.equals(rdapConformance.optString(i))) {
                 results.add(RDAPValidationResult.builder()
-                        .code(-62002)
+                        .code(-62006)
                         .value(getResultValue(JSON_POINTER))
                         .message("The RDAP Conformance data structure includes " + FORBIDDEN_VALUE + ", which is obsolete.")
                         .build(queryContext));

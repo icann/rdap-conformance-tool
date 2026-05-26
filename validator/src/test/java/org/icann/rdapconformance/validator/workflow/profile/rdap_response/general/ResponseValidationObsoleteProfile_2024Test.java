@@ -20,7 +20,7 @@ public class ResponseValidationObsoleteProfile_2024Test extends ProfileJsonValid
 
     /**
      * Override base testValidate_ok() because valid.json contains
-     * icann_rdap_response_profile_0 which is the forbidden value for -62002.
+     * icann_rdap_response_profile_0 which is the forbidden value for -62006.
      */
     @Test
     @Override
@@ -34,13 +34,13 @@ public class ResponseValidationObsoleteProfile_2024Test extends ProfileJsonValid
     }
 
     /**
-     * Test -62002: rdapConformance contains the obsolete value -> error.
+     * Test -62006: rdapConformance contains the obsolete value -> error.
      * valid.json already contains icann_rdap_response_profile_0, no changes needed.
      */
     @Test
-    public void ResponseValidationObsoleteProfile_2024_62002() {
+    public void ResponseValidationObsoleteProfile_2024_62006() {
         // valid.json already contains icann_rdap_response_profile_0
-        validate(-62002,
+        validate(-62006,
                 "#/rdapConformance:[\"rdap_level_0\",\"icann_rdap_technical_implementation_guide_0\",\"icann_rdap_response_profile_0\"]",
                 "The RDAP Conformance data structure includes icann_rdap_response_profile_0, which is obsolete.");
     }
