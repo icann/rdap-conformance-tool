@@ -220,6 +220,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-12303`: Entity objectClassName validation [RFC 9083 Section 5.1] {rdap_entity.json, rdap_autnum.json, rdap_ip_network.json}
 - `-12304`: Entity handle validation [RFC 9083 Section 5.1] {rdap_entity.json, rdap_autnum.json, rdap_ip_network.json}
 - `-12305`: vCard array validation - "The vcard array does not contain valid values." or "The vCard array structure is incorrect." [RFC 9083 Section 5.1] {VcardArrayGeneralValidation.java, RDAPProfileVcardArrayValidation.java, VcardExceptionParser.java}
+- `-12320`: vCard email addr-spec format validation - "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1" [RFC 5322 Section 3.4.1, RFC 9083 Section 5.1] {ResponseValidationVcardEmailFormat.java}
 
 #### Nameserver Validation (-124XX)
 - `-12403`: Nameserver objectClassName validation (must be "nameserver") [RFC 9083 Section 5.2] {rdap_nameserver.json}
