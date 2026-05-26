@@ -8,9 +8,9 @@
   "objectClassName": "domain",
   "links": [
     {
-      "value": "https://rdap.xinnet.com/rdap/domain/%7Bdomain%7D",
+      "value": "https://rdap.example.com/rdap/domain/example.com",
       "rel": "self",
-      "href": "https://rdap.xinnet.com/rdap/domain/%7Bdomain%7D",
+      "href": "https://rdap.example.com/rdap/domain/example.com",
       "type": "application/rdap+json"
     }
   ],
@@ -23,7 +23,7 @@
       ],
       "links": [
         {
-          "value": "https://rdap.xinnet.com/rdap/domain/xinnet.com",
+          "value": "https://rdap.example.com/rdap/domain/example.com",
           "rel": "glossary",
           "href": "https://icann.org/epp",
           "type": "text/html"
@@ -38,7 +38,7 @@
       ],
       "links": [
         {
-          "value": "https://rdap.xinnet.com/rdap/domain/xinnet.com",
+          "value": "https://rdap.example.com/rdap/domain/example.com",
           "rel": "help",
           "href": "https://icann.org/wicf",
           "type": "text/html"
@@ -49,13 +49,13 @@
       "title": "Terms of Service",
       "type": "object redacted due to authorization",
       "description": [
-        "URL of ICANN RDAP Terms of Service: https://www.xinnet.com/views/agreement/domain_agreement.html"
+        "URL of ICANN RDAP Terms of Service: https://www.example.com/terms"
       ],
       "links": [
         {
-          "value": "https://rdap.xinnet.com/rdap/domain/xinnet.com",
+          "value": "https://rdap.example.com/rdap/domain/example.com",
           "rel": "terms-of-service",
-          "href": "https://rdap.xinnet.com/terms",
+          "href": "https://rdap.example.com/terms",
           "type": "text/html"
         }
       ]
@@ -91,10 +91,10 @@
     "client transfer prohibited",
     "client delete prohibited"
   ],
-  "port43": "whois.paycenter.com.cn",
-  "handle": "15471342_DOMAIN_COM-VRSN",
-  "ldhName": "xinnet.com",
-  "unicodeName": "xinnet.com",
+  "port43": "whois.example.com",
+  "handle": "12345678_DOMAIN_COM-VRSN",
+  "ldhName": "example.com",
+  "unicodeName": "example.com",
   "secureDNS": {
     "delegationSigned": false
   },
@@ -105,48 +105,21 @@
       "vcardArray": [
         "vcard",
         [
-          [
-            "version",
-            {},
-            "text",
-            "4.0"
-          ],
-          [
-            "fn",
-            {},
-            "text",
-            ""
-          ],
-          [
-            "adr",
-            {
-              "cc": "CN"
-            },
-            "text",
-            [
-              "",
-              "",
-              "",
-              "",
-              "beijingshi",
-              "",
-              ""
-            ]
-          ],
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", ""],
+          ["adr", {"cc": "US"}, "text", ["", "", "", "", "Exampleville", "", ""]],
           ["email", {}, "text", "registrant@example.com"]
         ]
       ],
-      "roles": [
-        "registrant"
-      ]
+      "roles": ["registrant"]
     },
     {
       "objectClassName": "entity",
       "links": [
         {
-          "value": "https://rdap.xinnet.com/rdap/",
+          "value": "https://rdap.example.com/rdap/",
           "rel": "about",
-          "href": "https://www.xinnet.com",
+          "href": "https://www.example.com",
           "type": "text/html"
         }
       ],
@@ -155,45 +128,13 @@
       "vcardArray": [
         "vcard",
         [
-          [
-            "version",
-            {},
-            "text",
-            "4.0"
-          ],
-          [
-            "fn",
-            {},
-            "text",
-            "Xin Net Technology Corporation"
-          ],
-          [
-            "adr",
-            {},
-            "text",
-            [
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
-            ]
-          ],
-          [
-            "tel",
-            {
-              "type": "voice"
-            },
-            "uri",
-            "tel:+86.1087127926"
-          ]
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Example Registrar Inc."],
+          ["adr", {}, "text", ["", "", "", "", "", "", ""]],
+          ["tel", {"type": "voice"}, "uri", "tel:+1.2025550100"]
         ]
       ],
-      "roles": [
-        "registrar"
-      ],
+      "roles": ["registrar"],
       "publicIds": [
         {
           "type": "IANA Registrar ID",
@@ -205,48 +146,24 @@
           "objectClassName": "entity",
           "links": [
             {
-              "value": "https://www.iana.org/assignments/registrar-ids/120",
+              "value": "https://www.example.com/registrar/120",
               "rel": "self",
-              "href": "https://www.xinnet.com",
+              "href": "https://www.example.com",
               "type": "application/rdap+json"
             }
           ],
           "lang": "en",
-          "handle": "LOCAL-ABUSE-39285424",
+          "handle": "LOCAL-ABUSE-00000001",
           "vcardArray": [
             "vcard",
             [
-              [
-                "version",
-                {},
-                "text",
-                "4.0"
-              ],
-              [
-                "fn",
-                {},
-                "text",
-                "Abuse Contact"
-              ],
-              [
-                "tel",
-                {
-                  "type": "voice"
-                },
-                "uri",
-                "tel:+86.1087127926"
-              ],
-              [
-                "email",
-                {},
-                "text",
-                "supervision@xinnet.com"
-              ]
+              ["version", {}, "text", "4.0"],
+              ["fn", {}, "text", "Abuse Contact"],
+              ["tel", {"type": "voice"}, "uri", "tel:+1.2025550100"],
+              ["email", {}, "text", "abuse@example.com"]
             ]
           ],
-          "roles": [
-            "abuse"
-          ]
+          "roles": ["abuse"]
         }
       ]
     },
@@ -257,23 +174,11 @@
       "vcardArray": [
         "vcard",
         [
-          [
-            "version",
-            {},
-            "text",
-            "4.0"
-          ],
-          [
-            "fn",
-            {},
-            "text",
-            ""
-          ]
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", ""]
         ]
       ],
-      "roles": [
-        "technical"
-      ]
+      "roles": ["technical"]
     }
   ],
   "publicIds": [
@@ -284,121 +189,71 @@
   ],
   "redacted": [
     {
-      "name": {
-        "description": "Registrant Name",
-        "type": "Registrant Name"
-      },
-      "reason": {
-        "description": "Data redacted for privacy per ICANN RDAP profile"
-      },
+      "name": {"description": "Registrant Name", "type": "Registrant Name"},
+      "reason": {"description": "Data redacted for privacy per ICANN RDAP profile"},
       "method": "emptyValue",
       "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='fn')][3]",
       "pathLang": "jsonpath"
     },
     {
-      "name": {
-        "description": "Registrant Phone",
-        "type": "Registrant Phone"
-      },
-      "reason": {
-        "description": "Data redacted for privacy per ICANN RDAP profile"
-      },
+      "name": {"description": "Registrant Phone", "type": "Registrant Phone"},
+      "reason": {"description": "Data redacted for privacy per ICANN RDAP profile"},
       "method": "removal",
       "prePath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='tel')]",
       "pathLang": "jsonpath"
     },
     {
-      "name": {
-        "description": "Registrant Email",
-        "type": "Registrant Email"
-      },
-      "reason": {
-        "description": "Data redacted for privacy per ICANN RDAP profile"
-      },
+      "name": {"description": "Registrant Email", "type": "Registrant Email"},
+      "reason": {"description": "Data redacted for privacy per ICANN RDAP profile"},
       "method": "replacementValue",
       "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='email')][3]",
       "pathLang": "jsonpath"
     },
     {
-      "name": {
-        "description": "Registrant Street",
-        "type": "Registrant Street"
-      },
-      "reason": {
-        "description": "Data redacted for privacy per ICANN RDAP profile"
-      },
+      "name": {"description": "Registrant Street", "type": "Registrant Street"},
+      "reason": {"description": "Data redacted for privacy per ICANN RDAP profile"},
       "method": "emptyValue",
       "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][2]",
       "pathLang": "jsonpath"
     },
     {
-      "name": {
-        "description": "Registrant City",
-        "type": "Registrant City"
-      },
-      "reason": {
-        "description": "Data redacted for privacy per ICANN RDAP profile"
-      },
+      "name": {"description": "Registrant City", "type": "Registrant City"},
+      "reason": {"description": "Data redacted for privacy per ICANN RDAP profile"},
       "method": "emptyValue",
       "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][3]",
       "pathLang": "jsonpath"
     },
     {
-      "name": {
-        "description": "Registrant Postal Code",
-        "type": "Registrant Postal Code"
-      },
-      "reason": {
-        "description": "Data redacted for privacy per ICANN RDAP profile"
-      },
+      "name": {"description": "Registrant Postal Code", "type": "Registrant Postal Code"},
+      "reason": {"description": "Data redacted for privacy per ICANN RDAP profile"},
       "method": "emptyValue",
       "postPath": "$.entities[?(@.roles[0]=='registrant')].vcardArray[1][?(@[0]=='adr')][3][5]",
       "pathLang": "jsonpath"
     },
     {
-      "name": {
-        "description": "Registrant Handle",
-        "type": "Registrant Handle"
-      },
-      "reason": {
-        "description": "Data redacted for privacy per ICANN RDAP profile"
-      },
+      "name": {"description": "Registrant Handle", "type": "Registrant Handle"},
+      "reason": {"description": "Data redacted for privacy per ICANN RDAP profile"},
       "method": "removal",
       "prePath": "$.entities[?(@.roles[0]=='registrant')].handle",
       "pathLang": "jsonpath"
     },
     {
-      "name": {
-        "description": "Tech Name",
-        "type": "Tech Name"
-      },
-      "reason": {
-        "description": "Data redacted for privacy per ICANN RDAP profile"
-      },
+      "name": {"description": "Tech Name", "type": "Tech Name"},
+      "reason": {"description": "Data redacted for privacy per ICANN RDAP profile"},
       "method": "emptyValue",
       "postPath": "$.entities[2].vcardArray[1][?(@[0]=='fn')][3]",
       "pathLang": "jsonpath"
     },
     {
-      "name": {
-        "description": "Tech Phone",
-        "type": "Tech Phone"
-      },
-      "reason": {
-        "description": "Data redacted for privacy per ICANN RDAP profile"
-      },
+      "name": {"description": "Tech Phone", "type": "Tech Phone"},
+      "reason": {"description": "Data redacted for privacy per ICANN RDAP profile"},
       "method": "removal",
       "prePath": "$.entities[2].vcardArray[1][?(@[0]=='tel')]",
       "pathLang": "jsonpath"
     },
     {
-      "name": {
-        "description": "Tech Email",
-        "type": "Tech Email"
-      },
-      "reason": {
-        "description": "Data redacted for privacy per ICANN RDAP profile"
-      },
+      "name": {"description": "Tech Email", "type": "Tech Email"},
+      "reason": {"description": "Data redacted for privacy per ICANN RDAP profile"},
       "method": "removal",
       "prePath": "$.entities[2].vcardArray[1][?(@[0]=='email')]",
       "pathLang": "jsonpath"
@@ -407,43 +262,20 @@
   "nameservers": [
     {
       "objectClassName": "nameserver",
-      "status": [
-        "active"
-      ],
-      "ldhName": "ns17.xincache.com",
+      "status": ["active"],
+      "ldhName": "ns1.example.com",
       "ipAddresses": {
-        "v4": [
-          "117.89.178.173",
-          "129.211.176.209",
-          "1.12.0.4",
-          "112.80.181.45",
-          "36.155.149.180",
-          "125.94.59.210"
-        ],
-        "v6": [
-          "2402:4e00:1470:2:0:0:0:e",
-          "2402:4e00:1730:0:0:0:0:e"
-        ]
+        "v4": ["192.0.2.1", "192.0.2.2"],
+        "v6": ["2001:db8::1", "2001:db8::2"]
       }
     },
     {
       "objectClassName": "nameserver",
-      "status": [
-        "active"
-      ],
-      "ldhName": "ns18.xincache.com",
+      "status": ["active"],
+      "ldhName": "ns2.example.com",
       "ipAddresses": {
-        "v4": [
-          "36.155.149.176",
-          "1.12.0.1",
-          "112.80.181.111",
-          "163.177.5.23",
-          "117.89.178.184",
-          "129.211.176.239"
-        ],
-        "v6": [
-          "2402:4e00:111:fff:0:0:0:c"
-        ]
+        "v4": ["192.0.2.3", "192.0.2.4"],
+        "v6": ["2001:db8::3"]
       }
     }
   ]

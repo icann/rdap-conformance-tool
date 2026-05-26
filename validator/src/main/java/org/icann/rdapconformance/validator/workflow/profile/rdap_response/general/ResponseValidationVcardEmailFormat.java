@@ -21,7 +21,7 @@ public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidationVcardEmailFormat.class);
     private static final int CODE = -12320;
     private static final String MESSAGE = "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1";
-    private static final String ALL_ENTITIES_PATH = "$.entities[*]";
+    private static final String ALL_ENTITIES_PATH = "$..entities[*]";
 
     private final QueryContext queryContext;
     private final EmailValidator emailValidator;
@@ -39,44 +39,67 @@ public class ResponseValidationVcardEmailFormat extends ProfileJsonValidation {
 
     @Override
     protected boolean doValidate() {
-        Set<String> entityPointers = getPointerFromJPath(ALL_ENTITIES_PATH);
-        if (entityPointers == null || entityPointers.isEmpty()) {
-            return true;
-        }
-
         boolean isValid = true;
 
-        for (String entityPointer : entityPointers) {
-            JSONObject entity = (JSONObject) jsonObject.query(entityPointer);
-            JSONArray vcardArray = entity.optJSONArray("vcardArray");
-
-            if (vcardArray == null || vcardArray.length() < 2) {
-                continue;
+        // Case 1: domain/nameserver response — entities array (recursive, covers nested)
+        Set<String> entityPointers = getPointerFromJPath(ALL_ENTITIES_PATH);
+        if (entityPointers != null && !entityPointers.isEmpty()) {
+            for (String entityPointer : entityPointers) {
+                isValid &= validateVcardEmails(entityPointer);
             }
+        }
 
-            JSONArray vcardProperties = vcardArray.getJSONArray(1);
-
-            for (int i = 0; i < vcardProperties.length(); i++) {
-                try {
-                    JSONArray property = vcardProperties.getJSONArray(i);
-                    if (property.length() >= 4 && "email".equals(property.getString(0))) {
-                        String emailValue = property.get(3).toString();
-                        if (!emailValidator.validateEmail(emailValue)) {
-                            logger.debug("Invalid email addr-spec: {}", emailValue);
-                            results.add(RDAPValidationResult.builder()
-                                    .code(CODE)
-                                    .value(emailValue)
-                                    .message(MESSAGE)
-                                    .build(queryContext));
-                            isValid = false;
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.debug("Skipping malformed vcard property at index {}: {}", i, e.getMessage());
-                }
-            }
+        // Case 2: entity lookup response — vcardArray at topmost level
+        if (jsonObject.has("vcardArray") && "entity".equals(jsonObject.optString("objectClassName"))) {
+            isValid &= validateVcardEmailsDirect(jsonObject.getJSONArray("vcardArray"));
         }
 
         return isValid;
+    }
+
+    private boolean validateVcardEmails(String entityPointer) {
+        JSONObject entity = (JSONObject) jsonObject.query(entityPointer);
+        JSONArray vcardArray = entity.optJSONArray("vcardArray");
+        if (vcardArray == null || vcardArray.length() < 2) {
+            return true;
+        }
+        return validateVcardEmailsDirect(vcardArray);
+    }
+
+    private boolean validateVcardEmailsDirect(JSONArray vcardArray) {
+        JSONArray vcardProperties = vcardArray.getJSONArray(1);
+        boolean isValid = true;
+        for (int i = 0; i < vcardProperties.length(); i++) {
+            try {
+                JSONArray property = vcardProperties.getJSONArray(i);
+                if (property.length() >= 4 && "email".equals(property.getString(0))) {
+                    String emailValue = property.get(3).toString();
+                    if (!isValidAddrSpec(emailValue)) {
+                        logger.debug("Invalid email addr-spec: {}", emailValue);
+                        results.add(RDAPValidationResult.builder()
+                                .code(CODE)
+                                .value(emailValue)
+                                .message(MESSAGE)
+                                .build(queryContext));
+                        isValid = false;
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Skipping malformed vcard property at index {}: {}", i, e.getMessage());
+            }
+        }
+        return isValid;
+    }
+
+    private boolean isValidAddrSpec(String email) {
+        // addr-spec prohibits unquoted spaces (RFC 5322 Section 3.4.1)
+        if (email == null || email.contains(" ")) {
+            return false;
+        }
+        // Must contain exactly one @
+        if (email.chars().filter(c -> c == '@').count() != 1) {
+            return false;
+        }
+        return emailValidator.validateEmail(email);
     }
 }
