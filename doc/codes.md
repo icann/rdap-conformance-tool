@@ -222,6 +222,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-12305`: vCard array validation - "The vcard array does not contain valid values." or "The vCard array structure is incorrect." [RFC 9083 Section 5.1] {VcardArrayGeneralValidation.java, RDAPProfileVcardArrayValidation.java, VcardExceptionParser.java}
 - `-12318`: Entity autnums validation - Validates the `autnums` array within an entity object. [RFC 9083 Section 5.1] {rdap_entity.json, rdap_autnums.json}
 - `-12319`: Entity IP networks validation - Validates the `networks` array structure within an entity object. [RFC 9083 Section 5.1] {rdap_entity.json, rdap_ip_networks.json}
+- `-12320`: vCard email addr-spec format validation - "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1" [RFC 5322 Section 3.4.1, RFC 9083 Section 5.1] {ResponseValidationVcardEmailFormat.java}
 
 #### Nameserver Validation (-124XX)
 - `-12403`: Nameserver objectClassName validation (must be "nameserver") [RFC 9083 Section 5.2] {rdap_nameserver.json}
@@ -422,6 +423,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-65813`: Tech Name redaction description warning (2024 profile) - "A redaction object with a description of Tech Name exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 - `-65814`: Tech Phone redaction description warning (2024 profile) - "A redaction object with a description of Tech Phone exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 - `-65815`: Tech Phone Ext redaction description warning (2024 profile) - "A redaction object with a description of Tech Phone Ext exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
+- `-65816`: Tech Email redaction description warning (2024 profile) - "A redaction object with a description of Tech Email exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 
 ### vCard Validation Errors (2024 Profile) (-63XXX)
 - `-63000`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot2_2024.java}

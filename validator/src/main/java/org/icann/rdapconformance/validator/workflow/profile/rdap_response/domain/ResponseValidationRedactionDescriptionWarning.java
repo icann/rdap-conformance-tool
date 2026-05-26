@@ -39,6 +39,7 @@ public final class ResponseValidationRedactionDescriptionWarning extends Profile
         DESCRIPTION_TO_CODE.put("Tech Name", -65813);
         DESCRIPTION_TO_CODE.put("Tech Phone", -65814);
         DESCRIPTION_TO_CODE.put("Tech Phone Ext", -65815);
+        DESCRIPTION_TO_CODE.put("Tech Email", -65816);
     }
 
     private final RDAPQueryType queryType;
