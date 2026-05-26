@@ -376,7 +376,7 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
 
     /**
      * Multiple redaction objects each with a distinct description → all corresponding
-     * warnings (-65800, -65801, -65802, -65803, -65804, -65805, -65806, -65807, -65808, -65809, -65810, -65811, -65812, -65813, -65814, -65815)
+     * warnings (-65800, -65801, -65802, -65803, -65804, -65805, -65806, -65807, -65808, -65809, -65810, -65811, -65812, -65813, -65814, -65815, -65816)
      * are emitted in a single validation run.
      */
     @Test
@@ -406,7 +406,7 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
 
         ArgumentCaptor<RDAPValidationResult> captor =
                 ArgumentCaptor.forClass(RDAPValidationResult.class);
-        verify(results, times(16)).add(captor.capture());
+        verify(results, times(17)).add(captor.capture());
 
         List<Integer> codes = captor.getAllValues().stream()
                 .map(RDAPValidationResult::getCode)
