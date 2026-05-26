@@ -40,7 +40,7 @@ public class ResponseValidationObsoleteProfile_2024Test extends ProfileJsonValid
     @Test
     public void ResponseValidationObsoleteProfile_2024_62002() {
         // valid.json already contains icann_rdap_response_profile_0
-        validate(-62002,
+        validate(-62006,
                 "#/rdapConformance:[\"rdap_level_0\",\"icann_rdap_technical_implementation_guide_0\",\"icann_rdap_response_profile_0\"]",
                 "The RDAP Conformance data structure includes icann_rdap_response_profile_0, which is obsolete.");
     }

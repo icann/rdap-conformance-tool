@@ -220,6 +220,8 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-12303`: Entity objectClassName validation [RFC 9083 Section 5.1] {rdap_entity.json, rdap_autnum.json, rdap_ip_network.json}
 - `-12304`: Entity handle validation [RFC 9083 Section 5.1] {rdap_entity.json, rdap_autnum.json, rdap_ip_network.json}
 - `-12305`: vCard array validation - "The vcard array does not contain valid values." or "The vCard array structure is incorrect." [RFC 9083 Section 5.1] {VcardArrayGeneralValidation.java, RDAPProfileVcardArrayValidation.java, VcardExceptionParser.java}
+- `-12318`: Entity autnums validation - Validates the `autnums` array within an entity object. [RFC 9083 Section 5.1] {rdap_entity.json, rdap_autnums.json}
+- `-12319`: Entity IP networks validation - Validates the `networks` array structure within an entity object. [RFC 9083 Section 5.1] {rdap_entity.json, rdap_ip_networks.json}
 
 #### Nameserver Validation (-124XX)
 - `-12403`: Nameserver objectClassName validation (must be "nameserver") [RFC 9083 Section 5.2] {rdap_nameserver.json}
@@ -367,8 +369,9 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-61202`: Terms of service link value validation (2024 profile) - "This link must have a value that is the same as the queried URI." [TIG Section 3.3, 3.4, RDAP Response Profile 2024] {TigValidation3Dot3And3Dot4_2024.java}
 - `-62000`: RDAP conformance validation (2024 profile) - "The RDAP Conformance data structure does not include icann_rdap_response_profile_1." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidation1Dot2_1_2024.java}
 - `-62001`: Redacted conformance validation (2024 profile) - "The RDAP Conformance data structure does not include redacted but RFC 9537 is being used." [RFC 9537, RDAP Response Profile 2024] {ResponseValidation1Dot2_2_2024.java}
+- `-62002`: Redacted array-of-objects validation (2024 profile) - "The 'redacted' JSON member must be an array of objects." [RFC 9537, RDAP Response Profile 2024] {ResponseValidation1Dot2_3_2024.java}
+- `-62006`: RDAP conformance old profile validation (2024 profile) - "The RDAP Conformance data structure must not include icann_rdap_response_profile_0." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidationObsoleteProfile_2024.java}
 - `-61001`: TIG conformance validation (2024 profile) - "The RDAP Conformance data structure must not include icann_rdap_technical_implementation_guide_0." [TIG Section 1.3, RDAP Response Profile 2024] {TigValidation1Dot3Dot1_2024.java}
-- `-62002`: RDAP conformance old profile validation (2024 profile) - "The RDAP Conformance data structure must not include icann_rdap_response_profile_0." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidationObsoleteProfile_2024.java}
 
 ### Redaction Validation Errors (2024 Profile) (-65XXX)
 - `-65000`: Technical contact fn property validation (2024 profile) - "The fn property is required on the vcard for the technical contact." [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot6Dot1_2024.java}
