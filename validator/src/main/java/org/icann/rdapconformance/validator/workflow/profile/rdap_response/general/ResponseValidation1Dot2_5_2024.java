@@ -79,10 +79,19 @@ public class ResponseValidation1Dot2_5_2024 extends ProfileJsonValidation {
             return false;
         }
 
-        boolean hasType = name.has("type") && name.get("type") instanceof String;
-        boolean hasDescription = name.has("description") && name.get("description") instanceof String;
+        boolean hasType = name.has("type");
+        boolean hasDescription = name.has("description");
 
-        // Must have either "type" or "description" but not both
-        return hasType ^ hasDescription;
+        // Must have exactly one of "type" or "description" (not both, not neither)
+        if (hasType == hasDescription) {
+            return false;
+        }
+
+        // The present member's value must be a JSON string
+        if (hasType) {
+            return name.get("type") instanceof String;
+        } else {
+            return name.get("description") instanceof String;
+        }
     }
 }

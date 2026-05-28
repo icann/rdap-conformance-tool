@@ -19,12 +19,6 @@ public class ResponseValidation1Dot2_5_2024Test extends ProfileJsonValidationTes
     }
 
     @Test
-    public void testValid_NameWithTypeOnly_ShouldPass() {
-        // Base fixture has "name": {"description": "..."} — valid (only description)
-        validateOk(results);
-    }
-
-    @Test
     public void testValid_NoRedactedMember_ShouldPass() {
         jsonObject.remove("redacted");
         validateOk(results);
@@ -91,5 +85,40 @@ public class ResponseValidation1Dot2_5_2024Test extends ProfileJsonValidationTes
         // Not a JSONArray — handled by -62002, this validator skips
         jsonObject.put("redacted", "not an array");
         validateOk(results);
+    }
+
+    @Test
+    public void test62003_NameHasBothKeysOneNonString_ShouldFail() {
+        // Both keys present — fails on key exclusivity regardless of value types
+        JSONObject redactedItem = new JSONObject().put("name",
+                new JSONObject()
+                        .put("type", "Registrant Name")
+                        .put("description", 123));
+        jsonObject.put("redacted", new JSONArray().put(redactedItem));
+
+        validate(-62003, redactedItem.toString(),
+                "The 'name' must be an object with either the strings 'type' or 'description'");
+    }
+
+    @Test
+    public void test62003_NameTypeIsNonString_ShouldFail() {
+        // Only "type" present but value is not a string
+        JSONObject redactedItem = new JSONObject().put("name",
+                new JSONObject().put("type", 123));
+        jsonObject.put("redacted", new JSONArray().put(redactedItem));
+
+        validate(-62003, redactedItem.toString(),
+                "The 'name' must be an object with either the strings 'type' or 'description'");
+    }
+
+    @Test
+    public void test62003_NameDescriptionIsNonString_ShouldFail() {
+        // Only "description" present but value is not a string
+        JSONObject redactedItem = new JSONObject().put("name",
+                new JSONObject().put("description", new JSONObject()));
+        jsonObject.put("redacted", new JSONArray().put(redactedItem));
+
+        validate(-62003, redactedItem.toString(),
+                "The 'name' must be an object with either the strings 'type' or 'description'");
     }
 }
