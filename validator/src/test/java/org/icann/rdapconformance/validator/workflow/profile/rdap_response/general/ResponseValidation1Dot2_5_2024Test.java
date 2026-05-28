@@ -21,6 +21,7 @@ public class ResponseValidation1Dot2_5_2024Test extends ProfileJsonValidationTes
     @Test
     public void testValid_NoRedactedMember_ShouldPass() {
         jsonObject.remove("redacted");
+        updateQueryContextJsonData();
         validateOk(results);
     }
 
@@ -29,6 +30,7 @@ public class ResponseValidation1Dot2_5_2024Test extends ProfileJsonValidationTes
         jsonObject.put("redacted", new JSONArray()
                 .put(new JSONObject().put("name",
                         new JSONObject().put("description", "Registry Domain ID"))));
+        updateQueryContextJsonData();
         validateOk(results);
     }
 
@@ -37,6 +39,7 @@ public class ResponseValidation1Dot2_5_2024Test extends ProfileJsonValidationTes
         jsonObject.put("redacted", new JSONArray()
                 .put(new JSONObject().put("name",
                         new JSONObject().put("type", "Registrant Name"))));
+        updateQueryContextJsonData();
         validateOk(results);
     }
 
@@ -84,6 +87,7 @@ public class ResponseValidation1Dot2_5_2024Test extends ProfileJsonValidationTes
     public void testValid_RedactedNotArray_ShouldSkip() {
         // Not a JSONArray — handled by -62002, this validator skips
         jsonObject.put("redacted", "not an array");
+        updateQueryContextJsonData();
         validateOk(results);
     }
 
