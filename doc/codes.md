@@ -371,6 +371,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-62000`: RDAP conformance validation (2024 profile) - "The RDAP Conformance data structure does not include icann_rdap_response_profile_1." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidation1Dot2_1_2024.java}
 - `-62001`: Redacted conformance validation (2024 profile) - "The RDAP Conformance data structure does not include redacted but RFC 9537 is being used." [RFC 9537, RDAP Response Profile 2024] {ResponseValidation1Dot2_2_2024.java}
 - `-62002`: Redacted array-of-objects validation (2024 profile) - "The 'redacted' JSON member must be an array of objects." [RFC 9537, RDAP Response Profile 2024] {ResponseValidation1Dot2_3_2024.java}
+- `-62003`: Redacted name member validation (2024 profile) - "The 'name' must be an object with either the strings 'type' or 'description'" [RFC 9537, RDAP Response Profile 2024] {ResponseValidation1Dot2_5_2024.java}
 - `-62006`: RDAP conformance old profile validation (2024 profile) - "The RDAP Conformance data structure includes icann_rdap_response_profile_0, which is obsolete." [RFC 9083 Section 4.1, RDAP Response Profile 2024] {ResponseValidationObsoleteProfile_2024.java}
 - `-61001`: TIG conformance validation (2024 profile) - "The RDAP Conformance data structure must not include icann_rdap_technical_implementation_guide_0." [TIG Section 1.3, RDAP Response Profile 2024] {TigValidation1Dot3Dot1_2024.java}
 
