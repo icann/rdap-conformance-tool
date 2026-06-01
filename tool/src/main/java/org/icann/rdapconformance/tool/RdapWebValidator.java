@@ -168,6 +168,27 @@ public class RdapWebValidator implements AutoCloseable {
     }
 
     /**
+     * Creates a new web-safe RDAP validator with custom configuration and temporary directory support.
+     *
+     * <p>Allows callers to supply a fully-configured {@link RDAPValidatorConfiguration} (e.g.
+     * {@code SsrfAwareRDAPValidatorConfiguration}) while still benefiting from the automatic
+     * temporary-directory lifecycle management used by the primitive-parameter constructors.</p>
+     *
+     * @param uri the RDAP URI to validate
+     * @param config custom configuration; must not be null
+     * @param useTemporaryDirectory true to create and use a unique temporary directory for datasets
+     * @param cleanupOnClose true to delete the temporary directory when {@link #close()} is called
+     * @throws IllegalArgumentException if the URI is invalid
+     * @throws RuntimeException if the configuration is invalid or temp directory creation fails
+     */
+    public RdapWebValidator(URI uri, RDAPValidatorConfiguration config,
+                            boolean useTemporaryDirectory, boolean cleanupOnClose) {
+        this(uri, config,
+             useTemporaryDirectory ? createTempDirectory() : null,
+             cleanupOnClose);
+    }
+
+    /**
      * Creates a new web-safe RDAP validator with custom configuration and dataset directory.
      *
      * @param uri the RDAP URI to validate
@@ -328,6 +349,31 @@ public class RdapWebValidator implements AutoCloseable {
      */
     public boolean isValid() {
         return queryContext.getResults().getResultCount() == 0;
+    }
+
+    /**
+     * Adds a host to the SSRF allowlist.
+     * Must be called before validate().
+     * Use this for non-production environments where internal hosts need to be accessible.
+     *
+     * @param host hostname or IP address to allow (e.g., "ts-wire-mock.icann.org" or "10.47.230.173")
+     */
+    public RdapWebValidator addSsrfAllowedHost(String host) {
+        queryContext.addSsrfAllowedHost(host);
+        return this;
+    }
+
+    /**
+     * Adds multiple hosts to the SSRF allowlist.
+     * Must be called before validate().
+     *
+     * @param hosts list of hostnames or IP addresses to allow
+     */
+    public RdapWebValidator addSsrfAllowedHosts(java.util.List<String> hosts) {
+        if (hosts != null) {
+            hosts.forEach(queryContext::addSsrfAllowedHost);
+        }
+        return this;
     }
 
     /**
