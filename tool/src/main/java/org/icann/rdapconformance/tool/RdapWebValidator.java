@@ -352,31 +352,6 @@ public class RdapWebValidator implements AutoCloseable {
     }
 
     /**
-     * Adds a host to the SSRF allowlist.
-     * Must be called before validate().
-     * Use this for non-production environments where internal hosts need to be accessible.
-     *
-     * @param host hostname or IP address to allow (e.g., "ts-wire-mock.icann.org" or "10.47.230.173")
-     */
-    public RdapWebValidator addSsrfAllowedHost(String host) {
-        queryContext.addSsrfAllowedHost(host);
-        return this;
-    }
-
-    /**
-     * Adds multiple hosts to the SSRF allowlist.
-     * Must be called before validate().
-     *
-     * @param hosts list of hostnames or IP addresses to allow
-     */
-    public RdapWebValidator addSsrfAllowedHosts(java.util.List<String> hosts) {
-        if (hosts != null) {
-            hosts.forEach(queryContext::addSsrfAllowedHost);
-        }
-        return this;
-    }
-
-    /**
      * Closes the validator and cleans up resources.
      * If this validator was created with a temporary directory, it will be deleted.
      */
