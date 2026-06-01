@@ -239,6 +239,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation1Dot2_3_2024(queryContext));
         validations.add(new ResponseValidation1Dot2_5_2024(queryContext));
         validations.add(new ResponseValidation1Dot2_6_2024(queryContext));
+        validations.add(new ResponseValidation1Dot2_7_2024(queryContext));
         validations.add(new ResponseValidationVcardEmailFormat(queryContext));
         validations.add(new ResponseValidation1Dot2_4_2024(queryContext));
         validations.add(new ResponseValidation2Dot2_2024(queryContext));
