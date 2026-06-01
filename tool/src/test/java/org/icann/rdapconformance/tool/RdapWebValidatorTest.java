@@ -14,6 +14,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
@@ -585,6 +588,87 @@ public class RdapWebValidatorTest {
 
         assertNotNull(result);
         assertThat(result.toString()).isEqualTo(uri);
+    }
+
+    /**
+     * - A non-null config that overrides getSsrfAllowedHosts() is propagated to QueryContext.
+     * - Hostnames that resolve to an IP are stored as their canonical IP address.
+     * - IP literals are stored as-is in canonical form.
+     * - useTemporaryDirectory=true creates a temp directory that cleanupOnClose=true deletes on close.
+     */
+    @Test
+    public void testCustomConfigWithSsrfAllowlistAndTemporaryDirectory() throws IOException {
+        URI testUri = URI.create("https://rdap.example.com/domain/test.example");
+        List<String> allowedHosts = List.of("ts-wire-mock.icann.org", "10.47.230.173");
+
+        RDAPValidatorConfiguration config = new MinimalRDAPValidatorConfiguration(testUri, allowedHosts);
+
+        // Capture the temp dir prefix to find it after construction
+        long before = System.currentTimeMillis();
+
+        try (RdapWebValidator validator = new RdapWebValidator(testUri, config, true, true)) {
+            assertNotNull(validator);
+            assertNotNull(validator.getQueryContext());
+            assertEquals(testUri, validator.getUri());
+
+            // SSRF allowlist must be propagated from the custom config into QueryContext
+            assertThat(validator.getQueryContext().getSsrfAllowedHosts())
+                    .containsExactlyInAnyOrder("10.47.230.173");
+
+            // Config values must be preserved
+            assertTrue(validator.getQueryContext().getConfig().isGtldRegistry());
+            assertFalse(validator.getQueryContext().getConfig().isGtldRegistrar());
+        }
+        // After close(), the auto-created temp directory must have been deleted.
+        // We verify indirectly: no rdap-validation-* dirs created after 'before' should survive.
+        Path tmpRoot = Paths.get(System.getProperty("java.io.tmpdir"));
+        boolean tempDirStillExists = Files.list(tmpRoot)
+                .filter(p -> p.getFileName().toString().startsWith("rdap-validation-"))
+                .filter(p -> {
+                    try { return Files.getLastModifiedTime(p).toMillis() >= before; }
+                    catch (IOException e) { return false; }
+                })
+                .findAny()
+                .isPresent();
+        assertFalse(tempDirStillExists,
+                "Temporary dataset directory should have been deleted after close()");
+    }
+
+    /**
+     * Minimal RDAPValidatorConfiguration for use in tests.
+     * Implements all abstract methods with safe defaults and accepts a custom ssrfAllowedHosts list.
+     */
+    private static class MinimalRDAPValidatorConfiguration implements RDAPValidatorConfiguration {
+        private URI uri;
+        private final List<String> ssrfAllowedHosts;
+
+        MinimalRDAPValidatorConfiguration(URI uri, List<String> ssrfAllowedHosts) {
+            this.uri = uri;
+            this.ssrfAllowedHosts = List.copyOf(ssrfAllowedHosts);
+        }
+
+        @Override public URI getConfigurationFile()          { return null; }
+        @Override public URI getUri()                        { return uri; }
+        @Override public void setUri(URI uri)                { this.uri = uri; }
+        @Override public int getTimeout()                    { return 30; }
+        @Override public int getMaxRedirects()               { return 5; }
+        @Override public boolean useLocalDatasets()          { return false; }
+        @Override public boolean useRdapProfileFeb2024()     { return false; }
+        @Override public boolean isGtldRegistrar()           { return false; }
+        @Override public boolean isGtldRegistry()            { return true; }
+        @Override public boolean isThin()                    { return false; }
+        @Override public String getResultsFile()             { return null; }
+        @Override public boolean isNoIpv4Queries()           { return false; }
+        @Override public RDAPQueryType getQueryType()        { return null; }
+        @Override public boolean isNoIpv6Queries()           { return false; }
+        @Override public boolean isNetworkEnabled()          { return true; }
+        @Override public boolean isAdditionalConformanceQueries() { return false; }
+        @Override public void clean()                        { }
+
+        @Override
+        public List<String> getSsrfAllowedHosts() {
+            return ssrfAllowedHosts;
+        }
     }
 
     /**
