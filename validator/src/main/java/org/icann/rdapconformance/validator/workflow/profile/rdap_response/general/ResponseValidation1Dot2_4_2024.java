@@ -48,35 +48,35 @@ public class ResponseValidation1Dot2_4_2024 extends ProfileJsonValidation {
             }
 
             JSONArray vcard = (JSONArray) vcardArray.get(1);
-            boolean hasValidCc = false;
 
             for (int i = 0; i < vcard.length(); i++) {
                 JSONArray property = (JSONArray) vcard.get(i);
                 String propertyName = property.get(0).toString();
 
                 if (ADR_PROPERTY.equals(propertyName)) {
-                    // property[1] is the parameters object
+                    // Found an adr — now check for valid cc
+                    boolean hasValidCc = false;
                     Object params = property.get(1);
                     if (params instanceof org.json.JSONObject paramsObj) {
                         if (paramsObj.has(CC_PARAM)) {
                             String ccValue = paramsObj.getString(CC_PARAM).trim();
                             if (isValidIso3166Alpha2(ccValue)) {
                                 hasValidCc = true;
-                                break;
                             }
                         }
                     }
-                }
-            }
 
-            if (!hasValidCc) {
-                logger.debug("adding -62101, vcardArray = {}", vcardArray);
-                results.add(RDAPValidationResult.builder()
-                        .code(-62101)
-                        .value(vcardArray.toString())
-                        .message("All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter")
-                        .build(queryContext));
-                isValid = false;
+                    if (!hasValidCc) {
+                        logger.debug("adding -62101, vcardArray = {}", vcardArray);
+                        results.add(RDAPValidationResult.builder()
+                                .code(-62101)
+                                .value(vcardArray.toString())
+                                .message("All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter")
+                                .build(queryContext));
+                        isValid = false;
+                        break; // no need to check more adr properties in this jCard
+                    }
+                }
             }
         }
 

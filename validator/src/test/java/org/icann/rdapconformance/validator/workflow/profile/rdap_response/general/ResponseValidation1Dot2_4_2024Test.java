@@ -9,7 +9,6 @@ public class ResponseValidation1Dot2_4_2024Test extends ProfileJsonValidationTes
 
     public static final String VCARD_STRUCTURE = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"],[\"adr\",{},\"text\",[\"\",\"\",\"123 Main St\",\"Anytown\",\"CA\",\"12345\",\"\"]]]]";
     public static final String VCARD_STRUCTURE_USA = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"],[\"adr\",{\"cc\":\"USA\"},\"text\",[\"\",\"\",\"123 Main St\",\"Anytown\",\"CA\",\"12345\",\"\"]]]]";
-    public static final String VCARD_STRUCTURE_NO_ADR = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"]]]";
     public static final String VCARD_STRUCTURE_ISO = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"],[\"adr\",{\"cc\":\"AA\"},\"text\",[\"\",\"\",\"123 Main St\",\"Anytown\",\"CA\",\"12345\",\"\"]]]]";
     public static final String VCARD_STRUCTURE_NON_ASCII = "[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrant\"],[\"adr\",{\"cc\":\"ÅÄ\"},\"text\",[\"\",\"\",\"123 Main St\",\"Anytown\",\"CA\",\"12345\",\"\"]]]]";
 
@@ -62,17 +61,16 @@ public class ResponseValidation1Dot2_4_2024Test extends ProfileJsonValidationTes
     }
 
     @Test
-    public void test62101_NoAdrProperty_ShouldFail() {
-        // Remove the adr entry entirely from the vcard
+    public void testValid_NoAdrProperty_ShouldPass() {
+        // No adr property — validation should NOT fire
         jsonObject.getJSONArray("entities")
                 .getJSONObject(0)
                 .getJSONArray("vcardArray")
                 .getJSONArray(1)
-                .remove(2); // remove adr entry
+                .remove(2);
         updateQueryContextJsonData();
 
-        validate(-62101, VCARD_STRUCTURE_NO_ADR,
-                "All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter");
+        validateOk(results);
     }
 
     @Test

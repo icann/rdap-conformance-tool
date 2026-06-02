@@ -438,7 +438,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-63105`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
 - `-63106`: Registrant handle redaction consistency validation (2024 profile) - "a redaction of type Registry Registrant ID was found but the registrant handle was not redacted." [RFC 9083 Section 5.1, RFC 9537, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}
 - `-62100`: jCard country code (cc) must be empty validation (2024 profile) - "The cc parameter of the registrant's jCard adr property must be empty." [RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4DotX_2024.java}
-- `-62101`: Every entity must have a "cc" parameter validation (2024 profile) - "Every entity must include a 'cc' parameter in the jCard adr property." [RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4DotX_2024.java}
+- `-62101`: jCard "cc" parameter on "adr" property validation (2024 profile) - "All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter" — fires only when the jCard contains an "adr" property without a valid ISO 3166-1 alpha-2 "cc" parameter. [RFC 6350, RDAP Response Profile 2024] {ResponseValidation1Dot2_4_2024.java}
 - `-63200`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot4Dot1_2024.java}
 - `-63201`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
 - `-63202`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024]
