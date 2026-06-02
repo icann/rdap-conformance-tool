@@ -11,7 +11,11 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** * Validates that every jCard with an "adr" property has a valid * ISO 3166-1 alpha-2 "cc" parameter. If no "adr" property exists, * validation is skipped. Error code -62101. */
+/**
+ * Validates that every jCard with an "adr" property has a valid ISO 3166-1 alpha-2 "cc" parameter.
+ * If no "adr" property exists, validation is skipped.
+ * Error code -62101.
+ */
 public class ResponseValidation1Dot2_4_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation1Dot2_4_2024.class);
@@ -60,7 +64,7 @@ public class ResponseValidation1Dot2_4_2024 extends ProfileJsonValidation {
                     Object params = property.get(1);
                     if (params instanceof JSONObject paramsObj) {
                         if (paramsObj.has(CC_PARAM)) {
-                            String ccValue = paramsObj.getString(CC_PARAM).trim();
+                            String ccValue = paramsObj.optString(CC_PARAM, "").trim();
                             if (isValidIso3166Alpha2(ccValue)) {
                                 hasValidCc = true;
                             }
@@ -75,7 +79,7 @@ public class ResponseValidation1Dot2_4_2024 extends ProfileJsonValidation {
                                 .message("All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter")
                                 .build(queryContext));
                         isValid = false;
-                        break; // no need to check more adr properties in this jCard
+                        break; // adr without valid cc found; stop processing this jCard's properties
                     }
                 }
             }
