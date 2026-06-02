@@ -4,13 +4,18 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.Locale;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** * Validates that every jCard in every entity has an "adr" property with a valid * ISO 3166-1 alpha-2 "cc" parameter. Error code -62101. */
+/**
+ * Validates that every jCard with an "adr" property has a valid ISO 3166-1 alpha-2 "cc" parameter.
+ * If no "adr" property exists, validation is skipped.
+ * Error code -62101.
+ */
 public class ResponseValidation1Dot2_4_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation1Dot2_4_2024.class);
@@ -48,35 +53,35 @@ public class ResponseValidation1Dot2_4_2024 extends ProfileJsonValidation {
             }
 
             JSONArray vcard = (JSONArray) vcardArray.get(1);
-            boolean hasValidCc = false;
 
             for (int i = 0; i < vcard.length(); i++) {
                 JSONArray property = (JSONArray) vcard.get(i);
                 String propertyName = property.get(0).toString();
 
                 if (ADR_PROPERTY.equals(propertyName)) {
-                    // property[1] is the parameters object
+                    // Found an adr — now check for valid cc
+                    boolean hasValidCc = false;
                     Object params = property.get(1);
-                    if (params instanceof org.json.JSONObject paramsObj) {
+                    if (params instanceof JSONObject paramsObj) {
                         if (paramsObj.has(CC_PARAM)) {
-                            String ccValue = paramsObj.getString(CC_PARAM).trim();
+                            String ccValue = paramsObj.optString(CC_PARAM, "").trim();
                             if (isValidIso3166Alpha2(ccValue)) {
                                 hasValidCc = true;
-                                break;
                             }
                         }
                     }
-                }
-            }
 
-            if (!hasValidCc) {
-                logger.debug("adding -62101, vcardArray = {}", vcardArray);
-                results.add(RDAPValidationResult.builder()
-                        .code(-62101)
-                        .value(vcardArray.toString())
-                        .message("All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter")
-                        .build(queryContext));
-                isValid = false;
+                    if (!hasValidCc) {
+                        logger.debug("adding -62101, vcardArray = {}", vcardArray);
+                        results.add(RDAPValidationResult.builder()
+                                .code(-62101)
+                                .value(vcardArray.toString())
+                                .message("All jCards MUST have an ISO 3166-1 Alpha 2 cc parameter")
+                                .build(queryContext));
+                        isValid = false;
+                        break; // adr without valid cc found; stop processing this jCard's properties
+                    }
+                }
             }
         }
 
