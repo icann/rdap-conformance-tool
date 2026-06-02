@@ -4,13 +4,14 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.Locale;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** * Validates that every jCard in every entity has an "adr" property with a valid * ISO 3166-1 alpha-2 "cc" parameter. Error code -62101. */
+/** * Validates that every jCard with an "adr" property has a valid * ISO 3166-1 alpha-2 "cc" parameter. If no "adr" property exists, * validation is skipped. Error code -62101. */
 public class ResponseValidation1Dot2_4_2024 extends ProfileJsonValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseValidation1Dot2_4_2024.class);
@@ -57,7 +58,7 @@ public class ResponseValidation1Dot2_4_2024 extends ProfileJsonValidation {
                     // Found an adr — now check for valid cc
                     boolean hasValidCc = false;
                     Object params = property.get(1);
-                    if (params instanceof org.json.JSONObject paramsObj) {
+                    if (params instanceof JSONObject paramsObj) {
                         if (paramsObj.has(CC_PARAM)) {
                             String ccValue = paramsObj.getString(CC_PARAM).trim();
                             if (isValidIso3166Alpha2(ccValue)) {
