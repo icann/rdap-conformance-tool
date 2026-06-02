@@ -168,6 +168,27 @@ public class RdapWebValidator implements AutoCloseable {
     }
 
     /**
+     * Creates a new web-safe RDAP validator with custom configuration and temporary directory support.
+     *
+     * <p>Allows callers to supply a fully-configured {@link RDAPValidatorConfiguration}
+     * (including a custom {@link RDAPValidatorConfiguration#getSsrfAllowedHosts()} allowlist)
+     * while still benefiting from the automatic temporary-directory lifecycle management
+     * used by the primitive-parameter constructors.</p>
+     * @param uri the RDAP URI to validate
+     * @param config custom configuration, or null for default configuration
+     * @param useTemporaryDirectory true to create and use a unique temporary directory for datasets
+     * @param cleanupOnClose true to delete the temporary directory when {@link #close()} is called
+     * @throws IllegalArgumentException if the URI is invalid
+     * @throws RuntimeException if the configuration is invalid or temp directory creation fails
+     */
+    public RdapWebValidator(URI uri, RDAPValidatorConfiguration config,
+                            boolean useTemporaryDirectory, boolean cleanupOnClose) {
+        this(uri, config,
+             useTemporaryDirectory ? createTempDirectory() : null,
+             cleanupOnClose);
+    }
+
+    /**
      * Creates a new web-safe RDAP validator with custom configuration and dataset directory.
      *
      * @param uri the RDAP URI to validate
