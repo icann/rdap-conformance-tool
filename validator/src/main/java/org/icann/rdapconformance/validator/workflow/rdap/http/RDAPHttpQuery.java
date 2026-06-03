@@ -493,10 +493,14 @@ public class RDAPHttpQuery implements RDAPQuery {
         boolean isValidStatusCode =
                 httpResponse != null && List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpResponse.statusCode());
 
-        if (!isValidStatusCode) {
-            String statusValue =
-                    httpResponse == null ? "no response available" : String.valueOf(httpResponse.statusCode());
-            queryContext.addError(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
+        if (httpResponse == null) {
+            // No response received (SSRF block, timeout, DNS failure, etc.)
+            // -13007 is already emitted by RDAPHttpRequest — do NOT duplicate with -13002
+            logger.debug("No HTTP response available, skipping status code validation");
+        } else if (!isValidStatusCode) {
+            // Got a response but status code is not 200 or 404
+            queryContext.addError(-13002, String.valueOf(httpResponse.statusCode()),
+                    "The HTTP status code was neither 200 nor 404.");
         }
 
         // Early termination for client errors (4xx) - these indicate issues with the request itself

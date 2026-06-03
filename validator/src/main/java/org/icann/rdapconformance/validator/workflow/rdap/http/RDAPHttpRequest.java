@@ -890,6 +890,9 @@ public class RDAPHttpRequest {
 
                 if (directlyBlocked || crossFamilyBlocked) {
                     logger.warn("Blocked connection to internal/private IP: {} (host: {})", resolvedIp, resolvedHost);
+                    if (canRecordError) {
+                        qctx.addError(ZERO, -13007, "no response available", "Failed to connect to server.");
+                    }
                     tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
                     SimpleHttpResponse resp = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
                     resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);

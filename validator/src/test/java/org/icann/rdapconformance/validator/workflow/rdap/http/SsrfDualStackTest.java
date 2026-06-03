@@ -156,6 +156,34 @@ public class SsrfDualStackTest {
                 .isEqualTo(ConnectionStatus.UNKNOWN_HOST);
     }
 
+    @Test
+    public void ssrf_IPv4Round_PrivateIPv4_IsBlocked_EmitsError() throws Exception {
+        URI uri = URI.create("http://" + TEST_HOST + ":" + wireMockServer.port() + REQUEST_PATH);
+        doReturn(uri).when(config).getUri();
+
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPDatasetServiceMock datasetService = new RDAPDatasetServiceMock();
+        datasetService.download(true);
+
+        QueryContext qctx = QueryContext.forTesting("", results, config, datasetService);
+        qctx.setSsrfProtectionEnabled(true);
+        qctx.setStackToV4();
+
+        DNSCacheResolver fakeResolver = buildFakeDnsResolver(
+                TEST_HOST,
+                InetAddress.getByName(PRIVATE_IPv4),
+                null
+        );
+        injectDnsResolver(qctx, fakeResolver);
+
+        // canRecordError = true — should emit -13007
+        RDAPHttpRequest.makeRequest(qctx, uri, 5, "GET", false, true);
+
+        assertThat(results.getAll())
+                .as("SSRF block must emit -13007")
+                .anyMatch(r -> r.getCode() == -13007);
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
