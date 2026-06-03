@@ -24,7 +24,7 @@
     </distributionManagement>
 
     <properties>
-        <rdap-conformance.version>3.1.4</rdap-conformance.version>
+        <rdap-conformance.version>3.1.5</rdap-conformance.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -246,6 +246,16 @@
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.10.0.2594</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <argLine>-Xmx2g -Xms512m -XX:+UseG1GC -XX:MaxMetaspaceSize=512m @{argLine}</argLine>
+                </configuration>
             </plugin>
         </plugins>
     </build>
