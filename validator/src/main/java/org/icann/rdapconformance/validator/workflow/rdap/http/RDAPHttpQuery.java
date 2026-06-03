@@ -489,16 +489,14 @@ public class RDAPHttpQuery implements RDAPQuery {
      * validation. All validation errors are automatically added to the results file.</p>
      */
     private void validate() {
+        // Handle the case where we need to add an error for non-200/404 status codes regardless of query success
         boolean isValidStatusCode =
                 httpResponse != null && List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpResponse.statusCode());
 
-        // Only emit -13002 when an HTTP response was actually received with a non-200/404 status code.
-        // When httpResponse is null the connection never completed (SSRF blocked, no IPv6 address,
-        // or network error) — "HTTP status code was neither 200 nor 404" is semantically incorrect
-        // in that case and would generate false positives for IPv4-only WireMock/QA endpoints.
-        if (!isValidStatusCode && httpResponse != null) {
-            queryContext.addError(-13002, String.valueOf(httpResponse.statusCode()),
-                    "The HTTP status code was neither 200 nor 404.");
+        if (!isValidStatusCode) {
+            String statusValue =
+                    httpResponse == null ? "no response available" : String.valueOf(httpResponse.statusCode());
+            queryContext.addError(-13002, statusValue, "The HTTP status code was neither 200 nor 404.");
         }
 
         // Early termination for client errors (4xx) - these indicate issues with the request itself
