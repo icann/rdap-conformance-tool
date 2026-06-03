@@ -1192,4 +1192,34 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         }
     }
 
+    @Test
+    public void test_NoResponse_SsrfBlocked_DoesNotEmit13002() throws Exception {
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        URI uri = URI.create("http://10.0.0.1/domain/test.example");
+        doReturn(uri).when(config).getUri();
+
+        // Simulate what RDAPHttpRequest returns when SSRF blocks the connection:
+        // a SimpleHttpResponse with statusCode=0 and UNKNOWN_HOST
+        RDAPHttpRequest.SimpleHttpResponse blockedResponse = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(blockedResponse.statusCode()).thenReturn(0);
+        when(blockedResponse.body()).thenReturn("");
+        when(blockedResponse.uri()).thenReturn(uri);
+        when(blockedResponse.headers()).thenReturn(HttpHeaders.of(Map.of(), (k, v) -> true));
+        when(blockedResponse.getConnectionStatusCode()).thenReturn(ConnectionStatus.UNKNOWN_HOST);
+
+        try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(uri), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(blockedResponse);
+
+            rdapHttpQuery.run();
+
+            // -13002 must NOT be emitted when there is no HTTP response
+            assertThat(results.getAll())
+                    .as("SSRF-blocked (null response) must not emit -13002")
+                    .noneMatch(r -> r.getCode() == -13002);
+        }
+    }
 }

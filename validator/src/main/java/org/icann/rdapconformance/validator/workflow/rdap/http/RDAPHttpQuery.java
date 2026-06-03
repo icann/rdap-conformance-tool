@@ -494,8 +494,8 @@ public class RDAPHttpQuery implements RDAPQuery {
                 httpResponse != null && List.of(HTTP_OK, HTTP_NOT_FOUND).contains(httpResponse.statusCode());
 
         if (httpResponse == null) {
-            // No response received (SSRF block, timeout, DNS failure, etc.)
-            // -13007 is already emitted by RDAPHttpRequest — do NOT duplicate with -13002
+            // No response received (SSRF block, timeout, network error, etc.)
+            // Connection/DNS-level errors are emitted elsewhere (e.g., -13007/-13019); do NOT duplicate with -13002
             logger.debug("No HTTP response available, skipping status code validation");
         } else if (!isValidStatusCode) {
             // Got a response but status code is not 200 or 404
