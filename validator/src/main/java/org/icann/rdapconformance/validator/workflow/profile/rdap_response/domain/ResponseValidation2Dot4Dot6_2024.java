@@ -117,12 +117,22 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
     }
 
     private boolean validValueRdapUrl(String handle, String value, String linkPointer) {
-        int id;
+        // Explicit null/blank check before parsing — avoids relying on NPE as control flow
+        if (handle == null || handle.trim().isEmpty()) {
+            logger.info("47701, handle = [{}], is null or blank", handle);
+            results.add(RDAPValidationResult.builder()
+                    .code(-47701)
+                    .value(getResultValue(linkPointer))
+                    .message("The registrar base URL is not registered with IANA.")
+                    .build(queryContext));
+            return false;
+        }
 
+        int id;
         try {
-            id = Integer.parseInt(handle != null ? handle.trim() : null);  // trim antes de parsear
-        } catch (NullPointerException | NumberFormatException e) {
-            logger.info("47701, handle = [{}], is null or not a number", handle);
+            id = Integer.parseInt(handle.trim());
+        } catch (NumberFormatException e) {
+            logger.info("47701, handle = [{}], is not a number", handle);
             results.add(RDAPValidationResult.builder()
                     .code(-47701)
                     .value(getResultValue(linkPointer))
@@ -132,6 +142,11 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         }
 
         RegistrarId registrarId = datasetService.get(RegistrarId.class);
+        if (registrarId == null) {
+            logger.warn("47701, RegistrarId dataset is not available, skipping IANA validation for handle = {}", handle);
+            return true;
+        }
+
         Record record = registrarId.getById(id);
 
         // Skip IANA URL validation for registrar IDs with "Reserved" status in IANA dataset

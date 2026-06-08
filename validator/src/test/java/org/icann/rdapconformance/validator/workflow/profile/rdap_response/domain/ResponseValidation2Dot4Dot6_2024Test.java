@@ -307,6 +307,33 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
     }
 
     @Test
+    public void testValidate_HandleIsBlank_AddResults47701() {
+        // Blank handle (whitespace only) should be treated as invalid, not crash
+        replaceValue("$['entities'][0]['handle']", "   ");
+        replaceValue("$['entities'][0]['publicIds'][0]['identifier']", "   ");
+        validate(-47701,
+                "#/entities/0/links/0:{\"rel\":\"about\",\"href\":\"https://some-valid-uri.com/\",\"type\":\"text/html\",\"value\":\"https://example.com/\"}",
+                "The registrar base URL is not registered with IANA.");
+    }
+
+    @Test
+    public void testValidate_HandleWithWhitespace_TreatedAsValidNumericHandle() {
+        // Handle with leading/trailing whitespace must be trimmed before parsing
+        replaceValue("$['entities'][0]['handle']", " 292 ");
+        replaceValue("$['entities'][0]['publicIds'][0]['identifier']", " 292 ");
+        validate();  // Should pass — " 292 " trimmed = "292", valid test record
+    }
+
+    @Test
+    public void testValidate_DatasetServiceReturnsNull_SkipsIANAValidation() {
+        // If RegistrarId dataset is unavailable, validation should not crash
+        RDAPDatasetService ds = mock(RDAPDatasetService.class);
+        doReturn(null).when(ds).get(RegistrarId.class);
+        this.datasetServiceOverride = ds;
+        validate();  // Should pass — dataset unavailable skips IANA check gracefully
+    }
+
+    @Test
     public void testDefensiveLines_NullScheme_UsingMockedCommonUtils() {
         ResponseValidation2Dot4Dot6_2024 validator = (ResponseValidation2Dot4Dot6_2024) getProfileValidation();
 
@@ -352,4 +379,5 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
             assertFalse(result, "Validation should fail when host is empty/whitespace");
         }
     }
+
 }
