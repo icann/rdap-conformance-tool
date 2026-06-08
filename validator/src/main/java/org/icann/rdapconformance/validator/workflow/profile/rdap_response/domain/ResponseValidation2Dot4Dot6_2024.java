@@ -120,7 +120,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         int id;
 
         try {
-            id = Integer.parseInt(handle);
+            id = Integer.parseInt(handle != null ? handle.trim() : null);  // trim antes de parsear
         } catch (NullPointerException | NumberFormatException e) {
             logger.info("47701, handle = [{}], is null or not a number", handle);
             results.add(RDAPValidationResult.builder()

@@ -103,7 +103,7 @@ public class RegistrarId implements RDAPDatasetModel {
             return ACCREDITED.equalsIgnoreCase(status);
         }
 
-        public boolean isReserved() {                        // NEW
+        public boolean isReserved() {
             return RESERVED.equalsIgnoreCase(status);
         }
 
