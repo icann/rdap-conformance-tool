@@ -332,10 +332,10 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-47500`: Domain validation (section 2.4.5) [RDAP Response Profile Section 2.4.5] {ResponseValidation2Dot4Dot5.java}
 - `-47600`: Domain entity validation (2024 profile) [RFC 9083 Section 5.3, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot3_2024.java}
 - `-47601`: Domain entity handle EPPROID validation (2024 profile) [RFC 9083 Section 5.3, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot3_2024.java}
-- `-47700`: Domain validation (section 2.4.6, 2024 profile) [RDAP Response Profile 2024 Section 2.4.6] {ResponseValidation2Dot4Dot6_2024.java}
-- `-47701`: Domain validation (section 2.4.6, 2024 profile) [RDAP Response Profile 2024 Section 2.4.6] {ResponseValidation2Dot4Dot6_2024.java}
-- `-47702`: Domain validation (section 2.4.6, 2024 profile) [RDAP Response Profile 2024 Section 2.4.6] {ResponseValidation2Dot4Dot6_2024.java}
-- `-47703`: Domain validation (section 2.4.6, 2024 profile) [RDAP Response Profile 2024 Section 2.4.6] {ResponseValidation2Dot4Dot6_2024.java}
+- `-47700`: Missing registrar link with rel='about' (section 2.4.6, 2024 profile) - "A domain must have link to the RDAP base URL of the registrar." [RDAP Response Profile 2024 Section 2.4.6] {ResponseValidation2Dot4Dot6_2024.java}
+- `-47701`: Registrar RDAP base URL not in IANA registry (section 2.4.6, 2024 profile) - "The registrar base URL is not registered with IANA." Validates that the `value` property of the registrar's `rel=about` link matches the base URL registered in the IANA registrar IDs dataset. When running in gTLD registry mode (`--gtld-registry`), registrar IDs whose IANA dataset record has `status=Reserved` are exempt from this check. [RDAP Response Profile 2024 Section 2.4.6, IANA Registrar IDs] {ResponseValidation2Dot4Dot6_2024.java}
+- `-47702`: Registrar RDAP base URL must use HTTPS (section 2.4.6, 2024 profile) - "The registrar RDAP base URL must have an https scheme." Validates that the `value` property of the registrar's `rel=about` link starts with `https`. [RDAP Response Profile 2024 Section 2.4.6] {ResponseValidation2Dot4Dot6_2024.java}
+- `-47703`: Registrar link `href` not a valid Web URI (section 2.4.6, 2024 profile) - "The 'href' property is not a valid Web URI according to [webUriValidation]." Validates URI syntax (RFC 3986), scheme must be `http` or `https`, and host must be well-formed. [RDAP Response Profile 2024 Section 2.4.6, RFC 3986] {ResponseValidation2Dot4Dot6_2024.java}
 - `-49100`: Nameserver query validation (section 4.1) [RDAP Response Profile Section 4.1] {ResponseValidation4Dot1Query.java}
 - `-49101`: Nameserver query validation (unicode name) [RDAP Response Profile Section 4.1] {ResponseValidation4Dot1Query.java}
 - `-49102`: Nameserver handle validation [RFC 9083 Section 5.2] {ResponseValidation4Dot1Handle.java}

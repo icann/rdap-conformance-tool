@@ -43,6 +43,7 @@ public class RegistrarId implements RDAPDatasetModel {
     public static class Record {
 
         public static final String ACCREDITED = "Accredited";
+        public static final String RESERVED = "Reserved";
         @XmlElement(name = "value", namespace = "http://www.iana.org/assignments")
         private int value;
         @XmlElement(name = "status", namespace = "http://www.iana.org/assignments")
@@ -100,6 +101,10 @@ public class RegistrarId implements RDAPDatasetModel {
 
         public boolean isAccredited() {
             return ACCREDITED.equalsIgnoreCase(status);
+        }
+
+        public boolean isReserved() {                        // NEW
+            return RESERVED.equalsIgnoreCase(status);
         }
 
         @Override
