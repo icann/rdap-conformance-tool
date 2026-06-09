@@ -31,6 +31,36 @@ public class RegistrarIdTest extends BaseUnmarshallingTest<RegistrarId> {
                         + "    </record>");
     }
 
+    @Test
+    public void testIsReserved_ReservedRecord_ReturnsTrue() {
+        RegistrarId.Record record = registrarId.getById(9994);  // status="Reserved" in test XML
+        assertThat(record.isReserved()).isTrue();
+    }
+
+    @Test
+    public void testIsReserved_AccreditedRecord_ReturnsFalse() {
+        RegistrarId.Record record = registrarId.getById(3878);  // status="Accredited" in test XML
+        assertThat(record.isReserved()).isFalse();
+    }
+
+    @Test
+    public void testIsReserved_TerminatedRecord_ReturnsFalse() {
+        RegistrarId.Record record = registrarId.getById(4);  // status="Terminated" in test XML
+        assertThat(record.isReserved()).isFalse();
+    }
+
+    @Test
+    public void testIsReserved_RecordConstructedWithReservedStatus_ReturnsTrue() {
+        RegistrarId.Record record = new RegistrarId.Record(9999, "Test Reserved", "", "Reserved", "");
+        assertThat(record.isReserved()).isTrue();
+    }
+
+    @Test
+    public void testIsReserved_CaseInsensitive_ReturnsTrue() {
+        RegistrarId.Record record = new RegistrarId.Record(1, "Test", "", "RESERVED", "");
+        assertThat(record.isReserved()).isTrue();
+    }
+
     @BeforeMethod
     public void setUp() throws IOException, ParserConfigurationException, SAXException {
         registrarId = unmarshal("/dataset/registrar-ids.xml", RegistrarId.class);
@@ -57,3 +87,4 @@ public class RegistrarIdTest extends BaseUnmarshallingTest<RegistrarId> {
                     new RegistrarId.Record(3878, "Test 3", "https://www.17domain.com/rdap/domain/", null));
         }
     }
+
