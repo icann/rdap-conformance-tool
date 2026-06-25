@@ -60,15 +60,11 @@ public class RdapWebValidatorTest {
 
     @Test
     public void testValidateReturnsResults() {
-        // This test will fail in network-isolated environments
-        // but demonstrates the interface works
-        RdapWebValidator validator = new RdapWebValidator("https://rdap.arin.net/registry/entity/GOGL");
-
-        // Should not throw exceptions and should return results object
+        URI testUri = URI.create("https://rdap.arin.net/registry/entity/GOGL");
+        // Use local datasets to avoid CI network flakiness
+        RdapWebValidator validator = new RdapWebValidator(testUri, false, false, true);
         RDAPValidatorResults results = validator.validate();
-
         assertNotNull(results);
-        // Results may contain validation errors, but the interface should work
     }
 
     @Test
