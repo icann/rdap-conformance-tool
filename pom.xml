@@ -30,7 +30,7 @@
 
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.source>21</maven.compiler.source>
-        <jackson-databind.version>2.18.1</jackson-databind.version>
+        <jackson-databind.version>2.22.0</jackson-databind.version>
         <slf4j-api.version>2.0.13</slf4j-api.version>
         <ipaddress.version>5.5.1</ipaddress.version>
         <icu4j.version>69.1</icu4j.version>
