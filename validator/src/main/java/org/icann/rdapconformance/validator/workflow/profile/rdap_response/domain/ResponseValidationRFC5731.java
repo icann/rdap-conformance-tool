@@ -30,6 +30,14 @@ public final class ResponseValidationRFC5731 extends ProfileJsonValidation {
           "pending delete",
           "pending transfer");
 
+  // At most one of these "pending*" statuses may be present at a time (46900(c))
+  private static final Set<String> PENDING_STATUSES = Set.of(
+          "pending create",
+          "pending delete",
+          "pending renew",
+          "pending transfer",
+          "pending update");
+
   private final RDAPQueryType queryType;
   private final QueryContext queryContext;
 
@@ -61,10 +69,7 @@ public final class ResponseValidationRFC5731 extends ProfileJsonValidation {
                     status.containsAll(Set.of("pending transfer", "server transfer prohibited"))) ||
             (status.containsAll(Set.of("pending update", "client update prohibited")) ||
                     status.containsAll(Set.of("pending update", "server update prohibited"))) ||
-            (status.stream().filter(s -> Set
-                            .of("pending create", "pending delete", "pending renew", "pending transfer",
-                                    "pending update").contains(s))
-                    .count() > CommonUtils.ONE)) {
+            (status.stream().filter(PENDING_STATUSES::contains).count() > CommonUtils.ONE)) {
       RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
               .code(-46900)
               .value(getResultValue("#/status"))
