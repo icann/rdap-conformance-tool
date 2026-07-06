@@ -54,6 +54,8 @@ public class ResponseValidationRFC5731Test extends ResponseDomainValidationTestB
             {Set.of("pending renew", "pending transfer")},
             {Set.of("pending renew", "pending update")},
             {Set.of("pending transfer", "pending update")},
+            // (g) "redemption period" and "pending restore" must not be combined with each other
+            {Set.of("redemption period", "pending restore")},
     };
   }
 

@@ -69,7 +69,9 @@ public final class ResponseValidationRFC5731 extends ProfileJsonValidation {
                     status.containsAll(Set.of("pending transfer", "server transfer prohibited"))) ||
             (status.containsAll(Set.of("pending update", "client update prohibited")) ||
                     status.containsAll(Set.of("pending update", "server update prohibited"))) ||
-            (status.stream().filter(PENDING_STATUSES::contains).count() > CommonUtils.ONE)) {
+            (status.stream().filter(PENDING_STATUSES::contains).count() > CommonUtils.ONE ||
+                    // (g) "redemption period" and "pending restore" cannot be combined with each other
+                    status.containsAll(Set.of("redemption period", "pending restore")))) {
       RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
               .code(-46900)
               .value(getResultValue("#/status"))
