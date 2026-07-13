@@ -206,7 +206,14 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new TigValidation4Dot1(queryContext));
         validations.add(new TigValidation7Dot1And7Dot2(queryContext));
         validations.add(new ResponseValidation1Dot2Dot2(queryContext));
-        validations.add(new ResponseValidation1Dot4(queryContext));
+
+        // NOTE: ResponseValidation1Dot4 (-40400, vCard "adr" country parameter check)
+        // is intentionally NOT included in the Feb 2024 profile validation set.
+        // That check is specific to the Feb 2019 RDAP Response Profile and was
+        // removed in the Feb 2024 profile; re-adding it here would reintroduce
+        // false positives against 2024-compliant responses. If you need to
+        // enable it for the 2019 profile, do so in the 2019 validation set, not here.
+
         validations.add(new ResponseValidationLastUpdateEvent(queryContext));
         validations.add(new ResponseValidation2Dot1(queryContext));
         validations.add(new ResponseValidation2Dot3Dot1Dot1(queryContext));
