@@ -6,12 +6,11 @@ import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.util.Set;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidation;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,10 +68,23 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
 
     @Override
     protected boolean doValidate() {
-        Set<String> entityJsonPointers = getPointerFromJPath(buildEntityRoleExclusionQuery());
+        Set<String> entityJsonPointers = getPointerFromJPath("$.entities[*]");
 
         boolean isValid = true;
         for (String jsonPointer : entityJsonPointers) {
+            Object entityObj = jsonObject.query(jsonPointer);
+            if (!(entityObj instanceof JSONObject entity)) {
+                continue;
+            }
+
+            // Exclude entities whose roles include reseller, registrar, registrant, or technical.
+            // Done in Java (not JSONPath) because Jayway's `!(@.roles contains 'X')` is not
+            // evaluated reliably against string arrays with SUPPRESS_EXCEPTIONS enabled,
+            // producing off-by-one/inverted exclusion results on real payloads.
+            if (hasExcludedRole(entity)) {
+                continue;
+            }
+
             String handlePointer = jsonPointer + SLASH + FIELD_HANDLE;
 
             // For registrars: Only validate entities that exist in the domain registry
@@ -81,17 +93,17 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
                 String entityHandle = getEntityHandle(handlePointer);
 
                 if (domainName != null && entityHandle != null) {
-                    // Check if entity exists in registry (thick registry check)
-                    boolean entityExistsInRegistry = entityLookupService.isEntityInThickRegistry(entityHandle, domainName);
+                    boolean entityExistsInRegistry =
+                            entityLookupService.isEntityInThickRegistry(entityHandle, domainName);
 
                     if (!entityExistsInRegistry) {
                         logger.debug("Skipping validation for entity {} - not found in registry for domain {}",
-                                   entityHandle, domainName);
-                        continue; // Skip validation for this entity
+                                entityHandle, domainName);
+                        continue;
                     }
 
                     logger.debug("Entity {} found in registry for domain {} - proceeding with validation",
-                               entityHandle, domainName);
+                            entityHandle, domainName);
                 }
             }
 
@@ -100,17 +112,24 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
         return isValid;
     }
 
-    /**
-     * Builds the JSONPath query to exclude entities with specific roles.
-     * @return JSONPath query string for filtering entities
-     */
-    private String buildEntityRoleExclusionQuery() {
-        return "$.entities[?(" +
-               "        !(@.roles[*] =~ /" + ROLE_RESELLER + "/) &&" +
-               "        !(@.roles[*] =~ /" + ROLE_REGISTRAR + "/) &&" +
-               "        !(@.roles[*] =~ /" + ROLE_REGISTRANT + "/) &&" +
-               "        !(@.roles[*] =~ /" + ROLE_TECHNICAL + "/)" +
-               ")]";
+    private boolean hasExcludedRole(JSONObject entity) {
+        JSONArray roles = entity.optJSONArray("roles");
+        if (roles == null) {
+            return false;
+        }
+        for (int i = 0; i < roles.length(); i++) {
+            String role = roles.optString(i, null);
+            if (role == null) {
+                continue;
+            }
+            if (ROLE_RESELLER.equals(role)
+                    || ROLE_REGISTRAR.equals(role)
+                    || ROLE_REGISTRANT.equals(role)
+                    || ROLE_TECHNICAL.equals(role)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

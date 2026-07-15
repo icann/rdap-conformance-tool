@@ -290,4 +290,17 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
             "The handle in the entity object does not comply with the format "
                 + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
     }
+
+    @Test
+    public void testValidate_MultipleTopLevelEntities_RegistrantExcluded_NoFalsePositive()
+            throws IOException {
+        // Regression: registrant entity was previously included by the exclusion
+        // filter due to Jayway '=~' + roles[*] misbehavior, producing -47600 when
+        // its handle was redacted (missing). See bug RDAP-XXXX.
+        rdapContent = getResource(
+                "/validators/profile/rdap_response/domain/entities/nomeo_multi_entity_response.json");
+        jsonObject = new JSONObject(rdapContent);
+        getProfileValidation();
+        super.testValidate_ok();
+    }
 }

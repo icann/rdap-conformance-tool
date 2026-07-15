@@ -1,0 +1,112 @@
+{
+  "rdapConformance": [
+    "rdap_level_0",
+    "redacted",
+    "icann_rdap_response_profile_1",
+    "icann_rdap_technical_implementation_guide_1"
+  ],
+  "objectClassName": "domain",
+  "handle": "2138514_DOMAIN_COM-EXMP",
+  "ldhName": "nomeo.com",
+  "unicodeName": "nomeo.com",
+  "status": ["active"],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventDate": "2003-10-10T01:55:12.0Z"
+    },
+    {
+      "eventAction": "last changed",
+      "eventDate": "2025-12-18T16:30:08.57Z"
+    },
+    {
+      "eventAction": "expiration",
+      "eventDate": "2026-10-10T01:55:12.0Z"
+    },
+    {
+      "eventAction": "last update of RDAP database",
+      "eventDate": "2026-07-15T17:35:27.129Z"
+    }
+  ],
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "handle": "2138514_DOMAIN_COM-EXMP",
+      "roles": ["administrative"],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", ""],
+          ["adr", {}, "text", ["", "", "", "", "", "", ""]],
+          ["contact-uri", {}, "uri", "https://example.com/contact"]
+        ]
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "roles": ["registrant"],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", ""],
+          ["adr", {"cc": "BE"}, "text", ["", "", "", "", "Oost Vlaanderen", "", ""]],
+          ["org", {}, "text", "Kreos Services BVBA"],
+          ["contact-uri", {}, "uri", "https://example.com/contact"]
+        ]
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "roles": ["technical"],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", ""],
+          ["adr", {}, "text", ["", "", "", "", "", "", ""]],
+          ["contact-uri", {}, "uri", "https://example.com/contact"]
+        ]
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "handle": "2138514_DOMAIN_COM-EXMP",
+      "roles": ["billing"],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", ""],
+          ["adr", {}, "text", ["", "", "", "", "", "", ""]],
+          ["contact-uri", {}, "uri", "https://example.com/contact"]
+        ]
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "handle": "4148",
+      "roles": ["registrar"],
+      "publicIds": [
+        {"type": "IANA Registrar ID", "identifier": "4148"}
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Nomeo BV"],
+          ["adr", {}, "text", ["", "", "", "", "", "", ""]]
+        ]
+      ]
+    }
+  ],
+  "nameservers": [
+    {
+      "objectClassName": "nameserver",
+      "handle": "2138514_NS1_DOMAIN_COM-EXMP",
+      "ldhName": "ns53.be",
+      "unicodeName": "ns53.be"
+    }
+  ]
+}
