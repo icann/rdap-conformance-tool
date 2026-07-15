@@ -35,7 +35,6 @@ import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfile;
-import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities.ResponseValidation2Dot7Dot1DotXAndRelated6;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.miscellaneous.ResponseValidationLastUpdateEvent;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseNameserverStatusValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.nameserver.ResponseValidation4Dot1Handle;
@@ -237,7 +236,14 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidation4Dot1Handle(queryContext));
         validations.add(new ResponseValidation4Dot1Query(queryContext));
         validations.add(new ResponseValidation4Dot3(queryContext));
-        validations.add(new ResponseValidation2Dot7Dot1DotXAndRelated6(queryContext));
+
+        // NOTE: ResponseValidation2Dot7Dot1DotXAndRelated6 (-52105, missing "cc"
+        // parameter on the registrant's jCard "adr") is intentionally NOT included
+        // in the Feb 2024 profile validation set. That check belongs to the Feb 2019
+        // RDAP Response Profile (section 2.7.3.1 of RDAP_Response_Profile_2_1) and
+        // is superseded in the 2024 profile by -62101 (ResponseValidation1Dot2_4_2024),
+        // which enforces the same requirement for all jCards. Keeping both under 2024
+        // produces duplicate findings for the same underlying issue.
 
         // 2024 specific validations
         validations.add(new TigValidation1Dot3_2024(queryContext));
