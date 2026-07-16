@@ -161,73 +161,11 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
      */
     private String getEntityHandle(String handlePointer) {
         try {
-            // Convert JSON pointer to JSONPath for querying
-            // e.g., "#/entities/0/handle" -> "$.entities[0].handle"
-            String jsonPath = convertJsonPointerToJsonPath(handlePointer);
-            if (jsonPath.contains("[") && jsonPath.contains("]")) {
-                // Handle array notation - already in correct format
-                Object handle = jsonObject.query(jsonPath);
-                if (handle != null) {
-                    return handle.toString();
-                }
-            }
-            return null;
+            Object handle = jsonObject.query(handlePointer);
+            return handle != null ? handle.toString() : null;
         } catch (Exception e) {
             logger.debug("Error extracting entity handle from pointer {}: {}", handlePointer, e.getMessage());
             return null;
-        }
-    }
-
-    /**
-     * Converts a JSON pointer to a JSONPath expression.
-     * @param jsonPointer e.g., "#/entities/0/handle"
-     * @return JSONPath expression e.g., "$.entities[0].handle"
-     */
-    private String convertJsonPointerToJsonPath(String jsonPointer) {
-        if (jsonPointer == null || !jsonPointer.startsWith(JSON_POINTER_PREFIX)) {
-            return jsonPointer;
-        }
-
-        // Remove the JSON pointer prefix (#/)
-        String path = jsonPointer.substring(JSON_POINTER_PREFIX.length());
-
-        // Split by slash and rebuild with proper JSONPath syntax
-        String[] segments = path.split(SLASH);
-        StringBuilder jsonPath = new StringBuilder(JSON_PATH_PREFIX);
-
-        for (int i = ZERO; i < segments.length; i++) {
-            String segment = segments[i];
-
-            // Check if this segment is a numeric array index
-            if (isNumeric(segment)) {
-                // Use bracket notation for array indices
-                jsonPath.append("[").append(segment).append("]");
-            } else {
-                // Use dot notation for object properties
-                if (i > ZERO) {
-                    jsonPath.append(DOT);
-                }
-                jsonPath.append(segment);
-            }
-        }
-
-        return jsonPath.toString();
-    }
-
-    /**
-     * Checks if a string represents a numeric value (array index).
-     * @param str the string to check
-     * @return true if the string is numeric, false otherwise
-     */
-    private boolean isNumeric(String str) {
-        if (str == null || str.isEmpty()) {
-            return false;
-        }
-        try {
-            Integer.parseInt(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
         }
     }
 }

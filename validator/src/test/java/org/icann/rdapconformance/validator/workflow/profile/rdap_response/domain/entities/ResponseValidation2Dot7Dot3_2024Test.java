@@ -6,11 +6,16 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -26,6 +31,12 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
         super.setUp();
 
         doReturn(true).when(queryContext.getConfig()).isGtldRegistry();
+        // Default off; tests that specifically exercise registrar mode override this
+        // (see testValidate_RegistrarMode* below). Without this override the base
+        // ProfileValidationTestBase leaves isGtldRegistrar()=true, which would send
+        // every base HandleValidation test through the thick-registry lookup and
+        // (after the getEntityHandle fix) skip validation, masking expected errors.
+        doReturn(false).when(queryContext.getConfig()).isGtldRegistrar();
     }
 
     protected String givenInvalidHandle() {
@@ -199,43 +210,59 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
     }
 
     @Test
-    public void testValidate_RegistrarModeThickRegistry_RunsValidation() {
-        // Test registrar mode where entity exists in thick registry - validation should run
+    public void testValidate_RegistrarModeThickRegistry_RunsValidation() throws Exception {
+        // In registrar mode, when the entity IS in the thick registry, validation runs
+        // and errors (like -47600) are emitted.
         doReturn(false).when(queryContext.getConfig()).isGtldRegistry();
         doReturn(true).when(queryContext.getConfig()).isGtldRegistrar();
 
-        // Set up entity with invalid handle - keep existing domain data
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
         replaceValue("$['entities'][0]['handle']", "INVALID_HANDLE");
+        updateQueryContextJsonData();
 
-        getProfileValidation();
+        ResponseValidation2Dot7Dot3_2024 validation = (ResponseValidation2Dot7Dot3_2024) getProfileValidation();
 
-        // Mock entity lookup to return true (thick registry)
-        // This will be mocked via the service if needed for integration tests
-        validate(-47600, "#/entities/0/handle:INVALID_HANDLE",
-            "The handle in the entity object does not comply with the format "
-                + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
+        // Simulate thick registry: entity IS found -> validation must proceed.
+        injectLookupServiceReturning(validation, true);
+
+        ArgumentCaptor<RDAPValidationResult> resultCaptor =
+                ArgumentCaptor.forClass(RDAPValidationResult.class);
+
+        assertThat(validation.validate()).isFalse();
+        Mockito.verify(results).add(resultCaptor.capture());
+        RDAPValidationResult result = resultCaptor.getValue();
+        assertThat(result).hasFieldOrPropertyWithValue("code", -47600)
+                .hasFieldOrPropertyWithValue("value", "#/entities/0/handle:INVALID_HANDLE")
+                .hasFieldOrPropertyWithValue("message",
+                        "The handle in the entity object does not comply with the format "
+                                + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
+        org.mockito.Mockito.verify(results).addGroupErrorWarning(validation.getGroupName());
     }
 
     @Test
-    public void testValidate_RegistrarModeThinRegistry_ValidationRuns() {
-        // Test registrar mode - without mocking the HTTP service, validation will run
-        // In real thin registry scenarios, the HTTP lookup would return false and skip validation
+    public void testValidate_RegistrarModeThinRegistry_SkipsValidation() throws Exception {
+        // In registrar mode, when the entity is NOT in the registry (thin registry
+        // scenario), validation is intentionally skipped to avoid false positives —
+        // the registrar holds the contact data, not the registry.
         doReturn(false).when(queryContext.getConfig()).isGtldRegistry();
         doReturn(true).when(queryContext.getConfig()).isGtldRegistrar();
 
-        // Set up entity with invalid handle - keep existing domain data
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
         replaceValue("$['entities'][0]['handle']", "INVALID_HANDLE");
+        updateQueryContextJsonData();
 
-        getProfileValidation();
+        ResponseValidation2Dot7Dot3_2024 validation = (ResponseValidation2Dot7Dot3_2024) getProfileValidation();
 
-        // Since we're not mocking the HTTP service, validation will run and find the error
-        // Integration tests would mock the EntityRegistryLookupService to test skip behavior
-        validate(-47600, "#/entities/0/handle:INVALID_HANDLE",
-            "The handle in the entity object does not comply with the format "
-                + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
+        // Simulate thin registry: entity NOT found -> validation must be skipped.
+        injectLookupServiceReturning(validation, false);
+
+        // Validation should pass (isValid=true) because the entity was skipped.
+        assertThat(validation.validate()).isTrue();
+        // And no -47600 error should have been recorded for that entity.
+        org.mockito.Mockito.verify(results, org.mockito.Mockito.never())
+                .add(org.mockito.ArgumentMatchers.any(RDAPValidationResult.class));
     }
+
 
     @Test
     public void testValidate_RegistryMode_AlwaysRunsValidation() {
@@ -256,18 +283,25 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
 
     @Test
     public void testValidate_RegistrarModeNoDomainName_StillValidates() {
-        // Test that when domain name cannot be extracted, registrar mode still validates
+        // When no domain name can be extracted (no ldhName, no unicodeName), the
+        // thick-registry lookup cannot be performed, so the guard falls through
+        // and validation runs normally.
         doReturn(false).when(queryContext.getConfig()).isGtldRegistry();
         doReturn(true).when(queryContext.getConfig()).isGtldRegistrar();
 
-        // Set up entity with invalid handle - this should still be validated even without domain
+        // Remove domain name identifiers so getDomainName() returns null.
+        // Use JSONObject.remove (no-op if absent) to avoid Jayway PathNotFoundException.
+        jsonObject.remove("ldhName");
+        jsonObject.remove("unicodeName");
+        rdapContent = jsonObject.toString();
+
         replaceValue("$['entities'][0]['roles']", new JSONArray().put("billing"));
         replaceValue("$['entities'][0]['handle']", "INVALID_HANDLE");
 
         getProfileValidation();
         validate(-47600, "#/entities/0/handle:INVALID_HANDLE",
-            "The handle in the entity object does not comply with the format "
-                + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
+                "The handle in the entity object does not comply with the format "
+                        + "(\\w|_){1,80}-\\w{1,8} specified in RFC5730.");
     }
 
     @Test
@@ -296,11 +330,53 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
             throws IOException {
         // Regression: registrant entity was previously included by the exclusion
         // filter due to Jayway '=~' + roles[*] misbehavior, producing -47600 when
-        // its handle was redacted (missing). See bug RDAP-XXXX.
+        // its handle was redacted (missing). See RCT-548 (-47600).
         rdapContent = getResource(
                 "/validators/profile/rdap_response/domain/entities/nomeo_multi_entity_response.json");
         jsonObject = new JSONObject(rdapContent);
         getProfileValidation();
         super.testValidate_ok();
+    }
+
+    @Test
+    public void testGetEntityHandle_ResolvesJsonPointerCorrectly() throws Exception {
+        // Regression: getEntityHandle used to convert the JSON Pointer
+        // "#/entities/0/handle" to a JSONPath "$.entities[0].handle" and pass it
+        // to JSONObject.query(...), which is RFC 6901 JSONPointer-based. The
+        // JSONPath string does not start with '/' or '#', so JSONPointer threw
+        // IllegalArgumentException, the catch swallowed it, and the method
+        // always returned null — silently bypassing the thick-registry lookup
+        // in registrar mode.
+        replaceValue("$['entities'][0]['handle']", "SOME-REAL-HANDLE");
+
+        ResponseValidation2Dot7Dot3_2024 validation = (ResponseValidation2Dot7Dot3_2024) getProfileValidation();
+
+        java.lang.reflect.Method m =
+                ResponseValidation2Dot7Dot3_2024.class.getDeclaredMethod(
+                        "getEntityHandle", String.class);
+        m.setAccessible(true);
+
+        Object result = m.invoke(validation, "#/entities/0/handle");
+
+        assertThat(result)
+                .as("getEntityHandle must resolve the JSON Pointer, not return null")
+                .isEqualTo("SOME-REAL-HANDLE");
+    }
+
+    /**
+     * Injects a mocked EntityRegistryLookupService into the validation instance
+     * so tests can control the thick/thin registry outcome without real HTTP calls.
+     */
+    private static void injectLookupServiceReturning(
+            ResponseValidation2Dot7Dot3_2024 validation, boolean entityFound) throws Exception {
+        EntityRegistryLookupService mockService = mock(EntityRegistryLookupService.class);
+        doReturn(entityFound).when(mockService).isEntityInThickRegistry(
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString());
+
+        Field serviceField =
+                ResponseValidation2Dot7Dot3_2024.class.getDeclaredField("entityLookupService");
+        serviceField.setAccessible(true);
+        serviceField.set(validation, mockService);
     }
 }
