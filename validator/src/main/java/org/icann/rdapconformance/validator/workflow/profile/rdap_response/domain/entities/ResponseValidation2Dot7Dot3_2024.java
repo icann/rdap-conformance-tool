@@ -6,12 +6,11 @@ import static org.icann.rdapconformance.validator.CommonUtils.SLASH;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import java.util.Set;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidation;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,10 +68,23 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
 
     @Override
     protected boolean doValidate() {
-        Set<String> entityJsonPointers = getPointerFromJPath(buildEntityRoleExclusionQuery());
+        Set<String> entityJsonPointers = getPointerFromJPath("$.entities[*]");
 
         boolean isValid = true;
         for (String jsonPointer : entityJsonPointers) {
+            Object entityObj = jsonObject.query(jsonPointer);
+            if (!(entityObj instanceof JSONObject entity)) {
+                continue;
+            }
+
+            // Exclude entities whose roles include reseller, registrar, registrant, or technical.
+            // Done in Java (not JSONPath) because Jayway's `!(@.roles contains 'X')` is not
+            // evaluated reliably against string arrays with SUPPRESS_EXCEPTIONS enabled,
+            // producing off-by-one/inverted exclusion results on real payloads.
+            if (hasExcludedRole(entity)) {
+                continue;
+            }
+
             String handlePointer = jsonPointer + SLASH + FIELD_HANDLE;
 
             // For registrars: Only validate entities that exist in the domain registry
@@ -81,17 +93,17 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
                 String entityHandle = getEntityHandle(handlePointer);
 
                 if (domainName != null && entityHandle != null) {
-                    // Check if entity exists in registry (thick registry check)
-                    boolean entityExistsInRegistry = entityLookupService.isEntityInThickRegistry(entityHandle, domainName);
+                    boolean entityExistsInRegistry =
+                            entityLookupService.isEntityInThickRegistry(entityHandle, domainName);
 
                     if (!entityExistsInRegistry) {
                         logger.debug("Skipping validation for entity {} - not found in registry for domain {}",
-                                   entityHandle, domainName);
-                        continue; // Skip validation for this entity
+                                entityHandle, domainName);
+                        continue;
                     }
 
                     logger.debug("Entity {} found in registry for domain {} - proceeding with validation",
-                               entityHandle, domainName);
+                            entityHandle, domainName);
                 }
             }
 
@@ -100,17 +112,24 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
         return isValid;
     }
 
-    /**
-     * Builds the JSONPath query to exclude entities with specific roles.
-     * @return JSONPath query string for filtering entities
-     */
-    private String buildEntityRoleExclusionQuery() {
-        return "$.entities[?(" +
-               "        !(@.roles[*] =~ /" + ROLE_RESELLER + "/) &&" +
-               "        !(@.roles[*] =~ /" + ROLE_REGISTRAR + "/) &&" +
-               "        !(@.roles[*] =~ /" + ROLE_REGISTRANT + "/) &&" +
-               "        !(@.roles[*] =~ /" + ROLE_TECHNICAL + "/)" +
-               ")]";
+    private boolean hasExcludedRole(JSONObject entity) {
+        JSONArray roles = entity.optJSONArray("roles");
+        if (roles == null) {
+            return false;
+        }
+        for (int i = 0; i < roles.length(); i++) {
+            String role = roles.optString(i, null);
+            if (role == null) {
+                continue;
+            }
+            if (ROLE_RESELLER.equals(role)
+                    || ROLE_REGISTRAR.equals(role)
+                    || ROLE_REGISTRANT.equals(role)
+                    || ROLE_TECHNICAL.equals(role)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -142,73 +161,11 @@ public class ResponseValidation2Dot7Dot3_2024 extends HandleValidation {
      */
     private String getEntityHandle(String handlePointer) {
         try {
-            // Convert JSON pointer to JSONPath for querying
-            // e.g., "#/entities/0/handle" -> "$.entities[0].handle"
-            String jsonPath = convertJsonPointerToJsonPath(handlePointer);
-            if (jsonPath.contains("[") && jsonPath.contains("]")) {
-                // Handle array notation - already in correct format
-                Object handle = jsonObject.query(jsonPath);
-                if (handle != null) {
-                    return handle.toString();
-                }
-            }
-            return null;
+            Object handle = jsonObject.query(handlePointer);
+            return handle != null ? handle.toString() : null;
         } catch (Exception e) {
             logger.debug("Error extracting entity handle from pointer {}: {}", handlePointer, e.getMessage());
             return null;
-        }
-    }
-
-    /**
-     * Converts a JSON pointer to a JSONPath expression.
-     * @param jsonPointer e.g., "#/entities/0/handle"
-     * @return JSONPath expression e.g., "$.entities[0].handle"
-     */
-    private String convertJsonPointerToJsonPath(String jsonPointer) {
-        if (jsonPointer == null || !jsonPointer.startsWith(JSON_POINTER_PREFIX)) {
-            return jsonPointer;
-        }
-
-        // Remove the JSON pointer prefix (#/)
-        String path = jsonPointer.substring(JSON_POINTER_PREFIX.length());
-
-        // Split by slash and rebuild with proper JSONPath syntax
-        String[] segments = path.split(SLASH);
-        StringBuilder jsonPath = new StringBuilder(JSON_PATH_PREFIX);
-
-        for (int i = ZERO; i < segments.length; i++) {
-            String segment = segments[i];
-
-            // Check if this segment is a numeric array index
-            if (isNumeric(segment)) {
-                // Use bracket notation for array indices
-                jsonPath.append("[").append(segment).append("]");
-            } else {
-                // Use dot notation for object properties
-                if (i > ZERO) {
-                    jsonPath.append(DOT);
-                }
-                jsonPath.append(segment);
-            }
-        }
-
-        return jsonPath.toString();
-    }
-
-    /**
-     * Checks if a string represents a numeric value (array index).
-     * @param str the string to check
-     * @return true if the string is numeric, false otherwise
-     */
-    private boolean isNumeric(String str) {
-        if (str == null || str.isEmpty()) {
-            return false;
-        }
-        try {
-            Integer.parseInt(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
         }
     }
 }
