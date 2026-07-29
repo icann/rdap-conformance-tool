@@ -120,10 +120,16 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
         String href = hrefObj.toString();
         if (href.startsWith(expectedPrefix)) {
           String afterPrefix = href.substring(expectedPrefix.length());
+
+          // Strip a leading RDAP path segment (domain/, nameserver/, entity/, help/, ip/, autnum/)
+          // if the IANA-registered base URL didn't already include it.
+          String domainPart = stripRdapPathPrefix(afterPrefix);
+
           // Strip trailing slash if present before validating
-          String domainPart = afterPrefix.endsWith("/")
-                  ? afterPrefix.substring(0, afterPrefix.length() - 1)
-                  : afterPrefix;
+          if (domainPart.endsWith("/")) {
+            domainPart = domainPart.substring(0, domainPart.length() - 1);
+          }
+
           if (!domainPart.isBlank() && DOMAIN_VALIDATOR.validate(domainPart).isEmpty()) {
             return true;
           }
@@ -147,6 +153,18 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
             .build(queryContext));
 
     return false;
+  }
+
+  private static final Set<String> RDAP_PATH_SEGMENTS = Set.of(
+          "domain/", "nameserver/", "entity/", "help/", "ip/", "autnum/");
+
+  private static String stripRdapPathPrefix(String s) {
+    for (String seg : RDAP_PATH_SEGMENTS) {
+      if (s.startsWith(seg)) {
+        return s.substring(seg.length());
+      }
+    }
+    return s;
   }
 
   @Override

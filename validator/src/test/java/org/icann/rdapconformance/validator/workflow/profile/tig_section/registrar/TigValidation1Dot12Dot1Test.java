@@ -148,4 +148,65 @@ public class TigValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
 
     validate(); // expects no errors
   }
+
+  /**
+   * Regression test for the AIT-style bug:
+   * When the IANA-registered RDAP base URL is a bare prefix (e.g. https://rdap.ait.com/rdap/)
+   * and the actual referral href is https://rdap.ait.com/rdap/domain/AIT.COM, the
+   * "domain/" segment must be stripped before validating the remainder as a domain name.
+   * <p>
+   * Prior to this fix, the validator passed "domain/AIT.COM" to IdnHostNameFormatValidator,
+   * which failed STD3 checks because of the '/', and a false -26103 was emitted for a
+   * perfectly valid registrar referral.
+   */
+  @Test
+  public void relatedLinkPresent_baseUrlWithoutDomainPath_passes() {
+    when(config.isGtldRegistry()).thenReturn(true);
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
+
+    // Dataset URL is the bare RDAP base (no /domain/ suffix), mirroring AIT's IANA record
+    RegistrarId.Record accreditedRecord = new RegistrarId.Record(
+            292, "Test", "https://rdap.example-registrar.com/rdap/",
+            "Accredited", "<record>...</record>");
+    RegistrarId.Record accreditedRecord293 = new RegistrarId.Record(
+            293, "Test2", "https://rdap.example-registrar.com/rdap/",
+            "Accredited", "<record>...</record>");
+
+    doReturn(accreditedRecord).when(datasets.get(RegistrarId.class)).getById(292);
+    doReturn(accreditedRecord293).when(datasets.get(RegistrarId.class)).getById(293);
+
+    // Registry-style referral: href = <baseUrl> + "domain/" + <valid domain>
+    putValue("$['links'][0]", "rel", "related");
+    putValue("$['links'][0]", "href",
+            "https://rdap.example-registrar.com/rdap/domain/example.com");
+
+    validate(); // expects no errors — must NOT emit -26103
+  }
+
+  /**
+   * Additional regression test: the same base URL style, but the href ends with a
+   * trailing slash (some registries emit "…/domain/example.com/"). The trailing
+   * slash must be stripped before domain-name validation.
+   */
+  @Test
+  public void relatedLinkPresent_baseUrlWithoutDomainPath_trailingSlash_passes() {
+    when(config.isGtldRegistry()).thenReturn(true);
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
+
+    RegistrarId.Record accreditedRecord = new RegistrarId.Record(
+            292, "Test", "https://rdap.example-registrar.com/rdap/",
+            "Accredited", "<record>...</record>");
+    RegistrarId.Record accreditedRecord293 = new RegistrarId.Record(
+            293, "Test2", "https://rdap.example-registrar.com/rdap/",
+            "Accredited", "<record>...</record>");
+
+    doReturn(accreditedRecord).when(datasets.get(RegistrarId.class)).getById(292);
+    doReturn(accreditedRecord293).when(datasets.get(RegistrarId.class)).getById(293);
+
+    putValue("$['links'][0]", "rel", "related");
+    putValue("$['links'][0]", "href",
+            "https://rdap.example-registrar.com/rdap/domain/example.com/");
+
+    validate();
+  }
 }
