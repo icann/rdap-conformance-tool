@@ -209,4 +209,35 @@ public class TigValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
 
     validate();
   }
+
+  /**
+   * Regression: when the registrar's IANA base URL already ends with a known
+   * RDAP path segment (e.g. .../rdap/domain/), a malformed href that duplicates
+   * that segment (.../rdap/domain/domain/example.com) must NOT be accepted as
+   * valid — stripping the duplicate would silently mask a bad referral.
+   */
+  @Test
+  public void relatedLinkPresent_baseUrlWithDomainPath_duplicatedSegment_reportsMinus26103() {
+    when(config.isGtldRegistry()).thenReturn(true);
+    queryContext.setQueryType(RDAPQueryType.DOMAIN);
+
+    RegistrarId.Record accreditedRecord = new RegistrarId.Record(
+            292, "Test", "https://rdap.example-registrar.com/rdap/domain/",
+            "Accredited", "<record>...</record>");
+    RegistrarId.Record accreditedRecord293 = new RegistrarId.Record(
+            293, "Test2", "https://rdap.example-registrar.com/rdap/domain/",
+            "Accredited", "<record>...</record>");
+
+    doReturn(accreditedRecord).when(datasets.get(RegistrarId.class)).getById(292);
+    doReturn(accreditedRecord293).when(datasets.get(RegistrarId.class)).getById(293);
+
+    // Malformed href: /domain/ appears twice
+    putValue("$['links'][0]", "rel", "related");
+    putValue("$['links'][0]", "href",
+            "https://rdap.example-registrar.com/rdap/domain/domain/example.com");
+
+    validate(-26103,
+            "https://rdap.example-registrar.com/rdap/domain/domain/example.com",
+            "Referral to registrar is either unregistered with IANA or invalid.");
+  }
 }
