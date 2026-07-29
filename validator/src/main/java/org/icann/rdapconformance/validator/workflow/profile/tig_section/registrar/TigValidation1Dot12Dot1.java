@@ -111,6 +111,12 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
             ? registrarBaseUrl
             : registrarBaseUrl + "/";
 
+    // Only strip a leading RDAP path segment from the href remainder when the
+    // registrar's IANA base URL did NOT already include that segment. Otherwise
+    // a malformed href with a duplicated segment (e.g. .../rdap/domain/domain/x)
+    // would be silently accepted.
+    boolean baseAlreadyHasRdapSegment = endsWithRdapPathSegment(expectedPrefix);
+
     Set<String> relatedLinkPointers = getPointerFromJPath(
             "$.links[?(@.rel contains 'related')]");
 
@@ -120,10 +126,15 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
         String href = hrefObj.toString();
         if (href.startsWith(expectedPrefix)) {
           String afterPrefix = href.substring(expectedPrefix.length());
-          // Strip trailing slash if present before validating
-          String domainPart = afterPrefix.endsWith("/")
-                  ? afterPrefix.substring(0, afterPrefix.length() - 1)
-                  : afterPrefix;
+
+          String domainPart = baseAlreadyHasRdapSegment
+                  ? afterPrefix                       // do not strip again
+                  : stripRdapPathPrefix(afterPrefix); // strip domain/, nameserver/, etc.
+
+          if (domainPart.endsWith("/")) {
+            domainPart = domainPart.substring(0, domainPart.length() - 1);
+          }
+
           if (!domainPart.isBlank() && DOMAIN_VALIDATOR.validate(domainPart).isEmpty()) {
             return true;
           }
@@ -147,6 +158,27 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
             .build(queryContext));
 
     return false;
+  }
+
+  private static final Set<String> RDAP_PATH_SEGMENTS = Set.of(
+          "domain/", "nameserver/", "entity/", "help/", "ip/", "autnum/");
+
+  private static boolean endsWithRdapPathSegment(String url) {
+    for (String seg : RDAP_PATH_SEGMENTS) {
+      if (url.endsWith(seg)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static String stripRdapPathPrefix(String s) {
+    for (String seg : RDAP_PATH_SEGMENTS) {
+      if (s.startsWith(seg)) {
+        return s.substring(seg.length());
+      }
+    }
+    return s;
   }
 
   @Override
