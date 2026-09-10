@@ -588,14 +588,17 @@ public class RdapWebValidatorTest {
 
     /**
      * - A non-null config that overrides getSsrfAllowedHosts() is propagated to QueryContext.
-     * - Hostnames that resolve to an IP are stored as their canonical IP address.
-     * - IP literals are stored as-is in canonical form.
+     * - IP literals are stored as-is in canonical form (no DNS lookup performed).
      * - useTemporaryDirectory=true creates a temp directory that cleanupOnClose=true deletes on close.
      */
     @Test
     public void testCustomConfigWithSsrfAllowlistAndTemporaryDirectory() throws IOException {
         URI testUri = URI.create("https://rdap.example.com/domain/test.example");
-        List<String> allowedHosts = List.of("ts-wire-mock.icann.org", "10.47.230.173");
+        // Use only IP literals so the test is fully offline/deterministic and does
+        // NOT depend on DNS resolution or ICANN internal infrastructure (previously
+        // this used "ts-wire-mock.icann.org", which only resolved inside the ICANN
+        // network and broke public/open-source builds).
+        List<String> allowedHosts = List.of("10.47.230.173");
 
         RDAPValidatorConfiguration config = new MinimalRDAPValidatorConfiguration(testUri, allowedHosts);
 
