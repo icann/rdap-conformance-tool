@@ -28,9 +28,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
 import javax.net.ssl.SNIHostName;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocket;
@@ -57,11 +55,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLContext;
 import java.net.URI;
@@ -494,7 +487,7 @@ public class RDAPHttpRequest {
 
     private static long getBackoffTime(org.apache.hc.core5.http.Header[] headers, int attempt) {
         String retryAfter = headers == null ? null :
-                java.util.Arrays.stream(headers)
+                Arrays.stream(headers)
                         .filter(header -> RETRY_AFTER.equalsIgnoreCase(header.getName()))
                         .map(org.apache.hc.core5.http.Header::getValue)
                         .findFirst()
