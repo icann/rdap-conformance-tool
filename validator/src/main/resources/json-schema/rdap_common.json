@@ -86,12 +86,13 @@
 	      	"description": "non standard rir type"
 	      }
 	     ]
-     },        
+     },
     "ldhName": {
       "type": "string",
       "format" : "idn-hostname",
       "validationName": "stdRdapLdhNameValidation",
       "errorCode": -11703,
+      "errorMsg": "A label not being a valid 'A-label' or 'NR-LDH label' was found.",
       "labelTooLong": -11700,
       "domainTooLong": -11701,
       "lessThanTwoLabels": -11702
