@@ -50,8 +50,12 @@ public abstract class SchemaValidatorIdnaTest extends SchemaValidatorTest {
   }
 
   protected void labelInvalid(int errorCode) {
+    labelInvalid(errorCode,
+            "A DNS label not being a valid 'A-label', 'U-label', or 'NR-LDH label' was found.");
+  }
+
+  protected void labelInvalid(int errorCode, String message) {
     jsonObject.put(name, "xn---viagénie.ca");
-    validate(errorCode, "#/" + name + ":xn---viagénie.ca",
-        "A DNS label not being a valid 'A-label', 'U-label', or 'NR-LDH label' was found.");
+    validate(errorCode, "#/" + name + ":xn---viagénie.ca", message);
   }
 }

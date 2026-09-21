@@ -49,6 +49,7 @@ public class SchemaValidatorLdhNameTest extends SchemaValidatorIdnaTest {
    */
   @Test
   public void alabelInvalid() {
-    labelInvalid(-11703);
+    labelInvalid(-11703,
+            "A label not being a valid 'A-label' or 'NR-LDH label' was found.");
   }
 }
