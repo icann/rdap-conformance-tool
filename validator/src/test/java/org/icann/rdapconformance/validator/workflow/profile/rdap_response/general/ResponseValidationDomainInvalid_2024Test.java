@@ -194,4 +194,30 @@ public class ResponseValidationDomainInvalid_2024Test {
         .as("No -65300 error should be added for 404 response")
         .isTrue();
   }
+
+  @Test
+  public void testDoValidate_HostContainsDomainWord_BuildsFullInvalidUri() throws Exception {
+    // Regression: hosts whose name contains the substring "domain"
+    // (e.g. rdap.globaldomaingroup.com) previously truncated the invalid-domain
+    // URI at the first "domain" match inside the host, producing
+    // ".../domain/not-a" instead of ".../domain/not-a-domain.invalid".
+    URI uri = new URI("https://rdap.globaldomaingroup.com/domain/55660av.top");
+    when(mockConfig.getUri()).thenReturn(uri);
+    when(mockConfig.getTimeout()).thenReturn(1000);
+
+    HttpResponse<String> mockResponse = mock(HttpResponse.class);
+    when(mockResponse.statusCode()).thenReturn(404);
+    when(mockResponse.uri()).thenReturn(
+            URI.create("https://rdap.globaldomaingroup.com/domain/not-a-domain.invalid"));
+
+    ArgumentCaptor<URI> uriCaptor = ArgumentCaptor.forClass(URI.class);
+    mockStaticRequest.when(() -> RDAPHttpRequest.makeRequest(
+                    any(QueryContext.class), uriCaptor.capture(), anyInt(), anyString()))
+            .thenReturn(mockResponse);
+
+    responseValidator.doValidate();
+
+    assertEquals(uriCaptor.getValue().toString(),
+            "https://rdap.globaldomaingroup.com/domain/not-a-domain.invalid");
+  }
 }

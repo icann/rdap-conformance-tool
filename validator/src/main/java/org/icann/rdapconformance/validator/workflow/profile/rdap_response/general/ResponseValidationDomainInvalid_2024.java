@@ -48,7 +48,7 @@ public class ResponseValidationDomainInvalid_2024 extends ProfileValidation {
         String domainInvalidUri = null;
         if (Objects.nonNull(queryType)) {
             domainInvalidUri = CommonUtils.replaceQueryTypeInStringWith(queryType, this.config.getUri().toString(), DOMAIN_INVALID);
-            int index = domainInvalidUri.indexOf("domain");
+            int index = domainInvalidUri.indexOf(DOMAIN_INVALID);
             if (index != -1) {
                 domainInvalidUri = domainInvalidUri.substring(ZERO, index + DOMAIN_INVALID.length());
             } else {
