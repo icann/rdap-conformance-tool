@@ -28,7 +28,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import javax.net.ssl.SNIHostName;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocket;
@@ -55,6 +57,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLContext;
 import java.net.URI;
@@ -126,15 +133,7 @@ public class RDAPHttpRequest {
     // NOTE: Mutable for testing purposes - allows test timeouts to be reduced from 30 seconds to 1 second
     // This field is not modified in production code, only in test environments
     public static int DEFAULT_BACKOFF_SECS = 30;
-    // Configurable via system property, e.g. -Drdapct.maxRetries=3 ; defaults to 3 to tolerate transient rate-limiting
-    public static final int MAX_RETRIES = Integer.getInteger("rdapct.maxRetries", 3);
-    // Base for exponential backoff (seconds) when no Retry-After header is present
-    public static int BASE_BACKOFF_SECS = Integer.getInteger("rdapct.baseBackoffSecs", 2);
-    // Upper bound for a single backoff wait (seconds)
-    public static final int MAX_BACKOFF_SECS = Integer.getInteger("rdapct.maxBackoffSecs", MAX_RETRY_TIME);
-    private static final java.util.Random BACKOFF_JITTER = new java.util.Random();
-
-
+    public static final int MAX_RETRIES = 1;
     public static final int DNS_PORT = 53;
     public static final String OUTGOING_IPV4 = "9.9.9.9";
     public static final String OUTGOING_V6 = "2620:fe::9";
@@ -485,35 +484,28 @@ public class RDAPHttpRequest {
      }
  }
 
-    private static long getBackoffTime(org.apache.hc.core5.http.Header[] headers, int attempt) {
+    private static long getBackoffTime(org.apache.hc.core5.http.Header[] headers) {
         String retryAfter = headers == null ? null :
-                Arrays.stream(headers)
-                        .filter(header -> RETRY_AFTER.equalsIgnoreCase(header.getName()))
-                        .map(org.apache.hc.core5.http.Header::getValue)
-                        .findFirst()
-                        .orElse(null);
+            java.util.Arrays.stream(headers)
+                            .filter(header -> RETRY_AFTER.equalsIgnoreCase(header.getName()))
+                            .map(org.apache.hc.core5.http.Header::getValue)
+                            .findFirst()
+                            .orElse(null);
         if (retryAfter != null) {
             try {
                 long value = Long.parseLong(retryAfter);
                 if (value > ZERO) {
-                    if (value > MAX_RETRY_TIME) {
+                    if(value > MAX_RETRY_TIME) {
                         value = MAX_RETRY_TIME; // Cap the retry-after to MAX_RETRY_TIME(120) seconds
                     }
-                    value = value + ONE; // no matter what, we add 1 second to the retry-after value
+                    value  = value + ONE; // no matter what, we add 1 second to the retry-after value
                     logger.debug("Received 429 with retry-after header. Waiting {} seconds to requery.", value);
                     return value;
                 }
             } catch (NumberFormatException ignored) {}
         }
-        // No Retry-After header: use exponential backoff with jitter.
-        // wait = min(MAX_BACKOFF_SECS, BASE_BACKOFF_SECS * 2^attempt) + random jitter [0, BASE_BACKOFF_SECS)
-        long exp = (long) (BASE_BACKOFF_SECS * Math.pow(2, Math.max(0, attempt)));
-        long capped = Math.min(exp, MAX_BACKOFF_SECS);
-        long jitter = BACKOFF_JITTER.nextInt(Math.max(1, BASE_BACKOFF_SECS));
-        long wait = Math.min(MAX_BACKOFF_SECS, capped + jitter);
-        logger.debug("Received 429 but no retry-after header was offered. "
-                + "Waiting {} seconds (exponential backoff, attempt {}).", wait, attempt);
-        return wait;
+        logger.debug("Received 429 but no retry-after header was offered. Waiting {} seconds.", DEFAULT_BACKOFF_SECS);
+        return DEFAULT_BACKOFF_SECS;
     }
 
     /**
@@ -968,7 +960,7 @@ public class RDAPHttpRequest {
 
             // CRITICAL: Handle HTTP 429 Too Many Requests with backoff (restored from master)
             if (statusCode == HTTP_TOO_MANY_REQUESTS) {
-                long backoffSeconds = getBackoffTime(response.getHeaders(), attempt);
+                long backoffSeconds = getBackoffTime(response.getHeaders());
 
                 if (attempt >= MAX_RETRIES) {
                     logger.debug("Requeried using retry-after wait time but result was a 429.");
@@ -1155,13 +1147,6 @@ public class RDAPHttpRequest {
                     SimpleHttpResponse errorResponse = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new RDAPHttpRequest.Header[ZERO]);
                     errorResponse.setConnectionStatusCode(errorStatus);
                     return errorResponse;
-                }
-                // brief backoff before retrying after a transient failure
-                try {
-                    long wait = getBackoffTime(null, attempt);
-                    Thread.sleep(wait * PAUSE);
-                } catch (InterruptedException ignored) {
-                    Thread.currentThread().interrupt();
                 }
             }
         }
