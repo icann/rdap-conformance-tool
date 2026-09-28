@@ -135,4 +135,32 @@ public class IdnAwareUriConverterTest {
         // Must not throw, must return the path unchanged
         assertThat(result).isEqualTo(path);
     }
+
+    @Test
+    public void testConvertUriWithSpacesInEntityHandle() throws Exception {
+        // Regression: entity handles may contain spaces (RFC 9082). The converter
+        // previously encoded only non-ASCII, so a literal space reached
+        // java.net.URI and threw "Illegal character in path at index 52".
+        URI result = converter.convert(
+                "https://tld-rdap.verisign.com/verisign/v1/entity/CSC Corporate Domains, Inc");
+
+        assertThat(result.toASCIIString())
+                .isEqualTo("https://tld-rdap.verisign.com/verisign/v1/entity/CSC%20Corporate%20Domains,%20Inc");
+    }
+
+    @Test
+    public void testConvertUriWithPreEncodedSpacesIsNotDoubleEncoded() throws Exception {
+        URI result = converter.convert(
+                "https://rdap.verisign.com/com/v1/entity/MarkMonitor%20Inc.");
+
+        assertThat(result.toASCIIString())
+                .isEqualTo("https://rdap.verisign.com/com/v1/entity/MarkMonitor%20Inc.");
+    }
+
+    @Test
+    public void testConvertUriWithSpacesDoesNotThrow() {
+        assertThatCode(() -> converter.convert(
+                "https://rdap.verisign.com/com/v1/entity/NameCheap, Inc."))
+                .doesNotThrowAnyException();
+    }
 }

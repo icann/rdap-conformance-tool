@@ -1329,7 +1329,9 @@ public void setShowProgress(boolean showProgress) {
         normalizedHostPort = convertedHost + portSuffix;
       }
 
-      // Now percent-encode non-ASCII in the remaining part (path/query/fragment)
+      // Now percent-encode characters that java.net.URI cannot parse in the
+      // remaining part (path/query/fragment): non-ASCII plus illegal ASCII such
+      // as the spaces found in RDAP entity handles (e.g. "CSC Corporate Domains, Inc").
       StringBuilder encoded = new StringBuilder();
       encoded.append(scheme).append("://").append(normalizedHostPort);
       for (char c : afterHost.toCharArray()) {
@@ -1337,6 +1339,8 @@ public void setShowProgress(boolean showProgress) {
           for (byte b : String.valueOf(c).getBytes(UTF_8)) {
             encoded.append(String.format("%%%02X", b & 0xFF));
           }
+        } else if (isIllegalUriAsciiChar(c)) {
+          encoded.append(String.format("%%%02X", (int) c));
         } else {
           encoded.append(c);
         }
@@ -1405,6 +1409,16 @@ public void setShowProgress(boolean showProgress) {
       }
 
       return decodedPath;
+    }
+
+    /**
+     * ASCII characters rejected by java.net.URI in a path/query. '%' is excluded
+     * so already percent-encoded input is preserved instead of double-encoded.
+     */
+    private static boolean isIllegalUriAsciiChar(char c) {
+      return c == ' ' || c == '"' || c == '<' || c == '>' || c == '\\'
+              || c == '^' || c == '`' || c == '{' || c == '|' || c == '}'
+              || c < 0x20 || c == 0x7F;
     }
 
     private static boolean hasMixedLabelsInDomain(String domainName) {
