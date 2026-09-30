@@ -901,15 +901,7 @@ public class RDAPHttpRequest {
             }
         }
 
-        URI ipUri = new URI(
-            originalUri.getScheme(),
-            null,
-            remoteAddress.getHostAddress(),
-            port,
-            originalUri.getRawPath(),
-            originalUri.getRawQuery(),
-            originalUri.getRawFragment()
-        );
+        URI ipUri = buildIpUri(originalUri, remoteAddress, port);
 
         // Set network info in QueryContext
         qctx.setServerIpAddress(remoteAddress.getHostAddress());
@@ -1074,6 +1066,56 @@ public class RDAPHttpRequest {
     }
 
     /**
+     * Rebuilds the request URI against the resolved IP address while preserving
+     * the already-encoded raw path/query/fragment.
+     *
+     * <p>The multi-argument {@link URI} constructor expects DECODED components and
+     * re-quotes them, which double-encodes an already-encoded path: a '%' becomes
+     * '%25', so "%20" turns into "%2520". Building the URI from its string form
+     * with the single-argument constructor preserves the existing encoding.
+     *
+     * @param originalUri   the fully-normalized request URI (may contain %-escapes)
+     * @param remoteAddress the resolved IP address to connect to
+     * @param port          the resolved port
+     * @return a URI targeting the IP address with the original raw path preserved
+     * @throws java.net.URISyntaxException if the rebuilt URI string is invalid
+     */
+    static URI buildIpUri(URI originalUri, InetAddress remoteAddress, int port)
+            throws java.net.URISyntaxException {
+        StringBuilder sb = new StringBuilder();
+        sb.append(originalUri.getScheme()).append("://");
+
+        String hostAddr = remoteAddress.getHostAddress();
+        if (remoteAddress instanceof Inet6Address) {
+            // Strip any zone id and bracket IPv6 literals for URI authority
+            int zoneIdx = hostAddr.indexOf('%');
+            if (zoneIdx >= 0) {
+                hostAddr = hostAddr.substring(0, zoneIdx);
+            }
+            sb.append('[').append(hostAddr).append(']');
+        } else {
+            sb.append(hostAddr);
+        }
+
+        if (port != -1) {
+            sb.append(':').append(port);
+        }
+        if (originalUri.getRawPath() != null) {
+            sb.append(originalUri.getRawPath());
+        }
+        if (originalUri.getRawQuery() != null) {
+            sb.append('?').append(originalUri.getRawQuery());
+        }
+        if (originalUri.getRawFragment() != null) {
+            sb.append('#').append(originalUri.getRawFragment());
+        }
+
+        // Single-arg constructor: treats the string as already-encoded and does
+        // NOT re-quote '%', so existing escapes like %20 are preserved.
+        return new URI(sb.toString());
+    }
+
+    /**
      * Executes the HTTP request using QueryContext services.
      */
     private static HttpResponse<String> executeHttpRequest(QueryContext qctx, CloseableHttpClient client, URI originalUri,
@@ -1088,22 +1130,7 @@ public class RDAPHttpRequest {
         logger.debug("Connecting to: {} using {} (local bind: {})", remoteAddress.getHostAddress(), qctx.getNetworkProtocol(), localBindIp.getHostAddress());
 
         // Create URI with IP address (like the working implementation)
-        URI ipUri;
-        try {
-            ipUri = new URI(
-                originalUri.getScheme(),
-                null,
-                remoteAddress.getHostAddress(),
-                port,
-                originalUri.getRawPath(),
-                originalUri.getRawQuery(),
-                originalUri.getRawFragment()
-            );
-            logger.debug("Created IP URI: {}", ipUri);
-        } catch (Exception e) {
-            logger.debug("Failed to create IP URI, using original: {}", e.getMessage());
-            ipUri = originalUri;
-        }
+        URI ipUri = buildIpUri(originalUri, remoteAddress, port);
 
         // Create request with original URI, then set IP URI (like working implementation)
         HttpUriRequestBase request = method.equals(GET) ? new HttpGet(originalUri) : new HttpHead(originalUri);
