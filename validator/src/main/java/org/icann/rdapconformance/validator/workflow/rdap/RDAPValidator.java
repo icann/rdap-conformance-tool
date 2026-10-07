@@ -91,7 +91,15 @@ public class RDAPValidator implements ValidatorWorkflow {
         if (queryContext.getQuery().isErrorContent()) {
             // if they return any non-200 HTTP status code then we need a schema validator that checks the error response content itself
             queryContext.getQuery().addErrorsToErrorRdapResponse();
-            validator = SchemaValidatorCache.getCachedValidator("rdap_error.json", queryContext.getResults(), queryContext.getDatasetService(), queryContext);
+            String errorBody = queryContext.getQuery().getData();
+            if (errorBody == null || errorBody.isBlank()) {
+                // RFC 7480 section 5.3: an error response body is optional. With no body there is
+                // no error structure to validate — running rdap_error.json against an empty body
+                // would emit a -12100 false positive.
+                logger.info("Error response has an empty body; skipping error structure validation");
+            } else {
+                validator = SchemaValidatorCache.getCachedValidator("rdap_error.json", queryContext.getResults(), queryContext.getDatasetService(), queryContext);
+            }
         } else {
             // else we check the schema of the data pertaining to the query type
             String schemaFile = schemaMap.get(queryType);
@@ -105,7 +113,8 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         // verify that the above hasn't failed and sent us a null validator.
-        if( validator == null) {
+        // (a null validator is expected for error content with an empty body)
+        if (validator == null && !queryContext.getQuery().isErrorContent()) {
             logger.error("Validator is null, this should not happen -  please check the configuration [{}] and the query type: {}", queryContext.getConfig().getUri(), queryType);
             return ToolResult.UNSUPPORTED_QUERY.getCode();
         }
@@ -125,7 +134,9 @@ public class RDAPValidator implements ValidatorWorkflow {
         }
 
         // otherwise, validate the JSON and get the rdapResponse
-        validator.validate(rdapResponseData);
+        if (validator != null) {
+            validator.validate(rdapResponseData);
+        }
 
         // fold the name stuff and send out another query to that URL
         if (rdapResponse != null && !queryContext.getQuery().isErrorContent() && queryContext.getConfig().isNetworkEnabled()) {

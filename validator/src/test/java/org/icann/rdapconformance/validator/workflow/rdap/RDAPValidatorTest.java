@@ -246,4 +246,37 @@ public void testValidate_DomainQueryForTestInvalidWithHttpOK_LogsInfo() throws I
         assertThat(queryContext.getResults().getAll())
                 .anyMatch(r -> r.getCode() == -12100);
     }
+
+    @Test
+    public void testValidate_404EmptyBody_No12100FalsePositive() {
+        RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+        RDAPQuery query = mock(RDAPQuery.class);
+        RDAPDatasetService datasetService = mock(RDAPDatasetService.class);
+        RDAPHttpRequest.SimpleHttpResponse mockResponse = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+
+        doReturn(URI.create("https://example.com/rdap/domain/test.example")).when(config).getUri();
+        doReturn(true).when(config).check();
+        doReturn(true).when(config).useRdapProfileFeb2024();
+        doReturn(false).when(config).isAdditionalConformanceQueries();
+        doReturn(false).when(config).isNetworkEnabled();
+        doReturn(true).when(datasetService).download(anyBoolean());
+
+        // 404 with NO body: per RFC 7480 §5.3 an error body is optional
+        when(mockResponse.statusCode()).thenReturn(404);
+        when(mockResponse.body()).thenReturn("");
+        when(mockResponse.uri()).thenReturn(URI.create("https://example.com/rdap/domain/test.example"));
+
+        doReturn(true).when(query).run();
+        doReturn("").when(query).getData();
+        doReturn(mockResponse).when(query).getRawResponse();
+        doReturn(true).when(query).isErrorContent();
+
+        QueryContext queryContext = QueryContext.create(config, datasetService, query);
+        RDAPValidator validator = new RDAPValidator(queryContext);
+
+        assertThat(validator.validate()).isEqualTo(ToolResult.SUCCESS.getCode());
+        assertThat(queryContext.getResults().getAll())
+                .as("-12100 must not be emitted for a 404 with an empty body")
+                .noneMatch(r -> r.getCode() == -12100);
+    }
 }
