@@ -531,4 +531,50 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
             "RDAP responses do not match when handling domain label case folding.");
   }
 
+  @Test
+  public void testDoValidate_LinkValueEchoesQueriedUri_ShouldPass() throws Exception {
+    WireMockConfiguration wmConfig = wireMockConfig()
+            .dynamicHttpsPort()
+            .bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    // Identical responses except links[].value echoes the queried URL (RFC 9083 §4.2)
+    String originalResponse = "{\n"
+            + "  \"objectClassName\": \"domain\",\n"
+            + "  \"ldhName\": \"test.example\",\n"
+            + "  \"links\": [\n"
+            + "    {\"value\": \"https://rdap.example.com/domain/test.example\",\n"
+            + "     \"rel\": \"self\",\n"
+            + "     \"href\": \"https://rdap.example.com/domain/test.example\",\n"
+            + "     \"type\": \"application/rdap+json\"}\n"
+            + "  ]\n"
+            + "}";
+
+    String caseFoldedResponse = "{\n"
+            + "  \"objectClassName\": \"domain\",\n"
+            + "  \"ldhName\": \"test.example\",\n"
+            + "  \"links\": [\n"
+            + "    {\"value\": \"https://rdap.example.com/domain/tEsT.ExAmPlE\",\n"
+            + "     \"rel\": \"self\",\n"
+            + "     \"href\": \"https://rdap.example.com/domain/test.example\",\n"
+            + "     \"type\": \"application/rdap+json\"}\n"
+            + "  ]\n"
+            + "}";
+
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(originalResponse).when(httpsResponse).body();
+
+    stubFor(get(urlEqualTo("/domain/tEsT.ExAmPlE"))
+            .withScheme("http")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/rdap+json")
+                    .withBody(caseFoldedResponse)));
+
+    // Should PASS — only the link "value" differs, which must be ignored
+    validateOk(results);
+  }
+
 }

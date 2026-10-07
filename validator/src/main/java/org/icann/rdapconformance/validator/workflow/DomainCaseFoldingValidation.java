@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ibm.icu.lang.UCharacter;
 import java.net.URI;
 import java.net.http.HttpResponse;
@@ -20,7 +21,6 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot2.RDAPJsonComparator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +87,12 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
       JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
       JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
 
+      // RFC 9083 section 4.2: a link's "value" is the context URL of the query, so it
+      // legitimately differs between the original and the case-folded query. Ignore all
+      // link "value" properties to avoid -10403 false positives.
+      stripLinkValues(httpResponseJson);
+      stripLinkValues(httpsResponseJson);
+
       if (jsonComparator.compare(httpResponseJson, httpsResponseJson) != ZERO) {
         results.add(RDAPValidationResult.builder()
                                         .queriedURI(uri.toString())
@@ -135,6 +141,30 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
       fold = !fold;
     }
     return newDomain.toString();
+  }
+
+  /**
+   * Recursively removes the "value" property from every object inside any "links" array.
+   * The link "value" echoes the queried URL and must be ignored when comparing the
+   * original response against the case-folded response.
+   */
+  static void stripLinkValues(JsonNode node) {
+    if (node == null) {
+      return;
+    }
+    if (node.isObject()) {
+      JsonNode links = node.get("links");
+      if (links != null && links.isArray()) {
+        links.forEach(link -> {
+          if (link.isObject()) {
+            ((ObjectNode) link).remove("value");
+          }
+        });
+      }
+      node.fields().forEachRemaining(entry -> stripLinkValues(entry.getValue()));
+    } else if (node.isArray()) {
+      node.forEach(DomainCaseFoldingValidation::stripLinkValues);
+    }
   }
 
   /**
