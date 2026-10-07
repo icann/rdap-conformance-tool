@@ -142,4 +142,30 @@ public class UserInputValidatorTest {
       Files.deleteIfExists(tempConfig);
     }
   }
+
+  @Test
+  public void testExtractDuplicatedOptionViaMutuallyExclusiveDuplicates() throws IOException {
+    Path tempConfig = Files.createTempFile("config", ".json");
+    Files.writeString(tempConfig, "{}");
+    try {
+      RdapConformanceTool tool = new RdapConformanceTool();
+      CommandLine commandLine = new CommandLine(tool);
+      // 3 repetitions often triggers the "expected only one match but got" path
+      String[] args = {"--config", tempConfig.toString(),
+              "--no-ipv4-queries", "--no-ipv4-queries", "--no-ipv4-queries",
+              "http://example.com/domain/example.com"};
+      String errorMessage = UserInputValidator.parseOptions(args, tool, commandLine);
+      assertThat(errorMessage).isNotNull();
+    } finally {
+      Files.deleteIfExists(tempConfig);
+    }
+  }
+
+  @Test
+  public void testParseOptionsEmptyArgs() {
+    RdapConformanceTool tool = new RdapConformanceTool();
+    CommandLine commandLine = new CommandLine(tool);
+    String errorMessage = UserInputValidator.parseOptions(new String[]{}, tool, commandLine);
+    assertThat(errorMessage).isNotNull();
+  }
 }
