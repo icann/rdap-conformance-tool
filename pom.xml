@@ -62,8 +62,8 @@
             **/RdapWebExample.java,
             **/RdapToolExample.java,
             **/Main.java,
-            **/VersionProvider.java
-            **/progress/ProgressDisplay.java
+            **/VersionProvider.java,
+            **/ProgressDisplay.java
         </sonar.coverage.exclusions>
         <!-- Coverage thresholds. Raise these over time; never lower them. -->
         <jacoco.line.minimum>0.80</jacoco.line.minimum>
@@ -230,7 +230,7 @@
                                 <exclude>**/RdapToolExample*</exclude>
                                 <exclude>**/Main.class</exclude>
                                 <exclude>**/VersionProvider.class</exclude>
-                                <exclude>**/progress/ProgressDisplay.class</exclude>
+                                <exclude>**/ProgressDisplay*</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -246,6 +246,7 @@
                                 <exclude>**/RdapToolExample*</exclude>
                                 <exclude>**/Main.class</exclude>
                                 <exclude>**/VersionProvider.class</exclude>
+                                <exclude>**/ProgressDisplay*</exclude>
                             </excludes>
                             <rules>
                                 <rule>

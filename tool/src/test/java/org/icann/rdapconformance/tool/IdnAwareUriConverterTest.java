@@ -260,4 +260,35 @@ public class IdnAwareUriConverterTest {
                 .convertIdnInPath("/domain/" + longLabel);
         assertThat(result).isEqualTo("/domain/" + longLabel);
     }
+
+    @Test
+    public void convert_ipv6LiteralWithoutPort() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://[2001:db8::1]/domain/example.com");
+        assertThat(uri.getHost()).contains("2001:db8::1");
+    }
+
+    @Test
+    public void convertIdnInPath_invalidPercentSequence_fallsBackToRawPath() {
+        // Malformed %-encoding triggers the decode() catch branch
+        String result = RdapConformanceTool.IdnAwareUriConverter
+                .convertIdnInPath("/domain/bad%ZZencoding.com");
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    public void convert_queryAndFragmentPreserved() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/domain/test.example?a=b#frag");
+        assertThat(uri.getQuery()).isEqualTo("a=b");
+        assertThat(uri.getFragment()).isEqualTo("frag");
+    }
+
+    @Test
+    public void convert_hostLabelTooLong_keptAsIs() throws Exception {
+        String longHost = "a".repeat(64) + ".example.com";
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://" + longHost + "/help");
+        assertThat(uri).isNotNull(); // toASCII IllegalArgumentException branch
+    }
 }

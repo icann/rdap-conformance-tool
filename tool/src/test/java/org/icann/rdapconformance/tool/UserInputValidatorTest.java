@@ -168,4 +168,33 @@ public class UserInputValidatorTest {
     String errorMessage = UserInputValidator.parseOptions(new String[]{}, tool, commandLine);
     assertThat(errorMessage).isNotNull();
   }
+
+  @Test
+  public void testFindDuplicatedOptionViaReflection() throws Exception {
+    var m = UserInputValidator.class.getDeclaredMethod("findDuplicatedOption", String[].class);
+    m.setAccessible(true);
+
+    assertThat((String) m.invoke(null, (Object) new String[]{"--no-ipv4-queries", "--no-ipv4-queries"}))
+            .isEqualTo("--no-ipv4-queries");
+    assertThat((String) m.invoke(null, (Object) new String[]{"--no-ipv6-queries", "--no-ipv6-queries"}))
+            .isEqualTo("--no-ipv6-queries");
+    assertThat((String) m.invoke(null, (Object) new String[]{"--no-ipv4-queries", "--no-ipv6-queries"}))
+            .isNull(); // one of each -> no duplicate
+    assertThat((String) m.invoke(null, (Object) new String[]{"https://example.com"}))
+            .isNull();
+  }
+
+  @Test
+  public void testExtractDuplicatedOptionViaReflection() throws Exception {
+    var m = UserInputValidator.class.getDeclaredMethod("extractDuplicatedOption", String.class);
+    m.setAccessible(true);
+
+    // Well-formed picocli message pattern
+    assertThat((String) m.invoke(null,
+            "expected only one match but got {--x}={--no-ipv4-queries} and {--x}={--no-ipv4-queries}"))
+            .isEqualTo("--no-ipv4-queries");
+
+    // No '=' in message -> null branch
+    assertThat((String) m.invoke(null, "some message without pattern")).isNull();
+  }
 }
