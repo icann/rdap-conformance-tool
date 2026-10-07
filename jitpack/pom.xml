@@ -20,6 +20,10 @@
     </repository>
   </repositories>
 
+  <properties>
+    <jacoco.skip>true</jacoco.skip>
+  </properties>
+
   <dependencies>
 
     <dependency>
