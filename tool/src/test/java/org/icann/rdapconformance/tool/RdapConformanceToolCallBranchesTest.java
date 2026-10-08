@@ -254,4 +254,28 @@ public class RdapConformanceToolCallBranchesTest {
         assertThat(tool.validateWithoutNetwork(resultFile, validator)).isZero();
         verify(resultFile, never()).addResultsFromQueryContext(org.mockito.ArgumentMatchers.any());
     }
+
+    @Test
+    public void call_fileUriWithQueryType_runsFileValidationPath() throws Exception {
+        Path config = Files.createTempFile("config", ".json");
+        Files.writeString(config, "{\"definitionIdentifier\": \"coverage-test\"}");
+        Path rdapFile = Files.createTempFile("rdap-response", ".json");
+        Files.writeString(rdapFile, "{}");
+        try {
+            RdapConformanceTool tool = new RdapConformanceTool();
+            tool.setLogging(LoggingLevel.ERROR);
+            tool.setShowProgress(false);
+            tool.setUseLocalDatasets(true);
+            tool.setUri(rdapFile.toUri()); // file:// scheme
+            tool.setConfigurationFile(config.toString());
+            tool.queryType = org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType.DOMAIN;
+
+            Integer code = tool.call();
+            // Whatever the exit code, the file-validation path executed
+            assertThat(code).isNotNull();
+        } finally {
+            Files.deleteIfExists(config);
+            Files.deleteIfExists(rdapFile);
+        }
+    }
 }

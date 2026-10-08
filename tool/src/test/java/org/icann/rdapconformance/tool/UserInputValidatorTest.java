@@ -241,4 +241,28 @@ public class UserInputValidatorTest {
     String result = (String) m.invoke(null, generic, new String[]{});
     assertThat(result).isEqualTo("some generic parse error");
   }
+
+  @Test
+  public void testHandleMaxValuesExceptionFallbacksViaReflection() throws Exception {
+    var m = UserInputValidator.class.getDeclaredMethod("handleMaxValuesException",
+            CommandLine.MaxValuesExceededException.class, String[].class);
+    m.setAccessible(true);
+    CommandLine cl = new CommandLine(new RdapConformanceTool());
+
+    // args have no duplicates -> findDuplicatedOption returns null -> message fallback
+    var exIpv4 = new CommandLine.MaxValuesExceededException(cl,
+            "option --no-ipv4-queries exceeded max values");
+    assertThat((String) m.invoke(null, exIpv4, new String[]{}))
+            .isEqualTo("Error: --no-ipv4-queries should be specified only once");
+
+    var exIpv6 = new CommandLine.MaxValuesExceededException(cl,
+            "option --no-ipv6-queries exceeded max values");
+    assertThat((String) m.invoke(null, exIpv6, new String[]{}))
+            .isEqualTo("Error: --no-ipv6-queries should be specified only once");
+
+    // message mentions neither option -> raw message fallback
+    var exOther = new CommandLine.MaxValuesExceededException(cl, "some other error");
+    assertThat((String) m.invoke(null, exOther, new String[]{}))
+            .isEqualTo("some other error");
+  }
 }
