@@ -1275,6 +1275,16 @@ public void setShowProgress(boolean showProgress) {
    * and percent-encoded forms.
   */
   static class IdnAwareUriConverter implements CommandLine.ITypeConverter<URI> {
+
+    /** Format used to percent-encode a single byte (e.g. 0x20 -> "%20"). */
+    private static final String PERCENT_ENCODE_FORMAT = "%%%02X";
+
+    /**
+     * ASCII characters rejected by java.net.URI in a path/query. '%' is excluded
+     * so already percent-encoded input is preserved instead of double-encoded.
+     */
+    private static final String ILLEGAL_URI_ASCII_CHARS = " \"<>\\^`{|}";
+
     @Override
     public URI convert(String value) throws Exception {
       return normalizeIdnUri(value);
@@ -1298,36 +1308,7 @@ public void setShowProgress(boolean showProgress) {
       String hostPort = hostEnd >= 0 ? rest.substring(0, hostEnd) : rest;
       String afterHost = hostEnd >= 0 ? rest.substring(hostEnd) : "";
 
-      // Convert host to punycode (handles Unicode hosts like whois.nic.дети)
-      // Skip IPv6 literals
-      String normalizedHostPort;
-      if (hostPort.startsWith("[")) {
-        normalizedHostPort = hostPort; // IPv6 — leave as-is
-      } else {
-        // Separate host from port
-        int lastColon = hostPort.lastIndexOf(':');
-        String portSuffix = "";
-        String hostOnly = hostPort;
-        if (lastColon >= 0) {
-          String maybPort = hostPort.substring(lastColon + 1);
-          try {
-            Integer.parseInt(maybPort);
-            portSuffix = hostPort.substring(lastColon);
-            hostOnly = hostPort.substring(0, lastColon);
-          } catch (NumberFormatException e) {
-            // Not a port
-          }
-        }
-        String convertedHost;
-        try {
-          convertedHost = toASCII(hostOnly);
-        } catch (IllegalArgumentException e) {
-          // Host label too long or invalid — leave as-is
-          logger.debug("IDN toASCII skipped for host '{}': {}", hostOnly, e.getMessage());
-          convertedHost = hostOnly;
-        }
-        normalizedHostPort = convertedHost + portSuffix;
-      }
+      String normalizedHostPort = normalizeHostPort(hostPort);
 
       // Now percent-encode characters that java.net.URI cannot parse in the
       // remaining part (path/query/fragment): non-ASCII plus illegal ASCII such
@@ -1336,11 +1317,9 @@ public void setShowProgress(boolean showProgress) {
       encoded.append(scheme).append("://").append(normalizedHostPort);
       for (char c : afterHost.toCharArray()) {
         if (c > 0x7F) {
-          for (byte b : String.valueOf(c).getBytes(UTF_8)) {
-            encoded.append(String.format("%%%02X", b & 0xFF));
-          }
+          appendPercentEncoded(encoded, c);
         } else if (isIllegalUriAsciiChar(c)) {
-          encoded.append(String.format("%%%02X", (int) c));
+          encoded.append(String.format(PERCENT_ENCODE_FORMAT, (int) c));
         } else {
           encoded.append(c);
         }
@@ -1387,9 +1366,7 @@ public void setShowProgress(boolean showProgress) {
             StringBuilder encoded = new StringBuilder();
             for (char c : domainName.toCharArray()) {
               if (c > 0x7F) {
-                for (byte b : String.valueOf(c).getBytes(UTF_8)) {
-                  encoded.append(String.format("%%%02X", b & 0xFF));
-                }
+                appendPercentEncoded(encoded, c);
               } else {
                 encoded.append(c);
               }
@@ -1412,13 +1389,49 @@ public void setShowProgress(boolean showProgress) {
     }
 
     /**
-     * ASCII characters rejected by java.net.URI in a path/query. '%' is excluded
-     * so already percent-encoded input is preserved instead of double-encoded.
+     * Converts the host (and optional port) part of a URI to punycode.
+     * IPv6 literals are returned unchanged.
      */
+    private String normalizeHostPort(String hostPort) {
+      if (hostPort.startsWith("[")) {
+        return hostPort; // IPv6 — leave as-is
+      }
+
+      // Separate host from port
+      int lastColon = hostPort.lastIndexOf(':');
+      String portSuffix = "";
+      String hostOnly = hostPort;
+      if (lastColon >= 0) {
+        String maybPort = hostPort.substring(lastColon + 1);
+        try {
+          Integer.parseInt(maybPort);
+          portSuffix = hostPort.substring(lastColon);
+          hostOnly = hostPort.substring(0, lastColon);
+        } catch (NumberFormatException e) {
+          // Not a port
+        }
+      }
+
+      String convertedHost;
+      try {
+        convertedHost = toASCII(hostOnly);
+      } catch (IllegalArgumentException e) {
+        // Host label too long or invalid — leave as-is
+        logger.debug("IDN toASCII skipped for host '{}': {}", hostOnly, e.getMessage());
+        convertedHost = hostOnly;
+      }
+      return convertedHost + portSuffix;
+    }
+
+    /** Percent-encodes the UTF-8 bytes of a single character. */
+    private static void appendPercentEncoded(StringBuilder sb, char c) {
+      for (byte b : String.valueOf(c).getBytes(UTF_8)) {
+        sb.append(String.format(PERCENT_ENCODE_FORMAT, b & 0xFF));
+      }
+    }
+
     private static boolean isIllegalUriAsciiChar(char c) {
-      return c == ' ' || c == '"' || c == '<' || c == '>' || c == '\\'
-              || c == '^' || c == '`' || c == '{' || c == '|' || c == '}'
-              || c < 0x20 || c == 0x7F;
+      return c < 0x20 || c == 0x7F || ILLEGAL_URI_ASCII_CHARS.indexOf(c) >= 0;
     }
 
     private static boolean hasMixedLabelsInDomain(String domainName) {
