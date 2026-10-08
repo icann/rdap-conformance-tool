@@ -291,4 +291,12 @@ public class IdnAwareUriConverterTest {
                 .convert("https://" + longHost + "/help");
         assertThat(uri).isNotNull(); // toASCII IllegalArgumentException branch
     }
+
+    @Test
+    public void convert_colonSuffixNotNumeric_treatedAsHost() throws Exception {
+        // ":notaport" -> NumberFormatException branch -> whole string treated as host
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com:notaport/help");
+        assertThat(uri).isNotNull();
+    }
 }

@@ -167,4 +167,53 @@ public class RdapConformanceToolCallBranchesTest {
         assertThat(tool.isNoIpv6Queries()).isTrue();
         assertThat(tool.isNoIpv4Queries()).isFalse();
     }
+
+    @Test
+    public void call_configFileDoesNotExist_returnsConfigDoesNotExist() throws Exception {
+        RdapConformanceTool tool = new RdapConformanceTool();
+        tool.setLogging(LoggingLevel.ERROR);
+        tool.setShowProgress(false);
+        tool.setUseLocalDatasets(true);
+        tool.setUri(java.net.URI.create("https://rdap.example.com/domain/test.example"));
+        tool.setConfigurationFile("/tmp/definitely-does-not-exist-" + System.nanoTime() + ".json");
+
+        assertThat(tool.call()).isEqualTo(ToolResult.CONFIG_DOES_NOT_EXIST.getCode());
+    }
+
+    @Test
+    public void call_configFileInvalid_returnsConfigInvalid() throws Exception {
+        java.nio.file.Path bad = java.nio.file.Files.createTempFile("badconfig", ".json");
+        java.nio.file.Files.writeString(bad, "{ this is not valid json !!");
+        try {
+            RdapConformanceTool tool = new RdapConformanceTool();
+            tool.setLogging(LoggingLevel.ERROR);
+            tool.setShowProgress(false);
+            tool.setUseLocalDatasets(true);
+            tool.setUri(java.net.URI.create("https://rdap.example.com/domain/test.example"));
+            tool.setConfigurationFile(bad.toString());
+
+            assertThat(tool.call()).isEqualTo(ToolResult.CONFIG_INVALID.getCode());
+        } finally {
+            java.nio.file.Files.deleteIfExists(bad);
+        }
+    }
+
+    @Test
+    public void call_fileUriWithoutQueryType_returnsUnsupportedQuery() throws Exception {
+        java.nio.file.Path config = java.nio.file.Files.createTempFile("config", ".json");
+        java.nio.file.Files.writeString(config, "{}");
+        try {
+            RdapConformanceTool tool = new RdapConformanceTool();
+            tool.setLogging(LoggingLevel.ERROR);
+            tool.setShowProgress(false);
+            tool.setUseLocalDatasets(true);
+            // file:// scheme -> non-HTTP branch; queryType == null -> UNSUPPORTED_QUERY
+            tool.setUri(java.net.URI.create("file:///tmp/some-response.json"));
+            tool.setConfigurationFile(config.toString());
+
+            assertThat(tool.call()).isEqualTo(ToolResult.UNSUPPORTED_QUERY.getCode());
+        } finally {
+            java.nio.file.Files.deleteIfExists(config);
+        }
+    }
 }

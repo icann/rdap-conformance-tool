@@ -227,4 +227,18 @@ public class UserInputValidatorTest {
       Files.deleteIfExists(tempConfig);
     }
   }
+
+  @Test
+  public void testHandleParameterExceptionGenericViaReflection() throws Exception {
+    var m = UserInputValidator.class.getDeclaredMethod("handleParameterException",
+            CommandLine.ParameterException.class, String[].class);
+    m.setAccessible(true);
+
+    CommandLine cl = new CommandLine(new RdapConformanceTool());
+    CommandLine.ParameterException generic =
+            new CommandLine.ParameterException(cl, "some generic parse error");
+
+    String result = (String) m.invoke(null, generic, new String[]{});
+    assertThat(result).isEqualTo("some generic parse error");
+  }
 }
