@@ -197,4 +197,34 @@ public class UserInputValidatorTest {
     // No '=' in message -> null branch
     assertThat((String) m.invoke(null, "some message without pattern")).isNull();
   }
+
+  @Test
+  public void testParameterExceptionHandlerViaExecute_unknownOption() {
+    RdapConformanceTool tool = new RdapConformanceTool();
+    CommandLine commandLine = new CommandLine(tool);
+    // Register the handler
+    UserInputValidator.parseOptions(new String[]{"--bogus"}, tool, commandLine);
+    // Now execute() routes through the registered handler (UnmatchedArgumentException path)
+    int code = commandLine.execute("--bogus");
+    assertThat(code).isNotZero();
+  }
+
+  @Test
+  public void testParameterExceptionHandlerViaExecute_mutuallyExclusive() throws IOException {
+    Path tempConfig = Files.createTempFile("config", ".json");
+    Files.writeString(tempConfig, "{}");
+    try {
+      RdapConformanceTool tool = new RdapConformanceTool();
+      CommandLine commandLine = new CommandLine(tool);
+      String[] args = {"--config", tempConfig.toString(),
+              "--no-ipv4-queries", "--no-ipv6-queries",
+              "http://example.com/domain/example.com"};
+      UserInputValidator.parseOptions(args, tool, commandLine);
+      // non-UnmatchedArgument exception path -> prints usage branch
+      int code = commandLine.execute(args);
+      assertThat(code).isNotZero();
+    } finally {
+      Files.deleteIfExists(tempConfig);
+    }
+  }
 }

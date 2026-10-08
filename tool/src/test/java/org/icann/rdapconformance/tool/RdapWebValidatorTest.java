@@ -702,6 +702,42 @@ public class RdapWebValidatorTest {
         v.close(); // shouldCleanupDatasets=false branch
     }
 
+    @Test
+    public void validate_skipsIpv4_whenDisabled() {
+        URI uri = URI.create("https://127.0.0.1:9/domain/test.example");
+        RdapWebValidator v = new RdapWebValidator(uri, false, false,
+                true,  // useRdapProfileFeb2024
+                true,  // noIpv4Queries -> skip IPv4 branch
+                false, // IPv6 enabled
+                false, // no additional queries
+                false, false);
+        RDAPValidatorResults results = v.validate();
+        assertThat(results).isNotNull();
+    }
+
+    @Test
+    public void validate_skipsIpv6_whenDisabled() {
+        URI uri = URI.create("https://127.0.0.1:9/domain/test.example");
+        RdapWebValidator v = new RdapWebValidator(uri, false, false,
+                true,
+                false, // IPv4 enabled
+                true,  // noIpv6Queries -> skip IPv6 branch
+                false,
+                false, false);
+        RDAPValidatorResults results = v.validate();
+        assertThat(results).isNotNull();
+    }
+
+    @Test
+    public void close_withTempDirectoryCleanup() {
+        URI uri = URI.create("https://rdap.example.com/domain/test.example");
+        // temp dir + cleanupOnClose=true -> covers createTempDirectory and
+        // deleteDirectoryRecursively branches
+        try (RdapWebValidator v = new RdapWebValidator(uri, false, false, true, true)) {
+            assertThat(v).isNotNull();
+        }
+    }
+
     /**
      * Minimal RDAPValidatorConfiguration for use in tests.
      * Implements all abstract methods with safe defaults and accepts a custom ssrfAllowedHosts list.
