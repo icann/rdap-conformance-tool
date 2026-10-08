@@ -220,4 +220,38 @@ public class RdapConformanceToolCallBranchesTest {
             java.nio.file.Files.deleteIfExists(config);
         }
     }
+
+    @Test
+    public void validateWithoutNetwork_rdapValidator_copiesQueryContext() {
+        RdapConformanceTool tool = new RdapConformanceTool();
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator validator =
+                mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator.class);
+        org.icann.rdapconformance.validator.QueryContext qc =
+                mock(org.icann.rdapconformance.validator.QueryContext.class);
+        RDAPValidationResultFile resultFile = mock(RDAPValidationResultFile.class);
+
+        when(validator.validate()).thenReturn(0);
+        when(validator.getQueryContext()).thenReturn(qc);
+        when(resultFile.build()).thenReturn(true);
+        when(resultFile.getResultsPath()).thenReturn("/tmp/results.json");
+
+        assertThat(tool.validateWithoutNetwork(resultFile, validator)).isZero();
+        verify(resultFile).addResultsFromQueryContext(qc);
+    }
+
+    @Test
+    public void validateWithoutNetwork_rdapValidator_nullQueryContext() {
+        RdapConformanceTool tool = new RdapConformanceTool();
+        org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator validator =
+                mock(org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator.class);
+        RDAPValidationResultFile resultFile = mock(RDAPValidationResultFile.class);
+
+        when(validator.validate()).thenReturn(0);
+        when(validator.getQueryContext()).thenReturn(null); // null branch
+        when(resultFile.build()).thenReturn(true);
+        when(resultFile.getResultsPath()).thenReturn("/tmp/results.json");
+
+        assertThat(tool.validateWithoutNetwork(resultFile, validator)).isZero();
+        verify(resultFile, never()).addResultsFromQueryContext(org.mockito.ArgumentMatchers.any());
+    }
 }

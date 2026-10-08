@@ -299,4 +299,16 @@ public class IdnAwareUriConverterTest {
                 .convert("https://rdap.example.com:notaport/help");
         assertThat(uri).isNotNull();
     }
+
+    @Test
+    public void convert_eachIllegalAsciiChar_percentEncoded() throws Exception {
+        String[] paths = {
+                "a\"b", "a<b", "a>b", "a\\b", "a^b", "a`b", "a{b", "a|b", "a}b",
+        };
+        for (String p : paths) {
+            URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                    .convert("https://rdap.example.com/entity/" + p);
+            assertThat(uri.getRawPath()).contains("%"); // each char hits a different || branch
+        }
+    }
 }

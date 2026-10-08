@@ -738,6 +738,15 @@ public class RdapWebValidatorTest {
         }
     }
 
+    @Test
+    public void close_cleanupWithNonexistentDirectory_isSafe() {
+        RdapWebValidator v = new RdapWebValidator(
+                URI.create("https://rdap.example.com/domain/test.example"),
+                "/tmp/rdap-nonexistent-dir-" + System.nanoTime(),
+                true); // cleanup=true, dir doesn't exist -> Files.exists false branch
+        v.close();
+    }
+
     /**
      * Minimal RDAPValidatorConfiguration for use in tests.
      * Implements all abstract methods with safe defaults and accepts a custom ssrfAllowedHosts list.
