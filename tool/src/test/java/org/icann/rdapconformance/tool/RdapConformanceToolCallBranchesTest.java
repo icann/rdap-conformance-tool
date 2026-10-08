@@ -12,6 +12,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFil
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 /**
  * Exercises the early-return branches of call() (logging switch + DNS resolver
  * validation) and validateWithoutNetwork() with mocks. No network access.
@@ -200,8 +203,9 @@ public class RdapConformanceToolCallBranchesTest {
 
     @Test
     public void call_fileUriWithoutQueryType_returnsUnsupportedQuery() throws Exception {
-        java.nio.file.Path config = java.nio.file.Files.createTempFile("config", ".json");
-        java.nio.file.Files.writeString(config, "{}");
+        Path config = java.nio.file.Files.createTempFile("config", ".json");
+        Files.writeString(config,
+                "{\"definitionIdentifier\": \"test\"}");
         try {
             RdapConformanceTool tool = new RdapConformanceTool();
             tool.setLogging(LoggingLevel.ERROR);
