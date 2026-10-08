@@ -26,6 +26,11 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
 
     protected static final Logger logger = LoggerFactory.getLogger(ResponseValidation2Dot4Dot6_2024.class);
 
+    private static final String UNREGISTERED_BASE_URL_MESSAGE =
+            "The registrar base URL is not registered with IANA.";
+    private static final String INVALID_HREF_MESSAGE =
+            "The 'href' property is not a valid Web URI according to [webUriValidation].";
+
     private final RDAPQueryType queryType;
     private final RDAPDatasetService datasetService;
     private final RDAPValidatorConfiguration config;
@@ -120,11 +125,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         // Explicit null/blank check before parsing — avoids relying on NPE as control flow
         if (handle == null || handle.trim().isEmpty()) {
             logger.info("47701, handle = [{}], is null or blank", handle);
-            results.add(RDAPValidationResult.builder()
-                    .code(-47701)
-                    .value(getResultValue(linkPointer))
-                    .message("The registrar base URL is not registered with IANA.")
-                    .build(queryContext));
+            addUnregisteredBaseUrlResult(linkPointer);
             return false;
         }
 
@@ -133,11 +134,7 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
             id = Integer.parseInt(handle.trim());
         } catch (NumberFormatException e) {
             logger.info("47701, handle = [{}], is not a number", handle);
-            results.add(RDAPValidationResult.builder()
-                    .code(-47701)
-                    .value(getResultValue(linkPointer))
-                    .message("The registrar base URL is not registered with IANA.")
-                    .build(queryContext));
+            addUnregisteredBaseUrlResult(linkPointer);
             return false;
         }
 
@@ -159,25 +156,33 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
         String rdapUrl = (record != null) ? record.getRdapUrl() : null;
         if (value == null || !value.equals(rdapUrl)) {
             logger.info("47701, handle/id = {}, rdap url = {}, value = {}", id, rdapUrl, value);
-            results.add(RDAPValidationResult.builder()
-                    .code(-47701)
-                    .value(getResultValue(linkPointer))
-                    .message("The registrar base URL is not registered with IANA.")
-                    .build(queryContext));
+            addUnregisteredBaseUrlResult(linkPointer);
             return false;
         }
 
         return true;
     }
 
+    private void addUnregisteredBaseUrlResult(String linkPointer) {
+        results.add(RDAPValidationResult.builder()
+                .code(-47701)
+                .value(getResultValue(linkPointer))
+                .message(UNREGISTERED_BASE_URL_MESSAGE)
+                .build(queryContext));
+    }
+
+    private void addInvalidHrefResult(String linkPointer) {
+        results.add(RDAPValidationResult.builder()
+                .code(-47703)
+                .value(getResultValue(linkPointer))
+                .message(INVALID_HREF_MESSAGE)
+                .build(queryContext));
+    }
+
     public boolean validHrefUri(String href, String linkPointer) {
         if (href == null) {
             logger.info("47703, href is null");
-            results.add(RDAPValidationResult.builder()
-                    .code(-47703)
-                    .value(getResultValue(linkPointer))
-                    .message("The 'href' property is not a valid Web URI according to [webUriValidation].")
-                    .build(queryContext));
+            addInvalidHrefResult(linkPointer);
             return false;
         }
 
@@ -186,54 +191,34 @@ public final class ResponseValidation2Dot4Dot6_2024 extends ProfileJsonValidatio
             uri = createUri(href);
         } catch (Exception e) {
             logger.debug("47703, href = {}, syntax error = {}", href, e.getMessage());
-            results.add(RDAPValidationResult.builder()
-                    .code(-47703)
-                    .value(getResultValue(linkPointer))
-                    .message("The 'href' property is not a valid Web URI according to [webUriValidation].")
-                    .build(queryContext));
+            addInvalidHrefResult(linkPointer);
             return false;
         }
 
         String scheme = getUriScheme(uri);
         if (scheme == null) {
             logger.info("47703, href = {}, null scheme detected", href);
-            results.add(RDAPValidationResult.builder()
-                    .code(-47703)
-                    .value(getResultValue(linkPointer))
-                    .message("The 'href' property is not a valid Web URI according to [webUriValidation].")
-                    .build(queryContext));
+            addInvalidHrefResult(linkPointer);
             return false;
         }
 
         scheme = scheme.toLowerCase();
         if (!scheme.equals(HTTP) && !scheme.equals(HTTPS)) {
             logger.info("47703, href = {}, invalid scheme = {}", href, scheme);
-            results.add(RDAPValidationResult.builder()
-                    .code(-47703)
-                    .value(getResultValue(linkPointer))
-                    .message("The 'href' property is not a valid Web URI according to [webUriValidation].")
-                    .build(queryContext));
+            addInvalidHrefResult(linkPointer);
             return false;
         }
 
         String host = getUriHost(uri);
         if (host == null || host.trim().isEmpty()) {
             logger.info("47703, href = {}, invalid host = {}", href, host);
-            results.add(RDAPValidationResult.builder()
-                    .code(-47703)
-                    .value(getResultValue(linkPointer))
-                    .message("The 'href' property is not a valid Web URI according to [webUriValidation].")
-                    .build(queryContext));
+            addInvalidHrefResult(linkPointer);
             return false;
         }
 
         if (host.contains(" ") || host.startsWith(DOT) || host.endsWith(DOT) || host.contains("..")) {
             logger.info("47703, href = {}, malformed host = {}", href, host);
-            results.add(RDAPValidationResult.builder()
-                    .code(-47703)
-                    .value(getResultValue(linkPointer))
-                    .message("The 'href' property is not a valid Web URI according to [webUriValidation].")
-                    .build(queryContext));
+            addInvalidHrefResult(linkPointer);
             return false;
         }
 

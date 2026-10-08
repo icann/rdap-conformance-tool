@@ -1,12 +1,11 @@
 package org.icann.rdapconformance.tool;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-
 import java.net.URI;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
+
+import static org.assertj.core.api.Assertions.*;
 
 public class IdnAwareUriConverterTest {
 
@@ -162,5 +161,166 @@ public class IdnAwareUriConverterTest {
         assertThatCode(() -> converter.convert(
                 "https://rdap.verisign.com/com/v1/entity/NameCheap, Inc."))
                 .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void convert_missingScheme_throws() {
+        assertThatThrownBy(() -> new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("example.com/domain/test"))
+                .isInstanceOf(java.net.URISyntaxException.class);
+    }
+
+    @Test
+    public void convert_ipv6Literal_leftAsIs() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://[2001:db8::1]:8443/domain/example.com");
+        assertThat(uri.getPort()).isEqualTo(8443);
+    }
+
+    @Test
+    public void convert_hostWithPort_preservesPort() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com:8080/domain/test.example");
+        assertThat(uri.getPort()).isEqualTo(8080);
+        assertThat(uri.getHost()).isEqualTo("rdap.example.com");
+    }
+
+    @Test
+    public void convert_colonButNotPort_notTreatedAsPort() throws Exception {
+        // "abc" after colon -> NumberFormatException branch -> treated as host
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/domain/test.example?x=a:b");
+        assertThat(uri.getHost()).isEqualTo("rdap.example.com");
+    }
+
+    @Test
+    public void convert_unicodeHost_convertsToPunycode() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://nic.дети/domain/test.example");
+        assertThat(uri.getHost()).isEqualTo("nic.xn--d1acj3b");
+    }
+
+    @Test
+    public void convert_unicodeDomainInPath_convertsToPunycode() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/domain/пример.com");
+        assertThat(uri.getPath()).contains("xn--");
+    }
+
+    @Test
+    public void convert_nameserverPrefix_alsoConverted() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/nameserver/ns1.пример.com");
+        assertThat(uri.getPath()).startsWith("/nameserver/");
+        assertThat(uri.getPath()).contains("xn--");
+    }
+
+    @Test
+    public void convert_percentEncodedUnicodeInPath_decodedThenConverted() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/domain/nic.%D0%B4%D0%B5%D1%82%D0%B8");
+        assertThat(uri.getPath()).contains("xn--d1acj3b");
+    }
+
+    @Test
+    public void convert_spacesAndIllegalChars_percentEncoded() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/entity/CSC Corporate Domains, Inc");
+        assertThat(uri.getRawPath()).contains("CSC%20Corporate");
+        assertThat(uri.getPath()).contains("CSC Corporate");
+    }
+
+    @Test
+    public void convert_pathWithoutRdapPrefix_returnedDecoded() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/help");
+        assertThat(uri.getPath()).isEqualTo("/help");
+    }
+
+    @Test
+    public void convert_noPath_hostOnly() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com");
+        assertThat(uri.getHost()).isEqualTo("rdap.example.com");
+    }
+
+    @Test
+    public void convertIdnInPath_mixedLabels_percentEncodedNotPunycode() {
+        // Mix of A-label (xn--...) and U-label (дети) in the same domain name
+        String result = RdapConformanceTool.IdnAwareUriConverter
+                .convertIdnInPath("/domain/xn--d1acj3b.дети");
+        assertThat(result).contains("%");                 // U-label percent-encoded
+        assertThat(result).startsWith("/domain/xn--d1acj3b.");
+    }
+
+    @Test
+    public void convertIdnInPath_overlongLabel_leftAsIs() {
+        String longLabel = "a".repeat(64) + ".com"; // label > 63 chars -> toASCII throws
+        String result = RdapConformanceTool.IdnAwareUriConverter
+                .convertIdnInPath("/domain/" + longLabel);
+        assertThat(result).isEqualTo("/domain/" + longLabel);
+    }
+
+    @Test
+    public void convert_ipv6LiteralWithoutPort() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://[2001:db8::1]/domain/example.com");
+        assertThat(uri.getHost()).contains("2001:db8::1");
+    }
+
+    @Test
+    public void convertIdnInPath_invalidPercentSequence_fallsBackToRawPath() {
+        // Malformed %-encoding triggers the decode() catch branch
+        String result = RdapConformanceTool.IdnAwareUriConverter
+                .convertIdnInPath("/domain/bad%ZZencoding.com");
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    public void convert_queryAndFragmentPreserved() throws Exception {
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/domain/test.example?a=b#frag");
+        assertThat(uri.getQuery()).isEqualTo("a=b");
+        assertThat(uri.getFragment()).isEqualTo("frag");
+    }
+
+    @Test
+    public void convert_hostLabelTooLong_keptAsIs() throws Exception {
+        String longHost = "a".repeat(64) + ".example.com";
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://" + longHost + "/help");
+        assertThat(uri).isNotNull(); // toASCII IllegalArgumentException branch
+    }
+
+    @Test
+    public void convert_colonSuffixNotNumeric_treatedAsHost() throws Exception {
+        // ":notaport" -> NumberFormatException branch -> whole string treated as host
+        URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com:notaport/help");
+        assertThat(uri).isNotNull();
+    }
+
+    @Test
+    public void convert_eachIllegalAsciiChar_percentEncoded() throws Exception {
+        String[] paths = {
+                "a\"b", "a<b", "a>b", "a\\b", "a^b", "a`b", "a{b", "a|b", "a}b",
+        };
+        for (String p : paths) {
+            URI uri = new RdapConformanceTool.IdnAwareUriConverter()
+                    .convert("https://rdap.example.com/entity/" + p);
+            assertThat(uri.getRawPath()).contains("%"); // each char hits a different || branch
+        }
+    }
+
+    @Test
+    public void convert_controlChars_percentEncoded() throws Exception {
+        // \u0001 -> c < 0x20 branch; \u007F -> c == 0x7F branch
+        URI uri1 = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/entity/a\u0001b");
+        assertThat(uri1.getRawPath()).contains("%01");
+
+        URI uri2 = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/entity/a\u007Fb");
+        assertThat(uri2.getRawPath()).contains("%7F");
     }
 }

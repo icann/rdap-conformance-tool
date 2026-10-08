@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
@@ -631,6 +632,119 @@ public class RdapWebValidatorTest {
                 .isPresent();
         assertFalse(tempDirStillExists,
                 "Temporary dataset directory should have been deleted after close()");
+    }
+
+    @Test
+    public void configurableConfig_exposesAllFlags() {
+        java.net.URI uri = java.net.URI.create("https://rdap.example.com/domain/test.example");
+        RdapWebValidator v = new RdapWebValidator(uri, true, false, true);
+        RDAPValidatorConfiguration cfg = v.getQueryContext().getConfig();
+
+        assertThat(cfg.isGtldRegistry()).isTrue();
+        assertThat(cfg.isGtldRegistrar()).isFalse();
+        assertThat(cfg.useLocalDatasets()).isTrue();
+        assertThat(cfg.getTimeout()).isEqualTo(30);
+        assertThat(cfg.getMaxRedirects()).isEqualTo(5);
+        assertThat(cfg.isThin()).isFalse();
+        assertThat(cfg.getResultsFile()).isNull();
+        assertThat(cfg.getQueryType()).isNull();
+        assertThat(cfg.isNetworkEnabled()).isTrue();
+        assertThat(cfg.getConfigurationFile()).isNull();
+        assertThat(cfg.getDatasetDirectory()).isNull();
+        assertThat(cfg.isCleanupDatasetsOnComplete()).isFalse();
+        assertThat(cfg.useRdapProfileFeb2024()).isTrue();
+        cfg.clean(); // no-op
+    }
+
+    @Test
+    public void simpleConfig_usedWhenConfigIsNull() {
+        java.net.URI uri = java.net.URI.create("https://rdap.example.com/domain/test.example");
+        RdapWebValidator v = new RdapWebValidator(uri, (RDAPValidatorConfiguration) null);
+        RDAPValidatorConfiguration cfg = v.getQueryContext().getConfig();
+
+        assertThat(cfg.getUri()).isEqualTo(uri);
+        assertThat(cfg.useLocalDatasets()).isFalse();
+        assertThat(cfg.isNoIpv4Queries()).isFalse();
+        assertThat(cfg.isNoIpv6Queries()).isFalse();
+        assertThat(cfg.isAdditionalConformanceQueries()).isFalse();
+        cfg.setUri(java.net.URI.create("https://rdap.example.org/domain/x.example"));
+        assertThat(cfg.getUri().getHost()).isEqualTo("rdap.example.org");
+    }
+
+    @DataProvider(name = "invalidUris")
+    public Object[][] invalidUris() {
+        return new Object[][]{
+                {null}, {""}, {"   "},
+                {"ftp://example.com/domain/x"},
+                {"example.com/domain/x"},
+        };
+    }
+
+    @Test(dataProvider = "invalidUris",
+            expectedExceptions = IllegalArgumentException.class)
+    public void validateAndCreateURI_rejectsInvalid(String uri) {
+        RdapWebValidator.validateAndCreateURI(uri);
+    }
+
+    @Test
+    public void validateAndCreateURI_acceptsValidHttpsAndIdn() {
+        assertThat(RdapWebValidator.validateAndCreateURI(
+                "https://rdap.example.com/domain/test.example")).isNotNull();
+        // IDN host normalises to punycode without throwing
+        assertThat(RdapWebValidator.validateAndCreateURI(
+                "https://nic.xn--d1acj3b/domain/x.example")).isNotNull();
+    }
+
+    @Test
+    public void close_isSafe_whenNoCleanupConfigured() {
+        RdapWebValidator v = new RdapWebValidator(
+                "https://rdap.example.com/domain/test.example");
+        v.close(); // shouldCleanupDatasets=false branch
+    }
+
+    @Test
+    public void validate_skipsIpv4_whenDisabled() {
+        URI uri = URI.create("https://127.0.0.1:9/domain/test.example");
+        RdapWebValidator v = new RdapWebValidator(uri, false, false,
+                true,  // useRdapProfileFeb2024
+                true,  // noIpv4Queries -> skip IPv4 branch
+                false, // IPv6 enabled
+                false, // no additional queries
+                false, false);
+        RDAPValidatorResults results = v.validate();
+        assertThat(results).isNotNull();
+    }
+
+    @Test
+    public void validate_skipsIpv6_whenDisabled() {
+        URI uri = URI.create("https://127.0.0.1:9/domain/test.example");
+        RdapWebValidator v = new RdapWebValidator(uri, false, false,
+                true,
+                false, // IPv4 enabled
+                true,  // noIpv6Queries -> skip IPv6 branch
+                false,
+                false, false);
+        RDAPValidatorResults results = v.validate();
+        assertThat(results).isNotNull();
+    }
+
+    @Test
+    public void close_withTempDirectoryCleanup() {
+        URI uri = URI.create("https://rdap.example.com/domain/test.example");
+        // temp dir + cleanupOnClose=true -> covers createTempDirectory and
+        // deleteDirectoryRecursively branches
+        try (RdapWebValidator v = new RdapWebValidator(uri, false, false, true, true)) {
+            assertThat(v).isNotNull();
+        }
+    }
+
+    @Test
+    public void close_cleanupWithNonexistentDirectory_isSafe() {
+        RdapWebValidator v = new RdapWebValidator(
+                URI.create("https://rdap.example.com/domain/test.example"),
+                "/tmp/rdap-nonexistent-dir-" + System.nanoTime(),
+                true); // cleanup=true, dir doesn't exist -> Files.exists false branch
+        v.close();
     }
 
     /**

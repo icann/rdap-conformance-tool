@@ -122,23 +122,9 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
 
     for (String linkPointer : relatedLinkPointers) {
       Object hrefObj = jsonObject.query(linkPointer + "/href");
-      if (hrefObj != null) {
-        String href = hrefObj.toString();
-        if (href.startsWith(expectedPrefix)) {
-          String afterPrefix = href.substring(expectedPrefix.length());
-
-          String domainPart = baseAlreadyHasRdapSegment
-                  ? afterPrefix                       // do not strip again
-                  : stripRdapPathPrefix(afterPrefix); // strip domain/, nameserver/, etc.
-
-          if (domainPart.endsWith("/")) {
-            domainPart = domainPart.substring(0, domainPart.length() - 1);
-          }
-
-          if (!domainPart.isBlank() && DOMAIN_VALIDATOR.validate(domainPart).isEmpty()) {
-            return true;
-          }
-        }
+      if (hrefObj != null
+              && isValidReferralHref(hrefObj.toString(), expectedPrefix, baseAlreadyHasRdapSegment)) {
+        return true;
       }
     }
 
@@ -158,6 +144,28 @@ public final class TigValidation1Dot12Dot1 extends ProfileJsonValidation {
             .build(queryContext));
 
     return false;
+  }
+
+  /**
+   * Checks whether a single link href is a valid registrar referral: it must start
+   * with the expected IANA base URL prefix and be followed by a valid domain name.
+   */
+  private static boolean isValidReferralHref(String href, String expectedPrefix,
+      boolean baseAlreadyHasRdapSegment) {
+    if (!href.startsWith(expectedPrefix)) {
+      return false;
+    }
+
+    String afterPrefix = href.substring(expectedPrefix.length());
+    String domainPart = baseAlreadyHasRdapSegment
+            ? afterPrefix                       // do not strip again
+            : stripRdapPathPrefix(afterPrefix); // strip domain/, nameserver/, etc.
+
+    if (domainPart.endsWith("/")) {
+      domainPart = domainPart.substring(0, domainPart.length() - 1);
+    }
+
+    return !domainPart.isBlank() && DOMAIN_VALIDATOR.validate(domainPart).isEmpty();
   }
 
   private static final Set<String> RDAP_PATH_SEGMENTS = Set.of(

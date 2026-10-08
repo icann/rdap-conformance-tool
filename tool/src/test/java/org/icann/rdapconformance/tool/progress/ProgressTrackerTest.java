@@ -1,5 +1,6 @@
 package org.icann.rdapconformance.tool.progress;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -218,5 +219,125 @@ public class ProgressTrackerTest {
         tracker.incrementSteps(10);
         assertTrue(tracker.isCompleted());
         assertEquals(tracker.getCurrentStep(), 100);
+    }
+
+    @Test
+    public void incrementStep_autoCompletesAtTotal() {
+        ProgressTracker t = new ProgressTracker(2, true);
+        t.incrementStep();
+        assertThat(t.isCompleted()).isFalse();
+        t.incrementStep(); // reaches total -> auto-complete
+        assertThat(t.isCompleted()).isTrue();
+        assertThat(t.getCurrentPhase()).isEqualTo(ProgressPhase.COMPLETED);
+    }
+
+    @Test
+    public void incrementStep_afterComplete_isNoOp() {
+        ProgressTracker t = new ProgressTracker(1, true);
+        t.incrementStep(); // completes
+        int step = t.getCurrentStep();
+        t.incrementStep(); // early return
+        assertThat(t.getCurrentStep()).isEqualTo(step);
+    }
+
+    @Test
+    public void incrementSteps_zeroOrNegative_isNoOp() {
+        ProgressTracker t = new ProgressTracker(10, true);
+        t.incrementSteps(0);
+        t.incrementSteps(-5);
+        assertThat(t.getCurrentStep()).isZero();
+    }
+
+    @Test
+    public void incrementSteps_crossingTotal_autoCompletes() {
+        ProgressTracker t = new ProgressTracker(5, true);
+        t.incrementSteps(10);
+        assertThat(t.isCompleted()).isTrue();
+        assertThat(t.getCurrentStep()).isEqualTo(5); // clamped by complete()
+    }
+
+    @Test
+    public void incrementSteps_afterComplete_isNoOp() {
+        ProgressTracker t = new ProgressTracker(1, true);
+        t.incrementSteps(1); // completes
+        t.incrementSteps(3); // early return
+        assertThat(t.getCurrentStep()).isEqualTo(1);
+    }
+
+    @Test
+    public void setCurrentStep_clampsNegativeToZero() {
+        ProgressTracker t = new ProgressTracker(10, true);
+        t.setCurrentStep(-3);
+        assertThat(t.getCurrentStep()).isZero();
+    }
+
+    @Test
+    public void setCurrentStep_beyondTotal_clampsAndCompletes() {
+        ProgressTracker t = new ProgressTracker(10, true);
+        t.setCurrentStep(99);
+        assertThat(t.getCurrentStep()).isEqualTo(10);
+        assertThat(t.isCompleted()).isTrue();
+    }
+
+    @Test
+    public void setCurrentStep_afterComplete_isNoOp() {
+        ProgressTracker t = new ProgressTracker(1, true);
+        t.complete();
+        t.setCurrentStep(0);
+        assertThat(t.getCurrentStep()).isEqualTo(1);
+    }
+
+    @Test
+    public void updatePhase_afterComplete_isNoOp() {
+        ProgressTracker t = new ProgressTracker(1, true);
+        t.complete();
+        t.updatePhase(ProgressPhase.DNS_RESOLUTION);
+        t.updatePhase("CustomPhase");
+        assertThat(t.getCurrentPhase()).isEqualTo(ProgressPhase.COMPLETED);
+    }
+
+    @Test
+    public void complete_isIdempotent() {
+        ProgressTracker t = new ProgressTracker(5, true);
+        t.complete();
+        t.complete(); // second call -> early return branch
+        assertThat(t.isCompleted()).isTrue();
+    }
+
+    @Test
+    public void getPercentage_zeroTotal_returnsZero() {
+        ProgressTracker t = new ProgressTracker(0, true);
+        assertThat(t.getPercentage()).isZero();
+    }
+
+    @Test
+    public void getPercentage_clampedTo100() {
+        ProgressTracker t = new ProgressTracker(10, true);
+        t.setCurrentStep(5);
+        assertThat(t.getPercentage()).isEqualTo(50);
+    }
+
+    @Test
+    public void startAndForceHide_doNotThrow() {
+        ProgressTracker t = new ProgressTracker(10, false);
+        t.start();      // shouldShowProgress false in CI -> branch
+        t.forceHide();  // isSupported false -> branch
+        assertThat(t.getElapsedTime()).isGreaterThanOrEqualTo(0);
+        assertThat(t.getTotalSteps()).isEqualTo(10);
+        t.complete();
+    }
+
+    @Test
+    public void complete_shutsDownScheduler_whenStarted() throws Exception {
+        ProgressTracker t = new ProgressTracker(10, true);
+        // Force-start the scheduler (normally gated by terminal support)
+        var m = ProgressTracker.class.getDeclaredMethod("startPeriodicUpdates");
+        m.setAccessible(true);
+        m.invoke(t);
+
+        t.complete(); // updateScheduler != null && !isShutdown branch
+        assertThat(t.isCompleted()).isTrue();
+
+        t.complete(); // idempotent, scheduler already shutdown
     }
 }

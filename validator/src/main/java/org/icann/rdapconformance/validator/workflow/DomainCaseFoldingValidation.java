@@ -164,6 +164,8 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
       node.fields().forEachRemaining(entry -> stripLinkValues(entry.getValue()));
     } else if (node.isArray()) {
       node.forEach(DomainCaseFoldingValidation::stripLinkValues);
+    } else {
+      // Scalar node: nothing to strip
     }
   }
 
