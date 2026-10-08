@@ -326,4 +326,18 @@ public class ProgressTrackerTest {
         assertThat(t.getTotalSteps()).isEqualTo(10);
         t.complete();
     }
+
+    @Test
+    public void complete_shutsDownScheduler_whenStarted() throws Exception {
+        ProgressTracker t = new ProgressTracker(10, true);
+        // Force-start the scheduler (normally gated by terminal support)
+        var m = ProgressTracker.class.getDeclaredMethod("startPeriodicUpdates");
+        m.setAccessible(true);
+        m.invoke(t);
+
+        t.complete(); // updateScheduler != null && !isShutdown branch
+        assertThat(t.isCompleted()).isTrue();
+
+        t.complete(); // idempotent, scheduler already shutdown
+    }
 }

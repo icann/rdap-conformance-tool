@@ -311,4 +311,16 @@ public class IdnAwareUriConverterTest {
             assertThat(uri.getRawPath()).contains("%"); // each char hits a different || branch
         }
     }
+
+    @Test
+    public void convert_controlChars_percentEncoded() throws Exception {
+        // \u0001 -> c < 0x20 branch; \u007F -> c == 0x7F branch
+        URI uri1 = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/entity/a\u0001b");
+        assertThat(uri1.getRawPath()).contains("%01");
+
+        URI uri2 = new RdapConformanceTool.IdnAwareUriConverter()
+                .convert("https://rdap.example.com/entity/a\u007Fb");
+        assertThat(uri2.getRawPath()).contains("%7F");
+    }
 }

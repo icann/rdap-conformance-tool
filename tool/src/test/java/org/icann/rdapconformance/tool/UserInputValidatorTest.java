@@ -265,4 +265,38 @@ public class UserInputValidatorTest {
     assertThat((String) m.invoke(null, exOther, new String[]{}))
             .isEqualTo("some other error");
   }
+
+  @Test
+  public void testHandleMutuallyExclusiveMessageVariantsViaReflection() throws Exception {
+    var m = UserInputValidator.class.getDeclaredMethod("handleMutuallyExclusiveException",
+            CommandLine.MutuallyExclusiveArgsException.class);
+    m.setAccessible(true);
+    CommandLine cl = new CommandLine(new RdapConformanceTool());
+
+    // 1) pattern + "and" but NO '=' -> extractDuplicatedOption returns null -> raw message
+    var exNoEquals = new CommandLine.MutuallyExclusiveArgsException(cl,
+            "expected only one match but got {--x} and {--y}");
+    assertThat((String) m.invoke(null, exNoEquals))
+            .isEqualTo("expected only one match but got {--x} and {--y}");
+
+    // 2) pattern WITHOUT "and" -> true mutually-exclusive fallback branch
+    var exNoAnd = new CommandLine.MutuallyExclusiveArgsException(cl,
+            "some other mutually exclusive error");
+    assertThat((String) m.invoke(null, exNoAnd))
+            .contains("mutually exclusive");
+
+    // 3) '=' present but no closing '}' after it -> extract returns null
+    var exNoBrace = new CommandLine.MutuallyExclusiveArgsException(cl,
+            "expected only one match but got x=--no-ipv4-queries and more");
+    assertThat((String) m.invoke(null, exNoBrace)).isNotNull();
+  }
+
+  @Test
+  public void testExtractDuplicatedOptionNoClosingBraceViaReflection() throws Exception {
+    var m = UserInputValidator.class.getDeclaredMethod("extractDuplicatedOption", String.class);
+    m.setAccessible(true);
+
+    // '}' appears BEFORE '=' -> firstClose < firstEquals -> null branch
+    assertThat((String) m.invoke(null, "{closed} then = with no brace after")).isNull();
+  }
 }
