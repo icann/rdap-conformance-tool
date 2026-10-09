@@ -128,6 +128,10 @@ public class RDAPHttpRequest {
 
     public static final String RETRY_AFTER = "Retry-After";
     public static final int MAX_RETRY_TIME = 120;
+    // Security control, not a service endpoint: this is the well-known cloud metadata
+    // IP (AWS/GCP/Azure, RFC 3927 link-local). It is hardcoded intentionally so SSRF
+    // protection can BLOCK requests to it. It is never used as a connection target.
+    // Sonar S1313: reviewed, safe.
     public static final String AWS_GATEWAY_IP = "169.254.169.254";
 
     // NOTE: Mutable for testing purposes - allows test timeouts to be reduced from 30 seconds to 1 second
@@ -135,6 +139,10 @@ public class RDAPHttpRequest {
     public static int DEFAULT_BACKOFF_SECS = 30;
     public static final int MAX_RETRIES = 1;
     public static final int DNS_PORT = 53;
+    // Quad9 public DNS anycast addresses (https://quad9.net). Used ONLY with a
+    // connected UDP socket to discover the local outbound interface address;
+    // no packet is ever sent to them (UDP connect() does not transmit data).
+    // Any well-known public anycast IP would work. Sonar S1313: reviewed, safe.
     public static final String OUTGOING_IPV4 = "9.9.9.9";
     public static final String OUTGOING_V6 = "2620:fe::9";
 
