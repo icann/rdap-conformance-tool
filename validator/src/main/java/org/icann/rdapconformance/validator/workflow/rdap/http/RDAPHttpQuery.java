@@ -472,7 +472,7 @@ public class RDAPHttpQuery implements RDAPQuery {
                     addr.isLinkLocalAddress() ||
                     addr.isAnyLocalAddress() ||
                     isIPv6UniqueLocalAddress(addr) ||
-                    "169.254.169.254".equals(ip)) {
+                    RDAPHttpRequest.AWS_GATEWAY_IP.equals(ip)) {
                 return true;
             }
         }

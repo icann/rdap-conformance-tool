@@ -15,10 +15,7 @@ public final class SchemaValidatorCache {
   // Cache for compiled Schema objects keyed by schema name + dataset service hash
   // Use single-threaded access to reduce contention - schemas are typically loaded once
   private static final ConcurrentHashMap<String, Schema> schemaCache = new ConcurrentHashMap<>(32, 0.75f, 1);
-  
-  // Padding to prevent false sharing with other caches
-  private static final long[] padding2 = new long[8];
-  
+
   // Maximum cache size to prevent memory leaks
   private static final int MAX_CACHE_SIZE = 50;
   
@@ -60,8 +57,7 @@ public final class SchemaValidatorCache {
     Schema newSchema = schemaCache.computeIfAbsent(cacheKey, key -> {
       // Check cache size and evict if necessary (non-blocking)
       if (schemaCache.size() >= MAX_CACHE_SIZE) {
-        // Simple random eviction to avoid blocking
-        schemaCache.entrySet().removeIf(entry -> Math.random() < 0.2);
+        evictEntries();
       }
 
       // Create new schema
@@ -74,9 +70,6 @@ public final class SchemaValidatorCache {
     return createValidatorWithSchema(newSchema, results, queryContext);
   }
   
-  private static SchemaValidator createValidatorWithSchema(Schema schema, RDAPValidatorResults results) {
-    return createValidatorWithSchema(schema, results, null);
-  }
 
   private static SchemaValidator createValidatorWithSchema(Schema schema, RDAPValidatorResults results, org.icann.rdapconformance.validator.QueryContext queryContext) {
     // Create a SchemaValidator using the cached schema
@@ -89,13 +82,17 @@ public final class SchemaValidatorCache {
     return schemaName + "_" + System.identityHashCode(datasetService);
   }
   
-  private static void evictOldestEntry() {
-    // Simple eviction strategy - remove the first entry
-    // In a production system, you might want LRU eviction
-    if (!schemaCache.isEmpty()) {
-      String firstKey = schemaCache.keys().nextElement();
-      schemaCache.remove(firstKey);
-      logger.debug("Evicted schema from cache: {}", firstKey);
+  private static void evictEntries() {
+    // Deterministic, non-blocking eviction: drop roughly 20% of the entries in
+    // iteration order. Schema compilation is cheap to redo compared to the cost
+    // of blocking, and this avoids any reliance on randomness (Sonar S2245).
+    int toEvict = Math.max(1, schemaCache.size() / 5);
+    var iterator = schemaCache.keySet().iterator();
+    while (toEvict > 0 && iterator.hasNext()) {
+      String evictedKey = iterator.next();
+      iterator.remove();
+      logger.debug("Evicted schema from cache: {}", evictedKey);
+      toEvict--;
     }
   }
   
