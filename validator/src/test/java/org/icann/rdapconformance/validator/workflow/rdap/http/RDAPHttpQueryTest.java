@@ -536,7 +536,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
     @DataProvider(name = "clientErrorStatusCodes")
     public static Object[][] clientErrorStatusCodes() {
-        return new Object[][]{{400}, {401}, {403}, {409}, {422}, {429}, {499}};
+        return new Object[][]{{400}, {401}, {403}, {409}, {422}, {499}};
     }
 
     @DataProvider(name = "serverErrorStatusCodes")
@@ -1238,5 +1238,28 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                     .as("SSRF-blocked (null response) must not emit -13002")
                     .noneMatch(r -> r.getCode() == -13002);
         }
+    }
+
+    @Test
+    public void test429AfterRetries_Emits13022NotGeneric13002() {
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        givenUri(HTTP);
+        // Retry-After: 1 keeps the retry backoff short (1+1=2s) instead of the 30s fallback
+        stubFor(get(urlEqualTo(REQUEST_PATH)).withScheme(HTTP)
+                .willReturn(aResponse()
+                        .withStatus(429)
+                        .withHeader("Retry-After", "1")
+                        .withHeader("Content-Type", "application/rdap+json")));
+
+        // 429 is a 4xx -> early termination after retries are exhausted
+        assertThat(rdapHttpQuery.run()).isFalse();
+
+        assertThat(results.getAll())
+                .anyMatch(r -> r.getCode() == -13022
+                        && "Query failed due to excessive rate limiting by the server.".equals(r.getMessage()));
+        assertThat(results.getAll())
+                .noneMatch(r -> r.getCode() == -13002);
     }
 }
