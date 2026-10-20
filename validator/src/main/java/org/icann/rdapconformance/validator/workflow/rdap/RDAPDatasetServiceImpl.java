@@ -87,11 +87,12 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
     // Create a thread pool for parallel dataset loading
     // Use a thread pool size based on available processors but cap it to avoid overwhelming the system
     int threadPoolSize = Math.min(Runtime.getRuntime().availableProcessors() * THREADS_PER_CORE, MAX_THREAD_POOL_SIZE);
-    ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize);
 
     logger.info("Starting dataset download and parse operations...");
 
-    try {
+    // try-with-resources guarantees the executor is closed on every exit path
+    try (ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize)) {
+     try {
       // Create CompletableFutures for each dataset download and parse operation
       List<CompletableFuture<Boolean>> datasetFutures = this.datasets.values().stream()
           .map(dataset -> CompletableFuture
@@ -168,18 +169,13 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
       
     } catch (Exception e) {
       logger.error("Failed to download datasets in parallel", e);
-      return false;
-    } finally {
-      // Shutdown the executor
-      executor.shutdown();
-      try {
-        if (!executor.awaitTermination(AWAIT_TIMEOUT, TimeUnit.SECONDS)) {
-          executor.shutdownNow();
-        }
-      } catch (InterruptedException e) {
-        executor.shutdownNow();
+      // Interrupt any still-running tasks so close() doesn't block
+      executor.shutdownNow();
+      if (e instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
+      return false;
+     }
     }
 
     this.datasetValidatorModels = datasetList
