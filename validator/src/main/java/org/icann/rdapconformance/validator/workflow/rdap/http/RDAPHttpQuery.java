@@ -21,12 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.icann.rdapconformance.validator.CommonUtils.CONTENT_TYPE;
-import static org.icann.rdapconformance.validator.CommonUtils.GET;
-import static org.icann.rdapconformance.validator.CommonUtils.HTTP_NOT_FOUND;
-import static org.icann.rdapconformance.validator.CommonUtils.LOCATION;
-import static org.icann.rdapconformance.validator.CommonUtils.SEMI_COLON;
-import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
+import static org.icann.rdapconformance.validator.CommonUtils.*;
 
 /**
  * HTTP-based implementation of RDAP query operations with comprehensive validation.
@@ -498,9 +493,16 @@ public class RDAPHttpQuery implements RDAPQuery {
             // Connection/DNS-level errors are emitted elsewhere (e.g., -13007/-13019); do NOT duplicate with -13002
             logger.debug("No HTTP response available, skipping status code validation");
         } else if (!isValidStatusCode) {
-            // Got a response but status code is not 200 or 404
-            queryContext.addError(-13002, String.valueOf(httpResponse.statusCode()),
-                    "The HTTP status code was neither 200 nor 404.");
+            if (httpResponse.statusCode() == HTTP_TOO_MANY_REQUESTS) {
+                // Final response is still 429 after retry-after-based retries (max 120s) or
+                // the 30s fallback backoff were exhausted in RDAPHttpRequest.
+                queryContext.addError(-13022, config.getUri().toString(),
+                        "Query failed due to excessive rate limiting by the server.");
+            } else {
+                // Got a response but status code is not 200 or 404
+                queryContext.addError(-13002, String.valueOf(httpResponse.statusCode()),
+                        "The HTTP status code was neither 200 nor 404.");
+            }
         }
 
         // Early termination for client errors (4xx) - these indicate issues with the request itself
