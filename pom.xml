@@ -67,7 +67,7 @@
         </sonar.coverage.exclusions>
         <!-- Coverage thresholds. Raise these over time; never lower them. -->
         <jacoco.line.minimum>0.80</jacoco.line.minimum>
-        <jacoco.branch.minimum>0.75</jacoco.branch.minimum>
+        <jacoco.branch.minimum>0.80</jacoco.branch.minimum>
     </properties>
 
     <dependencyManagement>
