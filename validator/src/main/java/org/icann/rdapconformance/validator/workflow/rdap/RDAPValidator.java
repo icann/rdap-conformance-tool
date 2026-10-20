@@ -158,11 +158,15 @@ public class RDAPValidator implements ValidatorWorkflow {
         // get all the 2024 profile validations and run them
         // Skip profile validations for error responses (404) — the body is validated
         // by rdap_error.json schema instead, not by the domain/entity profile.
-        if (queryContext.getConfig().useRdapProfileFeb2024() && !queryContext.getQuery().isErrorContent()) {
-            logger.info("Validations for 2024 profile");
-            RDAPProfile rdapProfile = new RDAPProfile(
-                get2024ProfileValidations(rdapResponse));
-            rdapProfile.validate();
+        // in validate():
+        if (!queryContext.getQuery().isErrorContent()) {
+            if (queryContext.getConfig().useGtldProfileV3()) {
+                logger.info("Validations for gTLD Profile v3");
+                new RDAPProfile(getGtldProfileV3Validations(rdapResponse)).validate();
+            } else if (queryContext.getConfig().useRdapProfileFeb2024()) {
+                logger.info("Validations for 2024 profile");
+                new RDAPProfile(get2024ProfileValidations(rdapResponse)).validate();
+            }
         }
 
         // Log URI, IP address, and redirects
@@ -202,7 +206,7 @@ public class RDAPValidator implements ValidatorWorkflow {
     }
 
 
-    private List<ProfileValidation> get2024ProfileValidations(HttpResponse<String> rdapResponse) {
+    List<ProfileValidation> get2024ProfileValidations(HttpResponse<String> rdapResponse) {
         // Set current HTTP response in QueryContext for validations that need it (like TigValidation1Dot2)
         queryContext.setCurrentHttpResponse(rdapResponse);
 
@@ -314,6 +318,17 @@ public class RDAPValidator implements ValidatorWorkflow {
             validations.add(new ResponseValidationTestInvalidRedirect_2024(queryContext)); // Network connection
         }
 
+        return validations;
+    }
+
+    /**
+     * gTLD Profile v3: identical to the Feb 2024 profile scope,
+     * excluding -61000 (TigValidation1Dot3_2024) and -62000 (ResponseValidation1Dot2_1_2024).
+     */
+    List<ProfileValidation> getGtldProfileV3Validations(HttpResponse<String> rdapResponse) {
+        List<ProfileValidation> validations = get2024ProfileValidations(rdapResponse);
+        validations.removeIf(v -> v instanceof TigValidation1Dot3_2024
+                || v instanceof ResponseValidation1Dot2_1_2024);
         return validations;
     }
 }
