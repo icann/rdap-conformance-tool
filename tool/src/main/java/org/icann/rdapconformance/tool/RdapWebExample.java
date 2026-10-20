@@ -56,6 +56,8 @@ import org.slf4j.LoggerFactory;
  */
 public class RdapWebExample {
 
+    private static final String VALIDATION_FAILED_PREFIX = "Validation failed: ";
+
     /**
      * Basic usage example - suitable for web controllers.
      * Uses default configuration (assumes generic RDAP endpoint, not registry/registrar specific).
@@ -76,7 +78,7 @@ public class RdapWebExample {
             return new ValidationResponse(validator.isValid(), validator.getUri().toString(), errors, warnings);
         } catch (Exception e) {
             return new ValidationResponse(false, rdapUri,
-                    List.of(new ValidationError(-999, "Validation failed: " + e.getMessage(), rdapUri)), List.of());
+                    List.of(new ValidationError(-999, VALIDATION_FAILED_PREFIX + e.getMessage(), rdapUri)), List.of());
         }
     }
 
@@ -152,7 +154,7 @@ public class RdapWebExample {
                     Thread.currentThread().interrupt();
                     return;
                 } catch (ExecutionException e) {
-                    System.err.println("Validation failed: " + e.getCause().getMessage());
+                    System.err.println(VALIDATION_FAILED_PREFIX + e.getCause().getMessage());
                 }
             }
         }
@@ -178,7 +180,7 @@ public class RdapWebExample {
             return new ValidationResponse(validator.isValid(), validator.getUri().toString(), errors, warnings);
         } catch (Exception e) {
             return new ValidationResponse(false, rdapUri,
-                    List.of(new ValidationError(-999, "Validation failed: " + e.getMessage(), rdapUri)), List.of());
+                    List.of(new ValidationError(-999, VALIDATION_FAILED_PREFIX + e.getMessage(), rdapUri)), List.of());
         }
     }
 
@@ -205,7 +207,7 @@ public class RdapWebExample {
             return new ValidationResponse(validator.isValid(), validator.getUri().toString(), errors, warnings);
         } catch (Exception e) {
             return new ValidationResponse(false, rdapUri,
-                    List.of(new ValidationError(-999, "Validation failed: " + e.getMessage(), rdapUri)), List.of());
+                    List.of(new ValidationError(-999, VALIDATION_FAILED_PREFIX + e.getMessage(), rdapUri)), List.of());
         } finally {
             if (originalLevel != null) {
                 rdapLogger.setLevel(originalLevel);

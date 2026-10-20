@@ -90,92 +90,8 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
 
     logger.info("Starting dataset download and parse operations...");
 
-    // try-with-resources guarantees the executor is closed on every exit path
-    try (ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize)) {
-     try {
-      // Create CompletableFutures for each dataset download and parse operation
-      List<CompletableFuture<Boolean>> datasetFutures = this.datasets.values().stream()
-          .map(dataset -> CompletableFuture
-              .supplyAsync(() -> {
-                logger.debug("Starting download for dataset: {}", dataset.getName());
-                if (progressCallback != null) {
-                  progressCallback.onDatasetDownloadStarted(dataset.getName());
-                }
-                if (!dataset.download(useLocalDatasets)) {
-                  logger.error("Failed to download dataset {}", dataset.getName());
-                  if (progressCallback != null) {
-                    progressCallback.onDatasetError(dataset.getName(), "download", 
-                        new RuntimeException("Download failed"));
-                  }
-                  return false;
-                }
-                logger.debug("Download completed for dataset: {}", dataset.getName());
-                if (progressCallback != null) {
-                  progressCallback.onDatasetDownloadCompleted(dataset.getName());
-                }
-                return true;
-              }, executor)
-              .thenApplyAsync(downloadSuccess -> {
-                if (!downloadSuccess) {
-                  return false;
-                }
-                logger.debug("Starting parse for dataset: {}", dataset.getName());
-                if (progressCallback != null) {
-                  progressCallback.onDatasetParseStarted(dataset.getName());
-                }
-                if (!dataset.parse()) {
-                  logger.error("Failed to parse dataset {}", dataset.getName());
-                  if (progressCallback != null) {
-                    progressCallback.onDatasetError(dataset.getName(), "parse", 
-                        new RuntimeException("Parse failed"));
-                  }
-                  return false;
-                }
-                logger.debug("Parse completed for dataset: {}", dataset.getName());
-                if (progressCallback != null) {
-                  progressCallback.onDatasetParseCompleted(dataset.getName());
-                }
-                return true;
-              }, executor)
-              .exceptionally(throwable -> {
-                logger.error("Exception occurred while processing dataset {}: {}", 
-                    dataset.getName(), throwable.getMessage(), throwable);
-                if (progressCallback != null) {
-                  progressCallback.onDatasetError(dataset.getName(), "processing", throwable);
-                }
-                return false;
-              })
-          )
-          .collect(Collectors.toList());
-
-      // Wait for all datasets to complete and check if all succeeded
-      CompletableFuture<Void> allFutures = CompletableFuture.allOf(
-          datasetFutures.toArray(new CompletableFuture[ZERO]));
-      
-      // Wait for all to complete (with timeout to prevent hanging)
-      allFutures.get(HANG_TIMEOUT, TimeUnit.MINUTES);
-      
-      // Check if all datasets were successful
-      boolean allSuccessful = datasetFutures.stream()
-          .map(CompletableFuture::join)
-          .allMatch(success -> success);
-      
-      if (!allSuccessful) {
-        logger.error("One or more datasets failed to download or parse");
-        return false;
-      }
-      
-      logger.info("All datasets downloaded and parsed successfully");
-      
-    } catch (Exception e) {
-      logger.error("Failed to download datasets in parallel", e);
-      // Interrupt any still-running tasks so close() doesn't block
-      executor.shutdownNow();
-      if (e instanceof InterruptedException) {
-        Thread.currentThread().interrupt();
-      }
+    if (!downloadAndParseAll(threadPoolSize, useLocalDatasets, progressCallback)) {
       return false;
-     }
     }
 
     this.datasetValidatorModels = datasetList
@@ -209,5 +125,97 @@ public class RDAPDatasetServiceImpl implements RDAPDatasetService {
 
   public <T> T get(Class<T> clazz) {
     return (T) this.datasetValidatorModels.get(clazz);
+  }
+
+  private boolean downloadAndParseAll(int threadPoolSize, boolean useLocalDatasets,
+      ProgressCallback progressCallback) {
+    // try-with-resources guarantees the executor is closed on every exit path
+    try (ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize)) {
+      try {
+        List<CompletableFuture<Boolean>> datasetFutures = this.datasets.values().stream()
+            .map(dataset -> processDataset(dataset, useLocalDatasets, progressCallback, executor))
+            .collect(Collectors.toList());
+
+        // Wait for all to complete (with timeout to prevent hanging)
+        CompletableFuture.allOf(datasetFutures.toArray(new CompletableFuture[ZERO]))
+            .get(HANG_TIMEOUT, TimeUnit.MINUTES);
+
+        boolean allSuccessful = datasetFutures.stream()
+            .map(CompletableFuture::join)
+            .allMatch(Boolean::booleanValue);
+        if (!allSuccessful) {
+          logger.error("One or more datasets failed to download or parse");
+          return false;
+        }
+        logger.info("All datasets downloaded and parsed successfully");
+        return true;
+      } catch (InterruptedException e) {
+        logger.error("Interrupted while downloading datasets", e);
+        executor.shutdownNow();
+        Thread.currentThread().interrupt();
+        return false;
+      } catch (Exception e) {
+        logger.error("Failed to download datasets in parallel", e);
+        // Interrupt any still-running tasks so close() doesn't block
+        executor.shutdownNow();
+        return false;
+      }
+    }
+  }
+
+  private CompletableFuture<Boolean> processDataset(RDAPDataset<?> dataset,
+      boolean useLocalDatasets, ProgressCallback progressCallback, ExecutorService executor) {
+    return CompletableFuture
+        .supplyAsync(() -> downloadDataset(dataset, useLocalDatasets, progressCallback), executor)
+        .thenApplyAsync(ok -> ok && parseDataset(dataset, progressCallback), executor)
+        .exceptionally(throwable -> {
+          logger.error("Exception occurred while processing dataset {}: {}",
+              dataset.getName(), throwable.getMessage(), throwable);
+          if (progressCallback != null) {
+            progressCallback.onDatasetError(dataset.getName(), "processing", throwable);
+          }
+          return false;
+        });
+  }
+
+  private boolean downloadDataset(RDAPDataset<?> dataset, boolean useLocalDatasets,
+      ProgressCallback progressCallback) {
+    logger.debug("Starting download for dataset: {}", dataset.getName());
+    if (progressCallback != null) {
+      progressCallback.onDatasetDownloadStarted(dataset.getName());
+    }
+    if (!dataset.download(useLocalDatasets)) {
+      logger.error("Failed to download dataset {}", dataset.getName());
+      if (progressCallback != null) {
+        progressCallback.onDatasetError(dataset.getName(), "download",
+            new RuntimeException("Download failed"));
+      }
+      return false;
+    }
+    logger.debug("Download completed for dataset: {}", dataset.getName());
+    if (progressCallback != null) {
+      progressCallback.onDatasetDownloadCompleted(dataset.getName());
+    }
+    return true;
+  }
+
+  private boolean parseDataset(RDAPDataset<?> dataset, ProgressCallback progressCallback) {
+    logger.debug("Starting parse for dataset: {}", dataset.getName());
+    if (progressCallback != null) {
+      progressCallback.onDatasetParseStarted(dataset.getName());
+    }
+    if (!dataset.parse()) {
+      logger.error("Failed to parse dataset {}", dataset.getName());
+      if (progressCallback != null) {
+        progressCallback.onDatasetError(dataset.getName(), "parse",
+            new RuntimeException("Parse failed"));
+      }
+      return false;
+    }
+    logger.debug("Parse completed for dataset: {}", dataset.getName());
+    if (progressCallback != null) {
+      progressCallback.onDatasetParseCompleted(dataset.getName());
+    }
+    return true;
   }
 }
