@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -60,53 +61,22 @@ public class RdapWebExample {
      * Uses default configuration (assumes generic RDAP endpoint, not registry/registrar specific).
      */
     public static ValidationResponse validateDomain(String rdapUri) {
-        try {
-            // Create validator instance with proper configuration - this is thread-safe
-            // Using default configuration with local datasets for better performance
-            RdapWebValidator validator = new RdapWebValidator(
-                URI.create(rdapUri),
-                false, // not a registry
-                false, // not a registrar
-                true   // use local datasets for better performance and accuracy
-            );
-
-            // Perform validation - no global state changes
+        try (RdapWebValidator validator = new RdapWebValidator(URI.create(rdapUri), false, false, true)) {
             RDAPValidatorResults results = validator.validate();
-
-            // Process results
             List<ValidationError> errors = new ArrayList<>();
             List<ValidationError> warnings = new ArrayList<>();
-
             for (RDAPValidationResult result : results.getAll()) {
-                ValidationError error = new ValidationError(
-                    result.getCode(),
-                    result.getMessage(),
-                    result.getValue()
-                );
-
-                // Categorize by severity (example logic)
+                ValidationError error = new ValidationError(result.getCode(), result.getMessage(), result.getValue());
                 if (result.getCode() < 0) {
                     errors.add(error);
                 } else {
                     warnings.add(error);
                 }
             }
-
-            return new ValidationResponse(
-                validator.isValid(),
-                validator.getUri().toString(),
-                errors,
-                warnings
-            );
-
+            return new ValidationResponse(validator.isValid(), validator.getUri().toString(), errors, warnings);
         } catch (Exception e) {
-            // Handle validation failures gracefully
-            return new ValidationResponse(
-                false,
-                rdapUri,
-                List.of(new ValidationError(-999, "Validation failed: " + e.getMessage(), rdapUri)),
-                List.of()
-            );
+            return new ValidationResponse(false, rdapUri,
+                    List.of(new ValidationError(-999, "Validation failed: " + e.getMessage(), rdapUri)), List.of());
         }
     }
 
@@ -158,38 +128,34 @@ public class RdapWebExample {
      * Concurrent validation example - demonstrates thread safety.
      */
     public static void concurrentValidationExample() {
-        ExecutorService executor = Executors.newFixedThreadPool(10);
-
         List<String> urisToValidate = List.of(
-            "https://rdap.arin.net/registry/entity/GOGL",
-            "https://rdap.verisign.com/com/v1/domain/google.com",
-            "https://rdap.org/domain/example.org"
+                "https://rdap.arin.net/registry/entity/GOGL",
+                "https://rdap.verisign.com/com/v1/domain/google.com",
+                "https://rdap.org/domain/example.org"
         );
 
-        // Submit concurrent validation tasks
-        List<CompletableFuture<ValidationResponse>> futures = urisToValidate.stream()
-            .map(uri -> CompletableFuture.supplyAsync(() -> validateDomain(uri), executor))
-            .toList();
+        try (ExecutorService executor = Executors.newFixedThreadPool(10)) {
+            List<CompletableFuture<ValidationResponse>> futures = urisToValidate.stream()
+                    .map(uri -> CompletableFuture.supplyAsync(() -> validateDomain(uri), executor))
+                    .toList();
 
-        // Wait for all validations to complete
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-            .thenRun(() -> {
-                System.out.println("All validations completed successfully!");
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            System.out.println("All validations completed successfully!");
 
-                // Process results
-                futures.forEach(future -> {
-                    try {
-                        ValidationResponse response = future.get();
-                        System.out.println("URI: " + response.getUri() +
-                                         " - Valid: " + response.isValid() +
-                                         " - Errors: " + response.getErrors().size());
-                    } catch (Exception e) {
-                        System.err.println("Validation failed: " + e.getMessage());
-                    }
-                });
-
-                executor.shutdown();
-            });
+            for (CompletableFuture<ValidationResponse> future : futures) {
+                try {
+                    ValidationResponse response = future.get();
+                    System.out.println("URI: " + response.getUri()
+                            + " - Valid: " + response.isValid()
+                            + " - Errors: " + response.getErrors().size());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                } catch (ExecutionException e) {
+                    System.err.println("Validation failed: " + e.getCause().getMessage());
+                }
+            }
+        }
     }
 
     /**
@@ -197,51 +163,22 @@ public class RdapWebExample {
      * Use this when validating against specific types of RDAP servers.
      */
     public static ValidationResponse validateWithProperConfiguration(String rdapUri, boolean isRegistry, boolean isRegistrar) {
-        try {
-            // Create validator with proper registry/registrar flags and local datasets
-            // This ensures proper validation according to the RDAP Profile February 2024
-            RdapWebValidator validator = new RdapWebValidator(
-                URI.create(rdapUri),
-                isRegistry,
-                isRegistrar,
-                true // use local datasets for better performance and accuracy
-            );
-
-            // Perform validation with proper configuration
+        try (RdapWebValidator validator = new RdapWebValidator(URI.create(rdapUri), isRegistry, isRegistrar, true)) {
             RDAPValidatorResults results = validator.validate();
-
-            // Process results
             List<ValidationError> errors = new ArrayList<>();
             List<ValidationError> warnings = new ArrayList<>();
-
             for (RDAPValidationResult result : results.getAll()) {
-                ValidationError error = new ValidationError(
-                    result.getCode(),
-                    result.getMessage(),
-                    result.getValue()
-                );
-
+                ValidationError error = new ValidationError(result.getCode(), result.getMessage(), result.getValue());
                 if (result.getCode() < 0) {
                     errors.add(error);
                 } else {
                     warnings.add(error);
                 }
             }
-
-            return new ValidationResponse(
-                validator.isValid(),
-                validator.getUri().toString(),
-                errors,
-                warnings
-            );
-
+            return new ValidationResponse(validator.isValid(), validator.getUri().toString(), errors, warnings);
         } catch (Exception e) {
-            return new ValidationResponse(
-                false,
-                rdapUri,
-                List.of(new ValidationError(-999, "Validation failed: " + e.getMessage(), rdapUri)),
-                List.of()
-            );
+            return new ValidationResponse(false, rdapUri,
+                    List.of(new ValidationError(-999, "Validation failed: " + e.getMessage(), rdapUri)), List.of());
         }
     }
 
@@ -249,52 +186,27 @@ public class RdapWebExample {
      * Example demonstrating programmatic logging control for RDAP validation.
      */
     public static ValidationResponse validateWithCustomLogging(String rdapUri) {
-        // If you need to adjust logging levels specifically for RDAP validation:
         Logger rdapLogger = (Logger) LoggerFactory.getLogger("org.icann.rdapconformance");
         Level originalLevel = rdapLogger.getLevel();
+        rdapLogger.setLevel(Level.ERROR);
 
-        try {
-            // Set desired logging level for validation
-            rdapLogger.setLevel(Level.ERROR); // Or whatever level you want
-
-            // Perform validation
-            RdapWebValidator validator = new RdapWebValidator(rdapUri);
+        try (RdapWebValidator validator = new RdapWebValidator(rdapUri)) {
             RDAPValidatorResults results = validator.validate();
-
-            // Process results
             List<ValidationError> errors = new ArrayList<>();
             List<ValidationError> warnings = new ArrayList<>();
-
             for (RDAPValidationResult result : results.getAll()) {
-                ValidationError error = new ValidationError(
-                    result.getCode(),
-                    result.getMessage(),
-                    result.getValue()
-                );
-
+                ValidationError error = new ValidationError(result.getCode(), result.getMessage(), result.getValue());
                 if (result.getCode() < 0) {
                     errors.add(error);
                 } else {
                     warnings.add(error);
                 }
             }
-
-            return new ValidationResponse(
-                validator.isValid(),
-                validator.getUri().toString(),
-                errors,
-                warnings
-            );
-
+            return new ValidationResponse(validator.isValid(), validator.getUri().toString(), errors, warnings);
         } catch (Exception e) {
-            return new ValidationResponse(
-                false,
-                rdapUri,
-                List.of(new ValidationError(-999, "Validation failed: " + e.getMessage(), rdapUri)),
-                List.of()
-            );
+            return new ValidationResponse(false, rdapUri,
+                    List.of(new ValidationError(-999, "Validation failed: " + e.getMessage(), rdapUri)), List.of());
         } finally {
-            // Restore original logging level
             if (originalLevel != null) {
                 rdapLogger.setLevel(originalLevel);
             }
@@ -322,18 +234,12 @@ public class RdapWebExample {
          * Example with custom configuration for performance tuning.
          */
         public static ValidationResponse validateWithCustomConfig(String rdapUri, int timeoutSeconds) {
-            try {
-                // Create validator with default configuration
-                // Note: Custom timeout configuration would require extending SimpleRDAPValidatorConfiguration
-                RdapWebValidator validator = new RdapWebValidator(URI.create(rdapUri));
-                RDAPValidatorResults results = validator.validate();
-
-                // Process results as before...
+            try (RdapWebValidator validator = new RdapWebValidator(URI.create(rdapUri))) {
+                validator.validate();
                 return new ValidationResponse(validator.isValid(), rdapUri, List.of(), List.of());
-
             } catch (Exception e) {
                 return new ValidationResponse(false, rdapUri,
-                    List.of(new ValidationError(-999, e.getMessage(), rdapUri)), List.of());
+                        List.of(new ValidationError(-999, e.getMessage(), rdapUri)), List.of());
             }
         }
     }
