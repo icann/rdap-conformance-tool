@@ -54,6 +54,13 @@ public interface RDAPValidatorConfiguration {
     return null;
   }
 
+  /**
+   * gTLD Profile v3 scope. Activated by --gtldProfile3 (future CLI story).
+   */
+  default boolean useGtldProfileV3() {
+    return false;
+  }
+
 
   /**
    * Returns the list of hosts or IP addresses that are explicitly exempted from
