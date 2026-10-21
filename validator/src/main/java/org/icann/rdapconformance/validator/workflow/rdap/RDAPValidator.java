@@ -158,7 +158,6 @@ public class RDAPValidator implements ValidatorWorkflow {
         // get all the 2024 profile validations and run them
         // Skip profile validations for error responses (404) — the body is validated
         // by rdap_error.json schema instead, not by the domain/entity profile.
-        // in validate():
         if (!queryContext.getQuery().isErrorContent()) {
             if (queryContext.getConfig().useGtldProfileV3()) {
                 logger.info("Validations for gTLD Profile v3");

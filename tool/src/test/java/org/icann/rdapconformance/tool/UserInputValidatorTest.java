@@ -299,4 +299,20 @@ public class UserInputValidatorTest {
     // '}' appears BEFORE '=' -> firstClose < firstEquals -> null branch
     assertThat((String) m.invoke(null, "{closed} then = with no brace after")).isNull();
   }
+
+  @Test
+  public void bothProfileFlags_showsProfileSpecificError() {
+    RdapConformanceTool tool = new RdapConformanceTool();
+    CommandLine cmd = new CommandLine(tool);
+
+    String error = UserInputValidator.parseOptions(new String[]{
+            "--use-rdap-profile-february-2024",
+            "--gtldProfile3",
+            "--gtld-registry",
+            "-c", "config.json",
+            "https://example.com/rdap/domain/example.com"}, tool, cmd);
+
+    assertThat(error)
+            .isEqualTo("Error: --use-rdap-profile-february-2024, --gtldProfile3 are mutually exclusive (specify only one)");
+  }
 }
