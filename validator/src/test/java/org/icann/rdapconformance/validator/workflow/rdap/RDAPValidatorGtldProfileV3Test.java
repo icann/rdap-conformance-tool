@@ -10,6 +10,7 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot3_2024;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -50,10 +51,15 @@ public class RDAPValidatorGtldProfileV3Test {
                 .anyMatch(v -> v instanceof TigValidation1Dot3_2024)
                 .anyMatch(v -> v instanceof ResponseValidation1Dot2_1_2024);
 
-        // Exactly the same scope minus the two exclusions
-        assertThat(v3).hasSize(v2024.size() - 2);
+        // v3-specific additions are present
+        assertThat(v3)
+                .anyMatch(v -> v instanceof ResponseValidationGtldProfile3); // -66000
+
+        // Exactly the same scope minus the two exclusions, plus the v3 additions
+        assertThat(v3).hasSize(v2024.size() - 2 + 1);
 
         List<Class<?>> v3Classes = v3.stream()
+                .filter(v -> !(v instanceof ResponseValidationGtldProfile3))
                 .<Class<?>>map(Object::getClass)
                 .toList();
 
