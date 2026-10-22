@@ -55,7 +55,7 @@ public class UserInputValidator {
 
   private static String handleMutuallyExclusiveException(CommandLine.MutuallyExclusiveArgsException ex) {
     String message = ex.getMessage();
-    
+
     // Check for duplicate options pattern
     if (message.contains("expected only one match but got") && message.contains("and")) {
       String duplicatedOption = extractDuplicatedOption(message);
@@ -63,10 +63,20 @@ public class UserInputValidator {
         return "Error: " + duplicatedOption + " should be specified only once";
       }
       return message;
-    } else {
-      // True mutually exclusive case (one of each option)
+    }
+
+    // IPv4/IPv6 exclusivity: keep the friendly legacy message
+    if (message.contains(NO_IPV4_QUERIES) || message.contains(NO_IPV6_QUERIES)) {
       return "Error: --no-ipv4-queries, --no-ipv6-queries are mutually exclusive (specify only one)";
     }
+
+    // Profile exclusivity: friendly message for the v3 flag
+    if (message.contains("--gtldProfile3")) {
+      return "Error: --use-rdap-profile-february-2024, --gtldProfile3 are mutually exclusive (specify only one)";
+    }
+
+    // Any other exclusive group: fall back to picocli's own message
+    return message;
   }
 
   private static String handleMaxValuesException(CommandLine.MaxValuesExceededException ex, String[] args) {

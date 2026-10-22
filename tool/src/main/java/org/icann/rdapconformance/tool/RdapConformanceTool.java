@@ -271,6 +271,13 @@ public void setUseRdapProfileFeb2024(boolean value) {
 }
 
 /**
+ * Enables the gTLD Profile v3 scope (2024 profile minus -61000/-62000).
+ */
+public void setUseGtldProfileV3(boolean value) {
+  this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useGtldProfileV3 = value;
+}
+
+/**
  * Configures validation for gTLD registry responses.
  *
  * @param value true to validate as gTLD registry
@@ -818,6 +825,10 @@ public void setShowProgress(boolean showProgress) {
   @Override
   public boolean useRdapProfileFeb2024() { return this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useRdapProfileFeb2024; }
 
+  @Override
+  public boolean useGtldProfileV3() {
+    return this.dependantRdapProfileGtld.exclusiveRdapProfile.dependantRdapProfile.useGtldProfileV3;
+  }
 
   @Override
   public boolean isGtldRegistrar() {
@@ -1019,8 +1030,15 @@ public void setShowProgress(boolean showProgress) {
 
   private static class DependantRdapProfile {
     @Option(names = {"--use-rdap-profile-february-2024"},
-            description = "Use RDAP Profile February 2024", defaultValue = "false", required = true)
+            description = "Use RDAP Profile February 2024",
+            defaultValue = "false", required = true)
     private boolean useRdapProfileFeb2024 = false;
+
+    @Option(names = {"--gtldProfile3"},
+            description = "Use gTLD Profile v3 (2024 gTLD RDAP Profile excluding -61000 and -62000). "
+                    + "Mutually exclusive with --use-rdap-profile-february-2024",
+            defaultValue = "false", required = true)
+    private boolean useGtldProfileV3 = false;
   }
 
   private static class ExclusiveGtldType {

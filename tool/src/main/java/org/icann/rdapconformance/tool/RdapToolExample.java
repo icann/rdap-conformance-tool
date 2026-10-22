@@ -35,6 +35,9 @@ public class RdapToolExample {
         // Set gTLD/Registrar/Registry/Profile options as needed
         // Example: enable RDAP Profile Feb 2024
         tool.setUseRdapProfileFeb2024(true);
+
+        // Example: disable gTLD Profile v3 (default is false)
+        tool.setUseGtldProfileV3(false);
         // Example: set as gTLD registry
         tool.setGtldRegistry(true);
 

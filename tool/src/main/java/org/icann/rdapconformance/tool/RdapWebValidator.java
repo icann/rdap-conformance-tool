@@ -132,11 +132,13 @@ public class RdapWebValidator implements AutoCloseable {
      */
     public RdapWebValidator(URI uri, boolean isRegistry, boolean isRegistrar,
                            boolean useRdapProfileFeb2024,
+                           boolean useGtldProfileV3,
                            boolean noIpv4Queries, boolean noIpv6Queries,
                            boolean additionalConformanceQueries,
                            boolean useTemporaryDirectory, boolean cleanupOnClose) {
         this(uri, new ConfigurableRDAPValidatorConfiguration(uri, isRegistry, isRegistrar, false,
                                                             useRdapProfileFeb2024,
+                                                            useGtldProfileV3,
                                                            noIpv4Queries, noIpv6Queries,
                                                            additionalConformanceQueries),
              useTemporaryDirectory ? createTempDirectory() : null, cleanupOnClose);
@@ -541,6 +543,7 @@ public class RdapWebValidator implements AutoCloseable {
         private final boolean noIpv4Queries;
         private final boolean noIpv6Queries;
         private final boolean additionalConformanceQueries;
+        private final boolean useGtldProfileV3;
 
         public ConfigurableRDAPValidatorConfiguration(URI uri, boolean isRegistry, boolean isRegistrar) {
             this(uri, isRegistry, isRegistrar, true); // Default to using local datasets
@@ -551,17 +554,20 @@ public class RdapWebValidator implements AutoCloseable {
                  true,  // useRdapProfileFeb2024 - default to true
                  false, // noIpv4Queries - default to false (IPv4 enabled)
                  false, // noIpv6Queries - default to false (IPv6 enabled)
-                 false  // additionalConformanceQueries - default to false
+                 false, // additionalConformanceQueries - default to false
+                 false  // useGtldProfileV3 - default to false
             );
         }
 
         public ConfigurableRDAPValidatorConfiguration(URI uri, boolean isRegistry, boolean isRegistrar,
                                                     boolean useLocalDatasets, boolean useRdapProfileFeb2024,
+                                                    boolean useGtldProfileV3,
                                                     boolean noIpv4Queries, boolean noIpv6Queries,
                                                     boolean additionalConformanceQueries) {
             this.uri = uri;
             this.isRegistry = isRegistry;
             this.isRegistrar = isRegistrar;
+            this.useGtldProfileV3 = useGtldProfileV3;
             this.useLocalDatasets = useLocalDatasets;
             this.useRdapProfileFeb2024 = useRdapProfileFeb2024;
             this.noIpv4Queries = noIpv4Queries;
@@ -589,6 +595,9 @@ public class RdapWebValidator implements AutoCloseable {
 
         @Override
         public boolean useRdapProfileFeb2024() { return useRdapProfileFeb2024; }
+
+        @Override
+        public boolean useGtldProfileV3() { return  useGtldProfileV3; }
 
         @Override
         public boolean isGtldRegistrar() { return isRegistrar; }
