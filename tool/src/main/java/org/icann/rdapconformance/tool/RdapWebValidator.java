@@ -199,6 +199,11 @@ public class RdapWebValidator implements AutoCloseable {
      * @throws RuntimeException if the configuration is invalid
      */
     public RdapWebValidator(URI uri, RDAPValidatorConfiguration config, String customDatasetDirectory, boolean shouldCleanupDatasets) {
+        // Normalize IDN labels (host and /domain|/nameserver path segments) to A-label form.
+        // All constructors funnel through here, so URI-based entry points (used by the web
+        // frontend) get the same IdnAwareUriConverter treatment as the String-based one.
+        uri = normalizeIdnUri(uri);
+
         // Store cleanup settings
         this.customDatasetDirectory = customDatasetDirectory;
         this.shouldCleanupDatasets = shouldCleanupDatasets;
@@ -207,6 +212,9 @@ public class RdapWebValidator implements AutoCloseable {
         if (config == null) {
             // Create a simple configuration implementation
             config = new SimpleRDAPValidatorConfiguration(uri);
+        } else if (config.getUri() != null) {
+            // Caller-supplied configurations carry the raw URI; normalize it too
+            config.setUri(normalizeIdnUri(config.getUri()));
         }
 
         // Create filesystem for dataset service
@@ -424,6 +432,26 @@ public class RdapWebValidator implements AutoCloseable {
      * @throws IllegalArgumentException if the URI is null, empty, has no scheme,
      *         uses a non-HTTP(S) scheme, or is otherwise malformed
      */
+    /**
+     * Normalizes IDN labels in an already-constructed URI to A-label (punycode) form
+     * using {@link RdapConformanceTool.IdnAwareUriConverter}. If normalization fails
+     * for any reason, the original URI is returned unchanged so previously accepted
+     * URIs keep working.
+     *
+     * @param uri the URI to normalize, may be null
+     * @return the IDN-normalized URI, or the original URI if normalization fails
+     */
+    static URI normalizeIdnUri(URI uri) {
+        if (uri == null) {
+            return null;
+        }
+        try {
+            return new RdapConformanceTool.IdnAwareUriConverter().convert(uri.toString());
+        } catch (Exception e) {
+            return uri;
+        }
+    }
+
     static URI validateAndCreateURI(String uriString) {
         if (uriString == null || uriString.trim().isEmpty()) {
             throw new IllegalArgumentException("URI cannot be null or empty");
