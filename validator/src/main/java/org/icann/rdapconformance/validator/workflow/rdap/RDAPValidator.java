@@ -328,6 +328,8 @@ public class RDAPValidator implements ValidatorWorkflow {
         List<ProfileValidation> validations = get2024ProfileValidations(rdapResponse);
         validations.removeIf(v -> v instanceof TigValidation1Dot3_2024
                 || v instanceof ResponseValidation1Dot2_1_2024);
+        // gTLD Profile v3 specific validations
+        validations.add(new ResponseValidationGtldProfile3(queryContext)); // -66000
         return validations;
     }
 }
