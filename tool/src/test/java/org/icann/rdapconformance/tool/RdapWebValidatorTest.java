@@ -800,4 +800,29 @@ public class RdapWebValidatorTest {
                 });
         }
     }
+
+    @Test
+    public void testNormalizeIdnUri_UnicodeHostAndPath_ConvertedToPunycode() {
+        URI raw = URI.create("https://rdap.nic.xn--d1acj3b/domain/nic.дети");
+        URI normalized = RdapWebValidator.normalizeIdnUri(raw);
+        assertThat(normalized.toString())
+            .isEqualTo("https://rdap.nic.xn--d1acj3b/domain/nic.xn--d1acj3b");
+    }
+
+    @Test
+    public void testNormalizeIdnUri_AlreadyPunycode_Unchanged() {
+        URI raw = URI.create("https://rdap.nic.xn--d1acj3b/domain/nic.xn--d1acj3b");
+        assertThat(RdapWebValidator.normalizeIdnUri(raw)).isEqualTo(raw);
+    }
+
+    @Test
+    public void testNormalizeIdnUri_AsciiUri_Unchanged() {
+        URI raw = URI.create("https://rdap.example.com/domain/test.example");
+        assertThat(RdapWebValidator.normalizeIdnUri(raw)).isEqualTo(raw);
+    }
+
+    @Test
+    public void testNormalizeIdnUri_Null_ReturnsNull() {
+        assertThat(RdapWebValidator.normalizeIdnUri(null)).isNull();
+    }
 }
