@@ -118,11 +118,11 @@ public final class TigValidation1Dot2 extends ProfileValidation {
      * Use strict equality for vcardArray (jCard property order is significant)
      * and order-independent comparison for all other fields.
      */
-    private int compareNested(String key, JsonNode n1, JsonNode n2) {
+    protected int compareNested(String key, JsonNode n1, JsonNode n2) {
       if (key.equals("vcardArray")) {
         return n1.equals(n2) ? 0 : 1;
       }
-      return jsonComparator.compare(n1, n2);
+      return this.compare(n1, n2);
     }
 
     @Override
@@ -161,7 +161,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
       for (JsonNode nn1 : s1) {
         boolean match = false;
         for (JsonNode nn2 : s2) {
-          if (jsonComparator.compare(nn1, nn2) == 0) {
+          if (this.compare(nn1, nn2) == 0) {
             match = true;
             break;
           }

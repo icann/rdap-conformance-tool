@@ -14,6 +14,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ibm.icu.lang.UCharacter;
 import java.net.URI;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -30,7 +33,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(DomainCaseFoldingValidation.class);
   private static final ObjectMapper mapper = new ObjectMapper();
-  private static final RDAPJsonComparator jsonComparator = new RDAPJsonComparator();
+  private static final RDAPJsonComparator jsonComparator = new CaseFoldingJsonComparator();
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
   private final String domainName;
@@ -87,12 +90,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
       JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
       JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
 
-      // RFC 9083 section 4.2: a link's "value" is the context URL of the query, so it
-      // legitimately differs between the original and the case-folded query. Ignore all
-      // link "value" properties to avoid -10403 false positives.
-      stripLinkValues(httpResponseJson);
-      stripLinkValues(httpsResponseJson);
-
+      // Links: "value" ignored; href/rel/type compared case-insensitively (CaseFoldingJsonComparator).
       if (jsonComparator.compare(httpResponseJson, httpsResponseJson) != ZERO) {
         results.add(RDAPValidationResult.builder()
                                         .queriedURI(uri.toString())
@@ -144,28 +142,75 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
   }
 
   /**
-   * Recursively removes the "value" property from every object inside any "links" array.
-   * The link "value" echoes the queried URL and must be ignored when comparing the
-   * original response against the case-folded response.
+   * RDAP JSON comparator for -10403 with link-specific rules:
+   * "value" of every link is ignored; "href", "rel" and "type" are compared with
+   * equalsIgnoreCase; any other link property falls back to the generic RDAP comparison.
    */
-  static void stripLinkValues(JsonNode node) {
-    if (node == null) {
-      return;
-    }
-    if (node.isObject()) {
-      JsonNode links = node.get("links");
-      if (links != null && links.isArray()) {
-        links.forEach(link -> {
-          if (link.isObject()) {
-            ((ObjectNode) link).remove("value");
-          }
-        });
+  static class CaseFoldingJsonComparator extends RDAPJsonComparator {
+
+    private static final String LINKS = "links";
+    private static final String IGNORED_LINK_PROPERTY = "value";
+    private static final List<String> CASE_INSENSITIVE_LINK_PROPERTIES = List.of("href", "rel", "type");
+
+    @Override
+    protected int compareNested(String key, JsonNode n1, JsonNode n2) {
+      if (LINKS.equals(key) && n1.isArray() && n2.isArray()) {
+        return compareLinks(n1, n2);
       }
-      node.fields().forEachRemaining(entry -> stripLinkValues(entry.getValue()));
-    } else if (node.isArray()) {
-      node.forEach(DomainCaseFoldingValidation::stripLinkValues);
-    } else {
-      // Scalar node: nothing to strip
+      return super.compareNested(key, n1, n2);
+    }
+
+    int compareLinks(JsonNode links1, JsonNode links2) {
+      if (links1.size() != links2.size()) {
+        return 1;
+      }
+      List<JsonNode> remaining = new ArrayList<>();
+      links2.forEach(remaining::add);
+      for (JsonNode link1 : links1) {
+        boolean matched = false;
+        Iterator<JsonNode> it = remaining.iterator();
+        while (it.hasNext()) {
+          if (linksEqual(link1, it.next())) {
+            it.remove();
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          return 1;
+        }
+      }
+      return 0;
+    }
+
+    boolean linksEqual(JsonNode link1, JsonNode link2) {
+      if (!link1.isObject() || !link2.isObject()) {
+        return compare(link1, link2) == 0;
+      }
+      for (String property : CASE_INSENSITIVE_LINK_PROPERTIES) {
+        if (!textEqualsIgnoreCase(link1.get(property), link2.get(property))) {
+          return false;
+        }
+      }
+      return compare(withoutLinkRuleProperties((ObjectNode) link1),
+          withoutLinkRuleProperties((ObjectNode) link2)) == 0;
+    }
+
+    private static boolean textEqualsIgnoreCase(JsonNode v1, JsonNode v2) {
+      if (v1 == null || v1.isNull()) {
+        return v2 == null || v2.isNull();
+      }
+      if (v2 == null || v2.isNull()) {
+        return false;
+      }
+      return v1.asText().equalsIgnoreCase(v2.asText());
+    }
+
+    private static ObjectNode withoutLinkRuleProperties(ObjectNode link) {
+      ObjectNode copy = link.deepCopy();
+      copy.remove(IGNORED_LINK_PROPERTY);
+      copy.remove(CASE_INSENSITIVE_LINK_PROPERTIES);
+      return copy;
     }
   }
 

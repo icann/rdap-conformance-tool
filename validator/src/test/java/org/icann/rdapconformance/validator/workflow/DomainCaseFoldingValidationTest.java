@@ -577,4 +577,98 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
     validateOk(results);
   }
 
+  private static final String LINK_TEMPLATE = "{\"objectClassName\":\"domain\",\"ldhName\":\"test.example\","
+      + "\"notices\":[{\"title\":\"T\",\"links\":[{\"value\":\"%s\",\"rel\":\"%s\",\"href\":\"%s\",\"type\":\"%s\"}]}],"
+      + "\"links\":[{\"value\":\"%s\",\"rel\":\"%s\",\"href\":\"%s\",\"type\":\"%s\"}]}";
+
+  private static com.fasterxml.jackson.databind.JsonNode linkJson(String value, String rel, String href, String type)
+      throws Exception {
+    return new com.fasterxml.jackson.databind.ObjectMapper().readTree(String.format(LINK_TEMPLATE,
+        value, rel, href, type, value, rel, href, type));
+  }
+
+  @Test
+  public void testLinkComparator_ValueDiffers_ShouldPass() throws Exception {
+    DomainCaseFoldingValidation.CaseFoldingJsonComparator comparator =
+        new DomainCaseFoldingValidation.CaseFoldingJsonComparator();
+
+    assertThat(comparator.compare(
+        linkJson("https://orbot.example/x", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json"),
+        linkJson("https://orkut.example/y", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json")))
+        .isZero();
+  }
+
+  @Test
+  public void testLinkComparator_HrefRelTypeCaseOnly_ShouldPass() throws Exception {
+    DomainCaseFoldingValidation.CaseFoldingJsonComparator comparator =
+        new DomainCaseFoldingValidation.CaseFoldingJsonComparator();
+
+    assertThat(comparator.compare(
+        linkJson("orbot", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json"),
+        linkJson("orkut", "SELF", "https://RDAP.example.com/domain/tEsT.ExAmPlE", "Application/RDAP+JSON")))
+        .isZero();
+  }
+
+  @Test
+  public void testLinkComparator_HrefTextDiffers_ShouldFail() throws Exception {
+    DomainCaseFoldingValidation.CaseFoldingJsonComparator comparator =
+        new DomainCaseFoldingValidation.CaseFoldingJsonComparator();
+
+    assertThat(comparator.compare(
+        linkJson("orbot", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json"),
+        linkJson("orbot", "self", "https://rdap.example.com/domain/other.example", "application/rdap+json")))
+        .isNotZero();
+  }
+
+  @Test
+  public void testDoValidate_LinkValueOrbotVsOrkut_ShouldPass() throws Exception {
+    WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    String href = "https://rdap.example.com/domain/test.example";
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(String.format(LINK_TEMPLATE, "orbot", "self", href, "application/rdap+json",
+        "orbot", "self", href, "application/rdap+json")).when(httpsResponse).body();
+
+    stubFor(get(urlEqualTo("/domain/tEsT.ExAmPlE"))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/rdap+json")
+            .withBody(String.format(LINK_TEMPLATE, "orkut", "self", href, "application/rdap+json",
+                "orkut", "self", href, "application/rdap+json"))));
+
+    validateOk(results);
+  }
+
+  @Test
+  public void testDoValidate_LinkHrefTextDiffers_ShouldFail() throws Exception {
+    WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(String.format(LINK_TEMPLATE,
+        "orbot", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json",
+        "orbot", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json"))
+        .when(httpsResponse).body();
+
+    stubFor(get(urlEqualTo(caseFoldedPath))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/rdap+json")
+            .withBody(String.format(LINK_TEMPLATE,
+                "orbot", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json",
+                "orbot", "self", "https://rdap.example.com/domain/other.example", "application/rdap+json"))));
+
+    validateNotOk(results,
+        -10403, config.getUri().resolve(caseFoldedPath).toString(),
+        "RDAP responses do not match when handling domain label case folding.");
+  }
+
 }
