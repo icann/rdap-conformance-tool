@@ -11,6 +11,7 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3ObsoleteIdentifiers;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot3_2024;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -53,13 +54,15 @@ public class RDAPValidatorGtldProfileV3Test {
 
         // v3-specific additions are present
         assertThat(v3)
-                .anyMatch(v -> v instanceof ResponseValidationGtldProfile3); // -66000
+                .anyMatch(v -> v instanceof ResponseValidationGtldProfile3)   // -66000
+                .anyMatch(v -> v instanceof ResponseValidationGtldProfile3ObsoleteIdentifiers); // -66001
 
         // Exactly the same scope minus the two exclusions, plus the v3 additions
-        assertThat(v3).hasSize(v2024.size() - 2 + 1);
+        assertThat(v3).hasSize(v2024.size() - 2 + 2);
 
         List<Class<?>> v3Classes = v3.stream()
-                .filter(v -> !(v instanceof ResponseValidationGtldProfile3))
+                .filter(v -> !(v instanceof ResponseValidationGtldProfile3)
+                        && !(v instanceof ResponseValidationGtldProfile3ObsoleteIdentifiers))
                 .<Class<?>>map(Object::getClass)
                 .toList();
 

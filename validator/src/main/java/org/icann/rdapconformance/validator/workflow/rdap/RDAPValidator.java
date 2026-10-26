@@ -330,6 +330,7 @@ public class RDAPValidator implements ValidatorWorkflow {
                 || v instanceof ResponseValidation1Dot2_1_2024);
         // gTLD Profile v3 specific validations
         validations.add(new ResponseValidationGtldProfile3(queryContext)); // -66000
+        validations.add(new ResponseValidationGtldProfile3ObsoleteIdentifiers(queryContext)); // -66001
         return validations;
     }
 }
