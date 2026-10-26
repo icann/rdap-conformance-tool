@@ -68,10 +68,20 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
 
     URI uri = URI.create(rdapResponse.uri().toString().replace(domainName, newDomain));
     try {
-      HttpResponse<String> httpResponse = null;
-
       // Use QueryContext-aware request with redirect handling
-      httpResponse = makeRequestWithRedirects(queryContext, uri, config.getTimeout(), config.getMaxRedirects());
+      HttpResponse<String> httpResponse =
+          makeRequestWithRedirects(queryContext, uri, config.getTimeout(), config.getMaxRedirects());
+
+      if (httpResponse == null) {
+        results.add(RDAPValidationResult.builder()
+                                        .queriedURI(uri.toString())
+                                        .httpMethod(GET)
+                                        .code(-10403)
+                                        .value(uri.toString())
+                                        .message("RDAP responses do not match when handling domain label case folding.")
+                                        .build(queryContext));
+        return false;
+      }
 
       // Check if we got a non-200 response first
       if (httpResponse.statusCode() != rdapResponse.statusCode()) {

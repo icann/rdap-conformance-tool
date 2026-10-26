@@ -30,7 +30,9 @@ public class NoticesTopMostValidation extends ProfileJsonValidation {
   @Override
   protected boolean doValidate() {
     Set<String> noticesNotInTopMost = getPointerFromJPath("$.*..notices");
-    for (String jsonPointer : noticesNotInTopMost) {
+    if (!noticesNotInTopMost.isEmpty()) {
+      // Only the first offending occurrence is reported
+      String jsonPointer = noticesNotInTopMost.iterator().next();
       results.add(RDAPValidationResult.builder()
           .code(parseErrorCode(() -> schemaNode.getErrorCode("noticesTopMost")))
           .value(getResultValue(jsonPointer))
