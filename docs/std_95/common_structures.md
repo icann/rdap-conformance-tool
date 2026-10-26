@@ -1235,12 +1235,13 @@ The following steps should be used to test that an error data structure is valid
   "message": "The JSON value is not a string."
 }
 ```
-8. Test case [-12107](#id-testCase-12107){ #id-testCase-12107 }: "errorCode" is required in an error response.
+8. Test case [-12107](#id-testCase-12107){ #id-testCase-12107 }: If an status code other than 200 is returned with a response body, produce the following 
+validation error if "rdapConformance" is not in the JSON response body or the "rdapConformance" value is not an array of strings.
 ``` json
 {
   "code": -12107,
   "value": "<error structure>",
-  "message": "The errorCode value is required in an error response."
+  "message": "The rdapConformance must be present and must be an array of strings."
 }
 ```
 9. Test case [-12108](#id-testCase-12108){ #id-testCase-12108 }: The value of "errorCode" must match the value of the HTTP status code.

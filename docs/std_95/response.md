@@ -182,3 +182,12 @@ If the provided URL does reference a registered resource, then this should be co
   "message": "Connection refused by host."
 }
 ```
+23. Test case [-13022](#id-testCase-13022){ #id-testCase-13022 }: If the final HTTP status code of a query that has been retried due to one or more 
+429 responses is 429, then issue the following error:
+```json
+{
+  “code”: -13022,
+  “value”: “<URL>”,
+  “message”: “Query failed due to excessive rate limiting by the server.”
+}
+```

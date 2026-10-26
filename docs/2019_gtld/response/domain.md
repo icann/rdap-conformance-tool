@@ -188,12 +188,13 @@ Test group: [[rdapResponseProfile_rfc5731_Validation]](#id-rdapResponseProfile_r
 The following steps should be used to test that the status values comply with  RFC5731:
 
 1. Test case [-46900](#id-testCase-46900){ #id-testCase-46900 }: Validate that the values of the _status_ member in the topmost object comply with the following:
-    1. "active" status MUST NOT be combined with any other status.
+    1. "active" status MUST NOT be combined with “inactive”, “client hold”, “client renew prohibited”, “client delete prohibited”, “client transfer prohibited”, “client update prohibited”, “server hold”, “server renew prohibited”, “server delete prohibited”, “server transfer prohibited”, “server update prohibited”, “pending create”, “pending renew”, “pending update”, “pending delete”, “pending transfer”.
     2. "pending delete" status MUST NOT be combined with either "client delete prohibited" or "server delete prohibited" status.
     3. "pending renew" status MUST NOT be combined with either "client renew prohibited" or "server renew prohibited" status.
     4. "pending transfer" status MUST NOT be combined with either "client transfer prohibited" or "server transfer prohibited" status.
     5. "pending update" status MUST NOT be combined with either "client update prohibited" or "server update prohibited" status.
     6. The "pending create", "pending delete", "pending renew", "pending transfer", and "pending update" status values MUST NOT be combined with each other.
+    7. “redemption period” and “pending restore” cannot be combined with each other
 ```json
 {
   "code": -46900,

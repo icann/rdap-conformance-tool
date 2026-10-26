@@ -317,6 +317,17 @@ The following steps should be used to test that an entity data structure is vali
   "message": "The value for the JSON name value does not pass RDAP Conformance validation [stdRdapConformanceValidation]."
 }
 ```
+19. Test case [-12318](#id-testCase-12318){ #id-testCase-12318 }: Unused.
+20. Test case [-12319](#id-testCase-12319){ #id-testCase-12319 }: Unused.
+21. Test case [-12320](#id-testCase-12320){ #id-testCase-12320 }: For every vCard in the “vCardArray”, validate that the “email” property value conforms 
+to the “addr-spec” format as defined in RFC 5322 Section 3.4.1.
+``` json
+{
+  "code": -12320,
+  "value": "<email property value>",
+  "message": "Email addresses must adhere to the 'addr-spec' format of RFC 5322 Section 3.4.1"
+}
+```
 
 ## Nameserver lookup validation
 

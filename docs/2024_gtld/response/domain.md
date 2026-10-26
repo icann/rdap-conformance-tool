@@ -222,3 +222,225 @@ validate that an eventAction type “registrar expiration” exists in the topmo
   "message": "An eventAction of type 'registrar expiration' is expected."
 }
 ```
+
+## Registry Tech
+
+1. Test case [-65700](#id-testCase-65700){ #id-testCase-65700 }: If an entity with the role “technical” at the top level of the domain is 
+present and that entity has a ‘handle’ property, verify the format complies with the format specified in RFC 5730: “(\w|_){1,80}-\w{1,8}”.
+```json
+{
+  "code": -65700,
+  "value": "<handle>",
+  "message": "The handle of the technical entity does not comply with with the format (\\w|_){1,80}-\\w{1,8} specified in RFC5730."
+} 
+```
+2. Test case [-65701](#id-testCase-65701){ #id-testCase-65701 }: If the handle in the entity object from -65700 complies with the RFC 5730 format, 
+validate that the string followed by the hyphen (“-”, ASCII value 0x2D) is a registered EPPROID.
+```json
+{
+  "code": -65701,
+  "value": "<handle>",
+  "message": "The globally unique identifier in the technical entity handle is not registered in EPPROID."
+}
+```
+3. Test case [-65702](#id-testCase-65702){ #id-testCase-65702 }: If the handle from test -65700 exists and a redaction object (see RFC 9537) 
+is in the redacted array with a name object containing the type property which is a JSON string of “Registry Tech ID”.
+```json
+{
+  "code": -65702,
+  "value": "<redacted data structure>",
+  "message" : "a redaction of type Registry Tech ID was found but the technical handle was not redacted."
+}
+```
+4. Test case [-65703](#id-testCase-65703){ #id-testCase-65703 }: In the redaction object from -65703, if the ‘pathLang’ property is either 
+absent or present as a JSON string of “jsonpath”, then verify that the ‘prePath’ property is either absent or is present with a valid JSONPath expression.
+```json
+{
+  "code": -65704,
+  "value": "<redaction object>",
+  "message": "jsonpath is invalid for Registry Tech ID",
+}
+```
+5. Test case [-65704](#id-testCase-65704){ #id-testCase-65704 }: In the redaction object from -65703, if the ‘pathLang’ property is either absent or present as a 
+JSON string of “jsonpath”, then verify that the ‘prePath’ property is either absent or is present with a valid JSONPath expression.
+```json
+{
+  "code": -65704,
+  "value": "<redaction object>",
+  "message": "jsonpath is invalid for Registry Tech ID",
+}
+```
+6. Test case [-65705](#id-testCase-65705){ #id-testCase-65705 }: With the JSONPath expression from test case -65703, if the pathLang property is either 
+absent or is present as a string of “jsonpath” then verify that the expression evaluates to an empty set.
+```json
+{
+  "code": -65705,
+  "value": "<redaction object>",
+  "message" : "jsonpath must evaluate to a zero set for redaction removal of Registry Tech ID."
+}
+```
+6. Test case [-65706](#id-testCase-65706){ #id-testCase-65706 }: In the redaction object from -65703, verify that the method property is either absent 
+or is present as a JSON string of “removal”.
+```json
+{
+  "code": -65706,
+  "value": "<redaction object>",
+  "message": "Registry Tech ID redaction method must be removal if present."
+}
+```
+
+## Redaction Warnings
+
+1. Test case [-65800](#id-testCase-65800){ #id-testCase-65800 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object
+containing a ‘description’ property which is a JSON string of “Registry Domain ID” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65800,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registry Domain ID exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+2. Test case [-65801](#id-testCase-65801){ #id-testCase-65801 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registry Registrant ID” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65801,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registry Registrant ID exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+3. Test case [-65802](#id-testCase-65802){ #id-testCase-65802 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registrant Name” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65802,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registrant Name exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+4. Test case [-65803](#id-testCase-65803){ #id-testCase-65803 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registrant Organization” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65803,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registrant Organization exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+5. Test case [-65804](#id-testCase-65804){ #id-testCase-65804 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registrant Street” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65804,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registrant Street exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+6. Test case [-65805](#id-testCase-65805){ #id-testCase-65805 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registrant City” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65805,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registrant City exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+7. Test case [-65806](#id-testCase-65806){ #id-testCase-65806 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registrant Postal Code” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65806,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registrant Postal Code exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+8. Test case [-65807](#id-testCase-65807){ #id-testCase-65807 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registrant Phone” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65807,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registrant Phone exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+9. Test case [-65808](#id-testCase-65808){ #id-testCase-65808 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registrant Phone Ext” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65808,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registrant Phone Ext exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+10. Test case [-65809](#id-testCase-65809){ #id-testCase-65809 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registrant Fax” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65809,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registrant Fax exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+11. Test case [-65810](#id-testCase-65810){ #id-testCase-65810 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registrant Fax Ext” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65810,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registrant Fax Ext exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+12. Test case [-65811](#id-testCase-65811){ #id-testCase-65811 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registrant Email” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65811,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registrant Email exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+13. Test case [-65812](#id-testCase-65812){ #id-testCase-65812 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Registry Tech ID” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65812,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Registry Tech ID exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+14. Test case [-65813](#id-testCase-65813){ #id-testCase-65813 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Tech Name” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65813,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Tech Name exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+15. Test case [-65814](#id-testCase-65814){ #id-testCase-65814 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Tech Phone” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65814,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Tech Phone exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+16. Test case [-65815](#id-testCase-65815){ #id-testCase-65815 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Tech Phone Ext” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65815,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Tech Phone Ext exists. This warning may be ignored if the redaction should not use the 'type' property."
+}
+```
+17. Test case [-65816](#id-testCase-65816){ #id-testCase-65816 }: If a redaction object (see RFC 9537) is in the “redacted” array with a ‘name’ object 
+containing a ‘description’ property which is a JSON string of “Tech Email” then this validation should appear in the WARNING array of the results:
+```json
+{
+  "code": -65816,
+  "value" : "<redaction object>",
+  "message" : "A redaction object with a description of Tech Email exists. This warning may be ignored if the redaction is should not use the 'type' property."
+}
+```
