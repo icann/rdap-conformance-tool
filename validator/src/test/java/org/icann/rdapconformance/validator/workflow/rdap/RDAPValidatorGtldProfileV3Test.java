@@ -11,6 +11,7 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidation1Dot2_1_2024;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3CorsHeader;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3Dnssec;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3ObsoleteIdentifiers;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot3_2024;
@@ -59,8 +60,10 @@ public class RDAPValidatorGtldProfileV3Test {
                 .anyMatch(v -> v instanceof ResponseValidationGtldProfile3)   // -66000
                 .anyMatch(v -> v instanceof ResponseValidationGtldProfile3ObsoleteIdentifiers); // -66001
 
-        // -66002 is network-dependent and must be absent when network is disabled
-        assertThat(v3).noneMatch(v -> v instanceof ResponseValidationGtldProfile3Dnssec);
+        // network-dependent v3 validations must be absent when network is disabled
+        assertThat(v3)
+                .noneMatch(v -> v instanceof ResponseValidationGtldProfile3Dnssec)      // -66002
+                .noneMatch(v -> v instanceof ResponseValidationGtldProfile3CorsHeader); // -66003
 
         // Exactly the same scope minus the two exclusions, plus the v3 additions
         assertThat(v3).hasSize(v2024.size() - 2 + 2);
@@ -68,7 +71,8 @@ public class RDAPValidatorGtldProfileV3Test {
         List<Class<?>> v3Classes = v3.stream()
                 .filter(v -> !(v instanceof ResponseValidationGtldProfile3)
                         && !(v instanceof ResponseValidationGtldProfile3ObsoleteIdentifiers)
-                        && !(v instanceof ResponseValidationGtldProfile3Dnssec))
+                        && !(v instanceof ResponseValidationGtldProfile3Dnssec)
+                        && !(v instanceof ResponseValidationGtldProfile3CorsHeader))
                 .<Class<?>>map(Object::getClass)
                 .toList();
 
@@ -82,7 +86,7 @@ public class RDAPValidatorGtldProfileV3Test {
     }
 
     @Test
-    public void gtldProfileV3_networkEnabled_includesDnssecValidation() {
+    public void gtldProfileV3_networkEnabled_includesNetworkValidations() {
         doReturn(true).when(config).isNetworkEnabled();
         doReturn(false).when(config).isNoIpv4Queries();
         doReturn(false).when(config).isNoIpv6Queries();
@@ -90,11 +94,15 @@ public class RDAPValidatorGtldProfileV3Test {
         List<ProfileValidation> v2024 = validator.get2024ProfileValidations(null);
         List<ProfileValidation> v3 = validator.getGtldProfileV3Validations(null);
 
-        // -66002 present only in v3
-        assertThat(v3).anyMatch(v -> v instanceof ResponseValidationGtldProfile3Dnssec);
-        assertThat(v2024).noneMatch(v -> v instanceof ResponseValidationGtldProfile3Dnssec);
+        // -66002 and -66003 present only in v3
+        assertThat(v3)
+                .anyMatch(v -> v instanceof ResponseValidationGtldProfile3Dnssec)
+                .anyMatch(v -> v instanceof ResponseValidationGtldProfile3CorsHeader);
+        assertThat(v2024)
+                .noneMatch(v -> v instanceof ResponseValidationGtldProfile3Dnssec)
+                .noneMatch(v -> v instanceof ResponseValidationGtldProfile3CorsHeader);
 
-        // scope: 2024 minus the two exclusions, plus -66000, -66001 and -66002
-        assertThat(v3).hasSize(v2024.size() - 2 + 3);
+        // scope: 2024 minus the two exclusions, plus -66000, -66001, -66002 and -66003
+        assertThat(v3).hasSize(v2024.size() - 2 + 4);
     }
 }
