@@ -72,6 +72,15 @@ public class DNSCacheResolver {
     // Instance-based resolver for thread safety
     private final Resolver resolver;
 
+    /**
+     * Returns the underlying dnsjava resolver (custom server if configured,
+     * system default otherwise), so other components (e.g. DNSSEC validation)
+     * can reuse the tool's DNS configuration.
+     */
+    public Resolver getResolver() {
+        return resolver;
+    }
+
     static {
         logger.info("DNS Resolver initialized");
         logger.debug("DNS settings: {} seconds timeout and {} retries.", DNS_TIMEOUT_SECONDS, DNS_RETRIES);
