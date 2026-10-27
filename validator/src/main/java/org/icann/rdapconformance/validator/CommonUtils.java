@@ -83,6 +83,7 @@ public class CommonUtils {
     public static final String ENTITY = "entity";
     public static final String IP = "ip";
     public static final String NAMESERVERS = "nameservers";
+    public static final String ENTITIES = "entities";
 
     // Numbers
     public static final int PAUSE = 1000;
@@ -167,6 +168,8 @@ public class CommonUtils {
             case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP -> originalString.replace(SLASH + IP, replacementWord);
             case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS ->
                 originalString.replace(SLASH + NAMESERVERS, replacementWord);
+            case RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.ENTITIES ->
+                originalString.replace(SLASH + ENTITIES, replacementWord);
             default -> originalString;
         };
     }

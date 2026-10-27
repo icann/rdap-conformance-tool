@@ -156,7 +156,8 @@ public class RDAPHttpQueryTypeProcessor implements RDAPQueryTypeProcessor {
         AUTNUM(RDAPQueryType.AUTNUM, Pattern.compile("/autnum/([^/]+)$")),
         IP(RDAPQueryType.IP_NETWORK, Pattern.compile("/ip/([^/]+)$")),
         HELP(RDAPQueryType.HELP, Pattern.compile("/help$")),
-        NAMESERVERS(RDAPQueryType.NAMESERVERS, Pattern.compile("/nameservers\\?ip=([^/]+)$"));
+        NAMESERVERS(RDAPQueryType.NAMESERVERS, Pattern.compile("/nameservers\\?ip=([^/]+)$")),
+        ENTITIES(RDAPQueryType.ENTITIES, Pattern.compile("/entities\\?(?:fn|handle)=([^/]+)$"));
 
         private final RDAPQueryType queryType;
         private final Pattern pattern;

@@ -1,0 +1,9 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "rdap_entities_search.json",
+  "title": "entities search",
+  "description": "Permissive top-level schema for entity search responses (/entities?fn= or ?handle=). The entitySearchResults structure is validated by gTLD Profile v3 test -66004 and the remaining profile validations.",
+  "type": "object",
+  "structureInvalid": -13001,
+  "validationName": "stdRdapEntitiesSearchValidation"
+}
