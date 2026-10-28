@@ -1,0 +1,10 @@
+{
+  "rdapConformance": ["rdap_level_0", "gtldProfile3"],
+  "entitySearchResults": [
+    {
+      "objectClassName": "entity",
+      "handle": "XXXX",
+      "roles": ["registrar"]
+    }
+  ]
+}

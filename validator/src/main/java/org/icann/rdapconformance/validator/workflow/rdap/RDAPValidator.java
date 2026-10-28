@@ -188,6 +188,7 @@ public class RDAPValidator implements ValidatorWorkflow {
             RDAPQueryType.HELP, "rdap_help.json",
             RDAPQueryType.NAMESERVER, "rdap_nameserver.json",
             RDAPQueryType.NAMESERVERS, "rdap_nameservers.json",
+            RDAPQueryType.ENTITIES, "rdap_entities_search.json",
             RDAPQueryType.ENTITY, "rdap_entity_without_asEventActor.json",
             RDAPQueryType.AUTNUM, "rdap_autnum.json",
             RDAPQueryType.IP_NETWORK, "rdap_ip_network.json"
@@ -331,6 +332,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         // gTLD Profile v3 specific validations
         validations.add(new ResponseValidationGtldProfile3(queryContext)); // -66000
         validations.add(new ResponseValidationGtldProfile3ObsoleteIdentifiers(queryContext)); // -66001
+        validations.add(new ResponseValidationGtldProfile3EntitySearch(queryContext)); // -66004
         if (queryContext.getConfig().isNetworkEnabled()) {
             validations.add(new ResponseValidationGtldProfile3Dnssec(queryContext)); // -66002, DNS queries
             validations.add(new ResponseValidationGtldProfile3CorsHeader(queryContext)); // -66003, reads HTTP headers
