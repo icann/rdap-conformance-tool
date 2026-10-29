@@ -333,6 +333,7 @@ public class RDAPValidator implements ValidatorWorkflow {
         validations.add(new ResponseValidationGtldProfile3(queryContext)); // -66000
         validations.add(new ResponseValidationGtldProfile3ObsoleteIdentifiers(queryContext)); // -66001
         validations.add(new ResponseValidationGtldProfile3EntitySearch(queryContext)); // -66004
+        validations.add(new ResponseValidationGtldProfile3EntitySearchResults(queryContext)); // -66005
         if (queryContext.getConfig().isNetworkEnabled()) {
             validations.add(new ResponseValidationGtldProfile3Dnssec(queryContext)); // -66002, DNS queries
             validations.add(new ResponseValidationGtldProfile3CorsHeader(queryContext)); // -66003, reads HTTP headers
