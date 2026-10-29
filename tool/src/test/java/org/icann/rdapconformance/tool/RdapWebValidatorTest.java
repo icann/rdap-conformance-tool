@@ -90,6 +90,7 @@ public class RdapWebValidatorTest {
         final int numThreads = 10;
         final boolean[] results = new boolean[numThreads];
         final Exception[] exceptions = new Exception[numThreads];
+        final java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(numThreads);
 
         Thread[] threads = new Thread[numThreads];
 
@@ -108,6 +109,8 @@ public class RdapWebValidatorTest {
                 } catch (Exception e) {
                     exceptions[threadIndex] = e;
                     results[threadIndex] = false;
+                } finally {
+                    done.countDown();
                 }
             });
         }
@@ -117,10 +120,10 @@ public class RdapWebValidatorTest {
             thread.start();
         }
 
-        // Wait for all threads to complete
-        for (Thread thread : threads) {
-            thread.join(5000); // 5 second timeout
-        }
+        // The constructor downloads IANA datasets, so allow a generous global deadline
+        // rather than a tight per-thread one to avoid network-timing flakiness.
+        assertTrue(done.await(120, java.util.concurrent.TimeUnit.SECONDS),
+            "Not all threads finished within the deadline");
 
         // Verify all threads completed successfully
         for (int i = 0; i < numThreads; i++) {
