@@ -16,6 +16,7 @@ import org.icann.rdapconformance.validator.workflow.profile.rdap_response.genera
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3EntitySearch;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3EntitySearchResults;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3ObsoleteIdentifiers;
+import org.icann.rdapconformance.validator.workflow.profile.rdap_response.general.ResponseValidationGtldProfile3TelUri;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.TigValidation1Dot3_2024;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -62,7 +63,8 @@ public class RDAPValidatorGtldProfileV3Test {
                 .anyMatch(v -> v instanceof ResponseValidationGtldProfile3)   // -66000
                 .anyMatch(v -> v instanceof ResponseValidationGtldProfile3ObsoleteIdentifiers) // -66001
                 .anyMatch(v -> v instanceof ResponseValidationGtldProfile3EntitySearch) // -66004
-                .anyMatch(v -> v instanceof ResponseValidationGtldProfile3EntitySearchResults); // -66005
+                .anyMatch(v -> v instanceof ResponseValidationGtldProfile3EntitySearchResults) // -66005
+                .anyMatch(v -> v instanceof ResponseValidationGtldProfile3TelUri); // -66006
 
         // network-dependent v3 validations must be absent when network is disabled
         assertThat(v3)
@@ -70,13 +72,14 @@ public class RDAPValidatorGtldProfileV3Test {
                 .noneMatch(v -> v instanceof ResponseValidationGtldProfile3CorsHeader); // -66003
 
         // Exactly the same scope minus the two exclusions, plus the v3 additions
-        assertThat(v3).hasSize(v2024.size() - 2 + 4);
+        assertThat(v3).hasSize(v2024.size() - 2 + 5);
 
         List<Class<?>> v3Classes = v3.stream()
                 .filter(v -> !(v instanceof ResponseValidationGtldProfile3)
                         && !(v instanceof ResponseValidationGtldProfile3ObsoleteIdentifiers)
                         && !(v instanceof ResponseValidationGtldProfile3EntitySearch)
                         && !(v instanceof ResponseValidationGtldProfile3EntitySearchResults)
+                        && !(v instanceof ResponseValidationGtldProfile3TelUri)
                         && !(v instanceof ResponseValidationGtldProfile3Dnssec)
                         && !(v instanceof ResponseValidationGtldProfile3CorsHeader))
                 .<Class<?>>map(Object::getClass)
@@ -108,7 +111,7 @@ public class RDAPValidatorGtldProfileV3Test {
                 .noneMatch(v -> v instanceof ResponseValidationGtldProfile3Dnssec)
                 .noneMatch(v -> v instanceof ResponseValidationGtldProfile3CorsHeader);
 
-        // scope: 2024 minus the two exclusions, plus -66000, -66001, -66002, -66003, -66004 and -66005
-        assertThat(v3).hasSize(v2024.size() - 2 + 6);
+        // scope: 2024 minus the two exclusions, plus -66000 .. -66006
+        assertThat(v3).hasSize(v2024.size() - 2 + 7);
     }
 }
