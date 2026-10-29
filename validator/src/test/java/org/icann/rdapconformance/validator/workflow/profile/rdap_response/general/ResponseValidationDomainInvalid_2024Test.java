@@ -74,16 +74,12 @@ public class ResponseValidationDomainInvalid_2024Test {
   @Test
   public void testDoValidate_InvalidDomainTypeUrl_WithInvalidInUri_AndQueryType() throws Exception {
     URI uri = new URI("http://example.com/rdap");
+    // Capture the real constants before mocking: enum switch maps (e.g. in CommonUtils) are
+    // initialized from values(), so a partial list would break class initialization.
+    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType[] allTypes = RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.values();
     MockedStatic<RDAPHttpQueryTypeProcessor.RDAPHttpQueryType> queryTypeProcessor = Mockito.mockStatic(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.class);
-    queryTypeProcessor.when(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType::values)
-            .thenReturn(new RDAPHttpQueryTypeProcessor.RDAPHttpQueryType[] {
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.DOMAIN,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.IP,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.AUTNUM,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.ENTITY,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVER,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.NAMESERVERS,
-                    RDAPHttpQueryTypeProcessor.RDAPHttpQueryType.HELP});
+    try {
+    queryTypeProcessor.when(RDAPHttpQueryTypeProcessor.RDAPHttpQueryType::values).thenReturn(allTypes);
 
     when(mockConfig.getUri()).thenReturn(uri);
     when(mockConfig.getTimeout()).thenReturn(1000);
@@ -98,7 +94,9 @@ public class ResponseValidationDomainInvalid_2024Test {
     boolean result = responseValidator.doValidate();
     assertTrue(result);
 
-    queryTypeProcessor.close();
+    } finally {
+      queryTypeProcessor.close();
+    }
   }
 
   @Test
