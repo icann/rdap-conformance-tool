@@ -610,13 +610,25 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   }
 
   @Test
-  public void testLinkComparator_HrefTextDiffers_ShouldFail() throws Exception {
+  public void testLinkComparator_HrefTextDiffers_ShouldPass() throws Exception {
+    DomainCaseFoldingValidation.CaseFoldingJsonComparator comparator =
+        new DomainCaseFoldingValidation.CaseFoldingJsonComparator();
+
+    // "href" is ignored entirely (confirmed by Andy Newton)
+    assertThat(comparator.compare(
+        linkJson("orbot", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json"),
+        linkJson("orbot", "self", "https://rdap.example.com/domain/other.example", "application/rdap+json")))
+        .isZero();
+  }
+
+  @Test
+  public void testLinkComparator_RelTextDiffers_ShouldFail() throws Exception {
     DomainCaseFoldingValidation.CaseFoldingJsonComparator comparator =
         new DomainCaseFoldingValidation.CaseFoldingJsonComparator();
 
     assertThat(comparator.compare(
         linkJson("orbot", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json"),
-        linkJson("orbot", "self", "https://rdap.example.com/domain/other.example", "application/rdap+json")))
+        linkJson("orbot", "related", "https://rdap.example.com/domain/test.example", "application/rdap+json")))
         .isNotZero();
   }
 
@@ -644,11 +656,10 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   }
 
   @Test
-  public void testDoValidate_LinkHrefTextDiffers_ShouldFail() throws Exception {
+  public void testDoValidate_LinkHrefTextDiffers_ShouldPass() throws Exception {
     WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
-    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
     givenUri("http");
     doReturn(config.getUri()).when(httpsResponse).uri();
     doReturn(200).when(httpsResponse).statusCode();
@@ -657,7 +668,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
         "orbot", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json"))
         .when(httpsResponse).body();
 
-    stubFor(get(urlEqualTo(caseFoldedPath))
+    stubFor(get(urlEqualTo("/domain/tEsT.ExAmPlE"))
         .withScheme("http")
         .willReturn(aResponse()
             .withStatus(200)
@@ -665,6 +676,31 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
             .withBody(String.format(LINK_TEMPLATE,
                 "orbot", "self", "https://rdap.example.com/domain/test.example", "application/rdap+json",
                 "orbot", "self", "https://rdap.example.com/domain/other.example", "application/rdap+json"))));
+
+    // Should PASS — link "href" is ignored entirely
+    validateOk(results);
+  }
+
+  @Test
+  public void testDoValidate_LinkRelTextDiffers_ShouldFail() throws Exception {
+    WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    String href = "https://rdap.example.com/domain/test.example";
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(String.format(LINK_TEMPLATE, "orbot", "self", href, "application/rdap+json",
+        "orbot", "self", href, "application/rdap+json")).when(httpsResponse).body();
+
+    stubFor(get(urlEqualTo(caseFoldedPath))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/rdap+json")
+            .withBody(String.format(LINK_TEMPLATE, "orbot", "self", href, "application/rdap+json",
+                "orbot", "related", href, "application/rdap+json"))));
 
     validateNotOk(results,
         -10403, config.getUri().resolve(caseFoldedPath).toString(),

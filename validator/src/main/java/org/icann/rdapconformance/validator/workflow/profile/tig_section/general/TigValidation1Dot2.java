@@ -85,7 +85,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
     /**
      * Ignore event with action "last updateof RDAP database"
      */
-    private boolean shouldAddElement(JsonNode node) {
+    protected boolean shouldAddElement(JsonNode node) {
       if (!node.isArray() && node instanceof ObjectNode) {
         JsonNode eventAction = node.get("eventAction");
         return eventAction == null || !eventAction.asText().equals("last update of RDAP database");
@@ -141,8 +141,14 @@ public final class TigValidation1Dot2 extends ProfileValidation {
         }
       }
 
-      ArrayNode a1 = (ArrayNode) n1;
-      ArrayNode a2 = (ArrayNode) n2;
+      return compareArrays((ArrayNode) n1, (ArrayNode) n2);
+    }
+
+    /**
+     * Order-independent array comparison. Elements are de-duplicated with strict JsonNode
+     * equality before matching (historical -20101 behaviour, kept unchanged).
+     */
+    protected int compareArrays(ArrayNode a1, ArrayNode a2) {
       Set<JsonNode> s1 = new HashSet<>();
       Set<JsonNode> s2 = new HashSet<>();
       a1.elements().forEachRemaining(e -> {
