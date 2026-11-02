@@ -439,6 +439,7 @@ These validations run only when the gTLD RDAP Profile v3 is selected (`--gtld-pr
 - `-66005`: Entity search results entity validation (gTLD Profile v3) - "entitySearchResults has an invalid entity." (every entity must pass -12300 to -12317) [RFC 9083 Section 5.1, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3EntitySearchResults.java}
 - `-66006`: Voice/fax tel value type validation (gTLD Profile v3) - "A voice or fax tel property must use the jCard uri value type." [RFC 7095 Section 3.3.1.3, RFC 6350 Section 6.4.1, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3TelUri.java}
 - `-66007`: Voice/fax tel URI syntax validation (gTLD Profile v3) - "The value of the tel property is not a valid tel URI according to RFC 3966." (pattern shared with jcard.json tel-uri, matched case-insensitively) [RFC 3966, RFC 6350 Section 6.4.1, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3TelUriSyntax.java}
+- `-66008`: Nameserver status member validation (gTLD Profile v3) - "The nameserver object must have a 'status' member." (nameserver lookup) [RFC 9083 Section 5.2, RFC 5732, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3NameserverStatus.java}
 
 ### vCard Validation Errors (2024 Profile) (-63XXX)
 - `-63000`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot2_2024.java}
