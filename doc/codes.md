@@ -428,6 +428,18 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-65815`: Tech Phone Ext redaction description warning (2024 profile) - "A redaction object with a description of Tech Phone Ext exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 - `-65816`: Tech Email redaction description warning (2024 profile) - "A redaction object with a description of Tech Email exists. This warning may be ignored if the redaction should not use the 'type' property." [RFC 9537, RDAP Response Profile 2024] {ResponseValidationRedactionDescriptionWarning.java} ⚠️ WARNING
 
+### gTLD RDAP Profile v3 Validation Errors (-66XXX)
+These validations run only when the gTLD RDAP Profile v3 is selected (`--gtld-profile-v3`). The v3 scope is the February 2024 profile scope minus -61000 and -62000, plus the following codes.
+
+- `-66000`: gtldProfile3 conformance identifier validation (gTLD Profile v3) - "The RDAP Conformance data structure does not include gtldProfile3." [RFC 9083 Section 4.1, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3.java}
+- `-66001`: Obsolete profile identifiers validation (gTLD Profile v3) - "The RDAP Conformance data structure contains a conformance identifier from an obsolete gTLD RDAP Profile." (icann_rdap_technical_implementation_guide_0/1, icann_rdap_response_profile_0/1) [RFC 9083 Section 4.1, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3ObsoleteIdentifiers.java}
+- `-66002`: DNSSEC chain of trust validation (gTLD Profile v3) - "The DNS resource records for the RDAP service are not DNSSEC signed or the DNSSEC chain of trust is not valid." [RFC 4033, RFC 4034, RFC 4035, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3Dnssec.java}
+- `-66003`: Single CORS header validation (gTLD Profile v3) - "The RDAP response must contain exactly one Access-Control-Allow-Origin HTTP response header." [RFC 7480 Section 5.6, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3CorsHeader.java}
+- `-66004`: Entity search results array validation (gTLD Profile v3) - "Expected an entitySearchResults array." (entity search with HTTP 200) [RFC 9083 Section 8, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3EntitySearch.java}
+- `-66005`: Entity search results entity validation (gTLD Profile v3) - "entitySearchResults has an invalid entity." (every entity must pass -12300 to -12317) [RFC 9083 Section 5.1, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3EntitySearchResults.java}
+- `-66006`: Voice/fax tel value type validation (gTLD Profile v3) - "A voice or fax tel property must use the jCard uri value type." [RFC 7095 Section 3.3.1.3, RFC 6350 Section 6.4.1, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3TelUri.java}
+- `-66007`: Voice/fax tel URI syntax validation (gTLD Profile v3) - "The value of the tel property is not a valid tel URI according to RFC 3966." (pattern shared with jcard.json tel-uri, matched case-insensitively) [RFC 3966, RFC 6350 Section 6.4.1, gTLD RDAP Profile v3] {ResponseValidationGtldProfile3TelUriSyntax.java}
+
 ### vCard Validation Errors (2024 Profile) (-63XXX)
 - `-63000`: vCard validation (2024 profile) [RFC 9083 Section 5.1, RFC 6350, RDAP Response Profile 2024] {ResponseValidation2Dot7Dot2_2024.java}
 - `-63100`: Registrant handle validation (2024 profile) [RFC 9083 Section 5.1, RDAP Response Profile 2024] {ResponseValidationRegistrantHandle_2024.java}

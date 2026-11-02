@@ -67,7 +67,7 @@ public final class ResponseValidationGtldProfile3TelUri extends ProfileJsonValid
         return isValid;
     }
 
-    private static boolean isVoiceOrFaxTel(JSONArray property) {
+    static boolean isVoiceOrFaxTel(JSONArray property) {
         if (!TEL.equals(property.opt(PROPERTY_NAME))
             || !(property.opt(PARAMETERS) instanceof JSONObject parameters)) {
             return false;
