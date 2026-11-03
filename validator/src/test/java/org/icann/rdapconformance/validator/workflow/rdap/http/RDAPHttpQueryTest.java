@@ -742,6 +742,34 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         assertThat(results.getAll()).isEmpty();
     }
 
+    @Test
+    public void test_HandleRequestException_ExpiredCertificate_NonHttpsUri_Only13011() {
+        // Guards the literal profile requirement ("if the scheme of the URI is HTTPS"),
+        // even though a certificate exception can only arise over TLS on this path.
+        doReturn(URI.create("http://rdap.example.com/domain/test.example")).when(config).getUri();
+        doReturn(true).when(config).useGtldProfileV3();
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        ConnectionStatus status = RDAPHttpRequest.handleRequestException(queryContext, expiredCertificateException(), true);
+
+        assertThat(status).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
+        assertThat(results.getAll()).extracting(RDAPValidationResult::getCode).containsExactly(-13011);
+    }
+
+    @Test
+    public void test_HandleRequestException_ExpiredCertificate_NullConfig_Only13011() {
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+        QueryContext noConfigContext = Mockito.spy(queryContext);
+        doReturn(null).when(noConfigContext).getConfig();
+
+        ConnectionStatus status = RDAPHttpRequest.handleRequestException(noConfigContext, expiredCertificateException(), true);
+
+        assertThat(status).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
+        assertThat(results.getAll()).extracting(RDAPValidationResult::getCode).containsExactly(-13011);
+    }
+
     private static Exception expiredCertificateException() {
         javax.net.ssl.SSLHandshakeException handshake =
             new javax.net.ssl.SSLHandshakeException("PKIX path validation failed");
