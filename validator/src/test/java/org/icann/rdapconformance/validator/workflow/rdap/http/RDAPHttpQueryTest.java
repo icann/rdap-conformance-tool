@@ -677,6 +677,107 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
 
 
     @Test
+    public void test_WithHttpsExpiredCertificate_GtldProfileV3_Reports13011And66009() {
+        // Drives the real request path against a server with an expired leaf certificate.
+        if (System.getenv("GITHUB_ACTIONS") != null || System.getenv("CI") != null) {
+            throw new SkipException("Skipping external SSL test in CI environment");
+        }
+        String url = "https://expired.badssl.com";
+        doReturn(URI.create(url)).when(config).getUri();
+        doReturn(true).when(config).useGtldProfileV3();
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        assertThat(rdapHttpQuery.run()).isFalse();
+        ConformanceError actual = rdapHttpQuery.getErrorStatus();
+        if (actual == ConnectionStatus.HANDSHAKE_FAILED) {
+            throw new SkipException("Skipping: TLS handshake failed before certificate evaluation "
+                + "(likely VPN/proxy/network interception of external endpoint " + url + ")");
+        }
+        assertThat(actual).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
+        assertThat(results.getAll()).extracting(RDAPValidationResult::getCode).contains(-13011, -66009);
+        assertThat(results.getAll()).filteredOn(r -> r.getCode() == -66009)
+            .extracting(RDAPValidationResult::getValue, RDAPValidationResult::getMessage)
+            .containsExactly(org.assertj.core.groups.Tuple.tuple(url, "The TLS certificate has expired."));
+    }
+
+    @Test
+    public void test_HandleRequestException_ExpiredCertificate_GtldProfileV3_Adds66009() {
+        doReturn(URI.create("https://rdap.example.com/domain/test.example")).when(config).getUri();
+        doReturn(true).when(config).useGtldProfileV3();
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        ConnectionStatus status = RDAPHttpRequest.handleRequestException(queryContext, expiredCertificateException(), true);
+
+        assertThat(status).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
+        assertThat(results.getAll()).extracting(RDAPValidationResult::getCode).containsExactlyInAnyOrder(-13011, -66009);
+        assertThat(results.getAll()).filteredOn(r -> r.getCode() == -66009)
+            .extracting(RDAPValidationResult::getValue, RDAPValidationResult::getMessage)
+            .containsExactly(org.assertj.core.groups.Tuple.tuple(
+                "https://rdap.example.com/domain/test.example", "The TLS certificate has expired."));
+    }
+
+    @Test
+    public void test_HandleRequestException_ExpiredCertificate_NotGtldProfileV3_Only13011() {
+        doReturn(URI.create("https://rdap.example.com/domain/test.example")).when(config).getUri();
+        doReturn(false).when(config).useGtldProfileV3();
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        RDAPHttpRequest.handleRequestException(queryContext, expiredCertificateException(), true);
+
+        assertThat(results.getAll()).extracting(RDAPValidationResult::getCode).containsExactly(-13011);
+    }
+
+    @Test
+    public void test_HandleRequestException_ExpiredCertificate_NoRecordError_NoResults() {
+        doReturn(URI.create("https://rdap.example.com/domain/test.example")).when(config).getUri();
+        doReturn(true).when(config).useGtldProfileV3();
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        RDAPHttpRequest.handleRequestException(queryContext, expiredCertificateException(), false);
+
+        assertThat(results.getAll()).isEmpty();
+    }
+
+    @Test
+    public void test_HandleRequestException_ExpiredCertificate_NonHttpsUri_Only13011() {
+        // Guards the literal profile requirement ("if the scheme of the URI is HTTPS"),
+        // even though a certificate exception can only arise over TLS on this path.
+        doReturn(URI.create("http://rdap.example.com/domain/test.example")).when(config).getUri();
+        doReturn(true).when(config).useGtldProfileV3();
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+
+        ConnectionStatus status = RDAPHttpRequest.handleRequestException(queryContext, expiredCertificateException(), true);
+
+        assertThat(status).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
+        assertThat(results.getAll()).extracting(RDAPValidationResult::getCode).containsExactly(-13011);
+    }
+
+    @Test
+    public void test_HandleRequestException_ExpiredCertificate_NullConfig_Only13011() {
+        RDAPValidatorResults results = queryContext.getResults();
+        results.clear();
+        QueryContext noConfigContext = Mockito.spy(queryContext);
+        doReturn(null).when(noConfigContext).getConfig();
+
+        ConnectionStatus status = RDAPHttpRequest.handleRequestException(noConfigContext, expiredCertificateException(), true);
+
+        assertThat(status).isEqualTo(ConnectionStatus.EXPIRED_CERTIFICATE);
+        assertThat(results.getAll()).extracting(RDAPValidationResult::getCode).containsExactly(-13011);
+    }
+
+    private static Exception expiredCertificateException() {
+        javax.net.ssl.SSLHandshakeException handshake =
+            new javax.net.ssl.SSLHandshakeException("PKIX path validation failed");
+        handshake.initCause(new java.security.cert.CertificateExpiredException("NotAfter: Jan 1 00:00:00 2020"));
+        return new java.io.IOException("request failed", handshake);
+    }
+
+    @Test
     public void checkWithQueryType_ObjectClassNameInJsonResponse_IsOk() {
         RDAPValidatorResults results = queryContext.getResults();
         results.clear();

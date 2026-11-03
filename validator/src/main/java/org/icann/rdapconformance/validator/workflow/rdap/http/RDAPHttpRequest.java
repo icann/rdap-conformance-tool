@@ -3,6 +3,7 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 import static org.icann.rdapconformance.validator.CommonUtils.EMPTY_STRING;
 import static org.icann.rdapconformance.validator.CommonUtils.GET;
 import static org.icann.rdapconformance.validator.CommonUtils.HEAD;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_TOO_MANY_REQUESTS;
@@ -50,6 +51,7 @@ import org.apache.hc.core5.http.ConnectionClosedException;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
 
@@ -347,6 +349,7 @@ public class RDAPHttpRequest {
         if (hasCause(e, "java.security.cert.CertificateExpiredException")) {
             if(recordError) {
                 queryContext.addError(ZERO, -13011, "no response available", "Expired certificate.");
+                recordGtldProfileV3ExpiredCertificate(queryContext);
             }
             queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.EXPIRED_CERTIFICATE);
             return ConnectionStatus.EXPIRED_CERTIFICATE;
@@ -417,6 +420,23 @@ public class RDAPHttpRequest {
         }
         queryContext.getConnectionTracker().updateCurrentConnection(ConnectionStatus.CONNECTION_FAILED);
         return ConnectionStatus.CONNECTION_FAILED;
+    }
+
+    /**
+     * gTLD Profile v3 test case -66009: if the scheme of the URI under test is HTTPS, the TLS
+     * certificate must not have expired.
+     *
+     * <p>Recorded here, on the connection-failure path, because an expired leaf certificate
+     * is rejected during the main request's TLS handshake (-13011) and no profile validation
+     * runs after a failed query. The value is the URI under test, as required by the profile.
+     */
+    private static void recordGtldProfileV3ExpiredCertificate(QueryContext queryContext) {
+        RDAPValidatorConfiguration config = queryContext.getConfig();
+        if (config == null || !config.useGtldProfileV3() || config.getUri() == null
+                || !HTTPS.equalsIgnoreCase(config.getUri().getScheme())) {
+            return;
+        }
+        queryContext.addError(ZERO, -66009, config.getUri().toString(), "The TLS certificate has expired.");
     }
 
     /**
