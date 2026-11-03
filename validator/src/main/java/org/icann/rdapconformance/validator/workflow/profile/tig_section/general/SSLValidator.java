@@ -30,6 +30,49 @@ public interface SSLValidator {
      *         success or failure result.
      */
     CipherValidationResult validateTLS12CipherSuites(String hostname, int port);
+
+    /**
+     * Connects to the server and checks whether the leaf TLS certificate presented by the
+     * server has expired (gTLD Profile v3 test case -66009).
+     */
+    CertificateExpirationResult checkCertificateExpiration(String hostname, int port);
+
+    class CertificateExpirationResult {
+        private final boolean successful;
+        private final boolean expired;
+        private final String errorMessage;
+
+        public CertificateExpirationResult(boolean successful, boolean expired, String errorMessage) {
+            this.successful = successful;
+            this.expired = expired;
+            this.errorMessage = errorMessage;
+        }
+
+        public static CertificateExpirationResult valid() {
+            return new CertificateExpirationResult(true, false, null);
+        }
+
+        public static CertificateExpirationResult expired() {
+            return new CertificateExpirationResult(true, true, null);
+        }
+
+        public static CertificateExpirationResult failure(String errorMessage) {
+            return new CertificateExpirationResult(false, false, errorMessage);
+        }
+
+        /** True when the certificate could be retrieved and inspected. */
+        public boolean isSuccessful() {
+            return successful;
+        }
+
+        public boolean isExpired() {
+            return expired;
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+    }
     
     /**
      * Result of SSL validation containing the protocols and cipher information.
