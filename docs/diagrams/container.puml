@@ -1,0 +1,42 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Container Diagram for RDAP Conformance Tool (rdapct)
+
+Person(operator, "Operator / Developer", "Runs conformance checks")
+System_Ext(frontend, "RDAP Conformance Tool Frontend", "Web UI")
+
+System_Boundary(c_rdapct, "RDAP Conformance Tool") {
+    Container(tool, "tool (rdapct-<version>.jar)", "Java 21, picocli, logback", "CLI entry point (Main -> RdapConformanceTool). Parses options, configures logging and TLS, shows progress, writes results. Exposes RdapWebValidator for embedding", $link="./component.svg")
+
+    Container(validator, "validator", "Java 21 library, SLF4J", "Validation engine: datasets, DNS, HTTP client, JSON-schema validation, profile checks, results aggregation")
+
+    Container(jitpack, "jitpack", "Maven POM module", "Wraps everit json-schema (com.github.everit-org) resolved from jitpack.io")
+
+    Container(docker, "Docker image", "alpine + openjdk21-jre", "Multi-stage build; pre-downloads IANA datasets; docker-entrypoint.sh streams results to stdout")
+
+    ContainerDb(datasets, "datasets/", "Filesystem (XML/JSON)", "Cached IANA datasets; reused with --use-local-datasets")
+    ContainerDb(results, "results/", "Filesystem (JSON)", "results-<timestamp>.json: errors, warnings, ignore, notes, per-query status")
+    ContainerDb(config, "Definition file", "JSON", "definitionIdentifier, definitionError, definitionWarning, definitionIgnore, definitionNotes")
+}
+
+System_Ext(rdapserver, "Target RDAP Server", "Service under test")
+System_Ext(iana, "IANA Registries", "Reference datasets")
+System_Ext(dns, "DNS Resolver", "A/AAAA lookups")
+
+Rel(operator, tool, "java -jar rdapct.jar -c config.json URI", "CLI")
+Rel(operator, docker, "docker run rdapct URI", "CLI")
+Rel(frontend, tool, "new RdapWebValidator(config).validate()", "Java")
+Rel(docker, tool, "wraps")
+Rel(tool, validator, "uses", "Java")
+Rel(validator, jitpack, "depends on", "Maven")
+Rel(tool, config, "reads", "-c / --config")
+Rel(validator, datasets, "reads / writes")
+Rel(validator, results, "writes")
+Rel(validator, iana, "downloads (13 parallel)", "HTTPS")
+Rel(validator, dns, "resolves", "DNS (dnsjava)")
+Rel(validator, rdapserver, "GET domain/nameserver/entity/help", "HTTPS (httpclient5, IPv4 + IPv6)")
+
+@enduml

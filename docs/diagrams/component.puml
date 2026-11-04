@@ -1,0 +1,64 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Component Diagram for RDAP Conformance Tool (tool + validator)
+
+Person(operator, "Operator / Developer")
+System_Ext(frontend, "RDAP Conformance Tool Frontend")
+
+Container_Boundary(tool, "tool") {
+    Component(main, "Main / RdapConformanceTool", "picocli @Command", "CLI options, exit codes, logging + TLS setup, orchestration")
+    Component(webvalidator, "RdapWebValidator", "AutoCloseable", "Thread-safe embeddable entry point; no global state")
+    Component(progress, "progress", "ProgressTracker / ProgressDisplay", "Console progress bar (CLI logging mode only)")
+    Component(userinput, "UserInputValidator", "", "Validates URI, config path and option combinations")
+}
+
+Container_Boundary(validator, "validator") {
+    Component(querycontext, "QueryContext", "Central state holder", "URI, config, datasets, results, network info per run")
+    Component(datasetsvc, "RDAPDatasetService", "workflow.rdap.dataset", "Downloads/parses 13 IANA datasets in parallel; LocalFileSystem cache")
+    Component(dnsres, "DNSCacheResolver / NetworkInfo", "dnsjava", "A/AAAA resolution, protocol selection, local bind address")
+    Component(httpq, "RDAPHttpQuery / HttpClientManager", "workflow.rdap.http", "HTTPS GET with redirects, timeouts, SSRF allow-list, TLS checks; ConnectionTracker")
+    Component(fileq, "RDAPFileQuery", "workflow.rdap.file", "Validates a local JSON response instead of a live server")
+    Component(qtype, "RDAPQueryTypeProcessor", "", "Resolves query type: domain, nameserver, entity, help, nameservers, autnum, ip")
+    Component(schema, "SchemaValidator / SchemaValidatorCache", "everit json-schema", "Structural validation against RDAP JSON schemas; custom formats")
+    Component(profile, "workflow.profile", "RDAPProfile, tig_section, rdap_response", "ICANN gTLD RDAP Profile Feb-2024 checks (registry/registrar, thin)")
+    Component(jcard, "jcard", "", "vCard/jCard validation")
+    Component(results, "RDAPValidatorResults / RDAPValidationResultFile", "", "Aggregates results, applies definition file (error/warning/ignore), writes results JSON")
+    Component(config, "configuration", "ConfigurationFile", "Parses definition file")
+    Component(toolresult, "ToolResult", "enum", "Exit codes 0,1,2,3,4,5,10")
+}
+
+ContainerDb(datasetsfs, "datasets/", "Filesystem")
+ContainerDb(resultsfs, "results/", "Filesystem")
+System_Ext(iana, "IANA Registries")
+System_Ext(dns, "DNS Resolver")
+System_Ext(rdapserver, "Target RDAP Server")
+
+Rel(operator, main, "CLI args")
+Rel(frontend, webvalidator, "Java API")
+Rel(main, userinput, "validates input")
+Rel(main, progress, "updates phases")
+Rel(main, querycontext, "creates")
+Rel(webvalidator, querycontext, "creates (isolated)")
+Rel(main, config, "loads -c")
+Rel(querycontext, datasetsvc, "loads")
+Rel(datasetsvc, iana, "HTTPS")
+Rel(datasetsvc, datasetsfs, "cache")
+Rel(main, qtype, "determine query type")
+Rel(qtype, dnsres, "resolve host")
+Rel(dnsres, dns, "DNS")
+Rel(qtype, httpq, "live URI")
+Rel(qtype, fileq, "file URI")
+Rel(httpq, rdapserver, "HTTPS (IPv4/IPv6 x json/rdap+json)")
+Rel(httpq, schema, "response body")
+Rel(fileq, schema, "file body")
+Rel(schema, jcard, "vcardArray")
+Rel(schema, profile, "then")
+Rel(profile, results, "add results")
+Rel(schema, results, "add results")
+Rel(results, resultsfs, "write results-<ts>.json")
+Rel(main, toolresult, "exit code")
+
+@enduml
