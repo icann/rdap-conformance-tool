@@ -27,7 +27,7 @@ Container_Boundary(validator, "validator") {
     Component(jcard, "jcard", "", "vCard/jCard validation")
     Component(results, "RDAPValidatorResults / RDAPValidationResultFile", "", "Aggregates results, applies definition file (error/warning/ignore), writes results JSON")
     Component(config, "configuration", "ConfigurationFile", "Parses definition file")
-    Component(toolresult, "ToolResult", "enum", "Exit codes 0,1,2,3,4,5,10")
+    Component(toolresult, "ToolResult", "enum", "Exit codes 0,1,2,3,4,9,21,22,25,26 (see ToolResult.java)")
 }
 
 ContainerDb(datasetsfs, "datasets/", "Filesystem")

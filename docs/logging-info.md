@@ -16,7 +16,10 @@ Aligned with the team engineering standards (section 7, Observability) as applie
 | Runtime control | `--logging <CLI|INFO|DEBUG|ERROR|VERBOSE>` (default `CLI`) and legacy `-v` (= `VERBOSE`), applied in `RdapConformanceTool.call()` |
 | Telemetry | None (no OTel, no metrics). The tool is a short-lived process |
 
-Embedding consumers (`RdapWebValidator`) provide their own binding; the library never
+`RdapWebValidator` ships in the `tool` artifact, which declares `logback-classic` at **compile
+scope** (`tool/pom.xml:45-55`). Embedders therefore receive logback transitively; if the host
+application uses another binding, exclude `ch.qos.logback:logback-classic` from the `tool`
+dependency or expect SLF4J multiple-binding warnings. `RdapWebValidator` itself never
 reconfigures the logger context.
 
 ## 2. Output format
@@ -30,12 +33,12 @@ Single `ConsoleAppender` (`STDOUT`):
 Example:
 
 ```
-14:03:21.117 [main] INFO  o.i.r.v.workflow.rdap.RDAPDatasetServiceImpl - Downloading dataset rdap-extensions.xml
+14:03:21.117 [main] INFO  o.i.r.v.w.r.RDAPDatasetServiceImpl - Starting dataset download and parse operations...
 ```
 
 - Timestamps are local time without date. For long-lived embedding, prefer the JSON layout in §6.
 - Logs go to **stdout**; the results JSON goes to `results/` (or stdout via the Docker
-  entrypoint, which writes logs to **stderr** - `docker-entrypoint.sh:19` redirects `1>&2`).
+  entrypoint, which writes logs to **stderr** - `docker-entrypoint.sh:18` redirects `1>&2`).
   Never print log lines with `System.out` - they would corrupt piped results.
 
 ## 3. Levels and modes
@@ -114,7 +117,7 @@ Populate `org.slf4j.MDC` once per run in `RdapConformanceTool.call()` /
 | `targetHost` | after URI parse | host of the RDAP URI |
 | `protocol` | per round (`NetworkInfo`) | `IPv4` / `IPv6` |
 | `acceptHeader` | per round | `application/json` / `application/rdap+json` |
-| `phase` | `ProgressTracker` | `ProgressPhase` constant |
+| `phase` | `ProgressTracker` | `ProgressPhase` constant: `DATASET_DOWNLOAD`, `DATASET_PARSE`, `DNS_RESOLUTION`, `NETWORK_VALIDATION`, `RESULTS_GENERATION`, `COMPLETED` (`ProgressPhase.java:7-12`) |
 | `state` | outcome line | closed vocabulary: `STARTED`, `COMPLETED`, `FAILED`, `SKIPPED` |
 
 Per-round keys (`protocol`, `acceptHeader`) must be set/removed around each round, not left
@@ -162,11 +165,13 @@ system property `rdapct.log.format=json` (default `text` keeps today's behaviour
 Resulting line:
 
 ```json
-{"timestamp":"2026-11-04T20:03:21.117Z","level":"INFO","thread":"main","component":"o.i.r.v.w.r.RDAPDatasetServiceImpl","msg":"Dataset loaded","runId":"5e1c...","app":"rdapct","version":"4.0.1","queryType":"DOMAIN","targetHost":"rdap.example","phase":"DATASETS","state":"COMPLETED"}
+{"timestamp":"2026-11-04T20:03:21.117Z","level":"INFO","thread":"main","component":"o.i.r.v.w.r.RDAPDatasetServiceImpl","msg":"All datasets downloaded and parsed successfully","runId":"5e1c...","app":"rdapct","version":"4.0.1","queryType":"DOMAIN","targetHost":"rdap.example","phase":"DATASET_PARSE","state":"COMPLETED"}
 ```
 
-(`<if>` requires `janino` on the classpath; alternatively select the appender programmatically
-in `RdapConformanceTool` where the context is already reset.)
+(`<if>` requires `org.codehaus.janino:janino`, which `tool/pom.xml:49-54` **explicitly
+excludes** from `logback-classic`. Either remove that exclusion and add `janino` as a
+dependency, or - preferred - drop `<if>` and select the appender programmatically in
+`RdapConformanceTool`, where the logger context is already reset.)
 
 ### 6.3 File rotation (embedded / long-running use only)
 

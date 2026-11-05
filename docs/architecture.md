@@ -13,7 +13,10 @@ Logging conventions are in [`logging-info.md`](logging-info.md).
 C4-PlantUML sources live in [`diagrams/`](diagrams/). Render locally with any PlantUML server or
 `plantuml -tsvg docs/diagrams/*.puml`. The Jenkins `Publish C4` stage publishes them to the TS C4
 site whenever `docs/diagrams` changes on `master`, or on demand with the `FORCE_C4_PUBLISH=true`
-build parameter (`Jenkinsfile:49-55`).
+build parameter (`Jenkinsfile:51-57`). The parameter is only honoured on `master`, and
+`hasPathChanged` diffs `HEAD^ HEAD`, so only the **last commit** is inspected; after a
+rebase-merge whose final commit does not touch `docs/diagrams`, run the job with
+`FORCE_C4_PUBLISH=true`.
 
 | Level | File | Covers |
 |---|---|---|
@@ -62,7 +65,7 @@ Root packages: `org.icann.rdapconformance.tool` and `org.icann.rdapconformance.v
 | `LoggingLevel` | `CLI`, `INFO`, `DEBUG`, `ERROR`, `VERBOSE` |
 | `UserInputValidator` | Validates URI / option combinations before any network I/O |
 | `VersionProvider` | `--version` from `version.properties` |
-| `RdapWebValidator` | Embeddable, `AutoCloseable`, thread-safe entry point; does **not** touch global logging/TLS state. Config via `SimpleRDAPValidatorConfiguration` / `ConfigurableRDAPValidatorConfiguration`; returns `RDAPValidatorResults` in memory |
+| `RdapWebValidator` | Embeddable, `AutoCloseable`, thread-safe entry point; does **not** touch global logging/TLS state. Constructors: boolean flags (`:83-154`) or a caller-supplied `RDAPValidatorConfiguration` (`:166`); the inner `Simple*`/`Configurable*` configuration classes are `private`. Returns `RDAPValidatorResults` in memory |
 | `RdapToolExample`, `RdapWebExample` | Usage samples |
 | `progress` | `ProgressTracker`, `ProgressDisplay`, `ProgressPhase` - console progress bar, active only in `CLI` logging mode |
 
@@ -112,24 +115,30 @@ flowchart TD
 
 Key rules:
 
-- Datasets are downloaded **before** any query; failure -> `DATASET_UNAVAILABLE (4)`.
+- Datasets are downloaded **before** any query; failure -> `DATASET_UNAVAILABLE (2)`.
 - With `--additional-conformance-queries`, `/help` and `not-a-domain.invalid` are also issued.
 - Each (protocol x media type) round is an independent validation whose results are aggregated;
   `ConnectionTracker` keeps per-attempt status for the results file.
 - `--gtld-registry` / `--gtld-registrar` select the profile branch; `--thin` short-circuits with
-  `USES_THIN_MODEL (10)` where applicable.
+  `USES_THIN_MODEL (9)` where applicable.
 
 ## 5. Exit codes (`ToolResult`)
+
+Source of truth: `validator/src/main/java/org/icann/rdapconformance/validator/ToolResult.java:7-19`.
+`Main` passes `ToolResult.getCode()` to `System.exit`; do not copy the numbers elsewhere.
 
 | Code | Name |
 |---|---|
 | 0 | `SUCCESS` |
-| 1 | `BAD_USER_INPUT` |
-| 2 | `CONFIG_DOES_NOT_EXIST` / `CONFIG_INVALID` |
+| 1 | `CONFIG_INVALID` |
+| 2 | `DATASET_UNAVAILABLE` |
 | 3 | `UNSUPPORTED_QUERY` |
-| 4 | `DATASET_UNAVAILABLE` |
-| 5 | `FILE_WRITE_ERROR` |
-| 10 | `USES_THIN_MODEL` |
+| 4 | `MIXED_LABEL_FORMAT` |
+| 9 | `USES_THIN_MODEL` |
+| 21 | `FILE_WRITE_ERROR` |
+| 22 | `FILE_READ_ERROR` |
+| 25 | `BAD_USER_INPUT` |
+| 26 | `CONFIG_DOES_NOT_EXIST` |
 
 ## 6. Filesystem artefacts
 
@@ -147,7 +156,10 @@ Key rules:
   [`logging-info.md`](logging-info.md).
 - **TLS hardening** is applied with JVM system properties (`checkRevocation`, `enableCRLDP`,
   session tickets off, compression off) (`:473-477`). `RdapWebValidator` deliberately skips this.
-- **SSRF protection** blocks private/loopback targets unless `--ssrf-allowed-hosts` is given.
+- **SSRF protection** blocks private/loopback targets (`RDAPHttpRequest.java:877-900`,
+  `QueryContext.java:579-593`). `--ssrf-allowed-hosts` (hidden, not in `--help`;
+  `RdapConformanceTool.java:160-165`) allowlists specific hosts/IPs only; every other
+  private/loopback target stays blocked.
 - **Dependencies of note:** httpclient5 5.6.3, dnsjava, everit json-schema 1.12.2 (via jitpack),
   jackson 2.22.2 BOM, json-path, icu4j, ipaddress, owasp-java-html-sanitizer, commons-text.
 
@@ -162,15 +174,15 @@ authoritative pipeline for internal artefacts; GitHub Actions handles the public
 
 | Tool | Role in the pipeline | Where configured |
 |---|---|---|
-| Jenkins shared library `ICANN_LIB` (`icann.Utilities`) | `utils.mvn(...)`, `utils.notifyBuild(...)`, `utils.getGitParentCommit()`, `utils.buildC4Diagram(...)` | `Jenkinsfile:1,25` |
-| `docker` agent, JDK 21 | Build executor (`jdkVersion: 'jdk21'`) | `Jenkinsfile:23,37-39` |
-| Maven | `clean verify` (branches) / `clean deploy` (`master`) | `Jenkinsfile:35-41` |
+| Jenkins shared library `ICANN_LIB` (`icann.Utilities`) | `utils.mvn(...)`, `utils.notifyBuild(...)`, `utils.getGitParentCommit()`, `utils.buildC4Diagram(...)` | `Jenkinsfile:1,27` |
+| `docker` agent, JDK 21 | Build executor (`jdkVersion: 'jdk21'`) | `Jenkinsfile:25,39-41` |
+| Maven | `clean verify` (branches) / `clean deploy` (`master`) | `Jenkinsfile:37-43` |
 | Artifactory `ICANN-repository` | Maven artefact registry for `org.icann.rdap-conformance:{jitpack,validator,tool}` | `pom.xml:18-24` |
-| SonarQube `ICANN` | Static analysis + JaCoCo coverage (advisory, no quality-gate wait) | `Jenkinsfile:43-47`, `pom.xml:53-58` |
-| JIRA (`jiraSendDeploymentInfo`) | Marks linked issues as deployed to environment `qa` | `Jenkinsfile:57-59` |
-| Slack | `jenkinsjobs` (start), `ts-eng-builds` (result) | `Jenkinsfile:29,66` |
-| Jenkins `Publisher` step | Archives test reports | `Jenkinsfile:65` |
-| C4 publisher (`utils.buildC4Diagram(path: 'docs/diagrams', pillar: 'ts')`) | Renders `docs/diagrams/*.puml` and publishes to the TS C4 site when `docs/diagrams` changes on `master` (or `FORCE_C4_PUBLISH=true`) | `Jenkinsfile:49-55` (`Publish C4` stage, `hasPathChanged` helper `:13-22`, param `FORCE_C4_PUBLISH` `:9`) |
+| SonarQube `ICANN` | Static analysis + JaCoCo coverage (advisory, no quality-gate wait) | `Jenkinsfile:45-49`, `pom.xml:53-58` |
+| JIRA (`jiraSendDeploymentInfo`) | Marks linked issues as deployed to environment `qa`. **No branch guard** - runs on every branch build, not only `master` | `Jenkinsfile:59-61` |
+| Slack | `jenkinsjobs` (start), `ts-eng-builds` (result) | `Jenkinsfile:31,68` |
+| Jenkins `Publisher` step | Archives test reports | `Jenkinsfile:67` |
+| C4 publisher (`utils.buildC4Diagram(path: 'docs/diagrams', pillar: 'ts')`) | Renders `docs/diagrams/*.puml` and publishes to the TS C4 site. Condition: branch is `master` **and** (`docs/diagrams` changed in the last commit, `HEAD^ HEAD`, **or** `FORCE_C4_PUBLISH=true`). The parameter alone does nothing on feature branches | `Jenkinsfile:51-57` (`Publish C4` stage, `hasPathChanged` helper `:13-22`, param `FORCE_C4_PUBLISH` `:9`) |
 | GitHub Actions | Public build on PR/push; GitHub Release on tag `v*.*.*` | `.github/workflows/{main,release}.yml` |
 
 ### 8.2 Environments
@@ -195,7 +207,7 @@ flowchart LR
     V -->|master| D[mvn clean deploy -> Artifactory ICANN-repository]
     V --> S[SonarQube ICANN]
     J -->|master and docs/diagrams changed| C4[utils.buildC4Diagram -> TS C4 site]
-    D --> JIRA[jiraSendDeploymentInfo qa]
+    J --> JIRA[jiraSendDeploymentInfo qa - every branch]
     J --> SL[Slack jenkinsjobs / ts-eng-builds]
     G -->|tag v*.*.*| GA[GitHub Actions release.yml] --> REL[GitHub Release rdapct-v.jar]
     D --> FE[RDAP Conformance Tool Frontend]
@@ -209,7 +221,8 @@ See README §CI/CD Pipeline for the stage-by-stage commands.
 
 - Frameworks: TestNG, AssertJ, Mockito, WireMock (HTTP stubs). JaCoCo reports feed SonarQube
   (`pom.xml:53-58`).
-- `fixtures/` holds ~130 RDAP response fixtures used by schema and profile tests.
+- `fixtures/` is **not** in the repo (`.gitignore:3`); it is an output directory written by
+  `FixturesGenerator.java:154`, not test input. Test resources live under `*/src/test/resources`.
 - `mvn clean verify` runs everything; `mvn -pl validator test -Dtest=ClassName` for a single class.
 
 ## 10. Known issues / backlog

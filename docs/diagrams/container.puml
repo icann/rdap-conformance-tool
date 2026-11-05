@@ -28,7 +28,7 @@ System_Ext(dns, "DNS Resolver", "A/AAAA lookups")
 
 Rel(operator, tool, "java -jar rdapct.jar -c config.json URI", "CLI")
 Rel(operator, docker, "docker run rdapct URI", "CLI")
-Rel(frontend, tool, "new RdapWebValidator(config).validate()", "Java")
+Rel(frontend, tool, "new RdapWebValidator(uri, flags | RDAPValidatorConfiguration).validate()", "Java")
 Rel(docker, tool, "wraps")
 Rel(tool, validator, "uses", "Java")
 Rel(validator, jitpack, "depends on", "Maven")

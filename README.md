@@ -115,19 +115,39 @@ docker run --rm rdapct --use-rdap-profile-february-2024 --gtld-registry \
 
 ### Exit Codes
 
-`0` success, `1` bad user input, `2` definition file missing/invalid, `3` unsupported query,
-`4` datasets unavailable, `5` results file write error, `10` TLD uses thin model
-(`validator/.../ToolResult.java`).
+Source of truth: `validator/src/main/java/org/icann/rdapconformance/validator/ToolResult.java`
+(`Main` passes `ToolResult.getCode()` straight to `System.exit`).
+
+| Code | Name | Meaning |
+|---|---|---|
+| 0 | `SUCCESS` | Response received, parsed and results file written |
+| 1 | `CONFIG_INVALID` | Definition file is syntactically invalid |
+| 2 | `DATASET_UNAVAILABLE` | A dataset could not be downloaded |
+| 3 | `UNSUPPORTED_QUERY` | Query type not supported |
+| 4 | `MIXED_LABEL_FORMAT` | domain/nameserver query mixes A-labels and U-labels |
+| 9 | `USES_THIN_MODEL` | TLD uses the thin model |
+| 21 | `FILE_WRITE_ERROR` | Could not write results file |
+| 22 | `FILE_READ_ERROR` | Could not read results file |
+| 25 | `BAD_USER_INPUT` | Invalid CLI input |
+| 26 | `CONFIG_DOES_NOT_EXIST` | Definition file not found |
 
 ### Embedding (RdapWebValidator)
 
 ```java
 URI uri = URI.create("https://rdap.example/domain/example.com");
-// isRegistry = true -> gTLD registry profile; false -> registrar
+
+// Flag constructors (RdapWebValidator.java:83-154): isRegistry=true -> gTLD registry profile
 try (var validator = new RdapWebValidator(uri, true)) {
     RDAPValidatorResults results = validator.validate();
 }
-// Fine-grained options: new RdapWebValidator(uri, new RdapWebValidator.ConfigurableRDAPValidatorConfiguration(...))
+
+// Full control: implement org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration
+// yourself and pass it in (RdapWebValidator.java:166). The inner Simple/Configurable
+// configuration classes are private and not usable from outside.
+RDAPValidatorConfiguration config = new MyRdapConfig(uri);
+try (var validator = new RdapWebValidator(uri, config)) {
+    RDAPValidatorResults results = validator.validate();
+}
 ```
 
 See `tool/src/main/java/org/icann/rdapconformance/tool/RdapWebExample.java`.
@@ -232,11 +252,11 @@ Build retention: 8 builds / 7 days.
 | `Run Tests` | `utils.mvn(args: 'clean verify', jdkVersion: 'jdk21')` | non-`master` |
 | `Run Tests` | `utils.mvn(args: 'clean deploy', jdkVersion: 'jdk21', publishArtifacts: true)` - runs tests **and** deploys `org.icann.rdap-conformance:{jitpack,validator,tool}` (version `rdap-conformance.version`) to Artifactory `ICANN-repository` (`pom.xml:18-24`); artefacts are also archived on the Jenkins build | `master` |
 | `SonarQube Analysis` | `mvn sonar:sonar -Dsonar.java.source=21 -Dsonar.java.target=21` under `withSonarQubeEnv('ICANN')`; JaCoCo XML from both modules (`pom.xml:55-58`). Advisory - no quality-gate wait | all |
-| `Publish C4` | `utils.buildC4Diagram(path: 'docs/diagrams', pillar: 'ts')` - renders `docs/diagrams/*.puml` and publishes them to the TS C4 site. Runs only when `docs/diagrams` changed in the last commit (`hasPathChanged`) or build parameter `FORCE_C4_PUBLISH=true` | `master` |
-| `Notify JIRA` | `jiraSendDeploymentInfo environmentId: 'qa'` - marks the linked issues as deployed to QA | all |
+| `Publish C4` | `utils.buildC4Diagram(path: 'docs/diagrams', pillar: 'ts')` - renders `docs/diagrams/*.puml` and publishes them to the TS C4 site. Runs only on `master` **and** when `docs/diagrams` changed in the **last commit** (`hasPathChanged` diffs `HEAD^ HEAD`) or build parameter `FORCE_C4_PUBLISH=true`. The parameter has no effect on other branches | `master` |
+| `Notify JIRA` | `jiraSendDeploymentInfo environmentId: 'qa'` - marks the linked issues as deployed to QA. No branch guard: runs on every branch build | all |
 | `finally` | `step([$class: 'Publisher'])` (test reports) + `utils.notifyBuild(result, 'ts-eng-builds')`; start notification goes to `jenkinsjobs` | all |
 
-Build parameters: `FORCE_C4_PUBLISH` (default `false`) - republish the C4 diagrams even if `docs/diagrams` did not change.
+Build parameters: `FORCE_C4_PUBLISH` (default `false`) - republish the C4 diagrams even if `docs/diagrams` did not change in the last commit. Only honoured on `master`. Needed after a rebase-merge whose final commit does not touch `docs/diagrams`.
 
 Deployment is therefore **automatic on every merge to `master`**: the pipeline builds with
 JDK 21, runs the full test suite, publishes the versioned jars to Artifactory and records the
@@ -274,7 +294,6 @@ rdap-conformance-tool/
 │   ├── bin/rdapct_config.json
 │   └── src/main/resources/logback.xml
 ├── docs/                   # developer docs: architecture, logging, codes, process flow, schema validator, diagrams/*.puml
-├── fixtures/               # RDAP response fixtures for tests
 ├── datasets/               # cached IANA datasets (runtime)
 ├── results/                # results JSON (runtime)
 ├── Dockerfile, docker-entrypoint.sh
