@@ -292,4 +292,48 @@ public class SchemaValidatorCacheTest {
     // Should have exactly 3 more cache entries (one per unique schema)
     assertThat(SchemaValidatorCache.getCacheSize()).isEqualTo(initialSize + 3);
   }
+
+  @SuppressWarnings("unchecked")
+  private static java.util.Map<String, org.everit.json.schema.Schema> internalCache() throws Exception {
+    java.lang.reflect.Field f = SchemaValidatorCache.class.getDeclaredField("schemaCache");
+    f.setAccessible(true);
+    return (java.util.Map<String, org.everit.json.schema.Schema>) f.get(null);
+  }
+
+  @Test
+  public void testEvictionWhenMaxSizeReached() throws Exception {
+    java.util.Map<String, org.everit.json.schema.Schema> cache = internalCache();
+    org.everit.json.schema.Schema dummy = mock(org.everit.json.schema.Schema.class);
+    for (int i = 0; i < 50; i++) {
+      cache.put("dummy_" + i, dummy);
+    }
+    assertThat(SchemaValidatorCache.getCacheSize()).isEqualTo(50);
+
+    SchemaValidator validator = SchemaValidatorCache.getCachedValidator(
+        "rdap_domain.json", mockResults, mockDatasetService);
+
+    assertThat(validator).isNotNull();
+    // 50 entries -> 10 evicted (20%) -> new schema added = 41
+    assertThat(SchemaValidatorCache.getCacheSize()).isEqualTo(41);
+  }
+
+  @Test
+  public void testEvictEntriesOnEmptyCacheDoesNothing() throws Exception {
+    java.lang.reflect.Method m = SchemaValidatorCache.class.getDeclaredMethod("evictEntries");
+    m.setAccessible(true);
+    m.invoke(null);
+    assertThat(SchemaValidatorCache.getCacheSize()).isZero();
+  }
+
+  @Test
+  public void testEvictEntriesRemovesAtLeastOne() throws Exception {
+    java.util.Map<String, org.everit.json.schema.Schema> cache = internalCache();
+    cache.put("a", mock(org.everit.json.schema.Schema.class));
+    cache.put("b", mock(org.everit.json.schema.Schema.class));
+    java.lang.reflect.Method m = SchemaValidatorCache.class.getDeclaredMethod("evictEntries");
+    m.setAccessible(true);
+    m.invoke(null);
+    // size/5 = 0 -> max(1, 0) = 1 evicted
+    assertThat(SchemaValidatorCache.getCacheSize()).isEqualTo(1);
+  }
 }

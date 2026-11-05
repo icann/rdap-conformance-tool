@@ -1,10 +1,13 @@
 package org.icann.rdapconformance.tool;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.icann.rdapconformance.validator.CommonUtils;
 import org.icann.rdapconformance.validator.QueryContext;
@@ -397,16 +400,18 @@ public class RdapWebValidator implements AutoCloseable {
      * @throws IOException if deletion fails
      */
     private static void deleteDirectoryRecursively(Path directory) throws IOException {
-        if (Files.exists(directory)) {
-            Files.walk(directory)
-                .sorted((a, b) -> b.compareTo(a)) // Delete files before directories
-                .forEach(path -> {
-                    try {
-                        Files.delete(path);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Failed to delete: " + path, e);
-                    }
-                });
+        if (!Files.exists(directory)) {
+            return;
+        }
+        try (Stream<Path> paths = Files.walk(directory)) {
+            paths.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException("Failed to delete: " + path, e);
+                        }
+                    });
         }
     }
 

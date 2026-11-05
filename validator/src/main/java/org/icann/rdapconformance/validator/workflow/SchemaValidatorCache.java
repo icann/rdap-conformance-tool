@@ -53,13 +53,13 @@ public final class SchemaValidatorCache {
       return createValidatorWithSchema(cachedSchema, results, queryContext);
     }
 
+    // Evict before computeIfAbsent: the mapping function must not modify the map
+    if (schemaCache.size() >= MAX_CACHE_SIZE) {
+      evictEntries();
+    }
+
     // Lock-free schema creation using computeIfAbsent
     Schema newSchema = schemaCache.computeIfAbsent(cacheKey, key -> {
-      // Check cache size and evict if necessary (non-blocking)
-      if (schemaCache.size() >= MAX_CACHE_SIZE) {
-        evictEntries();
-      }
-
       // Create new schema
       logger.debug("Creating new Schema for schema: {}", schemaName);
       return SchemaValidator.getSchema(schemaName, "json-schema/",

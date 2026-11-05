@@ -75,10 +75,10 @@ public final class TigValidation3Dot2_2024 extends ProfileJsonValidation {
         }
 
         if(!isValid) {
-            String linksStr = links == null ? "" : links.toString();
+            // links cannot be null here: a missing links array sets isValid = true above
             RDAPValidationResult.Builder builder = RDAPValidationResult.builder()
                 .code(-23201)
-                .value(linksStr)
+                .value(links.toString())
                 .message(ERROR_23201_MESSAGE);
 
             results.add(builder.build(queryContext));

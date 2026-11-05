@@ -23,7 +23,8 @@ import org.xml.sax.SAXException;
 public abstract class XmlObject implements RDAPDatasetModel {
 
   private static final Logger logger = LoggerFactory.getLogger(XmlObject.class);
-  private static final XPath xPath = XPathFactory.newInstance().newXPath();
+  // XPath is not thread-safe, so each instance holds its own
+  private final XPath xPath = XPathFactory.newInstance().newXPath();
 
   /**
    * Initialize the XML Object parser.

@@ -115,7 +115,7 @@ public abstract class SchemaNode {
       parent = parent.parentNode;
     }
 
-    if (parent.containsErrorKey(errorKey)) {
+    if (parent != null) {
       return parent.getErrorCode(errorKey);
     }
 
