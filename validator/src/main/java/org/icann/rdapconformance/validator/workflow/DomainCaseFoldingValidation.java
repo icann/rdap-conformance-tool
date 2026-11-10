@@ -31,6 +31,9 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
   private static final Logger logger = LoggerFactory.getLogger(DomainCaseFoldingValidation.class);
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final RDAPJsonComparator jsonComparator = new RDAPJsonComparator();
+  private static final int CASE_FOLDING_MISMATCH_CODE = -10403;
+  private static final String CASE_FOLDING_MISMATCH_MESSAGE =
+      "RDAP responses do not match when handling domain label case folding.";
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
   private final String domainName;
@@ -70,26 +73,13 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
           makeRequestWithRedirects(queryContext, uri, config.getTimeout(), config.getMaxRedirects());
 
       if (httpResponse == null) {
-        results.add(RDAPValidationResult.builder()
-                                        .queriedURI(uri.toString())
-                                        .httpMethod(GET)
-                                        .code(-10403)
-                                        .value(uri.toString())
-                                        .message("RDAP responses do not match when handling domain label case folding.")
-                                        .build(queryContext));
+        addCaseFoldingMismatch(uri, null);
         return false;
       }
 
       // Check if we got a non-200 response first
       if (httpResponse.statusCode() != rdapResponse.statusCode()) {
-        results.add(RDAPValidationResult.builder()
-                                        .queriedURI(uri.toString())
-                                        .httpStatusCode(httpResponse.statusCode())
-                                        .httpMethod(GET)
-                                        .code(-10403)
-                                        .value(uri.toString())
-                                        .message("RDAP responses do not match when handling domain label case folding.")
-                                        .build(queryContext));
+        addCaseFoldingMismatch(uri, httpResponse.statusCode());
         return false;
       }
 
@@ -104,30 +94,26 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
       stripLinkValues(httpsResponseJson);
 
       if (jsonComparator.compare(httpResponseJson, httpsResponseJson) != ZERO) {
-        results.add(RDAPValidationResult.builder()
-                                        .queriedURI(uri.toString())
-                                        .httpStatusCode(httpResponse.statusCode())
-                                        .httpMethod("GET")
-                                        .code(-10403)
-                                        .value(uri.toString())
-                                        .message("RDAP responses do not match when handling domain label case folding.")
-                                        .build(queryContext));
+        addCaseFoldingMismatch(uri, httpResponse.statusCode());
         return false;
       }
     } catch (JsonProcessingException e) {
-      logger.debug(
-          "Exception when processing JSON in [domainCaseFoldingValidation]",
-          e);
-      results.add(RDAPValidationResult.builder()
-                                      .queriedURI(uri.toString())
-                                      .httpMethod(GET)
-                                      .code(-10403)
-                                      .value(uri.toString())
-                                      .message("RDAP responses do not match when handling domain label case folding.")
-                                      .build(queryContext));
+      logger.debug("Exception when processing JSON in [domainCaseFoldingValidation]", e);
+      addCaseFoldingMismatch(uri, null);
       return false;
     }
     return true;
+  }
+
+  private void addCaseFoldingMismatch(URI uri, Integer httpStatusCode) {
+    results.add(RDAPValidationResult.builder()
+        .queriedURI(uri.toString())
+        .httpStatusCode(httpStatusCode)
+        .httpMethod(GET)
+        .code(CASE_FOLDING_MISMATCH_CODE)
+        .value(uri.toString())
+        .message(CASE_FOLDING_MISMATCH_MESSAGE)
+        .build(queryContext));
   }
 
   @Override
@@ -217,17 +203,6 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
     }
 
     return response;
-  }
-
-  /**
-   * Legacy redirect handling for cases without QueryContext.
-   * Uses the old-style HTTP client without QueryContext for backwards compatibility.
-   */
-  private HttpResponse<String> makeRequestWithRedirectsLegacy(URI uri, int timeoutSeconds, int maxRedirects) throws Exception {
-    // Since makeHttpGetRequestWithRedirects is broken (passes null QueryContext),
-    // we'll just make a simple request without redirect following for legacy cases
-    // This should be rare since most validation now uses QueryContext
-    throw new UnsupportedOperationException("Legacy redirect handling not implemented - QueryContext is required");
   }
 
   /**
