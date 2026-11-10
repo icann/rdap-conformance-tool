@@ -10,10 +10,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ibm.icu.lang.UCharacter;
 import java.net.URI;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.BiPredicate;
 
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -30,10 +35,10 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
 
   private static final Logger logger = LoggerFactory.getLogger(DomainCaseFoldingValidation.class);
   private static final ObjectMapper mapper = new ObjectMapper();
-  private static final RDAPJsonComparator jsonComparator = new RDAPJsonComparator();
   private static final int CASE_FOLDING_MISMATCH_CODE = -10403;
   private static final String CASE_FOLDING_MISMATCH_MESSAGE =
       "RDAP responses do not match when handling domain label case folding.";
+  private static final RDAPJsonComparator jsonComparator = new CaseFoldingJsonComparator();
   private final HttpResponse<String> rdapResponse;
   private final RDAPValidatorConfiguration config;
   private final String domainName;
@@ -87,12 +92,7 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
       JsonNode httpResponseJson = mapper.readTree(httpResponse.body());
       JsonNode httpsResponseJson = mapper.readTree(rdapResponse.body());
 
-      // RFC 9083 section 4.2: a link's "value" is the context URL of the query, so it
-      // legitimately differs between the original and the case-folded query. Ignore all
-      // link "value" properties to avoid -10403 false positives.
-      stripLinkValues(httpResponseJson);
-      stripLinkValues(httpsResponseJson);
-
+      // Links: "value" and "href" ignored; rel/type compared case-insensitively (CaseFoldingJsonComparator).
       if (jsonComparator.compare(httpResponseJson, httpsResponseJson) != ZERO) {
         addCaseFoldingMismatch(uri, httpResponse.statusCode());
         return false;
@@ -140,28 +140,94 @@ public class DomainCaseFoldingValidation extends ProfileValidation {
   }
 
   /**
-   * Recursively removes the "value" property from every object inside any "links" array.
-   * The link "value" echoes the queried URL and must be ignored when comparing the
-   * original response against the case-folded response.
+   * RDAP JSON comparator for -10403.
+   *
+   * <p>Rules (confirmed by Andy Newton): link "value" and "href" are ignored; link "rel" and
+   * "type" are compared with equalsIgnoreCase; other link properties use the generic
+   * (case-insensitive) comparison.
+   * Arrays are compared as multisets without the strict pre-deduplication of the base class,
+   * so elements that differ only by an ignored property are still paired one-to-one.</p>
    */
-  static void stripLinkValues(JsonNode node) {
-    if (node == null) {
-      return;
-    }
-    if (node.isObject()) {
-      JsonNode links = node.get("links");
-      if (links != null && links.isArray()) {
-        links.forEach(link -> {
-          if (link.isObject()) {
-            ((ObjectNode) link).remove("value");
-          }
-        });
+  static class CaseFoldingJsonComparator extends RDAPJsonComparator {
+
+    private static final String LINKS = "links";
+    private static final List<String> IGNORED_LINK_PROPERTIES = List.of("value", "href");
+    private static final List<String> CASE_INSENSITIVE_LINK_PROPERTIES = List.of("rel", "type");
+
+    @Override
+    protected int compareNested(String key, JsonNode n1, JsonNode n2) {
+      if (LINKS.equals(key) && n1.isArray() && n2.isArray()) {
+        return matchAll(n1, n2, this::linksEqual);
       }
-      node.fields().forEachRemaining(entry -> stripLinkValues(entry.getValue()));
-    } else if (node.isArray()) {
-      node.forEach(DomainCaseFoldingValidation::stripLinkValues);
-    } else {
-      // Scalar node: nothing to strip
+      return super.compareNested(key, n1, n2);
+    }
+
+    @Override
+    protected int compareArrays(ArrayNode a1, ArrayNode a2) {
+      return matchAll(a1, a2, (e1, e2) -> compare(e1, e2) == 0);
+    }
+
+    /** One-to-one matching of two arrays, ignoring order and skipping ignored events. */
+    private int matchAll(JsonNode a1, JsonNode a2, BiPredicate<JsonNode, JsonNode> equal) {
+      List<JsonNode> l1 = kept(a1);
+      List<JsonNode> l2 = kept(a2);
+      if (l1.size() != l2.size()) {
+        return 1;
+      }
+      for (JsonNode e1 : l1) {
+        Iterator<JsonNode> it = l2.iterator();
+        boolean matched = false;
+        while (it.hasNext()) {
+          if (equal.test(e1, it.next())) {
+            it.remove();
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          return 1;
+        }
+      }
+      return 0;
+    }
+
+    private List<JsonNode> kept(JsonNode array) {
+      List<JsonNode> list = new ArrayList<>();
+      array.forEach(e -> {
+        if (shouldAddElement(e)) {
+          list.add(e);
+        }
+      });
+      return list;
+    }
+
+    boolean linksEqual(JsonNode link1, JsonNode link2) {
+      if (!link1.isObject() || !link2.isObject()) {
+        return compare(link1, link2) == 0;
+      }
+      for (String property : CASE_INSENSITIVE_LINK_PROPERTIES) {
+        if (!textEqualsIgnoreCase(link1.get(property), link2.get(property))) {
+          return false;
+        }
+      }
+      return compare(withoutLinkRuleProperties((ObjectNode) link1),
+          withoutLinkRuleProperties((ObjectNode) link2)) == 0;
+    }
+
+    private static boolean textEqualsIgnoreCase(JsonNode v1, JsonNode v2) {
+      boolean absent1 = v1 == null || v1.isNull();
+      boolean absent2 = v2 == null || v2.isNull();
+      if (absent1 || absent2) {
+        return absent1 && absent2;
+      }
+      return v1.asText().equalsIgnoreCase(v2.asText());
+    }
+
+    private static ObjectNode withoutLinkRuleProperties(ObjectNode link) {
+      ObjectNode copy = link.deepCopy();
+      copy.remove(IGNORED_LINK_PROPERTIES);
+      copy.remove(CASE_INSENSITIVE_LINK_PROPERTIES);
+      return copy;
     }
   }
 

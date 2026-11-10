@@ -1,0 +1,33 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Context Diagram for RDAP Conformance Tool (rdapct)
+
+Person(operator, "Operator / Developer", "ICANN TS engineer, registry or registrar operator running conformance checks")
+
+System_Ext(frontend, "RDAP Conformance Tool Frontend", "Web UI that embeds rdapct through RdapWebValidator")
+
+Boundary(c1, "Internal ICANN", "Org Boundary") {
+    System(rdapct, "RDAP Conformance Tool", "Executes 300+ tests against an RDAP server (RFC 7480-7484, ICANN gTLD RDAP Profile 2024) and produces a JSON results file", $link="./container.svg")
+
+    System_Ext(artifactory, "Artifactory", "ICANN-repository; stores released Maven artifacts")
+    System_Ext(jenkins, "Jenkins", "Builds, tests, publishes artifacts and runs SonarQube")
+}
+
+System_Ext(rdapserver, "Target RDAP Server", "Registry or registrar RDAP service under test")
+System_Ext(iana, "IANA Registries", "13 reference datasets (RDAP extensions, registrar IDs, bootstrap, EPP ROIDs, IP space, DNSSEC, media types, ...)")
+System_Ext(dns, "DNS Resolver", "System or custom resolver (--dns-resolver); A/AAAA lookups for the target host")
+System_Ext(github, "GitHub", "Source, Actions CI, public releases")
+
+Rel(operator, rdapct, "runs", "CLI (java -jar / Docker)")
+Rel(frontend, rdapct, "embeds", "Java API: RdapWebValidator")
+Rel(rdapct, iana, "downloads datasets", "HTTPS")
+Rel(rdapct, dns, "resolves target host", "DNS")
+Rel(rdapct, rdapserver, "queries IPv4/IPv6 x json/rdap+json", "HTTPS")
+Rel(jenkins, rdapct, "builds and tests", "Maven")
+Rel(jenkins, artifactory, "mvn deploy (master)", "HTTPS")
+Rel(github, operator, "publishes rdapct-x.y.z.jar on tag", "Release")
+
+@enduml

@@ -85,7 +85,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
     /**
      * Ignore event with action "last updateof RDAP database"
      */
-    private boolean shouldAddElement(JsonNode node) {
+    protected boolean shouldAddElement(JsonNode node) {
       if (!node.isArray() && node instanceof ObjectNode) {
         JsonNode eventAction = node.get("eventAction");
         return eventAction == null || !eventAction.asText().equals("last update of RDAP database");
@@ -118,11 +118,11 @@ public final class TigValidation1Dot2 extends ProfileValidation {
      * Use strict equality for vcardArray (jCard property order is significant)
      * and order-independent comparison for all other fields.
      */
-    private int compareNested(String key, JsonNode n1, JsonNode n2) {
+    protected int compareNested(String key, JsonNode n1, JsonNode n2) {
       if (key.equals("vcardArray")) {
         return n1.equals(n2) ? 0 : 1;
       }
-      return jsonComparator.compare(n1, n2);
+      return this.compare(n1, n2);
     }
 
     @Override
@@ -141,8 +141,14 @@ public final class TigValidation1Dot2 extends ProfileValidation {
         }
       }
 
-      ArrayNode a1 = (ArrayNode) n1;
-      ArrayNode a2 = (ArrayNode) n2;
+      return compareArrays((ArrayNode) n1, (ArrayNode) n2);
+    }
+
+    /**
+     * Order-independent array comparison. Elements are de-duplicated with strict JsonNode
+     * equality before matching (historical -20101 behaviour, kept unchanged).
+     */
+    protected int compareArrays(ArrayNode a1, ArrayNode a2) {
       Set<JsonNode> s1 = new HashSet<>();
       Set<JsonNode> s2 = new HashSet<>();
       a1.elements().forEachRemaining(e -> {
@@ -161,7 +167,7 @@ public final class TigValidation1Dot2 extends ProfileValidation {
       for (JsonNode nn1 : s1) {
         boolean match = false;
         for (JsonNode nn2 : s2) {
-          if (jsonComparator.compare(nn1, nn2) == 0) {
+          if (this.compare(nn1, nn2) == 0) {
             match = true;
             break;
           }
