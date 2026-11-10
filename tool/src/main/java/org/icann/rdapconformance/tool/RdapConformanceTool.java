@@ -15,9 +15,18 @@ import java.util.concurrent.Callable;
 import org.apache.commons.lang3.SystemUtils;
 import org.everit.json.schema.internal.IPV4Validator;
 import org.everit.json.schema.internal.IPV6Validator;
-import org.icann.rdapconformance.validator.*;
-import org.icann.rdapconformance.validator.workflow.rdap.*;
+import org.icann.rdapconformance.validator.CommonUtils;
+import org.icann.rdapconformance.validator.DNSCacheResolver;
+import org.icann.rdapconformance.validator.DomainLabelUtils;
+import org.icann.rdapconformance.validator.ProgressCallback;
+import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.ToolResult;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
+import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.slf4j.LoggerFactory;
 import org.icann.rdapconformance.tool.progress.ProgressTracker;
 import org.icann.rdapconformance.tool.progress.ProgressPhase;
@@ -86,11 +95,18 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
 @Command(name = "rdap-conformance-tool", versionProvider = org.icann.rdapconformance.tool.VersionProvider.class, mixinStandardHelpOptions = true)
 public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable<Integer> {
 
+  private static final String DEFAULT_LOG_LEVEL_PROPERTY = "defaultLogLevel";
+  private static final String RDAP_PACKAGE = "org.icann.rdapconformance";
+  private static final String PACKAGE_LOG_LEVEL_PROPERTY = "logging.level." + RDAP_PACKAGE;
+  private static final String LEVEL_ERROR = "ERROR";
+  private static final String LEVEL_INFO = "INFO";
+  private static final String LEVEL_DEBUG = "DEBUG";
+
   // Static initializer to set default log level before any logger initialization
   static {
     // Set a fallback default that will be overridden by the call() method if needed
-    if (System.getProperty("defaultLogLevel") == null) {
-      System.setProperty("defaultLogLevel", "ERROR");
+    if (System.getProperty(DEFAULT_LOG_LEVEL_PROPERTY) == null) {
+      System.setProperty(DEFAULT_LOG_LEVEL_PROPERTY, LEVEL_ERROR);
     }
   }
 
@@ -370,33 +386,33 @@ public void setShowProgress(boolean showProgress) {
       case CLI:
         // CLI mode: Keep progress bar, minimal logging (ERROR level for both root and rdapconformance)
         showProgress = true;
-        System.setProperty("defaultLogLevel", "ERROR");
-        System.setProperty("logging.level.org.icann.rdapconformance", "ERROR");
+        System.setProperty(DEFAULT_LOG_LEVEL_PROPERTY, LEVEL_ERROR);
+        System.setProperty(PACKAGE_LOG_LEVEL_PROPERTY, LEVEL_ERROR);
         break;
       case INFO:
         // INFO mode: No progress bar, INFO level for rdapconformance, ERROR for root
         showProgress = false;
-        System.setProperty("defaultLogLevel", "ERROR");
-        System.setProperty("logging.level.org.icann.rdapconformance", "INFO");
+        System.setProperty(DEFAULT_LOG_LEVEL_PROPERTY, LEVEL_ERROR);
+        System.setProperty(PACKAGE_LOG_LEVEL_PROPERTY, LEVEL_INFO);
         break;
       case DEBUG:
         // DEBUG mode: No progress bar, DEBUG level for rdapconformance, ERROR for root
         showProgress = false;
-        System.setProperty("defaultLogLevel", "ERROR");
-        System.setProperty("logging.level.org.icann.rdapconformance", "DEBUG");
+        System.setProperty(DEFAULT_LOG_LEVEL_PROPERTY, LEVEL_ERROR);
+        System.setProperty(PACKAGE_LOG_LEVEL_PROPERTY, LEVEL_DEBUG);
         break;
       case ERROR:
         // ERROR mode: No progress bar, ERROR level for both root and rdapconformance
         showProgress = false;
-        System.setProperty("defaultLogLevel", "ERROR");
-        System.setProperty("logging.level.org.icann.rdapconformance", "ERROR");
+        System.setProperty(DEFAULT_LOG_LEVEL_PROPERTY, LEVEL_ERROR);
+        System.setProperty(PACKAGE_LOG_LEVEL_PROPERTY, LEVEL_ERROR);
         break;
       case VERBOSE:
         // VERBOSE mode: No progress bar, DEBUG level for everything (legacy -v behavior)
         showProgress = false;
-        System.setProperty("defaultLogLevel", "DEBUG");
+        System.setProperty(DEFAULT_LOG_LEVEL_PROPERTY, LEVEL_DEBUG);
         // Clear package-specific setting to use root level
-        System.clearProperty("logging.level.org.icann.rdapconformance");
+        System.clearProperty(PACKAGE_LOG_LEVEL_PROPERTY);
         break;
     }
 
@@ -408,65 +424,10 @@ public void setShowProgress(boolean showProgress) {
       context.reset();
       // Use the default logback.xml from classpath
       configurator.doConfigure(getClass().getClassLoader().getResourceAsStream("logback.xml"));
-
-      // Programmatically set the root logger level
-      Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-      String rootLevel = System.getProperty("defaultLogLevel", "ERROR");
-
-      if ("DEBUG".equals(rootLevel)) {
-        root.setLevel(Level.DEBUG);
-      } else if ("INFO".equals(rootLevel)) {
-        root.setLevel(Level.INFO);
-      } else if ("WARN".equals(rootLevel)) {
-        root.setLevel(Level.WARN);
-      } else {
-        root.setLevel(Level.ERROR);
-      }
-
-      // Set package-specific logger level if specified
-      String packageLevel = System.getProperty("logging.level.org.icann.rdapconformance");
-      if (packageLevel != null) {
-        Logger packageLogger = (Logger) LoggerFactory.getLogger("org.icann.rdapconformance");
-        if ("DEBUG".equals(packageLevel)) {
-          packageLogger.setLevel(Level.DEBUG);
-        } else if ("INFO".equals(packageLevel)) {
-          packageLogger.setLevel(Level.INFO);
-        } else if ("WARN".equals(packageLevel)) {
-          packageLogger.setLevel(Level.WARN);
-        } else {
-          packageLogger.setLevel(Level.ERROR);
-        }
-      }
-
+      applyLogLevelsFromProperties();
     } catch (Exception e) {
       // Fall back to programmatic setting if reconfiguration fails
-      Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-      String rootLevel = System.getProperty("defaultLogLevel", "ERROR");
-
-      if ("DEBUG".equals(rootLevel)) {
-        root.setLevel(Level.DEBUG);
-      } else if ("INFO".equals(rootLevel)) {
-        root.setLevel(Level.INFO);
-      } else if ("WARN".equals(rootLevel)) {
-        root.setLevel(Level.WARN);
-      } else {
-        root.setLevel(Level.ERROR);
-      }
-
-      // Set package-specific logger level if specified
-      String packageLevel = System.getProperty("logging.level.org.icann.rdapconformance");
-      if (packageLevel != null) {
-        Logger packageLogger = (Logger) LoggerFactory.getLogger("org.icann.rdapconformance");
-        if ("DEBUG".equals(packageLevel)) {
-          packageLogger.setLevel(Level.DEBUG);
-        } else if ("INFO".equals(packageLevel)) {
-          packageLogger.setLevel(Level.INFO);
-        } else if ("WARN".equals(packageLevel)) {
-          packageLogger.setLevel(Level.WARN);
-        } else {
-          packageLogger.setLevel(Level.ERROR);
-        }
-      }
+      applyLogLevelsFromProperties();
     }
 
     // these must be set before we do anything else
@@ -726,6 +687,35 @@ public void setShowProgress(boolean showProgress) {
       // else we are validating a file
       return validateWithoutNetwork(resultFile, validator);
     }
+  }
+
+  /**
+   * Applies root and rdapconformance package log levels from the system properties
+   * set in {@link #call()}.
+   */
+  private static void applyLogLevelsFromProperties() {
+    Logger root = (Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    root.setLevel(toLogbackLevel(System.getProperty(DEFAULT_LOG_LEVEL_PROPERTY, LEVEL_ERROR)));
+
+    String packageLevel = System.getProperty(PACKAGE_LOG_LEVEL_PROPERTY);
+    if (packageLevel != null) {
+      Logger packageLogger = (Logger) LoggerFactory.getLogger(RDAP_PACKAGE);
+      packageLogger.setLevel(toLogbackLevel(packageLevel));
+    }
+  }
+
+  /** Maps DEBUG/INFO/WARN to the logback level; anything else falls back to ERROR. */
+  static Level toLogbackLevel(String level) {
+    if (LEVEL_DEBUG.equals(level)) {
+      return Level.DEBUG;
+    }
+    if (LEVEL_INFO.equals(level)) {
+      return Level.INFO;
+    }
+    if ("WARN".equals(level)) {
+      return Level.WARN;
+    }
+    return Level.ERROR;
   }
 
   /**

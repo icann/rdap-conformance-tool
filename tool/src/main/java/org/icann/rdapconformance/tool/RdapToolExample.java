@@ -8,7 +8,7 @@ import java.util.List;
 
 public class RdapToolExample {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         RdapConformanceTool tool = new RdapConformanceTool();
 
         // Required parameters
@@ -39,7 +39,13 @@ public class RdapToolExample {
         tool.setGtldRegistry(true);
 
         // Run the tool
-        int result = tool.call();
+        int result;
+        try {
+            result = tool.call();
+        } catch (Exception e) {
+            System.err.println("RDAP conformance tool failed: " + e.getMessage());
+            return;
+        }
         System.out.println("Exit code: " + result);
         
         // Get and display validation errors

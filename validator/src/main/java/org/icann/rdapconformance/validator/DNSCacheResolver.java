@@ -3,8 +3,8 @@ package org.icann.rdapconformance.validator;
 import static org.icann.rdapconformance.validator.CommonUtils.DASH;
 import static org.icann.rdapconformance.validator.CommonUtils.DOT;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
-import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
-import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv6;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPV4;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPV6;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
@@ -139,8 +139,8 @@ public class DNSCacheResolver {
                 simpleResolver.setTimeout(Duration.ofSeconds(DNS_TIMEOUT_SECONDS));
 
                 // Skip health check for localhost IPs (used for testing)
-                boolean isLocalhost = customDnsServer.equals(CommonUtils.LOCAL_IPv4) ||
-                                     customDnsServer.equals(CommonUtils.LOCAL_IPv6_COMPRESSED) ||
+                boolean isLocalhost = customDnsServer.equals(CommonUtils.LOCAL_IPV4) ||
+                                     customDnsServer.equals(CommonUtils.LOCAL_IPV6_COMPRESSED) ||
                                      customDnsServer.equals(CommonUtils.LOCALHOST);
 
                 // IMPORTANT: Test if the resolver is actually reachable (unless it's localhost)
@@ -281,24 +281,24 @@ public class DNSCacheResolver {
             return;
         }
 
-        if (fqdn.equals(LOCAL_IPv4 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
+        if (fqdn.equals(LOCAL_IPV4 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
             logger.debug("Handling special-case loopback (IPv4) for {}", fqdn);
             try {
-                cacheV4.put(fqdn, List.of(InetAddress.getByName(CommonUtils.LOCAL_IPv4)));
+                cacheV4.put(fqdn, List.of(InetAddress.getByName(CommonUtils.LOCAL_IPV4)));
             } catch (Exception e) {
-                logger.debug("Failed to handle {}", CommonUtils.LOCAL_IPv4, e);
+                logger.debug("Failed to handle {}", CommonUtils.LOCAL_IPV4, e);
                 cacheV4.put(fqdn, List.of());
             }
         } else {
             cacheV4.put(fqdn, resolveWithCNAMEChain(fqdn, Type.A));
         }
 
-        if (fqdn.equals(LOCAL_IPv6 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
+        if (fqdn.equals(LOCAL_IPV6 + DOT) || fqdn.equals(LOCALHOST + DOT)) {
             logger.debug("Handling special-case loopback (IPv6) for {}", fqdn);
             try {
-                cacheV6.put(fqdn, List.of(InetAddress.getByName(CommonUtils.LOCAL_IPv6_COMPRESSED)));
+                cacheV6.put(fqdn, List.of(InetAddress.getByName(CommonUtils.LOCAL_IPV6_COMPRESSED)));
             } catch (Exception e) {
-                logger.debug("Failed to handle {}", CommonUtils.LOCAL_IPv6_COMPRESSED, e);
+                logger.debug("Failed to handle {}", CommonUtils.LOCAL_IPV6_COMPRESSED, e);
                 cacheV6.put(fqdn, List.of());
             }
         } else {

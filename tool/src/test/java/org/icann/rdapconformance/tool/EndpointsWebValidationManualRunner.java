@@ -3,17 +3,16 @@ package org.icann.rdapconformance.tool;
 import java.net.URI;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.testng.annotations.Ignore;
 
 /**
  * Comprehensive test that actually performs validation against real RDAP endpoints.
  * This test makes real network calls and shows actual validation results.
  *
  * This test is ignored for CI runs as it requires network connectivity to real RDAP endpoints.
- * To run this test manually, remove the @Ignore annotation or run it directly.
+ * Not a TestNG test: run its main() method manually.
  */
-@Ignore("Network-dependent test for manual execution only")
-public class EndpointsWebValidationTest {
+
+public class EndpointsWebValidationManualRunner {
 
     // Real RDAP endpoints for testing
     private static final TestEndpoint[] TEST_ENDPOINTS = {

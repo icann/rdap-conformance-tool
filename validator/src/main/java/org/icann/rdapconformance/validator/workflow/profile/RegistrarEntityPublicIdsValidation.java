@@ -12,7 +12,7 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
 
   protected final RDAPQueryType queryType;
   protected final QueryContext queryContext;
-  final int code;
+  protected final int code;
 
 
   // QueryContext constructor for production use
@@ -21,6 +21,10 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
     this.queryType = queryContext.getQueryType();
     this.queryContext = queryContext;
     this.code = code;
+  }
+
+  public int getCode() {
+    return code;
   }
 
   protected Set<String> getRegistrarEntitiesJsonPointers() {

@@ -12,7 +12,6 @@ import org.json.JSONObject;
 public abstract class RegistrarEntityValidation extends
     RegistrarEntityPublicIdsValidation {
 
-  protected final int code;
   private final RDAPDatasetService datasetService;
 
 
@@ -21,7 +20,6 @@ public abstract class RegistrarEntityValidation extends
       RDAPDatasetService datasetService, int code) {
     super(queryContext, code);
     this.datasetService = datasetService;
-    this.code = code;
   }
 
   @Override
