@@ -57,11 +57,7 @@ public class JsonCacheUtil {
             return cached;
         }
         
-        // Check for potential duplicate keys ONLY when creating new entries
-        if (hasPotentialDuplicateKeys(content)) {
-            return new JSONObject(content);
-        }
-        
+        // Duplicate keys are detected by the JSONObject constructor (throws JSONException)
         // Only use computeIfAbsent for actual creation to reduce contention
         return jsonObjectCache.computeIfAbsent(contentHash, key -> {
             // Simple cache size check - let ConcurrentHashMap handle eviction
@@ -79,18 +75,6 @@ public class JsonCacheUtil {
                 throw new RuntimeException(e.getMessage(), e);  // propagate as unchecked to avoid wrapping in RuntimeException at call site
             }
         });
-    }
-    
-    /**
-     * Simple heuristic to detect potential duplicate keys in JSON content.
-     * This is used to avoid caching content that might contain duplicate keys,
-     * which would suppress JSONException for duplicate key detection.
-     */
-    private static boolean hasPotentialDuplicateKeys(String content) {
-        // For performance, we'll skip duplicate key detection entirely
-        // The JSONObject constructor will throw JSONException if duplicates exist
-        // This avoids expensive regex matching on every parse
-        return false;
     }
     
     /**

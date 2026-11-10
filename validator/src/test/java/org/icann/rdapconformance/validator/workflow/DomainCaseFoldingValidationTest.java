@@ -707,4 +707,159 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
         "RDAP responses do not match when handling domain label case folding.");
   }
 
+  // ---------------------------------------------------------------------------
+  // Coverage: null response, invalid JSON, relative redirect, redirect statuses
+  // ---------------------------------------------------------------------------
+
+  private static final String MISMATCH_MESSAGE =
+      "RDAP responses do not match when handling domain label case folding.";
+
+  @Test
+  public void testDoValidateNoRedirectsAllowedNullResponseShouldFail() {
+    WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    givenUri("http");
+    doReturn(0).when(config).getMaxRedirects();
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+
+    // maxRedirects == 0 -> no request is made -> null response
+    validateNotOk(results, -10403,
+        config.getUri().resolve("/domain/tEsT.ExAmPlE").toString(), MISMATCH_MESSAGE);
+  }
+
+  @Test
+  public void testDoValidateInvalidJsonShouldFail() {
+    WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+
+    stubFor(get(urlEqualTo(caseFoldedPath))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/rdap+json")
+            .withBody("{not valid json")));
+
+    validateNotOk(results, -10403,
+        config.getUri().resolve(caseFoldedPath).toString(), MISMATCH_MESSAGE);
+  }
+
+  @Test
+  public void testRedirectHandlingRelativeLocationShouldPass() {
+    WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+
+    stubFor(get(urlEqualTo("/domain/tEsT.ExAmPlE"))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withStatus(307)
+            .withHeader("Location", "/domain/test.example")));
+    stubFor(get(urlEqualTo("/domain/test.example"))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/rdap+json")
+            .withBody(RDAP_RESPONSE)));
+
+    validateOk(results);
+  }
+
+  @Test
+  public void testIsRedirectStatusAllCodes() throws Exception {
+    DomainCaseFoldingValidation validator =
+        new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
+    java.lang.reflect.Method m =
+        DomainCaseFoldingValidation.class.getDeclaredMethod("isRedirectStatus", int.class);
+    m.setAccessible(true);
+
+    for (int code : new int[] {301, 302, 303, 307, 308}) {
+      assertThat((boolean) m.invoke(validator, code)).as("status %d", code).isTrue();
+    }
+    for (int code : new int[] {200, 304, 404}) {
+      assertThat((boolean) m.invoke(validator, code)).as("status %d", code).isFalse();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Coverage: CaseFoldingJsonComparator edge cases
+  // ---------------------------------------------------------------------------
+
+  private static com.fasterxml.jackson.databind.JsonNode json(String s) throws Exception {
+    return new com.fasterxml.jackson.databind.ObjectMapper().readTree(s);
+  }
+
+  private static int cmp(String a, String b) throws Exception {
+    return new DomainCaseFoldingValidation.CaseFoldingJsonComparator().compare(json(a), json(b));
+  }
+
+  @Test
+  public void testComparatorLinksNotArrayUsesGenericComparison() throws Exception {
+    assertThat(cmp("{\"links\":\"A\"}", "{\"links\":\"a\"}"))
+        .as("non-array links compared case-insensitively").isZero();
+    assertThat(cmp("{\"links\":[\"x\"]}", "{\"links\":\"x\"}"))
+        .as("array vs non-array links").isNotZero();
+  }
+
+  @Test
+  public void testComparatorArraysDifferentSizeShouldFail() throws Exception {
+    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":1}]"))
+        .as("generic arrays of different size").isNotZero();
+    assertThat(cmp("{\"links\":[{\"rel\":\"self\"},{\"rel\":\"about\"}]}",
+        "{\"links\":[{\"rel\":\"self\"}]}"))
+        .as("links arrays of different size").isNotZero();
+  }
+
+  @Test
+  public void testComparatorArraysUnmatchedElementShouldFail() throws Exception {
+    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":2},{\"a\":3}]"))
+        .as("arrays with an unmatched element").isNotZero();
+    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":2},{\"a\":1}]"))
+        .as("same elements in different order").isZero();
+  }
+
+  @Test
+  public void testComparatorNonObjectLinks() throws Exception {
+    assertThat(cmp("{\"links\":[\"ABC\"]}", "{\"links\":[\"abc\"]}"))
+        .as("text links differing only by case").isZero();
+    assertThat(cmp("{\"links\":[{\"rel\":\"x\"}]}", "{\"links\":[\"x\"]}"))
+        .as("object link vs text link").isNotZero();
+    assertThat(cmp("{\"links\":[\"x\"]}", "{\"links\":[{\"rel\":\"x\"}]}"))
+        .as("text link vs object link").isNotZero();
+  }
+
+  @Test
+  public void testComparatorOtherLinkPropertyDiffersShouldFail() throws Exception {
+    assertThat(cmp("{\"links\":[{\"rel\":\"self\",\"title\":\"A\"}]}",
+        "{\"links\":[{\"rel\":\"self\",\"title\":\"B\"}]}"))
+        .as("links with different title").isNotZero();
+  }
+
+  @Test
+  public void testComparatorMissingOrNullRelAndType() throws Exception {
+    assertThat(cmp("{\"links\":[{\"title\":\"t\"}]}", "{\"links\":[{\"title\":\"t\"}]}"))
+        .as("rel/type absent on both sides").isZero();
+    assertThat(cmp("{\"links\":[{\"rel\":null,\"title\":\"t\"}]}",
+        "{\"links\":[{\"title\":\"t\"}]}"))
+        .as("rel null vs rel absent").isZero();
+    assertThat(cmp("{\"links\":[{\"title\":\"t\"}]}",
+        "{\"links\":[{\"rel\":\"self\",\"title\":\"t\"}]}"))
+        .as("rel absent only on first link").isNotZero();
+    assertThat(cmp("{\"links\":[{\"rel\":\"self\",\"title\":\"t\"}]}",
+        "{\"links\":[{\"title\":\"t\"}]}"))
+        .as("rel absent only on second link").isNotZero();
+  }
+
 }
