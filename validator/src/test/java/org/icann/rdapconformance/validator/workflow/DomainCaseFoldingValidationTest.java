@@ -715,7 +715,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
       "RDAP responses do not match when handling domain label case folding.";
 
   @Test
-  public void testDoValidate_NoRedirectsAllowed_NullResponse_ShouldFail() {
+  public void testDoValidateNoRedirectsAllowedNullResponseShouldFail() {
     WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
@@ -731,7 +731,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   }
 
   @Test
-  public void testDoValidate_InvalidJson_ShouldFail() {
+  public void testDoValidateInvalidJsonShouldFail() {
     WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
@@ -753,7 +753,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   }
 
   @Test
-  public void testRedirectHandling_RelativeLocation_ShouldPass() {
+  public void testRedirectHandlingRelativeLocationShouldPass() {
     WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
     prepareWiremock(wmConfig);
 
@@ -778,7 +778,7 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   }
 
   @Test
-  public void testIsRedirectStatus_AllCodes() throws Exception {
+  public void testIsRedirectStatusAllCodes() throws Exception {
     DomainCaseFoldingValidation validator =
         new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
     java.lang.reflect.Method m =
@@ -806,48 +806,60 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
   }
 
   @Test
-  public void testComparator_LinksNotArray_UsesGenericComparison() throws Exception {
-    assertThat(cmp("{\"links\":\"A\"}", "{\"links\":\"a\"}")).isZero();
-    assertThat(cmp("{\"links\":[\"x\"]}", "{\"links\":\"x\"}")).isNotZero();
+  public void testComparatorLinksNotArrayUsesGenericComparison() throws Exception {
+    assertThat(cmp("{\"links\":\"A\"}", "{\"links\":\"a\"}"))
+        .as("non-array links compared case-insensitively").isZero();
+    assertThat(cmp("{\"links\":[\"x\"]}", "{\"links\":\"x\"}"))
+        .as("array vs non-array links").isNotZero();
   }
 
   @Test
-  public void testComparator_ArraysDifferentSize_ShouldFail() throws Exception {
-    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":1}]")).isNotZero();
+  public void testComparatorArraysDifferentSizeShouldFail() throws Exception {
+    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":1}]"))
+        .as("generic arrays of different size").isNotZero();
     assertThat(cmp("{\"links\":[{\"rel\":\"self\"},{\"rel\":\"about\"}]}",
-        "{\"links\":[{\"rel\":\"self\"}]}")).isNotZero();
+        "{\"links\":[{\"rel\":\"self\"}]}"))
+        .as("links arrays of different size").isNotZero();
   }
 
   @Test
-  public void testComparator_ArraysUnmatchedElement_ShouldFail() throws Exception {
-    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":2},{\"a\":3}]")).isNotZero();
-    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":2},{\"a\":1}]")).isZero();
+  public void testComparatorArraysUnmatchedElementShouldFail() throws Exception {
+    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":2},{\"a\":3}]"))
+        .as("arrays with an unmatched element").isNotZero();
+    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":2},{\"a\":1}]"))
+        .as("same elements in different order").isZero();
   }
 
   @Test
-  public void testComparator_NonObjectLinks() throws Exception {
-    assertThat(cmp("{\"links\":[\"ABC\"]}", "{\"links\":[\"abc\"]}")).isZero();
-    assertThat(cmp("{\"links\":[{\"rel\":\"x\"}]}", "{\"links\":[\"x\"]}")).isNotZero();
-    assertThat(cmp("{\"links\":[\"x\"]}", "{\"links\":[{\"rel\":\"x\"}]}")).isNotZero();
+  public void testComparatorNonObjectLinks() throws Exception {
+    assertThat(cmp("{\"links\":[\"ABC\"]}", "{\"links\":[\"abc\"]}"))
+        .as("text links differing only by case").isZero();
+    assertThat(cmp("{\"links\":[{\"rel\":\"x\"}]}", "{\"links\":[\"x\"]}"))
+        .as("object link vs text link").isNotZero();
+    assertThat(cmp("{\"links\":[\"x\"]}", "{\"links\":[{\"rel\":\"x\"}]}"))
+        .as("text link vs object link").isNotZero();
   }
 
   @Test
-  public void testComparator_OtherLinkPropertyDiffers_ShouldFail() throws Exception {
+  public void testComparatorOtherLinkPropertyDiffersShouldFail() throws Exception {
     assertThat(cmp("{\"links\":[{\"rel\":\"self\",\"title\":\"A\"}]}",
-        "{\"links\":[{\"rel\":\"self\",\"title\":\"B\"}]}")).isNotZero();
+        "{\"links\":[{\"rel\":\"self\",\"title\":\"B\"}]}"))
+        .as("links with different title").isNotZero();
   }
 
   @Test
-  public void testComparator_MissingOrNullRelAndType() throws Exception {
-    // both absent / null -> equal
-    assertThat(cmp("{\"links\":[{\"title\":\"t\"}]}", "{\"links\":[{\"title\":\"t\"}]}")).isZero();
+  public void testComparatorMissingOrNullRelAndType() throws Exception {
+    assertThat(cmp("{\"links\":[{\"title\":\"t\"}]}", "{\"links\":[{\"title\":\"t\"}]}"))
+        .as("rel/type absent on both sides").isZero();
     assertThat(cmp("{\"links\":[{\"rel\":null,\"title\":\"t\"}]}",
-        "{\"links\":[{\"title\":\"t\"}]}")).isZero();
-    // only one side absent -> different
+        "{\"links\":[{\"title\":\"t\"}]}"))
+        .as("rel null vs rel absent").isZero();
     assertThat(cmp("{\"links\":[{\"title\":\"t\"}]}",
-        "{\"links\":[{\"rel\":\"self\",\"title\":\"t\"}]}")).isNotZero();
+        "{\"links\":[{\"rel\":\"self\",\"title\":\"t\"}]}"))
+        .as("rel absent only on first link").isNotZero();
     assertThat(cmp("{\"links\":[{\"rel\":\"self\",\"title\":\"t\"}]}",
-        "{\"links\":[{\"title\":\"t\"}]}")).isNotZero();
+        "{\"links\":[{\"title\":\"t\"}]}"))
+        .as("rel absent only on second link").isNotZero();
   }
 
 }
