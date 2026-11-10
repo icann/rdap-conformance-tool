@@ -707,4 +707,147 @@ public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements
         "RDAP responses do not match when handling domain label case folding.");
   }
 
+  // ---------------------------------------------------------------------------
+  // Coverage: null response, invalid JSON, relative redirect, redirect statuses
+  // ---------------------------------------------------------------------------
+
+  private static final String MISMATCH_MESSAGE =
+      "RDAP responses do not match when handling domain label case folding.";
+
+  @Test
+  public void testDoValidate_NoRedirectsAllowed_NullResponse_ShouldFail() {
+    WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    givenUri("http");
+    doReturn(0).when(config).getMaxRedirects();
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+
+    // maxRedirects == 0 -> no request is made -> null response
+    validateNotOk(results, -10403,
+        config.getUri().resolve("/domain/tEsT.ExAmPlE").toString(), MISMATCH_MESSAGE);
+  }
+
+  @Test
+  public void testDoValidate_InvalidJson_ShouldFail() {
+    WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    String caseFoldedPath = "/domain/tEsT.ExAmPlE";
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+
+    stubFor(get(urlEqualTo(caseFoldedPath))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/rdap+json")
+            .withBody("{not valid json")));
+
+    validateNotOk(results, -10403,
+        config.getUri().resolve(caseFoldedPath).toString(), MISMATCH_MESSAGE);
+  }
+
+  @Test
+  public void testRedirectHandling_RelativeLocation_ShouldPass() {
+    WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
+    prepareWiremock(wmConfig);
+
+    givenUri("http");
+    doReturn(config.getUri()).when(httpsResponse).uri();
+    doReturn(200).when(httpsResponse).statusCode();
+    doReturn(RDAP_RESPONSE).when(httpsResponse).body();
+
+    stubFor(get(urlEqualTo("/domain/tEsT.ExAmPlE"))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withStatus(307)
+            .withHeader("Location", "/domain/test.example")));
+    stubFor(get(urlEqualTo("/domain/test.example"))
+        .withScheme("http")
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/rdap+json")
+            .withBody(RDAP_RESPONSE)));
+
+    validateOk(results);
+  }
+
+  @Test
+  public void testIsRedirectStatus_AllCodes() throws Exception {
+    DomainCaseFoldingValidation validator =
+        new DomainCaseFoldingValidation(httpsResponse, queryContext, RDAPQueryType.DOMAIN);
+    java.lang.reflect.Method m =
+        DomainCaseFoldingValidation.class.getDeclaredMethod("isRedirectStatus", int.class);
+    m.setAccessible(true);
+
+    for (int code : new int[] {301, 302, 303, 307, 308}) {
+      assertThat((boolean) m.invoke(validator, code)).as("status %d", code).isTrue();
+    }
+    for (int code : new int[] {200, 304, 404}) {
+      assertThat((boolean) m.invoke(validator, code)).as("status %d", code).isFalse();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Coverage: CaseFoldingJsonComparator edge cases
+  // ---------------------------------------------------------------------------
+
+  private static com.fasterxml.jackson.databind.JsonNode json(String s) throws Exception {
+    return new com.fasterxml.jackson.databind.ObjectMapper().readTree(s);
+  }
+
+  private static int cmp(String a, String b) throws Exception {
+    return new DomainCaseFoldingValidation.CaseFoldingJsonComparator().compare(json(a), json(b));
+  }
+
+  @Test
+  public void testComparator_LinksNotArray_UsesGenericComparison() throws Exception {
+    assertThat(cmp("{\"links\":\"A\"}", "{\"links\":\"a\"}")).isZero();
+    assertThat(cmp("{\"links\":[\"x\"]}", "{\"links\":\"x\"}")).isNotZero();
+  }
+
+  @Test
+  public void testComparator_ArraysDifferentSize_ShouldFail() throws Exception {
+    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":1}]")).isNotZero();
+    assertThat(cmp("{\"links\":[{\"rel\":\"self\"},{\"rel\":\"about\"}]}",
+        "{\"links\":[{\"rel\":\"self\"}]}")).isNotZero();
+  }
+
+  @Test
+  public void testComparator_ArraysUnmatchedElement_ShouldFail() throws Exception {
+    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":2},{\"a\":3}]")).isNotZero();
+    assertThat(cmp("[{\"a\":1},{\"a\":2}]", "[{\"a\":2},{\"a\":1}]")).isZero();
+  }
+
+  @Test
+  public void testComparator_NonObjectLinks() throws Exception {
+    assertThat(cmp("{\"links\":[\"ABC\"]}", "{\"links\":[\"abc\"]}")).isZero();
+    assertThat(cmp("{\"links\":[{\"rel\":\"x\"}]}", "{\"links\":[\"x\"]}")).isNotZero();
+    assertThat(cmp("{\"links\":[\"x\"]}", "{\"links\":[{\"rel\":\"x\"}]}")).isNotZero();
+  }
+
+  @Test
+  public void testComparator_OtherLinkPropertyDiffers_ShouldFail() throws Exception {
+    assertThat(cmp("{\"links\":[{\"rel\":\"self\",\"title\":\"A\"}]}",
+        "{\"links\":[{\"rel\":\"self\",\"title\":\"B\"}]}")).isNotZero();
+  }
+
+  @Test
+  public void testComparator_MissingOrNullRelAndType() throws Exception {
+    // both absent / null -> equal
+    assertThat(cmp("{\"links\":[{\"title\":\"t\"}]}", "{\"links\":[{\"title\":\"t\"}]}")).isZero();
+    assertThat(cmp("{\"links\":[{\"rel\":null,\"title\":\"t\"}]}",
+        "{\"links\":[{\"title\":\"t\"}]}")).isZero();
+    // only one side absent -> different
+    assertThat(cmp("{\"links\":[{\"title\":\"t\"}]}",
+        "{\"links\":[{\"rel\":\"self\",\"title\":\"t\"}]}")).isNotZero();
+    assertThat(cmp("{\"links\":[{\"rel\":\"self\",\"title\":\"t\"}]}",
+        "{\"links\":[{\"title\":\"t\"}]}")).isNotZero();
+  }
+
 }
