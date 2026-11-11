@@ -49,7 +49,7 @@ import static org.testng.Assert.*;
  */
 public class ConcurrencyIsolationTest {
 
-    // Real RDAP endpoints for concurrency testing (from EndpointsWebValidationTest)
+    // Real RDAP endpoints for concurrency testing (from EndpointsWebValidationManualRunner)
     private static final TestEndpoint[] REAL_ENDPOINTS = {
         new TestEndpoint("https://rdap.publicinterestregistry.org/rdap/domain/wikipedia.org", true, false, "PIR Registry", "wikipedia.org"),
         new TestEndpoint("https://rdap.verisign.com/net/v1/domain/google.net", true, false, "Verisign Registry", "google.net"),
@@ -121,22 +121,26 @@ public class ConcurrencyIsolationTest {
 
                         // Each thread validates a different real endpoint
                         // This creates maximum opportunity for cross-contamination if isolation fails
-                        RdapWebValidator validator = new RdapWebValidator(
+                        try (RdapWebValidator validator = new RdapWebValidator(
                             URI.create(endpoint.uri),
                             endpoint.isRegistry,
                             endpoint.isRegistrar,
                             true // use local datasets
-                        );
+                        )) {
+                            // Perform validation - this makes real network calls
+                            RDAPValidatorResults results = validator.validate();
 
-                        // Perform validation - this makes real network calls
-                        RDAPValidatorResults results = validator.validate();
+                            // Extract semantic content for verification
+                            ValidationData data = extractValidationData(endpoint, results, validator);
 
-                        // Extract semantic content for verification
-                        ValidationData data = extractValidationData(endpoint, results, validator);
+                            threadResults.put(threadId, data);
+                            System.out.println("Thread " + threadId + " completed: " + results.getResultCount() + " results");
+                        }
 
-                        threadResults.put(threadId, data);
-                        System.out.println("Thread " + threadId + " completed: " + results.getResultCount() + " results");
-
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        System.err.println("Thread " + threadId + " interrupted");
+                        testFailure.set(e);
                     } catch (Exception e) {
                         System.err.println("Thread " + threadId + " failed: " + e.getMessage());
                         testFailure.set(e);
@@ -214,17 +218,20 @@ public class ConcurrencyIsolationTest {
 
                     // OLD CODE: Thread B's config would overwrite Thread A's config
                     // NEW CODE: Each validator maintains its own configuration
-                    RdapWebValidator validator = new RdapWebValidator(
+                    try (RdapWebValidator validator = new RdapWebValidator(
                         URI.create("https://rdap.example.com/domain/" + threadId + ".example"),
                         shouldBeRegistry,  // Registry flag
                         !shouldBeRegistry, // Registrar flag (opposite)
                         true
-                    );
+                    )) {
+                        // Verify configuration is preserved (not contaminated by other threads)
+                        boolean actualIsRegistry = validator.getQueryContext().getConfig().isGtldRegistry();
+                        registryResults.put(threadId, actualIsRegistry);
+                    }
 
-                    // Verify configuration is preserved (not contaminated by other threads)
-                    boolean actualIsRegistry = validator.getQueryContext().getConfig().isGtldRegistry();
-                    registryResults.put(threadId, actualIsRegistry);
-
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    testFailure.set(e);
                 } catch (Exception e) {
                     testFailure.set(e);
                 } finally {

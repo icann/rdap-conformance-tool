@@ -52,6 +52,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.*;
  */
 public class ConnectionTracker {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionTracker.class);
+    private static final String REDIRECT_FOLLOW_TAG = " [REDIRECT_FOLLOW]";
     private final List<ConnectionRecord> connections;
     private final Map<String, ConnectionRecord> connectionsByTrackingId;
     private ConnectionRecord currentConnection;
@@ -427,7 +428,7 @@ public class ConnectionTracker {
             if (record.getRedirectedToId() != null) {
                 ConnectionRecord followUp = connectionsByTrackingId.get(record.getRedirectedToId());
                 if (followUp != null) {
-                    sb.append("  └─► ").append(followUp.toStringWithoutRedirectStatus()).append(" [REDIRECT_FOLLOW]").append("\n");
+                    sb.append("  └─► ").append(followUp.toStringWithoutRedirectStatus()).append(REDIRECT_FOLLOW_TAG).append("\n");
                     displayedAsFollows.add(followUp.getTrackingId());
                 }
             }
@@ -445,7 +446,7 @@ public class ConnectionTracker {
         if (record.getRedirectedToId() != null) {
             return " [REDIRECTED]";
         } else if (record.isRedirectFollow()) {
-            return " [REDIRECT_FOLLOW]";
+            return REDIRECT_FOLLOW_TAG;
         }
         return "";
     }
@@ -686,7 +687,7 @@ public class ConnectionTracker {
             if (redirectedToId != null) {
                 redirectStatus = " [REDIRECTED]";
             } else if (isRedirectFollow) {
-                redirectStatus = " [REDIRECT_FOLLOW]";
+                redirectStatus = REDIRECT_FOLLOW_TAG;
             }
             
             return toStringWithoutRedirectStatus() + redirectStatus;

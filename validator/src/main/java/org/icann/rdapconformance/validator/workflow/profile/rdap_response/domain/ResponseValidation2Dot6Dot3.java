@@ -6,12 +6,12 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 
 public final class ResponseValidation2Dot6Dot3 extends NoticesValidation {
 
-  final static String TITLE = "Status Codes";
-  final static String DESCRIPTION = "For more information on domain status codes, please visit https://icann.org/epp";
-  final static String HREF = "https://icann.org/epp";
+  static final String NOTICE_TITLE = "Status Codes";
+  static final String NOTICE_DESCRIPTION = "For more information on domain status codes, please visit https://icann.org/epp";
+  static final String NOTICE_HREF = "https://icann.org/epp";
 
   public ResponseValidation2Dot6Dot3(QueryContext queryContext) {
-    super(queryContext, TITLE, DESCRIPTION, HREF, -46600);
+    super(queryContext, NOTICE_TITLE, NOTICE_DESCRIPTION, NOTICE_HREF, -46600);
   }
 
   @Override

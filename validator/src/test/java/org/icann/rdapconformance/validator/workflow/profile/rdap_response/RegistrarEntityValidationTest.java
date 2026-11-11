@@ -43,7 +43,7 @@ public abstract class RegistrarEntityValidationTest extends RegistrarEntityPubli
   @Test
   public void testValidate_RegistrarEntityWithHandleNotAPositiveInteger_AddResults47402() {
     replaceValue("$['entities'][0]['handle']", "abc");
-    validate(getRegistrarEntityValidation().code - 2, String.format(
+    validate(getRegistrarEntityValidation().getCode() - 2, String.format(
         "#/entities/0:{\"objectClassName\":\"entity\",\"publicIds\":[{\"identifier\":\"292\","
             + "\"type\":\"IANA Registrar ID\"}],\"vcardArray\":[\"vcard\","
             + "[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Inc.\"]]],%s"
@@ -54,7 +54,7 @@ public abstract class RegistrarEntityValidationTest extends RegistrarEntityPubli
   @Test
   public void testValidate_PublicIdsIdentifierNotEqualsHandle_AddResults47403() {
     replaceValue("$['entities'][0]['publicIds'][0]['identifier']", "293");
-    validate(getRegistrarEntityValidation().code - 3, String.format(
+    validate(getRegistrarEntityValidation().getCode() - 3, String.format(
         "{\"objectClassName\":\"entity\",\"publicIds\":[{\"identifier\":\"293\","
             + "\"type\":\"IANA Registrar ID\"}],\"vcardArray\":[\"vcard\","
             + "[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Inc.\"]]],%s"
@@ -65,7 +65,7 @@ public abstract class RegistrarEntityValidationTest extends RegistrarEntityPubli
   @Test
   public void testValidate_HandleNotInRegistrarId_AddResults47404() {
     doReturn(false).when(registrarId).containsId(292);
-    validate(getRegistrarEntityValidation().code - 4, String.format(
+    validate(getRegistrarEntityValidation().getCode() - 4, String.format(
         "#/entities/0:{\"objectClassName\":\"entity\",\"publicIds\":[{\"identifier\":\"292\","
             + "\"type\":\"IANA Registrar ID\"}],\"vcardArray\":[\"vcard\","
             + "[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Inc.\"]]],%s"

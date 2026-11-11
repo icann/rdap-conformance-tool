@@ -776,7 +776,9 @@ public class RdapWebValidatorTest {
         @Override public boolean isNoIpv6Queries()           { return false; }
         @Override public boolean isNetworkEnabled()          { return true; }
         @Override public boolean isAdditionalConformanceQueries() { return false; }
-        @Override public void clean()                        { }
+        @Override public void clean() {
+            // Intentionally empty: this test config holds no resources or temp files to clean up
+        }
 
         @Override
         public List<String> getSsrfAllowedHosts() {

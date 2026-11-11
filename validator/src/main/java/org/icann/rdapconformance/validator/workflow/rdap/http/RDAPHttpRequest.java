@@ -7,7 +7,7 @@ import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_PORT;
 import static org.icann.rdapconformance.validator.CommonUtils.HTTP_TOO_MANY_REQUESTS;
 import static org.icann.rdapconformance.validator.CommonUtils.LOCALHOST;
-import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPv4;
+import static org.icann.rdapconformance.validator.CommonUtils.LOCAL_IPV4;
 import static org.icann.rdapconformance.validator.CommonUtils.ONE;
 import static org.icann.rdapconformance.validator.CommonUtils.PAUSE;
 import static org.icann.rdapconformance.validator.CommonUtils.ZERO;
@@ -841,7 +841,7 @@ public class RDAPHttpRequest {
 
         String host = originalUri.getHost();
         if (LOCALHOST.equalsIgnoreCase(host)) {
-            host = LOCAL_IPv4; // only do v4, no dual-stack binding
+            host = LOCAL_IPV4; // only do v4, no dual-stack binding
         }
 
         int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT) : originalUri.getPort();
@@ -870,8 +870,8 @@ public class RDAPHttpRequest {
         }
 
         // Special case: if remote is 127.0.0.1, bind to 127.0.0.1
-        if (remoteAddress.getHostAddress().equals(LOCAL_IPv4)) {
-            localBindIp = InetAddress.getByName(LOCAL_IPv4);
+        if (remoteAddress.getHostAddress().equals(LOCAL_IPV4)) {
+            localBindIp = InetAddress.getByName(LOCAL_IPV4);
         }
 
         if (qctx.isSsrfProtectionEnabled()) {
@@ -1058,7 +1058,7 @@ public class RDAPHttpRequest {
         // Use QueryContext services
         String host = originalUri.getHost();
         if (LOCALHOST.equalsIgnoreCase(host)) {
-            host = LOCAL_IPv4; // only do v4, no dual-stack binding
+            host = LOCAL_IPV4; // only do v4, no dual-stack binding
         }
 
         // Get SSL context and create HTTP client using QueryContext services

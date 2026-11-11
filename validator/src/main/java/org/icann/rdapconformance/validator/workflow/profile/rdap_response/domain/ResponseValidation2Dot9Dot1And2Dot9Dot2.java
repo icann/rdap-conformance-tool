@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.icann.rdapconformance.validator.QueryContext;
-import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -17,13 +16,9 @@ import org.json.JSONObject;
 
 public final class ResponseValidation2Dot9Dot1And2Dot9Dot2 extends HandleValidation {
 
-  private final RDAPValidatorConfiguration config;
-  private final QueryContext queryContext;
-
+  // "config" and "queryContext" are inherited from HandleValidation
   public ResponseValidation2Dot9Dot1And2Dot9Dot2(QueryContext qctx) {
     super(qctx, -47201, "nameserver");
-    this.config = qctx.getConfig();
-    this.queryContext = qctx;
   }
 
   @Override

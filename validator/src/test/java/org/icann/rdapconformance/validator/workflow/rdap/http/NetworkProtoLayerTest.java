@@ -27,7 +27,8 @@ public class NetworkProtoLayerTest {
         HttpResponse<String> response = RDAPHttpRequest.makeRequest(qctx, URI.create(EXTERNAL_SITE), TIMEOUT, "GET");
         System.out.println(response.statusCode());
         System.out.println(response.body());
-        assertThat(true); // this isn't a true assertion, but a placeholder for something to test, but how?
+        assertThat(response).as("IPv6 response").isNotNull();
+        assertThat(response.statusCode()).as("IPv6 status code").isPositive();
     }
 
     // TODO: this test doesn't work in GitHub actions because of the network restrictions?
@@ -42,6 +43,7 @@ public class NetworkProtoLayerTest {
         HttpResponse<String> response = RDAPHttpRequest.makeRequest(qctx, URI.create(EXTERNAL_SITE), TIMEOUT, "GET");
         System.out.println(response.statusCode());
         System.out.println(response.body());
-        assertThat(true); // this isn't a true assertion, but a placeholder for something to test, but how?
+        assertThat(response).as("IPv4 response").isNotNull();
+        assertThat(response.statusCode()).as("IPv4 status code").isPositive();
     }
 }

@@ -72,7 +72,7 @@ public final class ResponseValidation2Dot4Dot5 extends ProfileJsonValidation {
         }
       }
     }
-    return hasTel & hasEmail;
+    return hasTel && hasEmail;
   }
 
   @Override
