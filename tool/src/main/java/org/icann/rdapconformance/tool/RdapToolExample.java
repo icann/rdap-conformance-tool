@@ -19,8 +19,9 @@ public class RdapToolExample {
         try {
             result = tool.call();
         } catch (Exception e) {
-            System.err.println("RDAP conformance tool failed: " + e.getMessage());
-            return;
+            // Keep failures visible: the uncaught exception prints the full stack trace
+            // and the JVM exits with a non-zero status.
+            throw new IllegalStateException("RDAP conformance tool failed: " + e, e);
         }
         System.out.println("Exit code: " + result);
 

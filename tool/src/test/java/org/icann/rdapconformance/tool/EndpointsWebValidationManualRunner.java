@@ -5,13 +5,11 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 
 /**
- * Comprehensive test that actually performs validation against real RDAP endpoints.
- * This test makes real network calls and shows actual validation results.
+ * Manual runner that performs validation against real RDAP endpoints and prints the results.
  *
- * This test is ignored for CI runs as it requires network connectivity to real RDAP endpoints.
- * Not a TestNG test: run its main() method manually.
+ * <p>It makes real network calls, so it is not a TestNG test and is never run in CI.
+ * Run its {@code main()} method manually when you need to check live endpoints.</p>
  */
-
 public class EndpointsWebValidationManualRunner {
 
     // Real RDAP endpoints for testing

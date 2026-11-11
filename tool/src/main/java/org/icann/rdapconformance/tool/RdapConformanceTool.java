@@ -100,6 +100,7 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
   private static final String PACKAGE_LOG_LEVEL_PROPERTY = "logging.level." + RDAP_PACKAGE;
   private static final String LEVEL_ERROR = "ERROR";
   private static final String LEVEL_INFO = "INFO";
+  private static final String LEVEL_WARN = "WARN";
   private static final String LEVEL_DEBUG = "DEBUG";
 
   // Static initializer to set default log level before any logger initialization
@@ -712,7 +713,7 @@ public void setShowProgress(boolean showProgress) {
     if (LEVEL_INFO.equals(level)) {
       return Level.INFO;
     }
-    if ("WARN".equals(level)) {
+    if (LEVEL_WARN.equals(level)) {
       return Level.WARN;
     }
     return Level.ERROR;

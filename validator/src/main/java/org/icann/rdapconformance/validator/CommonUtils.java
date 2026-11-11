@@ -69,6 +69,24 @@ public class CommonUtils {
     public static final String LOCAL_IPV4 = "127.0.0.1";
     public static final String LOCAL_IPV6 = "0000:0000:0000:0000:0000:0000:0000:0001";
     public static final String LOCAL_IPV6_COMPRESSED = "::1";
+
+    // Backward-compatible aliases for external consumers of the published validator artifact
+    // (e.g. rdap-conformance-tool-fe). Remove in the next major version.
+
+    /** @deprecated use {@link #LOCAL_IPV4} */
+    @Deprecated(forRemoval = true)
+    @SuppressWarnings("java:S115")
+    public static final String LOCAL_IPv4 = LOCAL_IPV4;
+
+    /** @deprecated use {@link #LOCAL_IPV6} */
+    @Deprecated(forRemoval = true)
+    @SuppressWarnings("java:S115")
+    public static final String LOCAL_IPv6 = LOCAL_IPV6;
+
+    /** @deprecated use {@link #LOCAL_IPV6_COMPRESSED} */
+    @Deprecated(forRemoval = true)
+    @SuppressWarnings("java:S115")
+    public static final String LOCAL_IPv6_COMPRESSED = LOCAL_IPV6_COMPRESSED;
     public static final String ICANN_ORG_FQDN = "icann.org.";
     public static final String GET = "GET";
     public static final String HEAD = "HEAD";

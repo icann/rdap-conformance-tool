@@ -23,6 +23,10 @@ public abstract class RegistrarEntityPublicIdsValidation extends ProfileJsonVali
     this.code = code;
   }
 
+  /**
+   * Base error code of this validation. Visible for testing only; not part of the supported
+   * public API of the validator library.
+   */
   public int getCode() {
     return code;
   }
