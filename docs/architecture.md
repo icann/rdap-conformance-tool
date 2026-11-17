@@ -219,7 +219,7 @@ See README §CI/CD Pipeline for the stage-by-stage commands.
 
 ## 9. Testing
 
-- Frameworks: TestNG, AssertJ, Mockito, WireMock (HTTP stubs). JaCoCo reports feed SonarQube
+- Frameworks: JUnit 5 (Jupiter), AssertJ, Mockito, WireMock (HTTP stubs). JaCoCo reports feed SonarQube
   (`pom.xml:53-58`).
 - `fixtures/` is **not** in the repo (`.gitignore:3`); it is an output directory written by
   `FixturesGenerator.java:154`, not test input. Test resources live under `*/src/test/resources`.
