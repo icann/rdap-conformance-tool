@@ -3,7 +3,7 @@ package org.icann.rdapconformance.tool;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
 import picocli.CommandLine.MissingParameterException;
 import picocli.CommandLine.MutuallyExclusiveArgsException;

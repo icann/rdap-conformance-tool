@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 
 import org.icann.rdapconformance.tool.progress.ProgressPhase;
 import org.icann.rdapconformance.tool.progress.ProgressTracker;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Covers the progress helper methods, step calculation, the

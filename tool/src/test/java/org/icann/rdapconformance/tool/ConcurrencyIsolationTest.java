@@ -12,9 +12,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.testng.annotations.Test;
-import org.testng.annotations.Ignore;
-import static org.testng.Assert.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test to prove that we have eliminated singleton/ThreadLocal concurrency pollution.
@@ -95,7 +95,7 @@ public class ConcurrencyIsolationTest {
      * completely isolated state and endpoint-specific results.</p>
      */
     @Test
-    @Ignore("Network-dependent test for manual execution only")
+    @Disabled("Network-dependent test for manual execution only")
     public void testConcurrentValidationIsolationWithRealEndpoints() throws InterruptedException {
         final int threadsPerEndpoint = 5; // Create multiple threads per endpoint -- have run this with 15 before and still no corruption
         final int totalThreads = REAL_ENDPOINTS.length * threadsPerEndpoint;

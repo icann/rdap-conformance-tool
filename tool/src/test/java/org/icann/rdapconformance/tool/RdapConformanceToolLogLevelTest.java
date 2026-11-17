@@ -3,7 +3,7 @@ package org.icann.rdapconformance.tool;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import ch.qos.logback.classic.Level;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class RdapConformanceToolLogLevelTest {
 

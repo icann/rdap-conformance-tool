@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.tool;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -9,8 +10,9 @@ import static org.mockito.Mockito.never;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.workflow.ValidatorWorkflow;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResultFile;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,8 +25,7 @@ public class RdapConformanceToolCallBranchesTest {
 
     private static final String INVALID_DNS = "999.999.999.999";
 
-    @DataProvider(name = "loggingLevels")
-    public Object[][] loggingLevels() {
+    public static Object[][] loggingLevels() {
         return new Object[][]{
                 {LoggingLevel.CLI}, {LoggingLevel.INFO}, {LoggingLevel.DEBUG},
                 {LoggingLevel.ERROR}, {LoggingLevel.VERBOSE},
@@ -36,7 +37,8 @@ public class RdapConformanceToolCallBranchesTest {
      * dataset/config/network work. Running it per logging level also covers the
      * whole logging switch and the logback reconfiguration branches.
      */
-    @Test(dataProvider = "loggingLevels")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("loggingLevels")
     public void call_invalidDnsResolver_perLoggingLevel(LoggingLevel level) throws Exception {
         RdapConformanceTool tool = new RdapConformanceTool();
         tool.setLogging(level);
@@ -132,11 +134,11 @@ public class RdapConformanceToolCallBranchesTest {
         assertThat(tool.getConfigurationFile().toString()).contains("config.json");
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void getConfigurationFile_invalidUri_throwsOnUnix() {
         RdapConformanceTool tool = new RdapConformanceTool();
         tool.setConfigurationFile("ht tp://bad uri with spaces");
-        tool.getConfigurationFile(); // non-Windows -> rethrow
+        assertThrows(IllegalArgumentException.class, tool::getConfigurationFile); // non-Windows -> rethrow
     }
 
     @Test

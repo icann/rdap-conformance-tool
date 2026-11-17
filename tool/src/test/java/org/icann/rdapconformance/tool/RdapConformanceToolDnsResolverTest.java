@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.tool;
 
 import org.icann.rdapconformance.validator.ToolResult;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
 
 import java.net.URI;
@@ -13,7 +13,7 @@ public class RdapConformanceToolDnsResolverTest {
 
     private RdapConformanceTool tool;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         tool = new RdapConformanceTool();
     }
