@@ -39,10 +39,22 @@ public class DomainLabelUtilsTest {
   }
 
   @Test
-  public void hasMixedLabels_undecodablePercentWithNonAsciiByte_returnsTrue() {
-    // "%E4" alone is an invalid UTF-8 sequence for URLDecoder, forcing the raw percent-sequence scan
+  public void hasMixedLabels_incompleteUtf8Sequence_decodesToReplacementChar_returnsTrue() {
+    // URLDecoder maps a lone %E4 to U+FFFD (non-ASCII) instead of throwing
     assertThat(DomainLabelUtils.hasMixedLabels("xn--bcher-kva.%E4")).isTrue();
-    assertThat(DomainLabelUtils.hasMixedLabels("%E4.xn--bcher-kva")).isTrue();
+  }
+
+  @Test
+  public void hasMixedLabels_malformedPercentEscapeWithNonAsciiByte_returnsTrue() {
+    // "%4" is a malformed escape so URLDecoder throws; the raw scan must still spot %E4 (> 0x7F)
+    assertThat(DomainLabelUtils.hasMixedLabels("xn--bcher-kva.%E4%4")).isTrue();
+    assertThat(DomainLabelUtils.hasMixedLabels("%E4%4.xn--bcher-kva")).isTrue();
+    assertThat(DomainLabelUtils.hasMixedLabels("xn--bcher-kva.a%zz%E4")).isTrue();
+  }
+
+  @Test
+  public void hasMixedLabels_malformedPercentEscapeWithoutALabel_returnsFalse() {
+    assertThat(DomainLabelUtils.hasMixedLabels("foo.%E4%4")).isFalse();
   }
 
   @Test

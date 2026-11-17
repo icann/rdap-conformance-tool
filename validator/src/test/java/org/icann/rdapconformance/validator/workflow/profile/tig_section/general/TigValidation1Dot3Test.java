@@ -1,11 +1,23 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.icann.rdapconformance.validator.CommonUtils.HTTPS_PORT;
+import static org.icann.rdapconformance.validator.CommonUtils.TIMEOUT_IN_5SECS;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.Optional;
@@ -15,6 +27,8 @@ import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMoc
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedConstruction;
 
 public class TigValidation1Dot3Test {
 
@@ -67,11 +81,20 @@ public class TigValidation1Dot3Test {
   }
 
   @Test
-  public void testValidate_HttpsDefaultPortConnectionRefusedOrTimeout_ReturnsFalse() {
-    // 192.0.2.1 is TEST-NET-1 (RFC 5737): never routable, so connect fails or times out (5s)
-    givenUri("https://192.0.2.1/test");
+  public void testValidate_HttpsWithoutExplicitPort_UsesPort443() throws IOException {
+    givenUri("https://rdap.example.com/test");
+    ArgumentCaptor<SocketAddress> address = ArgumentCaptor.forClass(SocketAddress.class);
 
-    assertThat(new TigValidation1Dot3(queryContext).validate()).isFalse();
+    try (MockedConstruction<Socket> sockets = mockConstruction(Socket.class, (socket, ctx) ->
+        doThrow(new ConnectException("refused")).when(socket).connect(any(SocketAddress.class), anyInt()))) {
+
+      assertThat(new TigValidation1Dot3(queryContext).validate()).isFalse();
+
+      assertThat(sockets.constructed()).hasSize(1);
+      verify(sockets.constructed().get(0)).connect(address.capture(), eq(TIMEOUT_IN_5SECS));
+    }
+    assertThat(((InetSocketAddress) address.getValue()).getPort()).isEqualTo(HTTPS_PORT);
+    assertThat(((InetSocketAddress) address.getValue()).getHostString()).isEqualTo("rdap.example.com");
     assertThat(queryContext.getResults().getAll()).isEmpty();
   }
 
