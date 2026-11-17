@@ -111,7 +111,8 @@ public class DefaultSSLValidatorTest {
   }
 
   @Test
-  public void validateTLS12CipherSuites_connectionRefused_returnsFailure() {
+  public void validateTLS12CipherSuites_connectionRefused_returnsFailure() throws Exception {
+    doReturn(InetAddress.getByName("127.0.0.1")).when(dnsResolver).getFirstV4Address(anyString());
     DefaultSSLValidator validator = new DefaultSSLValidator(NetworkProtocol.IPv4, dnsResolver);
 
     CipherValidationResult result = validator.validateTLS12CipherSuites("127.0.0.1", closedPort);
@@ -121,5 +122,46 @@ public class DefaultSSLValidatorTest {
     assertThat(result.getException()).isInstanceOf(IOException.class);
     assertThat(result.getProtocol()).isNull();
     assertThat(result.getCipherSuite()).isNull();
+  }
+
+  /**
+   * TLS 1.2 probing must use the injected resolver (pinned address), never the JDK's own
+   * hostname lookup — otherwise it could reach an address the HTTP layer refused.
+   */
+  @Test
+  public void validateTLS12CipherSuites_unresolvable_returnsFailureWithoutConnecting() {
+    DefaultSSLValidator validator = new DefaultSSLValidator(NetworkProtocol.IPv4, dnsResolver);
+
+    CipherValidationResult result = validator.validateTLS12CipherSuites("localhost", closedPort);
+
+    assertThat(result.isSuccessful()).isFalse();
+    assertThat(result.getErrorMessage()).startsWith("Cannot resolve correct v4 or v6 host address");
+    verify(dnsResolver).getFirstV4Address("localhost");
+  }
+
+  @Test
+  public void validateSSL_ssrfPolicyBlocks_returnsFailureWithoutConnecting() throws Exception {
+    doReturn(InetAddress.getByName("127.0.0.1")).when(dnsResolver).getFirstV4Address(anyString());
+    DefaultSSLValidator validator = new DefaultSSLValidator(NetworkProtocol.IPv4, dnsResolver,
+        (host, addr) -> true);
+
+    SSLValidationResult result = validator.validateSSL("blocked.example", closedPort);
+
+    assertThat(result.isSuccessful()).isFalse();
+    assertThat(result.getErrorMessage()).isEqualTo("Connection blocked by SSRF protection for blocked.example");
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void validateTLS12CipherSuites_ssrfPolicyBlocks_returnsFailureWithoutConnecting() throws Exception {
+    doReturn(InetAddress.getByName("::1")).when(dnsResolver).getFirstV6Address(anyString());
+    DefaultSSLValidator validator = new DefaultSSLValidator(NetworkProtocol.IPv6, dnsResolver,
+        (host, addr) -> addr.isLoopbackAddress());
+
+    CipherValidationResult result = validator.validateTLS12CipherSuites("blocked.example", closedPort);
+
+    assertThat(result.isSuccessful()).isFalse();
+    assertThat(result.getErrorMessage()).isEqualTo("Connection blocked by SSRF protection for blocked.example");
+    assertThat(result.getException()).isNull();
   }
 }

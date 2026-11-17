@@ -159,6 +159,11 @@ public final class SsrfBlocklist {
         if (addr == null) {
             throw new IllegalArgumentException("Invalid IP address or CIDR: '" + entry + "'");
         }
+        // Java hands IPv4-mapped destinations (::ffff:a.b.c.d) to us as Inet4Address, so a
+        // mapped range in the configuration must be matched as its IPv4 equivalent.
+        if (addr.isIPv6() && addr.isIPv4Convertible()) {
+            addr = addr.toIPv4();
+        }
         // Normalise to the network prefix so "10.1.2.3/8" matches the whole 10/8 block
         return addr.isPrefixed() ? addr.toPrefixBlock() : addr;
     }

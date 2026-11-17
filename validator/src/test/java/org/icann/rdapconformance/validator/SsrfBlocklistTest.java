@@ -109,4 +109,17 @@ public class SsrfBlocklistTest {
         assertThat(SsrfBlocklist.isIPv6UniqueLocalAddress(ip("fec0::1"))).isFalse();
         assertThat(SsrfBlocklist.isIPv6UniqueLocalAddress(ip("10.0.0.1"))).isFalse();
     }
+
+    /** Java yields Inet4Address for ::ffff:a.b.c.d destinations, so mapped CIDRs must match IPv4. */
+    @Test
+    public void of_ipv4MappedIpv6CidrMatchesPlainIpv4Addresses() throws Exception {
+        SsrfBlocklist list = SsrfBlocklist.of(List.of("::ffff:192.0.2.0/120", "::ffff:203.0.113.9"));
+
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(list.isBlocked(ip("192.0.2.77"))).isTrue();
+        assertThat(list.isBlocked(ip("::ffff:192.0.2.77"))).isTrue();
+        assertThat(list.isBlocked(ip("203.0.113.9"))).isTrue();
+        assertThat(list.isBlocked(ip("192.0.3.1"))).isFalse();
+        assertThat(list.isBlocked(ip("203.0.113.10"))).isFalse();
+    }
 }

@@ -25,7 +25,7 @@ public class TigValidation1Dot5_2024 extends ProfileValidation {
     private final QueryContext queryContext;
 
     public TigValidation1Dot5_2024(QueryContext queryContext) {
-        this(queryContext, new DefaultSSLValidator());
+        this(queryContext, new DefaultSSLValidator(queryContext));
     }
 
     // Constructor for testing with injectable SSLValidator

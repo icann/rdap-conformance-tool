@@ -621,6 +621,53 @@ public class QueryContext {
     }
 
     /**
+     * Single SSRF decision point for every outbound socket (HTTP, TLS probes, ...).
+     *
+     * <p>Returns {@code true} when the connection to {@code remoteAddress} on behalf of
+     * {@code host} must be refused:</p>
+     * <ol>
+     *   <li>Allowlist wins: if the lowercase hostname or the remote IP is in
+     *       {@link #getSsrfAllowedHosts()} the connection is permitted.</li>
+     *   <li>The remote address is checked against the blocklist (built-in ranges + CIDRs).</li>
+     *   <li>Cross-record check: every address the host resolves to <em>in the active address
+     *       family</em> is checked, so round-robin records cannot be used to slip past the gate.
+     *       Only the active family is evaluated so {@code --no-ipv4-queries} /
+     *       {@code --no-ipv6-queries} keep their meaning.</li>
+     * </ol>
+     *
+     * <p>Always returns {@code false} when SSRF protection is disabled.</p>
+     */
+    public boolean isSsrfBlockedConnection(String host, InetAddress remoteAddress) {
+        if (!ssrfProtectionEnabled || remoteAddress == null) {
+            return false;
+        }
+        String hostLower = host == null ? "" : host.toLowerCase();
+        if (ssrfAllowedHosts.contains(hostLower)
+                || ssrfAllowedHosts.contains(remoteAddress.getHostAddress())) {
+            return false;
+        }
+        if (ssrfBlocklist.isBlocked(remoteAddress)) {
+            logger.warn("Blocked connection to internal/private IP: {} (host: {})",
+                    remoteAddress.getHostAddress(), host);
+            return true;
+        }
+        if (host == null || host.isEmpty()) {
+            return false;
+        }
+        List<InetAddress> siblings = getNetworkProtocol() == NetworkProtocol.IPv6
+                ? getDnsResolver().getAllV6Addresses(host)
+                : getDnsResolver().getAllV4Addresses(host);
+        for (InetAddress addr : siblings) {
+            if (ssrfBlocklist.isBlocked(addr)) {
+                logger.warn("Blocked connection to {}: host also resolves to blocked address {} ({})",
+                        host, addr.getHostAddress(), getNetworkProtocol());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Replaces the configured CIDR blocklist. Intended for tests and embedding applications
      * that build the context before the CIDR list is known.
      *

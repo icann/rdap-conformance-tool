@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import inet.ipaddr.IPAddressString;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -419,20 +420,21 @@ public class RDAPHttpQuery implements RDAPQuery {
         String host = uri.getHost();
         if (host == null) return true;
 
-        // Normalize host: if it's an IP literal (v4 or v6), resolve to canonical form
-        // so that allowlist comparison matches the same canonical form stored at insertion time.
-        // e.g., uri.getHost() on "[2620:0:2830:270::173]" yields "2620:0:2830:270::173"
-        // which must be normalized to "2620:0:2830:270:0:0:0:173" to match the stored entry.
-        String normalizedHost;
-        try {
-            InetAddress parsed = InetAddress.getByName(host);
-            normalizedHost = parsed.getHostAddress(); // canonical form
-        } catch (UnknownHostException e) {
-            normalizedHost = host.toLowerCase(); // treat as hostname, lowercase
+        // IP literals are canonicalised to InetAddress.getHostAddress() form so they compare
+        // equal to allowlist entries ("[2620:0:2830:270::173]" -> "2620:0:2830:270:0:0:0:173").
+        // Hostnames are kept as lowercase names — no DNS here, that happens below.
+        String hostLower = host.toLowerCase();
+        String normalizedHost = hostLower;
+        if (new IPAddressString(host).isIPAddress()) {
+            try {
+                normalizedHost = InetAddress.getByName(host).getHostAddress();
+            } catch (UnknownHostException ignored) {
+                // keep lowercase literal
+            }
         }
 
         // Block well-known localhost literals before DNS resolution
-        if ("localhost".equalsIgnoreCase(host) ||
+        if ("localhost".equals(hostLower) ||
                 "127.0.0.1".equals(normalizedHost) ||
                 "0:0:0:0:0:0:0:1".equals(normalizedHost) || // ::1 normalized
                 "0.0.0.0".equals(normalizedHost)) {
@@ -446,12 +448,13 @@ public class RDAPHttpQuery implements RDAPQuery {
             return true;
         }
 
-        // PASS 1: allowlist check — use normalizedHost so IPv6 literals match canonical stored form
-        if (queryContext.getSsrfAllowedHosts().contains(normalizedHost)) {
+        // PASS 1: allowlist check — by hostname, by literal, or by any resolved address
+        Set<String> allowed = queryContext.getSsrfAllowedHosts();
+        if (allowed.contains(hostLower) || allowed.contains(normalizedHost)) {
             return false;
         }
         for (InetAddress addr : addresses) {
-            if (queryContext.getSsrfAllowedHosts().contains(addr.getHostAddress())) {
+            if (allowed.contains(addr.getHostAddress())) {
                 return false;
             }
         }
