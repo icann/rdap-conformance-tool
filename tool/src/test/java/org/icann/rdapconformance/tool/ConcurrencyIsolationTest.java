@@ -257,7 +257,7 @@ public class ConcurrencyIsolationTest {
             Boolean actualIsRegistry = registryResults.get(threadId);
 
             assertNotNull(actualIsRegistry, "Missing configuration result for " + threadId);
-            assertEquals(actualIsRegistry.booleanValue(), expectedIsRegistry,
+            assertEquals(expectedIsRegistry, actualIsRegistry,
                 threadId + " configuration was contaminated by other threads");
         }
 
