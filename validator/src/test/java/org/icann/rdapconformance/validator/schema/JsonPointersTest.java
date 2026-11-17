@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Set;
 
 import org.apache.commons.collections.set.ListOrderedSet;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class JsonPointersTest {
 

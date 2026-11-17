@@ -5,14 +5,14 @@ import static org.mockito.Mockito.mock;
 
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.BaseUnmarshallingTest;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelations;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class LinkRelationsValidatorTest extends BaseUnmarshallingTest<LinkRelations> {
 
   private LinkRelations linkRelations;
 
-  @BeforeMethod
+  @BeforeEach
   public void setup() {
     this.linkRelations = unmarshal("/dataset/link-relations.xml", LinkRelations.class);
   }

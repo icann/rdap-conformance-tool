@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -9,7 +9,7 @@ public class NetworkInfoTest {
 
     private NetworkInfo networkInfo;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         networkInfo = new NetworkInfo();
     }

@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.validator;
 
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
@@ -14,7 +14,7 @@ public class JpathUtilTest {
     private JSONObject testJsonObject;
     private String testJsonString;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         jpathUtil = new JpathUtil();
         

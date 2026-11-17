@@ -11,14 +11,14 @@ import java.util.Objects;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.testng.annotations.Ignore;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 public class JcardCategoriesSchemasTest {
 
   JcardCategoriesSchemas jcardSchemas = new JcardCategoriesSchemas();
 
-  @Ignore
+  @Disabled
   @Test
   public void writeCategories() throws IOException {
     JSONArray jsonSchema = new JSONObject(

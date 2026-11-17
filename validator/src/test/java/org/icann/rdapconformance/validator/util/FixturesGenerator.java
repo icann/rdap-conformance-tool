@@ -11,13 +11,18 @@ import com.github.jknack.handlebars.internal.text.WordUtils;
 import org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.testng.ITestResult;
 
 public class FixturesGenerator {
 
-  public static void generate(ITestResult result, JSONObject jsonObject)
+  /**
+   * Writes the fixture produced by a test.
+   *
+   * @param testClassName fully qualified name of the test class that produced the fixture
+   * @param testMethodName name of the test method that produced the fixture
+   */
+  public static void generate(String testClassName, String testMethodName, JSONObject jsonObject)
       throws IOException {
-    String objectName = result.getInstanceName()
+    String objectName = testClassName
         .replace("SchemaValidator", "")
         .replace("Test", "")
         .replace("org.icann.rdapconformance.validator.schemavalidator.", "")
@@ -68,7 +73,7 @@ public class FixturesGenerator {
       case "ipAddress":
         // strangely, these validations from specifications cannot happen in a topmost object,
         // to be clarified later...
-        if (Set.of("v4Orv6NotBoth", "invalid", "unauthorizedKey").contains(result.getMethod().getMethodName())) {
+        if (Set.of("v4Orv6NotBoth", "invalid", "unauthorizedKey").contains(testMethodName)) {
           return;
         }
 
@@ -155,7 +160,7 @@ public class FixturesGenerator {
     File file = new File(root + objectName);
     file.mkdirs();
     Files.write(
-        Paths.get(file.getAbsolutePath() + "/" + result.getMethod().getMethodName() + ".json"),
+        Paths.get(file.getAbsolutePath() + "/" + testMethodName + ".json"),
         jsonObject.toString(1).getBytes());
   }
 

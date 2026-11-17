@@ -6,8 +6,8 @@ import org.everit.json.schema.ObjectSchema;
 import org.everit.json.schema.ReferenceSchema;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,7 +25,7 @@ public class ValidationExceptionNodeTest {
     private ValidationExceptionNode parentNode;
     private ValidationExceptionNode childNode;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         mockException = mock(ValidationException.class);
         mockSchema = mock(ObjectSchema.class);
