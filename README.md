@@ -46,7 +46,7 @@ RDAP Conformance Tool Frontend get the same, reproducible verdict from one engin
 | DNS | dnsjava |
 | JSON | Jackson 2.22.2, json-path, everit json-schema 1.12.2 |
 | Validation helpers | icu4j, ipaddress, owasp-java-html-sanitizer, commons-text |
-| Tests | TestNG, AssertJ, Mockito, WireMock; JaCoCo -> SonarQube |
+| Tests | JUnit 5 (Jupiter), AssertJ, Mockito, WireMock; JaCoCo -> SonarQube |
 | Packaging | Shaded jar; Docker (`alpine` + `openjdk21-jre`) |
 
 ## Getting Started

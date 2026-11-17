@@ -37,11 +37,9 @@
         <json-smart.version>2.5.2</json-smart.version>
         <dnsjava.version>3.6.3</dnsjava.version>
         <commons-text.version>1.10.0</commons-text.version>
-        <testng.version>7.9.0</testng.version>
         <junit-jupiter.version>5.11.4</junit-jupiter.version>
-        <testng-engine.version>1.0.5</testng-engine.version>
         <assertj-core.version>3.27.7</assertj-core.version>
-        <mockito-testng.version>0.5.2</mockito-testng.version>
+        <mockito.version>5.2.0</mockito.version>
         <slf4j-simple.version>2.0.13</slf4j-simple.version>
         <wiremock.version>3.0.3</wiremock.version>
         <jaxb-impl.version>4.0.5</jaxb-impl.version>
@@ -173,21 +171,6 @@
                 <scope>test</scope>
             </dependency>
 
-            <!-- TEMPORARY: runs remaining TestNG tests on the JUnit Platform during the migration -->
-            <dependency>
-                <groupId>org.junit.support</groupId>
-                <artifactId>testng-engine</artifactId>
-                <version>${testng-engine.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.testng</groupId>
-                <artifactId>testng</artifactId>
-                <version>${testng.version}</version>
-                <scope>test</scope>
-            </dependency>
-
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
@@ -197,8 +180,8 @@
 
             <dependency>
                 <groupId>org.mockito</groupId>
-                <artifactId>mockito-testng</artifactId>
-                <version>${mockito-testng.version}</version>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
 
