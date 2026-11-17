@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.validator.workflow;
 
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FilePermission;
@@ -26,7 +26,7 @@ public class LocalFileSystemTest {
     private Path testFile;
     private Path testDir;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         fileSystem = new LocalFileSystem();
         tempDir = Files.createTempDirectory("localfilesystem-test");
@@ -34,7 +34,7 @@ public class LocalFileSystemTest {
         testDir = tempDir.resolve("test-dir");
     }
 
-    @AfterMethod
+    @AfterEach
     public void tearDown() throws IOException {
         // Clean up test files and directories recursively
         if (Files.exists(tempDir)) {

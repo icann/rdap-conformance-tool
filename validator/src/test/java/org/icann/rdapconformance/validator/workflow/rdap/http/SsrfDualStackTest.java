@@ -19,9 +19,9 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for the SSRF protocol-scoped check in RDAPHttpRequest.
@@ -47,7 +47,7 @@ public class SsrfDualStackTest {
     private WireMockServer wireMockServer;
     private RDAPValidatorConfiguration config;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         config = mock(RDAPValidatorConfiguration.class);
         doReturn(10).when(config).getTimeout();
@@ -59,7 +59,7 @@ public class SsrfDualStackTest {
         wireMockServer.start();
     }
 
-    @AfterMethod
+    @AfterEach
     public void tearDown() {
         if (wireMockServer != null && wireMockServer.isRunning()) {
             wireMockServer.stop();

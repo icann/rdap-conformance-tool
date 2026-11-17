@@ -18,8 +18,8 @@ import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPProfile;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class RDAPValidatorTest {
 
@@ -34,7 +34,7 @@ public class RDAPValidatorTest {
   private final DomainCaseFoldingValidation domainCaseFoldingValidation = mock(DomainCaseFoldingValidation.class);
   private RDAPValidator validator;
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     doReturn(true).when(config).check();
     doReturn(URI.create("https://example.com")).when(config).getUri(); // Mock getUri to return a valid URI

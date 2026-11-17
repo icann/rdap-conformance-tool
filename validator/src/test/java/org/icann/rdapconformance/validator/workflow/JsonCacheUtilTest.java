@@ -6,13 +6,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class JsonCacheUtilTest {
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() {
     // Clear cache before each test to ensure test isolation
     // This is critical for parallel test execution on build servers
@@ -41,7 +41,7 @@ public class JsonCacheUtilTest {
                       ", JSONArray cache size: " + JsonCacheUtil.getJsonArrayCacheSize());
   }
 
-  @AfterMethod
+  @AfterEach
   public void tearDown() {
     // Clear cache after each test
     JsonCacheUtil.clearAllCaches();
