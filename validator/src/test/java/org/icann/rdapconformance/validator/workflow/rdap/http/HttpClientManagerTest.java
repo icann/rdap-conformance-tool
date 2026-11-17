@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -20,7 +20,7 @@ public class HttpClientManagerTest {
 
   private HttpClientManager manager;
 
-  @AfterMethod
+  @AfterEach
   public void tearDown() {
     // Clean up after each test to avoid interference
     if (manager != null) {

@@ -13,9 +13,9 @@ import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -27,14 +27,14 @@ public class SchemaValidatorCacheTest {
   @Mock
   private RDAPValidatorResults mockResults;
   
-  @BeforeMethod
+  @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     // Clear cache before each test
     SchemaValidatorCache.clearCache();
   }
   
-  @AfterMethod
+  @AfterEach
   public void tearDown() {
     // Clear cache after each test
     SchemaValidatorCache.clearCache();

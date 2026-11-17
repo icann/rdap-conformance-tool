@@ -5,8 +5,8 @@ import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
@@ -20,7 +20,7 @@ public class RDAPFileQueryTest {
     private RDAPDatasetService mockDatasetService;
     private RDAPFileQuery fileQuery;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         mockConfig = mock(RDAPValidatorConfiguration.class);
         mockDatasetService = mock(RDAPDatasetService.class);

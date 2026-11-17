@@ -5,8 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.icann.rdapconformance.validator.workflow.DomainCaseFoldingValidation.CaseFoldingJsonComparator;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit suite for the -10403 comparator (domain case folding).
@@ -238,8 +239,7 @@ public class CaseFoldingJsonComparatorTest {
     assertThat(comparator.compare(original(), original())).isZero();
   }
 
-  @DataProvider
-  public Object[][] realDifferences() {
+  public static Object[][] realDifferences() {
     return new Object[][]{
         {"\"handle\":\"H-1\"", "\"handle\":\"H-2\""},
         {"\"ldhName\":\"orbot.com\"", "\"ldhName\":\"different.com\""},
@@ -249,7 +249,8 @@ public class CaseFoldingJsonComparatorTest {
     };
   }
 
-  @Test(dataProvider = "realDifferences")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("realDifferences")
   public void realDifference_detected(String from, String to) throws Exception {
     JsonNode modified = json(original().toString().replace(from, to));
     assertThat(comparator.compare(original(), modified)).isNotZero();

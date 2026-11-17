@@ -12,10 +12,10 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,9 +33,9 @@ import org.icann.rdapconformance.validator.configuration.ConfigurationFile;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.json.JSONObject;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class RDAPValidationResultFileTest {
 
@@ -46,7 +46,7 @@ public class RDAPValidationResultFileTest {
     private QueryContext queryContext;
     private RDAPValidatorConfiguration config;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         // Create QueryContext-based instances instead of using singletons
         config = mock(RDAPValidatorConfiguration.class);
@@ -69,7 +69,7 @@ public class RDAPValidationResultFileTest {
         file.initialize(results, config, configurationFile, fileSystem);
     }
 
-    @AfterMethod
+    @AfterEach
     public void tearDown() {
         results.clear();
     }

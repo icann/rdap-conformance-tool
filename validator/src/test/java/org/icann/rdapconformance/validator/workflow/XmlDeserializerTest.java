@@ -2,8 +2,8 @@ package org.icann.rdapconformance.validator.workflow;
 
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.annotation.XmlRootElement;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class XmlDeserializerTest {
     private XmlDeserializer<TestXmlClass> deserializer;
     private Path tempDir;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         deserializer = new XmlDeserializer<>(TestXmlClass.class);
         tempDir = Files.createTempDirectory("xml-deserializer-test");

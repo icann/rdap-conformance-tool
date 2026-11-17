@@ -23,8 +23,8 @@ import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.ValidationTest;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation1Dot2Test extends HttpTestingUtils implements ValidationTest {
 
@@ -32,7 +32,7 @@ public class TigValidation1Dot2Test extends HttpTestingUtils implements Validati
   private HttpResponse<String> httpsResponse;
   private QueryContext queryContext;
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() {
     super.setUp();
     results = mock(RDAPValidatorResults.class);

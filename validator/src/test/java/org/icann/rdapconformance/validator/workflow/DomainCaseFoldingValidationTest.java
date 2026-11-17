@@ -20,15 +20,15 @@ import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.ValidationTest;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DomainCaseFoldingValidationTest extends HttpTestingUtils implements ValidationTest {
 
   private RDAPValidatorResults results;
   private HttpResponse<String> httpsResponse;
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() {
     super.setUp();
     results = mock(RDAPValidatorResults.class); // Mock results for verify() calls

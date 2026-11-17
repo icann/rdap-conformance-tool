@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.workflow;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +33,7 @@ public class JsonDeserializerTest {
     private JsonDeserializer<TestJsonClass> deserializer;
     private Path tempDir;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         deserializer = new JsonDeserializer<>(TestJsonClass.class);
         tempDir = Files.createTempDirectory("json-deserializer-test");

@@ -4,8 +4,8 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
 
@@ -18,7 +18,7 @@ public class LocalBindRoutePlannerTest {
     private InetAddress mockLocalAddress;
     private HttpContext mockContext;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws Exception {
         mockLocalAddress = InetAddress.getLoopbackAddress();
         mockContext = mock(HttpContext.class);

@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.http.HttpResponse;
 import org.icann.rdapconformance.validator.NetworkProtocol;
 import org.icann.rdapconformance.validator.QueryContext;
-import org.testng.annotations.Ignore;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
@@ -16,7 +16,7 @@ public class NetworkProtoLayerTest {
     public static int TIMEOUT = 15;
 
     // TODO: this test doesn't work in GitHub actions because of the network restrictions?
-    @Ignore
+    @Disabled
     @Test
     public void testProtoV6() throws Exception {
         // Create QueryContext with IPv6 protocol
@@ -32,7 +32,7 @@ public class NetworkProtoLayerTest {
     }
 
     // TODO: this test doesn't work in GitHub actions because of the network restrictions?
-    @Ignore
+    @Disabled
     @Test
     public void testProtoV4() throws Exception {
         // Create QueryContext with IPv4 protocol

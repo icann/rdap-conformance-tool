@@ -16,8 +16,8 @@ import java.util.Set;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.QueryContext;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class HttpTestingUtils {
 
@@ -54,7 +54,7 @@ public abstract class HttpTestingUtils {
     return new RedirectData(httpsResponse1, httpsResponse3);
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() {
     doReturn(10).when(config).getTimeout();
     doReturn(3).when(config).getMaxRedirects();
@@ -89,7 +89,7 @@ public abstract class HttpTestingUtils {
     return queryContext.getResults();
   }
 
-  @AfterMethod
+  @AfterEach
   public void tearDown() {
     if (null != wireMockServer && wireMockServer.isRunning()) {
       wireMockServer.stop();

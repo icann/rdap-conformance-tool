@@ -8,9 +8,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
@@ -20,10 +20,11 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidator;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 /**
  * Comprehensive test suite for HTTP status code handling behavior in RDAPHttpQuery.
@@ -47,7 +48,7 @@ public class RDAPHttpQueryStatusCodeTest {
     private RDAPValidatorConfiguration config;
     private QueryContext queryContext;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         // Start WireMock server on dynamic port
         wireMockServer = new WireMockServer(wireMockConfig().dynamicPort());
@@ -77,7 +78,7 @@ public class RDAPHttpQueryStatusCodeTest {
         queryContext.getResults().clear();
     }
 
-    @AfterMethod
+    @AfterEach
     public void tearDown() {
         if (wireMockServer != null && wireMockServer.isRunning()) {
             wireMockServer.stop();
@@ -85,8 +86,7 @@ public class RDAPHttpQueryStatusCodeTest {
         queryContext.getResults().clear();
     }
 
-    @DataProvider(name = "statusCodeScenarios")
-    public Object[][] statusCodeScenarios() {
+    public static Object[][] statusCodeScenarios() {
         return new Object[][] {
             // Format: {testName, statusCode, expectEarlyTermination, expect13002Error, responseBody}
             
@@ -117,7 +117,8 @@ public class RDAPHttpQueryStatusCodeTest {
         };
     }
 
-    @Test(dataProvider = "statusCodeScenarios")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("statusCodeScenarios")
     public void testStatusCodeBehavior(String testName, int statusCode, 
                                      boolean expectEarlyTermination, boolean expect13002Error, 
                                      String responseBody) {
@@ -377,8 +378,7 @@ public class RDAPHttpQueryStatusCodeTest {
     }
 
     // -12108 ERROR CODE MATCHING VALIDATION TESTS
-    @DataProvider(name = "errorCodeMatchingScenarios")
-    public Object[][] errorCodeMatchingScenarios() {
+    public static Object[][] errorCodeMatchingScenarios() {
         return new Object[][] {
                 // === Matching errorCode and HTTP status - should NOT trigger -12108 ===
                 {"2024: HTTP 404 with errorCode 404 - Match", true, 404, "404", false, false},
@@ -410,7 +410,8 @@ public class RDAPHttpQueryStatusCodeTest {
         };
     }
 
-    @Test(dataProvider = "errorCodeMatchingScenarios")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("errorCodeMatchingScenarios")
     public void testErrorCodeMatching(String testName, boolean use2024Profile, int httpStatus,
                                       Object errorCode, boolean expectError12108, boolean expectError12107) {
 

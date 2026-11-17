@@ -20,11 +20,13 @@ import java.security.Security;
 
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.mockito.Mockito;
-import org.testng.SkipException;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Ignore;
-import org.testng.annotations.Test;
+import org.opentest4j.TestAbortedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.mockito.MockedStatic;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -41,7 +43,6 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.util.Optional;
@@ -69,13 +70,11 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     private RDAPHttpQuery rdapHttpQuery;
     private QueryContext queryContext;
 
-    @DataProvider(name = "fault")
     public static Object[][] serverFault() {
         return new Object[][]{{Fault.EMPTY_RESPONSE}, {Fault.RANDOM_DATA_THEN_CLOSE}, {Fault.MALFORMED_RESPONSE_CHUNK},
             {Fault.CONNECTION_RESET_BY_PEER}};
     }
 
-    @DataProvider(name = "tlsErrors")
     public static Object[][] serverTlsErrors() {
         // TODO the following data rely on web resources that may change without notice, should create our own certificates, CRL, etc.
         // Note: we have our own certs now, the only issue is the revoked cert. This is kept in case we need to rollback to the original test cases.
@@ -87,11 +86,11 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         };
     }
 
-    @BeforeMethod
-    public void setUp(Method method) {
+    @BeforeEach
+    public void setUp(TestInfo testInfo) {
         super.setUp();
         WireMockConfiguration wmConfig = wireMockConfig().dynamicHttpsPort().bindAddress(WIREMOCK_HOST);
-        if (method.getName().contains("LocalTrustStore")) {
+        if (testInfo.getTestMethod().orElseThrow().getName().contains("LocalTrustStore")) {
             setHttpsTrustStore(wmConfig);
         }
         prepareWiremock(wmConfig);
@@ -114,7 +113,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     }
 
     @Test
-    @Ignore("System properties are not taken into account when launched among other tests, works as a standalone test though")
+    @Disabled("System properties are not taken into account when launched among other tests, works as a standalone test though")
     public void test_WithHttps_LocalTrustStore() {
         givenUri("https");
         stubFor(get(urlEqualTo(REQUEST_PATH)).withPort(wireMockServer.httpsPort())
@@ -127,8 +126,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         assertThat(rdapHttpQuery.hasNameserverSearchResults()).isFalse();
     }
 
-    @Test(dataProvider = "fault")
-    @Ignore("System properties are not taken into account when launched among other tests, works as a standalone test though")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("serverFault")
+    @Disabled("System properties are not taken into account when launched among other tests, works as a standalone test though")
     public void test_ServerFaultWithHttps_LocalTrustStore(Fault fault) {
         givenUri("https");
         stubFor(get(urlEqualTo(REQUEST_PATH)).withScheme("https")
@@ -155,8 +155,9 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     }
 
 
-    @Ignore
-    @Test(dataProvider = "fault")
+    @Disabled
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("serverFault")
     public void test_ServerFault_ReturnsErrorStatus20(Fault fault) {
         RDAPValidatorResults results = queryContext.getResults();
         results.clear();
@@ -534,17 +535,16 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .build(queryContext));
     }
 
-    @DataProvider(name = "clientErrorStatusCodes")
     public static Object[][] clientErrorStatusCodes() {
         return new Object[][]{{400}, {401}, {403}, {409}, {422}, {499}};
     }
 
-    @DataProvider(name = "serverErrorStatusCodes")
     public static Object[][] serverErrorStatusCodes() {
         return new Object[][]{{500}, {502}, {503}, {504}};
     }
 
-    @Test(dataProvider = "clientErrorStatusCodes")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("clientErrorStatusCodes")
     public void test_ClientErrorStatus_CausesEarlyTermination(int statusCode) {
         RDAPValidatorResults results = queryContext.getResults();
         results.clear();
@@ -567,7 +567,8 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
                                                                   .build(queryContext));
     }
 
-    @Test(dataProvider = "serverErrorStatusCodes")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("serverErrorStatusCodes")
     public void test_ServerErrorStatus_ContinuesValidation(int statusCode) {
         RDAPValidatorResults results = queryContext.getResults();
         results.clear();
@@ -640,12 +641,13 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     }
 
 
-    @Test(dataProvider = "tlsErrors")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("serverTlsErrors")
     public void test_WithHttpsCertificateError_ReturnsAppropriateErrorStatus(String url,
                                                                              ConnectionStatus expectedStatus) {
         // Skip in CI due to external dependency and network restrictions
         if (System.getenv("GITHUB_ACTIONS") != null || System.getenv("CI") != null) {
-            throw new SkipException("Skipping external SSL test in CI environment");
+            throw new TestAbortedException("Skipping external SSL test in CI environment");
         }
 
         // These need to be set before the first call to RDAPHttpQuery.run()
@@ -668,7 +670,7 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
         // remains reproducible for the general public.
         if (actual == ConnectionStatus.HANDSHAKE_FAILED
                 && expectedStatus != ConnectionStatus.HANDSHAKE_FAILED) {
-            throw new SkipException(
+            throw new TestAbortedException(
                     "Skipping: TLS handshake failed before certificate evaluation "
                             + "(likely VPN/proxy/network interception of external endpoint " + url + ")");
         }
