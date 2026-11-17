@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Locale;
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SchemaValidatorSecureDnsTest extends SchemaValidatorTest {
@@ -17,7 +17,7 @@ public class SchemaValidatorSecureDnsTest extends SchemaValidatorTest {
     validationName = "stdRdapSecureDnsValidation";
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     Locale.setDefault(Locale.US);
     super.setUp();

@@ -3,8 +3,8 @@ package org.icann.rdapconformance.validator.schemavalidator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorWebUriTest extends SchemaValidatorTest {
 
@@ -15,7 +15,7 @@ public class SchemaValidatorWebUriTest extends SchemaValidatorTest {
     validationName = "webUriValidation";
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     name = "webUri";

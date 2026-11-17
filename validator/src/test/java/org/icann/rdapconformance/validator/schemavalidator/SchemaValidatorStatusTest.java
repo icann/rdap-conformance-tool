@@ -5,9 +5,9 @@ import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.StatusJsonValues;
-import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorStatusTest extends SchemaValidatorForArrayOfStringTest {
 
@@ -50,8 +50,8 @@ public class SchemaValidatorStatusTest extends SchemaValidatorForArrayOfStringTe
     assertThat(results.getGroupErrorWarning()).containsExactly("stdRdapStatusValidation");
   }
 
-  @AfterMethod
-  public void tearDown(ITestResult testResult) throws IOException {
+  @AfterEach
+  public void tearDown(TestInfo testResult) throws IOException {
     if (results.isEmpty()) {
       assertThat(results.getGroupOk()).containsExactly("stdRdapStatusValidation");
     }

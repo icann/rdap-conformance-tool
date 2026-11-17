@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorDomainTest extends SchemaValidatorObjectTest {
 

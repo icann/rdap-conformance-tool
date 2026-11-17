@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
 import java.io.IOException;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorErrorResponseDescriptionTest extends SchemaValidatorForArrayOfStringTest {
 
@@ -13,7 +13,7 @@ public class SchemaValidatorErrorResponseDescriptionTest extends SchemaValidator
     validationName = "stdRdapErrorResponseBodyValidation";
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     name = "description";

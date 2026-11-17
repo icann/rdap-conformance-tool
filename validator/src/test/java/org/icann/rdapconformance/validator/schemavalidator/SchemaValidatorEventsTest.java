@@ -7,7 +7,7 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.json.JSONObject;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorEventsTest extends SchemaValidatorForArrayTest {
 

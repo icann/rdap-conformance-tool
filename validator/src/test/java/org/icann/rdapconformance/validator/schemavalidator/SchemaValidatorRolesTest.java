@@ -5,8 +5,8 @@ import static org.mockito.Mockito.doReturn;
 import java.io.IOException;
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RoleJsonValues;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorRolesTest extends SchemaValidatorForArrayOfStringTest {
 
@@ -16,7 +16,7 @@ public class SchemaValidatorRolesTest extends SchemaValidatorForArrayOfStringTes
     validationName = "stdRdapRolesValidation";
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     name = "roles";

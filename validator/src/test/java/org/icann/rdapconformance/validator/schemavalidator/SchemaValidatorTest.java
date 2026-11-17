@@ -8,10 +8,10 @@ import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.icann.rdapconformance.validator.SchemaValidator;
@@ -57,7 +57,7 @@ public abstract class SchemaValidatorTest {
     }
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     // Create mock configuration for testing
     config = mock(RDAPValidatorConfiguration.class);
@@ -266,8 +266,8 @@ public abstract class SchemaValidatorTest {
   }
 
 
-  @AfterMethod
-  public void tearDown(ITestResult testResult) throws IOException {
-    FixturesGenerator.generate(testResult.getInstanceName(), testResult.getMethod().getMethodName(), jsonObject);
+  @AfterEach
+  public void tearDown(TestInfo testResult) throws IOException {
+    FixturesGenerator.generate(testResult.getTestClass().orElseThrow().getName(), testResult.getTestMethod().orElseThrow().getName(), jsonObject);
   }
 }

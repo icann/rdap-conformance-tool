@@ -11,8 +11,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6Addre
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test to ensure IPv6 validation does not generate cascade errors.
@@ -32,7 +32,7 @@ public class SchemaValidatorIpv6CascadeErrorTest extends SchemaValidatorTest {
     validationName = "IPv6Validation";
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     name = "ipv6";

@@ -2,8 +2,8 @@ package org.icann.rdapconformance.validator.schemavalidator;
 
 import java.io.IOException;
 import java.util.List;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorKeyDataTest extends SchemaValidatorForArrayTest {
 
@@ -13,7 +13,7 @@ public class SchemaValidatorKeyDataTest extends SchemaValidatorForArrayTest {
     validationName = "stdRdapSecureDnsValidation";
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     name = "keyData";
