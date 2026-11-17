@@ -12,9 +12,10 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidatio
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation3Dot2Test extends ProfileJsonValidationTestBase {
 
@@ -25,13 +26,12 @@ public class ResponseValidation3Dot2Test extends ProfileJsonValidationTestBase {
     super("/validators/entity/valid.json", "rdapResponseProfile_3_2_Validation");
   }
 
-  @DataProvider(name = "roleVcardIndex")
   public static Object[][] roleVcardIndex() {
     return new Object[][]{{"administrative", 1}, {"administrative", 2}, {"administrative", 3},
         {"technical", 1}, {"technical", 2}, {"technical", 3}};
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
 
@@ -48,14 +48,16 @@ public class ResponseValidation3Dot2Test extends ProfileJsonValidationTestBase {
     return new ResponseValidation3Dot2(queryContext);
   }
 
-  @Test(dataProvider = "roleVcardIndex")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("roleVcardIndex")
   public void testValidate_vcardDoesNotContainMemberButNotARelevantRole_isOk(String role,
       int index) {
     removeKey(String.format("$['entities'][0]['vcardArray'][1][%d]", index));
     validate();
   }
 
-  @Test(dataProvider = "roleVcardIndex")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("roleVcardIndex")
   public void testValidate_vcardDoesNotContainMember_AddResults60101(String role, int index) {
     JSONObject entity = new JSONObject(JsonPath
         .parse(new JSONObject((Map) getValue("$['entities'][0]")).toString())

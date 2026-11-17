@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
 import java.util.List;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public abstract class RDAPConformanceValidationTest extends ProfileJsonValidationTestBase {
 

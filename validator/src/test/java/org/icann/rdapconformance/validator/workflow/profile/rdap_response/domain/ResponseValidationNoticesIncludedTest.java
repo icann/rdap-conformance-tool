@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidationNoticesIncludedTest extends ResponseDomainValidationTestBase {
 

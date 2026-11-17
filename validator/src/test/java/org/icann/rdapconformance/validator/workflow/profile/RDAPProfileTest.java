@@ -1,6 +1,6 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 

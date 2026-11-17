@@ -13,9 +13,9 @@ import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMoc
 import org.icann.rdapconformance.validator.util.FixturesGenerator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.json.JSONObject;
-import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class ProfileJsonValidationTestBase extends ProfileValidationTestBase {
 
@@ -33,7 +33,7 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
     this.testGroupName = testGroupName;
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     datasets = new RDAPDatasetServiceMock();
@@ -112,11 +112,11 @@ public abstract class ProfileJsonValidationTestBase extends ProfileValidationTes
     rdapContent = jsonObject.toString();
   }
 
-  @AfterMethod
-  public void tearDown(ITestResult testResult) throws IOException {
+  @AfterEach
+  public void tearDown(TestInfo testResult) throws IOException {
     // Only call generate if jsonObject is not null
     if (jsonObject != null) {
-      FixturesGenerator.generate(testResult.getInstanceName(), testResult.getMethod().getMethodName(), jsonObject);
+      FixturesGenerator.generate(testResult.getTestClass().orElseThrow().getName(), testResult.getTestMethod().orElseThrow().getName(), jsonObject);
     }
   }
 }

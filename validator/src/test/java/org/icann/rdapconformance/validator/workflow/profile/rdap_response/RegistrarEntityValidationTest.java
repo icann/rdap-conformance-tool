@@ -11,8 +11,8 @@ import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPubli
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public abstract class RegistrarEntityValidationTest extends RegistrarEntityPublicIdsValidationTest {
 
@@ -24,7 +24,7 @@ public abstract class RegistrarEntityValidationTest extends RegistrarEntityPubli
     super(validJsonResourcePath, testGroupName, baseQueryType);
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     datasetService = mock(RDAPDatasetService.class);

@@ -1,14 +1,14 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
 import org.icann.rdapconformance.validator.NetworkProtocol;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class IPVersionContextTest {
     
-    @AfterMethod
+    @AfterEach
     public void cleanup() {
         // Clear any active context after each test
         IPVersionContext current = IPVersionContext.current();

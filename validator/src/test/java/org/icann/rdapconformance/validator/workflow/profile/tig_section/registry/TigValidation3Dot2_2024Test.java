@@ -15,8 +15,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
 
@@ -29,7 +29,7 @@ public class TigValidation3Dot2_2024Test extends ProfileJsonValidationTestBase {
             "tigSection_3_2_Validation");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
         config = mock(RDAPValidatorConfiguration.class);

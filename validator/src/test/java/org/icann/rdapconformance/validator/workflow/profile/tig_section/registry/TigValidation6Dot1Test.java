@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPublicIdsValidation;
 import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPublicIdsValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation6Dot1Test extends RegistrarEntityPublicIdsValidationTest {
 

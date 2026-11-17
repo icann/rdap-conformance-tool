@@ -12,14 +12,14 @@ import java.util.Map;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.HttpTestingUtils.RedirectData;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation1Dot13Test extends ProfileValidationTestBase {
 
   private HttpResponse<String> httpResponse;
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     httpResponse = mock(HttpResponse.class);

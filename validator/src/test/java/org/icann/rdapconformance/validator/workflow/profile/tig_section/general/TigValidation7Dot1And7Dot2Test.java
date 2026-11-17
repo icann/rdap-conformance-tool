@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation7Dot1And7Dot2Test extends ProfileJsonValidationTestBase {
 

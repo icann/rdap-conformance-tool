@@ -6,9 +6,10 @@ import java.util.Set;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -20,14 +21,13 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
         RDAPQueryType.DOMAIN, ResponseValidation2Dot9Dot1And2Dot9Dot2.class, "nameserver");
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     config = mock(RDAPValidatorConfiguration.class);
     doReturn(true).when(config).isGtldRegistrar();
   }
 
-  @DataProvider(name = "invalidStatus")
   public static Object[][] invalidStatus() {
     return new Object[][]{{Set.of("active", "any")},
         {Set.of("pending delete", "client delete prohibited")},
@@ -82,7 +82,8 @@ public class ResponseValidation2Dot9Dot1And2Dot9Dot2Test extends
         "The handle or status in the nameserver object is not included.");
   }
 
-  @Test(dataProvider = "invalidStatus")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("invalidStatus")
   public void testValidate_InvalidStatusCombination_AddResults47204(Set<String> status) {
     replaceValue("$['nameservers'][0]['status']", status);
     validate(-47204,

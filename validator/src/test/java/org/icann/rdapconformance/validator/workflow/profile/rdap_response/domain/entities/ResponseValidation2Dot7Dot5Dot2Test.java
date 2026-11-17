@@ -11,9 +11,10 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseDomainValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation2Dot7Dot5Dot2Test extends ResponseDomainValidationTestBase {
 
@@ -36,13 +37,12 @@ public class ResponseValidation2Dot7Dot5Dot2Test extends ResponseDomainValidatio
     super("rdapResponseProfile_2_7_5_2_Validation");
   }
 
-  @DataProvider(name = "roles")
   public static Object[][] roles() {
     return new Object[][]{{"registrant"}, {"administrative"}, {"technical"}, {"billing"}};
   }
 
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
 
@@ -67,13 +67,15 @@ public class ResponseValidation2Dot7Dot5Dot2Test extends ResponseDomainValidatio
     assertThat(getProfileValidation().doLaunch()).isFalse();
   }
 
-  @Test(dataProvider = "roles")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("roles")
   public void testValidate_EntityContainsEmail_ok(String role) {
     replaceValue("$['entities'][0]['entities'][0]['roles'][0]", role);
     super.testValidate_ok();
   }
 
-  @Test(dataProvider = "roles")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("roles")
   public void testValidate_EntityDoesNotContainEmailButContactUriHttp_ok(String role) {
     replaceValue("$['entities'][0]['roles'][0]", role);
     addValue("$['entities'][0]['vcardArray'][1]",
@@ -81,7 +83,8 @@ public class ResponseValidation2Dot7Dot5Dot2Test extends ResponseDomainValidatio
     super.testValidate_ok();
   }
 
-  @Test(dataProvider = "roles")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("roles")
   public void testValidate_EntityDoesNotContainEmailButContactUriHttps_ok(String role) {
     replaceValue("$['entities'][0]['roles'][0]", role);
     addValue("$['entities'][0]['vcardArray'][1]",
@@ -89,7 +92,8 @@ public class ResponseValidation2Dot7Dot5Dot2Test extends ResponseDomainValidatio
     super.testValidate_ok();
   }
 
-  @Test(dataProvider = "roles")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("roles")
   public void testValidate_EntityDoesNotContainEmailButContactUriEmail_ok(String role) {
     replaceValue("$['entities'][0]['roles'][0]", role);
     addValue("$['entities'][0]['vcardArray'][1]",
@@ -97,7 +101,8 @@ public class ResponseValidation2Dot7Dot5Dot2Test extends ResponseDomainValidatio
     super.testValidate_ok();
   }
 
-  @Test(dataProvider = "roles")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("roles")
   public void testValidate_EntityDoesNotContainEmailNorContactUri_AddResults58000(String role) {
     replaceValue("$['entities'][0]['roles'][0]", role);
     validate(-58000, String.format(entities, "", role), "An entity with the administrative, "
@@ -105,7 +110,8 @@ public class ResponseValidation2Dot7Dot5Dot2Test extends ResponseDomainValidatio
         + "See section 2.7.5.2 of the RDAP_Response_Profile_2_1.");
   }
 
-  @Test(dataProvider = "roles")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("roles")
   public void testValidate_EntityDoesNotContainEmailAndInvalidContactUri_AddResults58001(
       String role) {
     replaceValue("$['entities'][0]['roles'][0]", role);

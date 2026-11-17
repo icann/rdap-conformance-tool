@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.TopMostEventActionValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidationLastUpdateEventTest extends
     TopMostEventActionValidationTest<ResponseValidationLastUpdateEvent> {

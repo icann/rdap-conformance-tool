@@ -2,8 +2,8 @@ package org.icann.rdapconformance.validator.workflow.profile;
 
 import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public abstract class RegistrarEntityPublicIdsValidationTest extends ProfileJsonValidationTestBase {
 
@@ -22,7 +22,7 @@ public abstract class RegistrarEntityPublicIdsValidationTest extends ProfileJson
     this.baseQueryType = baseQueryType;
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     this.queryType = baseQueryType;

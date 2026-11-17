@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile.tig_section.general;
 
 import static org.mockito.Mockito.*;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
@@ -12,8 +12,8 @@ import java.util.List;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation1Dot5_2024Test {
 
@@ -24,7 +24,7 @@ public class TigValidation1Dot5_2024Test {
     private TigValidation1Dot5_2024 validation;
     private QueryContext queryContext;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         httpResponse = mock(HttpResponse.class);
         config = mock(RDAPValidatorConfiguration.class);
@@ -51,7 +51,7 @@ public class TigValidation1Dot5_2024Test {
         when(httpResponse.uri()).thenReturn(URI.create("http://example.com"));
 
         boolean isValid = validation.doValidate();
-        assertTrue("Validation should pass for non-HTTPS URI", isValid);
+        assertTrue(isValid, "Validation should pass for non-HTTPS URI");
         
         // Verify no SSL validation was performed
         verify(mockSSLValidator, never()).validateSSL(anyString(), anyInt());
@@ -61,8 +61,8 @@ public class TigValidation1Dot5_2024Test {
     @Test
     public void testGetGroupName() {
         String groupName = validation.getGroupName();
-        assertTrue("Group name should be tigSection_1_5_Validation", 
-                   "tigSection_1_5_Validation".equals(groupName));
+        assertTrue("tigSection_1_5_Validation".equals(groupName),
+                   "Group name should be tigSection_1_5_Validation");
     }
 
     @Test
@@ -80,7 +80,7 @@ public class TigValidation1Dot5_2024Test {
         when(mockSSLValidator.validateTLS12CipherSuites("example.com", 443)).thenReturn(cipherResult);
 
         boolean isValid = validation.doValidate();
-        assertTrue("Validation should pass for valid TLS protocols", isValid);
+        assertTrue(isValid, "Validation should pass for valid TLS protocols");
         
         verify(mockSSLValidator).validateSSL("example.com", 443);
         verify(results, never()).add(any()); // No errors should be added
@@ -96,7 +96,7 @@ public class TigValidation1Dot5_2024Test {
         when(mockSSLValidator.validateSSL("example.com", 443)).thenReturn(successResult);
 
         boolean isValid = validation.doValidate();
-        assertFalse("Validation should fail for invalid TLS protocol", isValid);
+        assertFalse(isValid, "Validation should fail for invalid TLS protocol");
         
         verify(mockSSLValidator).validateSSL("example.com", 443);
         verify(results).add(any()); // Error should be added for invalid protocol
@@ -112,7 +112,7 @@ public class TigValidation1Dot5_2024Test {
         when(mockSSLValidator.validateSSL("example.com", 443)).thenReturn(failureResult);
 
         boolean isValid = validation.doValidate();
-        assertFalse("Validation should fail when SSL validation fails", isValid);
+        assertFalse(isValid, "Validation should fail when SSL validation fails");
         
         verify(mockSSLValidator).validateSSL("example.com", 443);
         // No results should be added when SSL validation itself fails
@@ -134,7 +134,7 @@ public class TigValidation1Dot5_2024Test {
         when(mockSSLValidator.validateTLS12CipherSuites("example.com", 443)).thenReturn(cipherResult);
 
         boolean isValid = validation.doValidate();
-        assertFalse("Validation should fail when any invalid protocol is present", isValid);
+        assertFalse(isValid, "Validation should fail when any invalid protocol is present");
         
         verify(mockSSLValidator).validateSSL("example.com", 443);
         verify(results).add(any()); // Error should be added for the invalid protocol
@@ -154,7 +154,7 @@ public class TigValidation1Dot5_2024Test {
         when(mockSSLValidator.validateTLS12CipherSuites("example.com", 443)).thenReturn(cipherResult);
 
         boolean isValid = validation.doValidate();
-        assertTrue("Validation should pass for valid TLS 1.2 cipher suite", isValid);
+        assertTrue(isValid, "Validation should pass for valid TLS 1.2 cipher suite");
         
         verify(mockSSLValidator).validateSSL("example.com", 443);
         verify(mockSSLValidator).validateTLS12CipherSuites("example.com", 443);
@@ -175,7 +175,7 @@ public class TigValidation1Dot5_2024Test {
         when(mockSSLValidator.validateTLS12CipherSuites("example.com", 443)).thenReturn(cipherResult);
 
         boolean isValid = validation.doValidate();
-        assertFalse("Validation should fail for invalid TLS 1.2 cipher suite", isValid);
+        assertFalse(isValid, "Validation should fail for invalid TLS 1.2 cipher suite");
         
         verify(mockSSLValidator).validateSSL("example.com", 443);
         verify(mockSSLValidator).validateTLS12CipherSuites("example.com", 443);
@@ -196,7 +196,7 @@ public class TigValidation1Dot5_2024Test {
         when(mockSSLValidator.validateTLS12CipherSuites("example.com", 443)).thenReturn(cipherResult);
 
         boolean isValid = validation.doValidate();
-        assertFalse("Validation should fail when cipher validation fails", isValid);
+        assertFalse(isValid, "Validation should fail when cipher validation fails");
         
         verify(mockSSLValidator).validateSSL("example.com", 443);
         verify(mockSSLValidator).validateTLS12CipherSuites("example.com", 443);

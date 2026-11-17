@@ -5,13 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.util.Map;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation2Dot7Dot1DotXAndRelated6Test extends
     ResponseValidation2Dot7Dot1DotXAndRelatedTest {
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     replaceValue("$..vcardArray[1][?(@[0] == 'adr')][1]", Map.of("cc", "US"));

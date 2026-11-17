@@ -7,7 +7,7 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.json.JSONObject;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation2Dot4Dot1Test extends ResponseDomainValidationTestBase {
 
@@ -30,6 +30,7 @@ public class ResponseValidation2Dot4Dot1Test extends ResponseDomainValidationTes
     return new ResponseValidation2Dot4Dot1(domainContext);
   }
 
+  @Test
   @Override
   public void testDoLaunch() {
     // Test doLaunch behavior by creating validation instances with different query types

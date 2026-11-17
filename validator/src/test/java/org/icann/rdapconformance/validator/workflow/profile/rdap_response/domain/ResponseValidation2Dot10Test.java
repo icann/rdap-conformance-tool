@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation2Dot10Test extends ResponseDomainValidationTestBase {
 
@@ -28,6 +28,7 @@ public class ResponseValidation2Dot10Test extends ResponseDomainValidationTestBa
     return new ResponseValidation2Dot10(domainContext);
   }
 
+  @Test
   @Override
   public void testDoLaunch() {
     // Test doLaunch behavior by creating validation instances with different query types

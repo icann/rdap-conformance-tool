@@ -5,8 +5,8 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidatio
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Set;
@@ -29,7 +29,7 @@ public class ResponseValidationTechEmail_2024Test extends ProfileJsonValidationT
                 "rdapResponseProfile_Tech_Email_Validation");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
         when(queryContext.getConfig().isGtldRegistry()).thenReturn(true);

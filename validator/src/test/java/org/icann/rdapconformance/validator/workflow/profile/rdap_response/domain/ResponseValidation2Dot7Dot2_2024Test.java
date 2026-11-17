@@ -5,8 +5,8 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidatio
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.json.JSONArray;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -42,7 +42,7 @@ public class ResponseValidation2Dot7Dot2_2024Test extends ProfileJsonValidationT
         super("/validators/domain/valid_registrant.json", "rdapResponseProfile_2_1_Validation");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
         when(queryContext.getConfig().isGtldRegistrar()).thenReturn(true);

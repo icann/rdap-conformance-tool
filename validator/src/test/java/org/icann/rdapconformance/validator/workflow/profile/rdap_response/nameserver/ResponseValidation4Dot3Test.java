@@ -7,7 +7,7 @@ import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPubli
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.RegistrarEntityValidationTest;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseValidation2Dot4Dot2And2Dot4Dot3;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation4Dot3Test extends
     RegistrarEntityValidationTest {
@@ -31,6 +31,7 @@ public class ResponseValidation4Dot3Test extends
     return new ResponseValidation4Dot3(nameserverContext);
   }
 
+  @Test
   @Override
   public void testDoLaunch() {
     // Test doLaunch behavior by creating validation instances with different query types

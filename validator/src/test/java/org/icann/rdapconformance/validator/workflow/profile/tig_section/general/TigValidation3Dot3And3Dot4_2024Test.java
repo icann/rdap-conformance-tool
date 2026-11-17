@@ -9,8 +9,8 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation3Dot3And3Dot4_2024Test extends ProfileJsonValidationTestBase {
 
@@ -20,7 +20,7 @@ public class TigValidation3Dot3And3Dot4_2024Test extends ProfileJsonValidationTe
             "tigSection_3_3_and_3_4_Validation");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
 

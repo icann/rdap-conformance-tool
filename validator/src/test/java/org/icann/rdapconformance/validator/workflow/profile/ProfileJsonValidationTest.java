@@ -2,8 +2,8 @@ package org.icann.rdapconformance.validator.workflow.profile;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
@@ -17,7 +17,7 @@ public class ProfileJsonValidationTest {
     private String validJsonResponse;
     private String invalidJsonResponse;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         mockResults = mock(RDAPValidatorResults.class);
         

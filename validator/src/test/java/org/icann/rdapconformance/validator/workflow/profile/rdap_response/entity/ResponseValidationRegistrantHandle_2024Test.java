@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.entit
 import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidatorTest.getResource;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.testng.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
@@ -15,8 +15,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceTestMock;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -35,7 +35,7 @@ public class ResponseValidationRegistrantHandle_2024Test extends ProfileJsonVali
                 "rdapResponseProfile_registrant_handle_Validation");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
 

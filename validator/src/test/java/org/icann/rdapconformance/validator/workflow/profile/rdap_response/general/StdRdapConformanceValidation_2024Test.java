@@ -4,7 +4,7 @@ import java.util.List;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class StdRdapConformanceValidation_2024Test  extends ProfileJsonValidationTestBase {
 

@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.profile;
 
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -14,7 +14,7 @@ public class ProfileValidationTest {
 
     private RDAPValidatorResults mockResults;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         mockResults = mock(RDAPValidatorResults.class);
     }

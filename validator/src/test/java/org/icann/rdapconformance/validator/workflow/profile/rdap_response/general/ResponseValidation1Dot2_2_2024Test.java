@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.general;
 
 import java.util.List;
+import org.junit.jupiter.api.Test;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPConformanceValidation;
 import org.icann.rdapconformance.validator.workflow.profile.RDAPConformanceValidationTest;
 
@@ -10,6 +11,7 @@ public class ResponseValidation1Dot2_2_2024Test extends RDAPConformanceValidatio
         super("rdapResponseProfile_1_2_Validation");
     }
 
+    @Test
     public void testValidate_ok() {
         jsonObject.put("rdapConformance", List.of("rdap_level_0", "icann_rdap_technical_implementation_guide_1", "icann_rdap_response_profile_1", "redacted"));
         validate();

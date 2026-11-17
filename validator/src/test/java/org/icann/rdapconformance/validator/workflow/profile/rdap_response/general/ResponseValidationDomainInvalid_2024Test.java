@@ -10,16 +10,16 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.net.http.HttpResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ResponseValidationDomainInvalid_2024Test {
 
@@ -29,7 +29,7 @@ public class ResponseValidationDomainInvalid_2024Test {
   private MockedStatic<RDAPHttpRequest> mockStaticRequest;
   private QueryContext queryContext;
 
-  @BeforeMethod
+  @BeforeEach
   public void setup() {
     mockConfig = mock(RDAPValidatorConfiguration.class);
     queryContext = QueryContext.forTesting(mockConfig);
@@ -41,7 +41,7 @@ public class ResponseValidationDomainInvalid_2024Test {
     mockStaticRequest = mockStatic(RDAPHttpRequest.class);
   }
 
-  @AfterMethod
+  @AfterEach
   public void tearDown() {
     if (mockStaticRequest != null) {
       mockStaticRequest.close();

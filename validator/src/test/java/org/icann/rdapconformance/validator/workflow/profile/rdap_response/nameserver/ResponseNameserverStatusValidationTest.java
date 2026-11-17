@@ -8,9 +8,10 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 public class ResponseNameserverStatusValidationTest extends ProfileJsonValidationTestBase {
 
@@ -18,7 +19,6 @@ public class ResponseNameserverStatusValidationTest extends ProfileJsonValidatio
     super("/validators/nameserver/valid.json", "nameserver_status");
   }
 
-  @DataProvider(name = "invalidStatus")
   public static Object[][] invalidStatus() {
     return new Object[][]{{Set.of("active", "any")},
         {Set.of("pending delete", "client delete prohibited")},
@@ -38,7 +38,7 @@ public class ResponseNameserverStatusValidationTest extends ProfileJsonValidatio
     };
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
   }
@@ -56,7 +56,8 @@ public class ResponseNameserverStatusValidationTest extends ProfileJsonValidatio
     return new ResponseNameserverStatusValidation(nameserverContext);
   }
 
-  @Test(dataProvider = "invalidStatus")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("invalidStatus")
   public void testValidate_InvalidStatusCombination_AddResults47204(Set<String> status) {
     replaceValue("status", status);
     validate(-49300,

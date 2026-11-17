@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public abstract class NoticesValidationTest extends ResponseDomainValidationTestBase {
 
@@ -19,7 +19,7 @@ public abstract class NoticesValidationTest extends ResponseDomainValidationTest
     this.noticeIndex = noticeIndex;
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws java.io.IOException {
     super.setUp();
     NoticesValidation validation = ((NoticesValidation)getProfileValidation());
