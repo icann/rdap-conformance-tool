@@ -214,4 +214,26 @@ public class ConnectionTrackerTest {
         assertTrue(result, "Should return true for 404");
         assertEquals(resultCountBefore, resultCountAfter, "Pure method should not add any results");
     }
+
+    @Test
+    public void testToString_DisplaysRedirectChainAndFollowStatus() {
+        URI first = URI.create("https://example.com/rdap/domain/a");
+        URI second = URI.create("https://example.com/rdap/domain/b");
+        URI orphan = URI.create("https://example.com/rdap/domain/c");
+        String firstId = connectionTracker.startTrackingNewConnection(first, "GET", true, NetworkProtocol.IPv4);
+        String secondId = connectionTracker.startTrackingNewConnection(second, "GET", true, NetworkProtocol.IPv4);
+        String orphanId = connectionTracker.startTrackingNewConnection(orphan, "GET", false, NetworkProtocol.IPv4);
+        connectionTracker.getConnectionByTrackingId(firstId).setRedirectedToId(secondId);
+        connectionTracker.getConnectionByTrackingId(secondId).setRedirectFollow(true);
+        // A follow-up whose originating connection is not tracked is displayed on its own
+        connectionTracker.getConnectionByTrackingId(orphanId).setRedirectFollow(true);
+
+        String display = connectionTracker.toString();
+
+        assertTrue(display.contains("[REDIRECTED]"));
+        assertTrue(display.contains("\u2514\u2500\u25ba"));
+        assertTrue(display.contains("3 connections"));
+        assertTrue(connectionTracker.getConnectionByTrackingId(secondId).toString().contains("REDIRECT"));
+        assertTrue(connectionTracker.getConnectionByTrackingId(firstId).toString().contains("[REDIRECTED]"));
+    }
 }

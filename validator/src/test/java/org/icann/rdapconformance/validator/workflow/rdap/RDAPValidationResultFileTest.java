@@ -13,6 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -884,10 +885,8 @@ public void testCreateResultsMap() {
         
         // Try to initialize again - should return early without overwriting
         RDAPValidatorConfiguration newConfig = config;
-        resultFile.initialize(results, newConfig, configurationFile, fileSystem);
-        
         // The second initialization should be ignored - test re-initialization safety
-        assertTrue(true); // Test passes if no exception thrown
+        assertDoesNotThrow(() -> resultFile.initialize(results, newConfig, configurationFile, fileSystem));
     }
     
     @Test 
@@ -1055,8 +1054,7 @@ public void testCreateResultsMap() {
         resultFile.initialize(results, config, configurationFile, fileSystem);
         
         // Test debug printing with ignored codes classification
-        resultFile.debugPrintResultBreakdown();
-        assertTrue(true);
+        assertDoesNotThrow(resultFile::debugPrintResultBreakdown);
     }
     
     @Test
@@ -1072,8 +1070,7 @@ public void testCreateResultsMap() {
         resultFile.initialize(results, config, configurationFile, fileSystem);
         
         // Test debug printing with null values handling
-        resultFile.debugPrintResultBreakdown();
-        assertTrue(true);
+        assertDoesNotThrow(resultFile::debugPrintResultBreakdown);
     }
     
     @Test

@@ -59,4 +59,27 @@ public class RDAPHttpRequestUriTest {
         assertThat(result.getRawQuery()).isEqualTo("a=b%20c");
         assertThat(result.toASCIIString()).doesNotContain("%2520");
     }
+
+    @Test
+    public void testBuildIpUri_Ipv6ZoneIdIsStripped() throws Exception {
+        URI original = new URI("https://example.com/domain/example.com");
+        InetAddress ip = InetAddress.getByName("fe80::1%1");
+
+        URI result = RDAPHttpRequest.buildIpUri(original, ip, 443);
+
+        assertThat(result.getHost()).isEqualTo("[fe80:0:0:0:0:0:0:1]");
+        assertThat(result.toASCIIString()).doesNotContain("%");
+    }
+
+    @Test
+    public void testBuildIpUri_NoPortQueryAndFragmentPreserved() throws Exception {
+        URI original = new URI("https://example.com/domain/x?a=b#frag");
+        InetAddress ip = InetAddress.getByName("127.0.0.1");
+
+        URI result = RDAPHttpRequest.buildIpUri(original, ip, -1);
+
+        assertThat(result.toASCIIString()).isEqualTo("https://127.0.0.1/domain/x?a=b#frag");
+        assertThat(result.getPort()).isEqualTo(-1);
+        assertThat(result.getRawFragment()).isEqualTo("frag");
+    }
 }
