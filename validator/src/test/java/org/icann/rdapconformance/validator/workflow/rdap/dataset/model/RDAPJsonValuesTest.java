@@ -1,16 +1,16 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class RDAPJsonValuesTest extends BaseUnmarshallingTest<RDAPJsonValues> {
 
     private RDAPJsonValues rdapJsonValues;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         this.rdapJsonValues = unmarshal("/dataset/rdap-json-values.xml", RDAPJsonValues.class);
     }

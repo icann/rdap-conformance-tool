@@ -1,14 +1,14 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SpecialIPv4AddressesTest extends BaseUnmarshallingTest<SpecialIPv4Addresses> {
     private SpecialIPv4Addresses ipAddressSpecialRegistry;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         this.ipAddressSpecialRegistry = unmarshal("/dataset/iana-ipv4-special-registry.xml", SpecialIPv4Addresses.class);
     }

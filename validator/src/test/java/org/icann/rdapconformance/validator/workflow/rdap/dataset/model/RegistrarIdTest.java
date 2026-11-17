@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
 import org.assertj.core.groups.Tuple;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -61,7 +61,7 @@ public class RegistrarIdTest extends BaseUnmarshallingTest<RegistrarId> {
         assertThat(record.isReserved()).isTrue();
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException, ParserConfigurationException, SAXException {
         registrarId = unmarshal("/dataset/registrar-ids.xml", RegistrarId.class);
     }

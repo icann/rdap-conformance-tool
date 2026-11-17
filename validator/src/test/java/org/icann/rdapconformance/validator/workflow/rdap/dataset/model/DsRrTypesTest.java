@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -10,7 +10,7 @@ public class DsRrTypesTest extends BaseUnmarshallingTest<DsRrTypes> {
 
     private DsRrTypes dsrRTypes;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         this.dsrRTypes = unmarshal("/dataset/ds-rr-types.xml", DsRrTypes.class);
     }

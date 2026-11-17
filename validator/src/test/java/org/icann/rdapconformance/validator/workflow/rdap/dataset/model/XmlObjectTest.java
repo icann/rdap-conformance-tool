@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -25,7 +25,7 @@ public class XmlObjectTest {
         }
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         xmlObject = new TestXmlObject();
     }

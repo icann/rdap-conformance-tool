@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
 import org.icann.rdapconformance.validator.workflow.JsonDeserializer;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
@@ -13,7 +13,7 @@ public class BootstrapDomainNameSpaceTest extends BaseUnmarshallingTest<Bootstra
     private BootstrapDomainNameSpace bootstrapDomainNameSpace;// = new BootstrapDomainNameSpace();
     private JsonDeserializer<BootstrapDomainNameSpace> deserializer = new JsonDeserializer<>(BootstrapDomainNameSpace.class);
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws Throwable {
         this.bootstrapDomainNameSpace = deserializer.deserialize(new File(getClass().getResource("/dataset/dns.json").getFile()));
     }

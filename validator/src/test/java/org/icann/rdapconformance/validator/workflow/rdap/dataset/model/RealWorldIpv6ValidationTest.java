@@ -2,8 +2,8 @@ package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 
@@ -15,7 +15,7 @@ public class RealWorldIpv6ValidationTest extends BaseUnmarshallingTest<SpecialIP
     private SpecialIPv6Addresses specialIPv6Addresses;
     private ObjectMapper objectMapper;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws Exception {
         // Load both datasets
         this.specialIPv6Addresses = unmarshal("/dataset/iana-ipv6-special-registry.xml", SpecialIPv6Addresses.class);
