@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ConfigurationFileParserImplTest {
 

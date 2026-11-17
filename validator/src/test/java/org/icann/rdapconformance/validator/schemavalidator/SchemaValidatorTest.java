@@ -268,6 +268,6 @@ public abstract class SchemaValidatorTest {
 
   @AfterMethod
   public void tearDown(ITestResult testResult) throws IOException {
-    FixturesGenerator.generate(testResult, jsonObject);
+    FixturesGenerator.generate(testResult.getInstanceName(), testResult.getMethod().getMethodName(), jsonObject);
   }
 }

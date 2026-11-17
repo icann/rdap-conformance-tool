@@ -4,8 +4,8 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public abstract class IpFormatValidatorTest extends FormatValidatorTest<IpFormatValidator> {
 
@@ -25,7 +25,7 @@ public abstract class IpFormatValidatorTest extends FormatValidatorTest<IpFormat
   protected final String format;
   protected final String invalidIp;
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() {
     doReturn(false).when(ipFormatValidator.getIpAddressesValidator()).isInvalid(any());
     doReturn(false).when(ipFormatValidator.getSpecialIpAddresses()).isInvalid(any());

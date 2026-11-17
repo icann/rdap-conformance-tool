@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.util;
 
 import org.icann.rdapconformance.validator.utils.EmailValidator;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
 public class EmailValidatorTest {

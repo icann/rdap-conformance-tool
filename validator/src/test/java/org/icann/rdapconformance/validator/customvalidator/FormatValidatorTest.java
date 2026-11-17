@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.customvalidator;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import org.everit.json.schema.FormatValidator;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public abstract class FormatValidatorTest<T extends FormatValidator> {
 

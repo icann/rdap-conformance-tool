@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.exception.parser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URISyntaxException;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ExceptionParserTest {
   @Test

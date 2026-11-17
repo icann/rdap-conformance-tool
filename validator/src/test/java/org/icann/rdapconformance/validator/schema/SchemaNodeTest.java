@@ -9,7 +9,7 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaNodeTest {
 

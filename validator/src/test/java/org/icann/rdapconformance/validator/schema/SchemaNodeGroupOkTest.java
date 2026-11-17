@@ -6,7 +6,7 @@ import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
