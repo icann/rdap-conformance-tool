@@ -19,8 +19,8 @@ import java.util.List;
  * <p>Two independent rules are combined:</p>
  * <ul>
  *   <li><strong>Built-in private/reserved ranges</strong> (always on): loopback, RFC 1918,
- *       link-local, wildcard, IPv6 ULA {@code fc00::/7} and the cloud metadata address
- *       {@code 169.254.169.254}.</li>
+ *       link-local (covers the {@code 169.254.169.254} cloud metadata endpoint), wildcard and
+ *       IPv6 ULA {@code fc00::/7}.</li>
  *   <li><strong>Operator-configured CIDR ranges</strong>: globally routable prefixes that must
  *       nevertheless be treated as internal (for example an organisation's own public address
  *       space, whose services may trust the tool's egress IP via IP ACLs). Empty by default.</li>
@@ -31,9 +31,6 @@ import java.util.List;
  * @see org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration#getSsrfBlockedCidrs()
  */
 public final class SsrfBlocklist {
-
-    /** Cloud provider instance-metadata endpoint (AWS, GCP, Azure, ...). */
-    public static final String CLOUD_METADATA_IP = "169.254.169.254";
 
     /** Environment variable naming a CIDR file to load in addition to the configured list. */
     public static final String CIDR_FILE_ENV = "RDAPCT_SSRF_BLOCKED_CIDRS_FILE";
@@ -127,19 +124,22 @@ public final class SsrfBlocklist {
     }
 
     /**
-     * @return true for loopback, site-local (RFC 1918 / fec0::/10), link-local, wildcard,
-     *         IPv6 ULA (fc00::/7) and the cloud metadata address
+     * @return true for loopback, site-local (RFC 1918 / fec0::/10), link-local (which includes
+     *         the 169.254.169.254 cloud instance-metadata endpoint), wildcard and IPv6 ULA (fc00::/7)
      */
     public static boolean isPrivateOrReserved(InetAddress addr) {
         if (addr == null) {
             return false;
         }
+        return isLocalScope(addr) || isIPv6UniqueLocalAddress(addr);
+    }
+
+    /** Loopback, site-local, link-local or wildcard — the JDK-recognised non-routable scopes. */
+    private static boolean isLocalScope(InetAddress addr) {
         return addr.isLoopbackAddress()
                 || addr.isSiteLocalAddress()
                 || addr.isLinkLocalAddress()
-                || addr.isAnyLocalAddress()
-                || isIPv6UniqueLocalAddress(addr)
-                || CLOUD_METADATA_IP.equals(addr.getHostAddress());
+                || addr.isAnyLocalAddress();
     }
 
     /**

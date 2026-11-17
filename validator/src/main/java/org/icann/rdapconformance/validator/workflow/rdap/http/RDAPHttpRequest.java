@@ -50,7 +50,6 @@ import org.apache.hc.core5.http.ConnectionClosedException;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.QueryContext;
-import org.icann.rdapconformance.validator.SsrfBlocklist;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
 
@@ -133,7 +132,6 @@ public class RDAPHttpRequest {
     // IP (AWS/GCP/Azure, RFC 3927 link-local). It is hardcoded intentionally so SSRF
     // protection can BLOCK requests to it. It is never used as a connection target.
     // Sonar S1313: reviewed, safe.
-    public static final String AWS_GATEWAY_IP = SsrfBlocklist.CLOUD_METADATA_IP;
 
     // NOTE: Mutable for testing purposes - allows test timeouts to be reduced from 30 seconds to 1 second
     // This field is not modified in production code, only in test environments

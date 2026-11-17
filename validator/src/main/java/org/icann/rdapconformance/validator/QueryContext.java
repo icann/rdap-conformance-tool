@@ -641,9 +641,7 @@ public class QueryContext {
         if (!ssrfProtectionEnabled || remoteAddress == null) {
             return false;
         }
-        String hostLower = host == null ? "" : host.toLowerCase();
-        if (ssrfAllowedHosts.contains(hostLower)
-                || ssrfAllowedHosts.contains(remoteAddress.getHostAddress())) {
+        if (isSsrfAllowed(host, remoteAddress)) {
             return false;
         }
         if (ssrfBlocklist.isBlocked(remoteAddress)) {
@@ -651,16 +649,27 @@ public class QueryContext {
                     remoteAddress.getHostAddress(), host);
             return true;
         }
+        return hasBlockedSiblingAddress(host);
+    }
+
+    private boolean isSsrfAllowed(String host, InetAddress remoteAddress) {
+        return (host != null && ssrfAllowedHosts.contains(host.toLowerCase()))
+                || ssrfAllowedHosts.contains(remoteAddress.getHostAddress());
+    }
+
+    /** True if any other record of {@code host} in the active address family is blocked. */
+    private boolean hasBlockedSiblingAddress(String host) {
         if (host == null || host.isEmpty()) {
             return false;
         }
-        List<InetAddress> siblings = getNetworkProtocol() == NetworkProtocol.IPv6
+        NetworkProtocol protocol = getNetworkProtocol();
+        List<InetAddress> siblings = protocol == NetworkProtocol.IPv6
                 ? getDnsResolver().getAllV6Addresses(host)
                 : getDnsResolver().getAllV4Addresses(host);
         for (InetAddress addr : siblings) {
             if (ssrfBlocklist.isBlocked(addr)) {
                 logger.warn("Blocked connection to {}: host also resolves to blocked address {} ({})",
-                        host, addr.getHostAddress(), getNetworkProtocol());
+                        host, addr.getHostAddress(), protocol);
                 return true;
             }
         }
