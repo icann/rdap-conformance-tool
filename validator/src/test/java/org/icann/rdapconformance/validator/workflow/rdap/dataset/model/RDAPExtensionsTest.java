@@ -5,15 +5,15 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
 import java.util.Set;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class RDAPExtensionsTest extends BaseUnmarshallingTest<RDAPExtensions> {
 
   private final RDAPExtensions rdapExtensions = spy(RDAPExtensions.class);
   private RDAPExtensions rdapExtensionMarshalled;
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() {
     doReturn(Set.of("a value")).when(rdapExtensions).getValues();
     this.rdapExtensionMarshalled = unmarshal("/dataset/rdap-extensions.xml", RDAPExtensions.class);

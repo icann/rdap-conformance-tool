@@ -16,8 +16,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResultsImpl;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,7 +41,7 @@ public class PrivateIpv4NameserverBugTest {
     private SchemaValidator domainValidator;
     private String testJsonContent;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         // Create mock configuration for testing
         config = mock(RDAPValidatorConfiguration.class);

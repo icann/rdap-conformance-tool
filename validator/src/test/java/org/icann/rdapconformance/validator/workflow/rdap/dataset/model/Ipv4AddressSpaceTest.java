@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -17,7 +17,7 @@ public class Ipv4AddressSpaceTest extends BaseUnmarshallingTest<Ipv4AddressSpace
 
     private Ipv4AddressSpace ipv4AddressSpace;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         this.ipv4AddressSpace = unmarshal("/dataset/ipv4-address-space.xml", Ipv4AddressSpace.class);
     }

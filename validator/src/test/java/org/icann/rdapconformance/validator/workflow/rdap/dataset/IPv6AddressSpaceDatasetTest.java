@@ -2,8 +2,8 @@ package org.icann.rdapconformance.validator.workflow.rdap.dataset;
 
 import org.icann.rdapconformance.validator.workflow.FileSystem;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -13,7 +13,7 @@ public class IPv6AddressSpaceDatasetTest {
     private FileSystem mockFileSystem;
     private IPv6AddressSpaceDataset dataset;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         mockFileSystem = mock(FileSystem.class);
         dataset = new IPv6AddressSpaceDataset(mockFileSystem);

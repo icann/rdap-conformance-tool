@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.tuple;
 public class DNSSecAlgNumbersTest extends BaseUnmarshallingTest<DNSSecAlgNumbers> {
     private DNSSecAlgNumbers dnsSecAlgNumbersTest;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         this.dnsSecAlgNumbersTest = unmarshal("/dataset/dns-sec-alg-numbers.xml", DNSSecAlgNumbers.class);
     }

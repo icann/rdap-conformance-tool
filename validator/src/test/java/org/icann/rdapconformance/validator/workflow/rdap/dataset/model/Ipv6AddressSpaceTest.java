@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -13,7 +13,7 @@ public class Ipv6AddressSpaceTest extends BaseUnmarshallingTest<Ipv6AddressSpace
 
     private Ipv6AddressSpace ipv6AddressSpace;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         this.ipv6AddressSpace = unmarshal("/dataset/ipv6-address-space.xml", Ipv6AddressSpace.class);
     }

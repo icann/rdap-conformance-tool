@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -9,7 +9,7 @@ public class EPPRoidTest extends BaseUnmarshallingTest<EPPRoid> {
 
     private EPPRoid eppRoid;
 
-    @BeforeMethod
+    @BeforeEach
     public void setup() {
         this.eppRoid = unmarshal("/dataset/epp-repository-ids.xml", EPPRoid.class);
     }

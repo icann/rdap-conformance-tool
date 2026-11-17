@@ -1,8 +1,8 @@
 package org.icann.rdapconformance.validator.workflow.rdap.dataset.model;
 
 import org.assertj.core.api.Assertions;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -12,7 +12,7 @@ public class MediaTypesTest extends BaseUnmarshallingTest<MediaTypes> {
 
     private MediaTypes mediaTypes;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException, ParserConfigurationException, SAXException {
         this.mediaTypes = unmarshal("/dataset/media-types.xml", MediaTypes.class);
     }

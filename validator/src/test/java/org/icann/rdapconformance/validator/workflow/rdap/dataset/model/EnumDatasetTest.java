@@ -6,7 +6,7 @@ import static org.mockito.Mockito.spy;
 
 import java.util.Set;
 import org.assertj.core.api.AbstractBooleanAssert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class EnumDatasetTest {
 
