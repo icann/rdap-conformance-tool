@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.assertj.core.api.Assertions;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorPort43Test extends SchemaValidatorTest {
 

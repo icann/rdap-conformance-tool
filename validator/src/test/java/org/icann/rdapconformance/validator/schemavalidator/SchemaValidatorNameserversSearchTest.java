@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.schemavalidator;
 import java.io.IOException;
 import java.util.List;
 import org.json.JSONObject;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorNameserversSearchTest extends SchemaValidatorObjectTest {
 

@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.schemavalidator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorVariantsTest extends SchemaValidatorForArrayTest {
 

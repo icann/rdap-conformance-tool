@@ -3,8 +3,8 @@ package org.icann.rdapconformance.validator.schemavalidator;
 import java.io.IOException;
 
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorLdhNameTest extends SchemaValidatorIdnaTest {
 
@@ -13,7 +13,7 @@ public class SchemaValidatorLdhNameTest extends SchemaValidatorIdnaTest {
     validationName = "stdRdapLdhNameValidation";
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     name = "ldhName";

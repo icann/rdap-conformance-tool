@@ -5,7 +5,7 @@ import static org.mockito.Mockito.doReturn;
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.LinkRelations;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.MediaTypes;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorLinksTest extends SchemaValidatorForArrayTest {
 

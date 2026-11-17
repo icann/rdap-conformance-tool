@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.json.JSONObject;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorIpAddressTest extends SchemaValidatorTest {
 

@@ -31,15 +31,15 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RDAPJsonV
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv4Addresses;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class RDAPDatasetServiceIt {
 
     private RDAPDatasetService rdapDatasetService;
     private FileSystem fileSystem;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         this.fileSystem = new LocalFileSystem();
         this.rdapDatasetService = new RDAPDatasetServiceImpl(this.fileSystem);

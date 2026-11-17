@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EventActionJsonValues;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorAsEventActorTest extends SchemaValidatorForArrayTest {
 
@@ -19,7 +19,7 @@ public class SchemaValidatorAsEventActorTest extends SchemaValidatorForArrayTest
     validationName = "stdRdapAsEventActorValidation";
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     name = "asEventActor";

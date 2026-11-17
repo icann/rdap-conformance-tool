@@ -6,7 +6,7 @@ import static org.mockito.Mockito.doReturn;
 import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.NoticeAndRemarkJsonValues;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorNoticesTest extends SchemaValidatorForArrayTest {
 

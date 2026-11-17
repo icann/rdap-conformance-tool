@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorVcardArrayInDomainTest extends SchemaValidatorDomainTest {
 

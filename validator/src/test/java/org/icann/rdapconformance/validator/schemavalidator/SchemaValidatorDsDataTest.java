@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorDsDataTest extends SchemaValidatorForArrayTest {
 
@@ -15,7 +15,7 @@ public class SchemaValidatorDsDataTest extends SchemaValidatorForArrayTest {
     validationName = "stdRdapSecureDnsValidation";
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     Locale.setDefault(Locale.US);
     super.setUp();

@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.validator.schemavalidator;
 
 import java.util.List;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorNameserverTest extends SchemaValidatorObjectTest {
 

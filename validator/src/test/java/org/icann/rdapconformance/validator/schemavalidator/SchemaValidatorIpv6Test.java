@@ -6,8 +6,8 @@ import static org.mockito.Mockito.doReturn;
 import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Ipv6AddressSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.SpecialIPv6Addresses;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SchemaValidatorIpv6Test extends SchemaValidatorTest {
 
@@ -18,7 +18,7 @@ public class SchemaValidatorIpv6Test extends SchemaValidatorTest {
     validationName = "IPv6Validation";
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     name = "ipv6";
