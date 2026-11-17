@@ -6,6 +6,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.security.Security;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.DomainLabelUtils;
 import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.SsrfBlocklist;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -180,6 +182,13 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
           paramLabel = "HOST",
           hidden = true)
   private List<String> ssrfAllowedHosts = new java.util.ArrayList<>();
+
+  @Option(names = {"--ssrf-blocked-cidrs-file"},
+          description = "File with CIDR ranges (one per line, '#' comments) that SSRF protection must treat " +
+                  "as internal even though they are publicly routable (e.g. the organisation's own address space).",
+          paramLabel = "FILE",
+          hidden = true)
+  private File ssrfBlockedCidrsFile;
 
   // Progress tracking
   private ProgressTracker progressTracker;
@@ -376,6 +385,39 @@ public void setShowProgress(boolean showProgress) {
     return ssrfAllowedHosts;
   }
 
+  /**
+   * Returns the CIDR ranges listed in {@code --ssrf-blocked-cidrs-file} (empty when not given).
+   * The file is validated up front in {@link #call()} so an unreadable or malformed file fails fast
+   * with {@link ToolResult#BAD_USER_INPUT} instead of silently running without the blocklist.
+   */
+  @Override
+  public List<String> getSsrfBlockedCidrs() {
+    if (ssrfBlockedCidrsFile == null) {
+      return List.of();
+    }
+    try {
+      return SsrfBlocklist.readCidrFile(ssrfBlockedCidrsFile.toPath());
+    } catch (IOException e) {
+      throw new IllegalStateException("Cannot read --ssrf-blocked-cidrs-file " + ssrfBlockedCidrsFile, e);
+    }
+  }
+
+  public void setSsrfBlockedCidrsFile(File file) {
+    this.ssrfBlockedCidrsFile = file;
+  }
+
+  /** @return an error message if the SSRF blocklist inputs are unusable, otherwise {@code null}. */
+  private String validateSsrfBlockedCidrs() {
+    try {
+      SsrfBlocklist.of(getSsrfBlockedCidrs());
+      return null;
+    } catch (IllegalStateException e) {
+      return e.getMessage() + (e.getCause() != null ? " (" + e.getCause().getMessage() + ")" : "");
+    } catch (IllegalArgumentException e) {
+      return "Invalid SSRF blocked CIDR: " + e.getMessage();
+    }
+  }
+
   @Override
   public Integer call() throws Exception {
     // Configure logging based on the new logging level system
@@ -465,6 +507,13 @@ public void setShowProgress(boolean showProgress) {
     // Validate custom DNS resolver if provided
     if (customDnsResolver != null && !customDnsResolver.isEmpty() && !isValidIpAddress(customDnsResolver)) {
       logger.error(ToolResult.BAD_USER_INPUT.getDescription() + ": Invalid DNS resolver IP address format: " + customDnsResolver);
+      return ToolResult.BAD_USER_INPUT.getCode();
+    }
+
+    // Validate SSRF blocked CIDR inputs (fail fast rather than run without the blocklist)
+    String ssrfCidrError = validateSsrfBlockedCidrs();
+    if (ssrfCidrError != null) {
+      logger.error(ToolResult.BAD_USER_INPUT.getDescription() + ": " + ssrfCidrError);
       return ToolResult.BAD_USER_INPUT.getCode();
     }
 

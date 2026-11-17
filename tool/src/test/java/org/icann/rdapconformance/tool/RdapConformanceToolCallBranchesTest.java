@@ -66,6 +66,54 @@ public class RdapConformanceToolCallBranchesTest {
         assertThat(tool.call()).isEqualTo(ToolResult.BAD_USER_INPUT.getCode());
     }
 
+    // ---------- --ssrf-blocked-cidrs-file ----------
+
+    @Test
+    public void call_ssrfBlockedCidrsFileMissing_returnsBadUserInput() throws Exception {
+        RdapConformanceTool tool = new RdapConformanceTool();
+        tool.setLogging(LoggingLevel.ERROR);
+        tool.setSsrfBlockedCidrsFile(new java.io.File("/tmp/no-such-cidrs-" + System.nanoTime() + ".txt"));
+        assertThat(tool.call()).isEqualTo(ToolResult.BAD_USER_INPUT.getCode());
+    }
+
+    @Test
+    public void call_ssrfBlockedCidrsFileMalformed_returnsBadUserInput() throws Exception {
+        Path bad = Files.createTempFile("cidrs", ".txt");
+        Files.writeString(bad, "192.0.2.0/24\nnot a cidr\n");
+        try {
+            RdapConformanceTool tool = new RdapConformanceTool();
+            tool.setLogging(LoggingLevel.ERROR);
+            tool.setSsrfBlockedCidrsFile(bad.toFile());
+            assertThat(tool.call()).isEqualTo(ToolResult.BAD_USER_INPUT.getCode());
+        } finally {
+            Files.deleteIfExists(bad);
+        }
+    }
+
+    @Test
+    public void getSsrfBlockedCidrs_readsFileIgnoringCommentsAndBlankLines() throws Exception {
+        Path file = Files.createTempFile("cidrs", ".txt");
+        Files.writeString(file, "# org space\n192.0.2.0/24\n\n2001:db8::/32 # v6\n203.0.113.9\n");
+        try {
+            RdapConformanceTool tool = new RdapConformanceTool();
+            picocli.CommandLine cl = new picocli.CommandLine(tool);
+            cl.registerConverter(java.net.URI.class, new RdapConformanceTool.IdnAwareUriConverter());
+            cl.parseArgs("--config", "/tmp/nonexistent.json",
+                    "--ssrf-blocked-cidrs-file", file.toString(),
+                    "https://rdap.example.com/domain/test.example");
+
+            assertThat(tool.getSsrfBlockedCidrs())
+                    .containsExactly("192.0.2.0/24", "2001:db8::/32", "203.0.113.9");
+        } finally {
+            Files.deleteIfExists(file);
+        }
+    }
+
+    @Test
+    public void getSsrfBlockedCidrs_defaultIsEmpty() {
+        assertThat(new RdapConformanceTool().getSsrfBlockedCidrs()).isEmpty();
+    }
+
     // ---------- validateWithoutNetwork ----------
 
     @Test

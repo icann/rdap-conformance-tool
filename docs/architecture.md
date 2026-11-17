@@ -61,7 +61,7 @@ Root packages: `org.icann.rdapconformance.tool` and `org.icann.rdapconformance.v
 | Class / package | Responsibility |
 |---|---|
 | `Main` | `main()`; delegates to picocli `CommandLine(new RdapConformanceTool())` |
-| `RdapConformanceTool` | `@Command` + `Callable<Integer>`. Options (`-c`, `--timeout`, `--maximum-redirects`, `--use-local-datasets`, `--additional-conformance-queries`, `--logging`, `-v`, `--dns-resolver`, `--ssrf-allowed-hosts`, `--no-ipv4-queries`, `--no-ipv6-queries`, `--use-rdap-profile-february-2024`, `--gtld-registrar`, `--gtld-registry`, `--thin`). Configures logback programmatically (§7), TLS system properties (`:473-477`), progress, then runs the workflow |
+| `RdapConformanceTool` | `@Command` + `Callable<Integer>`. Options (`-c`, `--timeout`, `--maximum-redirects`, `--use-local-datasets`, `--additional-conformance-queries`, `--logging`, `-v`, `--dns-resolver`, `--ssrf-allowed-hosts`, `--ssrf-blocked-cidrs-file`, `--no-ipv4-queries`, `--no-ipv6-queries`, `--use-rdap-profile-february-2024`, `--gtld-registrar`, `--gtld-registry`, `--thin`). Configures logback programmatically (§7), TLS system properties (`:473-477`), progress, then runs the workflow |
 | `LoggingLevel` | `CLI`, `INFO`, `DEBUG`, `ERROR`, `VERBOSE` |
 | `UserInputValidator` | Validates URI / option combinations before any network I/O |
 | `VersionProvider` | `--version` from `version.properties` |
@@ -157,9 +157,16 @@ Source of truth: `validator/src/main/java/org/icann/rdapconformance/validator/To
 - **TLS hardening** is applied with JVM system properties (`checkRevocation`, `enableCRLDP`,
   session tickets off, compression off) (`:473-477`). `RdapWebValidator` deliberately skips this.
 - **SSRF protection** blocks private/loopback targets (`RDAPHttpRequest.java:877-900`,
-  `QueryContext.java:579-593`). `--ssrf-allowed-hosts` (hidden, not in `--help`;
-  `RdapConformanceTool.java:160-165`) allowlists specific hosts/IPs only; every other
-  private/loopback target stays blocked.
+  `QueryContext.java:579-593`). The address policy lives in `SsrfBlocklist` (built-in
+  private/loopback/link-local/ULA/cloud-metadata ranges + operator-configured CIDRs) and is
+  re-evaluated on every connection and on every redirect hop. `--ssrf-allowed-hosts` (hidden,
+  not in `--help`; `RdapConformanceTool.java:160-165`) allowlists specific hosts/IPs only;
+  every other private/loopback target stays blocked. Operators can extend the denylist with
+  public ranges they own (confused-deputy protection for IP-ACL'd services) via
+  `--ssrf-blocked-cidrs-file <file>` (one CIDR per
+  line, `#` comments) or the `RDAPCT_SSRF_BLOCKED_CIDRS_FILE` environment variable (read by
+  `QueryContext`, so it also applies to embedded users such as `RdapWebValidator`). Precedence:
+  allowlist > configured CIDRs > built-in ranges. Malformed/missing files fail closed.
 - **Dependencies of note:** httpclient5 5.6.3, dnsjava, everit json-schema 1.12.2 (via jitpack),
   jackson 2.22.2 BOM, json-path, icu4j, ipaddress, owasp-java-html-sanitizer, commons-text.
 

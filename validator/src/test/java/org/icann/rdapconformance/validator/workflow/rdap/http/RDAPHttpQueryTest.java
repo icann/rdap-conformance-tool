@@ -1212,6 +1212,109 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
     }
 
     @Test
+    public void test_RedirectToPublicIPInConfiguredBlockedCidr_IsBlocked() throws Exception {
+        queryContext.getResults().clear();
+
+        URI uri1 = URI.create("http://external.example.com/domain/test.example");
+        // TEST-NET-1 (RFC 5737): globally "public" as far as the JDK is concerned
+        URI orgUri = URI.create("http://192.0.2.77/internal/acl-protected");
+
+        doReturn(uri1).when(config).getUri();
+        rdapHttpQuery.ssrfProtectionEnabled = true;
+        queryContext.setSsrfBlockedCidrs(List.of("192.0.2.0/24", "2001:db8::/32"));
+
+        RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response1.statusCode()).thenReturn(REDIRECT);
+        when(response1.body()).thenReturn("");
+        when(response1.uri()).thenReturn(uri1);
+        when(response1.headers()).thenReturn(
+                HttpHeaders.of(Map.of(LOCATION, List.of(orgUri.toString())), (k, v) -> true));
+        when(response1.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response1);
+
+            rdapHttpQuery.run();
+
+            assertThat(rdapHttpQuery.getRedirects()).isEmpty();
+        }
+    }
+
+    @Test
+    public void test_RedirectToPublicIPv6InConfiguredBlockedCidr_IsBlocked() throws Exception {
+        queryContext.getResults().clear();
+
+        URI uri1 = URI.create("http://external.example.com/domain/test.example");
+        URI orgUri = URI.create("http://[2001:db8:0:270::173]/internal");
+
+        doReturn(uri1).when(config).getUri();
+        rdapHttpQuery.ssrfProtectionEnabled = true;
+        queryContext.setSsrfBlockedCidrs(List.of("2001:db8::/32"));
+
+        RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response1.statusCode()).thenReturn(REDIRECT);
+        when(response1.body()).thenReturn("");
+        when(response1.uri()).thenReturn(uri1);
+        when(response1.headers()).thenReturn(
+                HttpHeaders.of(Map.of(LOCATION, List.of(orgUri.toString())), (k, v) -> true));
+        when(response1.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response1);
+
+            rdapHttpQuery.run();
+
+            assertThat(rdapHttpQuery.getRedirects()).isEmpty();
+        }
+    }
+
+    @Test
+    public void test_RedirectToPublicIPInConfiguredBlockedCidr_AllowlistTakesPrecedence() throws Exception {
+        queryContext.getResults().clear();
+
+        URI uri1 = URI.create("http://external.example.com/domain/test.example");
+        URI qaUri = URI.create("http://192.0.2.77/domain/test.example");
+
+        doReturn(uri1).when(config).getUri();
+        rdapHttpQuery.ssrfProtectionEnabled = true;
+        queryContext.setSsrfBlockedCidrs(List.of("192.0.2.0/24"));
+        queryContext.addSsrfAllowedHost("192.0.2.77");
+
+        RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response1.statusCode()).thenReturn(REDIRECT);
+        when(response1.body()).thenReturn("");
+        when(response1.uri()).thenReturn(uri1);
+        when(response1.headers()).thenReturn(
+                HttpHeaders.of(Map.of(LOCATION, List.of(qaUri.toString())), (k, v) -> true));
+        when(response1.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        RDAPHttpRequest.SimpleHttpResponse response2 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response2.statusCode()).thenReturn(200);
+        when(response2.body()).thenReturn(RDAP_RESPONSE);
+        when(response2.uri()).thenReturn(qaUri);
+        when(response2.headers()).thenReturn(
+                HttpHeaders.of(Map.of("Content-Type", List.of("application/rdap+json")), (k, v) -> true));
+        when(response2.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response1);
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(qaUri), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response2);
+
+            rdapHttpQuery.run();
+
+            assertThat(rdapHttpQuery.getRedirects()).containsExactly(qaUri);
+        }
+    }
+
+    @Test
     public void test_NoResponse_SsrfBlocked_DoesNotEmit13002() throws Exception {
         RDAPValidatorResults results = queryContext.getResults();
         results.clear();

@@ -13,6 +13,7 @@ import java.util.*;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
+import org.icann.rdapconformance.validator.SsrfBlocklist;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 
@@ -377,13 +378,7 @@ public class RDAPHttpQuery implements RDAPQuery {
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc4193">RFC 4193 - Unique Local IPv6 Unicast Addresses</a>
      */
     static boolean isIPv6UniqueLocalAddress(InetAddress addr) {
-        if (addr instanceof java.net.Inet6Address) {
-            byte[] bytes = addr.getAddress();
-            // fc00::/7 — the first 7 bits are 1111110x, so the first byte
-            // masked with 0xFE must equal 0xFC (matches 0xFC and 0xFD)
-            return (bytes[0] & 0xFE) == 0xFC;
-        }
-        return false;
+        return SsrfBlocklist.isIPv6UniqueLocalAddress(addr);
     }
 
 
@@ -404,6 +399,8 @@ public class RDAPHttpQuery implements RDAPQuery {
      *       {@code 192.168.0.0/16}</li>
      *   <li><strong>Link-local addresses:</strong> {@code 169.254.0.0/16}, {@code fe80::/10}</li>
      *   <li><strong>Cloud metadata endpoints:</strong> {@code 169.254.169.254}</li>
+     *   <li><strong>Configured CIDR ranges:</strong> see
+     *       {@link RDAPValidatorConfiguration#getSsrfBlockedCidrs()}</li>
      *   <li><strong>Unresolvable hostnames:</strong> any host that fails DNS resolution</li>
      * </ul>
      *
@@ -459,15 +456,9 @@ public class RDAPHttpQuery implements RDAPQuery {
             }
         }
 
-        // PASS 2: block if any address is private/reserved
+        // PASS 2: block if any address is private/reserved or inside a configured CIDR
         for (InetAddress addr : addresses) {
-            String ip = addr.getHostAddress();
-            if (addr.isLoopbackAddress() ||
-                    addr.isSiteLocalAddress() ||
-                    addr.isLinkLocalAddress() ||
-                    addr.isAnyLocalAddress() ||
-                    isIPv6UniqueLocalAddress(addr) ||
-                    RDAPHttpRequest.AWS_GATEWAY_IP.equals(ip)) {
+            if (queryContext.getSsrfBlocklist().isBlocked(addr)) {
                 return true;
             }
         }

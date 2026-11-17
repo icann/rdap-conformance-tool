@@ -50,6 +50,7 @@ import org.apache.hc.core5.http.ConnectionClosedException;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
 import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.SsrfBlocklist;
 import org.icann.rdapconformance.validator.NetworkInfo;
 import org.icann.rdapconformance.validator.NetworkProtocol;
 
@@ -132,7 +133,7 @@ public class RDAPHttpRequest {
     // IP (AWS/GCP/Azure, RFC 3927 link-local). It is hardcoded intentionally so SSRF
     // protection can BLOCK requests to it. It is never used as a connection target.
     // Sonar S1313: reviewed, safe.
-    public static final String AWS_GATEWAY_IP = "169.254.169.254";
+    public static final String AWS_GATEWAY_IP = SsrfBlocklist.CLOUD_METADATA_IP;
 
     // NOTE: Mutable for testing purposes - allows test timeouts to be reduced from 30 seconds to 1 second
     // This field is not modified in production code, only in test environments
@@ -883,13 +884,8 @@ public class RDAPHttpRequest {
                     qctx.getSsrfAllowedHosts().contains(resolvedHost.toLowerCase());
 
             if (!isAllowed) {
-                // Check the specific remote address being used
-                boolean directlyBlocked = remoteAddress.isLoopbackAddress() ||
-                        remoteAddress.isSiteLocalAddress() ||
-                        remoteAddress.isLinkLocalAddress() ||
-                        remoteAddress.isAnyLocalAddress() ||
-                        RDAPHttpQuery.isIPv6UniqueLocalAddress(remoteAddress) ||
-                        AWS_GATEWAY_IP.equals(resolvedIp);
+                // Check the specific remote address being used (built-in private ranges + configured CIDRs)
+                boolean directlyBlocked = qctx.getSsrfBlocklist().isBlocked(remoteAddress);
 
                 // Cross-family check: if ANY resolved IP for this hostname is private,
                 // block ALL connections to it regardless of which address family is used.
@@ -1031,13 +1027,8 @@ public class RDAPHttpRequest {
         }
 
         for (InetAddress addr : allAddresses) {
-            if (addr.isLoopbackAddress() ||
-                    addr.isSiteLocalAddress() ||
-                    addr.isLinkLocalAddress() ||
-                    addr.isAnyLocalAddress() ||
-                    RDAPHttpQuery.isIPv6UniqueLocalAddress(addr) ||
-                    AWS_GATEWAY_IP.equals(addr.getHostAddress())) {
-                logger.debug("SSRF block triggered for active protocol {}: {} resolves to private address {}",
+            if (qctx.getSsrfBlocklist().isBlocked(addr)) {
+                logger.debug("SSRF block triggered for active protocol {}: {} resolves to blocked address {}",
                         protocol, host, addr.getHostAddress());
                 return true;
             }

@@ -94,6 +94,30 @@ public interface RDAPValidatorConfiguration {
   }
 
   /**
+   * Returns additional CIDR ranges (IPv4 and/or IPv6) that SSRF protection must treat as
+   * internal even though they are globally routable.
+   *
+   * <p>Built-in protection only blocks non-routable space (loopback, RFC 1918, link-local,
+   * ULA, cloud metadata). Services that trust the tool's egress IP through an IP ACL can
+   * still be reached if they live on public addresses; listing the organisation's own
+   * prefixes here closes that confused-deputy path.</p>
+   *
+   * <p>Entries are CIDR strings ({@code 192.0.2.0/24}, {@code 2001:db8::/32}) or bare IP
+   * literals. The check is applied to the initial target, every redirect destination and
+   * every resolved address, in both the redirect gate and the per-connection gate.
+   * {@link #getSsrfAllowedHosts()} takes precedence.</p>
+   *
+   * <p>In addition to this list, {@link org.icann.rdapconformance.validator.SsrfBlocklist#CIDR_FILE_ENV}
+   * may name a file to load at runtime.</p>
+   *
+   * @return an unmodifiable list of CIDR / IP strings; never {@code null}; empty by default
+   * @see org.icann.rdapconformance.validator.SsrfBlocklist
+   */
+  default List<String> getSsrfBlockedCidrs() {
+    return Collections.emptyList();
+  }
+
+  /**
    * Whether to cleanup dataset files after validation completes.
    * Only applies when using a custom dataset directory.
    * @return true to cleanup datasets after validation, false to keep them

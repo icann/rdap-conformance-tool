@@ -156,6 +156,110 @@ public class SsrfDualStackTest {
                 .isEqualTo(ConnectionStatus.UNKNOWN_HOST);
     }
 
+    /**
+     * Public IPv4 that sits inside an operator-configured CIDR (e.g. the organisation's own
+     * address space) must be blocked on the IPv4 round even though the JDK considers it public.
+     */
+    @Test
+    public void ssrf_IPv4Round_PublicIPv4InConfiguredCidr_IsBlocked() throws Exception {
+        URI uri = URI.create("http://" + TEST_HOST + ":" + wireMockServer.port() + REQUEST_PATH);
+        doReturn(uri).when(config).getUri();
+
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPDatasetServiceMock datasetService = new RDAPDatasetServiceMock();
+        datasetService.download(true);
+
+        QueryContext qctx = QueryContext.forTesting("", results, config, datasetService);
+        qctx.setSsrfProtectionEnabled(true);
+        qctx.setStackToV4();
+        qctx.setSsrfBlockedCidrs(List.of("192.0.2.0/24"));
+
+        injectDnsResolver(qctx, buildFakeDnsResolver(
+                TEST_HOST, InetAddress.getByName("192.0.2.10"), null));
+
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(qctx, uri, 5, "GET", false, true);
+        RDAPHttpRequest.SimpleHttpResponse simple = (RDAPHttpRequest.SimpleHttpResponse) response;
+
+        assertThat(simple.statusCode()).isEqualTo(0);
+        assertThat(simple.getConnectionStatusCode()).isEqualTo(ConnectionStatus.UNKNOWN_HOST);
+        assertThat(results.getAll()).anyMatch(r -> r.getCode() == -13007);
+    }
+
+    /**
+     * Public IPv6 inside a configured CIDR is blocked on the IPv6 round — the original
+     * WireMock/2620::/23 gap that --no-ipv6-queries used to work around.
+     */
+    @Test
+    public void ssrf_IPv6Round_PublicIPv6InConfiguredCidr_IsBlocked() throws Exception {
+        URI uri = URI.create("http://" + TEST_HOST + ":" + wireMockServer.port() + REQUEST_PATH);
+        doReturn(uri).when(config).getUri();
+
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPDatasetServiceMock datasetService = new RDAPDatasetServiceMock();
+        datasetService.download(true);
+
+        QueryContext qctx = QueryContext.forTesting("", results, config, datasetService);
+        qctx.setSsrfProtectionEnabled(true);
+        qctx.setStackToV6();
+        qctx.setSsrfBlockedCidrs(List.of("2001:db8::/32"));
+
+        injectDnsResolver(qctx, buildFakeDnsResolver(
+                TEST_HOST, null, InetAddress.getByName("2001:db8:0:270::173")));
+
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(qctx, uri, 5, "GET", false, false);
+        RDAPHttpRequest.SimpleHttpResponse simple = (RDAPHttpRequest.SimpleHttpResponse) response;
+
+        assertThat(simple.statusCode()).isEqualTo(0);
+        assertThat(simple.getConnectionStatusCode()).isEqualTo(ConnectionStatus.UNKNOWN_HOST);
+    }
+
+    /**
+     * --ssrf-allowed-hosts wins over a configured CIDR (QA hosts inside blocked org space).
+     */
+    @Test
+    public void ssrf_IPv4Round_PublicIPv4InConfiguredCidr_AllowlistedHost_IsNotBlocked() throws Exception {
+        URI uri = URI.create("http://" + TEST_HOST + ":" + wireMockServer.port() + REQUEST_PATH);
+        doReturn(uri).when(config).getUri();
+
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPDatasetServiceMock datasetService = new RDAPDatasetServiceMock();
+        datasetService.download(true);
+
+        QueryContext qctx = QueryContext.forTesting("", results, config, datasetService);
+        qctx.setSsrfProtectionEnabled(true);
+        qctx.setStackToV4();
+        qctx.setSsrfBlockedCidrs(List.of("192.0.2.0/24"));
+        qctx.addSsrfAllowedHost(TEST_HOST);
+
+        injectDnsResolver(qctx, buildFakeDnsResolver(
+                TEST_HOST, InetAddress.getByName("192.0.2.10"), null));
+
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(qctx, uri, 5, "GET", false, false);
+        RDAPHttpRequest.SimpleHttpResponse simple = (RDAPHttpRequest.SimpleHttpResponse) response;
+
+        // Passing the SSRF gate means anything other than the synthetic UNKNOWN_HOST block
+        assertThat(simple.getConnectionStatusCode()).isNotEqualTo(ConnectionStatus.UNKNOWN_HOST);
+    }
+
+    /**
+     * Regression: a hostname in the allowlist must be stored as a name, not resolved to a
+     * single IP at insertion time (round-robin DNS would otherwise miss sibling records).
+     */
+    @Test
+    public void addSsrfAllowedHost_hostnameIsStoredAsName_ipLiteralsAreCanonicalised() throws Exception {
+        doReturn(URI.create("http://example.com/domain/test.example")).when(config).getUri();
+        QueryContext qctx = QueryContext.forTesting("", new RDAPValidatorResultsImpl(), config,
+                new RDAPDatasetServiceMock());
+
+        qctx.addSsrfAllowedHost("One.One.One.One");          // resolvable public hostname
+        qctx.addSsrfAllowedHost("2620:0:2830:270::173");      // compressed IPv6 literal
+        qctx.addSsrfAllowedHost("127.0.0.1");
+
+        assertThat(qctx.getSsrfAllowedHosts())
+                .contains("one.one.one.one", "2620:0:2830:270:0:0:0:173", "127.0.0.1")
+                .doesNotContain("1.1.1.1", "1.0.0.1");
+    }
+
     @Test
     public void ssrf_IPv4Round_PrivateIPv4_IsBlocked_EmitsError() throws Exception {
         URI uri = URI.create("http://" + TEST_HOST + ":" + wireMockServer.port() + REQUEST_PATH);
