@@ -4,7 +4,7 @@ import com.jayway.jsonpath.JsonPath;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.json.JSONObject;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation1Dot4Test extends ProfileJsonValidationTestBase {
 

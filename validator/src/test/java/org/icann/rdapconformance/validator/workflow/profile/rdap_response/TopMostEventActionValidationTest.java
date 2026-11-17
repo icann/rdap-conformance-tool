@@ -4,8 +4,8 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public abstract class TopMostEventActionValidationTest<T extends TopMostEventActionValidation> extends
     ProfileJsonValidationTestBase {
@@ -18,7 +18,7 @@ public abstract class TopMostEventActionValidationTest<T extends TopMostEventAct
     this.validationClass = validationClass;
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws java.io.IOException {
     super.setUp();
     queryContext.setQueryType(RDAPQueryType.DOMAIN);

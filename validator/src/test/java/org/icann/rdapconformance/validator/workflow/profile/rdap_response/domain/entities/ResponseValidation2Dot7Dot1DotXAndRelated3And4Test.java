@@ -5,13 +5,13 @@ import static org.mockito.Mockito.doReturn;
 import java.io.IOException;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation2Dot7Dot1DotXAndRelated3And4Test extends
     ResponseValidation2Dot7Dot1DotXAndRelatedTest {
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     replaceValue("['entities'][0]['handle']", "2138514_DOMAIN_COM-EXMP");

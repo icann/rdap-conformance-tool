@@ -8,8 +8,8 @@ import static org.mockito.Mockito.doReturn;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -25,7 +25,7 @@ public class ResponseValidationRedactionDescriptionWarningTest extends ProfileJs
                 "rdapResponseProfile_redaction_description_warning_Validation");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
         doReturn(true).when(queryContext.getConfig()).isGtldRegistry();

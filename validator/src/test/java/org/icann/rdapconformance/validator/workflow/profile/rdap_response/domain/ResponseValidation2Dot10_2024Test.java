@@ -7,8 +7,8 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -38,7 +38,7 @@ public class ResponseValidation2Dot10_2024Test extends ProfileJsonValidationTest
                 "rdapResponseProfile_2_10_Validation");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
         URI uri = URI.create("https://rdap.cscglobal.com/dbs/rdap-api/v1/domain/cscglobal.com");

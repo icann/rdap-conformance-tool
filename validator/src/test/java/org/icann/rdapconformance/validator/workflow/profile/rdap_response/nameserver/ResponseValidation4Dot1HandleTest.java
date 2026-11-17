@@ -6,7 +6,6 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.HandleValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.mockito.Mockito;
-import org.testng.annotations.Test;
 
 public class ResponseValidation4Dot1HandleTest extends
     HandleValidationTest<ResponseValidation4Dot1Handle> {

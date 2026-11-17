@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.RegistrarEntityPublicIdsValidation;
@@ -29,6 +30,7 @@ public class ResponseValidation2Dot4Dot2And2Dot4Dot3Test extends
     return new ResponseValidation2Dot4Dot2And2Dot4Dot3(domainContext);
   }
 
+  @Test
   @Override
   public void testDoLaunch() {
     // Test doLaunch behavior by creating validation instances with different query types

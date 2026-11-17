@@ -6,13 +6,13 @@ import java.io.IOException;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024Test extends
     ResponseValidation2Dot7Dot1DotXAndRelatedTest {
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
         replaceValue("['entities'][0]['handle']", "2138514_DOMAIN_COM-EXMP");
@@ -32,6 +32,7 @@ public class ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024Test extends
         return new ResponseValidation2Dot7Dot1DotXAndRelated3And4_2024(domainContext);
     }
 
+    @Test
     @Override
     public void testDoLaunch() {
         // Test doLaunch behavior by creating validation instances with different query types

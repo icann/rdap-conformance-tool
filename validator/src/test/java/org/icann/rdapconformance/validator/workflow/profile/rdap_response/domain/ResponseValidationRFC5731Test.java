@@ -1,13 +1,14 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class ResponseValidationRFC5731Test extends ResponseDomainValidationTestBase {
 
@@ -15,7 +16,6 @@ public class ResponseValidationRFC5731Test extends ResponseDomainValidationTestB
     super("rdapResponseProfile_rfc5731_Validation");
   }
 
-  @DataProvider(name = "invalidStatus")
   public static Object[][] invalidStatus() {
     return new Object[][]{{Set.of("active", "client delete prohibited")},
             {Set.of("active", "pending delete")},
@@ -73,6 +73,7 @@ public class ResponseValidationRFC5731Test extends ResponseDomainValidationTestB
     return new ResponseValidationRFC5731(domainContext);
   }
 
+  @Test
   @Override
   public void testDoLaunch() {
     // Test doLaunch behavior by creating validation instances with different query types
@@ -110,7 +111,6 @@ public class ResponseValidationRFC5731Test extends ResponseDomainValidationTestB
   }
 
 
-  @DataProvider(name = "validActiveStatus")
   public static Object[][] validActiveStatus() {
     return new Object[][]{{Set.of("active")},
             {Set.of("active", "add period")},
@@ -126,14 +126,16 @@ public class ResponseValidationRFC5731Test extends ResponseDomainValidationTestB
     };
   }
 
-  @Test(dataProvider = "invalidStatus")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("invalidStatus")
   public void testValidate_InvalidStatusCombination_AddResults46900(Set<String> status) {
     replaceValue("status", status);
     validate(-46900, "#/status:[\"" + String.join("\",\"", status) + "\"]",
         "The values of the status data structure does not comply with RFC5731.");
   }
 
-  @Test(dataProvider = "validActiveStatus")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("validActiveStatus")
   public void testValidate_ValidActiveStatusCombination_ShouldPass(Set<String> status) {
     replaceValue("status", status);
     validate();

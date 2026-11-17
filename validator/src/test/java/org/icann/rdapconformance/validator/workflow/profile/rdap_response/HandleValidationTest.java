@@ -14,8 +14,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public abstract class HandleValidationTest<T extends HandleValidation> extends
     ProfileJsonValidationTestBase {
@@ -37,7 +37,7 @@ public abstract class HandleValidationTest<T extends HandleValidation> extends
     this.objectName = objectName;
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     datasetService = mock(RDAPDatasetService.class);

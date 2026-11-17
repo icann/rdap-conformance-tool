@@ -8,7 +8,7 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidatio
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.RegistrarId;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation1Dot12Dot1Test extends ProfileJsonValidationTestBase {
 

@@ -4,7 +4,7 @@ import static org.icann.rdapconformance.validator.schemavalidator.SchemaValidato
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation2Dot7Dot5Dot1_2024Test extends ProfileJsonValidationTestBase {
     public ResponseValidation2Dot7Dot5Dot1_2024Test() {

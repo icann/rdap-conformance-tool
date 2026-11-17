@@ -13,8 +13,8 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileValidationTes
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.BootstrapDomainNameSpace;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
 
@@ -26,7 +26,7 @@ public class TigValidation1Dot11Dot1Test extends ProfileValidationTestBase {
     return new TigValidation1Dot11Dot1(queryContext);
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
 

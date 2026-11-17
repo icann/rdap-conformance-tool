@@ -3,7 +3,7 @@ package org.icann.rdapconformance.validator.workflow.profile.tig_section.general
 import org.icann.rdapconformance.validator.SchemaValidator;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation3Dot3And3Dot4Test extends ProfileJsonValidationTestBase {
 

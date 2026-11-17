@@ -7,8 +7,8 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public abstract class ResponseDomainValidationTestBase extends ProfileJsonValidationTestBase {
 
@@ -16,7 +16,7 @@ public abstract class ResponseDomainValidationTestBase extends ProfileJsonValida
     super("/validators/domain/valid.json", testGroupName);
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     queryContext.setQueryType(RDAPQueryType.DOMAIN);

@@ -8,8 +8,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.schemavalidator.RDAPDatasetServiceMock;
 import org.json.JSONObject;
 import org.mockito.ArgumentCaptor;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -24,7 +24,7 @@ public class ResponseValidationStatusDuplication_2024Test {
     private RDAPValidatorResults results;
     private QueryContext queryContext;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws java.io.IOException {
         results = mock(RDAPValidatorResults.class);
         RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);

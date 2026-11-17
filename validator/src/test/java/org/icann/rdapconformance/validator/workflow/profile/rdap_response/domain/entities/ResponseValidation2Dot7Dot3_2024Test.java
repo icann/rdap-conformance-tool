@@ -16,8 +16,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<ResponseValidation2Dot7Dot3_2024> {
@@ -26,7 +26,7 @@ public class ResponseValidation2Dot7Dot3_2024Test extends HandleValidationTest<R
             RDAPQueryType.DOMAIN, ResponseValidation2Dot7Dot3_2024.class, "entity");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
 

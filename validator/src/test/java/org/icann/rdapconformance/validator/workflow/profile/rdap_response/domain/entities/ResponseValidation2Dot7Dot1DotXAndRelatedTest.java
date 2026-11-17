@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.entities;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -9,7 +10,7 @@ import java.util.Map;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain.ResponseDomainValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.BeforeMethod;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class ResponseValidation2Dot7Dot1DotXAndRelatedTest extends
     ResponseDomainValidationTestBase {
@@ -20,7 +21,7 @@ public abstract class ResponseValidation2Dot7Dot1DotXAndRelatedTest extends
     super("rdapResponseProfile_2_7_1_X_and_2_7_2_X_and_2_7_3_X_and_2_7_4_X_Validation");
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws java.io.IOException {
     super.setUp();
 
@@ -49,6 +50,7 @@ public abstract class ResponseValidation2Dot7Dot1DotXAndRelatedTest extends
   }
 
 
+  @Test
   public void testDoLaunch() {
     super.testDoLaunch();
     queryContext.setQueryType(RDAPQueryType.DOMAIN);

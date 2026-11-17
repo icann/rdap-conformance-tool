@@ -7,13 +7,13 @@ import java.io.IOException;
 import java.util.List;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation2Dot7Dot1DotXAndRelated2Test extends
     ResponseValidation2Dot7Dot1DotXAndRelatedTest {
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     String validVcardJson = getResource(

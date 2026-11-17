@@ -8,8 +8,8 @@ import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidatio
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -30,7 +30,7 @@ public class ResponseValidation2Dot7Dot4Dot3_2024Test extends ProfileJsonValidat
         super("/validators/profile/response_validations/vcard/valid_street.json", "rdapResponseProfile_2_7_4_3_Validation");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
     }

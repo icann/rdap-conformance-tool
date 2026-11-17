@@ -6,9 +6,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
 import org.mockito.ArgumentCaptor;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -31,7 +31,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
     private QueryContext queryContext;
     private MockedStatic<RDAPHttpRequest> mockRequest;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         config = mock(RDAPValidatorConfiguration.class);
         queryContext = QueryContext.forTesting(config);
@@ -48,7 +48,7 @@ public class ResponseValidationTestInvalidRedirect_2024Test {
         mockRequest = mockStatic(RDAPHttpRequest.class);
     }
 
-    @AfterMethod
+    @AfterEach
     public void tearDown() {
         if (mockRequest != null) {
             mockRequest.close();

@@ -12,8 +12,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.EPPRoid;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -37,7 +37,7 @@ public class ResponseValidation2Dot2_1_2024Test extends ProfileJsonValidationTes
                 "rdapResponseProfile_2_2_1_Validation");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws IOException {
         super.setUp();
     }

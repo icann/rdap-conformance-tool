@@ -6,7 +6,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
-import static org.testng.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.net.URI;
 import org.icann.rdapconformance.validator.CommonUtils;
@@ -18,9 +18,9 @@ import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.Registrar
 import org.mockito.MockedStatic;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidationTestBase {
 
@@ -31,7 +31,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
         super("rdapResponseProfile_2_4_6_Validation");
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setup() throws Exception {
         super.setUp();
         JSONObject link = new JSONObject();
@@ -50,7 +50,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
         doReturn(new URI("https://icann.org/wicf")).when(queryContext.getConfig()).getUri();
     }
 
-    @AfterMethod
+    @AfterEach
     public void resetDatasetOverride() {
         datasetServiceOverride = null;
     }
@@ -95,6 +95,7 @@ public class ResponseValidation2Dot4Dot6_2024Test extends ResponseDomainValidati
         return new ResponseValidation2Dot4Dot6_2024(domainContext);
     }
 
+    @Test
     @Override
     public void testDoLaunch() {
         QueryContext helpContext = new QueryContext(queryContext.getQueryId(),

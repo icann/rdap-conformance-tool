@@ -10,8 +10,8 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.ValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public abstract class ProfileValidationTestBase implements ValidationTest {
 
@@ -37,7 +37,7 @@ public abstract class ProfileValidationTestBase implements ValidationTest {
     // Default implementation - ProfileJsonValidationTestBase will override
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     results = mock(RDAPValidatorResults.class);
     config = mock(RDAPValidatorConfiguration.class);

@@ -2,7 +2,7 @@ package org.icann.rdapconformance.validator.workflow.profile.rdap_response.gener
 
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidation;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation1Dot2Dot2Test extends ProfileJsonValidationTestBase {
 

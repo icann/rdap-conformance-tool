@@ -1,6 +1,7 @@
 package org.icann.rdapconformance.validator.workflow.profile.rdap_response.domain;
 
 import org.icann.rdapconformance.validator.workflow.profile.rdap_response.TopMostEventActionValidationTest;
+import org.junit.jupiter.api.Test;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,6 +13,7 @@ public class ResponseValidation2Dot3Dot2_2024Test extends
     super("rdapResponseProfile_2_3_2_Validation", ResponseValidation2Dot3Dot2_2024.class);
   }
 
+  @Test
   public void testDoLaunch() {
     queryContext.setQueryType(RDAPQueryType.HELP);
     assertThat(getProfileValidation().doLaunch()).isFalse();

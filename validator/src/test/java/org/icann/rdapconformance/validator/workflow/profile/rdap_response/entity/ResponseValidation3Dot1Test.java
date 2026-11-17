@@ -9,9 +9,10 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileValidation;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 public class ResponseValidation3Dot1Test extends ProfileJsonValidationTestBase {
 
@@ -22,18 +23,16 @@ public class ResponseValidation3Dot1Test extends ProfileJsonValidationTestBase {
     super("/validators/entity/valid.json", "rdapResponseProfile_3_1_Validation");
   }
 
-  @DataProvider(name = "vcardMemberIndex")
   public static Object[][] vcardMemberIndex() {
     return new Object[][]{{1}, {2}, {3}, {4}};
   }
 
-  @DataProvider(name = "rddsFieldIndex")
   public static Object[][] rddsFieldIndex() {
     return new Object[][]{{2}, {3}, {6}};
   }
 
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
 
@@ -59,7 +58,8 @@ public class ResponseValidation3Dot1Test extends ProfileJsonValidationTestBase {
   }
 
 
-  @Test(dataProvider = "vcardMemberIndex")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("vcardMemberIndex")
   public void testValidate_vcardDoesNotContainMember_AddResults60101(int index) {
     removeKey(String.format("$['vcardArray'][1][%d]", index));
     validate(-60101, jsonObject.toString(),
@@ -68,7 +68,8 @@ public class ResponseValidation3Dot1Test extends ProfileJsonValidationTestBase {
   }
 
 
-  @Test(dataProvider = "rddsFieldIndex")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("rddsFieldIndex")
   public void testValidate_vcardAdrDoesNotContainRDDSField_AddResults60101(int index) {
     replaceValue(String.format("$['vcardArray'][1][2][3][%d]", index), "");
     validate(-60101, jsonObject.toString(),

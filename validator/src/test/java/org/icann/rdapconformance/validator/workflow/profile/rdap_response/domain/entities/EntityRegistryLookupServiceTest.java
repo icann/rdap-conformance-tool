@@ -4,8 +4,8 @@ import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfigurat
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.dataset.model.BootstrapDomainNameSpace;
 import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpRequest;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.Set;
@@ -23,7 +23,7 @@ public class EntityRegistryLookupServiceTest {
     private BootstrapDomainNameSpace bootstrap;
     private RDAPHttpRequest httpRequest;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         datasetService = mock(RDAPDatasetService.class);
         config = mock(RDAPValidatorConfiguration.class);

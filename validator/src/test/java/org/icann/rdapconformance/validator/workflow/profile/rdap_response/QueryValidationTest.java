@@ -11,8 +11,8 @@ import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.profile.ProfileJsonValidationTestBase;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public abstract class QueryValidationTest extends
     ProfileJsonValidationTestBase {
@@ -28,7 +28,7 @@ public abstract class QueryValidationTest extends
     this.baseUri = "http://" + this.baseQueryType.name().toLowerCase();
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     super.setUp();
     this.queryType = baseQueryType;
