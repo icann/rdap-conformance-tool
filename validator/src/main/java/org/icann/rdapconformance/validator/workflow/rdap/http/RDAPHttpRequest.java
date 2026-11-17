@@ -856,25 +856,17 @@ public class RDAPHttpRequest {
         }
 
         // Use the NetworkProtocol we already got for connection tracking
-        InetAddress localBindIp = (protocol == NetworkProtocol.IPv6)
-            ? getDefaultIPv6Address()
-            : getDefaultIPv4Address();
-
         InetAddress remoteAddress = (protocol == NetworkProtocol.IPv6)
             ? qctx.getDnsResolver().getFirstV6Address(host)
             : qctx.getDnsResolver().getFirstV4Address(host);
 
-        // If remote address or local bind IP is null, treat as unknown host
-        if (remoteAddress == null || localBindIp == null) {
+        if (remoteAddress == null) {
             tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
             return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
         }
 
-        // Special case: if remote is 127.0.0.1, bind to 127.0.0.1
-        if (remoteAddress.getHostAddress().equals(LOCAL_IPV4)) {
-            localBindIp = InetAddress.getByName(LOCAL_IPV4);
-        }
-
+        // SSRF gate runs as soon as the remote address is known, independent of the local
+        // bind address, so a blocked target is always reported as blocked.
         if (qctx.isSsrfProtectionEnabled()) {
             String resolvedIp = remoteAddress.getHostAddress();
             String resolvedHost = originalUri.getHost();
@@ -903,6 +895,21 @@ public class RDAPHttpRequest {
                     return resp;
                 }
             }
+        }
+
+        InetAddress localBindIp = (protocol == NetworkProtocol.IPv6)
+            ? getDefaultIPv6Address()
+            : getDefaultIPv4Address();
+
+        // If local bind IP is null, treat as unknown host
+        if (localBindIp == null) {
+            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
+            return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+        }
+
+        // Special case: if remote is 127.0.0.1, bind to 127.0.0.1
+        if (remoteAddress.getHostAddress().equals(LOCAL_IPV4)) {
+            localBindIp = InetAddress.getByName(LOCAL_IPV4);
         }
 
         URI ipUri = buildIpUri(originalUri, remoteAddress, port);
