@@ -1,7 +1,7 @@
 package org.icann.rdapconformance.tool;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.net.URI;
@@ -18,9 +18,10 @@ import java.util.concurrent.TimeUnit;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Ignore;
-import org.testng.annotations.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for RdapWebValidator to ensure web-safe operation.
@@ -131,14 +132,14 @@ public class RdapWebValidatorTest {
         }
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void testInvalidURI() {
         // Test that invalid URIs are handled appropriately
-        new RdapWebValidator("not-a-valid-uri");
+        assertThrows(IllegalArgumentException.class, () -> new RdapWebValidator("not-a-valid-uri"));
     }
 
     @Test
-    @Ignore // requires network access
+    @Disabled // requires network access
     public void testWebExampleBasicUsage() {
         // Test the example usage pattern
         RdapWebExample.ValidationResponse response =
@@ -671,8 +672,7 @@ public class RdapWebValidatorTest {
         assertThat(cfg.getUri().getHost()).isEqualTo("rdap.example.org");
     }
 
-    @DataProvider(name = "invalidUris")
-    public Object[][] invalidUris() {
+    public static Object[][] invalidUris() {
         return new Object[][]{
                 {null}, {""}, {"   "},
                 {"ftp://example.com/domain/x"},
@@ -680,10 +680,10 @@ public class RdapWebValidatorTest {
         };
     }
 
-    @Test(dataProvider = "invalidUris",
-            expectedExceptions = IllegalArgumentException.class)
+    @ParameterizedTest(name = "[{index}] {0}")
+    @MethodSource("invalidUris")
     public void validateAndCreateURI_rejectsInvalid(String uri) {
-        RdapWebValidator.validateAndCreateURI(uri);
+        assertThrows(IllegalArgumentException.class, () -> RdapWebValidator.validateAndCreateURI(uri));
     }
 
     @Test

@@ -26,10 +26,10 @@ import java.util.Set;
 
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Ignore;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 public class RdapConformanceToolTest {
 
@@ -69,7 +69,7 @@ public class RdapConformanceToolTest {
     }
   }
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() throws IOException {
     tool = new RdapConformanceTool();
     tool.uri = URI.create("http://example.com/domain/example.com");
@@ -80,7 +80,7 @@ public class RdapConformanceToolTest {
     tool.configurationFile = tempConfigFile.toString();
   }
 
-  @AfterMethod
+  @AfterEach
   public void tearDown() throws IOException {
     if (tempConfigFile != null) {
       Files.deleteIfExists(tempConfigFile);
@@ -104,7 +104,7 @@ public class RdapConformanceToolTest {
   // public void testQueryTypeFailure() throws Exception {
 
   // TODO: when do we fail on the THIN? Ever?
-  @Ignore
+  @Disabled
   @Test
   public void testThinModelEntityQueryFailure() throws Exception {
     // Setup for thin model with entity query -- this is a MUST

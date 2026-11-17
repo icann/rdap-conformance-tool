@@ -1,8 +1,11 @@
 package org.icann.rdapconformance.tool;
 
 import java.net.URI;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
 
 import static org.assertj.core.api.Assertions.*;
@@ -14,8 +17,7 @@ public class IdnAwareUriConverterTest {
 
     // --- convertIdnInPath tests ---
 
-    @DataProvider(name = "idnPathConversions")
-    public Object[][] idnPathConversions() {
+    public static Object[][] idnPathConversions() {
         return new Object[][] {
                 // Unicode domain in path → punycode
                 { "/rdap/domain/nic.дети", "/rdap/domain/nic.xn--d1acj3b" },
@@ -36,7 +38,8 @@ public class IdnAwareUriConverterTest {
         };
     }
 
-    @Test(dataProvider = "idnPathConversions")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("idnPathConversions")
     public void testConvertIdnInPath(String input, String expected) {
         String result = RdapConformanceTool.IdnAwareUriConverter.convertIdnInPath(input);
         assertThat(result).isEqualTo(expected);
@@ -44,8 +47,7 @@ public class IdnAwareUriConverterTest {
 
     // --- Full URI conversion tests ---
 
-    @DataProvider(name = "idnUriConversions")
-    public Object[][] idnUriConversions() {
+    public static Object[][] idnUriConversions() {
         return new Object[][] {
                 // Unicode domain in path
                 {
@@ -75,7 +77,8 @@ public class IdnAwareUriConverterTest {
         };
     }
 
-    @Test(dataProvider = "idnUriConversions")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("idnUriConversions")
     public void testConvertFullUri(String input, String expected) throws Exception {
         URI result = converter.convert(input);
         assertThat(result.toString()).isEqualTo(expected);
@@ -102,9 +105,9 @@ public class IdnAwareUriConverterTest {
 
     // --- Edge cases ---
 
-    @Test(expectedExceptions = Exception.class)
-    public void testMissingSchemeFails() throws Exception {
-        converter.convert("whois.nic.xn--d1acj3b/rdap/domain/nic.дети");
+    @Test
+    public void testMissingSchemeFails() {
+        assertThrows(Exception.class, () -> converter.convert("whois.nic.xn--d1acj3b/rdap/domain/nic.дети"));
     }
 
     @Test

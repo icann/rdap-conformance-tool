@@ -1,15 +1,15 @@
 package org.icann.rdapconformance.tool;
 
 import org.icann.rdapconformance.validator.QueryContext;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.mockito.Mockito.spy;
-import static org.testng.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class IPv4v6ValidationSkipTest {
 
@@ -20,7 +20,7 @@ public class IPv4v6ValidationSkipTest {
     private static final int IPV4_ERROR_CODE = -20400;
     private static final int IPV6_ERROR_CODE = -20401;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         // No setup needed since we get results from tool's QueryContext
     }

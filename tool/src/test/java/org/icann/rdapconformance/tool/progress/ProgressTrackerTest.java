@@ -1,9 +1,9 @@
 package org.icann.rdapconformance.tool.progress;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.*;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for ProgressTracker functionality.
@@ -12,7 +12,7 @@ public class ProgressTrackerTest {
     
     private ProgressTracker tracker;
     
-    @BeforeMethod
+    @BeforeEach
     public void setUp() {
         // Use verbose mode to avoid terminal interactions during testing
         tracker = new ProgressTracker(100, true);

@@ -2,7 +2,7 @@ package org.icann.rdapconformance.tool;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class LoggingLevelTest {
 

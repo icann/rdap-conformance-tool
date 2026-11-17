@@ -10,14 +10,16 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 /**
  * Integration tests that exercise the full network validation path of call()
  * against a local WireMock server. No external network access required.
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RdapConformanceToolWireMockTest {
 
     private WireMockServer wireMock;
@@ -31,7 +33,7 @@ public class RdapConformanceToolWireMockTest {
         }
         """;
 
-    @BeforeClass
+    @BeforeAll
     public void setUp() throws Exception {
         wireMock = new WireMockServer(WireMockConfiguration.options().dynamicPort());
         wireMock.start();
@@ -39,7 +41,7 @@ public class RdapConformanceToolWireMockTest {
         Files.writeString(config, "{\"definitionIdentifier\": \"wiremock-test\"}");
     }
 
-    @AfterClass(alwaysRun = true)
+    @AfterAll
     public void tearDown() throws Exception {
         if (wireMock != null && wireMock.isRunning()) {
             wireMock.stop();
