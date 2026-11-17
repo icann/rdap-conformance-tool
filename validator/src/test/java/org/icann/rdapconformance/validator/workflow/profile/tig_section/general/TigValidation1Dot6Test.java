@@ -19,14 +19,14 @@ import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidatorResults;
 import org.icann.rdapconformance.validator.workflow.rdap.ValidationTest;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPValidationResult;
 import org.mockito.ArgumentCaptor;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TigValidation1Dot6Test extends HttpTestingUtils implements ValidationTest {
 
   private RDAPValidatorResults results;
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() {
     super.setUp();
     WireMockConfiguration wmConfig = wireMockConfig()
