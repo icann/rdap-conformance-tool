@@ -61,7 +61,7 @@ Root packages: `org.icann.rdapconformance.tool` and `org.icann.rdapconformance.v
 | Class / package | Responsibility |
 |---|---|
 | `Main` | `main()`; delegates to picocli `CommandLine(new RdapConformanceTool())` |
-| `RdapConformanceTool` | `@Command` + `Callable<Integer>`. Options (`-c`, `--timeout`, `--maximum-redirects`, `--use-local-datasets`, `--additional-conformance-queries`, `--logging`, `-v`, `--dns-resolver`, `--ssrf-allowed-hosts`, `--ssrf-blocked-cidrs-file`, `--no-ipv4-queries`, `--no-ipv6-queries`, `--use-rdap-profile-february-2024`, `--gtld-registrar`, `--gtld-registry`, `--thin`). Configures logback programmatically (§7), TLS system properties (`:473-477`), progress, then runs the workflow |
+| `RdapConformanceTool` | `@Command` + `Callable<Integer>`. Options (`-c`, `--timeout`, `--maximum-redirects`, `--use-local-datasets`, `--additional-conformance-queries`, `--logging`, `-v`, `--dns-resolver`, `--ssrf-allowed-hosts`, `--ssrf-blocked-cidrs-file`, `--ssrf-blocked-hosts-file`, `--no-ipv4-queries`, `--no-ipv6-queries`, `--use-rdap-profile-february-2024`, `--gtld-registrar`, `--gtld-registry`, `--thin`). Configures logback programmatically (§7), TLS system properties (`:473-477`), progress, then runs the workflow |
 | `LoggingLevel` | `CLI`, `INFO`, `DEBUG`, `ERROR`, `VERBOSE` |
 | `UserInputValidator` | Validates URI / option combinations before any network I/O |
 | `VersionProvider` | `--version` from `version.properties` |
@@ -165,8 +165,17 @@ Source of truth: `validator/src/main/java/org/icann/rdapconformance/validator/To
   public ranges they own (confused-deputy protection for IP-ACL'd services) via
   `--ssrf-blocked-cidrs-file <file>` (one CIDR per
   line, `#` comments) or the `RDAPCT_SSRF_BLOCKED_CIDRS_FILE` environment variable (read by
-  `QueryContext`, so it also applies to embedded users such as `RdapWebValidator`). Precedence:
-  allowlist > configured CIDRs > built-in ranges. Malformed/missing files fail closed.
+  `QueryContext`, so it also applies to embedded users such as `RdapWebValidator`). A second,
+  name-based denylist lives in `SsrfHostBlocklist` (exact names and leading `*.suffix`
+  wildcards; subdomains at any depth, apex excluded; label-boundary, case-insensitive, IDN
+  punycode comparison; IP literals never match) and is fed by `--ssrf-blocked-hosts-file` or
+  `RDAPCT_SSRF_BLOCKED_HOSTS_FILE`. Both lists are merged (config + env) in `QueryContext` and
+  enforced through a single policy: `isSsrfBlockedHostname(host)` runs *before* DNS resolution
+  (`RDAPHttpRequest.makeRequest`, `RDAPHttpQuery.isBlockedRedirectDestination`,
+  `DefaultSSLValidator`), `isSsrfBlockedConnection(host, ip)` once the address is known.
+  Precedence: allowlist > blocked hostnames > configured CIDRs > built-in ranges. Any block is
+  reported as `-13007` with HTTP status 0; a WARN log names the blocked host and the DEBUG log
+  says which rule fired. Malformed/missing files fail closed. No hostnames are blocked by default.
 - **Dependencies of note:** httpclient5 5.6.3, dnsjava, everit json-schema 1.12.2 (via jitpack),
   jackson 2.22.2 BOM, json-path, icu4j, ipaddress, owasp-java-html-sanitizer, commons-text.
 

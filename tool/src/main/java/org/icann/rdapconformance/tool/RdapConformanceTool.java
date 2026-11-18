@@ -22,6 +22,7 @@ import org.icann.rdapconformance.validator.DomainLabelUtils;
 import org.icann.rdapconformance.validator.ProgressCallback;
 import org.icann.rdapconformance.validator.QueryContext;
 import org.icann.rdapconformance.validator.SsrfBlocklist;
+import org.icann.rdapconformance.validator.SsrfHostBlocklist;
 import org.icann.rdapconformance.validator.ToolResult;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPDatasetService;
 import org.icann.rdapconformance.validator.workflow.rdap.RDAPQueryType;
@@ -189,6 +190,13 @@ public class RdapConformanceTool implements RDAPValidatorConfiguration, Callable
           paramLabel = "FILE",
           hidden = true)
   private File ssrfBlockedCidrsFile;
+
+  @Option(names = {"--ssrf-blocked-hosts-file"},
+          description = "File with hostnames (one per line, '#' comments) that SSRF protection must refuse to " +
+                  "connect to. Exact names (icann.org) or prefix wildcards (*.icann.org, subdomains only).",
+          paramLabel = "FILE",
+          hidden = true)
+  private File ssrfBlockedHostsFile;
 
   // Progress tracking
   private ProgressTracker progressTracker;
@@ -418,6 +426,38 @@ public void setShowProgress(boolean showProgress) {
     }
   }
 
+  /**
+   * Returns the hostnames / wildcards listed in {@code --ssrf-blocked-hosts-file} (empty when not
+   * given). Validated up front in {@link #call()} like the CIDR file.
+   */
+  @Override
+  public List<String> getSsrfBlockedHosts() {
+    if (ssrfBlockedHostsFile == null) {
+      return List.of();
+    }
+    try {
+      return SsrfHostBlocklist.readHostFile(ssrfBlockedHostsFile.toPath());
+    } catch (IOException e) {
+      throw new IllegalStateException("Cannot read --ssrf-blocked-hosts-file " + ssrfBlockedHostsFile, e);
+    }
+  }
+
+  public void setSsrfBlockedHostsFile(File file) {
+    this.ssrfBlockedHostsFile = file;
+  }
+
+  /** @return an error message if the SSRF hostname blocklist inputs are unusable, otherwise {@code null}. */
+  private String validateSsrfBlockedHosts() {
+    try {
+      SsrfHostBlocklist.of(getSsrfBlockedHosts());
+      return null;
+    } catch (IllegalStateException e) {
+      return e.getMessage() + (e.getCause() != null ? " (" + e.getCause().getMessage() + ")" : "");
+    } catch (IllegalArgumentException e) {
+      return "Invalid SSRF blocked host: " + e.getMessage();
+    }
+  }
+
   @Override
   public Integer call() throws Exception {
     // Configure logging based on the new logging level system
@@ -514,6 +554,12 @@ public void setShowProgress(boolean showProgress) {
     String ssrfCidrError = validateSsrfBlockedCidrs();
     if (ssrfCidrError != null) {
       logger.error(ToolResult.BAD_USER_INPUT.getDescription() + ": " + ssrfCidrError);
+      return ToolResult.BAD_USER_INPUT.getCode();
+    }
+
+    String ssrfHostError = validateSsrfBlockedHosts();
+    if (ssrfHostError != null) {
+      logger.error(ToolResult.BAD_USER_INPUT.getDescription() + ": " + ssrfHostError);
       return ToolResult.BAD_USER_INPUT.getCode();
     }
 

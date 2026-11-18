@@ -402,6 +402,8 @@ public class RDAPHttpQuery implements RDAPQuery {
      *   <li><strong>Cloud metadata endpoints:</strong> {@code 169.254.169.254}</li>
      *   <li><strong>Configured CIDR ranges:</strong> see
      *       {@link RDAPValidatorConfiguration#getSsrfBlockedCidrs()}</li>
+     *   <li><strong>Configured hostnames / wildcards:</strong> see
+     *       {@link RDAPValidatorConfiguration#getSsrfBlockedHosts()} (checked before DNS)</li>
      *   <li><strong>Unresolvable hostnames:</strong> any host that fails DNS resolution</li>
      * </ul>
      *
@@ -420,24 +422,15 @@ public class RDAPHttpQuery implements RDAPQuery {
         String host = uri.getHost();
         if (host == null) return true;
 
-        // IP literals are canonicalised to InetAddress.getHostAddress() form so they compare
-        // equal to allowlist entries ("[2620:0:2830:270::173]" -> "2620:0:2830:270:0:0:0:173").
-        // Hostnames are kept as lowercase names — no DNS here, that happens below.
         String hostLower = host.toLowerCase();
-        String normalizedHost = hostLower;
-        if (new IPAddressString(host).isIPAddress()) {
-            try {
-                normalizedHost = InetAddress.getByName(host).getHostAddress();
-            } catch (UnknownHostException ignored) {
-                // keep lowercase literal
-            }
-        }
+        String normalizedHost = canonicalizeIpLiteral(host, hostLower);
 
-        // Block well-known localhost literals before DNS resolution
-        if ("localhost".equals(hostLower) ||
-                "127.0.0.1".equals(normalizedHost) ||
-                "0:0:0:0:0:0:0:1".equals(normalizedHost) || // ::1 normalized
-                "0.0.0.0".equals(normalizedHost)) {
+        // Pre-DNS gates: well-known localhost literals, then the (allowlist-aware) hostname blocklist
+        if (isLocalhostLiteral(hostLower, normalizedHost)) {
+            return true;
+        }
+        if (queryContext.isSsrfBlockedHostname(host)) {
+            logger.debug("SSRF: redirect to blocklisted hostname {} refused", host);
             return true;
         }
 
@@ -448,25 +441,45 @@ public class RDAPHttpQuery implements RDAPQuery {
             return true;
         }
 
-        // PASS 1: allowlist check — by hostname, by literal, or by any resolved address
-        Set<String> allowed = queryContext.getSsrfAllowedHosts();
-        if (allowed.contains(hostLower) || allowed.contains(normalizedHost)) {
+        // PASS 1: allowlist — by hostname, by literal, or by any resolved address
+        if (isSsrfAllowlisted(hostLower, normalizedHost, addresses)) {
             return false;
-        }
-        for (InetAddress addr : addresses) {
-            if (allowed.contains(addr.getHostAddress())) {
-                return false;
-            }
         }
 
         // PASS 2: block if any address is private/reserved or inside a configured CIDR
-        for (InetAddress addr : addresses) {
-            if (queryContext.getSsrfBlocklist().isBlocked(addr)) {
-                return true;
-            }
-        }
+        SsrfBlocklist blocklist = queryContext.getSsrfBlocklist();
+        return Arrays.stream(addresses).anyMatch(blocklist::isBlocked);
+    }
 
-        return false;
+    /**
+     * IP literals are canonicalised to {@link InetAddress#getHostAddress()} form so they compare
+     * equal to allowlist entries ("[2620:0:2830:270::173]" -> "2620:0:2830:270:0:0:0:173").
+     * Hostnames are returned as given (lowercase) — no DNS lookup happens here.
+     */
+    private static String canonicalizeIpLiteral(String host, String hostLower) {
+        if (!new IPAddressString(host).isIPAddress()) {
+            return hostLower;
+        }
+        try {
+            return InetAddress.getByName(host).getHostAddress();
+        } catch (UnknownHostException ignored) {
+            return hostLower;
+        }
+    }
+
+    private static boolean isLocalhostLiteral(String hostLower, String normalizedHost) {
+        return "localhost".equals(hostLower)
+                || "127.0.0.1".equals(normalizedHost)
+                || "0:0:0:0:0:0:0:1".equals(normalizedHost) // ::1 normalized
+                || "0.0.0.0".equals(normalizedHost);
+    }
+
+    private boolean isSsrfAllowlisted(String hostLower, String normalizedHost, InetAddress[] addresses) {
+        Set<String> allowed = queryContext.getSsrfAllowedHosts();
+        if (allowed.contains(hostLower) || allowed.contains(normalizedHost)) {
+            return true;
+        }
+        return Arrays.stream(addresses).anyMatch(a -> allowed.contains(a.getHostAddress()));
     }
 
 

@@ -5,10 +5,15 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.List;
+import org.icann.rdapconformance.validator.QueryContext;
+import org.icann.rdapconformance.validator.SsrfHostBlocklist;
+import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.DNSCacheResolver;
 import org.icann.rdapconformance.validator.NetworkProtocol;
 import org.icann.rdapconformance.validator.workflow.profile.tig_section.general.SSLValidator.CipherValidationResult;
@@ -163,5 +168,51 @@ public class DefaultSSLValidatorTest {
     assertThat(result.isSuccessful()).isFalse();
     assertThat(result.getErrorMessage()).isEqualTo("Connection blocked by SSRF protection for blocked.example");
     assertThat(result.getException()).isNull();
+  }
+
+  /** Hostname policy runs before DNS: a blocklisted name is refused without a single lookup. */
+  @Test
+  public void validateSSL_hostnamePolicyBlocks_returnsFailureWithoutResolving() {
+    DefaultSSLValidator validator = new DefaultSSLValidator(NetworkProtocol.IPv4, dnsResolver,
+        (host, addr) -> false, SsrfHostBlocklist.of(List.of("*.icann.org"))::isBlocked);
+
+    SSLValidationResult result = validator.validateSSL("rdap.icann.org", closedPort);
+
+    assertThat(result.isSuccessful()).isFalse();
+    assertThat(result.getErrorMessage()).isEqualTo("Connection blocked by SSRF protection for rdap.icann.org");
+    verifyNoInteractions(dnsResolver);
+  }
+
+  @Test
+  public void validateTLS12CipherSuites_hostnamePolicyBlocks_returnsFailureWithoutResolving() {
+    DefaultSSLValidator validator = new DefaultSSLValidator(NetworkProtocol.IPv6, dnsResolver,
+        (host, addr) -> false, SsrfHostBlocklist.of(List.of("rdap.icann.org"))::isBlocked);
+
+    CipherValidationResult result = validator.validateTLS12CipherSuites("RDAP.ICANN.ORG.", closedPort);
+
+    assertThat(result.isSuccessful()).isFalse();
+    assertThat(result.getErrorMessage()).isEqualTo("Connection blocked by SSRF protection for RDAP.ICANN.ORG.");
+    verifyNoInteractions(dnsResolver);
+  }
+
+  /** The QueryContext-bound validator inherits the context's hostname blocklist and allowlist. */
+  @Test
+  public void queryContextConstructor_usesContextHostnameBlocklistAndAllowlist() {
+    RDAPValidatorConfiguration config = mock(RDAPValidatorConfiguration.class);
+    doReturn(java.net.URI.create("https://rdap.example.com/domain/test.example")).when(config).getUri();
+    QueryContext qctx = QueryContext.forTesting(config);
+    qctx.setSsrfProtectionEnabled(true);
+    qctx.setSsrfBlockedHosts(List.of("*.icann.invalid"));
+    DefaultSSLValidator validator = new DefaultSSLValidator(qctx);
+
+    SSLValidationResult blocked = validator.validateSSL("rdap.icann.invalid", closedPort);
+    assertThat(blocked.isSuccessful()).isFalse();
+    assertThat(blocked.getErrorMessage()).isEqualTo("Connection blocked by SSRF protection for rdap.icann.invalid");
+
+    // Allowlisted: the hostname gate lets it through and we reach the (unresolvable) DNS step
+    qctx.addSsrfAllowedHost("rdap.icann.invalid");
+    SSLValidationResult allowed = validator.validateSSL("rdap.icann.invalid", closedPort);
+    assertThat(allowed.isSuccessful()).isFalse();
+    assertThat(allowed.getErrorMessage()).startsWith("Cannot resolve correct v4 or v6 host address");
   }
 }

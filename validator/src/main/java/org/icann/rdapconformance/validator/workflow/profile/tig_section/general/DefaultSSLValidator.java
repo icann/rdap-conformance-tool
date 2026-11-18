@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -38,6 +39,8 @@ public class DefaultSSLValidator implements SSLValidator {
     private final DNSCacheResolver dnsResolver;
     /** (hostname, resolved address) -> true when the connection must be refused. */
     private final BiPredicate<String, InetAddress> ssrfBlockedPolicy;
+    /** hostname -> true when the name itself is blocklisted (evaluated before DNS). */
+    private final Predicate<String> ssrfBlockedHostnamePolicy;
 
     /**
      * Default constructor using IPv4 protocol for backward compatibility.
@@ -57,7 +60,7 @@ public class DefaultSSLValidator implements SSLValidator {
      * Constructor with DNS resolver dependency injection. No SSRF policy is applied.
      */
     public DefaultSSLValidator(NetworkProtocol networkProtocol, DNSCacheResolver dnsResolver) {
-        this(networkProtocol, dnsResolver, (host, addr) -> false);
+        this(networkProtocol, dnsResolver, (host, addr) -> false, host -> false);
     }
 
     /**
@@ -66,14 +69,21 @@ public class DefaultSSLValidator implements SSLValidator {
      */
     public DefaultSSLValidator(QueryContext queryContext) {
         this(queryContext.getNetworkProtocol(), queryContext.getDnsResolver(),
-                queryContext::isSsrfBlockedConnection);
+                queryContext::isSsrfBlockedConnection, queryContext::isSsrfBlockedHostname);
     }
 
     DefaultSSLValidator(NetworkProtocol networkProtocol, DNSCacheResolver dnsResolver,
                         BiPredicate<String, InetAddress> ssrfBlockedPolicy) {
+        this(networkProtocol, dnsResolver, ssrfBlockedPolicy, host -> false);
+    }
+
+    DefaultSSLValidator(NetworkProtocol networkProtocol, DNSCacheResolver dnsResolver,
+                        BiPredicate<String, InetAddress> ssrfBlockedPolicy,
+                        Predicate<String> ssrfBlockedHostnamePolicy) {
         this.networkProtocol = networkProtocol;
         this.dnsResolver = dnsResolver;
         this.ssrfBlockedPolicy = ssrfBlockedPolicy;
+        this.ssrfBlockedHostnamePolicy = ssrfBlockedHostnamePolicy;
     }
 
     @Override
@@ -81,6 +91,9 @@ public class DefaultSSLValidator implements SSLValidator {
         try {
             SSLContext sslContext = SSLContext.getDefault();
 
+            if (ssrfBlockedHostnamePolicy.test(hostname)) {
+                return SSLValidationResult.failure(SSRF_BLOCKED_MESSAGE + hostname, null);
+            }
             InetAddress ipAddress = resolveHostname(hostname);
             if (ipAddress == null) {
                 return SSLValidationResult.failure(
@@ -143,6 +156,9 @@ public class DefaultSSLValidator implements SSLValidator {
         try {
             SSLContext sslContext = SSLContext.getDefault();
 
+            if (ssrfBlockedHostnamePolicy.test(hostname)) {
+                return CipherValidationResult.failure(SSRF_BLOCKED_MESSAGE + hostname, null);
+            }
             InetAddress ipAddress = resolveHostname(hostname);
             if (ipAddress == null) {
                 return CipherValidationResult.failure(

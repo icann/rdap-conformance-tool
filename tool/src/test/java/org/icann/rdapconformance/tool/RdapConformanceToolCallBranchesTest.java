@@ -114,6 +114,54 @@ public class RdapConformanceToolCallBranchesTest {
         assertThat(new RdapConformanceTool().getSsrfBlockedCidrs()).isEmpty();
     }
 
+    // ---------- --ssrf-blocked-hosts-file ----------
+
+    @Test
+    public void call_ssrfBlockedHostsFileMissing_returnsBadUserInput() throws Exception {
+        RdapConformanceTool tool = new RdapConformanceTool();
+        tool.setLogging(LoggingLevel.ERROR);
+        tool.setSsrfBlockedHostsFile(new java.io.File("/tmp/no-such-hosts-" + System.nanoTime() + ".txt"));
+        assertThat(tool.call()).isEqualTo(ToolResult.BAD_USER_INPUT.getCode());
+    }
+
+    @Test
+    public void call_ssrfBlockedHostsFileMalformed_returnsBadUserInput() throws Exception {
+        Path bad = Files.createTempFile("hosts", ".txt");
+        Files.writeString(bad, "*.icann.org\nfoo*.bar\n");
+        try {
+            RdapConformanceTool tool = new RdapConformanceTool();
+            tool.setLogging(LoggingLevel.ERROR);
+            tool.setSsrfBlockedHostsFile(bad.toFile());
+            assertThat(tool.call()).isEqualTo(ToolResult.BAD_USER_INPUT.getCode());
+        } finally {
+            Files.deleteIfExists(bad);
+        }
+    }
+
+    @Test
+    public void getSsrfBlockedHosts_readsFileIgnoringCommentsAndBlankLines() throws Exception {
+        Path file = Files.createTempFile("hosts", ".txt");
+        Files.writeString(file, "# internal names\nicann.org\n\n*.icann.org # subdomains\n*.svc.cluster.local\n");
+        try {
+            RdapConformanceTool tool = new RdapConformanceTool();
+            picocli.CommandLine cl = new picocli.CommandLine(tool);
+            cl.registerConverter(java.net.URI.class, new RdapConformanceTool.IdnAwareUriConverter());
+            cl.parseArgs("--config", "/tmp/nonexistent.json",
+                    "--ssrf-blocked-hosts-file", file.toString(),
+                    "https://rdap.example.com/domain/test.example");
+
+            assertThat(tool.getSsrfBlockedHosts())
+                    .containsExactly("icann.org", "*.icann.org", "*.svc.cluster.local");
+        } finally {
+            Files.deleteIfExists(file);
+        }
+    }
+
+    @Test
+    public void getSsrfBlockedHosts_defaultIsEmpty() {
+        assertThat(new RdapConformanceTool().getSsrfBlockedHosts()).isEmpty();
+    }
+
     // ---------- validateWithoutNetwork ----------
 
     @Test

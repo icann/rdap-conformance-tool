@@ -39,7 +39,7 @@ Where applicable, multiple RFC sections and profile requirements are referenced 
 - `-13006`: Invalid redirect test (2024 profile) [RFC 7480 Section 5.2, RDAP Response Profile 2024] {ResponseValidationTestInvalidRedirect_2024.java}
 - `-13013`: Too many HTTP redirects - "Too many HTTP redirects." [RFC 7480 Section 5.2] {RDAPHttpQuery.java}
 - `-13018`: Mixed HTTP status codes in validation results - "Mixed HTTP status codes found in validation results." [RFC 7480 Section 5] {RDAPValidatorResultsImpl.java, RDAPValidationResultFile.java}
-- `-13007`: Connection failure - "Failed to connect to server." [RFC 7480 Section 5] {RDAPHttpRequest.java}
+- `-13007`: Connection failure - "Failed to connect to server." [RFC 7480 Section 5] {RDAPHttpRequest.java} — also emitted (with HTTP status 0) when SSRF protection refuses the destination, whether by built-in range, configured CIDR or configured hostname/wildcard; the logs identify the rule.
 - `-13008`: TLS handshake failure - "TLS handshake failed." [RFC 7481 Section 3] {RDAPHttpRequest.java}
 - `-13009`: Invalid TLS certificate - "Invalid TLS certificate." [RFC 7481 Section 3] {RDAPHttpRequest.java}
 - `-13010`: Revoked TLS certificate - "Revoked TLS certificate." [RFC 7481 Section 3] {RDAPHttpRequest.java}
