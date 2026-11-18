@@ -845,6 +845,13 @@ public class RDAPHttpRequest {
 
         int port = originalUri.getPort() == -1 ? (originalUri.getScheme().equalsIgnoreCase("https") ? HTTPS_PORT : HTTP_PORT) : originalUri.getPort();
 
+        // Hostname blocklist is evaluated before any DNS lookup: a blocked name must not even
+        // be resolved. Address-based checks follow once the remote address is known.
+        if (qctx.isSsrfBlockedHostname(originalUri.getHost())) {
+            logger.debug("SSRF: refusing to resolve blocklisted hostname {}", originalUri.getHost());
+            return ssrfBlockedResponse(qctx, tracker, trackingId, originalUri, canRecordError);
+        }
+
         if (qctx.getDnsResolver().hasNoAddresses(host)) {
             logger.debug("No IP address found for host: " + host);
             tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
@@ -866,13 +873,7 @@ public class RDAPHttpRequest {
         // SSRF gate runs as soon as the remote address is known, independent of the local
         // bind address, so a blocked target is always reported as blocked.
         if (qctx.isSsrfBlockedConnection(originalUri.getHost(), remoteAddress)) {
-            if (canRecordError) {
-                qctx.addError(ZERO, -13007, "no response available", "Failed to connect to server.");
-            }
-            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
-            SimpleHttpResponse resp = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
-            resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
-            return resp;
+            return ssrfBlockedResponse(qctx, tracker, trackingId, originalUri, canRecordError);
         }
 
         InetAddress localBindIp = (protocol == NetworkProtocol.IPv6)
@@ -979,6 +980,23 @@ public class RDAPHttpRequest {
         // If all retries are exhausted
         tracker.completeTrackingById(trackingId, HTTP_TOO_MANY_REQUESTS, ConnectionStatus.TOO_MANY_REQUESTS);
         return new SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[ZERO]);
+    }
+
+    /**
+     * Builds the synthetic "connection refused by SSRF protection" response: -13007 is recorded
+     * (when allowed), the tracker is closed as {@link ConnectionStatus#UNKNOWN_HOST} and a
+     * status-0 response is returned so callers treat it like any other failed connection.
+     */
+    private static SimpleHttpResponse ssrfBlockedResponse(QueryContext qctx, ConnectionTracker tracker,
+                                                          String trackingId, URI originalUri,
+                                                          boolean canRecordError) {
+        if (canRecordError) {
+            qctx.addError(ZERO, -13007, "no response available", "Failed to connect to server.");
+        }
+        tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
+        SimpleHttpResponse resp = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+        resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
+        return resp;
     }
 
     /**

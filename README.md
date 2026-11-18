@@ -101,8 +101,30 @@ Results are written to `./results/results-<timestamp>.json`; datasets are cached
 
 Most-used options: `-c/--config` (required), `--timeout` (20 s), `--maximum-redirects` (3),
 `--use-local-datasets`, `--additional-conformance-queries`, `--no-ipv4-queries`,
-`--no-ipv6-queries`, `--dns-resolver <ip>`, `--ssrf-allowed-hosts`, `--ssrf-blocked-cidrs-file`, `--thin`,
-`--logging CLI|INFO|DEBUG|ERROR|VERBOSE`, `-v`.
+`--no-ipv6-queries`, `--dns-resolver <ip>`, `--ssrf-allowed-hosts`, `--ssrf-blocked-cidrs-file`,
+`--ssrf-blocked-hosts-file`, `--thin`, `--logging CLI|INFO|DEBUG|ERROR|VERBOSE`, `-v`.
+
+#### SSRF blocklists (operators / embedded deployments)
+
+Private, loopback, link-local and ULA destinations are always refused, on the first request
+and on every redirect hop. Operators can extend that denylist; both lists are also read from
+environment variables so embedding applications (e.g. `webrdapct`) get them without code changes:
+
+| What | CLI (hidden) | Environment variable | Entry format |
+|------|--------------|----------------------|--------------|
+| Address ranges | `--ssrf-blocked-cidrs-file FILE` | `RDAPCT_SSRF_BLOCKED_CIDRS_FILE` | one CIDR / IP per line |
+| Hostnames | `--ssrf-blocked-hosts-file FILE` | `RDAPCT_SSRF_BLOCKED_HOSTS_FILE` | `icann.org` or `*.icann.org` per line |
+
+Files: one entry per line, blank lines and `#` comments ignored. A hostname entry is either an
+exact name or a leading wildcard `*.suffix`, which matches subdomains at any depth
+(`a.icann.org`, `a.b.icann.org`) but **not** the apex — add `icann.org` as a separate line if
+the apex must be blocked too. Matching is case-insensitive, ignores a trailing dot, is done
+on label boundaries (`*.icann.org` matches neither `evilicann.org` nor `icann.org.evil.com`)
+and compares IDNs in punycode form. IP addresses belong in the CIDR file, not the hosts file.
+Hostnames are checked **before** DNS resolution, so a blocked name is never even looked up.
+Precedence: `--ssrf-allowed-hosts` > blocked hostnames > blocked CIDRs > built-in ranges.
+If an environment variable is set and its file is missing or malformed the tool refuses to
+start (fail-closed); when unset, behaviour is unchanged.
 
 ### Run with Docker
 

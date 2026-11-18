@@ -402,6 +402,8 @@ public class RDAPHttpQuery implements RDAPQuery {
      *   <li><strong>Cloud metadata endpoints:</strong> {@code 169.254.169.254}</li>
      *   <li><strong>Configured CIDR ranges:</strong> see
      *       {@link RDAPValidatorConfiguration#getSsrfBlockedCidrs()}</li>
+     *   <li><strong>Configured hostnames / wildcards:</strong> see
+     *       {@link RDAPValidatorConfiguration#getSsrfBlockedHosts()} (checked before DNS)</li>
      *   <li><strong>Unresolvable hostnames:</strong> any host that fails DNS resolution</li>
      * </ul>
      *
@@ -438,6 +440,12 @@ public class RDAPHttpQuery implements RDAPQuery {
                 "127.0.0.1".equals(normalizedHost) ||
                 "0:0:0:0:0:0:0:1".equals(normalizedHost) || // ::1 normalized
                 "0.0.0.0".equals(normalizedHost)) {
+            return true;
+        }
+
+        // Hostname blocklist (allowlist-aware) — also before DNS: a blocked name is never resolved
+        if (queryContext.isSsrfBlockedHostname(host)) {
+            logger.debug("SSRF: redirect to blocklisted hostname {} refused", host);
             return true;
         }
 

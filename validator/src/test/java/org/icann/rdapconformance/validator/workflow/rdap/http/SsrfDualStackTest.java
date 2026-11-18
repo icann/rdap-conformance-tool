@@ -289,6 +289,130 @@ public class SsrfDualStackTest {
     }
 
     // -------------------------------------------------------------------------
+    // Hostname blocklist
+    // -------------------------------------------------------------------------
+
+    /**
+     * A hostname covered by a configured wildcard is refused BEFORE DNS: the resolver knows
+     * nothing about the host, yet the result is the SSRF block (-13007), not a plain
+     * "no address" UNKNOWN_HOST without error code.
+     */
+    @Test
+    public void ssrf_BlockedHostnameWildcard_IsBlockedBeforeDns_EmitsError() throws Exception {
+        URI uri = URI.create("http://rdap." + TEST_HOST + ":" + wireMockServer.port() + REQUEST_PATH);
+        doReturn(uri).when(config).getUri();
+
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPDatasetServiceMock datasetService = new RDAPDatasetServiceMock();
+        datasetService.download(true);
+
+        QueryContext qctx = QueryContext.forTesting("", results, config, datasetService);
+        qctx.setSsrfProtectionEnabled(true);
+        qctx.setStackToV4();
+        qctx.setSsrfBlockedHosts(List.of("*." + TEST_HOST));
+
+        // Resolver deliberately has NO entry for the host: a DNS lookup would yield "no address".
+        injectDnsResolver(qctx, buildFakeDnsResolver("unrelated.example", null, null));
+
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(qctx, uri, 5, "GET", false, true);
+        RDAPHttpRequest.SimpleHttpResponse simple = (RDAPHttpRequest.SimpleHttpResponse) response;
+
+        assertThat(simple.statusCode()).isEqualTo(0);
+        assertThat(simple.getConnectionStatusCode()).isEqualTo(ConnectionStatus.UNKNOWN_HOST);
+        assertThat(results.getAll())
+                .as("hostname block must be reported as the SSRF -13007 error")
+                .anyMatch(r -> r.getCode() == -13007);
+    }
+
+    /** The wildcard does not cover the apex; the apex resolves normally (public IP, not blocked). */
+    @Test
+    public void ssrf_BlockedHostnameWildcard_ApexIsNotBlocked() throws Exception {
+        URI uri = URI.create("http://" + TEST_HOST + ":" + wireMockServer.port() + REQUEST_PATH);
+        doReturn(uri).when(config).getUri();
+
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPDatasetServiceMock datasetService = new RDAPDatasetServiceMock();
+        datasetService.download(true);
+
+        QueryContext qctx = QueryContext.forTesting("", results, config, datasetService);
+        qctx.setSsrfProtectionEnabled(true);
+        qctx.setStackToV4();
+        qctx.setSsrfBlockedHosts(List.of("*." + TEST_HOST));
+
+        injectDnsResolver(qctx, buildFakeDnsResolver(TEST_HOST, InetAddress.getByName("192.0.2.10"), null));
+
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(qctx, uri, 5, "GET", false, true);
+        RDAPHttpRequest.SimpleHttpResponse simple = (RDAPHttpRequest.SimpleHttpResponse) response;
+
+        assertThat(simple.getConnectionStatusCode()).isNotEqualTo(ConnectionStatus.UNKNOWN_HOST);
+        assertThat(results.getAll()).noneMatch(r -> r.getCode() == -13007);
+    }
+
+    /** --ssrf-allowed-hosts wins over the hostname blocklist (QA WireMock under *.icann.org). */
+    @Test
+    public void ssrf_BlockedHostnameWildcard_AllowlistedHost_IsNotBlocked() throws Exception {
+        String host = "ts-wire-mock." + TEST_HOST;
+        URI uri = URI.create("http://" + host + ":" + wireMockServer.port() + REQUEST_PATH);
+        doReturn(uri).when(config).getUri();
+
+        RDAPValidatorResults results = new RDAPValidatorResultsImpl();
+        RDAPDatasetServiceMock datasetService = new RDAPDatasetServiceMock();
+        datasetService.download(true);
+
+        QueryContext qctx = QueryContext.forTesting("", results, config, datasetService);
+        qctx.setSsrfProtectionEnabled(true);
+        qctx.setStackToV4();
+        qctx.setSsrfBlockedHosts(List.of("*." + TEST_HOST));
+        qctx.addSsrfAllowedHost(host.toUpperCase());
+
+        injectDnsResolver(qctx, buildFakeDnsResolver(host, InetAddress.getByName("192.0.2.10"), null));
+
+        HttpResponse<String> response = RDAPHttpRequest.makeRequest(qctx, uri, 5, "GET", false, true);
+        RDAPHttpRequest.SimpleHttpResponse simple = (RDAPHttpRequest.SimpleHttpResponse) response;
+
+        assertThat(simple.getConnectionStatusCode()).isNotEqualTo(ConnectionStatus.UNKNOWN_HOST);
+        assertThat(results.getAll()).noneMatch(r -> r.getCode() == -13007);
+    }
+
+    /** Hostname policy is a no-op when SSRF protection is off (plain CLI behaviour unchanged). */
+    @Test
+    public void isSsrfBlockedHostname_ProtectionDisabled_NeverBlocks() {
+        doReturn(URI.create("http://example.com/domain/test.example")).when(config).getUri();
+        QueryContext qctx = QueryContext.forTesting("", new RDAPValidatorResultsImpl(), config,
+                new RDAPDatasetServiceMock());
+        qctx.setSsrfBlockedHosts(List.of("*.example.com", "example.com"));
+
+        qctx.setSsrfProtectionEnabled(false);
+        assertThat(qctx.isSsrfBlockedHostname("www.example.com")).isFalse();
+
+        qctx.setSsrfProtectionEnabled(true);
+        assertThat(qctx.isSsrfBlockedHostname("www.example.com")).isTrue();
+        assertThat(qctx.isSsrfBlockedHostname("example.com")).isTrue();
+        assertThat(qctx.isSsrfBlockedHostname("notexample.com")).isFalse();
+        assertThat(qctx.isSsrfBlockedHostname("192.0.2.1")).isFalse();
+    }
+
+    /** Precedence inside the single policy method: allowlist > hostname > CIDR. */
+    @Test
+    public void isSsrfBlockedConnection_HostnameBlocklist_RespectsAllowlistPrecedence() throws Exception {
+        doReturn(URI.create("http://example.com/domain/test.example")).when(config).getUri();
+        QueryContext qctx = QueryContext.forTesting("", new RDAPValidatorResultsImpl(), config,
+                new RDAPDatasetServiceMock());
+        qctx.setSsrfProtectionEnabled(true);
+        qctx.setSsrfBlockedHosts(List.of("*.example.com"));
+        InetAddress publicIp = InetAddress.getByName("198.51.100.7");
+
+        assertThat(qctx.isSsrfBlockedConnection("rdap.example.com", publicIp))
+                .as("public IP but blocklisted name").isTrue();
+        assertThat(qctx.isSsrfBlockedConnection("example.com", publicIp))
+                .as("apex not covered").isFalse();
+
+        qctx.addSsrfAllowedHost("rdap.example.com");
+        assertThat(qctx.isSsrfBlockedConnection("rdap.example.com", publicIp))
+                .as("allowlist wins over hostname blocklist").isFalse();
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

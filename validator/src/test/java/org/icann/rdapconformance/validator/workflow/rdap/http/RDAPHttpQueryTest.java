@@ -1318,6 +1318,73 @@ public class RDAPHttpQueryTest extends HttpTestingUtils {
      * Allowlist entries are stored as hostnames; the redirect gate must honour them by name
      * even when every address the name resolves to is private or inside a blocked CIDR.
      */
+    /**
+     * Redirect to a hostname on the hostname blocklist is refused even though the name resolves
+     * to an address that is otherwise allowed; with the same name allowlisted it is followed
+     * (allowlist > hostname blocklist).
+     */
+    @Test
+    public void test_RedirectToBlocklistedHostname_IsBlocked_UnlessAllowlisted() throws Exception {
+        String localName = java.net.InetAddress.getLocalHost().getHostName();
+        boolean resolvable;
+        try {
+            resolvable = java.net.InetAddress.getAllByName(localName).length > 0;
+        } catch (java.net.UnknownHostException e) {
+            resolvable = false;
+        }
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                !"localhost".equalsIgnoreCase(localName) && resolvable,
+                "No usable local hostname for this test");
+
+        URI uri1 = URI.create("http://external.example.com/domain/test.example");
+        URI blockedUri = URI.create("http://" + localName + "/domain/test.example");
+
+        doReturn(uri1).when(config).getUri();
+        rdapHttpQuery.ssrfProtectionEnabled = true;
+        queryContext.setSsrfProtectionEnabled(true); // hostname policy lives in the context
+        // Let every resolved address through so only the hostname rule can block the hop
+        for (java.net.InetAddress a : java.net.InetAddress.getAllByName(localName)) {
+            queryContext.addSsrfAllowedHost(a.getHostAddress());
+        }
+        queryContext.setSsrfBlockedHosts(List.of(localName));
+
+        RDAPHttpRequest.SimpleHttpResponse response1 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response1.statusCode()).thenReturn(REDIRECT);
+        when(response1.body()).thenReturn("");
+        when(response1.uri()).thenReturn(uri1);
+        when(response1.headers()).thenReturn(
+                HttpHeaders.of(Map.of(LOCATION, List.of(blockedUri.toString())), (k, v) -> true));
+        when(response1.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        RDAPHttpRequest.SimpleHttpResponse response2 = mock(RDAPHttpRequest.SimpleHttpResponse.class);
+        when(response2.statusCode()).thenReturn(200);
+        when(response2.body()).thenReturn(RDAP_RESPONSE);
+        when(response2.uri()).thenReturn(blockedUri);
+        when(response2.headers()).thenReturn(
+                HttpHeaders.of(Map.of("Content-Type", List.of("application/rdap+json")), (k, v) -> true));
+        when(response2.getConnectionStatusCode()).thenReturn(ConnectionStatus.SUCCESS);
+
+        try (MockedStatic<RDAPHttpRequest> mockedStatic = mockStatic(RDAPHttpRequest.class)) {
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(uri1), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response1);
+            mockedStatic.when(() -> RDAPHttpRequest.makeRequest(
+                            any(QueryContext.class), eq(blockedUri), anyInt(), eq("GET"), eq(true)))
+                    .thenReturn(response2);
+
+            queryContext.getResults().clear();
+            rdapHttpQuery.run();
+            assertThat(rdapHttpQuery.getRedirects())
+                    .as("hop to blocklisted hostname must not be followed").isEmpty();
+
+            // Same name allowlisted: the hop is followed again
+            queryContext.addSsrfAllowedHost(localName);
+            queryContext.getResults().clear();
+            rdapHttpQuery.run();
+            assertThat(rdapHttpQuery.getRedirects()).containsExactly(blockedUri);
+        }
+    }
+
     @Test
     public void test_RedirectToAllowlistedHostname_IsNotBlocked_EvenIfResolvedIpIsBlocked() throws Exception {
         String localName = java.net.InetAddress.getLocalHost().getHostName();

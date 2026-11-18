@@ -118,6 +118,27 @@ public interface RDAPValidatorConfiguration {
   }
 
   /**
+   * Hostnames that SSRF protection must refuse to contact, regardless of the address they
+   * resolve to. This is the DNS-name counterpart of {@link #getSsrfBlockedCidrs()}.
+   *
+   * <p>Entries are exact names ({@code icann.org}) or leading wildcards ({@code *.icann.org}).
+   * A wildcard covers subdomains at any depth but not the apex; add the apex separately.
+   * Matching is case-insensitive, IDN-aware and on label boundaries. IP literals are rejected
+   * here (use {@link #getSsrfBlockedCidrs()}). The check runs before DNS resolution on the
+   * initial target, on every redirect destination and on TLS probes.
+   * {@link #getSsrfAllowedHosts()} takes precedence.</p>
+   *
+   * <p>In addition to this list, {@link org.icann.rdapconformance.validator.SsrfHostBlocklist#HOSTS_FILE_ENV}
+   * may name a file to load at runtime.</p>
+   *
+   * @return an unmodifiable list of hostname / wildcard strings; never {@code null}; empty by default
+   * @see org.icann.rdapconformance.validator.SsrfHostBlocklist
+   */
+  default List<String> getSsrfBlockedHosts() {
+    return Collections.emptyList();
+  }
+
+  /**
    * Whether to cleanup dataset files after validation completes.
    * Only applies when using a custom dataset directory.
    * @return true to cleanup datasets after validation, false to keep them

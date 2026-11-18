@@ -86,6 +86,7 @@ public class QueryContext {
 
     // Built-in private ranges plus operator-configured CIDRs that must be treated as internal
     private SsrfBlocklist ssrfBlocklist = SsrfBlocklist.empty();
+    private SsrfHostBlocklist ssrfHostBlocklist = SsrfHostBlocklist.empty();
 
     /**
      * Constructs a new QueryContext with the specified configuration and services.
@@ -150,6 +151,7 @@ public class QueryContext {
 
         config.getSsrfAllowedHosts().forEach(this::addSsrfAllowedHost);
         this.ssrfBlocklist = loadSsrfBlocklist(config);
+        this.ssrfHostBlocklist = loadSsrfHostBlocklist(config);
     }
 
     /**
@@ -621,14 +623,46 @@ public class QueryContext {
     }
 
     /**
+     * Returns the SSRF hostname blocklist (exact names and {@code *.suffix} wildcards).
+     */
+    public SsrfHostBlocklist getSsrfHostBlocklist() {
+        return ssrfHostBlocklist;
+    }
+
+    /**
+     * Hostname half of the SSRF policy, usable <em>before</em> any DNS lookup.
+     *
+     * <p>Returns {@code true} when {@code host} must not be contacted because it matches the
+     * configured hostname blocklist and is not allowlisted. IP literals never match here —
+     * they are judged by {@link #isSsrfBlockedConnection(String, InetAddress)} once resolved.
+     * Always returns {@code false} when SSRF protection is disabled.</p>
+     */
+    public boolean isSsrfBlockedHostname(String host) {
+        if (!ssrfProtectionEnabled || host == null || host.isEmpty()) {
+            return false;
+        }
+        if (ssrfAllowedHosts.contains(host.toLowerCase())) {
+            return false;
+        }
+        if (ssrfHostBlocklist.isBlocked(host)) {
+            logger.debug("SSRF block triggered: hostname {} matches the hostname blocklist", host);
+            logger.warn("Blocked connection to blocklisted hostname: {}", host);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Single SSRF decision point for every outbound socket (HTTP, TLS probes, ...).
      *
      * <p>Returns {@code true} when the connection to {@code remoteAddress} on behalf of
-     * {@code host} must be refused:</p>
+     * {@code host} must be refused. Precedence:</p>
      * <ol>
      *   <li>Allowlist wins: if the lowercase hostname or the remote IP is in
      *       {@link #getSsrfAllowedHosts()} the connection is permitted.</li>
-     *   <li>The remote address is checked against the blocklist (built-in ranges + CIDRs).</li>
+     *   <li>Hostname blocklist ({@link #isSsrfBlockedHostname(String)}).</li>
+     *   <li>The remote address is checked against the address blocklist (configured CIDRs,
+     *       then built-in private ranges).</li>
      *   <li>Cross-record check: every address the host resolves to <em>in the active address
      *       family</em> is checked, so round-robin records cannot be used to slip past the gate.
      *       Only the active family is evaluated so {@code --no-ipv4-queries} /
@@ -643,6 +677,9 @@ public class QueryContext {
         }
         if (isSsrfAllowed(host, remoteAddress)) {
             return false;
+        }
+        if (isSsrfBlockedHostname(host)) {
+            return true;
         }
         if (ssrfBlocklist.isBlocked(remoteAddress)) {
             logger.warn("Blocked connection to internal/private IP: {} (host: {})",
@@ -674,6 +711,16 @@ public class QueryContext {
             }
         }
         return false;
+    }
+
+    /**
+     * Replaces the configured hostname blocklist. Intended for tests and embedding applications
+     * that build the context before the list is known.
+     *
+     * @throws IllegalArgumentException if any entry is not a valid hostname or {@code *.hostname}
+     */
+    public void setSsrfBlockedHosts(Collection<String> hosts) {
+        this.ssrfHostBlocklist = SsrfHostBlocklist.of(hosts);
     }
 
     /**
@@ -710,6 +757,38 @@ public class QueryContext {
         SsrfBlocklist blocklist = SsrfBlocklist.of(entries);
         if (blocklist.size() > 0) {
             logger.info("SSRF protection: {} configured CIDR range(s) treated as internal", blocklist.size());
+        }
+        return blocklist;
+    }
+
+    /**
+     * Builds the hostname blocklist from {@link RDAPValidatorConfiguration#getSsrfBlockedHosts()}
+     * and, if set, the file named by {@link SsrfHostBlocklist#HOSTS_FILE_ENV}. Fails closed like
+     * {@link #loadSsrfBlocklist(RDAPValidatorConfiguration)}.
+     */
+    private static SsrfHostBlocklist loadSsrfHostBlocklist(RDAPValidatorConfiguration config) {
+        return loadSsrfHostBlocklist(config, System.getenv(SsrfHostBlocklist.HOSTS_FILE_ENV));
+    }
+
+    /** @param file value of {@link SsrfHostBlocklist#HOSTS_FILE_ENV}; {@code null}/blank when unset. */
+    static SsrfHostBlocklist loadSsrfHostBlocklist(RDAPValidatorConfiguration config, String file) {
+        List<String> entries = new ArrayList<>();
+        List<String> fromConfig = config.getSsrfBlockedHosts();
+        if (fromConfig != null) {
+            entries.addAll(fromConfig);
+        }
+        if (file != null && !file.isBlank()) {
+            try {
+                entries.addAll(SsrfHostBlocklist.readHostFile(Path.of(file.trim())));
+            } catch (IOException | IllegalArgumentException e) {
+                // Fail closed: a deployment that asked for a blocklist must not run without it
+                throw new IllegalStateException(
+                        "Cannot load SSRF blocked hosts file from " + SsrfHostBlocklist.HOSTS_FILE_ENV + "=" + file, e);
+            }
+        }
+        SsrfHostBlocklist blocklist = SsrfHostBlocklist.of(entries);
+        if (blocklist.size() > 0) {
+            logger.info("SSRF protection: {} configured hostname pattern(s) blocked", blocklist.size());
         }
         return blocklist;
     }
