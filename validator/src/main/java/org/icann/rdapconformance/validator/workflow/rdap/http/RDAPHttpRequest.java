@@ -132,7 +132,6 @@ public class RDAPHttpRequest {
     // IP (AWS/GCP/Azure, RFC 3927 link-local). It is hardcoded intentionally so SSRF
     // protection can BLOCK requests to it. It is never used as a connection target.
     // Sonar S1313: reviewed, safe.
-    public static final String AWS_GATEWAY_IP = "169.254.169.254";
 
     // NOTE: Mutable for testing purposes - allows test timeouts to be reduced from 30 seconds to 1 second
     // This field is not modified in production code, only in test environments
@@ -855,16 +854,33 @@ public class RDAPHttpRequest {
         }
 
         // Use the NetworkProtocol we already got for connection tracking
-        InetAddress localBindIp = (protocol == NetworkProtocol.IPv6)
-            ? getDefaultIPv6Address()
-            : getDefaultIPv4Address();
-
         InetAddress remoteAddress = (protocol == NetworkProtocol.IPv6)
             ? qctx.getDnsResolver().getFirstV6Address(host)
             : qctx.getDnsResolver().getFirstV4Address(host);
 
-        // If remote address or local bind IP is null, treat as unknown host
-        if (remoteAddress == null || localBindIp == null) {
+        if (remoteAddress == null) {
+            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
+            return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+        }
+
+        // SSRF gate runs as soon as the remote address is known, independent of the local
+        // bind address, so a blocked target is always reported as blocked.
+        if (qctx.isSsrfBlockedConnection(originalUri.getHost(), remoteAddress)) {
+            if (canRecordError) {
+                qctx.addError(ZERO, -13007, "no response available", "Failed to connect to server.");
+            }
+            tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
+            SimpleHttpResponse resp = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
+            resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
+            return resp;
+        }
+
+        InetAddress localBindIp = (protocol == NetworkProtocol.IPv6)
+            ? getDefaultIPv6Address()
+            : getDefaultIPv4Address();
+
+        // If local bind IP is null, treat as unknown host
+        if (localBindIp == null) {
             tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
             return new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
         }
@@ -872,41 +888,6 @@ public class RDAPHttpRequest {
         // Special case: if remote is 127.0.0.1, bind to 127.0.0.1
         if (remoteAddress.getHostAddress().equals(LOCAL_IPV4)) {
             localBindIp = InetAddress.getByName(LOCAL_IPV4);
-        }
-
-        if (qctx.isSsrfProtectionEnabled()) {
-            String resolvedIp = remoteAddress.getHostAddress();
-            String resolvedHost = originalUri.getHost();
-
-            // Check allowlist first (for QA/testing environments)
-            boolean isAllowed = qctx.getSsrfAllowedHosts().contains(resolvedIp) ||
-                    qctx.getSsrfAllowedHosts().contains(resolvedHost.toLowerCase());
-
-            if (!isAllowed) {
-                // Check the specific remote address being used
-                boolean directlyBlocked = remoteAddress.isLoopbackAddress() ||
-                        remoteAddress.isSiteLocalAddress() ||
-                        remoteAddress.isLinkLocalAddress() ||
-                        remoteAddress.isAnyLocalAddress() ||
-                        RDAPHttpQuery.isIPv6UniqueLocalAddress(remoteAddress) ||
-                        AWS_GATEWAY_IP.equals(resolvedIp);
-
-                // Cross-family check: if ANY resolved IP for this hostname is private,
-                // block ALL connections to it regardless of which address family is used.
-                // This prevents IPv6 bypass when the same host also has a private IPv4.
-                boolean crossFamilyBlocked = isAnyResolvedAddressPrivate(qctx, resolvedHost);
-
-                if (directlyBlocked || crossFamilyBlocked) {
-                    logger.warn("Blocked connection to internal/private IP: {} (host: {})", resolvedIp, resolvedHost);
-                    if (canRecordError) {
-                        qctx.addError(ZERO, -13007, "no response available", "Failed to connect to server.");
-                    }
-                    tracker.completeTrackingById(trackingId, ZERO, ConnectionStatus.UNKNOWN_HOST);
-                    SimpleHttpResponse resp = new SimpleHttpResponse(trackingId, ZERO, EMPTY_STRING, originalUri, new Header[ZERO]);
-                    resp.setConnectionStatusCode(ConnectionStatus.UNKNOWN_HOST);
-                    return resp;
-                }
-            }
         }
 
         URI ipUri = buildIpUri(originalUri, remoteAddress, port);
@@ -998,51 +979,6 @@ public class RDAPHttpRequest {
         // If all retries are exhausted
         tracker.completeTrackingById(trackingId, HTTP_TOO_MANY_REQUESTS, ConnectionStatus.TOO_MANY_REQUESTS);
         return new SimpleHttpResponse(trackingId, HTTP_TOO_MANY_REQUESTS, EMPTY_STRING, originalUri, new Header[ZERO]);
-    }
-
-    /**
-     * Checks if any resolved address for the active address family of the given hostname
-     * falls into a private/reserved range.
-     *
-     * <p>This check prevents SSRF bypass scenarios where a hostname resolves to a
-     * private address on the currently active protocol (IPv4 or IPv6). Only the
-     * address family matching the active {@link NetworkProtocol} from the
-     * {@link QueryContext} is evaluated — IPv4 rounds check only IPv4 addresses,
-     * IPv6 rounds check only IPv6 addresses.</p>
-     *
-     * <p>This design ensures that {@code --no-ipv4-queries} and {@code --no-ipv6-queries}
-     * flags are respected: a private address on the inactive protocol does not
-     * block connections on the active one.</p>
-     *
-     * @param qctx the QueryContext providing DNS resolver access and active protocol
-     * @param host the hostname to check
-     * @return true if any resolved IP in the active address family is private/reserved,
-     *         false otherwise
-     */
-    private static boolean isAnyResolvedAddressPrivate(QueryContext qctx, String host) {
-        List<InetAddress> allAddresses = new ArrayList<>();
-        NetworkProtocol protocol = qctx.getNetworkProtocol();
-
-        // Only check the address family being used for this round
-        if (protocol == NetworkProtocol.IPv4) {
-            allAddresses.addAll(qctx.getDnsResolver().getAllV4Addresses(host));
-        } else {
-            allAddresses.addAll(qctx.getDnsResolver().getAllV6Addresses(host));
-        }
-
-        for (InetAddress addr : allAddresses) {
-            if (addr.isLoopbackAddress() ||
-                    addr.isSiteLocalAddress() ||
-                    addr.isLinkLocalAddress() ||
-                    addr.isAnyLocalAddress() ||
-                    RDAPHttpQuery.isIPv6UniqueLocalAddress(addr) ||
-                    AWS_GATEWAY_IP.equals(addr.getHostAddress())) {
-                logger.debug("SSRF block triggered for active protocol {}: {} resolves to private address {}",
-                        protocol, host, addr.getHostAddress());
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

@@ -101,7 +101,7 @@ Results are written to `./results/results-<timestamp>.json`; datasets are cached
 
 Most-used options: `-c/--config` (required), `--timeout` (20 s), `--maximum-redirects` (3),
 `--use-local-datasets`, `--additional-conformance-queries`, `--no-ipv4-queries`,
-`--no-ipv6-queries`, `--dns-resolver <ip>`, `--ssrf-allowed-hosts`, `--thin`,
+`--no-ipv6-queries`, `--dns-resolver <ip>`, `--ssrf-allowed-hosts`, `--ssrf-blocked-cidrs-file`, `--thin`,
 `--logging CLI|INFO|DEBUG|ERROR|VERBOSE`, `-v`.
 
 ### Run with Docker

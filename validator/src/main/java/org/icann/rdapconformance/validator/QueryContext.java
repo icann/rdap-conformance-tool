@@ -1,9 +1,15 @@
 package org.icann.rdapconformance.validator;
 
+import inet.ipaddr.IPAddressString;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,6 +25,8 @@ import org.icann.rdapconformance.validator.workflow.rdap.http.RDAPHttpQueryTypeP
 import org.icann.rdapconformance.validator.workflow.rdap.http.HttpClientManager;
 import org.icann.rdapconformance.validator.workflow.rdap.file.RDAPFileQueryTypeProcessor;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * QueryContext serves as the complete "world object" for RDAP validation operations.
@@ -45,6 +53,8 @@ import org.json.JSONObject;
  * </pre>
  */
 public class QueryContext {
+
+    private static final Logger logger = LoggerFactory.getLogger(QueryContext.class);
 
     // IMMUTABLE: Configuration & Services (set once during construction)
     private final String queryId;
@@ -73,6 +83,9 @@ public class QueryContext {
 
     // Set of allowed hosts for SSRF protection (can be configured for testing)
     private Set<String> ssrfAllowedHosts = new HashSet<>();
+
+    // Built-in private ranges plus operator-configured CIDRs that must be treated as internal
+    private SsrfBlocklist ssrfBlocklist = SsrfBlocklist.empty();
 
     /**
      * Constructs a new QueryContext with the specified configuration and services.
@@ -136,6 +149,7 @@ public class QueryContext {
         }
 
         config.getSsrfAllowedHosts().forEach(this::addSsrfAllowedHost);
+        this.ssrfBlocklist = loadSsrfBlocklist(config);
     }
 
     /**
@@ -580,22 +594,124 @@ public class QueryContext {
         if (host == null || host.isBlank()) return;
         String trimmed = host.trim();
 
-        // Try to parse as an IP address and store its canonical form.
-        // This normalizes IPv6 representations so that user-provided values like
-        // "::1", "0:0:0:0:0:0:0:1", "2620:0:2830:270:0:0:0:173", or
-        // "2620:0:2830:270::173" all resolve to the same canonical string
-        // that InetAddress.getHostAddress() will produce at comparison time.
-        try {
-            InetAddress addr = InetAddress.getByName(trimmed);
-            this.ssrfAllowedHosts.add(addr.getHostAddress());
-        } catch (java.net.UnknownHostException e) {
-            // Not a valid IP literal — treat it as a hostname, store lowercase
-            this.ssrfAllowedHosts.add(trimmed.toLowerCase());
+        // Only IP *literals* are canonicalised (so "::1", "0:0:0:0:0:0:0:1" and
+        // "2620:0:2830:270::173" all compare equal to InetAddress.getHostAddress()).
+        // Hostnames are stored as lowercase names and must NOT be resolved here:
+        // resolving would pin a single A/AAAA record and silently miss the others.
+        if (new IPAddressString(trimmed).isIPAddress()) {
+            try {
+                this.ssrfAllowedHosts.add(InetAddress.getByName(trimmed).getHostAddress());
+                return;
+            } catch (java.net.UnknownHostException ignored) {
+                // fall through and store verbatim
+            }
         }
+        this.ssrfAllowedHosts.add(trimmed.toLowerCase());
     }
 
     public Set<String> getSsrfAllowedHosts() {
         return Collections.unmodifiableSet(ssrfAllowedHosts);
+    }
+
+    /**
+     * Returns the SSRF destination blocklist (built-in private ranges plus configured CIDRs).
+     */
+    public SsrfBlocklist getSsrfBlocklist() {
+        return ssrfBlocklist;
+    }
+
+    /**
+     * Single SSRF decision point for every outbound socket (HTTP, TLS probes, ...).
+     *
+     * <p>Returns {@code true} when the connection to {@code remoteAddress} on behalf of
+     * {@code host} must be refused:</p>
+     * <ol>
+     *   <li>Allowlist wins: if the lowercase hostname or the remote IP is in
+     *       {@link #getSsrfAllowedHosts()} the connection is permitted.</li>
+     *   <li>The remote address is checked against the blocklist (built-in ranges + CIDRs).</li>
+     *   <li>Cross-record check: every address the host resolves to <em>in the active address
+     *       family</em> is checked, so round-robin records cannot be used to slip past the gate.
+     *       Only the active family is evaluated so {@code --no-ipv4-queries} /
+     *       {@code --no-ipv6-queries} keep their meaning.</li>
+     * </ol>
+     *
+     * <p>Always returns {@code false} when SSRF protection is disabled.</p>
+     */
+    public boolean isSsrfBlockedConnection(String host, InetAddress remoteAddress) {
+        if (!ssrfProtectionEnabled || remoteAddress == null) {
+            return false;
+        }
+        if (isSsrfAllowed(host, remoteAddress)) {
+            return false;
+        }
+        if (ssrfBlocklist.isBlocked(remoteAddress)) {
+            logger.warn("Blocked connection to internal/private IP: {} (host: {})",
+                    remoteAddress.getHostAddress(), host);
+            return true;
+        }
+        return hasBlockedSiblingAddress(host);
+    }
+
+    private boolean isSsrfAllowed(String host, InetAddress remoteAddress) {
+        return (host != null && ssrfAllowedHosts.contains(host.toLowerCase()))
+                || ssrfAllowedHosts.contains(remoteAddress.getHostAddress());
+    }
+
+    /** True if any other record of {@code host} in the active address family is blocked. */
+    private boolean hasBlockedSiblingAddress(String host) {
+        if (host == null || host.isEmpty()) {
+            return false;
+        }
+        NetworkProtocol protocol = getNetworkProtocol();
+        List<InetAddress> siblings = protocol == NetworkProtocol.IPv6
+                ? getDnsResolver().getAllV6Addresses(host)
+                : getDnsResolver().getAllV4Addresses(host);
+        for (InetAddress addr : siblings) {
+            if (ssrfBlocklist.isBlocked(addr)) {
+                logger.warn("Blocked connection to {}: host also resolves to blocked address {} ({})",
+                        host, addr.getHostAddress(), protocol);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Replaces the configured CIDR blocklist. Intended for tests and embedding applications
+     * that build the context before the CIDR list is known.
+     *
+     * @throws IllegalArgumentException if any entry is not a valid IP or CIDR
+     */
+    public void setSsrfBlockedCidrs(Collection<String> cidrs) {
+        this.ssrfBlocklist = SsrfBlocklist.of(cidrs);
+    }
+
+    /**
+     * Builds the blocklist from {@link RDAPValidatorConfiguration#getSsrfBlockedCidrs()} and,
+     * if set, the file named by {@link SsrfBlocklist#CIDR_FILE_ENV}. The env var lets a
+     * deployment supply the list without changes to the embedding application.
+     */
+    private static SsrfBlocklist loadSsrfBlocklist(RDAPValidatorConfiguration config) {
+        List<String> entries = new ArrayList<>();
+        List<String> fromConfig = config.getSsrfBlockedCidrs();
+        if (fromConfig != null) {
+            entries.addAll(fromConfig);
+        }
+        String file = System.getenv(SsrfBlocklist.CIDR_FILE_ENV);
+        if (file != null && !file.isBlank()) {
+            try {
+                entries.addAll(SsrfBlocklist.readCidrFile(Path.of(file.trim())));
+            } catch (IOException | IllegalArgumentException e) {
+                // Fail closed: a deployment that asked for a blocklist must not run without it
+                throw new IllegalStateException(
+                        "Cannot load SSRF blocked CIDR file from " + SsrfBlocklist.CIDR_FILE_ENV + "=" + file, e);
+            }
+        }
+        SsrfBlocklist blocklist = SsrfBlocklist.of(entries);
+        if (blocklist.size() > 0) {
+            logger.info("SSRF protection: {} configured CIDR range(s) treated as internal", blocklist.size());
+        }
+        return blocklist;
     }
 
     @Override

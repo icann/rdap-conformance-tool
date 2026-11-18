@@ -2,6 +2,7 @@ package org.icann.rdapconformance.validator.workflow.rdap.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import inet.ipaddr.IPAddressString;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -13,6 +14,7 @@ import java.util.*;
 import org.icann.rdapconformance.validator.ConformanceError;
 import org.icann.rdapconformance.validator.ConnectionStatus;
 import org.icann.rdapconformance.validator.ConnectionTracker;
+import org.icann.rdapconformance.validator.SsrfBlocklist;
 import org.icann.rdapconformance.validator.configuration.RDAPValidatorConfiguration;
 import org.icann.rdapconformance.validator.workflow.rdap.*;
 
@@ -377,13 +379,7 @@ public class RDAPHttpQuery implements RDAPQuery {
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc4193">RFC 4193 - Unique Local IPv6 Unicast Addresses</a>
      */
     static boolean isIPv6UniqueLocalAddress(InetAddress addr) {
-        if (addr instanceof java.net.Inet6Address) {
-            byte[] bytes = addr.getAddress();
-            // fc00::/7 — the first 7 bits are 1111110x, so the first byte
-            // masked with 0xFE must equal 0xFC (matches 0xFC and 0xFD)
-            return (bytes[0] & 0xFE) == 0xFC;
-        }
-        return false;
+        return SsrfBlocklist.isIPv6UniqueLocalAddress(addr);
     }
 
 
@@ -404,6 +400,8 @@ public class RDAPHttpQuery implements RDAPQuery {
      *       {@code 192.168.0.0/16}</li>
      *   <li><strong>Link-local addresses:</strong> {@code 169.254.0.0/16}, {@code fe80::/10}</li>
      *   <li><strong>Cloud metadata endpoints:</strong> {@code 169.254.169.254}</li>
+     *   <li><strong>Configured CIDR ranges:</strong> see
+     *       {@link RDAPValidatorConfiguration#getSsrfBlockedCidrs()}</li>
      *   <li><strong>Unresolvable hostnames:</strong> any host that fails DNS resolution</li>
      * </ul>
      *
@@ -422,20 +420,21 @@ public class RDAPHttpQuery implements RDAPQuery {
         String host = uri.getHost();
         if (host == null) return true;
 
-        // Normalize host: if it's an IP literal (v4 or v6), resolve to canonical form
-        // so that allowlist comparison matches the same canonical form stored at insertion time.
-        // e.g., uri.getHost() on "[2620:0:2830:270::173]" yields "2620:0:2830:270::173"
-        // which must be normalized to "2620:0:2830:270:0:0:0:173" to match the stored entry.
-        String normalizedHost;
-        try {
-            InetAddress parsed = InetAddress.getByName(host);
-            normalizedHost = parsed.getHostAddress(); // canonical form
-        } catch (UnknownHostException e) {
-            normalizedHost = host.toLowerCase(); // treat as hostname, lowercase
+        // IP literals are canonicalised to InetAddress.getHostAddress() form so they compare
+        // equal to allowlist entries ("[2620:0:2830:270::173]" -> "2620:0:2830:270:0:0:0:173").
+        // Hostnames are kept as lowercase names — no DNS here, that happens below.
+        String hostLower = host.toLowerCase();
+        String normalizedHost = hostLower;
+        if (new IPAddressString(host).isIPAddress()) {
+            try {
+                normalizedHost = InetAddress.getByName(host).getHostAddress();
+            } catch (UnknownHostException ignored) {
+                // keep lowercase literal
+            }
         }
 
         // Block well-known localhost literals before DNS resolution
-        if ("localhost".equalsIgnoreCase(host) ||
+        if ("localhost".equals(hostLower) ||
                 "127.0.0.1".equals(normalizedHost) ||
                 "0:0:0:0:0:0:0:1".equals(normalizedHost) || // ::1 normalized
                 "0.0.0.0".equals(normalizedHost)) {
@@ -449,25 +448,20 @@ public class RDAPHttpQuery implements RDAPQuery {
             return true;
         }
 
-        // PASS 1: allowlist check — use normalizedHost so IPv6 literals match canonical stored form
-        if (queryContext.getSsrfAllowedHosts().contains(normalizedHost)) {
+        // PASS 1: allowlist check — by hostname, by literal, or by any resolved address
+        Set<String> allowed = queryContext.getSsrfAllowedHosts();
+        if (allowed.contains(hostLower) || allowed.contains(normalizedHost)) {
             return false;
         }
         for (InetAddress addr : addresses) {
-            if (queryContext.getSsrfAllowedHosts().contains(addr.getHostAddress())) {
+            if (allowed.contains(addr.getHostAddress())) {
                 return false;
             }
         }
 
-        // PASS 2: block if any address is private/reserved
+        // PASS 2: block if any address is private/reserved or inside a configured CIDR
         for (InetAddress addr : addresses) {
-            String ip = addr.getHostAddress();
-            if (addr.isLoopbackAddress() ||
-                    addr.isSiteLocalAddress() ||
-                    addr.isLinkLocalAddress() ||
-                    addr.isAnyLocalAddress() ||
-                    isIPv6UniqueLocalAddress(addr) ||
-                    RDAPHttpRequest.AWS_GATEWAY_IP.equals(ip)) {
+            if (queryContext.getSsrfBlocklist().isBlocked(addr)) {
                 return true;
             }
         }
